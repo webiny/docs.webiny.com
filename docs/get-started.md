@@ -12,11 +12,13 @@ sidebar_label: Get Started
 
 If you're interested in learning the basics of Webiny CMS, like building and managing pages, page categories and the general concepts of the page editor, start with this section.
 
-[Click here to get started with CMS Guide](/docs/cms-guides/cms-overview)
+[Click here to get started with CMS Guide](/docs/cms-guides/get-started-overview)
 
 ### 2. Developer Tutorials
 
 If you're a developer, interested in learning how to create your own theme, plugins, or even a custom application, follow along this guide.
+
+[Click here to get started with Developer Tutorials](/docs/developer-tutorials/developer-get-started)
 
 ### 3. Designer Tutorials
 
