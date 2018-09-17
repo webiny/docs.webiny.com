@@ -1,9 +1,7 @@
 ---
 id: cms-overview
-title: cms-overview
-sidebar_label: WIP-cms-overview
+title: overview
+sidebar_label: Overview
 ---
 
-
-WORK IN PROGRESS
-        
+Something goes here

@@ -9,7 +9,7 @@
 // site configuration options.
 
 const siteConfig = {
-  title: "Webiny", // Title for your website.
+  title: "Webiny Documentation", // Title for your website.
   tagline: "Serverless CMS",
   subTagline: "Powered by Node.Js, React and GraphQL",
   url: "https://www.webiny.com", // Your website URL
@@ -28,16 +28,16 @@ const siteConfig = {
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
+    { doc: "get-started", label: "Get Started" },
     { doc: "cms-guides/cms-overview", label: "CMS Guides" },
     {
       doc: "developer-tutorials/installing-locally",
       label: "Developer Tutorials"
     },
     {
-      doc: "reference-manual/reference-manual-overview",
-      label: "Reference Manual"
-    },
-    { doc: "other/faq", label: "Legal & Other" }
+      doc: "designer-tutorials/designer-get-started",
+      label: "Designer Tutorials"
+    }
   ],
 
   /* path to images for header/footer */
