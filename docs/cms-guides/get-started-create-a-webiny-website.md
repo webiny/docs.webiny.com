@@ -18,11 +18,13 @@ Site Manager is a place where you manage all your websites. You can have just on
 
 ## 2. Create your website
 
-First time you enter Site Manager, where won't see any websites you can manage, so, let's create the first one.  You should see a big green button on the page, if you click it, it will bring up the new website creation dialog. The form asks for pretty basic information, but one of the fields that's important to understand is the "hostname".
+First time you enter Site Manager, where won't see any websites, so, let's create one.  
+
+You should see a big green button on the page, if you click it, it will bring up the new website creation dialog. The form asks for pretty basic information, but one of the fields that's important to understand is the "hostname".
 
 > **What is a: Hostname or a Domain Name** This is the name of your domain. Few examples of a hostname are: www.domain.com or site.domain.com.
 
-> **NOTE**: Webiny does not support top level domains, without the subdomain. Meaning domains like: domain.com, example.com, without the "www" in front are not supported.
+> **NOTE**: Webiny does not support top level domains. Meaning domains like: domain.com, example.com, without the "www" in front are not supported.
 
 ## 3. Access your website
 

@@ -4,7 +4,7 @@ title: Point your domain to Webiny
 sidebar_label: Point your domain to Webiny
 ---
 
-Once the website is created, you can access it via a temporary domain name. To connect your domain name, on the Site Manager dashboard, click the "Connect your domain name" button. You'll find it on the right hand side below the usage stats.
+To connect your custom domain, login to Site Manager, click the "Connect your domain name" button. You'll find it on the right hand side below the usage stats.
 
 You'll be presented with a CNAME record. 
 
@@ -29,7 +29,7 @@ Now that you have a CNAME, you need to:
 Once the domain name is propagated, you'll be able to view your new website with SSL on your custom domain. If you want to access the administration, you can do that via Site Manager, or navigating to https://my-custom-domain.com/admin.
 
 
-#### Additional Help
+#### Additional help
 Here are some additional guides for specific DNS registrars that might help you with configuring your CNAME record:
 
 1. [1and1 Web Hosting](https://www.1and1.com/help/domains/configuring-cname-records-for-subdomains/configuring-a-cname-for-an-existing-subdomain/)
