@@ -1,7 +1,7 @@
 ---
 id: get-started-create-a-webiny-website
-title: Create a Website
-sidebar_label: Create a Website
+title: Create a website
+sidebar_label: Create a website
 ---
 
 There are many ways in how you can install Webiny and create your first website. By far, the simplest way is creating a Webiny Cloud account. This tutorial will cover that step.
@@ -31,6 +31,6 @@ Go ahead and fill out the form and when ready press the submit button.
 
 ## 3. Access your website
 
-Once the site is created, it will be accessible under the temp domain name, until you point your custom domain to Webiny. The details regarding custom domains are covered in the next step.
+Once the site is created, it will be accessible under the temp domain name, until you point your custom domain to Webiny. The details regarding custom domains are covered in later steps.
 
 At the moment you can access your domain name by clicking the three dots next to the domain in Site Manager and selecting the "Administration" option. Or you can just navigate to your temp domain name "/admin", for example: https://my-side.z1.webiny.com/admin

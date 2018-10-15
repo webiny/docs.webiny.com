@@ -30,7 +30,7 @@ If you're a designer, and want to know how to style Webiny to fit certain visual
 
 We highly encourage everyone to join our [Community Forum](https://community.webiny.com/) where you can create posts, ask for feedback and comment on other activities.
 
-> Our forum nurtures the culture of inclusion and murial respect. Please make sure you follow the basic principles of being a nice person, and you'll fit right in :)
+> Our forum nurtures the culture of inclusion and mutual respect. Please make sure you follow the basic principles of being a nice person, and you'll fit right in :)
 
 ## Questions?
 

@@ -1,10 +1,10 @@
 ---
 id: get-started-webiny-administration
-title: Webiny Administration
-sidebar_label: Webiny Administration
+title: Webiny administration
+sidebar_label: Webiny administration
 ---
 
-Webiny Administration, or just "admin" for short, is the control system behind your website. This is the place where you create and manage your content, as well as create additional users and give them access to your administration.
+Webiny administration, or just "admin" for short, is the control system behind your website. This is the place where you create and manage your content, as well as create additional users and give them access to your administration.
 
 Each website you have has it's own administration, and all the pages and users that you create under one website are only part of that particular website, they are not shared across other websites you might host on Webiny.
 
@@ -15,9 +15,9 @@ sections, click the menu button on the top left corner.
 
 The **Content** section is where you are managing your content, in terms of your pages, as well as page categories.
 
-The **Security** section is where you can see a list of all the users and their permissions to the particula website. This is the place where you can create additional users and give them access.
+The **Security** section is where you can see a list of all the users and their permissions to the particular website. This is the place where you can create additional users and give them access.
 
-> **Tip**: Once you're done with the "Get Started" section of this guide, we encourage you to explore the other sections in the left menu. They do a deeper dive into the specific sections or Webiny administration. There are many features that you will find benefitial and will have a positive impact on your experience in building your website.
+> **Tip**: Once you're done with the "Get Started" section of this guide, we encourage you to explore the other sections in the left menu. They do a deeper dive into the specific sections or Webiny administration. There are many features that you will find beneficial and will have a positive impact on your experience in building your website.
 
 ## Search bar
 
