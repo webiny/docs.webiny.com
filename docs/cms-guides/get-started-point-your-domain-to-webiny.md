@@ -8,7 +8,7 @@ To connect your custom domain, login to Site Manager, click the "Connect your do
 
 You'll be presented with a CNAME record.
 
-> **What is a: CNAME** Every website needs to be hosted on a certain infrastructure. The way you say that www.example.com should be served from Webiny's infrastructure is via CNAME.
+> **What is a CNAME?** Every website needs to be hosted on a certain infrastructure. The way you say that www.example.com should be served from Webiny's infrastructure is via CNAME.
 
 Now that you have a CNAME, you need to:
 

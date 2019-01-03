@@ -10,14 +10,14 @@ Each website you have has it's own administration, and all the pages and users t
 
 ## Main menu
 
-The administration by default has 2 main section, **Content** and **Security**. Under each section there are several options that you can access. To open up the main menu, and view the
+The administration has several sections, the main ones are **Content** and **Security**. Under each section there are several options that you can access. To open up the main menu, and view the
 sections, click the menu button on the top left corner.
 
 The **Content** section is where you are managing your content, in terms of your pages, as well as page categories.
 
 The **Security** section is where you can see a list of all the users and their permissions to the particular website. This is the place where you can create additional users and give them access.
 
-> **Tip**: Once you're done with the "Get Started" section of this guide, we encourage you to explore the other sections in the left menu. They do a deeper dive into the specific sections or Webiny administration. There are many features that you will find beneficial and will have a positive impact on your experience in building your website.
+> **Tip**: Once you're done with the "Get Started" section of this guide, we encourage you to explore the other sections in the left menu of this page. They do a deeper dive into the specific sections or Webiny administration. There are many features that you will find beneficial and will have a positive impact on your experience in building your website.
 
 ## Search bar
 

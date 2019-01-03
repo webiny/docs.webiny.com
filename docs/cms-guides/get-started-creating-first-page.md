@@ -14,11 +14,11 @@ At this point you should be redirected to the page editor. This is where you bui
 
 ### Page title
 
-When you enter the page editor screen, for a new page, the page is name "Untitled". That title is displayed on the very top of the screen. Click on the name, to rename the page. Feel free to name it anything you want. Even emotions are supported 🎉
+When you enter the page editor screen, for a new page, the page is name "Untitled". That title is displayed on the very top of the screen. Click on the name, to rename the page. Feel free to name it anything you want. Even emojis are supported 🎉.
 
 ### Adding a block
 
-After you've named your page it's time add a first **block**. All content on your page must be placed in a block. To add a block, just click the big green button. A list of blocks will appear. There is a set of predefined blocks, and you can always create your own blocks that you can later reuse across other pages.
+After you've named your page it's time add a first **block**. All content on your page must be placed inside  blocks. To add a block, just click the big green button. A list of blocks will appear. There is a set of predefined blocks, and you can always create your own blocks that you can later reuse across other pages.
 
 > Tip: Blocks are described in great detail in the [Blocks guide](cms-guides/editor-blocks.md).
 
@@ -52,4 +52,4 @@ To publish a page, just press on the orange button in the editor, and your page 
 
 And with this we end the getting started tutorial. The next step is optional, but highly recommended, as it guides you through the steps of adding a custom domain to your side. Using the temp domain is ok for starters, but over time you might want to have a custom domain that is branded to your name or your business.
 
-Besides the custom domain, there are many more articles inside on this website that you will find in the left menu. Have a look, the more articles you master the better your website will become ;)
+Besides the custom domain, there are many more articles on this page that you will find in the left menu. Have a look, the more articles you master the better your website will become ;)

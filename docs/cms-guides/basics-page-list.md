@@ -11,7 +11,7 @@ To see a list of all your pages, under the main menu open Content > Pages.
 ![Webiny Page List - Overview](assets/cms-guides/cms-basic-page-list-overview.png)
 
 1. The left side shows a list of all your pages. You can see the page category, as well as the status, if it's a draft page, or if it has been published. **Note:** In cases where you have multiple page revisions, the list here displays the published revision. If such a revision doesn't exist, the latest revision is shown.
-2. The Right side is where you can preview your page. By default you are placed in the "Page Preview" tab. When previewing a page you will se the page title and the revision that is being displayed. You can switch between the revisions by clicking on the revisions dropdown.
+2. The right side is where you can preview your page. By default you are placed in the "Page Preview" tab. When previewing a page you will se the page title and the revision that is being displayed. You can switch between the revisions by clicking on the revisions dropdown.
 3. To create a new page, click on the green button in the corner.
 
 ## Page revisions
