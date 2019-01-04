@@ -20,6 +20,12 @@ class Footer extends React.Component {
 
   render() {
     return (
+      <React.Fragment>
+        <div className="feedback-box">
+          <h3><strong>👋 Hey there!</strong> - What did you think of this page?</h3>
+          <p>If you have any suggestions or comments on how to improve this page you, for yourself and your peers, please let us know.</p>
+          <a href="https://www.webiny.com/contact-us" target="_blank">Send Feedback </a>
+        </div>
       <footer className="nav-footer" id="footer">
         <section className="sitemap">
           <div>
@@ -95,6 +101,7 @@ class Footer extends React.Component {
         </a>
         <section className="copyright">{this.props.config.copyright}</section>
       </footer>
+      </React.Fragment>
     );
   }
 }

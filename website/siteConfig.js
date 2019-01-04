@@ -41,7 +41,7 @@ const siteConfig = {
   ],
 
   /* path to images for header/footer */
-  headerIcon: "img/webiny-logo.svg",
+  headerIcon: "img/webiny-orange-logo.svg",
   footerIcon: "img/webiny-logo.svg",
   favicon: "img/favicon.ico",
 
