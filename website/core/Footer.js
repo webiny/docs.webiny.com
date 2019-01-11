@@ -47,9 +47,9 @@ class Footer extends React.Component {
               width="120"
             />
             <a href="https://www.webiny.com/" target="_blank">
-              <h3>Get your FREE serverless environment</h3>
+              <h3>Get your serverless environment</h3>
               <p>
-                The quickes and easiest way to get started with Webiny is to register for a free account on Webiny.com, where you can create one or more sites for free.
+                The quickest and easiest way to get started with Webiny is to register for an account on Webiny.com, where you can create one or more websites.
               </p>
             </a>
           </div>
