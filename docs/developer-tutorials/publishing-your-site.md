@@ -3,7 +3,11 @@ id: deploy-local-project
 title: Deploying your project
 sidebar_label: Deploying your project
 ---
+Apps built with Webiny can be deployed anywhere. But that, of course, requires
+some technical knowledge and investment of time to setup and then maintain your
+own infrastructure. That's where Webiny Cloud comes into play.
 
+## Webiny Cloud account
 When you are ready to deploy your shiny new project all you need is
 an account at https://cloud.webiny.com.
 
