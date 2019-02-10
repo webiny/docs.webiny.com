@@ -4,11 +4,11 @@ title: Setting up a local project
 sidebar_label: Setting up a local project
 ---
 
-To setup a local project you will need to use `yarn` and `webiny-cli` package.
-
-> We use `yarn` as our project setup is based on workspaces, which are not yet supported by `npm`.
+> To setup a local project you will need to use `yarn`, as our project setup is based on workspaces which are not yet supported by `npm`.
 
 If you don't have `yarn` already installed, visit [yarnpkg.com](https://yarnpkg.com/en/docs/install) to install it.
+
+## Project setup
 
 Once you have `yarn` up and running, create your empty project by doing:
 ```
@@ -26,7 +26,7 @@ yarn add webiny-cli --dev
 yarn webiny init
 ```
 
-## Project overview
+### Structure overview
 
 Once finished, your project structure is ready and looks like this:
 ```
@@ -57,10 +57,9 @@ development scenario:
 - `theme` - a CMS theme for your `site`
 - `api` - an API that powers both `admin` and `site` apps
 
-## Helper package - `webiny-rewire`
+### `webiny-rewire` helper package
 Since `admin` and `site` packages are essentially `create-react-app`s,
-by default they wouldn't be able to import files from other packages
-in your monorepo, without building them beforehand.
+by default they are unable to import other packages in your monorepo.
 
 So to simplify the development process for Webiny users, we
 decided to use the `rescripts` tool to intercept the original webpack
@@ -70,33 +69,31 @@ this helper package to keep it as transparent and flexible as possible.
 If you need to override or change something to fit your project,
 feel free to modify this package to your heart's content.
 
-## Setting up your database and initial system data
-The last step in the setup process is to connect to your database and
-install the initial data.
-
-If you don't have MongoDB already installed, please visit the
+### Initial system setup
+> If you don't have MongoDB already installed, please visit the
 [official MongoDB website](https://docs.mongodb.com/manual/installation/)
 for installation instructions or if you are a Docker user,
 grab an image from the [Docker Hub](https://hub.docker.com/_/mongo/).
 
-Once your MongoDB is up and running you need to update the connection
-parameters in `packages/api/.env`:
+To connect Webiny to your Mongo database, you need to update the
+connection parameters in `packages/api/.env`:
 ```
 MONGODB_SERVER=mongodb://localhost:27017
 MONGODB_DB_NAME={your-database-name}
 ```
 
-Now run the following, to have Webiny setup the initial system data:
+Now run the following, to have Webiny setup the initial system data
+(default admin user, CMS demo content, etc.):
 ```
 cd packages/api && yarn setup
 ```
 
-# Begin development
+## Begin development
 Since each app is a standalone application, each requires
 its own build process. For each of the apps (`admin`, `site` and `api`)
 open a separate terminal window:
 
-## For `api`:
+### Starting an API server
 ```
 cd packages/api && yarn start
 ```
@@ -106,7 +103,8 @@ You can use one of the following tools to introspect the GraphQL schema:
 - https://github.com/prisma/graphql-playground
 - https://github.com/skevy/graphiql-app
 
-## For `admin`:
+### Starting an app build
+To start an `admin` app dev build:
 ```
 cd packages/admin && yarn start
 ```
@@ -117,7 +115,7 @@ Username: admin@webiny.com
 Password: 12345678
 ```
 
-## For `site`:
+To start a `site` dev build:
 ```
 cd packages/site && yarn start
 ```

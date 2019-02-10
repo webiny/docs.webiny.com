@@ -18,7 +18,7 @@ If you're interested in learning the basics of Webiny CMS, like building and man
 
 If you're a developer, interested in learning how to create your own theme, plugins, or even a custom application, follow along this guide.
 
-[Click here to get started with Developer Tutorials](/docs/developer-tutorials/developer-get-started)
+[Click here to get started with Developer Tutorials](/docs/developer-tutorials/local-setup)
 
 ### 3. Designer Tutorials
 
