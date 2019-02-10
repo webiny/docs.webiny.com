@@ -31,7 +31,7 @@ const siteConfig = {
     { doc: "get-started", label: "Get Started" },
     { doc: "cms-guides/get-started-overview", label: "CMS Guides" },
     {
-      doc: "developer-tutorials/installing-locally",
+      doc: "developer-tutorials/local-setup",
       label: "Developer Tutorials"
     },
     {
