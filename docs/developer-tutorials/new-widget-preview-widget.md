@@ -1,7 +1,7 @@
 ---
-id: new-widget-preview-widget
-title: new-widget-preview-widget
-sidebar_label: WIP-new-widget-preview-widget
+id: new-element-preview-widget
+title: new-element-preview-widget
+sidebar_label: WIP-new-element-preview-widget
 ---
 
 

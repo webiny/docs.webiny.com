@@ -1,10 +1,10 @@
 ---
-id: new-theme-creating-a-theme
-title: new-theme-creating-a-theme
+id: new-theme-creating-theme
+title: Creating a theme
 sidebar_label: Creating a theme
 ---
 
-> **Note:** If case you already haven't read the theme [**Overview**](developer-tutorials/new-theme-overview.md) page, we highly recommend you start from there.
+> **Note:** In case you already haven't read the theme [**Overview**](developer-tutorials/new-theme-overview.md) page, we highly recommend you start from there.
 
 ## Basic setup
 

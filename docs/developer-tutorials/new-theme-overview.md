@@ -10,7 +10,7 @@ By default Webiny comes with a demo theme, which you can explore on our GitHub: 
 
 ## Structure
 
-The default theme structure is as following:
+The default theme structure looks like this:
 
 ```plaintext
 .
@@ -24,15 +24,16 @@ The default theme structure is as following:
 └── package.json
 ```
 
-Files in the root directory, like `.babelrc.js`, `index.js` and `package.json` don't do anything special, and can just be copy pasted into a new theme. You can also modify the files to fit your needs. For example you can add a new `npm` dependency if required, or tweak the babel build config, but in most cases the default setup is good enough.
+Files in the root directory, like `.babelrc.js`, `index.js` and `package.json` don't do anything special, and can just be copied to a new theme.
+You can also modify the files to fit your needs. For example you can add a new `npm` dependency if required, or tweak the babel build config, but in most cases the default setup is good enough.
 
-All the theme definition resides inside the `src` folder. The only system requirement for a theme is that the `src/index.js` exists, all other files in the src folder are optional.
+The entire theme definition resides inside the `src` folder. The only system requirement for a theme is that the `src/index.js` exists, all other files in the src folder are optional.
 
 ## Theme definition
 
-The theme definition sits inside the before mentioned `src/index.js` file. That file has several sections which are as following:
+The theme definition sits inside the aforementioned `src/index.js` file. That file has several sections:
 
-```json
+```js
 {
     layouts: [
         // defines a list of layouts
@@ -54,7 +55,8 @@ The theme definition sits inside the before mentioned `src/index.js` file. That 
 
 ### Layouts
 
-Layouts are linked to page categories. When you create a page category, say "Blog", you need to select a layout inside which that content will render. That list where you select your layout, the options are pulled from this theme definition section.
+Layouts are linked to page categories. When you create a page category, say "Blog", you need to select a layout inside which that content will render.
+The list where you select your layout pulls the entries from this theme section.
 
 Here is an example of how to define a layout:
 
@@ -91,7 +93,7 @@ https://github.com/Webiny/webiny-js/blob/master/packages/demo-theme/src/index.js
 
 By default Webiny comes with a support for [Google Fonts](https://fonts.google.com/). If you define a list of fonts inside this section, Webiny will automatically add the required stylesheets to pull those fonts from Google Fonts.
 
-This is an example how to define the fonts:
+This is an example of how to define the fonts:
 
 ```json
 {
@@ -105,11 +107,12 @@ This is an example how to define the fonts:
 }
 ```
 
-> **Note:** Optionally you can upload your custom fonts as part of your theme and just reference them directly inside your CSS.
+> **Note:** Optionally, you can upload your custom fonts as part of your theme and just reference them directly inside your CSS.
 
 ### Colors
 
-In the page builder, an any place where you can select a color, by default a set list of colors appears. That set list is defined by the `color` section. As a general practice, don't define HEX or RGB colors directly, but reference them as a CSS variable, like the following example:
+By default, the list of colors defined in the theme appears in the page builder, and any other place there is a color picker.
+Colors are defined in the `color` section. As a general practice, don't define HEX or RGB colors directly, but reference them as a CSS variable, like the following example:
 
 ```json
 {
@@ -130,7 +133,8 @@ In the page builder, an any place where you can select a color, by default a set
 
 ### Elements
 
-Elements is the section that defines certain attributes for the page elements that you can insert into your pages. Those are the elements that reside in the menu on the left side in the page builder.
+`elements` is the section that defines certain attributes for the page elements that you can insert into your pages.
+Those are the elements that reside in the menu on the left side in the page builder.
 Depending on the element, different attributes are available.
 
 ```json
@@ -167,15 +171,19 @@ Depending on the element, different attributes are available.
 
 #### Button `button`
 
-In case of the `button` element, the `types` attribute lists available button types. Each type references a specific class name that will be added to the button component when that type is selected. 
+In case of a `button` element, the `types` attribute contains available button types.
+Each type references a specific class name that will be added to the button component when that type is selected.
 
 ![Webiny - Theme Button](assets/developer-tutorials/theme-overview-button.png)
 
-> **Note:** By default Webiny uses [BEM naming](http://getbem.com/introduction/). The default button class is `webiny-cms-element-button`, so when the user selects the "primary" button type. That will add a modifier of "primary" to the base class, meaning the end class name will be "webiny-cms-element-button--primary".
+> **Note:** By default Webiny uses [BEM naming](http://getbem.com/introduction/).
+The default button class is `webiny-cms-element-button`, so when the user selects the "primary" button type,
+it will add a modifier of "primary" to the base class, meaning the resulting class name will be "webiny-cms-element-button--primary".
 
 #### Page List `pagesList`
 
-This section defines a list of possible React components that will render a list of pages when a user inserts a page list element into the page. 
+This section defines a list of possible React components that will render a
+list of pages when a user inserts a page list element into the page.
 
 A list can have different visual outputs depending on which list layout is selected. 
 

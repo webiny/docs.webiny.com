@@ -1,7 +1,7 @@
 ---
-id: new-widget-activating-widget
-title: new-widget-activating-widget
-sidebar_label: WIP-new-widget-activating-widget
+id: new-element-activating-widget
+title: new-element-activating-widget
+sidebar_label: WIP-new-element-activating-widget
 ---
 
 

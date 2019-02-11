@@ -1,7 +1,7 @@
 ---
-id: new-widget-creating-a-widget
-title: new-widget-creating-a-widget
-sidebar_label: WIP-new-widget-creating-a-widget
+id: new-element-creating-a-widget
+title: new-element-creating-a-widget
+sidebar_label: WIP-new-element-creating-a-widget
 ---
 
 

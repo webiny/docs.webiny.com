@@ -1,7 +1,7 @@
 ---
-id: new-widget-overview
-title: new-widget-overview
-sidebar_label: WIP-new-widget-overview
+id: new-element-overview
+title: new-element-overview
+sidebar_label: WIP-new-element-overview
 ---
 
 
