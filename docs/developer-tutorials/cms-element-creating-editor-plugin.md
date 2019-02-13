@@ -12,7 +12,7 @@ We will create a simple element, similar to the basic `text` element.
 ## Element definition
 Here is the entire plugin code, and below the code is a step-by-step explanation:
 
-<script src="https://gist.github.com/Pavel910/41b90269c7f1e1a34f6dba04a0618497.js?file=index.js"></script>
+<script src="https://gist.github.com/Pavel910/41b90269c7f1e1a34f6dba04a0618497.js?file=editor.js"></script>
 
 We'll skip the imports and go straight to the plugin code:
 
@@ -39,6 +39,7 @@ that represents your element in the data model of the editor. The `createValue` 
 is a helper function to create the data structure suitable for Slate editor.
 
 > For text editing we use the [Slate Editor](https://github.com/ianstormtaylor/slate).
+You can also create plugins for Slate, but that is covered in a separate tutorial.
 
 At line `30` you'll find a `settings` key. This key is used by element settings
 plugins to store their data. Here you can define default values for all
@@ -54,7 +55,7 @@ an array of ids of its child elements (this is extremely important for render op
 ## Element rendering
 The following is the code for the `Text` component used in the `render` function
 of your element plugin:
-<script src="https://gist.github.com/Pavel910/41b90269c7f1e1a34f6dba04a0618497.js?file=Text.js"></script>
+<script src="https://gist.github.com/Pavel910/41b90269c7f1e1a34f6dba04a0618497.js?file=Text.editor.js"></script>
 
 Straight away, you will notice this component is connected to the Redux store
 of the editor. This is required to optimize the rendering of the entire editor.
@@ -70,14 +71,14 @@ and leave it to the `connect` to fetch the data that is required by the componen
 and decide whether an update is necessary. In this case it is the `elementId` prop
 that gives us the `id` of the element being rendered.
 
-Using the `getElement` selector (imported on line `9`)  we fetch the element data.
+Using the `getElement` selector (imported on line `9`) we fetch the element data.
 A full list of the available editor selectors can be found at [CMS Editor Selectors](https://github.com/Webiny/webiny-js/blob/master/packages/webiny-app-cms/src/editor/selectors/index.js).
 
 All of our editor components use `recompose` to create handler functions
 as it is absolutely vital for rendering optimization.
 
 Lines `28-32` define a simple `onChange` handler that will be execute each time
-a change occurs in the Slate editor. It will than dispatch an editor action
+a change occurs in the Slate editor. It will then dispatch an editor action
 `updateElement` imported at line `8` to update the element data.
 
 > When dispatching actions, make sure you set new values in an immutable way so Redux knows something has changed.
