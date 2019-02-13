@@ -23,11 +23,11 @@ In your terminal, navigate to your project root folder:
 yarn webiny deploy
 
 // To deploy a single app
-yarn webiny packages/admin
+yarn webiny deploy packages/admin
 // or
-yarn webiny packages/api
+yarn webiny deploy packages/api
 // or
-yarn webiny packages/site
+yarn webiny deploy packages/site
 ```
 
 If this is the first time you are running this command, you will be

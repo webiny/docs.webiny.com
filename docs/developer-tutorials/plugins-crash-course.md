@@ -62,6 +62,9 @@ plugins passed as separate arguments, you name it.
 > Plugin registration can be performed anywhere in your app. Placing the
 registration at the entry point of your app is usually the best approach.
 
+> We recommend to always use a namespace when naming your plugin: `cms-element-...` or `my-app-....`.
+That way you make sure you never accidentally overwrite another plugin.
+
 If you have already created a Webiny project, you can find examples of
 plugin registration in the following files:
 - `packages/admin/src/App.js`
