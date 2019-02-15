@@ -22,6 +22,28 @@ the underlying data structure. Most of the time you will simply be dispatching
 the provided actions to update or delete an element, or to enable/disable a
 certain settings plugin, all from your plugin(s) code.
 
+### Actions
+Here is a list of actions you will most likely use in your plugins (these are ordinary Redux action creators):
+- `togglePlugin({ name: string, params: Object })`
+- `deactivatePlugin({ name: string })`
+- `activateElement({ element: string })`
+- `deactivateElement()`
+- `updateElement({ element: Object, merge: boolean })`
+- `deleteElement({ element: Object })`
+
+Click here to see [all available editor actions](https://raw.githubusercontent.com/Webiny/webiny-js/master/packages/webiny-app-cms/src/editor/actions/actions.js) and their implementation.
+
+> More in-depth documentation will become available as we go, so feel free to get in touch with us
+if you are interested in any part of the undocumented functionality. We will then be able to prioritize
+our work on the docs and point you in the right direction.
+
+### Selectors
+There is also a wide range of state selectors available for you to use
+in your plugins, so most likely you won't need to create your own selectors
+any time soon.
+
+Please refer to our Github for a [list of available selectors](https://github.com/Webiny/webiny-js/blob/master/packages/webiny-app-cms/src/editor/selectors/index.js).
+
 ## Anatomy of an element (and its plugins).
 Element is a concept represented by 2 plugins. One serves for content
 editing purposes, the other one only for rendering.
