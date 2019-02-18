@@ -14,8 +14,8 @@ These guides do not require you to have any technical skills. If you can use sta
 
 The getting started tutorial is divided into several sections:
 
-1. [**Creating a Webiny website**](cms-guides/get-started-create-a-webiny-website.md) - will show you how to register and create a website using the FREE account on Webiny Cloud.
-2. [**Creating a page category**](cms-guides/get-started-creating-a-page-category.md) - all pages need to belong to a certain category, this tutorial will cover the initial setup process.
+1. [**Creating a Webiny website**](cms-guides/get-started-create-a-webiny-website.md) - this tutorial will show you how to register and create a website using the FREE account on Webiny Cloud.
+2. [**Creating a page category**](cms-guides/get-started-create-a-page-category.md) - all pages need to belong to a certain category, this tutorial will cover the initial setup process.
 3. [**Creating your first page**](cms-guides/get-started-creating-first-page.md) - this is the ultimate goal where you will learn how to create a very basic page, before proceeding to more advance topics.
 
 When you're ready, proceed with the next article.

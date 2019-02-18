@@ -6,7 +6,7 @@ sidebar_label: Get Started
 
 ## Guides & Tutorials
 
-**Welcome to Webiny!** To get your self familiarized with Webiny and all its features, for the best experience, we've broken this guide down into three main sections:
+**Welcome to Webiny!** To get your self familiarized with Webiny and all its features, for the best experience, we've broken this guide down into two main sections:
 
 ### 1. CMS Guides
 
@@ -19,12 +19,6 @@ If you're interested in learning the basics of Webiny CMS, like building and man
 If you're a developer, interested in learning how to create your own theme, plugins, or even a custom application, follow along this guide.
 
 [Click here to get started with Developer Tutorials](/docs/developer-tutorials/local-setup)
-
-### 3. Designer Tutorials
-
-If you're a designer, and want to know how to style Webiny to fit certain visual requirements, be that for your own site, or for a customer, this set of quick tutorials will help you achieve just that.
-
-[Click here to get started with Designer Tutorials](/docs/designer-tutorials/designer-get-started)
 
 ## Community
 

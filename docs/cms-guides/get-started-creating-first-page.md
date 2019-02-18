@@ -4,7 +4,9 @@ title: Create your first page
 sidebar_label: Create your first page
 ---
 
-To create your first page, in the main menu go to Content > Pages. This will bring up your list of pages.
+To create your first page, in the main menu go to `Content > Pages`. This will bring up your list of pages.
+
+<img src="/docs/assets/cms-guides/cms-basic-page-list.png" alt="Webiny Page List"/>
 
 ## Creating a page
 
@@ -12,17 +14,30 @@ To create a page, on the page list screen, click the green plus button in the lo
 
 At this point you should be redirected to the page editor. This is where you build your page.
 
+<video width="800" autoplay loop>
+  <source src="/docs/assets/cms-guides/cms-basic-new-page.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+
 ### Page title
 
 When you enter the page editor screen, for a new page, the page is name "Untitled". That title is displayed on the very top of the screen. Click on the name, to rename the page. Feel free to name it anything you want. Even emojis are supported 🎉.
 
+<video width="450" autoplay loop>
+  <source src="/docs/assets/cms-guides/cms-basic-rename-page.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+
 ### Adding a block
 
-After you've named your page it's time add a first **block**. All content on your page must be placed inside  blocks. To add a block, just click the big green button. A list of blocks will appear. There is a set of predefined blocks, and you can always create your own blocks that you can later reuse across other pages.
-
-> Tip: Blocks are described in great detail in the [Blocks guide](cms-guides/editor-blocks.md).
+After you've named your page it's time add a first **block**. All content on your page must be placed inside blocks. To add a block, just click the big green button. A list of blocks will appear. There is a set of predefined blocks, and you can always create your own blocks that you can later reuse across other pages.
 
 On the block list, select one of blocks to add it to your page.
+
+<video width="800" autoplay loop>
+  <source src="/docs/assets/cms-guides/cms-basic-add-block.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
 
 ### Adding elements
 
@@ -30,11 +45,16 @@ Once you have your block on the screen, you can then open the elements bar to st
 
 In addition to those elements, under the layouts category you will find things like rows, columns and spacers. You can use those to better organize your content on the page.
 
-As a practice try adding a row, then place 2 columns inside the row. Inside the first column try adding an image element, and inside the second place a test. Have a look at the example below of how that can look like.
+As a practice try adding a row, then place 2 columns inside the row. Inside the first column try adding an image element, and inside the second place a text. Have a look at the example below of how that can look like.
 
-[image goes here]
+<video width="800" autoplay loop>
+  <source src="/docs/assets/cms-guides/cms-basic-editor-editing.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
 
 Once you are happy with how your content looks, you can do some final house keeping items before you publish your page.
+
+> **Tip:** When adding elements, you can use drag&drop to place elements inside your page, but also, in case you click the `plus` icon inside a column, then you can just click on the element you want, and it will be added inside that column, no need to drag it.
 
 ## Page settings
 
@@ -43,6 +63,11 @@ In the editor, click on the settings cog, this will bring up page settings. It's
 Items under the social tab control how your page looks like when share on social networks like Facebook and Twitter.
 
 Once you're done with this section, you can publish your page.
+
+<video width="800" autoplay loop>
+  <source src="/docs/assets/cms-guides/cms-basic-editor-page-settings.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
 
 ## Publish page
 

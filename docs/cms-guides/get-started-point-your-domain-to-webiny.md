@@ -4,6 +4,8 @@ title: Point your domain to Webiny
 sidebar_label: Point your domain to Webiny
 ---
 
+> **IMPORTANT:** While Webiny is in BETA, this feature is not available.
+
 To connect your custom domain, login to Site Manager, click the "Connect your domain name" button. You'll find it on the right hand side below the usage stats.
 
 You'll be presented with a CNAME record.
