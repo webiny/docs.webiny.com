@@ -23,7 +23,6 @@ In your terminal, navigate to your project root folder:
 yarn webiny deploy
 
 // To deploy a single app
-yarn webiny deploy packages/admin
 // or
 yarn webiny deploy packages/api
 // or
