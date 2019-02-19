@@ -13,31 +13,34 @@ To create your first page, in the main menu go to `Content > Pages`. This will b
 To create a page, on the page list screen, click the green plus button in the lower right corner. This will bring up a dialog showing a list of your page categories. Click on the category in which you want to place the page.
 
 At this point you should be redirected to the page editor. This is where you build your page.
-
-<video width="800" autoplay loop>
-  <source src="/docs/assets/cms-guides/cms-basic-new-page.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
-
+<div class="video-container">
+  <video width="800" loop>
+    <source src="/docs/assets/cms-guides/cms-basic-new-page.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 ### Page title
 
 When you enter the page editor screen, for a new page, the page is name "Untitled". That title is displayed on the very top of the screen. Click on the name, to rename the page. Feel free to name it anything you want. Even emojis are supported 🎉.
 
-<video width="450" autoplay loop>
-  <source src="/docs/assets/cms-guides/cms-basic-rename-page.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
+<div class="video-container">
+  <video width="450" loop>
+    <source src="/docs/assets/cms-guides/cms-basic-rename-page.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 ### Adding a block
 
 After you've named your page it's time add a first **block**. All content on your page must be placed inside blocks. To add a block, just click the big green button. A list of blocks will appear. There is a set of predefined blocks, and you can always create your own blocks that you can later reuse across other pages.
 
 On the block list, select one of blocks to add it to your page.
-
-<video width="800" autoplay loop>
-  <source src="/docs/assets/cms-guides/cms-basic-add-block.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
+<div class="video-container">
+  <video width="800" loop>
+    <source src="/docs/assets/cms-guides/cms-basic-add-block.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 ### Adding elements
 
@@ -47,10 +50,12 @@ In addition to those elements, under the layouts category you will find things l
 
 As a practice try adding a row, then place 2 columns inside the row. Inside the first column try adding an image element, and inside the second place a text. Have a look at the example below of how that can look like.
 
-<video width="800" autoplay loop>
-  <source src="/docs/assets/cms-guides/cms-basic-editor-editing.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
+<div class="video-container">
+  <video width="800" loop>
+    <source src="/docs/assets/cms-guides/cms-basic-editor-editing.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 Once you are happy with how your content looks, you can do some final house keeping items before you publish your page.
 
@@ -64,10 +69,12 @@ Items under the social tab control how your page looks like when share on social
 
 Once you're done with this section, you can publish your page.
 
-<video width="800" autoplay loop>
-  <source src="/docs/assets/cms-guides/cms-basic-editor-page-settings.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
+<div class="video-container">
+  <video width="800" loop>
+    <source src="/docs/assets/cms-guides/cms-basic-editor-page-settings.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 ## Publish page
 

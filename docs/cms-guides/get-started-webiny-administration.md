@@ -17,10 +17,12 @@ Each website you have has its own administration, and all the pages and users th
 The administration has several sections, the main ones are **Content**, **Security** and **Settings**. Under each section there are several options that you can access. To open up the main menu, and view the
 sections, click the menu button on the top left corner.
 
-<video width="310" height="325" autoplay loop>
-  <source src="/docs/assets/cms-guides/cms-basic-admin-menu.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
+<div class="video-container">
+  <video width="310" height="325" loop>
+    <source src="/docs/assets/cms-guides/cms-basic-admin-menu.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 The **Content** section is where you are managing your content, in terms of your pages, as well as page categories.
 
@@ -33,18 +35,20 @@ The **Security** section is where you can see a list of all the users and their 
 You will notice a big search field inside the admin interface. This is the universal search that allows you to search through different data, like pages, page categories and users. Just focus on the bar, start typing and select one of the items from the list.
 
 > **Tip:** You can just press the `/` key on your keyboard to automatically focus on the search bar.
-
-<video width="800" autoplay loop>
-  <source src="/docs/assets/cms-guides/cms-basic-admin-search.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
+<div class="video-container">
+  <video width="800" loop>
+    <source src="/docs/assets/cms-guides/cms-basic-admin-search.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 ## My account
-
-<video width="800" autoplay loop>
-  <source src="/docs/assets/cms-guides/cms-basic-admin-user-menu.mp4" type="video/mp4">
-Your browser does not support the video tag.
-</video>
+<div class="video-container">
+  <video width="800" loop>
+    <source src="/docs/assets/cms-guides/cms-basic-admin-user-menu.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 In the right corner, you should see a circular shape with your initial on it. This is your user menu. Click the shape to open the menu. In the menu you'll find few things. You can first of all, click on your name, to access your user account area, from where you can set your avatar, change your password, as well as your basic user information.
 
