@@ -36,7 +36,7 @@ const siteConfig = {
     },
     {
       href: 'https://github.com/webiny/webiny-js',
-      label: 'Source',
+      label: 'GitHub',
     },
   ],
 
