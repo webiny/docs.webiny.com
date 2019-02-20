@@ -1,14 +1,14 @@
 ---
 id: admin-app-menu
-title: Admin App - Menu
-sidebar_label: Menu
+title: Admin App - Menus
+sidebar_label: Menus
 ---
 
 > This article assumes you have already set up a blank Webiny project.
- If not, please see [setting up a local Webiny project](developer-tutorials/local-setup),
+ If not, please see [setting up a local Webiny project](/docs/developer-tutorials/local-setup),
  then come back here.
 
- Menu in your admin app are just another type of plugin. The layout of a menu and
+ Menus in your admin app are just another type of plugin. The layout of a menu and
  rendering of menu items is all taken care of for you. It consists of 3 levels
  of menu items so you can organize your apps nicely and without clutter.
 
@@ -24,7 +24,7 @@ Prop `route` on line `12` demonstrates why having named routes is useful - here 
 by its name without even thinking about the actual URL.
 
  ## Using with security
- To only show menu items to users who are authorized to see them, we have exposed a `hasRole`
+ To only show menu items to users who are authorized to see them, we have exposed a `hasRoles
  helper function which will check user's roles for you:
 
 <script src="https://gist.github.com/Pavel910/f91b84d407d0974fb5c978e74fcbb690.js?file=menu.security.js"></script>

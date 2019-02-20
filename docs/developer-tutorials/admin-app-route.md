@@ -5,7 +5,7 @@ sidebar_label: Routes
 ---
 
 > This article assumes you have already set up a blank Webiny project.
- If not, please see [setting up a local Webiny project](developer-tutorials/local-setup),
+ If not, please see [setting up a local Webiny project](/docs/developer-tutorials/local-setup),
  then come back here.
 
 In your blank project, all the plugins for your app are imported
