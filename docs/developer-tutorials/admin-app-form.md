@@ -6,8 +6,11 @@ sidebar_label: Form
 
 Form component in Webiny comes as a standalone package - `webiny-form`.
 It is very flexible and allows to break complex forms into multiple
-components and even files, thanks to its internal `Bind` component. It
-also is pretty flexible when it comes to validation, both sync and async.
+components and even files, thanks to its internal `Bind` component.
+
+It also is very flexible when it comes to input validation (both sync and async)
+as it allows you to use both built-in validators and define your own validator
+functions.
 
 ## Form component
 
@@ -73,13 +76,16 @@ type Props = {
 ```
 
 This component can be used in 2 ways:
+
+### Regular child element
 ```
-// With regular child element
 <Bind name="myData">
     <Input label="Country" />
 </Bind>
+```
 
-// With a render function
+### Render function
+```
 <Bind name="myData">
     {(inputProps) => (
         <Input label="Country" {...inputProps} />
@@ -103,6 +109,9 @@ If used with a render function, the following props are passed to it:
 }
 ```
 
+
+### Advanced usage
+
 This component makes it very easy to create all kinds of components
 bound to the Form, you could even create a component using a simple `<span>`:
 
@@ -114,11 +123,22 @@ bound to the Form, you could even create a component using a simple `<span>`:
 </Bind>
 ```
 
-## Advanced usage
 Here is an example of using a few more props:
 - `beforeChange` will be used to convert the value to lowercase string.
 - `afterChange` will simply log the new value to console.
-- we will implement a custom validator to enforce a certain string format
+
+```
+<Bind
+    name="country"
+    beforeChange={(value, cb) => cb(value.toLowerCase())
+    afterChange={value => console.log("New value", value)}
+}>
+    <Input label="Country"/>
+</Bind>
+```
+
+### Validators
+We will implement a custom validator to enforce a certain string format:
 
 ```
 const customValidator = (value) => {
@@ -132,8 +152,6 @@ const customValidator = (value) => {
 <Bind
     name="country"
     validators={["required", customValidator]}
-    beforeChange={(value, cb) => cb(value.toLowerCase())
-    afterChange={value => console.log("New value", value)}
 }>
     <Input label="Country"/>
 </Bind>
