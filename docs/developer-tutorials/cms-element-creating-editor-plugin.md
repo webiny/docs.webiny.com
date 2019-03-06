@@ -1,7 +1,7 @@
 ---
 id: cms-element-creating-editor-plugin
-title: CMS Element - Creating editor plugin
-sidebar_label: Creating editor plugin
+title: CMS Element - Editor plugin
+sidebar_label: Editor plugin
 ---
 
 > If you are not already familiar with how plugins work, we recommend

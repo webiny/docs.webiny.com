@@ -1,7 +1,7 @@
 ---
 id: cms-element-creating-settings-plugin
-title: CMS Element - Creating settings plugin
-sidebar_label: Creating settings plugin
+title: CMS Element - Settings plugin
+sidebar_label: Settings plugin
 ---
 
 > If you are not already familiar with how plugins work, we recommend

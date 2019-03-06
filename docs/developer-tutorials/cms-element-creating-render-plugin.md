@@ -1,7 +1,7 @@
 ---
 id: cms-element-creating-render-plugin
-title: CMS Element - Creating render plugin
-sidebar_label: Creating render plugin
+title: CMS Element - Render plugin
+sidebar_label: Render plugin
 ---
 
 > If you are not already familiar with how plugins work, we recommend

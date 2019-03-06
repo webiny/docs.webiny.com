@@ -1,7 +1,7 @@
 ---
 id: cms-element-creating-element-group
-title: CMS Element - Creating element group
-sidebar_label: Creating element group
+title: CMS Element - Element group
+sidebar_label: Element group
 ---
 
 > If you are not already familiar with how plugins work, we recommend
