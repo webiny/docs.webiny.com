@@ -21,7 +21,12 @@ Site Manager is a place where you manage all your websites. You can have one, or
 
 First time you enter Site Manager, where won't see any websites, so, let's create one.
 
-!TODO! > Add image
+<div class="video-container">
+  <video width="800" loop>
+    <source src="/docs/assets/cms-guides/cms-basic-create-website.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 You should see a big green button on the page, if you click it, it will bring up the new website creation dialog. The form asks for a website name, and it will auto generate a temp domain name for you. Until you connect your own domain name, you can use the temp one to reach your site.
 

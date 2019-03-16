@@ -19,6 +19,7 @@ At this point you should be redirected to the page editor. This is where you bui
   Your browser does not support the video tag.
   </video>
 </div>
+
 ### Page title
 
 When you enter the page editor screen, for a new page, the page is name "Untitled". That title is displayed on the very top of the screen. Click on the name, to rename the page. Feel free to name it anything you want. Even emojis are supported 🎉.
