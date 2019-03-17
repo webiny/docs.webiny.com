@@ -3,12 +3,15 @@ id: get-started-creating-first-page
 title: Create your first page
 sidebar_label: Create your first page
 ---
+Creating a page involves several different aspects and features of page editor. This video below shows how to use the basic functionally to create a sample page. We highly encourage you to watch this video first.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/xpnshYqF3XU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+## Creating a page
 
 To create your first page, in the main menu go to `Content > Pages`. This will bring up your list of pages.
 
 <img src="/docs/assets/cms-guides/cms-basic-page-list.png" alt="Webiny Page List"/>
-
-## Creating a page
 
 To create a page, on the page list screen, click the green plus button in the lower right corner. This will bring up a dialog showing a list of your page categories. Click on the category in which you want to place the page.
 
