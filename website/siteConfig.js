@@ -38,6 +38,10 @@ const siteConfig = {
       href: 'https://github.com/webiny/webiny-js',
       label: 'GitHub',
     },
+    {
+      href: 'https://storybook.webiny.com',
+      label: 'Storybook',
+    },
   ],
 
   /* path to images for header/footer */
