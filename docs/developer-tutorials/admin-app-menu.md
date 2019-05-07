@@ -20,9 +20,6 @@ sidebar_label: Menus
 The `render` function on line `8` receives a `Menu` component as a parameter,
 all you need to do is create a few elements using that component.
 
-Prop `route` on line `12` demonstrates why having named routes is useful - here we simply reference the route
-by its name without even thinking about the actual URL.
-
  ## Using with security
  To only show menu items to users who are authorized to see them, we have exposed a `hasRoles
  helper function which will check user's roles for you:

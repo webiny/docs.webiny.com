@@ -29,6 +29,7 @@ type Props = {
         data: Object,
         form: Form,
         submit: ({ event?: SyntheticEvent<*> }) => Promise<void>,
+        setValue: (name: string, value: mixed) => void,
         Bind: React.ComponentType<BindProps>
     }) => React.Node
 };

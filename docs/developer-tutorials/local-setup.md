@@ -17,13 +17,22 @@ cd my-project
 yarn init -y
 ```
 
-Now you need to install `webiny-cli` and run it:
+Now you need to install `webiny-cli`:
 ```
 // Install webiny-cli as a devDependency
 yarn add webiny-cli --dev
+```
 
+> `webiny-cli` installs `webiny` and `wby` commands, so if `./node_modules` is in your PATH, you will be able to 
+run these commands without using `yarn`. Alternatively, you can install `webiny-cli` globally.
+
+> In the examples below we will run `webiny` commands assuming `webiny` is globally available. You can, however, 
+prefix the commands with `yarn` if your `webiny` command is not available as a standalone command.
+
+Now let's initialize your project:
+```
 // Run project initialization
-yarn webiny init
+webiny init
 ```
 
 ### Structure overview
@@ -38,7 +47,9 @@ Once finished, your project structure is ready and looks like this:
 │   ├── site
 │   ├── theme
 │   └── webiny-rewire
+├── .env
 ├── babel.config.js
+├── webiny.config.js
 ├── package.json
 └── yarn.lock
 ```
@@ -55,7 +66,7 @@ development scenario:
 - `admin` - your project administration
 - `site` - public website
 - `theme` - a CMS theme for your `site`
-- `api` - an API that powers both `admin` and `site` apps
+- `api` - an API funcstion that powers both `admin` and `site` apps
 
 ### `webiny-rewire` helper package
 Since `admin` and `site` packages are essentially `create-react-app`s,
@@ -76,7 +87,7 @@ for installation instructions or if you are a Docker user,
 grab an image from the [Docker Hub](https://hub.docker.com/_/mongo/).
 
 To connect Webiny to your Mongo database, you need to update the
-connection parameters in `packages/api/.env`:
+connection parameters in `.env`:
 ```
 MONGODB_SERVER=mongodb://localhost:27017
 MONGODB_DB_NAME={your-database-name}
@@ -85,7 +96,7 @@ MONGODB_DB_NAME={your-database-name}
 Now run the following, to have Webiny setup the initial system data
 (default admin user, CMS demo content, etc.):
 ```
-cd packages/api && yarn setup
+webiny install-functions
 ```
 
 ## Begin development
@@ -93,20 +104,22 @@ Since each app is a standalone application, each requires
 its own build process. For each of the apps (`admin`, `site` and `api`)
 open a separate terminal window:
 
-### Starting an API server
+### Starting all of your functions
 ```
-cd packages/api && yarn start
+webiny start-functions
 ```
 
 Once the API is started, it is available at `http://localhost:{port}/function/api`.
-You can use one of the following tools to introspect the GraphQL schema:
+To use the GraphQL Playground, simply open the above URL in the browser.
+
+You can also use one of the following tools to introspect the GraphQL schema:
 - https://github.com/prisma/graphql-playground
 - https://github.com/skevy/graphiql-app
 
 ### Starting an app build
 To start an `admin` app dev build:
 ```
-cd packages/admin && yarn start
+webiny start-app admin
 ```
 
 Once the `admin` app starts, login using the following credentials:
@@ -117,7 +130,12 @@ Password: 12345678
 
 To start a `site` dev build:
 ```
-cd packages/site && yarn start
+webiny start-app site
 ```
+
+## Project configuration
+The glue of the project is the `webiny.config.js` and `.env` file. These 2 files contain
+configuration of the entire `webiny-cli`. If you decide to add another function to
+your project, make sure you register it in the `webiny.config.js` file. 
 
 

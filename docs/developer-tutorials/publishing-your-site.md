@@ -20,13 +20,14 @@ your own domain ready to link.
 In your terminal, navigate to your project root folder:
 ```
 // To deploy the entire project (admin, api and site)
-yarn webiny deploy
+webiny deploy
 
-// To deploy a single app
-// or
-yarn webiny deploy packages/api
-// or
-yarn webiny deploy packages/site
+// To deploy a single app, use the app name registered in `webiny.config.js`
+
+webiny deploy api
+webiny deploy site
+webiny deploy admin
+// ...
 ```
 
 If this is the first time you are running this command, you will be
