@@ -14,6 +14,8 @@ const siteConfig = {
   subTagline: 'Powered by Node.Js, React and GraphQL',
   url: 'https://www.webiny.com', // Your website URL
   baseUrl: '/', // Base URL for your project */
+  docsSideNavCollapsible: true,
+  twitterUsername: 'WebinyPlatform',
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',
