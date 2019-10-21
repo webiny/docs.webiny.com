@@ -38,7 +38,7 @@ class Footer extends React.Component {
             </div>
           </div>
         </div>
-
+        {/* 
         <div className="sub-footer-box">
           <div className="inner-box">
             <img
@@ -68,6 +68,7 @@ class Footer extends React.Component {
           </div>
 
         </div>
+        */}
 
         <footer className="nav-footer" id="footer">
           <section className="sitemap">
@@ -91,6 +92,13 @@ class Footer extends React.Component {
                 rel="noreferrer noopener"
               >
                 Blog
+              </a>
+              <a
+                href="https://community.webiny.com/"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                Community Forum
               </a>
               <a
                 href="https://twitter.com/WebinyPlatform"
