@@ -16,6 +16,7 @@ const siteConfig = {
   baseUrl: '/', // Base URL for your project */
   docsSideNavCollapsible: true,
   twitterUsername: 'WebinyPlatform',
+  gaTrackingId: 'UA-35527198-1',
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',
