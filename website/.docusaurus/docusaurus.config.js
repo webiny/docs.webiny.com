@@ -41,13 +41,13 @@ export default {
       {
         "docs": {
           "path": "../docs",
-          "sidebarPath": "/Users/svenalhamad/Dev/docs/website/sidebars.json",
+          "sidebarPath": "/Users/paveldenisjuk/webiny/js/docs.webiny.com/website/sidebars.json",
           "editUrl": "https://github.com/webiny/docs.webiny.com/edit/master/docs/",
           "showLastUpdateAuthor": true,
           "showLastUpdateTime": true
         },
         "theme": {
-          "customCss": "/Users/svenalhamad/Dev/docs/website/static/css/custom.css"
+          "customCss": "/Users/paveldenisjuk/webiny/js/docs.webiny.com/website/static/css/custom.css"
         }
       }
     ]

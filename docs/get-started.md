@@ -4,30 +4,41 @@ title: Get Started
 sidebar_label: Get Started
 ---
 
-## Guides & Tutorials
+To get your project up and running as fast as possible, we've created a `@webiny/cli` package. It will be your trusty companion to help you with project creation, development and deployment.
 
-**Welcome to Webiny!** To get your self familiarized with Webiny and all its features, for the best experience, we've broken this guide down into two main sections:
+## Quick Start
+The following steps will guide you through the installation of the CLI and project setup.
 
-### 1. CMS Guides
+### Install the CLI
 
-If you're interested in learning the basics of Webiny CMS, like building and managing pages, page categories and the general concepts of the page editor, start with this section.
+```
+npm -g install @webiny/cli
+```
 
-[Click here to get started with CMS Guide](/docs/cms-guides/get-started-overview)
+> NOTE: we use `npm` to install the package, since `yarn` may have problems with the `global` command. However, once you have the CLI installed, it relies on `yarn`.
 
-### 2. Developer Tutorials
+### Create a new project
 
-If you're a developer, interested in learning how to create your own theme, plugins, or even a custom application, follow along this guide.
+```
+webiny create my-project
+cd my-project
+```
+This will create a new folder `my-project` and setup everything you need to start hacking.
+Once your project is created, the last thing you need is configure the database.
 
-[Click here to get started with Developer Tutorials](/docs/developer-tutorials/local-setup)
+### Setup database connection
+To tell Webiny where your database is, you simply need to update the `api/.env.json` file and set the `MONGODB_SERVER` and `MONGODB_NAME`. As long as the database is accessible using the provided data, Webiny will be happy.
 
-## Community
 
-We highly encourage everyone to join our [Community Forum](https://community.webiny.com/) where you can create posts, ask for feedback and comment on other activities.
+## Required Resources
+To run a Webiny project you will need a MongoDB database and an AWS account. If you don't have one of those, please read on.
 
-> Our forum nurtures the culture of inclusion and mutual respect. Please make sure you follow the basic principles of being a nice person, and you'll fit right in :)
+### MongoDB database
+We recommend [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) as it has a `Free Tier` which is more than enough for development purposes (no credit card required). You can find step-by-step instructions on getting an account and setting up a database in their [official documentation](https://docs.atlas.mongodb.com/getting-started/).
 
-## Questions?
+> IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
 
-Our documentation has many examples and guides you can search through. In case you haven't found your answer, try posting on the [Community Forum](https://community.webiny.com/), other members, as well as the members of the core team are monitoring the activities and will be able to help.
+### AWS credentials
+You will need an AWS account even for local development. With Webiny, we've turned to cloud-native development of our APIs and so you can't run our API services unless they are deployed to the cloud. 
 
-In case of any other questions, you can contact us via [our contact form](https://webiny.com/contact-us).
+To deploy your API (and later React apps) you will need AWS credentials. Take a look at [this video tutorial](https://www.youtube.com/watch?v=tgb_MRVylWw) on setting up an IAM user to work with `Serverless Framework` (part of which we use to deploy our components).
