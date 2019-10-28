@@ -11,9 +11,52 @@
 const siteConfig = {
   title: 'Webiny Documentation', // Title for your website.
   tagline: 'Serverless CMS',
-  subTagline: 'Powered by Node.Js, React and GraphQL',
   url: 'https://www.webiny.com', // Your website URL
   baseUrl: '/', // Base URL for your project */
+  projectName: 'webiny-js',
+  organizationName: 'webiny',
+  favicon: 'img/favicon.ico',
+  presets: [
+    [
+      '@docusaurus/preset-classic',
+      {
+        docs: {
+          path: '../docs',
+          sidebarPath: require.resolve ('./sidebars.json'),
+          editUrl: 'https://github.com/webiny/docs.webiny.com/edit/master/docs/',
+          showLastUpdateAuthor: true,
+          showLastUpdateTime: true,
+        },
+        theme: {
+          customCss: require.resolve ('./static/css/custom.css'),
+        },
+      },
+    ],
+  ],
+  themeConfig: {
+    image: 'img/logo-og.png',
+    navbar: {
+      logo: {
+        alt: 'Webiny Serverless CMS Logo',
+        src: 'img/webiny-orange-logo.svg',
+      },
+      links: [
+        {doc: 'get-started', label: 'Docs', position: 'right'},
+        {
+          href: 'https://github.com/webiny/webiny-js',
+          label: 'GitHub',
+          position: 'right',
+        },
+        {
+          href: 'https://storybook.webiny.com',
+          label: 'Storybook',
+          position: 'right',
+        },
+      ],
+    },
+  },
+
+  /*
   docsSideNavCollapsible: true,
   twitterUsername: 'WebinyPlatform',
   gaTrackingId: 'UA-35527198-1',
@@ -46,18 +89,18 @@ const siteConfig = {
       label: 'Storybook',
     },
   ],
+  
 
-  /* path to images for header/footer */
+  
   headerIcon: 'img/webiny-orange-logo.svg',
   footerIcon: 'img/webiny-logo.svg',
-  favicon: 'img/favicon.ico',
 
-  /* Colors for website */
+  
   colors: {
     primaryColor: '#F75B34',
     secondaryColor: '#FFFFFF',
   },
-
+  */
   /* Custom fonts for website */
   /*
   fonts: {
@@ -72,6 +115,7 @@ const siteConfig = {
   },
   */
 
+  /*
   // This copyright info is used in /core/Footer.js and blog RSS/Atom feeds.
   copyright: `Copyright © ${new Date ().getFullYear ()} Webiny Ltd`,
 
@@ -105,6 +149,7 @@ const siteConfig = {
   // You may provide arbitrary config keys to be used as needed by your
   // template. For example, if you need your repo's URL...
   repoUrl: 'https://github.com/webiny/webiny-js',
+  */
 };
 
 module.exports = siteConfig;

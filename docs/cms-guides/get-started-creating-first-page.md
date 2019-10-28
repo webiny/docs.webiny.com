@@ -18,7 +18,7 @@ To create a page, on the page list screen, click the green plus button in the lo
 At this point you should be redirected to the page editor. This is where you build your page.
 <div class="video-container">
   <video width="800" loop>
-    <source src="/docs/assets/cms-guides/cms-basic-new-page.mp4" type="video/mp4">
+    <source src="/docs/assets/cms-guides/cms-basic-new-page.mp4" type="video/mp4"/>
   Your browser does not support the video tag.
   </video>
 </div>
@@ -29,7 +29,7 @@ When you enter the page editor screen, for a new page, the page is name "Untitle
 
 <div class="video-container">
   <video width="450" loop>
-    <source src="/docs/assets/cms-guides/cms-basic-rename-page.mp4" type="video/mp4">
+    <source src="/docs/assets/cms-guides/cms-basic-rename-page.mp4" type="video/mp4"/>
   Your browser does not support the video tag.
   </video>
 </div>
@@ -41,7 +41,7 @@ After you've named your page it's time add a first **block**. All content on you
 On the block list, select one of blocks to add it to your page.
 <div class="video-container">
   <video width="800" loop>
-    <source src="/docs/assets/cms-guides/cms-basic-add-block.mp4" type="video/mp4">
+    <source src="/docs/assets/cms-guides/cms-basic-add-block.mp4" type="video/mp4"/>
   Your browser does not support the video tag.
   </video>
 </div>
@@ -56,7 +56,7 @@ As a practice try adding a row, then place 2 columns inside the row. Inside the 
 
 <div class="video-container">
   <video width="800" loop>
-    <source src="/docs/assets/cms-guides/cms-basic-editor-editing.mp4" type="video/mp4">
+    <source src="/docs/assets/cms-guides/cms-basic-editor-editing.mp4" type="video/mp4"/>
   Your browser does not support the video tag.
   </video>
 </div>
@@ -75,7 +75,7 @@ Once you're done with this section, you can publish your page.
 
 <div class="video-container">
   <video width="800" loop>
-    <source src="/docs/assets/cms-guides/cms-basic-editor-page-settings.mp4" type="video/mp4">
+    <source src="/docs/assets/cms-guides/cms-basic-editor-page-settings.mp4" type="video/mp4"/>
   Your browser does not support the video tag.
   </video>
 </div>

@@ -23,7 +23,7 @@ First time you enter Site Manager, where won't see any websites, so, let's creat
 
 <div class="video-container">
   <video width="800" loop>
-    <source src="/docs/assets/cms-guides/cms-basic-create-website.mp4" type="video/mp4">
+    <source src="/docs/assets/cms-guides/cms-basic-create-website.mp4" type="video/mp4"/>
   Your browser does not support the video tag.
   </video>
 </div>

@@ -19,7 +19,7 @@ sections, click the menu button on the top left corner.
 
 <div class="video-container">
   <video width="310" height="325" loop>
-    <source src="/docs/assets/cms-guides/cms-basic-admin-menu.mp4" type="video/mp4">
+    <source src="/docs/assets/cms-guides/cms-basic-admin-menu.mp4" type="video/mp4"/>
   Your browser does not support the video tag.
   </video>
 </div>
@@ -37,7 +37,7 @@ You will notice a big search field inside the admin interface. This is the unive
 > **Tip:** You can just press the `/` key on your keyboard to automatically focus on the search bar.
 <div class="video-container">
   <video width="800" loop>
-    <source src="/docs/assets/cms-guides/cms-basic-admin-search.mp4" type="video/mp4">
+    <source src="/docs/assets/cms-guides/cms-basic-admin-search.mp4" type="video/mp4"/>
   Your browser does not support the video tag.
   </video>
 </div>
@@ -45,7 +45,7 @@ You will notice a big search field inside the admin interface. This is the unive
 ## My account
 <div class="video-container">
   <video width="800" loop>
-    <source src="/docs/assets/cms-guides/cms-basic-admin-user-menu.mp4" type="video/mp4">
+    <source src="/docs/assets/cms-guides/cms-basic-admin-user-menu.mp4" type="video/mp4"/>
   Your browser does not support the video tag.
   </video>
 </div>
