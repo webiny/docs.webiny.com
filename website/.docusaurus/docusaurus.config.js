@@ -3,15 +3,15 @@ export default {
   "themes": [],
   "customFields": {},
   "themeConfig": {
-    "image": "img/logo-og.png",
     "navbar": {
+      "title": "Webiny CMS Documentation",
       "logo": {
         "alt": "Webiny Serverless CMS Logo",
-        "src": "img/webiny-orange-logo.svg"
+        "src": "img/white-square-icon.svg"
       },
       "links": [
         {
-          "doc": "get-started",
+          "href": "/docs/get-started",
           "label": "Docs",
           "position": "right"
         },
