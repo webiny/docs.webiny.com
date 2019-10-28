@@ -15,7 +15,7 @@ The following steps will guide you through the installation of the CLI and proje
 npm -g install @webiny/cli
 ```
 
-> NOTE: we use `npm` to install the package, since `yarn` may have problems with the `global` command. However, once you have the CLI installed, it relies on `yarn`.
+> NOTE: we use `npm` to install the package, since `yarn` may have problems with the `global` command. However, once you have the CLI installed, it relies on `yarn`, so make sure you have it [installed](https://yarnpkg.com/en/docs/install).
 
 ### Create a new project
 

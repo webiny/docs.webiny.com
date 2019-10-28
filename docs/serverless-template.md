@@ -4,7 +4,7 @@ title: Serverless Template
 sidebar_label: Serverless Template
 ---
 
-Deployment of Webiny API and apps is powered by [Serverless Components](https://github.com/serverless/components). However, our CLI does not use the `serverless` CLI under the hood as we have our custom template component and template pre-processsing to create seamless developer experience.
+Deployment of Webiny API and apps is powered by [Serverless Components](https://github.com/serverless/components). However, our CLI doesn't use the `serverless` CLI under the hood as we have our custom template component and template pre-processsing to create seamless developer experience.
 
 If this is your first encounter with Serverless Components, we strongly recommend you to read [this short blog post](https://serverless.com/blog/serverless-components-beta/) from the creators of `Serverless`, to see the idea behind it.
 

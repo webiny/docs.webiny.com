@@ -3,10 +3,12 @@ module.exports = {
         "Documentation": [
             "get-started",
             "project-structure",
-            "serverless-template"
+            "serverless-template",
+            "start-developing"
         ],
         "Other": [
             "other/contributing"
-        ]
+        ],
+
     }
 };
