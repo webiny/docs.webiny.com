@@ -34,6 +34,9 @@ const siteConfig = {
     ],
   ],
   themeConfig: {
+    gtag: {
+      trackingID: 'UA-35527198-1',
+    },
     navbar: {
       title: 'Webiny CMS Documentation',
       logo: {
