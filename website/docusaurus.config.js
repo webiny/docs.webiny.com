@@ -22,7 +22,7 @@ const siteConfig = {
       {
         docs: {
           path: '../docs',
-          sidebarPath: require.resolve ('./sidebars.json'),
+          sidebarPath: require.resolve ('./sidebars.js'),
           editUrl: 'https://github.com/webiny/docs.webiny.com/edit/master/docs/',
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
