@@ -1,14 +1,27 @@
 module.exports = {
     "docs": {
-        "Documentation": [
-            "get-started",
+        "Get Started": [
+            "quick-start",
             "project-structure",
             "serverless-template",
-            "start-developing"
+            "start-developing",
+            "plugins-crash-course"
+        ],
+        "API Development": [
+            "coming-soon",
+            /*"api-overview",
+             "api-schema-plugin",
+             "api-schema-test",*/
+        ],
+        "App Development": [
+            "coming-soon"
         ],
         "Other": [
-            "other/contributing"
-        ],
-
+            {
+                type: "link",
+                label: "How To Contribute",
+                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
+            }
+        ]
     }
 };

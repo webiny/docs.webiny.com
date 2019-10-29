@@ -19,13 +19,11 @@ By default, API is deployed using `local` environment. You can specify the envir
 
 Your first API deployment will take a few minutes so be patient. Once it's done, our CLI will automatically update the required environment variables of your React apps with values from your API deployment (see `apps/admin/.env.json` and `apps/site/.env.json` after the API deploy is completed).
 
-When completed, you'll see your GraphQL API URL. Note that it won't be immediately accessible, because of CDN propagation. Now is the best time to grab a ☕️.
-
-Once the CDN is finally online, open the GraphQL API URL - you should see a GraphQL playground! If so - congratulations! You've just deployed your first Webiny API! 🎉 
+When completed, you'll see your GraphQL API URL. Note that it won't be immediately accessible, because of CDN propagation. Once the CDN is finally online, open the GraphQL API URL - you should see a GraphQL playground!
 
 Open up the `Docs` on the right, and you'll see all your microservices connected into one big GraphQL schema.
 
-> NOTE: If you encounter issues, head over to our Github and file an issue. We'll be glad to help!
+> NOTE: If you encounter problems, head over to our Github and file an issue. We'll be glad to help!
 
 
 ## Start React Apps
@@ -47,6 +45,7 @@ When you're ready to deploy your React apps to the cloud, you can simply run:
 ```
 webiny deploy-apps --env=dev
 ```
+
 A few things to note here:
 
 - `local` environment is a reserved environment for local development. You can't deploy it.
