@@ -5,7 +5,7 @@ module.exports = {
             "project-structure",
             "serverless-template",
             "start-developing",
-            "plugins-crash-course"
+            // "plugins-crash-course"
         ],
         "API Development": [
             "coming-soon",
