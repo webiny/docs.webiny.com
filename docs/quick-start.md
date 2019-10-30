@@ -26,6 +26,7 @@ Once your project is created, the last thing you need is configure the database.
 ### Setup database connection
 To tell Webiny where your database is, you simply need to update the `api/.env.json` file and set the `MONGODB_SERVER` and `MONGODB_NAME`. As long as the database is accessible using the provided data, Webiny will be happy.
 
+> IMPORTANT: The `MONGODB_SERVER` value should be in the format of a MongoDB connection string such as: `mongodb+srv://{YOUR_USERNAME}:{YOUR_PASSWORD}@someclustername.mongodb.net`
 
 ## Required resources
 To run a Webiny project you will need a MongoDB database and an AWS account. If you don't have one of those, please read on.
