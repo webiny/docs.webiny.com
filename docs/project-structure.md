@@ -48,7 +48,7 @@ This folder also contains a serverless template file to deploy your apps. The `a
 ## `packages`
 This folder is for you to use for whatever custom packages you may add. By default, it contains the `theme` package, which is used by both `admin` and `site` apps, and the aforementioned `project-utils`.
 
-> NOTE: when you add new packages, makes sure you link them with your monorepo by running `yarn` in the root of your project. This will create symlinks to the `node_modules` and your packages will be accessible form anywhere within the project.
+> NOTE: when you add new packages, makes sure you link them with your monorepo by running `yarn` in the root of your project. This will create symlinks to the `node_modules` and your packages will be accessible from anywhere within the project.
 
 ## Other files
 - `.env.json` - contains environment variables that are used when you deploy both `api` and `apps`, so you can set shared variables in this file. This file is loaded first, then the `api/.env.json` values are merged into it (same goes for `apps/.env.json` in case you have it; by default, it is not needed).
