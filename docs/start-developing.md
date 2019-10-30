@@ -6,7 +6,7 @@ sidebar_label: Start Developing
 
 To begin local development, you must first deploy your API to the cloud, so your React apps have an API URL to connect to. 
 
-If you've already [set up your database connection](/docs/get-started#setup-database-connection), the next step is to run the API deployment process.
+If you've already [set up your database connection](/docs/quick-start#setup-database-connection), the next step is to run the API deployment process.
 
 ## Deploy API
 To start deploying:
