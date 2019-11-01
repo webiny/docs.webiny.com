@@ -1,11 +1,15 @@
 module.exports = {
     "docs": {
         "Get Started": [
-            "quick-start",
-            "project-structure",
-            "serverless-template",
-            "start-developing",
-            // "plugins-crash-course"
+            "get-started/quick-start",
+            "get-started/deploy-to-production"
+        ],
+        "Deep Dive": [
+            "deep-dive/introduction",
+            "deep-dive/tools",
+            "deep-dive/project-structure",
+            "deep-dive/serverless-template",
+            "deep-dive/cloud-architecture"
         ],
         "API Development": [
             "coming-soon",
