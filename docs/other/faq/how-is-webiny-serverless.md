@@ -10,7 +10,7 @@ On a few occasions, we received a question in terms of:
 Or something like:
 > You require an always-on database, how is this serverless?
 
-To address the question I've decided to create this article and explain what serverless is and , and how it differs from FaaS (function as a service).
+To address the question I've decided to create this article and explain what serverless is and how it differs from FaaS (function as a service).
 
 ## What is "serverless"?
 
@@ -40,4 +40,4 @@ Webiny is using FaaS functions, like Lambda, to power it's API.
 
 ---
 
-I hope this article clarified what serverless is. How Webiny is actually a serverless CMS when configured correctly, and how serverless is not to be mistaken with FaaS.
+I hope this article clarified what serverless is, how Webiny is actually a serverless CMS when configured correctly, and how serverless is not to be mistaken with FaaS.
