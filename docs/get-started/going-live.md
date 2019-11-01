@@ -1,8 +1,10 @@
 ---
-id: deploy-to-production
-title: Deploy to Cloud
-sidebar_label: Deploy to Cloud
+id: going-live
+title: Going Live
+sidebar_label: Going Live
 ---
+
+This article demonstrates how you can deploy your project to `dev`, `prod` and any other environment you may have. In the end of this process you will have a public URL to show your website to the world.
 
 ## 1. Create a `dev` environment config
 

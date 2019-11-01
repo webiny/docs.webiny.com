@@ -2,7 +2,7 @@ module.exports = {
     "docs": {
         "Get Started": [
             "get-started/quick-start",
-            "get-started/deploy-to-production"
+            "get-started/going-live"
         ],
         // "Deep Dive": [
         //     "deep-dive/introduction",
@@ -28,7 +28,7 @@ module.exports = {
         type: 'link',
         label: 'How To Contribute',
         href: 'https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md',
-      },
+    },
     ],
   },
 };
