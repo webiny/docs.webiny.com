@@ -44,7 +44,7 @@ const siteConfig = {
         src: 'img/white-square-icon.svg',
       },
       links: [
-        {href: '/docs/quick-start', label: 'Docs', position: 'right'},
+        {href: '/docs/get-started/quick-start', label: 'Docs', position: 'right'},
         {
           href: 'https://github.com/webiny/webiny-js',
           label: 'GitHub',
