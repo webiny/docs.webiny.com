@@ -14,9 +14,6 @@ The following things are mandatory for both local development and production dep
 - a verified AWS account with an [IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw)
 - a MongoDB database (we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already)
 
-For all the `Why?`s see the [Deep Dive](/docs/deep-dive/introduction.md) section where we go in details about everything Webiny.
-
-
 ## 1. Install the CLI
 
 ```
@@ -65,3 +62,8 @@ Site app is an actual website you're creating. It is a single page app, but in p
 cd apps/site
 yarn start
 ```
+
+---
+
+This is it! You have deployed a `local` API environment, and can begin developing your React apps on your local machine. For deploys to production and other environments, please see the next page.
+
