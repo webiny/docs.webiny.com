@@ -2,7 +2,8 @@ module.exports = {
     "docs": {
         "Get Started": [
             "get-started/quick-start",
-            "get-started/going-live"
+            "get-started/going-live",
+            "get-started/development-principles"
         ],
         // "Deep Dive": [
         //     "deep-dive/introduction",
