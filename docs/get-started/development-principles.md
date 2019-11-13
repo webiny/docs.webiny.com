@@ -88,6 +88,8 @@ We are aware that this is a huge change. But we're also sure it's for the better
 
 Our CLI supports selective component deploy, so you can only deploy the component you're working on. Depending on how big your service is, a deploy will take from `~7-20` seconds. For example, a service like `i18n` or `security` takes `7s` to deploy. If you're working on a Page Builder API plugin, that will take you around `20s` to deploy, since that service is much bigger.  
 
+We're also working on a watch mechanism, so your components deploy as soon as there is a change in the components being watched.
+
 ### GraphQL schema tests
 
 To speed up GraphQL test setup we've created a helper to bootstrap your API for testing. The test setup now looks like this:

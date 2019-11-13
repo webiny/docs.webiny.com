@@ -1,5 +1,8 @@
 module.exports = {
     "docs": {
+        "Webiny": [
+            "webiny/introduction"
+        ],
         "Get Started": [
             "get-started/quick-start",
             "get-started/going-live",
