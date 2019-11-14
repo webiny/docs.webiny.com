@@ -8,13 +8,10 @@ module.exports = {
             "get-started/going-live",
             "get-started/development-principles"
         ],
-        // "Deep Dive": [
-        //     "deep-dive/introduction",
-        //     "deep-dive/tools",
-        //     "deep-dive/project-structure",
-        //     "deep-dive/serverless-template",
-        //     "deep-dive/cloud-architecture"
-        // ],
+        "Deep Dive": [
+            "deep-dive/project-structure",
+            "deep-dive/cloud-architecture"
+        ],
         "API Development": [
             "coming-soon",
             /*"api-overview",

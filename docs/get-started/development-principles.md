@@ -96,23 +96,15 @@ To speed up GraphQL test setup we've created a helper to bootstrap your API for 
 
 ```js
 import { graphql } from "graphql";
-import { MongoClient } from "mongodb";
 import { setupSchema } from "@webiny/api/testing";
-import filesPlugins from "@webiny/api-files/plugins";
+import yourPlugins from "api-plugin-my-app";
 
-describe("GraphQL plugins", () => {
+describe("Your plugins", () => {
     let testing;
-    let client;
 
     beforeAll(async () => {
         // Setup database
-        client = await MongoClient.connect(global.__MONGO_URI__, { useUnifiedTopology: true });
-        const database = await client.db(global.__MONGO_DB_NAME__);
-        testing = await setupSchema([filesPlugins], { database });
-    });
-
-    afterAll(async () => {
-        await client.close();
+        testing = await setupSchema([yourPlugins]);
     });
 
     test("create file", async () => {
