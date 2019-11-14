@@ -10,7 +10,8 @@ module.exports = {
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
-            "deep-dive/cloud-architecture"
+            "deep-dive/cloud-architecture",
+            "deep-dive/plugins-crash-course"
         ],
         "API Development": [
             "coming-soon",
