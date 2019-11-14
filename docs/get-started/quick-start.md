@@ -14,6 +14,9 @@ The following things are mandatory for both local development and production dep
 - a verified AWS account with an [IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw)
 - a MongoDB database (we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already)
 
+> NOTE: if you're unsure your AWS credentials are configured correctly, you can verify them by running `aws sts get-caller-identity`.
+  If you don't see the user info, take a look at this tutorial to [create an IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw).
+
 ## 1. Install the CLI
 
 ```

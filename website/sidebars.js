@@ -1,16 +1,20 @@
 module.exports = {
     "docs": {
+        "Webiny": [
+            "webiny/introduction"
+        ],
         "Get Started": [
             "get-started/quick-start",
-            "get-started/going-live"
+            "get-started/going-live",
+            "get-started/development-principles"
         ],
-        // "Deep Dive": [
-        //     "deep-dive/introduction",
-        //     "deep-dive/tools",
-        //     "deep-dive/project-structure",
-        //     "deep-dive/serverless-template",
-        //     "deep-dive/cloud-architecture"
-        // ],
+        "Deep Dive": [
+            "deep-dive/project-structure",
+            "deep-dive/cloud-architecture",
+            //"deep-dive/database",
+            // "deep-dive/deployment",
+            "deep-dive/plugins-crash-course"
+        ],
         "API Development": [
             "coming-soon",
             /*"api-overview",
@@ -18,6 +22,10 @@ module.exports = {
              "api-schema-test",*/
     ],
     'App Development': ['coming-soon'],
+    /*Plugins: [
+      'plugins/adding-your-plugin',
+      // add your plugin page below, make sure it's ordered alphabetically
+    ],*/
     Other: [
       {
         type: 'category',
@@ -28,7 +36,7 @@ module.exports = {
         type: 'link',
         label: 'How To Contribute',
         href: 'https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md',
-    },
+      },
     ],
   },
 };

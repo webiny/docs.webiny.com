@@ -8,7 +8,7 @@ import Layout from "@theme/Layout";
 class Home extends React.Component {
 
   componentWillMount () {
-    window.location.href = "/docs/get-started/quick-start"
+    window.location.href = "/docs/webiny/introduction"
   }
 
   render() {
@@ -17,7 +17,7 @@ class Home extends React.Component {
         <body>
           If you are not redirected automatically, follow
           this{" "}
-          <a href="docs/get-started/quick-start">link</a>.
+          <a href="/docs/webiny/introduction">link</a>.
         </body>
       </Layout>
     );
