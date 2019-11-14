@@ -36,6 +36,8 @@ Edit `api/.env.json` file and set the `MONGODB_SERVER` value. The values in this
 
 > IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
 
+> The `MONGODB_SERVER` value should be in the format of a MongoDB connection string such as: `mongodb+srv://{YOUR_USERNAME}:{YOUR_PASSWORD}@someclustername.mongodb.net`.
+
 ## 4. Deploy API
 
 We need to deploy a `local` API environment to use for local development:
