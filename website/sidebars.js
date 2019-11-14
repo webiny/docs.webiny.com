@@ -11,6 +11,8 @@ module.exports = {
         "Deep Dive": [
             "deep-dive/project-structure",
             "deep-dive/cloud-architecture",
+            //"deep-dive/database",
+            // "deep-dive/deployment",
             "deep-dive/plugins-crash-course"
         ],
         "API Development": [
@@ -20,16 +22,16 @@ module.exports = {
              "api-schema-test",*/
     ],
     'App Development': ['coming-soon'],
-    Plugins: [
-      'plugins/introduction',
+    /*Plugins: [
+      'plugins/adding-your-plugin',
       // add your plugin page below, make sure it's ordered alphabetically
-    ],
+    ],*/
     Other: [
-        {
-            type: 'category',
-            label: 'FAQ',
-            items: ['other/faq/how-is-webiny-serverless'],
-        },
+      {
+        type: 'category',
+        label: 'FAQ',
+        items: ['other/faq/how-is-webiny-serverless'],
+      },
       {
         type: 'link',
         label: 'How To Contribute',

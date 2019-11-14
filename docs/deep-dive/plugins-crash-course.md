@@ -6,9 +6,7 @@ sidebar_label: Plugins Crash Course
 
 Everything in Webiny is built using plugins. To build a React app or an API you will only need a little bit of bootstrap code, and the rest is all done via plugins.
 
-Plugins are the smallest building blocks. They are used to add routes, menus, page builder elements, settings, handle API security, add data models, GraphQL schemas, etc.
-
-The list is just too long to name all the usages here.
+Plugins are the smallest building blocks. They are used to add routes, menus, page builder elements, settings, handle API security, add data models, GraphQL schemas, etc. The list is just too long to name all the usages here.
 
 ## Anatomy of a plugin
 
@@ -83,6 +81,8 @@ testPlugins.forEach(pl => {
 });
 ```
 
+If no plugins were found, an empty array is returned, so you're safe to loop through the result of `getPlugins` function.
+
 ### Using a plugin by name
 
 ```
@@ -90,9 +90,28 @@ import { getPlugin } from "@webiny/plugins";
 
 // Get all plugins by type
 const firstPlugin = getPlugin("first-plugin");
+
+if (!firstPlugin) {
+    throw Error(`"first-plugin" plugin was not found!`);
+}
+
 firstPlugin.sayHi();
 ```
 
+> NOTE: We recommend to always add a check if a plugin was returned, and throw an error if the plugin is mandatory.
+
+## Removing a plugin
+
+If there is a plugin you'd like to remove, do it like this:
+
+```
+import { unregisterPlugin } from "@webiny/plugins";
+
+unregisterPlugin("plugin-name-to-remove");
+```
+
+If you just want to replace the existing plugin, simply register a new plugin with the same name as the plugin you want to replace.
+
 ## Conclusion
 
-Now you're familiar with how the entire Webiny is built. It's just that - registration of plugins and creation of plugins. Lots of them. In `API Development` and `App Development` sections of the docs we'll look at the differences between the React and API environments but the plugins stay the same.
+Now you're familiar with how the entire Webiny is built. It's just that - registration of plugins and creation of plugins. Lots of them 🚀. In `API Development` and `App Development` sections of the docs you'll see that there are minor differences in how we register plugins but the concept remains the same.
