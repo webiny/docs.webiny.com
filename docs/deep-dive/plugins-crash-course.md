@@ -71,7 +71,7 @@ The last thing to do is get your plugin(s) and use them the way they are meant t
 
 ### Using plugins by type
 
-```
+```js
 import { getPlugins } from "@webiny/plugins";
 
 // Get all plugins by type
@@ -85,7 +85,7 @@ If no plugins were found, an empty array is returned, so you're safe to loop thr
 
 ### Using a plugin by name
 
-```
+```js
 import { getPlugin } from "@webiny/plugins";
 
 // Get all plugins by type
@@ -104,7 +104,7 @@ firstPlugin.sayHi();
 
 If there is a plugin you'd like to remove, do it like this:
 
-```
+```js
 import { unregisterPlugin } from "@webiny/plugins";
 
 unregisterPlugin("plugin-name-to-remove");
