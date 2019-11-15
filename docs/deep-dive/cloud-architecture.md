@@ -26,7 +26,7 @@ To access this main entry point, we deploy another API Gateway with a single rou
 
 ### Other resources
 
-Other resources include a Cognito User Pool and a Cloudfront CDN. The CDN sits in front of your API entry point. You can deploy other resources if your projects needs them. All you need is a [Serverless Component](https://github.com/serverless/componentss) to deploy them.
+Other resources include a Cognito User Pool and a Cloudfront CDN. The CDN sits in front of your API entry point. You can deploy other resources if your projects needs them. All you need is a [Serverless Component](https://github.com/serverless/components) to deploy them.
 
 ## React apps
 

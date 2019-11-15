@@ -4,6 +4,7 @@ title: Quick Start
 sidebar_label: Quick Start
 ---
 
+This is a quick start guide which should help you setup Webiny as fast as possible. For detailed explanations of concepts and process, see the `Deep Dive` section of the docs.
 
 ## Prerequisites
 
@@ -12,10 +13,9 @@ The following things are mandatory for both local development and production dep
 - node.js >= 10.14.0 (we recommend [this tool](https://www.npmjs.com/package/n) to manage your node.js versions)
 - `yarn` - [https://yarnpkg.com/en/docs/install](https://yarnpkg.com/en/docs/install)
 - a verified AWS account with an [IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw)
-- a MongoDB database (we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already)
+- a MongoDB database in the cloud (we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already)
 
-> NOTE: if you're unsure your AWS credentials are configured correctly, you can verify them by running `aws sts get-caller-identity`.
-  If you don't see the user info, take a look at this tutorial to [create an IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw).
+> NOTE: if you're unsure your AWS credentials are configured correctly, you can verify them by running the following command using [AWS CLI](https://aws.amazon.com/cli/): `aws sts get-caller-identity`. If you don't see the user info, take a look at this tutorial to [create an IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw).
 
 ## 1. Install the CLI
 
@@ -36,7 +36,8 @@ Edit `api/.env.json` file and set the `MONGODB_SERVER` value. The values in this
 
 > IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
 
-> The `MONGODB_SERVER` value should be in the format of a MongoDB connection string such as: `mongodb+srv://{YOUR_USERNAME}:{YOUR_PASSWORD}@someclustername.mongodb.net`.
+> The `MONGODB_SERVER` value should be in the format of a MongoDB connection string such as: 
+>`mongodb+srv://{YOUR_USERNAME}:{YOUR_PASSWORD}@someclustername.mongodb.net`.
 
 ## 4. Deploy API
 
@@ -55,7 +56,7 @@ cd apps/admin
 yarn start
 ```
 
-Once started, `admin` app will run an installation wizard to setup the system. 
+Once started, `admin` app will run an installation wizard to setup the system.
 
 > IMPORTANT: Do NOT go onto the next step until you complete the installation wizard.
 
@@ -71,4 +72,3 @@ yarn start
 ---
 
 This is it! You have deployed a `local` API environment, and can begin developing your React apps on your local machine. For deploys to production and other environments, please see the next page.
-

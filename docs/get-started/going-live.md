@@ -46,11 +46,15 @@ However, if you want to use a different database, for example, you can create a 
 
 ## 2. Deploy API using `dev` environment
 
+From the root of your project, run the following command:
+
 ```
 webiny deploy-api --env=dev
 ```
 
 ## 3. Deploy apps using `dev` environment
+
+From the root of your project, run the following command:
 
 ```
 webiny deploy-apps --env=dev
