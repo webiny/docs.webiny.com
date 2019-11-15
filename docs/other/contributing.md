@@ -30,3 +30,15 @@ Tip: If you are submitting a feature request, you need to sell it to us. Explain
 - If your pull request is for a new feature:
 - We highly recommend that you first open a new issue for your feature request, or address and existing one. Without this step there is a risk of us maybe not merging your work and then it's all for nothing.
 - The issue comments is the place where you should convince us that the feature is needed - once we accept it there, that's the point when you should start coding it.
+
+### Glossary
+
+In order to make the documentation pages as clear as possible, throughout all of the topics, we are trying to stick to a set of
+standardized terms. Below is the list of terms (alphabetically sorted) that contributors should use when referencing different parts of Webiny.
+
+| Term           | Meaning                                                                                                                 |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Admin          | Administration UI that is included by default in every Webiny installation.                                             |
+| API            | References all of the services that were deployed to the cloud.                                                         |
+| cloud resource | When deploying Webiny to a cloud of user's choice, it deploys various cloud resources, eg. S3, API Gateway and similar. |
+| React apps     | Used when you want to reference Webiny apps like e.g. Admin or Site.                                                    |
