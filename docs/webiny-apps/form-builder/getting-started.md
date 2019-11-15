@@ -4,23 +4,24 @@ title: Getting Started
 sidebar_label: Getting Started
 ---
 
-Form Builder is included by default in the initial Webiny installation,
+In this section we will cover everything you need to know in order to get started with the Form Builder app. 
+
+Form Builder is included by default in every Webiny installation,
 so no additional installation steps are required. Just log in into 
-the Webiny Admin, and in the left sidebar, choose Form Builder.
+the Webiny Admin, and from the menu in the left sidebar, click on the Form Builder.
 
 ![Form Builder](/assets/webiny-apps/form-builder/getting-started/open-via-sidebar.png)
 
-Here you will see a list of all previously created forms. And by 
-selecting a form from the list, you can view its stats, form 
-submissions, edit the form if you need to, and more.
+Once clicked, the first thing you'll see is the list of all previously created forms. 
+As by default there aren't any, let's go ahead and create our first form. Click on the "plus"
+icon in the bottom right corner. You will be prompted to enter a form name, after which you'll be automatically redirected to the form builder. 
 
-Let's start by creating a brand new form by clicking on the "plus"
-icon in the bottom right corner. You will be prompted to enter a form name.
 
-Once you do that, you will be redirected to the form builder, from where
-you can start creating your new form.
+There are a couple of important UI sections in the Form Builder:
 
-There are a couple of important UI sections in the form builder. 
+![Form Builder](/assets/webiny-apps/form-builder/getting-started/form-builder-ui.png)
+
+1. 
 
 Obviously, every form consists of form fields, so in order to add them, 
 you can drag and dropping fields from the left side bar to the
