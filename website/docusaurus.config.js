@@ -9,57 +9,58 @@
 // site configuration options.
 
 const siteConfig = {
-  title: 'Webiny Documentation', // Title for your website.
-  tagline: 'Serverless CMS',
-  url: 'https://www.webiny.com', // Your website URL
-  baseUrl: '/', // Base URL for your project */
-  projectName: 'webiny-js',
-  organizationName: 'webiny',
-  favicon: 'img/favicon.ico',
-  presets: [
-    [
-      '@docusaurus/preset-classic',
-      {
-        docs: {
-          path: '../docs',
-          sidebarPath: require.resolve ('./sidebars.js'),
-          editUrl: 'https://github.com/webiny/docs.webiny.com/edit/master/docs/',
-          showLastUpdateAuthor: true,
-          showLastUpdateTime: true,
-        },
-        theme: {
-          customCss: require.resolve ('./static/css/custom.css'),
-        },
-      },
+    title: "Webiny Documentation", // Title for your website.
+    tagline: "Serverless CMS",
+    url: "https://www.webiny.com", // Your website URL
+    baseUrl: "/", // Base URL for your project */
+    projectName: "webiny-js",
+    organizationName: "webiny",
+    favicon: "img/favicon.ico",
+    presets: [
+        [
+            "@docusaurus/preset-classic",
+            {
+                docs: {
+                    path: "../docs",
+                    sidebarPath: require.resolve("./sidebars.js"),
+                    editUrl: "https://github.com/webiny/docs.webiny.com/edit/master/docs/",
+                    showLastUpdateAuthor: true,
+                    showLastUpdateTime: true
+                },
+                theme: {
+                    customCss: require.resolve("./static/css/custom.css")
+                }
+            }
+        ]
     ],
-  ],
-  themeConfig: {
-    gtag: {
-      trackingID: 'UA-35527198-1',
-    },
-    navbar: {
-      title: 'Webiny CMS Documentation',
-      logo: {
-        alt: 'Webiny Serverless CMS Logo',
-        src: 'img/white-square-icon.svg',
-      },
-      links: [
-        {href: '/docs/get-started/quick-start', label: 'Docs', position: 'right'},
-        {
-          href: 'https://github.com/webiny/webiny-js',
-          label: 'GitHub',
-          position: 'right',
+    themeConfig: {
+        gtag: {
+            trackingID: "UA-35527198-1"
         },
-        {
-          href: 'https://storybook.webiny.com',
-          label: 'Storybook',
-          position: 'right',
-        },
-      ],
-    },
-  },
+        navbar: {
+            title: "Webiny CMS Documentation",
+            logo: {
+                alt: "Webiny Serverless CMS Logo",
+                src: "img/white-square-icon.svg",
+                href: "/docs/webiny/introduction"
+            },
+            links: [
+                { href: "/docs/webiny/introduction", label: "Docs", position: "right" },
+                {
+                    href: "https://github.com/webiny/webiny-js",
+                    label: "GitHub",
+                    position: "right"
+                },
+                {
+                    href: "https://storybook.webiny.com",
+                    label: "Storybook",
+                    position: "right"
+                }
+            ]
+        }
+    }
 
-  /*
+    /*
   docsSideNavCollapsible: true,
   twitterUsername: 'WebinyPlatform',
   gaTrackingId: 'UA-35527198-1',
@@ -104,8 +105,8 @@ const siteConfig = {
     secondaryColor: '#FFFFFF',
   },
   */
-  /* Custom fonts for website */
-  /*
+    /* Custom fonts for website */
+    /*
   fonts: {
     myFont: [
       "Times New Roman",
@@ -118,7 +119,7 @@ const siteConfig = {
   },
   */
 
-  /*
+    /*
   // This copyright info is used in /core/Footer.js and blog RSS/Atom feeds.
   copyright: `Copyright © ${new Date ().getFullYear ()} Webiny Ltd`,
 

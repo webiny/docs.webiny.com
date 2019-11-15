@@ -14,6 +14,9 @@ The following things are mandatory for both local development and production dep
 - a verified AWS account with an [IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw)
 - a MongoDB database (we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already)
 
+> NOTE: if you're unsure your AWS credentials are configured correctly, you can verify them by running `aws sts get-caller-identity`.
+  If you don't see the user info, take a look at this tutorial to [create an IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw).
+
 ## 1. Install the CLI
 
 ```
@@ -32,6 +35,8 @@ cd my-project
 Edit `api/.env.json` file and set the `MONGODB_SERVER` value. The values in this file are unique for your project, you do NOT need to change any other values.
 
 > IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
+
+> The `MONGODB_SERVER` value should be in the format of a MongoDB connection string such as: `mongodb+srv://{YOUR_USERNAME}:{YOUR_PASSWORD}@someclustername.mongodb.net`.
 
 ## 4. Deploy API
 
