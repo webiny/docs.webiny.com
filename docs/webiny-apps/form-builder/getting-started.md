@@ -22,9 +22,9 @@ There are a couple of important UI sections in the form builder:
 
 ![form builder](/assets/webiny-apps/form-builder/getting-started/form-builder-ui.png)
 
-#### 1 - Form name
+#### 1 - Form status and name
 
-This is the name of your form. You can click on it in order to set a different name.
+This shows the current status of your form and its name. You can click on the name in order to change it.
 
 #### 2 - Fields menu
 
@@ -43,7 +43,7 @@ A couple of options are available here. The "revisions" dropdown shows you all o
 ## Publish a simple form and display it in the Page Builder
 For starters, add a few fields. You can do that easily by dragging and dropping one or more fields from the "contact information" fields group.
 
-Once you're done, the next step is to publish the form. This will enable us to display it inside of the Page Builder. Use the publish button that's located in the Form options section.
+Once you're done, the next step is to publish the form. This will enable us to display it inside of the Page Builder. Use the publish button that's located in the top right Form options section.
 
 Once you've done that, you should be taken back to the forms list.
 
@@ -53,7 +53,7 @@ To include your newly created form, simply find the Form element in the page ele
 
 ![form builder](/assets/webiny-apps/form-builder/getting-started/page-builder-embed-form.png)
 
-Once you do that, you will need to chose the form and a revision. For now, just note that forms can have multiple published revisions (versions), and here you can select a specific one or just set it to always use the latest. More information on revisions and publishing can be found [here](/docs/webiny-apps/page-builder/revisions-and-publishing).
+Once you do that, you will need to chose the form and a revision. For now, just note that forms can have multiple published revisions (versions), and here you can select a specific one or just set it to always use the latest. More information on revisions and publishing can be found [here](/docs/webiny-apps/form-builder/revisions-and-publishing).
 
 ![form builder](/assets/webiny-apps/form-builder/getting-started/page-builder-choose-form.png)
 

@@ -40,7 +40,22 @@ module.exports = {
                 label: "Form Builder",
                 items: [
                     "webiny-apps/form-builder/introduction",
-                    "webiny-apps/form-builder/getting-started"
+                    "webiny-apps/form-builder/getting-started",
+                    "webiny-apps/form-builder/revisions-and-publishing",
+                    "webiny-apps/form-builder/triggers",
+                    "webiny-apps/form-builder/form-stats",
+                    "webiny-apps/form-builder/form-settings",
+                    "webiny-apps/form-builder/form-builder-settings",
+                    "webiny-apps/form-builder/embed-forms-via-page-builder",
+                    {
+                        type: "category",
+                        label: "Development",
+                        items: [
+                            "webiny-apps/form-builder/react-components",
+                            "webiny-apps/form-builder/form-layouts",
+                            "webiny-apps/form-builder/custom-form-triggers",
+                        ]
+                    }
                 ]
             },
             {
