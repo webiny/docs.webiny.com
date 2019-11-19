@@ -4,7 +4,11 @@ title: Quick Start
 sidebar_label: Quick Start
 ---
 
-This is a quick start guide which should help you setup Webiny as fast as possible. For detailed explanations of concepts and process, see the `Deep Dive` section of the docs.
+This is a quick start guide which should help you setup Webiny as fast as possible. 
+
+At the end of this guide, you'll have a simple website, that already comes with a couple of default pages to get you started, and a complete admin interface that will enable you to manage it. All of this will be deployed to the AWS Cloud. 
+
+For detailed explanations of concepts and processes, see the [Deep Dive](/docs/deep-dive/project-structure) section of the docs.
 
 ## Prerequisites
 
