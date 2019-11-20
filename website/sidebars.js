@@ -51,7 +51,7 @@ module.exports = {
                         type: "category",
                         label: "Development",
                         items: [
-                            "webiny-apps/form-builder/react-components",
+                            "webiny-apps/form-builder/react-component",
                             "webiny-apps/form-builder/form-layouts",
                             "webiny-apps/form-builder/custom-form-triggers",
                         ]
