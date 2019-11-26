@@ -1,7 +1,7 @@
 ---
 id: form-stats
-title: Stats and submissions
-sidebar_label: Stats and submissions
+title: Stats and Submissions
+sidebar_label: Stats and Submissions
 ---
 
 Once you've published your form and embedded it into your website, over time you will definitely want to check how it's performing. With the Form Builder app, you automatically get access to basic stats for all of your forms. You can also check out all of the received form submissions, with the complete data that was submitted. 

@@ -59,6 +59,8 @@ Once you do that, you will need to chose the form and a revision. For now, just 
 
 Click "Save" to confirm you selection, and you're done! You should now see your form on the page.
 
+> If you are a developer, you might want to check out the [`Form` React component](/docs/webiny-apps/form-builder/react-component), which will enable you to show any form via a simple React component.
+
 And that completes this short [Getting Started](/docs/webiny-apps/form-builder/getting-started) guide. Feel free to check out other topics like [Revisions and publishing](/docs/webiny-apps/form-builder/revisions-and-publishing), [Triggers](/docs/webiny-apps/form-builder/triggers), and [Form Builder Settings]((/docs/webiny-apps/form-builder/settings)), or if you aren't familiar with the Page Builder yet, you can also visit the [Page Builder](/docs/webiny-apps/page-builder/introduction) documentation.
  
  

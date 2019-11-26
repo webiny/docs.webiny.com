@@ -1,5 +1,5 @@
 ---
 id: custom-form-triggers
-title: Custom form triggers
-sidebar_label: Custom form triggers
+title: Custom Form Triggers
+sidebar_label: ___Custom Form Triggers
 ---

@@ -20,3 +20,5 @@ Last but not least, the app also lets you review all of the received form submis
 check out conversion rates, create CSV exports, define additional behaviour on successful form submissions via triggers, and more.
 
 In the following section we will cover everything you need to know in order to get started with the Form Builder app. 
+
+> If you are a developer and want to learn how to introduce additional customizations to your forms, feel free to check out the [Development](/docs/webiny-apps/form-builder/react-component) section.

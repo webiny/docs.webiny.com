@@ -41,6 +41,7 @@ module.exports = {
                 items: [
                     "webiny-apps/form-builder/introduction",
                     "webiny-apps/form-builder/getting-started",
+                    "webiny-apps/form-builder/form-fields",
                     "webiny-apps/form-builder/revisions-and-publishing",
                     "webiny-apps/form-builder/triggers",
                     "webiny-apps/form-builder/form-stats",
@@ -53,7 +54,8 @@ module.exports = {
                         items: [
                             "webiny-apps/form-builder/react-component",
                             "webiny-apps/form-builder/form-layouts",
-                            "webiny-apps/form-builder/custom-form-triggers",
+                            "webiny-apps/form-builder/creating-new-form-fields",
+                            "webiny-apps/form-builder/custom-form-triggers"
                         ]
                     }
                 ]

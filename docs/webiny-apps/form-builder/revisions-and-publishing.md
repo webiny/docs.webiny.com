@@ -1,7 +1,7 @@
 ---
 id: revisions-and-publishing
-title: Revisions and publishing
-sidebar_label: Revisions and publishing
+title: Revisions and Publishing
+sidebar_label: Revisions and Publishing
 ---
 
 # Publishing

@@ -12,7 +12,7 @@ For these cases, the Form Builder app exposes the `Form` component, which can be
 import { Form } from "@webiny/app-forms/components/Form";
 ```
 
-Once you've imported it, you can include any published form by passing the adequate props, for example:
+You can now render any published form by simply passing an adequate set of props to the imported `Form` component, for example:
 
 ```jsx
 <Form slug="my-awesome-form" revisionNumber={3} />

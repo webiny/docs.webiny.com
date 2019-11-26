@@ -1,5 +1,5 @@
 ---
 id: form-settings
-title: Form settings
-sidebar_label: Form settings
+title: Form Settings
+sidebar_label: ___Form Settings
 ---

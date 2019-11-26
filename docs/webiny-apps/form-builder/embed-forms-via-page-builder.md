@@ -1,7 +1,7 @@
 ---
 id: embed-forms-via-page-builder
-title: Embed forms via Page Builder
-sidebar_label: Embed forms via Page Builder
+title: Embed Forms via Page Builder
+sidebar_label: Embed Forms via Page Builder
 ---
 
 As mentioned in the [Getting Started](/docs/webiny-apps/form-builder/getting-started) section, Form Builder app is included by default in every Webiny installation. 
@@ -20,4 +20,4 @@ You can either select a specific form revision, or just set it to always use the
 
 Please note that this only shows published revisions, which means you'll have to publish your form revision before embedding it into the page.
 
-> More information about publishing forms and revisions can be found [here](/docs/webiny-apps/form-builder/revisions-and-publishing).
+> More information on publishing forms and revisions can be found [here](/docs/webiny-apps/form-builder/revisions-and-publishing).
