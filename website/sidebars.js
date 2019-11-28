@@ -24,7 +24,34 @@ module.exports = {
       'plugins/adding-your-plugin',
       // add your plugin page below, make sure it's ordered alphabetically
     ],*/
+        "Theme Development": [
+            "theme-development/introduction",
+            "theme-development/basic-concepts",
+            {
+                type: "category",
+                label: "Theme configuration",
+                items: [
+                    "theme-development/theme-configuration",
+                    "theme-development/layouts",
+                    "theme-development/forms",
+                    "theme-development/colors",
+                    "theme-development/elements",
+                    "theme-development/typography"
+                ]
+            },
+            "theme-development/stylesheets",
+            {
+                type: "category",
+                label: "Advanced Topics",
+                items: [
+                    "theme-development/graphql",
+                    "theme-development/menus",
+                    "theme-development/site-settings"
+                ]
+            }
+        ],
         "Webiny Apps": [
+            /*
             {
                 type: "category",
                 label: "Admin",
@@ -35,6 +62,7 @@ module.exports = {
                 label: "File Manager",
                 items: ["webiny-apps/file-manager/introduction"]
             },
+            */
             {
                 type: "category",
                 label: "Form Builder",
@@ -64,7 +92,7 @@ module.exports = {
                 type: "category",
                 label: "Page Builder",
                 items: [
-                    "webiny-apps/page-builder/introduction",
+                    //"webiny-apps/page-builder/introduction",
                     "webiny-apps/page-builder/getting-started"
                 ]
             }
@@ -73,7 +101,7 @@ module.exports = {
             {
                 type: "category",
                 label: "FAQ",
-                items: ["other/faq/how-is-webiny-serverless"]
+                items: ["other/faq/how-is-webiny-serverless", "other/faq/why-not-dynamodb"]
             },
             {
                 type: "link",
