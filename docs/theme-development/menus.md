@@ -4,13 +4,13 @@ title: Navigation menus
 sidebar_label: Navigation menus
 ---
 
-Webiny features a module that allows you to build navigational menus. 
+Webiny features a module that allows you to build navigational menus.
 
-![Webiny - Theme Menu](/assets/theme-development/webiny-theme-menu.png)
+![Webiny - Theme Menu](/img/theme-development/webiny-theme-menu.png)
 
-Each menu has a `Name`, `Slug`, `Description` and menu items. 
+Each menu has a `Name`, `Slug`, `Description` and menu items.
 
-To render a menu on your site, you need to do that as part of your theme implementation. Webiny exposes a `Menu` component that is part of `@webiny/app-page-builder` library. Using that component you can retrieve any menu that's defined in your system and then render it using a provided component. 
+To render a menu on your site, you need to do that as part of your theme implementation. Webiny exposes a `Menu` component that is part of `@webiny/app-page-builder` library. Using that component you can retrieve any menu that's defined in your system and then render it using a provided component.
 
 A simple example would look like this:
 
@@ -20,15 +20,13 @@ import { Menu } from "@webiny/app-page-builder/render/components";
 import MenuRenderComponent from "./MenuRenderComponent";
 
 class MyHeaderMenu extends React.Component {
-    render() {
-        return (
-            <Menu slug={'main-menu'} component={MenuRenderComponent} />
-        );
-    }
+  render() {
+    return <Menu slug={"main-menu"} component={MenuRenderComponent} />;
+  }
 }
 ```
 
-The above code retrieves the requested menu using the `slug` prop and then renders the menu using the `MenuRenderComponent` component. 
+The above code retrieves the requested menu using the `slug` prop and then renders the menu using the `MenuRenderComponent` component.
 
 A sample implementation of `MenuRenderComponent` would look something like so:
 
@@ -37,38 +35,38 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 function getLink({ url, title }) {
-    if (url.startsWith("/")) {
-        return <Link to={url}>{title}</Link>;
-    }
+  if (url.startsWith("/")) {
+    return <Link to={url}>{title}</Link>;
+  }
 
-    return <a href={url}>{title}</a>;
+  return <a href={url}>{title}</a>;
 }
 
 const DefaultMenu = ({ data }: Object) => {
-    if (!data) {
-        return null;
-    }
+  if (!data) {
+    return null;
+  }
 
-    return (
-        <ul>
-            {data.items.map((item, index) => {
-                if (Array.isArray(item.children)) {
-                    return (
-                        <li key={item.id + index}>
-                            {item.title}
-                            <ul>
-                                {item.children.map((item, index) => {
-                                    return <li key={item.id + index}>{getLink(item)}</li>;
-                                })}
-                            </ul>
-                        </li>
-                    );
-                }
+  return (
+    <ul>
+      {data.items.map((item, index) => {
+        if (Array.isArray(item.children)) {
+          return (
+            <li key={item.id + index}>
+              {item.title}
+              <ul>
+                {item.children.map((item, index) => {
+                  return <li key={item.id + index}>{getLink(item)}</li>;
+                })}
+              </ul>
+            </li>
+          );
+        }
 
-                return <li key={item.id + index}>{getLink(item)}</li>;
-            })}
-        </ul>
-    );
+        return <li key={item.id + index}>{getLink(item)}</li>;
+      })}
+    </ul>
+  );
 };
 
 export default DefaultMenu;

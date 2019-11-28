@@ -8,11 +8,11 @@ Every form you create via the form builder has a layout, which lets you define t
 
 Be default, every form has a default layout, which can be changed via the form settings. In the form builder, click on the settings icon in the top right corner:
 
-![Form settings button.](/assets/webiny-apps/form-builder/form-layouts/form-settings-icon.png)
+![Form settings button.](/img/webiny-apps/form-builder/form-layouts/form-settings-icon.png)
 
 You should then see the following screen, and the "Layout" field at the bottom of the general settings form:
 
-![Every form will have a default layout set.](/assets/webiny-apps/form-builder/form-layouts/pick-layout-settings.png)
+![Every form will have a default layout set.](/img/webiny-apps/form-builder/form-layouts/pick-layout-settings.png)
 
 Please note that a single form layout can be used on any number of forms, but every single form can use only one layout.
 
@@ -96,7 +96,7 @@ As seen in above examples, whichever approach you decide to use, you'll need to 
 
 To get a better feeling of what's expected of a single form layout component, you can check out the default layout component that's provided with every Webiny installation, located at: `packages/theme/src/layouts/forms/DefaultFormLayout.js`
 
-If needed, feel free to edit the file to your liking, or just create a copy and use that as a foundation for a new form layout.  
+If needed, feel free to edit the file to your liking, or just create a copy and use that as a foundation for a new form layout.
 
 ### Form Layout Component's Props
 
@@ -108,4 +108,4 @@ If needed, feel free to edit the file to your liking, or just create a copy and 
 | `ReCaptcha`        | `ReCaptchaComponentType`                            | A components that shows Google reCAPTCHA, a simple check that prevents you from spammers and bots (only if enabled via [form settings](/docs/webiny-apps/form-builder/form-settings)). |
 | `TermsOfService`   | `TermsOfServiceComponentType`                       | A component that shows terms of service message (only if enabled via [form settings](/docs/webiny-apps/form-builder/form-settings).                                                    |
 | `submit`           | `(data: Object) => Promise<FormSubmitResponseType>` | Call this callback to submit the form.                                                                                                                                                 |
-| `formData`         | `FormDataType`                                      | Contains data about the form, e.g. form name, layout, settings, and so on.                                                                               |
+| `formData`         | `FormDataType`                                      | Contains data about the form, e.g. form name, layout, settings, and so on.                                                                                                             |
