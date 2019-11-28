@@ -57,12 +57,12 @@ module.exports = {
                 label: "Admin",
                 items: ["webiny-apps/admin/introduction"]
             },
+            */
             {
                 type: "category",
                 label: "File Manager",
-                items: ["webiny-apps/file-manager/introduction"]
+                items: ["webiny-apps/file-manager/getting-started"]
             },
-            */
             {
                 type: "category",
                 label: "Form Builder",
