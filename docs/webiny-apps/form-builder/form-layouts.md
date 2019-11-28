@@ -1,7 +1,7 @@
 ---
 id: form-layouts
 title: Form Layouts
-sidebar_label: ___Form Layouts
+sidebar_label: Form Layouts
 ---
 
 Every form you create via the form builder has a layout, which lets you define the design of your forms. Because the form layout is a React component, there are virtually no restrictions when it comes to adding customizations. Feel free to organize the code to your liking, import custom CSS, fonts, or even additional custom React components if there's a need for it.
@@ -85,11 +85,27 @@ All of the form layouts need to be listed in the `forms.layouts` array, which is
 | Key         | Value Type        | Description                                                                                                  |
 | :---------- | :---------------- | :----------------------------------------------------------------------------------------------------------- |
 | `name`      | `string`          | Unique identifier of your form layout.                                                                       |
-| `title`     | `string`          | A simple human-readable string. Shown when selecting     form layouts via the form settings in the page builder. |
+| `title`     | `string`          | A simple human-readable string. Shown when selecting form layouts via the form settings in the page builder. |
 | `component` | `React.Component` | A reference to the actual React component that will be used to render the form.                              |
 
-> If you're not already familiar with the theme files, everything you need to know can be found right [here](/docs/webiny-apps/page-builder/introduction).
+> If you're not already familiar with theme files, everything you need to know can be found right [here](/docs/webiny-apps/page-builder/introduction).
 
 ### Form layout React component
 
-As seen in above examples, in both cases we reference the React component which will render the actual form. 
+As seen in above examples, whichever approach you decide to use, you'll need to reference the actual React component which will render the form. Note that in both cases, provided React component will receive the same set of [props](/docs/webiny-apps/form-builder/form-layouts#form-layout-components-props).
+
+To get a better feeling of what's expected of a single form layout component, you can check out the default layout component that's provided with every Webiny installation, located at: `packages/theme/src/layouts/forms/DefaultFormLayout.js`
+
+If needed, feel free to edit the file to your liking, or just create a copy and use that as a foundation for a new form layout.  
+
+### Form Layout Component's Props
+
+| Prop               | Type                                                | Description                                                                                                                                                                            |
+| :----------------- | :-------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getFieldById`     | `Function`                                          | Returns a single form field by given ID.                                                                                                                                               |
+| `getFields`        | `Array<Array<FormRenderFieldType>>`                 | Returns a list of all form fields.                                                                                                                                                     |
+| `getDefaultValues` | `Object`                                            | Returns default values for all form fields.                                                                                                                                            |
+| `ReCaptcha`        | `ReCaptchaComponentType`                            | A components that shows Google reCAPTCHA, a simple check that prevents you from spammers and bots (only if enabled via [form settings](/docs/webiny-apps/form-builder/form-settings)). |
+| `TermsOfService`   | `TermsOfServiceComponentType`                       | A component that shows terms of service message (only if enabled via [form settings](/docs/webiny-apps/form-builder/form-settings).                                                    |
+| `submit`           | `(data: Object) => Promise<FormSubmitResponseType>` | Call this callback to submit the form.                                                                                                                                                 |
+| `formData`         | `FormDataType`                                      | Contains data about the form, e.g. form name, layout, settings, and so on.                                                                               |
