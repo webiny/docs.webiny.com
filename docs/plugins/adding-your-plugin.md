@@ -14,7 +14,8 @@ To add your plugin all you need to do is publish the plugin on NPM following a c
 
 1. [Name your plugin correctly](#naming-your-plugin)
 2. [Include the required keywords](#packagejson-keywords)
-3. [Plugin README.md notes](#plugin-readmemd-notes)
+3. [Set a plugin description](#packagejson-description)
+4. [Plugin README.md notes](#plugin-readmemd-notes)
 
 > Once your plugin is published it might be a few minutes before it's visible in the plugin repolistory.
 
@@ -43,6 +44,17 @@ As an example, back to our Google Maps plugin, you might use the following keywo
   "google-maps",
   "maps"
 ]
+```
+
+### `package.json` description
+To make it easier for people to understand what your plugin is about, make sure you include a relevant description inside your package.json file. 
+
+```json
+// package.json
+{
+  "name": "webiny-app-page-builder-google-maps",
+  "description": "Google Maps widget for Webiny Page Builder."
+}
 ```
 
 ### Plugin README.md notes
