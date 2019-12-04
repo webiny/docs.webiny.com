@@ -10,6 +10,9 @@ Form Builder is included by default in every Webiny installation,
 so no additional installation steps are required. Just log in into
 the Webiny Admin, and from the menu in the left sidebar, click on the Form Builder.
 
+> Don't have Webiny installed? [Follow this article](get-started/quick-start.md)
+
+
 ![Form Builder](/img/webiny-apps/form-builder/getting-started/open-via-sidebar.png)
 
 Once clicked, the first thing you'll see is the list of all previously created forms.
