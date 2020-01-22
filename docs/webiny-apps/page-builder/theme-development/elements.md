@@ -24,7 +24,7 @@ Another way Webiny Page Builder ensures that visual styles follow your design sy
 }
 ```
 
-By default, the only element that supports this is the Button element. But the point is that if you create a custom component for Page Builder, you can reference the same mechanism and add this functionality to your own element.
+The only element that supports this at the moment is the Button element. But the point is that if you create a custom component for Page Builder, you can reference the same mechanism and add this functionality to your custom elements.
 
 The definition takes two keys:
 

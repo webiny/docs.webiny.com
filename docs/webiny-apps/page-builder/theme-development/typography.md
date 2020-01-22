@@ -17,17 +17,17 @@ The list of available styles that the user will be able to select from is define
         h6: {
             label: "Heading 6",
             component: "h6",
-            className: "webiny-cms-typography-h6"
+            className: "webiny-pb-typography-h6"
         },
         h6White: {
             label: "Heading 6 (white)",
             component: "h6",
-            className: "webiny-cms-typography-h6 webiny-cms-typography--white"
+            className: "webiny-pb-typography-h6 webiny-pb-typography--white"
         },
         paragraph: {
             label: "Paragraph",
             component: "p",
-            className: "webiny-cms-typography-body"
+            className: "webiny-pb-typography-body"
         }
     }
 }
