@@ -1,6 +1,6 @@
 ---
 id: graphql
-title: GraphQL
+title: Page Builder Theme - GraphQL
 sidebar_label: GraphQL
 ---
 

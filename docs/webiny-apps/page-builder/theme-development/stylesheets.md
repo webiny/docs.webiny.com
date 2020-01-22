@@ -1,6 +1,6 @@
 ---
 id: stylesheets
-title: Stylesheets
+title: Page Builder Theme - Stylesheets
 sidebar_label: Stylesheets
 ---
 

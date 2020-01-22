@@ -1,6 +1,6 @@
 ---
 id: revisions-and-publishing
-title: Revisions and Publishing
+title: Webiny Form Builder - Revisions and Publishing
 sidebar_label: Revisions and Publishing
 ---
 

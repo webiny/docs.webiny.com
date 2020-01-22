@@ -1,6 +1,6 @@
 ---
 id: layouts
-title: Layouts
+title: Page Builder Theme - Layouts
 sidebar_label: Layouts
 ---
 

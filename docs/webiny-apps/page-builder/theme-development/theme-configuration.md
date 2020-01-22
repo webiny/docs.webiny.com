@@ -1,6 +1,6 @@
 ---
 id: theme-configuration
-title: Overview
+title: Page Builder Theme - Overview
 sidebar_label: Overview
 ---
 

@@ -1,6 +1,6 @@
 ---
 id: typography
-title: Typography
+title: Page Builder Theme - Typography
 sidebar_label: Typography
 ---
 

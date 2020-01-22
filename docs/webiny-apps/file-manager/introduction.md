@@ -1,6 +1,6 @@
 ---
 id: introduction
-title: Introduction
+title: Webiny File Manager - Introduction
 sidebar_label: Introduction
 ---
 

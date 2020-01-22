@@ -1,6 +1,6 @@
 ---
 id: site-settings
-title: Site settings
+title: Page Builder Theme - Site Settings
 sidebar_label: Site settings
 ---
 

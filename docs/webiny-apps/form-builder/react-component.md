@@ -1,6 +1,6 @@
 ---
 id: react-component
-title: React Component
+title: Webiny Form Builder - React Component
 sidebar_label: React Component
 ---
 

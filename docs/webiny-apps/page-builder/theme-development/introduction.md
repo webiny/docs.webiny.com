@@ -1,6 +1,6 @@
 ---
 id: introduction
-title: Theme development introduction
+title: Page Builder Theme - Theme Development
 sidebar_label: Introduction
 ---
 

@@ -1,6 +1,6 @@
 ---
 id: elements
-title: Elements
+title: Page Builder Theme - Elements
 sidebar_label: Elements
 ---
 

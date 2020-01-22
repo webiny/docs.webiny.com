@@ -1,6 +1,6 @@
 ---
 id: colors
-title: Colors
+title: Page Builder Theme - Colors
 sidebar_label: Colors
 ---
 

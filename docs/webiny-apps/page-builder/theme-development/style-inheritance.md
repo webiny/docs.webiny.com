@@ -1,6 +1,6 @@
 ---
 id: style-inheritance
-title: Style Inheritance
+title: Page Builder Theme - Style Inheritance
 sidebar_label: Style Inheritance
 ---
 

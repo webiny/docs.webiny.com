@@ -1,6 +1,6 @@
 ---
 id: overview
-title: Webiny Form Builder Theme Development
+title: Webiny Form Builder - Theme Development
 sidebar_label: Overview
 ---
 

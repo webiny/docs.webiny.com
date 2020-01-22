@@ -1,6 +1,6 @@
 ---
 id: embed-forms-via-page-builder
-title: Embed Forms via Page Builder
+title: Webiny Form Builder - Embed Forms via Page Builder
 sidebar_label: Embed Forms via Page Builder
 ---
 

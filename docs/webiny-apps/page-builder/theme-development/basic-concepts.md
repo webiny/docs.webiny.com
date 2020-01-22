@@ -1,6 +1,6 @@
 ---
 id: basic-concepts
-title: Basic concepts
+title: Page Builder Theme - Basic Concepts
 sidebar_label: Basic concepts
 ---
 

@@ -1,6 +1,6 @@
 ---
 id: menus
-title: Navigation menus
+title: Page Builder Theme - Navigation Menus
 sidebar_label: Navigation menus
 ---
 

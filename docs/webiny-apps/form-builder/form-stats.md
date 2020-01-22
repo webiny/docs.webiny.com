@@ -1,6 +1,6 @@
 ---
 id: form-stats
-title: Stats and Submissions
+title: Webiny Form Builder - Stats and Submissions
 sidebar_label: Stats and Submissions
 ---
 

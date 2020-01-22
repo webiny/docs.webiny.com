@@ -1,6 +1,6 @@
 ---
 id: form-fields
-title: Form Fields
+title: Webiny Form Builder - Form Fields
 sidebar_label: Form Fields
 ---
 

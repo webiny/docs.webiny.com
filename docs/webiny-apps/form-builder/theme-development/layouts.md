@@ -1,6 +1,6 @@
 ---
 id: layouts
-title: Form Builder Layouts
+title: Webiny Form Builder - Layouts
 sidebar_label: Layouts
 ---
 

@@ -1,6 +1,6 @@
 ---
 id: introduction
-title: Introduction
+title: Webiny Page Builder - Introduction
 sidebar_label: Introduction
 ---
 

@@ -1,6 +1,6 @@
 ---
 id: triggers
-title: Triggers
+title: Webiny Form Builder - Triggers
 sidebar_label: Triggers
 ---
 
