@@ -51,6 +51,8 @@ We need to deploy a `local` API environment to use for local development:
 webiny deploy-api
 ```
 
+NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
+
 ## 5. Start `admin` app
 
 Admin app is the administration system for your project; it contains everything you need to manage your content, users, settings, etc.
