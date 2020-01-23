@@ -28,6 +28,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="http://www.webiny.com/"><img src="https://avatars3.githubusercontent.com/u/3808420?v=4" width="100px;" alt=""/><br /><sub><b>Sven</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=SvenAlHamad" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://webiny.com/"><img src="https://avatars1.githubusercontent.com/u/3920893?v=4" width="100px;" alt=""/><br /><sub><b>Pavel Denisjuk</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=Pavel910" title="Documentation">📖</a> <a href="https://github.com/webiny/docs.webiny.com/commits?author=Pavel910" title="Code">💻</a></td>
   </tr>
 </table>
 
