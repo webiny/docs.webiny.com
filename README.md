@@ -5,7 +5,7 @@ You can find the deployed version at:
 - https://docs.webiny.com/
 
 
-## Contribute to this repo
+## Repo setup
 
 Webiny docs repo uses [docusaurus](https://docusaurus.io/) as the system to manage the documentation. 
 
