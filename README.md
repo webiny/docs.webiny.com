@@ -33,6 +33,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://tyler.vanblargan.dev"><img src="https://avatars2.githubusercontent.com/u/16465776?v=4" width="100px;" alt=""/><br /><sub><b>Tyler VanBlargan</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=12vanblart" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/llwp"><img src="https://avatars2.githubusercontent.com/u/9566542?v=4" width="100px;" alt=""/><br /><sub><b>Adam John</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=llwp" title="Documentation">📖</a></td>
     <td align="center"><a href="https://dorelljames.com"><img src="https://avatars3.githubusercontent.com/u/977413?v=4" width="100px;" alt=""/><br /><sub><b>Dorell James</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=dorelljames" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/danruss"><img src="https://avatars2.githubusercontent.com/u/815250?v=4" width="100px;" alt=""/><br /><sub><b>danruss</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=danruss" title="Documentation">📖</a></td>
   </tr>
 </table>
 
