@@ -31,6 +31,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://webiny.com/"><img src="https://avatars1.githubusercontent.com/u/3920893?v=4" width="100px;" alt=""/><br /><sub><b>Pavel Denisjuk</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=Pavel910" title="Documentation">📖</a> <a href="https://github.com/webiny/docs.webiny.com/commits?author=Pavel910" title="Code">💻</a></td>
     <td align="center"><a href="https://www.webiny.com"><img src="https://avatars0.githubusercontent.com/u/5121148?v=4" width="100px;" alt=""/><br /><sub><b>Adrian Smijulj</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=doitadrian" title="Documentation">📖</a></td>
     <td align="center"><a href="https://tyler.vanblargan.dev"><img src="https://avatars2.githubusercontent.com/u/16465776?v=4" width="100px;" alt=""/><br /><sub><b>Tyler VanBlargan</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=12vanblart" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/llwp"><img src="https://avatars2.githubusercontent.com/u/9566542?v=4" width="100px;" alt=""/><br /><sub><b>Adam John</b></sub></a><br /><a href="https://github.com/webiny/docs.webiny.com/commits?author=llwp" title="Documentation">📖</a></td>
   </tr>
 </table>
 
