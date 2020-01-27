@@ -36,7 +36,7 @@ cd my-project
 
 ## 3. Setup database connection
 
-Edit `api/.env.json` file and set the `MONGODB_SERVER` value. The values in this file are unique for your project, you do NOT need to change any other values.
+Edit `.env.json` file in the root of the project and set the `MONGODB_SERVER` value. The values in this file are unique for your project, you do NOT need to change any other values.
 
 > IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
 
