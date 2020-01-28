@@ -1,7 +1,7 @@
 ---
-id: form-layouts
-title: Form Layouts
-sidebar_label: Form Layouts
+id: layouts
+title: Webiny Form Builder - Layouts
+sidebar_label: Layouts
 ---
 
 Every form you create via the form builder has a layout, which lets you define the design of your forms. Because the form layout is a React component, there are virtually no restrictions when it comes to adding customizations. Feel free to organize the code to your liking, import custom CSS, fonts, or even additional custom React components if there's a need for it.
@@ -27,12 +27,17 @@ The following snippet of code shows how to add a new form layout via a simple pl
 ```js
 import DefaultFormLayout from "./DefaultFormLayout";
 
-export default {
-  name: "form-layout-custom",
-  type: "form-layout",
-  title: "My Custom Layout",
-  component: DefaultFormLayout
-};
+export default () => [
+    {
+        name: "form-layout-default",
+        type: "form-layout",
+        layout: {
+            name: "default",
+            title: "Default layout",
+            component: DefaultFormLayout
+        }
+    }
+];
 ```
 
 Note that the plugin is defined once, but must be registered both in your Admin and website apps. This is, respectively, because you'll want to select the form layout and see the form preview in the form builder, and because you'll want to be able to show your form on the actual website.
@@ -45,56 +50,14 @@ The following table shows a list of all keys and values that the plugin must def
 | :---------- | :---------------- | :----------------------------------------------------------------------------------------------------------- |
 | `name`      | `string`          | Unique plugin name.                                                                                          |
 | `type`      | `string`          | Plugin type, must equal to `form-layout`.                                                                    |
-| `title`     | `string`          | A simple human-readable string. Shown when selecting form layouts via the form settings in the form builder. |
-| `component` | `React.Component` | A reference to the actual React component that will be used to render the form.                              |
+| `layout`     | `Object`          | Object containing a unique `name` for the theme, a human readable `title` and a reference to the actual React `component` that will be used to render the form. |
 
 > If you're not already familiar with the concept of plugins, everything you need to know can be found right [here](/docs/deep-dive/plugins-crash-course).
 
-### Page builder theme file
-
-The following snippet of code, located at `packages/theme/src/index.js`, shows an excerpt of the default page builder theme file, which already has the `Default layout` form layout listed:
-
-```js
-// @flow
-import "./style/theme.scss";
-import StaticLayout from "./layouts/static";
-import BlogLayout from "./layouts/blog";
-import DefaultFormLayout from "./layouts/forms/DefaultFormLayout";
-
-export default {
-    layouts: [ ... ],
-    forms: {
-        layouts: [{ name: "default", title: "Default layout", component: DefaultFormLayout }]
-    },
-    colors: { ... },
-    elements: {
-        button: {
-            types: [ ... ]
-        }
-    },
-    typography: {
-        h1: { ... },
-        h1White: { ... }
-    }
-};
-
-```
-
-All of the form layouts need to be listed in the `forms.layouts` array, which is an array of objects with the following keys and values:
-
-| Key         | Value Type        | Description                                                                                                  |
-| :---------- | :---------------- | :----------------------------------------------------------------------------------------------------------- |
-| `name`      | `string`          | Unique identifier of your form layout.                                                                       |
-| `title`     | `string`          | A simple human-readable string. Shown when selecting form layouts via the form settings in the page builder. |
-| `component` | `React.Component` | A reference to the actual React component that will be used to render the form.                              |
-
-> If you're not already familiar with theme files, everything you need to know can be found right [here](/docs/webiny-apps/page-builder/introduction).
 
 ### Form layout React component
 
-As seen in above examples, whichever approach you decide to use, you'll need to reference the actual React component which will render the form. Note that in both cases, provided React component will receive the same set of [props](/docs/webiny-apps/form-builder/form-layouts#form-layout-components-props).
-
-To get a better feeling of what's expected of a single form layout component, you can check out the default layout component that's provided with every Webiny installation, located at: `packages/theme/src/layouts/forms/DefaultFormLayout.js`
+To get a better feeling of what's expected of a single form layout component, you can check out the default layout component that's provided with every Webiny installation, located at: `/packages/app-form-builder-theme/src/DefaultFormLayout.tsx`
 
 If needed, feel free to edit the file to your liking, or just create a copy and use that as a foundation for a new form layout.
 

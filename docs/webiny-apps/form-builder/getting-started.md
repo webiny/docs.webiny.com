@@ -1,6 +1,6 @@
 ---
 id: getting-started
-title: Getting Started
+title: Webiny Form Builder - Getting Started
 sidebar_label: Getting Started
 ---
 

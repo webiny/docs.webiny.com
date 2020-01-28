@@ -1,5 +1,5 @@
 ---
 id: form-settings
-title: Form Settings
+title: Webiny Form Builder - Form Settings
 sidebar_label: ___Form Settings
 ---
