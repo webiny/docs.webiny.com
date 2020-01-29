@@ -14,8 +14,8 @@ With Webiny, you don't have to start from scratch. We've developed several apps 
 - `Admin` - this app is a skeleton for all your administration apps.
 - `File Manager` - this app sits at the very core and handles everything related to file management.
 - `Page Builder` - this app helps you to create your pages using a visual editor, without any coding.
-- `Form Builder` - this app allows you to create forms for your website. 
-- `Headless CMS` - still in development, this app will add headless CMS to your Webiny project.  
+- `Form Builder` - this app allows you to create forms for your website.
+- `Headless CMS` - still in development, this app will add headless CMS to your Webiny project.
 
 ## Technologies used
 
@@ -40,13 +40,13 @@ Our database of choice is MongoDB and we've developed our apps using that partic
 
 ### Multi-cloud
 
-We want Webiny to be deployable to the cloud of your choice. At this point in time, you can only deploy to AWS, but multi-cloud support is one of our main goals. See our [Roadmap](https://github.com/webiny/webiny-js/projects/7) and get involved on our Github. 
+We want Webiny to be deployable to the cloud of your choice. At this point in time, you can only deploy to AWS, but multi-cloud support is one of our main goals. See our [Roadmap](https://github.com/webiny/webiny-js/projects/7) and get involved on our Github.
 
 ## Community
 
 There are several places you can join and get involved with Webiny:
 
-- [Spectrum Chat](https://spectrum.chat/webiny) - join to get help or discuss bugs and features
+- [Gitter Chat](https://gitter.im/Webiny/webiny-js) - join to get help or discuss bugs and features
 - [Community Forum](https://community.webiny.com/) - if you prefer forum for discussions
 - [Github Repo](https://github.com/webiny/webiny-js) - this is where Webiny code lives
 
@@ -54,4 +54,4 @@ There are several places you can join and get involved with Webiny:
 
 We're glad you're interested in contributing and would love to see your PR! Head over to our [contribution guidelines](https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md) to get familiar with the process.
 
-Open a topic [on the forum](https://community.webiny.com/), file an [issue on Github](https://github.com/webiny/webiny-js/issues) or join our [Spectrum chat](https://spectrum.chat/webiny), we'll be glad to discuss the issue with you and provide help and directions.
+Open a topic [on the forum](https://community.webiny.com/), file an [issue on Github](https://github.com/webiny/webiny-js/issues) or join our [Gitter chat](https://gitter.im/Webiny/webiny-js), we'll be glad to discuss the issue with you and provide help and directions.
