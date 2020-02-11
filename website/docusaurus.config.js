@@ -34,6 +34,11 @@ const siteConfig = {
         ]
     ],
     themeConfig: {
+        algolia: {
+            apiKey: 'dd52f562d0728dab8423289926b5d055',
+            indexName: 'webiny-js',
+            algoliaOptions: {}, // Optional, if provided by Algolia
+        },
         gtag: {
             trackingID: "UA-35527198-1"
         },
