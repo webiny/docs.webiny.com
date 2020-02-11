@@ -38,7 +38,9 @@ cd my-project
 
 Edit `.env.json` file in the root of the project and set the `MONGODB_SERVER` value. The values in this file are unique for your project, you do NOT need to change any other values.
 
-> IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
+> In case you need any help creating a MongoDB cluster on MongoDB Atlas, please follow [this guide](/docs/other/guides/mongodb-atlas).
+
+> IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry. 
 
 > The `MONGODB_SERVER` value should be in the format of a MongoDB connection string such as: 
 >`mongodb+srv://{YOUR_USERNAME}:{YOUR_PASSWORD}@someclustername.mongodb.net`.

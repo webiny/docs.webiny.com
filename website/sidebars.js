@@ -118,6 +118,11 @@ module.exports = {
         ],
       },
       {
+        type: 'category',
+        label: 'Guides',
+        items: ['other/guides/mongodb-atlas'],
+      },
+      {
         type: 'link',
         label: 'How To Contribute',
         href: 'https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md',
