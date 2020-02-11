@@ -14,10 +14,18 @@ For detailed explanations of concepts and processes, see the [Deep Dive](/docs/d
 
 The following things are mandatory for both local development and production deployments:
 
-- node.js >= 10.14.0 (we recommend [this tool](https://www.npmjs.com/package/n) to manage your node.js versions)
-- `yarn` - [https://yarnpkg.com/en/docs/install](https://yarnpkg.com/en/docs/install)
-- a verified AWS account with an [IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw)
-- a MongoDB database in the cloud (we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already)
+✅ **node.js >= 10.14.0**
+- we recommend [this tool](https://www.npmjs.com/package/n) to manage your node.js versions
+
+✅ **`yarn` < 2.0**
+- [https://yarnpkg.com/en/docs/install](https://yarnpkg.com/en/docs/install)
+- or your can just run `npm install yarn -g`
+
+✅ **AWS account with an [IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw)**
+
+✅ **MongoDB database** in the cloud 
+- we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already
+- you can follow [this guide](/docs/other/guides/mongodb-atlas) to create one 
 
 > NOTE: if you're unsure your AWS credentials are configured correctly, you can verify them by running the following command using [AWS CLI](https://aws.amazon.com/cli/): `aws sts get-caller-identity`. If you don't see the user info, take a look at this tutorial to [create an IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw).
 
@@ -53,7 +61,7 @@ We need to deploy a `local` API environment to use for local development:
 webiny deploy-api
 ```
 
-NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
+> NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
 
 ## 5. Start `admin` app
 
