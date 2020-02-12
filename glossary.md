@@ -5,35 +5,42 @@ standardized terms. Below is the list of terms that contributors should use when
 
 #### Terms
 
+docs / documentation pages
+
 | Term           | Meaning                                                                                                                 |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | app            | For example Form Builder app (not Form Builder application).                                                            |
 | Admin          | Administration UI that is included by default in every Webiny installation.                                             |
-| service        | References a single deployed service, e.g. `i18n` or `pageBuilder`.                                                     |
-| API            | References all of the services that were deployed to the cloud.                                                         |
+| API            | References all of the services that were deployed to the cloud, represented by a single publicly available CDN URL.     |
 | cloud resource | When deploying Webiny to a cloud of user's choice, it deploys various cloud resources, eg. S3, API Gateway and similar. |
 | React apps     | Used when you want to reference Webiny apps like e.g. Admin or Site.                                                    |
 
 #### Apps
 
-| Term         | Meaning                                           |
-| ------------ | ------------------------------------------------- |
-| Admin        | The name of the app.                              |
-| I18N         | The name of the tool with which you create forms. |
-| File Manager | -                                                 |
-| Form Builder | -                                                 |
-| Headless CMS | -                                                 |
-| Page Builder | -                                                 |
-
 ##### Form Builder
 
-| Term                       | Meaning                                           |
-| -------------------------- | ------------------------------------------------- |
-| Form builder               | The name of the app.                              |
-| form builder               | The name of the tool with which you create forms. |
-| fields editor              | -                                                 |
-| form field                 | -                                                 |
-| forms list                 | -                                                 |
-| fields menu / field groups | -                                                 |
-| Google ReCaptcha           | -                                                 |
-| publish button             | -                                                 |
+Form builder - the name of the app
+form builder - the name of the tool with which you create forms
+fields editor
+form field
+forms list
+fields menu / field groups
+Google ReCaptcha
+publish button
+
+| App          |
+| ------------ |
+| Admin        |
+| Website      |
+| I18N         |
+| File Manager |
+| Form Builder |
+| Headless CMS |
+| Page Builder |
+
+Webiny Apps
+
+- React app
+- Apollo GQL service
+
+All of the Apollo GQL service are gathered via Apollo GQL Gateway, which we refer to as API.
