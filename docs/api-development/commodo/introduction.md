@@ -10,7 +10,7 @@ What is Commodo?
 
 > Commodo is a set of [higher order functions (HOFs)](https://en.wikipedia.org/wiki/Higher-order_function) that let you define and **com**pose rich data **mod**el **o**bjects.
 
-In other words, it's a package that out-of-the-box offers a couple of simple higher-order-functions, which enable you to define rich data models. Once you define a model, you can use it to do data validation or even store it to the database.
+In other words, it's a package that out-of-the-box offers a couple of simple higher-order-functions, which enable you to define rich data models. Once you define a model, you can use it to do simple data validation or even store the data to the database.
 
 Let's check out a couple of examples to get a better understanding of what all of this means.
 
