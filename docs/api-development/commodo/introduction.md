@@ -110,4 +110,4 @@ await user.save();
 
 ## Is Commodo an ORM/ODM?
 
-Fundamentally, Commodo is not an ORM/ODM, but can very quickly become one, by utilizing additional HOFs that deal with storing to and reading from a database. The `withStorage` HOF (seen in the above example) is what you'll need if you'll want to store your model into a database.
+Fundamentally, Commodo is not an ORM/ODM, but can very quickly become one, by utilizing additional HOFs that deal with storing to and reading from a database. The `withStorage` HOF (seen in the above example) is what you'll need if you'll want to store the data into a database.
