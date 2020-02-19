@@ -14,6 +14,8 @@ import { withHooks, withStorage, withFields, string, number, onSet } from "@webi
 
 Click [here](https://github.com/webiny/webiny-js/blob/master/packages/commodo/src/index.ts) to see a list of all exported packages.
 
+> To quickly get up to speed with how to use Commodo with Webiny, you can check out the [Commodo crash course](./crashen).
+ 
 ## Base packages
 
 | Package                                              |                                         Short Description                                          |                                                        Version                                                         |
