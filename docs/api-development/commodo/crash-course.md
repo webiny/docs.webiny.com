@@ -48,7 +48,7 @@ const animal = new Animal();
 // In the following code, note the "populate" and "validate" methods.
 // These exist because we've used "withFields" HOF.
 
-// Will throw data type error, cannot populate a number with a string.
+// Will throw data type error, cannot populate a "number" field with a string value.
 animal.populate({ age: "7" });
 
 // This will work.
