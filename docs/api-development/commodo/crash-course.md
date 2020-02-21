@@ -1,113 +1,73 @@
 ---
-id: introduction
-title: Introduction
-sidebar_label: Introduction
+id: crash-course
+title: Commodo Crash Course
+sidebar_label: Crash Course
 ---
 
-For API development, Webiny heavily relies on a package called [Commodo](https://github.com/webiny/commodo).
+Let's try to showcase what you can achieve with Commodo, in a quick and clear way.
 
-What is Commodo?
+As mentioned in the [introduction](/docs/api-development/commodo/introduction), Commodo is a set of higher order functions (HOFs) that enable us to define and compose rich data model objects. So, we are going to do just that!
 
-> Commodo is a set of [higher order functions (HOFs)](https://en.wikipedia.org/wiki/Higher-order_function) that let you define and **com**pose rich data **mod**el **o**bjects.
+We are going to define simple `Cat` and `Dog` models, which will consist of a couple of simple fields, which are one of the base constructs of every model. Some of the fields will be the same and will exist on both models, and some of them won't. Let's see how we can accomplish that.
 
-In other words, it's a package that out-of-the-box offers a couple of simple higher-order-functions, which enable you to define rich data models. Once you define a model, you can use it to do simple data validation or even store the data to the database.
-
-Let's check out a couple of examples to get a better understanding of what all of this means.
-
-## Creating a simple model
-
-The following example shows how to create a simple data model.
+To do this, we are going to use the base `withFields` HOF and simple fields - `string`, `number`, and `boolean`.
 
 ```javascript
+// To define fields, we import the "withFields" HOF, and the needed fields.
 import { withFields, string, number, boolean } from "@webiny/commodo";
 
-const AnimalSettings = withFields({
-  type: string(),
-  dangerous: boolean({ value: true })
-})();
-
-const Animal = withFields({
-  name: string({
-    validate: value => {
-      if (!value) {
-        throw Error("A pet must have a name!");
-      }
-    }
-  }),
+// Let's define Cat and Dog models. We won't bother with code duplication for now.
+const Cat = withFields({
+  name: string(),
   age: number(),
-  isAwesome: boolean(),
-  about: fields({
-    value: {},
-    instanceOf: AnimalSettings
-  })
+  willScratchYou: boolean()
 })();
 
-// Now that we have a model defined, like any other function, we can instantiate it.
-const animal = new Animal();
-
-// In the following code, note the "populate" and "validate" methods.
-// These exist because we've used "withFields" HOF.
-
-// Will throw data type error, cannot populate a "number" field with a string value.
-animal.populate({ age: "7" });
-
-// This will work.
-animal.populate({ age: 7 });
-
-// Will throw a validation error - "name" field cannot be empty.
-await animal.validate();
-
-animal.name = "Garfield";
-await animal.validate(); // All good.
+const Dog = withFields({
+  name: string(),
+  age: number(),
+  drools: boolean()
+})();
 ```
 
-## Creating a more complex model
+> To make it easier, we've created the `@webiny/commodo` package, which aggregates all of the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement. The list of all included packages can be found [here](/docs/api-development/commodo/packages-list).
 
-Using other HOFs, you can create more complex models, that have a name, hooks, and even a storage layer, so that you can easily save the data to the database. For example:
+Now that we have our models defined, we can instantiate them and populate with data:
 
 ```javascript
-import { withName, withHooks, withStorage, withFields, string, number, boolean, onSet } from "@webiny/commodo";
-import { MongoDbDriver, withId } from "@commodo/fields-storage-mongodb";
-import flow from "lodash.flow";
+// Create a new instance of Cat model.
+const cat = new Cat();
+cat.populate({ name: "Garfield", age: 6, willScratchYou: false });
 
-const User = flow(
-  withFields({
-    firstName: string(),
-    lastName: string(),
-    email: flow(onSet(value => { return value.toLowerCase(); } ))(string()),
-    age: number(),
-    scores: number({ list: true }),
-    enabled: boolean({ value: false })
-  }),
-  withHooks({
-    async beforeCreate() {
-      if (await User.count({ query: { email: this.email } })) {
-        throw Error("User with same e-mail already exists.");
-      }
-    }
-  }),
-  withName("User"), // Utilized by storage layer, to determine collection / table name.
-  withId(),
-  withStorage({
-    driver: new MongoDbDriver({ database: new MongoDbDriver({ ... }) })
-  })
-)();
-
-const user = new User();
-user.populate({
-  firstName: "Adrian",
-  lastName: "Smith",
-  email: "aDrIan@google.com",
-  enabled: true,
-  scores: [34, 66, 99],
-});
-
-await user.save();
+// Create a new instance of Dog model.
+const dog = new Dog();
+dog.populate({ name: "Rex", age: 4, willScratchYou: false, drools: 1 });
 ```
-> To make it easier, we've created the `@webiny/commodo` package, which aggregates all of the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement.
 
-> Using higher order functions (HOFs) is a very flexible approach for defining your data models, because you get to choose which functionality the model will posses.
+Notice the data sent to the `dog.populate({ ... })`. Two things to note here:
+1. `willScratchYou` field doesn't exist in the `Dog` model, so this value won't be assigned to the `dog` instance.
+2. `drools` field exists, but it's a `boolean` field, not a `number`, so this will immediately throw an error.
 
-## Is Commodo an ORM/ODM?
+```javascript
+const cat = new Cat();
+cat.populate({});
+// We import withField HOF, and the needed fields.
+import { withFields, string, number, boolean } from "@webiny/commodo";
 
-Fundamentally, Commodo is not an ORM/ODM, but can very quickly become one, by utilizing additional HOFs that deal with storing to and reading from a database. The `withStorage` HOF (seen in the above example) is what you'll need if you'll want to store the data into a database.
+// Let's define Cat and Dog models. We won't bother with code duplication.
+const Cat = withFields({
+  name: string(),
+  age: number(),
+  willScratchYou: boolean()
+})();
+
+const Dog = withFields({
+  name: string(),
+  age: number(),
+  drools: boolean()
+})();
+```
+
+, and validate the assigned data.
+
+> You can utilize functions like `flow` (from [lodash](https://lodash.com/docs/4.17.15#flow) library) or `compose` (from [rambda](https://ramdajs.com/docs/#compose) library) to make your code much more readable.

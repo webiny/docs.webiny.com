@@ -19,6 +19,8 @@ module.exports = {
                 label: "Commodo",
                 items: [
                     "api-development/commodo/introduction",
+                    // "api-development/commodo/crash-course",
+                    // "api-development/commodo/how-to-use-with-webiny",
                     "api-development/commodo/packages-list",
                 ]
             }
