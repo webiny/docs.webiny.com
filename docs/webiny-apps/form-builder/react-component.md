@@ -9,7 +9,7 @@ Forms can be shown on a public website either by [embedding them into pages](/do
 For these cases, the Form Builder app exposes the `Form` component, which can be imported like so:
 
 ```js
-import { Form } from "@webiny/app-forms/components/Form";
+import { Form } from "@webiny/app-form-builder/components/Form";
 ```
 
 You can now render any published form by simply passing an adequate set of props to the imported `Form` component, for example:
@@ -28,7 +28,7 @@ The following code shows a simple component in which we utilize the shown `Form`
 
 ```jsx
 import React from "react";
-import { Form } from "@webiny/app-forms/components/Form";
+import { Form } from "@webiny/app-form-builder/components/Form";
 
 function MyComponent() {
   return (
