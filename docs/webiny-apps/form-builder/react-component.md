@@ -4,7 +4,7 @@ title: Webiny Form Builder - React Component
 sidebar_label: React Component
 ---
 
-Forms can be shown on a public website either by [embedding them into pages](/docs/webiny-apps/form-builder/embed-forms-via-page-builder) created with the [Page Builder](/docs/webiny-apps/page-builder/introduction) app, or via a simple React component, which is useful when you want to programatically include the form. Basically, if you are not working with pages, you will be using this React component.
+Forms can be shown on a public website either by [embedding them into pages](/docs/webiny-apps/form-builder/embed-forms-via-page-builder) created with the [Page Builder](/docs/webiny-apps/page-builder/introduction) app, or via a simple React component, which is useful when you want to programmatically include the form. Basically, if you are not working with pages, you will be using this React component.
 
 For these cases, the Form Builder app exposes the `Form` component, which can be imported like so:
 
