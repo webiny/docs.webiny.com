@@ -84,6 +84,8 @@ module.exports = {
                 items: [
                     //"webiny-apps/page-builder/introduction",
                     "webiny-apps/page-builder/getting-started",
+                    "webiny-apps/page-builder/revisions-and-publishing",
+
                     {
                         type: "category",
                         label: "Theme Development",
@@ -113,7 +115,16 @@ module.exports = {
                                 ]
                             }
                         ]
-                    }
+                    },
+                    {
+                        type: "category",
+                        label: "Development",
+                        items: [
+                            "webiny-apps/page-builder/development/rendering-pages"
+                            //"webiny-apps/form-builder/creating-new-form-fields",
+                            //"webiny-apps/form-builder/custom-form-triggers"
+                        ]
+                    },
                 ]
             }
         ],
