@@ -78,11 +78,13 @@ function MyComponent() {
 export default MyComponent;
 ```
 
-### Fetching the data manually
+### Manually passing the page data
 
 When you pass the `url` prop to the `Page` component, fetching of the data is abstracted from you.
 
-But in some cases, you might want to fetch the page data manually and that's when you can utilize the `data` prop.
+But in some cases, you might want to fetch the page data manually and that's when you can utilize other props.
+
+#### The `data` prop
 
 Consider the following example:
 
@@ -142,13 +144,94 @@ function MyComponent() {
 }
 ```
 
+Note the `GET_PUBLISHED_PAGE` GraphQL query that we've used to fetch the page data. Very convenient if you want to be sure that all of the relevant page information gets retrieved, which the `Page` component will internally utilize.
+
+If you just want to render the page content explicitly, you can also utilize the `content` prop.
+
+#### The `content` prop
+The `content` prop allows you tu literally just render the page content. The following example shows how to do it: 
+
+```jsx
+import React, { useMemo } from "react";
+import { Page } from "@webiny/app-page-builder/components/Page";
+import { useQuery } from "react-apollo";
+import { getPlugin, getPlugins } from "@webiny/plugins";
+import {
+  PbDefaultPagePlugin,
+  PbPageLayoutComponentPlugin
+} from "@webiny/app-page-builder/types";
+import gql from "graphql-tag";
+
+const GET_PUBLISHED_PAGE = gql`
+  query PbGetPublishedPage($url: String) {
+    pageBuilder {
+      page: getPublishedPage(url: $url) {
+        data {
+          title
+          content
+        }
+        error {
+          code
+          message
+        }
+      }
+    }
+  }
+`;
+
+function MyComponent() {
+  // As in the above example, get the Loader component via plugins, or import it directly.
+  const Loader = useMemo(() => { ... }, []);
+
+  // As in the above example, get the components via plugins, or import them directly.
+  const [DefaultErrorPage, DefaultNotFoundPage] = useMemo(() => { ... }, []);
+
+  // Fetch the page via GraphQL. We imported GET_PUBLISHED_PAGE query,
+  // so we don't have to write it on our own.
+  const { loading, data, error } = useQuery(GET_PUBLISHED_PAGE, {
+    variables: {
+      url: "/something-awesome"
+    }
+  });
+
+  if (loading) {
+    return Loader ? <Loader /> : null;
+  }
+
+  if (error) {
+    return <DefaultErrorPage error={pageError} />;
+  }
+
+  const { data: pageData, error: pageError } = data?.pageBuilder?.page || {};
+
+  // If no data has arrived, show the not-found on error page.
+  if (!pageData) {
+    if (pageError?.code === "NOT_FOUND") {
+      return <DefaultNotFoundPage error={pageError} />;
+    }
+    return <DefaultErrorPage error={pageError} />;
+  }
+
+  // Finally, send the received data to the Page component.
+  return (
+    <div>
+      <h1>{pageData.title}</h1>
+      <div>
+        <Page content={pageData.content} />
+      </div>
+    </div>
+  );
+}
+```
+
 ## Component props
 
 The following props can be passed to the `Page` React component.
 
-| Prop     | Type      | Description                                                                                                                                                              |
-| :------- | :-------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`    | `string` | URL of the page you wish to render.                                                                                                                                      |
-| `id`     | `string` | Specific revision ID of the page you wish to render.                                                                                                                     |
-| `parent` | `string` | Specific parent ID (in other words - the initial revision ID) of the page you wish to render. Will render a published revision of given parent.                          |
-| `data`   | `any`    | Instead of relying on the `Page` component to fetch the data, you can pass it directly via this prop. Can be useful in cases where you already have page data available. |
+| Prop      | Type         | Description                                                                                                                                                                                                                                                                            |
+| :-------- | :----------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`     | `string`     | URL of the page you wish to render. Always renders the published page revision.                                                                                                                                                                                                        |
+| `id`      | `string`     | Revision ID of the page you wish to render. Can render unpublished page revisions too.                                                                                                                                                                                                 |
+| `parent`  | `string`     | Renders a published page revision which is a child of the provided parent ID.                                                                                                                                                                                                          |
+| `data`    | `PbPageData` | Instead of relying on the `Page` component to fetch the data, you can pass it directly via this prop. Can be useful in cases where you already have page data available. Note that the component will still render the page in the provided layout and set appropriate `<head/>` tags. |
+| `content` | `any`        | Allows you to pass page content directly. Useful if you just want to render the page content, without rendering the layout and setting appropriate `<head/>` tags.                                                                                                                     |
