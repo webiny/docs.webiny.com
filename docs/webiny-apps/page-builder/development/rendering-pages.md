@@ -105,11 +105,14 @@ function MyComponent() {
   }, []);
 
   // Get the default error and not-found pages (or directly import your own component).
-  const [DefaultErrorPage, DefaultNotFoundPage] = useMemo(() => {
-    return [
-      getPlugin < PbDefaultPagePlugin > "pb-default-page-error",
-      getPlugin < PbDefaultPagePlugin > "pb-default-page-not-found"
-    ];
+  const { DefaultErrorPage, DefaultNotFoundPage } = useMemo(() => {
+    const defaultErrorPagePlugin = getPlugin < PbDefaultPagePlugin > "pb-default-page-error";
+    const defaultNotFoundPagePlugin = getPlugin < PbDefaultPagePlugin > "pb-default-page-not-found";
+
+    return {
+      DefaultNotFoundPage: defaultNotFoundPagePlugin?.component,
+      DefaultErrorPage: defaultErrorPagePlugin?.component
+    };
   }, []);
 
   // Fetch the page via GraphQL. We imported GET_PUBLISHED_PAGE query,
@@ -121,12 +124,12 @@ function MyComponent() {
   });
 
   if (loading) {
-    return Loader ? <Loader /> : null;
+    return <Loader />;
   }
 
   // If no data has arrived, show the not-found on error page.
   if (!data) {
-    if (error.code === "NOT_FOUND") {
+    if (error?.code === "NOT_FOUND") {
       return <DefaultNotFoundPage error={error} />;
     }
     return <DefaultErrorPage error={error} />;
@@ -135,7 +138,7 @@ function MyComponent() {
   // Finally, send the received data to the Page component.
   return (
     <div>
-      <h1>This is my page</h1>
+      <h1>{data.pageBuilder.page.title}</h1>
       <div>
         <Page data={data.pageBuilder.page} />
       </div>
@@ -149,7 +152,8 @@ Note the `GET_PUBLISHED_PAGE` GraphQL query that we've used to fetch the page da
 If you just want to render the page content explicitly, you can also utilize the `content` prop.
 
 #### The `content` prop
-The `content` prop allows you tu literally just render the page content. The following example shows how to do it: 
+
+The `content` prop allows you tu literally just render the page content. The following example shows how to do it:
 
 ```jsx
 import React, { useMemo } from "react";
@@ -195,7 +199,7 @@ function MyComponent() {
   });
 
   if (loading) {
-    return Loader ? <Loader /> : null;
+    return <Loader />;
   }
 
   if (error) {
