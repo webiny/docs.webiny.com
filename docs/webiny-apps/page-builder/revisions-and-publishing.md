@@ -10,7 +10,9 @@ Each time you create a new page, it'll be created with the default `draft` statu
 
 In order to make it work, you need to publish your page, which can be done directly the page builder, or from the pages list.
 
-<!-- TODO: ADD IMAGES  -->
+![Publish page via publish button](/img/webiny-apps/page-builder/revisions-and-publishing/page-builder-editor-publish-button.png)
+
+![Publish page via publish button](/img/webiny-apps/page-builder/revisions-and-publishing/pages-list-page-publish-button.png)
 
 Once you publish your page, you'll be able to show it on your website.
 
@@ -22,7 +24,7 @@ Every new page starts with the revision `1`. Once you publish it, the revision g
 
 Revisions are automatically created when needed. More specifically, if you try to edit an existing published page, the system will automatically create a new revision for you. This will happen for example if you click on the "edit" icon, on a published page:
 
-<!-- TODO: ADD IMAGES  -->
+![Publish page via publish button](/img/webiny-apps/page-builder/revisions-and-publishing/pages-list-edit-button-new-revision.png)
 
 Revision numbers are always whole number, and are incremented by 1 each time a new one is created. For example if your current revision number is `2`, new revision number will be `3`.
 
