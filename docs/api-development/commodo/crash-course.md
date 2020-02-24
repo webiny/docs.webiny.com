@@ -226,8 +226,8 @@ await Dog.findOne({ query: { age: 7, name: "Rex" } });
 ```js
 // For querying in general, Commodo implements the MongoDB syntax for every driver.
 // It's safe to use logical and query operators, like $and, $or, $gt, $lt, $in, and
-// so on.
-// This following code returns a Collection instance, which is basically an array of
+// similar.
+// The following code returns a Collection instance, which is basically an array of
 // Dog model instances.
 await Dog.find({ query: { age: { $gte: 7 } } });
 ```
@@ -236,6 +236,6 @@ await Dog.find({ query: { age: { $gte: 7 } } });
 
 In this crash course, we've briefly demonstrated what can be achieved with `withFields` and `withStorage` HOFs.
 
-But there are more useful HOFs that you can utilize today, check out [the list](/docs/api-development/commodo/packages-list) of all available packages! 
+But there are more useful HOFs that you can utilize today, check out the list of all available packages [here](/docs/api-development/commodo/packages-list)! 
 
-> If you've created a new HOF and you believe it might be useful for other developers, feel free to [let us know](https://github.com/webiny/webiny-js), and we'll include it in the list!
+> If you've created a new HOF and you believe it might be useful for other developers, feel free to [let us know](https://github.com/webiny/commodo), and we'll include it in the list!
