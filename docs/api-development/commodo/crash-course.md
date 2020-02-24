@@ -34,7 +34,7 @@ const Dog = withFields({
 })();
 ```
 
-> To make it easier, we've created the `@webiny/commodo` package, which aggregates all of the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement. The list of all included packages can be found [here](/docs/api-development/commodo/packages-list).
+> To make it easier, we've created the `@webiny/commodo` package, which [aggregates](https://github.com/webiny/webiny-js/blob/master/packages/commodo/src/index.ts) all of the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement. The list of all included packages can be found [here](/docs/api-development/commodo/packages-list).
 
 Now that we have our models defined, we can instantiate them and populate with data:
 
