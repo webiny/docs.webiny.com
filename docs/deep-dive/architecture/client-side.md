@@ -20,7 +20,7 @@ The Client side architecture is used in cases where the client is requesting eit
 ## Request Flows
 
 ### A) Client is requesting a page
-1. Client makes a GET request for a particular page - i.e. a page created by the Page Builder.
+1. Client makes a GET request for a particular page - i.e. a page created with the [Page Builder](http://localhost:3000/docs/webiny-apps/page-builder/getting-started) app.
 
 2. The request first land on **(A) CloudFront web distribution**
     - Static pages, like the ones created by the Page Builder are automatically cached on the CDN layer for 30 days or more.
