@@ -48,7 +48,7 @@ The File service is responsible for handling file uploads, file downloads, resiz
 
     - **(F) File download service** is a special lightweight function for serving files back to the client.
 
-    > If the file is larger than 6MB, the **(F) File download service** will return a 301 redirect with a path to the object on S3 bucket and it will make the object public. This is to get around the Lambda Proxy limit.
+    > If the file is larger than 6MB, the **(F) File download service** will return a 301 redirect with a path to the object on S3 bucket and it will make the object public. This is to get around the Lambda [invocation payload limits](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html).
 
 ### C) Request for an image
 
