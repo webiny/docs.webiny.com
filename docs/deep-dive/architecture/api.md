@@ -34,6 +34,6 @@ The API architecture is used in cases where there are requests to the GraphQL or
 
 4. When a POST request lands on the **(C) Apollo Gateway service**, the service internally calls the required **(D) services**.
 5. Each of the **(D) service** internally processes and in some cases fetches the data from the database.
-   - The database queries are sent via the [Commodo](/docs/api-development/commodo/introduction) database layer.
+   - For all database-related tasks, Webiny heavily relies on a library called [Commodo](/docs/api-development/commodo/introduction).
 6. In cases where Commodo is using MongoDB as the database type, the queries are not sent directly to the database, but rather proxied through **(E) DB Proxy** service.
    > Learn more about the DB Proxy in this [blog post](https://blog.webiny.com/using-aws-lambda-to-create-a-mongodb-connection-proxy-2bb53c4a0af4).
