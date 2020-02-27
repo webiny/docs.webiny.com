@@ -34,7 +34,7 @@ The File service is responsible for handling file uploads, file downloads, resiz
 3. The **(D) File service** uses the file metadata to generate the pre-signed POST data.
     > To learn in detail more about this whole process, checkout our blog post on how to [Upload files to AWS S3 using pre-signed POST data and a Lambda function](https://blog.webiny.com/upload-files-to-aws-s3-using-pre-signed-post-data-and-a-lambda-function-7a9fb06d56c1).
 
-4. The **(C) File service** returns the token back to the client.
+4. The **(C) File service** responds with the pre-signed POST data.
 
 5. Client makes a POST request, this time with the file body and the token, direct to the **(E) S3 file storage**. 
     > This way the client uploads files directly to S3, while still keeping the security around who can upload what types of files.
