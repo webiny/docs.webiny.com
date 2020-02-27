@@ -1,7 +1,7 @@
 ---
-id: cloud-architecture
-title: Cloud Architecture
-sidebar_label: Cloud Architecture
+id: resources
+title: Webiny Architecture Resources
+sidebar_label: Resources
 ---
 
 This article provides a brief overview of the resources that are created when you deploy the default Webiny template to the cloud. The API has its own set of resources and the React apps have their own set of resources. 
