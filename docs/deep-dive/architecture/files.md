@@ -25,9 +25,9 @@ The File service is responsible for handling file uploads, file downloads, resiz
 
 ### A) File upload
 
-1. Client makes a POST request with the file metadata to the `graphql` endpoint.
+1. Client makes a POST request with the file metadata to the [API](http://localhost:3000/docs/deep-dive/architecture/api).
 
-    > The client never sends the full file body to the graphql endpoint as a Lambda function can't handle large files.
+    > The client never sends the full file body to the GraphQL endpoint as a Lambda function can't handle large files.
 
 2. The request goes through the **(A) CloudFront** to the **(B) ApiGateway** and then hits the **(C) Apollo Gateway** where the **(D) File service** takes over the request.
 
