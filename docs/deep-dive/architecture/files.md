@@ -36,7 +36,7 @@ The File service is responsible for handling file uploads, file downloads, resiz
 
 4. The **(C) File service** responds with the pre-signed POST data.
 
-5. Client makes a POST request, this time with the file body and the token, direct to the **(E) S3 file storage**. 
+5. Finally, the Client makes a POST request to the **(E) S3 file storage**, which includes the received pre-signed POST data, and the actual file that needs to be uploaded.
     > This way the client uploads files directly to S3, while still keeping the security around who can upload what types of files.
     > This approach also enables you to turn on [S3 Transfer Acceleration](https://docs.aws.amazon.com/AmazonS3/latest/dev/transfer-acceleration.html) feature for faster upload.
 
