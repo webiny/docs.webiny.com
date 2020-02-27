@@ -7,7 +7,7 @@ sidebar_label: File Service
 ## File Service Architecture Graph
 [![Webiny Serverless CMS - Architecture - File Service](/img/deep-dive/architecture/webiny-architecture-file-service.png)](/img/deep-dive/architecture/webiny-architecture-file-service.png)
 
-The file service is responsible for handling file uploads, file downloads, resizing images, and file delete events.
+The File service is responsible for handling file uploads, file downloads, resizing images, and file delete events.
 
 > The [File Manager](http://localhost:3000/docs/webiny-apps/file-manager/getting-started) app is a good example of an app that relies on the File Service.
 
