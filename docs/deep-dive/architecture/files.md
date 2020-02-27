@@ -31,9 +31,7 @@ The File service is responsible for handling file uploads, file downloads, resiz
 
 2. The request goes through the **(A) CloudFront** to the **(B) ApiGateway** and then hits the **(C) Apollo Gateway** where the **(D) File service** takes over the request.
 
-3. The **(D) File service** uses the file metadata to compute an S3 pre-signed POST token.
-    > To learn more about S3 pre-signed POST tokens, checkout this page: https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/s3-example-presigned-urls.html
-
+3. The **(D) File service** uses the file metadata to generate the pre-signed POST data.
     > To learn in detail more about this whole process, checkout our blog post on how to [Upload files to AWS S3 using pre-signed POST data and a Lambda function](https://blog.webiny.com/upload-files-to-aws-s3-using-pre-signed-post-data-and-a-lambda-function-7a9fb06d56c1).
 
 4. The **(C) File service** returns the token back to the client.
