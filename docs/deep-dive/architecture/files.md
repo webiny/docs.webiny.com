@@ -66,4 +66,4 @@ The File service is responsible for handling file uploads, file downloads, resiz
 
 2. The **(F) File download service** only deletes the original file, and in case of images, it doesn't delete the resized variants. 
 
-3. Once the original file is deleted, an event happens that that triggers the **(H) File delete service** which then cleans up the remaining variants.
+3. Once the original file is deleted, an event happens that triggers the **(H) File delete service** which then cleans up the remaining variants.
