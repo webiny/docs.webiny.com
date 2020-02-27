@@ -58,7 +58,7 @@ The File service is responsible for handling file uploads, file downloads, resiz
     - To protect agains brute-force attacks, Webiny has a fixed set of image sizes.
     - In case you request an image of 282px, Webiny will return the first greater image size.
 
-3. The image is returned the client, by passing and also being cached on the **(A) CloudFront** CDN.
+3. The image is returned to the client, by passing and also being cached on the **(A) CloudFront** CDN.
 
 ### D) File deleted
 
