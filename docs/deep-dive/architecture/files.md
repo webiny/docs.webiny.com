@@ -19,7 +19,7 @@ The File service is responsible for handling file uploads, file downloads, resiz
 - E - **S3 file storage**
 - F - **File download service**
 - G - **Image resize service**
-- H - **File delete service**
+- H - **"Manage files" Lambda function**
 
 ## Request Flows
 
@@ -62,8 +62,8 @@ The File service is responsible for handling file uploads, file downloads, resiz
 
 ### D) File deleted
 
-1. In case a file is deleted, the delete action is issued as a GraphQL request, which is then executed by the **(F) File download service**.
+1. For file deletions, the delete action is first issued as a GraphQL mutation, which is processed by the **(F) File download service**.
 
-2. The **(F) File download service** only deletes the original file, and in case of images, it doesn't delete the resized variants. 
+2. The **(F) File download service** only deletes the original file from the S3 bucket, even if the file is an image, in which case multiple image sizes still might exist. 
 
-3. Once the original file is deleted, an event happens that triggers the **(H) File delete service** which then cleans up the remaining variants.
+3. The deletion of the original file will emit an event, on which the **(H) "Manage files" Lambda function** will be invoked. In case the originally deleted file was an image, it will commence the deletion of the additional image sizes that might've been requested over the course of the file's existence. 
