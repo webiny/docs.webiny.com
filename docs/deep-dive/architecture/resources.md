@@ -8,7 +8,7 @@ This article provides a brief overview of the resources that are created when yo
 
 ## API
 
-In this section we'll look at the resources deployed when you run a `webiny deploy-api` command. The related serverless template file is located in `api/serverless.yml` of your project.
+In this section we'll look at the resources deployed when you run the `webiny deploy-api` command. The related serverless template file is located in `api/serverless.yml` of your project.
 
 ### GraphQL services
 
@@ -30,7 +30,7 @@ Other resources include a Cognito User Pool and a Cloudfront CDN. The CDN sits i
 
 ## React apps
 
-In this section we'll look at the resources deployed when you run a `webiny deploy-apps` command. The related serverless template file is located in `apps/serverless.yml` of your project.
+In this section we'll look at the resources deployed when you run the `webiny deploy-apps` command. The related serverless template file is located in `apps/serverless.yml` of your project.
 
 ### App as a function
 When React apps are deployed to the cloud, each app is deployed as a single function. For the `site` app, we also deploy another function that serves as a server-side render function. It is invoked by the `site` handler when it decides it needs to render the content.
