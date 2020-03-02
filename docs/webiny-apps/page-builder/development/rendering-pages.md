@@ -69,7 +69,7 @@ function MyComponent() {
     <div>
       <h1>This is my page</h1>
       <div>
-        <Page slug="my-awesome-page" />
+        <Page url="/my-awesome-page" />
       </div>
     </div>
   );
