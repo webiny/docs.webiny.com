@@ -25,7 +25,7 @@ The API architecture represents all of the cloud resources needed to host HTTP A
 
    > Webiny also supports REST services. In that case the endpoint path will be different. For REST endpoints the request is routed directly to the function of a specific service, without the (C) Apollo Gateway in between.
 
-2. All requests first land on **(A) CloudFront web distribution**, which has **(B) API Gateway** set as one of the origins.
+2. All requests first land on the **(A) CloudFront web distribution**, which has the **(B) API Gateway** set as one of the origins.
 
 3. The **(B) APIGateway** invokes the **(C) Apollo Gateway service**
 
