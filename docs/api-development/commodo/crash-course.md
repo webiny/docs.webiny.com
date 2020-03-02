@@ -4,8 +4,9 @@ title: Commodo Crash Course
 sidebar_label: Crash Course
 ---
 
+<!--
 > To make this crash course cleaner and more to the point, the following examples show how to use the Commodo on its own. So, when you're done reading, head over to the [How to Use With Webiny?](/docs/api-development/commodo/how-to-use-with-webiny) page to see how to effectively use Commodo with Webiny.
-
+-->
 Let's try to showcase what you can achieve with Commodo, in a quick and clear way.
 
 ## The basics
