@@ -4,7 +4,8 @@ module.exports = {
         "Get Started": [
             "get-started/quick-start",
             "get-started/going-live",
-            "get-started/development-principles"
+            "get-started/development-principles",
+            "get-started/scaffolding"
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
