@@ -21,7 +21,7 @@ The Security service architecture is used in cases where the client needs to go 
 
 1. Client submits the login form.
 
-2. The request goes to the **(F) Cognito** for the verification of user credentials. 
+2. The request is sent to the **(F) Cognito** for the verification of user credentials. 
 
     > By default Webiny uses Cognito as the user pool and authentication service. In case you want to intergrate any other service, that is possible by creating a new security plugin. Please open an issue on our [GitHub](https://github.com/webiny/webiny-js) and we'll provide you with the steps and required know-how. 
 
@@ -29,8 +29,8 @@ The Security service architecture is used in cases where the client needs to go 
 
 4. The client then submits the token to the **(D) Security service**. 
 
-5. The **Security service** verifies the Cognito token and check that the user is valid in the **(E) Database**.
+5. The **Security service** verifies the Cognito token and checks that the user is valid in the **(E) Database**.
 
-6. If the user is valid, a Webiny JWT token is returned back to the client. The client then uses this token on all requests to the Webiny API.
+6. If the user is valid, a Webiny JWT token is returned back to the client. The client then uses this token on all subsequent requests to the Webiny API.
 
 
