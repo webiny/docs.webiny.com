@@ -62,6 +62,7 @@ webiny deploy-api
 ```
 
 > NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
+If you use multiple AWS profiles, edit `.env.json` in your project root, to point to the correct profile via `AWS_PROFILE`. Webiny does not use the `AWS_PROFILE` env variable.
 
 ## 5. Start `admin` app
 
