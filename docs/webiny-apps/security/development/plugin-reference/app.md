@@ -14,11 +14,11 @@ sidebar_label: App
 
 #### Summary
 
-Security roles consist of scopes, which can be selected via the multi select autocomplete in the Roles form:
+Security roles consist of security scopes, which can be selected via the multi-select autocomplete in the Roles form:
 
 ![Scopes Multi Autocomplete](/img/webiny-apps/security/development/plugins-reference/app/scopes-autocomplete.png)
 
-This plugin enables you to add your own custom scopes to the list.
+This plugin enables adding custom security scopes to the multi-select autocomplete component in the Roles form.
 
 #### Type
 
