@@ -6,11 +6,11 @@ sidebar_label: App
 
 # Summary
 
-[`security-scopes-list`](http://localhost:3000/docs/webiny-apps/security/development/plugin-reference/app#security-scopes-list)
+[`security-scopes-list`](/docs/webiny-apps/security/development/plugin-reference/app#security-scopes-list)
 
 ---
 
-### [`security-scopes-list`](http://localhost:3000/docs/webiny-apps/security/development/plugin-reference/app#security-scopes-list)
+### [`security-scopes-list`](/docs/webiny-apps/security/development/plugin-reference/app#security-scopes-list)
 
 #### Summary
 
