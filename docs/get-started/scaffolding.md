@@ -10,14 +10,9 @@ sidebar_label: Scaffolding
 Sometimes when you develop applications with Webiny you will end up spending time doing common tasks that can easily become repetitive and tedious over time. This is where `webiny scaffold` comes into play.
 
 ### Usage
-You will of course need to install Webiny's CLI if you haven't done so already: `npm -g install @webiny/cli`.
+This assumes you already have a Webiny project to work on. If not, see the [getting started guide](/docs/get-started/quick-start).
 
-You will be greeted with various templates to choose from:
-```
-? Pick the template you'd like to employ (Use arrow keys)
-> GraphQL Apollo Service - Creates an /api template and fills it
- in serverless.yml
-```
+After running `webiny scaffold`, you will be prompted to choose from various templates. By default, Webiny comes with a couple of them, but you can create your own, or install the existing ones from NPM.
 
 After picking one of them, you might be asked a couple more questions in order to bootstrap your template. For example, a GraphQL Apollo Service template could ask for the name of your service:
 ```
@@ -26,9 +21,6 @@ After picking one of them, you might be asked a couple more questions in order t
 
 Once that's finished, your template should have been generated succesfully. As simple as that!
 
-### Available Templates
+### Default Templates
 * GraphQL Apollo Service (in PR)
-* RESTful Service (WIP)
-* App (WIP)
-* Route Plugin (WIP)
-* API Model (WIP)
+* Custom Lambda (WIP)
