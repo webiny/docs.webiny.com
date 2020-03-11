@@ -7,7 +7,7 @@ sidebar_label: Creating Scaffolding Templates
 ### Introduction
 As discussed in [Scaffolding](/docs/get-started/scaffolding), it is possible to save yourself a lot of time by using one of the default Scaffolding Templates.
 
-The great news is that you may also write your own templates! In this article we will go in depth about it.
+The great news are that you may also write your own templates! In this article we will go in depth about it.
 
 ### Writing your first Scaffolding Template
 We use `node modules` for all of our templates. You should create a new package whose name follows the following pattern: `webiny-cli-scaffold-*`.
