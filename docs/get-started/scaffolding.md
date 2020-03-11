@@ -22,5 +22,5 @@ After picking one of them, you might be asked a couple more questions in order t
 Once that's finished, your template should have been generated succesfully. As simple as that!
 
 ### Default Templates
-* GraphQL Apollo Service (in PR)
-* Custom Lambda (WIP)
+* GraphQL Apollo Service
+* Custom Lambda

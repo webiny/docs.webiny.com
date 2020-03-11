@@ -5,18 +5,20 @@ sidebar_label: Creating Scaffolding Templates
 ---
 
 ### Introduction
-As discussed in [Scaffolding](/docs/get-started/scaffolding), it is possible to save yourself a lot of time by using one of the default Scaffolding Templates.
+As discussed in [Scaffolding](/docs/get-started/scaffolding), you can save a lot of time by using Scaffolding Templates.
 
-The great news are that you may also write your own templates! In this article we will go in depth about it.
+The great thing is that you may also write your own templates! In this article we will go in depth about it.
 
 ### Writing your first Scaffolding Template
-We use `node modules` for all of our templates. You should create a new package whose name follows the following pattern: `webiny-cli-scaffold-*`.
+Webiny CLI loads templates that are available as dependencies of your project. Under the hood, we use "yarn list" to find the available template packages. 
+
+You should create a new package whose name follows the following pattern: `webiny-cli-scaffold-*`.
 
 For example, valid names could be:
 * webiny-cli-scaffold-append-unicorns
 * webiny-cli-scaffold-add-delicious-donuts-to-my-site
 
-Next, your package must export an array of [Plugins](/docs/deep-dive/plugins-crash-course) (a single Plugin is just as fine). Your Plugins must follow the object structure below:
+Next, your package must export an array of [Plugins](/docs/deep-dive/plugins-crash-course) (you can also export a single plugin). Your Plugins must follow the object structure below:
 ```
 {
     name: String,           // Plugin info
@@ -39,7 +41,7 @@ Additional details about the received arguments:
     * `apiYaml` (ie: `./api/serverless.yml`)
     * `appPath` 
     * `appYaml`
-* **oraSpinner**: the nice spinner's instance, which shows up when you run `webiny scaffold`. You are able to change its `text`, `prefixText`, `stop()` it and so on.
+* **oraSpinner**: the nice [Ora Spinner](https://www.npmjs.com/package/ora) instance which shows up when you run `webiny scaffold`. You are able to change its `text`, `prefixText`, `stop()` it and so on.
 
-When you have finished writing your package, the last step you have to do is installing it in your app's repository. Thus, it will be detected by Scaffold CLI and you'll be ready to go! 
+When you have finished writing your package, the last step is installing it in your app's repository. Thus, it will be detected by Scaffold CLI and you'll be ready to go! 
 
