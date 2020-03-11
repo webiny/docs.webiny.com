@@ -138,7 +138,7 @@ module.exports = {
             {
                 type: "category",
                 label: "Guides",
-                items: ["other/guides/mongodb-atlas"]
+                items: ["other/guides/mongodb-atlas", "other/guides/creatingScaffoldingTemplates"]
             },
             {
                 type: "link",
