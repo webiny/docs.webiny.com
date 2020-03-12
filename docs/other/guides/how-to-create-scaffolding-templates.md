@@ -25,7 +25,7 @@ Next, your package must export an array of [Plugins](/docs/deep-dive/plugins-cra
     description: string,    // Plugin info
     scaffold: {
         name: string        // Used in the Terminal
-        questions({ context? }): Array<InquirerQuestion>    // Can be just an array aswell
+        questions({ context? }): InquirerQuestion[] | () => InquirerQuestion[]
         generate({ input, context, oraSpinner }): void  
     }
 }
