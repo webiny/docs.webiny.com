@@ -21,12 +21,12 @@ For example, valid names could be:
 Next, your package must export an array of [Plugins](/docs/deep-dive/plugins-crash-course) (you can also export a single plugin). Your Plugins must follow the object structure below:
 ```
 {
-    name: String,           // Plugin info
-    description: String,    // Plugin info
+    name: string,           // Plugin info
+    description: string,    // Plugin info
     scaffold: {
-        name: String        // Used in the Terminal
-        questions({ context }): Function:[InquirerQuestion]    // Can be just an array aswell
-        generate({ input, context, oraSpinner }): async Function  
+        name: string        // Used in the Terminal
+        questions({ context? }): Array<InquirerQuestion>    // Can be just an array aswell
+        generate({ input, context, oraSpinner }): void  
     }
 }
 ```
