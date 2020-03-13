@@ -4,8 +4,6 @@ title: GraphQL Apollo Service
 sidebar_label: GraphQL Apollo Service
 ---
 
-## GraphQL Apollo Service
-
 #### Summary
 Creates a new GraphQL package ready for you to develop and adds it to the list of serverless APIs in `serverless.yml`.
 
