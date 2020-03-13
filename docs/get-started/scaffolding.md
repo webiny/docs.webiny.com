@@ -4,8 +4,6 @@ title: Scaffolding
 sidebar_label: Scaffolding
 ---
 
-# Webiny Scaffold CLI
-
 ### Introduction
 Sometimes when you develop applications with Webiny you will end up spending time doing common tasks that can easily become repetitive and tedious over time. This is where `webiny scaffold` comes into play.
 

@@ -141,6 +141,11 @@ module.exports = {
                 items: ["other/guides/mongodb-atlas", "other/guides/creatingScaffoldingTemplates"]
             },
             {
+                type: "category",
+                label: "Scaffolding Templates",
+                items: ["other/scaffolding-templates/graphql-apollo-service", "other/scaffolding-templates/custom-lambda-function"]
+            },
+            {
                 type: "link",
                 label: "How To Contribute",
                 href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
