@@ -61,7 +61,15 @@ module.exports = {
                         label: "Development",
                         items: [
                             "webiny-apps/menu-registration/registering-menu",
-                            "webiny-apps/routes-registration/registering-routes"
+                            "webiny-apps/routes-registration/registering-routes",
+                            {
+                                type: "category",
+                                label: "Plugins Reference",
+                                items: [
+                                    // "webiny-apps/security/development/plugin-reference/api",
+                                    "webiny-apps/security/development/plugin-reference/app"
+                                ]
+                            }
                         ]
                     }
                 ]
@@ -156,21 +164,7 @@ module.exports = {
                 type: "category",
                 label: "Security",
                 items: [
-                    "webiny-apps/security/introduction",
-                    {
-                        type: "category",
-                        label: "Development",
-                        items: [
-                            {
-                                type: "category",
-                                label: "Plugins Reference",
-                                items: [
-                                    // "webiny-apps/security/development/plugin-reference/api",
-                                    "webiny-apps/security/development/plugin-reference/app"
-                                ]
-                            }
-                        ]
-                    }
+                    "webiny-apps/security/introduction"
                 ]
             },
         ],
