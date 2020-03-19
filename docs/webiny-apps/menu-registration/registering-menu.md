@@ -32,7 +32,7 @@ The following snippet of code shows how to add a new menu via a simple plugin:
     },
 ```
 
-You should add code above to your plugins array as you can see below.
+You should add code above to your plugins array as you can see on example below.
 
 ```javascript
 
@@ -95,11 +95,10 @@ const plugins = [
 export default plugins;
 ```
 
-
 After doing this steps you should have your menu up when you rebuild your project.
 
 ![Menu Registration](/img/webiny-apps/menu-registration/menu-example.png)
 
 Also, after menu is registrated successfuly you will need to register the actual route for it. You can find how to do that in [this article](/docs/webiny-apps/routes-registration/registering-routes).
 
-P.S For another method of adding menu in cleaner way see the [Registering routes](/docs/webiny-apps/routes-registration/registering-routes) article.
+P.S For another method of adding menu in another way see the [Registering routes](/docs/webiny-apps/routes-registration/registering-routes) article.
