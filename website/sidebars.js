@@ -54,6 +54,20 @@ module.exports = {
             */
             {
                 type: "category",
+                label: "Admin",
+                items: [
+                    {
+                        type: "category",
+                        label: "Development",
+                        items: [
+                            "webiny-apps/menu-registration/registering-menu",
+                            "webiny-apps/routes-registration/registering-routes"
+                        ]
+                    }
+                ]
+            },
+            {
+                type: "category",
                 label: "File Manager",
                 items: ["webiny-apps/file-manager/getting-started"]
             },
@@ -159,34 +173,6 @@ module.exports = {
                     }
                 ]
             },
-            {
-                type: "category",
-                label: "Registering menu",
-                items: [
-                    "webiny-apps/menu-registration/getting-started",
-                    {
-                        type: "category",
-                        label: "Development",
-                        items: [
-                            "webiny-apps/menu-registration/registering-menu"
-                        ]
-                    }
-                ]
-            },
-            {
-                type: "category",
-                label: "Registering routes",
-                items: [
-                    "webiny-apps/routes-registration/getting-started",
-                    {
-                        type: "category",
-                        label: "Development",
-                        items: [
-                            "webiny-apps/routes-registration/registering-routes"
-                        ]
-                    }
-                ]
-            }
         ],
         Other: [
             {
