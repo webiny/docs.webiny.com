@@ -8,19 +8,13 @@ sidebar_label: Registering menu
 
 To add a new menu you will need to register it as a plugin.
 
-First of all import react at the top of your project.
-
-```javascript
-import React from "react";
-```
-
 After that you can get back to actual menu registration.
 There are different options how to actually register the menu. In this article we will follow the quicker one.
 
-The following snippet of code shows how to add a new menu via a simple plugin:
-
 Note that the plugin is defined once, but must be registered both in your Admin and website apps.
 > By default, all of the Admin and website plugins are registered in `apps/admin/src/plugins/index.js` and `apps/site/src/plugins/index.js`, respectively.
+
+The following snippet of code shows how to add a new menu via a simple plugin:
 
 ```javascript
    {
