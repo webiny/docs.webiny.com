@@ -60,8 +60,8 @@ module.exports = {
                         type: "category",
                         label: "Development",
                         items: [
-                            "webiny-apps/menus-registration/add-menus",
-                            "webiny-apps/routes-registration/add-routes"
+                            "webiny-apps/menus-registration/adding-menus",
+                            "webiny-apps/routes-registration/adding-routes"
                         ]
                     }
                 ]
