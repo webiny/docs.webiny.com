@@ -13,7 +13,7 @@ You can easily add your own menu items. In order to do that, you need to registe
 ```javascript
   {
     type: "menu",
-    name: "ecommerce",
+    name: "menu-shop",
     render({ Menu, Section, Item }) {
       return (
         <Menu name="shop" label={"Shop"}>
@@ -30,6 +30,7 @@ You can easily add your own menu items. In order to do that, you need to registe
     }
   }
 ```
+> If you are not already familiar with how plugins work, we recommend you take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course).
 
 The key property of the plugin is the `render` property, which represents a function that returns one or more React components which will render the menu. 
 
