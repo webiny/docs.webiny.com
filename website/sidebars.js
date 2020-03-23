@@ -54,6 +54,20 @@ module.exports = {
             */
             {
                 type: "category",
+                label: "Admin",
+                items: [
+                    {
+                        type: "category",
+                        label: "Development",
+                        items: [
+                            "webiny-apps/menus-registration/adding-menus",
+                            "webiny-apps/routes-registration/adding-routes"
+                        ]
+                    }
+                ]
+            },
+            {
+                type: "category",
                 label: "File Manager",
                 items: ["webiny-apps/file-manager/getting-started"]
             },
