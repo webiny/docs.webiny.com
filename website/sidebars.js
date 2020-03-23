@@ -105,6 +105,13 @@ module.exports = {
             },
             {
                 type: "category",
+                label: "I18N",
+                items: [
+                    "webiny-apps/i18n/introduction",
+                ]
+            },
+            {
+                type: "category",
                 label: "Page Builder",
                 items: [
                     //"webiny-apps/page-builder/introduction",
