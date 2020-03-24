@@ -6,7 +6,7 @@ sidebar_label: Menus
 
 One of the main sections of the Admin app is the main menu, which is located on the left side of the screen. By default, it contains a few menu items, for example Security and Settings.
 
-![Menu example](/img/webiny-apps/menu-registration/menu-example.png)
+![Menu example](/img/webiny-apps/admin/development/menus/menu-example.png)
 
 You can easily add your own menu items. In order to do that, you need to register a new `menu` plugin:
 
@@ -40,4 +40,4 @@ The provided `Menu`, `Section`, and `Item` components will probably cover most o
 
 After registering the above plugin, the following section should be added in the main menu: 
 
-![Menu Registration](/img/webiny-apps/menu-registration/new-menu-example.png)
+![Menu Registration](/img/webiny-apps/admin/development/menus/new-menu-example.png)

@@ -6,7 +6,7 @@ sidebar_label: Routes
 
 Every single-page application consists of routes, and the Admin app is no different.
 
-![Route example](/img/webiny-apps/routes-registration/route-example.png)
+![Route example](/img/webiny-apps/admin/development/routes/route-example.png)
  
 Adding a new route is just a matter of creating a "route" plugin, for example:
 
@@ -23,7 +23,7 @@ import { Route } from "@webiny/react-router";
     <Route
       exact
       path="/shop/products/:id"
-      render={({ location }) => <h1>lorem ipsum</h1>}
+      render={({ location }) => <h1>My new "/shop/products" route.</h1>}
     />
   )
 }
