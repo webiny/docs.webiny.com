@@ -11,24 +11,24 @@ One of the main sections of the Admin app is the main menu, which is located on 
 You can easily add your own menu sections and items by registering a new `menu` plugin:
 
 ```javascript
-  {
-    type: "menu",
-    name: "menu-shop",
-    render({ Menu, Section, Item }) {
-      return (
-        <Menu name="shop" label={"Shop"}>
-          <Section label={"Products"}>
-            <Item label={"Products"} path="/shop/products" />
-            <Item label={"Manage stock"} path="/shop/stock" />
-          </Section>
-          <Section label={"Customers"}>
-            <Item label={"Customers"} path="/shop/customers" />
-            <Item label={"Discounts"} path="/shop/discounts" />
-          </Section>
-        </Menu>
-      );
-    }
+{
+  type: "menu",
+  name: "menu-shop",
+  render({ Menu, Section, Item }) {
+    return (
+      <Menu name="shop" label={"Shop"}>
+        <Section label={"Products"}>
+          <Item label={"Products"} path="/shop/products" />
+          <Item label={"Manage stock"} path="/shop/stock" />
+        </Section>
+        <Section label={"Customers"}>
+          <Item label={"Customers"} path="/shop/customers" />
+          <Item label={"Discounts"} path="/shop/discounts" />
+        </Section>
+      </Menu>
+    );
   }
+}
 ```
 > If you are not already familiar with how plugins work, we recommend you take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course).
 
