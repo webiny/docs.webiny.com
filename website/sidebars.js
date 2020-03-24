@@ -56,6 +56,7 @@ module.exports = {
                 type: "category",
                 label: "Admin",
                 items: [
+                    "webiny-apps/admin/introduction",
                     {
                         type: "category",
                         label: "Development",
