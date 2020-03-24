@@ -8,7 +8,7 @@ One of the main sections of the Admin app is the main menu, which is located on 
 
 ![Menu example](/img/webiny-apps/admin/development/menus/menu-example.png)
 
-You can easily add your own menu items. In order to do that, you need to register a new `menu` plugin:
+You can easily add your own menu sections and items by registering a new `menu` plugin:
 
 ```javascript
   {
