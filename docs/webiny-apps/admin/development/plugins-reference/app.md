@@ -6,13 +6,12 @@ sidebar_label: App
 
 # Summary
 
-<!-- uncomment this
+
 [`header-left`](/docs/webiny-apps/admin/development/plugins-reference/app#header-left)
 
 [`header-middle`](/docs/webiny-apps/admin/development/plugins-reference/app#header-middle)
 
 [`header-right`](/docs/webiny-apps/admin/development/plugins-reference/app#header-right)
--->
 
 [`menu`](/docs/webiny-apps/admin/development/plugins-reference/app#menu)
 
@@ -22,63 +21,98 @@ sidebar_label: App
 
 <!-- --------------------------------- header-left plugin --------------------------------- -->
 
-<!-- uncomment this
 ### [`header-left`](/docs/webiny-apps/admin/development/plugins-reference/app#header-left)
 
 #### Summary
 
+Enables adding custom header elements to the left side of the top bar.
+
+![Scopes Multi Autocomplete](/img/webiny-apps/admin/development/plugins-reference/app/header-left.png)
+
 #### Type
 
 ```ts
-...
+type HeaderLeftPlugin = Plugin & {
+    type: "header-left";
+    render(params: RenderParams): React.ReactNode;
+};
 ```
 
 #### Example
 
 ```ts
-...
+{
+    type: "header-left",
+    name: "header-logo",
+    render() {
+        return <Logo />;
+    }
+};
 ```
--->
 
 <!-- --------------------------------- header-middle plugin --------------------------------- -->
 
-<!-- uncomment this
+
 ### [`header-middle`](/docs/webiny-apps/admin/development/plugins-reference/app#header-middle)
 
 #### Summary
 
+Enables adding custom header elements to the middle of the top bar.
+
+![Scopes Multi Autocomplete](/img/webiny-apps/admin/development/plugins-reference/app/header-middle.png)
+
 #### Type
 
 ```ts
-...
+type HeaderMiddlePlugin = Plugin & {
+    type: "header-middle";
+    render(params: RenderParams): React.ReactNode;
+};
 ```
 
 #### Example
 
 ```ts
-...
+{
+    type: "header-middle",
+    name: "global-search",
+    render() {
+        return <SearchBar />;
+    }
+};
 ```
--->
 
 <!-- --------------------------------- header-right plugin --------------------------------- -->
 
-<!-- uncomment this
+
 ### [`header-right`](/docs/webiny-apps/admin/development/plugins-reference/app#header-right)
 
 #### Summary
 
+Enables adding custom header elements to the right side of the top bar.
+
+![Scopes Multi Autocomplete](/img/webiny-apps/admin/development/plugins-reference/app/header-right.png)
+
 #### Type
 
 ```ts
-...
+type HeaderRightPlugin = Plugin & {
+    type: "header-right";
+    render(params: RenderParams): React.ReactNode;
+};
 ```
 
 #### Example
 
 ```ts
-...
+{
+    type: "header-right",
+    name: "header-user-menu",
+    render() {
+        return <UserMenu />;
+    }
+};
 ```
--->
 
 <!-- --------------------------------- menu plugin --------------------------------- -->
 
@@ -165,4 +199,4 @@ import { Route } from "@webiny/react-router";
 }
 ```
 
-> You can check the [`@webiny/react-router`](https://github.com/webiny/webiny-js/tree/master/packages/react-router) for more information on the `Route` component.  
+> You can check the [`@webiny/react-router`](https://github.com/webiny/webiny-js/tree/master/packages/react-router) for more information on the `Route` component.
