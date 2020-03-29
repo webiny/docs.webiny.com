@@ -61,6 +61,7 @@ module.exports = {
                         type: "category",
                         label: "Development",
                         items: [
+                            "webiny-apps/admin/development/header",
                             "webiny-apps/admin/development/menus",
                             "webiny-apps/admin/development/routes",
                             {
