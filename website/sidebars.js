@@ -177,19 +177,14 @@ module.exports = {
                         items: [
                             {
                                 type: "category",
-                                label: "Plugins Reference",
-                                items: ["webiny-apps/security/development/plugin-reference/app"]
-                            },
-                            {
-                                type: "category",
                                 label: "API",
                                 items: [
                                     {
                                         type: "category",
-                                        label: "Helpers",
+                                        label: "GraphQL Helpers",
                                         items: [
-                                            "webiny-apps/security/development/API/Helpers/has-role",
-                                            "webiny-apps/security/development/API/Helpers/has-scope"                                        
+                                            "webiny-apps/security/development/API/GraphQLHelpers/has-role",
+                                            "webiny-apps/security/development/API/GraphQLHelpers/has-scope"                                        
                                         ]
                                     }
                                 ]
@@ -207,6 +202,11 @@ module.exports = {
                                         ]
                                     }
                                 ]
+                            },
+                            {
+                                type: "category",
+                                label: "Plugins Reference",
+                                items: ["webiny-apps/security/development/plugin-reference/app"]
                             }
                         ]
                     }

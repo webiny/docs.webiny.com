@@ -4,16 +4,24 @@ title: Secure Route Component
 sidebar_label: SecureRoute
 ---
 
-### When to use
-The SecureRoute component can be used when you want certain routes to be available to specific roles.
+### Using `SecureRoute` React component
+The SecureRoute component can be used when you want certain routes to be available to specific roles. It can be imported like this:
 
-### How to import
 ```js
 import { SecureRoute } from "@webiny/app-security/components";
 ```
 
-### Example
-You can wrap your component with SecureRoute wherever your react-router routes are defined.
+This component will prevent rendering a route if the user doesn't have the matched permissions (either security scopes or security roles).
+The following attributes `roles` and `scopes` can be specified and found once you click Security -> Roles and Groups -> Roles (see below):
+
+Values for the `roles` attribute can be found here:
+
+![Security Role Example](/img/webiny-apps/security/development/api/GraphQLHelpers/security-roles.png)
+
+Values for the `scopes` attribute can be found here:
+
+![Security Scope Example](/img/webiny-apps/security/development/api/GraphQLHelpers/security-scope.png)
+
 ```js
 <SecureRoute
     roles={["security-roles"]}
@@ -22,4 +30,5 @@ You can wrap your component with SecureRoute wherever your react-router routes a
     <YourComponent />
 </SecureRoute>
 ```
->If the user does not have the defined roles or scopes permission, the SecureRoute component will render a span containing a message of 'You are not authorized to view this route.'.
+
+If the user does not have the defined roles or scopes permission, the SecureRoute component will render a span containing a message of 'You are not authorized to view this route.'.

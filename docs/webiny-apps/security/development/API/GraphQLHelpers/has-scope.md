@@ -4,7 +4,7 @@ title: hasScope Helper
 sidebar_label: hasScope
 ---
 
-After setting up a security scope for a specific user, there is a helper function hasScope to check if a user has a specific scope. This can be used as a validator for your GraphQL queries/mutations.
+After setting up a security scope for a specific user via the Roles form, there is a helper function `hasScope` to check if a user has a specific scope. This can be used in order to determine whether a GraphQL field can be accessed by the client.
 
 ### How to import
 ```js
@@ -17,6 +17,7 @@ Add the following code to your schema:
 extend type Query {
     security: SecurityQuery
 }
+
 extend type Mutation {
     security: SecurityMutation
 }
@@ -35,4 +36,6 @@ security: {
     }
 }
 ```
-> More examples of scopes can be found by clicking on Roles within Security -> Roles and Groups and clicking on the Scopes dropdown within the Save Role form.
+More examples of scopes can be seen below:
+
+![Security Scope Example](/img/webiny-apps/security/development/api/GraphQLHelpers/security-scope.png)

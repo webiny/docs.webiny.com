@@ -5,7 +5,7 @@ sidebar_label: SecureView
 ---
 
 ### When to use
-The SecureView component can be used when you want only specific roles to see that particular item.
+The SecureView component can be used when you want only specific roles or scopes to see that particular item.
 
 ### How to import
 ```js
