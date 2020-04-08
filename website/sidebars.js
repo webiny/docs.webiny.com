@@ -179,6 +179,34 @@ module.exports = {
                                 type: "category",
                                 label: "Plugins Reference",
                                 items: ["webiny-apps/security/development/plugin-reference/app"]
+                            },
+                            {
+                                type: "category",
+                                label: "API",
+                                items: [
+                                    {
+                                        type: "category",
+                                        label: "Helpers",
+                                        items: [
+                                            "webiny-apps/security/development/API/Helpers/has-role",
+                                            "webiny-apps/security/development/API/Helpers/has-scope"                                        
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                type: "category",
+                                label: "App",
+                                items: [
+                                    {
+                                        type: "category",
+                                        label: "Components",
+                                        items: [
+                                            "webiny-apps/security/development/App/Components/secure-route",
+                                            "webiny-apps/security/development/App/Components/secure-view"                                            
+                                        ]
+                                    }
+                                ]
                             }
                         ]
                     }
