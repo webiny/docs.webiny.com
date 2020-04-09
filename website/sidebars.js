@@ -96,6 +96,7 @@ module.exports = {
                         label: "Development",
                         items: [
                             "webiny-apps/form-builder/react-component",
+                            "webiny-apps/form-builder/custom-form-fields",
                             {
                                 type: "category",
                                 label: "Themes",
