@@ -6,6 +6,11 @@ sidebar_label: hasRole
 
 After setting up a security role for a specific user via the Roles form, there is a helper function `hasRole` to check if a user has a specific role. This can be used in order to determine whether a GraphQL field can be accessed by the client.
 
+If a user does not have the correct permissions, they will see the following error message:
+
+![Security Role Error](/img/webiny-apps/security/development/api/GraphQLHelpers/has-role-scope-error.png)
+
+
 ### How to import
 ```js
 import { hasRole } from "@webiny/api-security";

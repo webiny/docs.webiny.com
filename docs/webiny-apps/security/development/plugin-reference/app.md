@@ -8,6 +8,8 @@ sidebar_label: App
 
 [`security-scopes-list`](/docs/webiny-apps/security/development/plugin-reference/app#security-scopes-list)
 
+[`secure-route-error`](/docs/webiny-apps/security/development/plugin-reference/app#secure-route-error)
+
 ---
 
 ### [`security-scopes-list`](/docs/webiny-apps/security/development/plugin-reference/app#security-scopes-list)
@@ -51,5 +53,36 @@ type SecurityScopesListPlugin = Plugin & {
                 description: t`Allows the user to perform CRUD operations on animals.`
             }
         ]
+    }
+```
+
+---
+
+### [`secure-route-error`](/docs/webiny-apps/security/development/plugin-reference/app#secure-route-error)
+
+#### Summary
+
+When using a [SecureRoute React Component](/docs/webiny-apps/security/development/App/Components/secure-route) to prevent rendering if the user does not have the appropriate security roles or security scopes, you can create a `secure-route-error` plugin.
+
+This plugin allows you to customize what will render when a user does not have the permissions required to view a `SecureRoute` Component.
+
+
+#### Type
+
+```ts
+type SecureRouteErrorPlugin = Plugin & {
+    render(): React.ReactElement;
+};
+```
+
+#### Example
+
+```ts
+    {
+        type: "secure-route-error",
+        name: "secure-route-error-message",
+        render() {
+            return <h2>You are not authorized to access this page.</h2>;
+        }
     }
 ```
