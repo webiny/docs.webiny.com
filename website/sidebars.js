@@ -95,17 +95,17 @@ module.exports = {
                         type: "category",
                         label: "Development",
                         items: [
-                            "webiny-apps/form-builder/react-component"
+                            "webiny-apps/form-builder/react-component",
+                            {
+                                type: "category",
+                                label: "Themes",
+                                items: [
+                                    "webiny-apps/form-builder/themes/overview",
+                                    "webiny-apps/form-builder/themes/layouts"
+                                ]
+                            }
                             //"webiny-apps/form-builder/creating-new-form-fields",
                             //"webiny-apps/form-builder/custom-form-triggers"
-                        ]
-                    },
-                    {
-                        type: "category",
-                        label: "Theme Development",
-                        items: [
-                            "webiny-apps/form-builder/theme-development/overview",
-                            "webiny-apps/form-builder/theme-development/layouts"
                         ]
                     }
                 ]
@@ -113,9 +113,7 @@ module.exports = {
             {
                 type: "category",
                 label: "I18N",
-                items: [
-                    "webiny-apps/i18n/introduction",
-                ]
+                items: ["webiny-apps/i18n/introduction"]
             },
             {
                 type: "category",
