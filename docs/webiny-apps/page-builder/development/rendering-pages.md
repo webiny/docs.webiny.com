@@ -43,7 +43,7 @@ The `Page` React component is useful when you want to programmatically include t
 It can be imported like so:
 
 ```js
-import { Page } from "@webiny/app-page-builder/components/Page";
+import { Page } from "@webiny/app-page-builder/site/components/Page";
 ```
 
 You can then render any published page by simply passing an adequate set of props to the imported `Page` component, for example:
@@ -62,7 +62,7 @@ The following code shows a simple component in which we utilize the shown `Page`
 
 ```jsx
 import React from "react";
-import { Page } from "@webiny/app-page-builder/components/Page";
+import { Page } from "@webiny/app-page-builder/site/components/Page";
 
 function MyComponent() {
   return (
@@ -90,9 +90,8 @@ Consider the following example:
 
 ```jsx
 import React, { useMemo } from "react";
-import { Page } from "@webiny/app-page-builder/components/Page";
 import { useQuery } from "react-apollo";
-import { GET_PUBLISHED_PAGE } from "@webiny/app-page-builder/site/components/Page";
+import { Page, GET_PUBLISHED_PAGE } from "@webiny/app-page-builder/site/components/Page";
 import { getPlugin, getPlugins } from "@webiny/plugins";
 import { PbDefaultPagePlugin, PbPageLayoutComponentPlugin } from "@webiny/app-page-builder/types";
 
@@ -157,7 +156,7 @@ The `content` prop allows you tu literally just render the page content. The fol
 
 ```jsx
 import React, { useMemo } from "react";
-import { Page } from "@webiny/app-page-builder/components/Page";
+import { Page } from "@webiny/app-page-builder/site/components/Page";
 import { useQuery } from "react-apollo";
 import { getPlugin, getPlugins } from "@webiny/plugins";
 import {
