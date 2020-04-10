@@ -96,16 +96,23 @@ module.exports = {
                         label: "Development",
                         items: [
                             "webiny-apps/form-builder/react-component",
-                            "webiny-apps/form-builder/custom-form-fields",
+                            "webiny-apps/form-builder/development/form-fields",
+                            "webiny-apps/form-builder/development/form-field-groups",
                             {
                                 type: "category",
                                 label: "Themes",
                                 items: [
-                                    "webiny-apps/form-builder/themes/overview",
-                                    "webiny-apps/form-builder/themes/layouts"
+                                    "webiny-apps/form-builder/development/themes/overview",
+                                    "webiny-apps/form-builder/development/themes/layouts"
+                                ]
+                            },
+                            {
+                                type: "category",
+                                label: "Plugins Reference",
+                                items: [
+                                    "webiny-apps/form-builder/development/plugins-reference/app"
                                 ]
                             }
-                            //"webiny-apps/form-builder/creating-new-form-fields",
                             //"webiny-apps/form-builder/custom-form-triggers"
                         ]
                     }

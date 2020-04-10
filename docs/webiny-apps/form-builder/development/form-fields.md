@@ -1,14 +1,14 @@
 ---
-id: custom-form-fields
-title: Custom Form Fields
-sidebar_label: Custom Form Fields
+id: form-fields
+title: Form Fields
+sidebar_label: Form Fields
 ---
 
 Creating custom form field is just a matter of adding a couple of plugins.
 
 > If you are not already familiar with how plugins work, we recommend you take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course).
 
-First we need to register a plugin with the type `form-editor-field-type`, which will actually add the field to the [form builder](http://localhost:3000/docs/webiny-apps/form-builder/getting-started).
+First we need to register a plugin with the type [`form-editor-field-type`](/docs/webiny-apps/form-builder/development/plugins-reference/app#form-editor-field-type), which will actually add the field to the [form builder](http://localhost:3000/docs/webiny-apps/form-builder/getting-started).
 
 Let's examine the following example:
 
@@ -80,9 +80,9 @@ const secretTextFormField: FbBuilderFieldPlugin = {
 
 With the above plugin properly registered, we should already see our new form field in the form builder! Just try dragging the "Custom" field from the fields menu, and you should see it in the dialog that follows:
 
-![Form field registered successfully](/img/webiny-apps/form-builder/development/custom-form-fields/custom-field-registered.png)
+![Form field registered successfully](/img/webiny-apps/form-builder/development/form-fields/form-field-registered.png)
 
 Once you click on the icon, we'll be able to see the form that consists of two tabs. And if we take a look at the form in the initial "General" tab, we'll see that at the top we have "Label", "Field ID", and "Help Text" fields (which are present for every field by default), and on the bottom we have three fields we added via the `renderSettings` function in our plugin.
 
-![Form field registered successfully](/img/webiny-apps/form-builder/development/custom-form-fields/form-field-settings.png)
+![Form field settings](/img/webiny-apps/form-builder/development/form-fields/form-field-settings.png)
    
