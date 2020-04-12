@@ -21,7 +21,7 @@ In your project, if you open the `apps/site/src/plugins/index.js` file, you migh
 import pageBuilderPlugins from "@webiny/app-page-builder/site/plugins";
 ```
 
-This is a set of plugins that basically sets up a couple of things, most importantly, loading the page content via the GraphQL API while the user is navigating your website. With that, the included plugins also do the following:
+This is a set of plugins that sets up a couple of things, most importantly, automatic page fetching and rendering while the user is navigating your website. With that, the included plugins also do the following:
 
 #### Register render plugins for page builder elements
 
@@ -39,8 +39,9 @@ For SEO purposes, it fetches basic website information, like title or default OG
 
 ## Using `Page` React component
 
-The `Page` React component is useful when you want to programmatically include the page in the existing React code.
-It can be imported like so:
+The `Page` React component is useful when you want to programmatically include a page, for example, on a custom route. You can even use this component if you want to bring the Page Builder app into your existing React app (that wasn't created with Webiny at all).
+
+The component can be imported like so:
 
 ```js
 import { Page } from "@webiny/app-page-builder/site/components/Page";
@@ -226,6 +227,22 @@ function MyComponent() {
   );
 }
 ```
+
+### Existing React apps
+
+As mentioned, the `Page` React component can also be used if you want to bring the Page Builder app into your existing React app (that wasn't created with Webiny at all). If that is your case, when importing the Page Builder plugins, it's best to just manually import only the functionality that's actually needed. 
+
+Consider the following import statement:
+
+```js
+import renderPlugins from "@webiny/app-page-builder/render/presets/default";
+import { registerPlugins } from "@webiny/plugins";
+
+// Plugins still need to be registered via the "@webiny/plugins" package.
+registerPlugins(renderPlugins);
+```
+
+This will import just the default set of plugins that define the rendering of page elements. More importantly, this way we didn't import the plugin that's responsible for automatic page fetching and rendering while the user is navigating your app, leaving you free to rely on your existing routing options that you might already have in place.
 
 ## Component props
 
