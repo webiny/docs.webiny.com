@@ -4,37 +4,77 @@ title: hasScope Helper
 sidebar_label: hasScope
 ---
 
-After setting up a security scope for a specific user via the Roles form, there is a helper function `hasScope` to check if a user has a specific scope. This can be used in order to determine whether a GraphQL field can be accessed by the client.
+After setting up a security scope for a specific user via the Roles form, there is a helper function `hasScope` to check if a user has a specific scope. This can be used in order to determine whether a GraphQL field can be accessed by the user.
 
 ```js
+import gql from "graphql-tag";
+import { emptyResolver } from "@webiny/commodo-graphql";
 import { hasScope } from "@webiny/api-security";
-```
 
-Add the following code to your schema:
-```js
-extend type Query {
-    security: SecurityQuery
-}
+export default [
+    {
+        type: "graphql-schema",
+        //In this example the schema is for handling books within an e-library
+        name: "graphql-schema-library",
+        schema: {
+            typeDefs: gql`
+                type Book {
+                    id: ID
+                    title: String
+                    pagesCount: Int
+                }
 
-extend type Mutation {
-    security: SecurityMutation
-}
-```
-Add a security definition:
+                type BookInput {
+                    id: ID
+                    title: String
+                    pagesCount: Int
+                }
 
-```js
-security: {
-    shield: {
-        SecurityQuery: {
-            getGroup: hasScope("security:group:crud")
-        },
-        SecurityMutation: {
-            createGroup: hasScope("security:group:crud")
+                type LibraryQuery {
+                    getBook(id: ID): Book
+                }
+
+                type LibraryMutation {
+                    createBook(data: BookInput): Book
+                }
+
+                extend type Query {
+                    library: LibraryQuery
+                }
+
+                extend type Mutation {
+                    library: LibraryMutation
+                }
+            `,
+            resolvers: {
+                Query: {
+                    library: emptyResolver
+                },
+                Mutation: {
+                    library: emptyResolver
+                },
+                LibraryQuery: {
+                    getBook: () => { ... }
+                },
+                LibraryMutation: {
+                    createBook: () => { ... }
+                }
+            },
+            security: {
+                shield: {
+                    LibraryQuery: {
+                        getBook: hasScope("library:books:get")
+                    },
+                    LibraryMutation: {
+                        createBook: hasScope("library:books:create")
+                    }
+                }
+            }
         }
     }
-}
+];
 ```
-More examples of scopes can be seen below:
+In the above snippet, the value of `library:books:get` is specified by a Scope which can be accessed by clicking Security -> Roles and Groups -> Roles:
 
 ![Security Scope Example](/img/webiny-apps/security/development/api/GraphQLHelpers/security-scope.png)
 
