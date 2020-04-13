@@ -14,7 +14,6 @@ import { hasRole } from "@webiny/api-security";
 export default [
     {
         type: "graphql-schema",
-        //In this example the schema is for handling books within an e-library
         name: "graphql-schema-library",
         schema: {
             typeDefs: gql`
@@ -36,6 +35,7 @@ export default [
 
                 type LibraryMutation {
                     createBook(data: BookInput): Book
+                    editBook(data: BookInput): Book
                 }
 
                 extend type Query {
@@ -66,7 +66,8 @@ export default [
                         getBook: hasRole("book-access")
                     },
                     LibraryMutation: {
-                        createBook: hasRole("book-access")
+                        createBook: hasRole("book-put"),
+                        editBook: hasRole("book-put")
                     }
                 }
             }

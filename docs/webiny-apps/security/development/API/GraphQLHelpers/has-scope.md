@@ -14,7 +14,6 @@ import { hasScope } from "@webiny/api-security";
 export default [
     {
         type: "graphql-schema",
-        //In this example the schema is for handling books within an e-library
         name: "graphql-schema-library",
         schema: {
             typeDefs: gql`
@@ -36,6 +35,7 @@ export default [
 
                 type LibraryMutation {
                     createBook(data: BookInput): Book
+                    editBook(data: BookInput): Book
                 }
 
                 extend type Query {
@@ -66,7 +66,8 @@ export default [
                         getBook: hasScope("library:books:get")
                     },
                     LibraryMutation: {
-                        createBook: hasScope("library:books:create")
+                        createBook: hasScope("library:books:put"),
+                        editBook: hasScope("library:books:put")
                     }
                 }
             }
@@ -74,7 +75,7 @@ export default [
     }
 ];
 ```
-In the above snippet, the value of `library:books:get` is specified by a Scope which can be accessed by clicking Security -> Roles and Groups -> Roles:
+In the above snippet, the value of `library:books:get` is specified by a `scope` which can be accessed by clicking Security -> Roles and Groups -> Roles:
 
 ![Security Scope Example](/img/webiny-apps/security/development/api/GraphQLHelpers/security-scope.png)
 
