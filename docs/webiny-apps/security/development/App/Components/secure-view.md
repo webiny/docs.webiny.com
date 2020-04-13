@@ -5,27 +5,22 @@ sidebar_label: SecureView
 ---
 
 ### Using `SecureView` React component
-The SecureView component can be used when you want only specific roles or scopes to see that particular item. It can be imported like this:
+The `SecureView` component can be used when you want only specific roles or scopes to see that particular item.
+In the following example, the `Book` component will be rendered only if the currently logged-in user has the `book-access` role.
 
 ```js
 import { SecureView } from "@webiny/app-security/components";
-```
 
-In the following example, the `YourComponent` component will be rendered only if the currently logged-in user has the `forms-editors` role.
-```js
 function myComponent() {
     return (
-        <SecureView roles={["forms-editors"]}>
-            <YourComponent />
+        <SecureView roles={["book-access"]}>
+            <Book />
         </SecureView>        
     )
 }
 ```
 
-In the above example `YourComponent` will only render if the user currently logged in has the `forms-editors` role.
-
-
-The following attributes `roles` and `scopes` can be specified and found once you click Security -> Roles and Groups -> Roles (see below):
+The following attributes `roles` and `scopes` can be specified and found once you click Security -> Roles and Groups -> Roles.
 
 Values for the `roles` attribute can be found here:
 
@@ -35,42 +30,52 @@ Values for the `scopes` attribute can be found here:
 
 ![Security Scope Example](/img/webiny-apps/security/development/api/GraphQLHelpers/security-scope.png)
 
-By passing `roles` and `scopes` as props to `SecureView` you are able to control with more granularity what should get shown to logged-in users. In this case only a user with a `role` of `security-users` and a `scope` of `security-full-access` can see both the `EditUserRoles` component as well as the `EditGroups` component.
+By passing `roles` and `scopes` as props to `SecureView` you are able to access the check results of the `roles` as well as the `scopes` and can selectively render different parts of the UI that will be rendered as children of the `SecureView` component. 
+
+In following example only a user with a `role` of `book-access` and a `scope` of `library:books:get` can see the `Book` component. A user with a `role` of `book-put` and a `scope` of `library:books:put` can see both the `EditBook` and `CreateBook` components.
 
 ```js
-function SecureEditUserRoles() {
+import { SecureView } from "@webiny/app-security/components";
+
+
+/**
+    The keys of the objects passed to roles and scopes represent the results
+    of whether the user has those permissions or not.
+    Ex. The value of read is the result if the user has the role "book-access".
+**/
+function SecureBook() {
     return (
         <SecureView
             roles={{
-                groups: ["security-groups"],
-                roles: ["security-roles"],
-                users: ["security-users"]
+                read: ["book-access"],
+                put: ["book-put"]
             }}
             scopes={{
-                securityGroups: ["security-full-access"]
+                bookAccess: ["library:books:get"],
+                bookPut: ["library:books:put"],
             }}
             >
             {({ roles, scopes }) => {
-                const { groups, roles, users } = roles;
-                const { securityGroups } = groups;
-                if (!groups && !roles && !users && !securityGroups) {
+                const { read, edit } = roles;
+                const { bookAccess, bookPut } = scopes;
+                if (!read && !put && !bookAccess && !bookPut) {
                     return null;
                 }
                 return (
                     <div>
-                        {users && (
-                            <EditUserRoles />
+                        {read && bookAccess && (
+                            <Book />
                         )}
-                        {securityGroups && (
-                            <EditGroups />
-                        )}
+                        {edit && bookPut && [
+                            <EditBook />,
+                            <CreateBook />
+                        ]}
                     </div>
-                    );
+                );
             }}
         </SecureView>        
     )
 }
-
 ```
 
-Another benefit is that you can set the default behaviour when `roles` and `scopes` are not defined. In this case returning `null`, but you can create your own component to be returned.
+You can set the default behaviour when `roles` and `scopes` are not defined. In this case returning `null`, but you can create your own component to be returned.
