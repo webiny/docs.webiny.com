@@ -77,5 +77,4 @@ function SecureBook() {
     )
 }
 ```
-
-You can set the default behaviour when `roles` and `scopes` are not defined. In this case returning `null`, but you can create your own component to be returned.
+By using `SecureView` similar to the above example, you can set the default behaviour when `roles` and `scopes` are not defined. In this example, the default behaviour returns `null` when the permissions do not match what is required, but you can create your own component to be returned.
