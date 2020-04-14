@@ -183,6 +183,34 @@ module.exports = {
                         items: [
                             {
                                 type: "category",
+                                label: "API",
+                                items: [
+                                    {
+                                        type: "category",
+                                        label: "GraphQL Helpers",
+                                        items: [
+                                            "webiny-apps/security/development/API/GraphQLHelpers/has-role",
+                                            "webiny-apps/security/development/API/GraphQLHelpers/has-scope"                                        
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                type: "category",
+                                label: "App",
+                                items: [
+                                    {
+                                        type: "category",
+                                        label: "Components",
+                                        items: [
+                                            "webiny-apps/security/development/App/Components/secure-route",
+                                            "webiny-apps/security/development/App/Components/secure-view"                                            
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                type: "category",
                                 label: "Plugins Reference",
                                 items: ["webiny-apps/security/development/plugin-reference/app"]
                             }
