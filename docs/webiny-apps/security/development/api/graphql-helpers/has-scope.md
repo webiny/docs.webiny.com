@@ -1,10 +1,14 @@
 ---
 id: has-scope
-title: hasScope Helper
+title: hasScope
 sidebar_label: hasScope
 ---
 
-After setting up a security scope for a specific user via the Roles form, there is a helper function `hasScope` to check if a user has a specific scope. This can be used in order to determine whether a GraphQL field can be accessed by the user.
+Along with the [hasRole](/docs/webiny-apps/security/development/api/scopes), you can also utilize the `hasScope` helper function, which enables you to specify the security scope that the user must possess in order to be able to access a specific field in your GraphQL schema. 
+
+> To learn more about security scopes, click [here](/docs/webiny-apps/security/development/api/scopes).
+
+The following example shows a complete definition of a simple GraphQL schema (defined using the `graphql-schema` plugin), with the `hasScope` helper function used in the `security` section. 
 
 ```js
 import gql from "graphql-tag";
@@ -35,7 +39,7 @@ export default [
 
                 type LibraryMutation {
                     createBook(data: BookInput): Book
-                    editBook(data: BookInput): Book
+                    updateBook(data: BookInput): Book
                 }
 
                 extend type Query {
@@ -63,11 +67,17 @@ export default [
             security: {
                 shield: {
                     LibraryQuery: {
+                        // To access the "getBook" field, the user must posses the 
+                        // "library:books:get" security scope.
                         getBook: hasScope("library:books:get")
                     },
                     LibraryMutation: {
-                        createBook: hasScope("library:books:put"),
-                        editBook: hasScope("library:books:put")
+                        // To access the "createBook" field, the user must posses the 
+                        // "library:books:create" security scope.
+                        createBook: hasScope("library:books:create"),
+                        // To access the "updateBook" field, the user must posses the 
+                        // "library:books:update" security scope.
+                        updateBook: hasScope("library:books:update")
                     }
                 }
             }
@@ -75,10 +85,9 @@ export default [
     }
 ];
 ```
-In the above snippet, the value of `library:books:get` is specified by a `scope` which can be accessed by clicking Security -> Roles and Groups -> Roles:
 
-![Security Scope Example](/img/webiny-apps/security/development/api/GraphQLHelpers/security-scope.png)
+> To learn more about creating the GraphQL schema and the `graphql-schema` plugin, click [here](/docs/api-development/graphql).
 
-If a user does not have the correct permissions, they will see the following error message:
+Upon accessing the GraphQL field, if the user possesses the required scope, the GraphQL field's resolver will be executed. Otherwise, the resolver execution will be prevented, and the following error message will be returned in the response:
 
-![Security Scope Error](/img/webiny-apps/security/development/api/GraphQLHelpers/has-role-scope-error.png)
+![Security Scope Error](/img/webiny-apps/security/development/api/GraphQLHelpers/authorisation-error.png)
