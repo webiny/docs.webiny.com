@@ -36,7 +36,7 @@ module.exports = {
                     "api-development/commodo/packages-list"
                 ]
             },
-            "api-development/plugins-reference",
+            "api-development/plugins-reference"
             /*"api-overview",
              "api-schema-plugin",
              "api-schema-test",*/
@@ -190,12 +190,13 @@ module.exports = {
                                 type: "category",
                                 label: "API",
                                 items: [
+                                    "webiny-apps/security/development/api/scopes",
                                     {
                                         type: "category",
                                         label: "GraphQL Helpers",
                                         items: [
-                                            "webiny-apps/security/development/API/GraphQLHelpers/has-role",
-                                            "webiny-apps/security/development/API/GraphQLHelpers/has-scope"
+                                            "webiny-apps/security/development/api/graphql-helpers/has-role",
+                                            "webiny-apps/security/development/api/graphql-helpers/has-scope"
                                         ]
                                     }
                                 ]
@@ -206,10 +207,10 @@ module.exports = {
                                 items: [
                                     {
                                         type: "category",
-                                        label: "Components",
+                                        label: "React Components",
                                         items: [
-                                            "webiny-apps/security/development/App/Components/secure-route",
-                                            "webiny-apps/security/development/App/Components/secure-view"
+                                            "webiny-apps/security/development/app/components/secure-route",
+                                            "webiny-apps/security/development/app/components/secure-view"
                                         ]
                                     }
                                 ]
