@@ -6,7 +6,7 @@ sidebar_label: Triggers
 
 Triggers are special actions which are executed once a user makes a successful form submissions.
 
-For example, once the user user successfully submits the form, you might want to redirect him to a different page, or maybe even fire a separate POST request to another service of your choice. This request will contain all of the submitted data of course.
+For example, once the user successfully submits the form, you might want to redirect him to a different page, or maybe even fire a separate POST request to another service of your choice. This request will contain all of the submitted data of course.
 
 You can set this up via the "Triggers" tab in the fields editor section in the form builder. There are two triggers that are offered by default: redirect and webhook.
 
