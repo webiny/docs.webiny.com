@@ -133,7 +133,7 @@ const Dog = withFields({
   age: number({
     validate: value => {
       if (value && value < 2) {
-        throw new Error("Your dog is to young.");
+        throw new Error("Your dog is too young.");
       }
     }
   }),
