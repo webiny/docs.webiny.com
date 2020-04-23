@@ -195,7 +195,6 @@ module.exports = {
                                         type: "category",
                                         label: "GraphQL Helpers",
                                         items: [
-                                            "webiny-apps/security/development/api/graphql-helpers/has-role",
                                             "webiny-apps/security/development/api/graphql-helpers/has-scope"
                                         ]
                                     }
