@@ -49,7 +49,7 @@ However, if you want to use a different database, for example, you can create a 
 From the root of your project, run the following command:
 
 ```
-webiny deploy-api --env=dev
+webiny deploy api --env=dev
 ```
 
 ## 3. Deploy apps using `dev` environment
@@ -57,9 +57,10 @@ webiny deploy-api --env=dev
 From the root of your project, run the following command:
 
 ```
-webiny deploy-apps --env=dev
+webiny deploy apps --env=dev
 ```
 
+>Note: if you rename the `apps` folder to something else like `src` you can simply use `webiny deploy src --env=dev`
 ## Other environments
 
 If you also want to deploy a `prod` environment, repeat the procedure using the `prod` value.
