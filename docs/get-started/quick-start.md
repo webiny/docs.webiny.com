@@ -29,20 +29,15 @@ The following things are mandatory for both local development and production dep
 
 > NOTE: if you're unsure your AWS credentials are configured correctly, you can verify them by running the following command using [AWS CLI](https://aws.amazon.com/cli/): `aws sts get-caller-identity`. If you don't see the user info, take a look at this tutorial to [create an IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw).
 
-## 1. Install the CLI
+## 1. Create a new project
 
 ```
-npm -g install @webiny/cli
+npx create-webiny-project myProject --template templateName
 ```
 
-## 2. Create a new project
+> NOTE: The templateName can either be `full` (This will pull a package named `cwp-template-full` from npm template) or it can be a path to a local template ex. `../dev/template-to-use`
 
-```
-webiny create my-project
-cd my-project
-```
-
-## 3. Setup database connection
+## 2. Setup database connection
 
 Edit `.env.json` file in the root of the project and set the `MONGODB_SERVER` value. The values in this file are unique for your project, you do NOT need to change any other values.
 
@@ -50,21 +45,35 @@ Edit `.env.json` file in the root of the project and set the `MONGODB_SERVER` va
 
 > IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry. 
 
-> The `MONGODB_SERVER` value should be in the format of a MongoDB connection string such as: 
->`mongodb+srv://{YOUR_USERNAME}:{YOUR_PASSWORD}@someclustername.mongodb.net`.
+Your `.env.json` file should look something like this after updating your `MONGODB_SERVER` and `MONGODB_NAME` parameters.
 
-## 4. Deploy API
+```json
+{
+  "default": {
+    "AWS_PROFILE": "default",
+    "AWS_REGION": "us-east-1",
+    "MONGODB_SERVER": "mongodb+srv://{YOUR_USERNAME}:{YOUR_PASSWORD}@someclustername.mongodb.net",
+    "MONGODB_NAME": "{YOUR_MONGODB_NAME}",
+    "DEBUG": true
+  }
+}
+
+```
+
+## 3. Deploy API
 
 We need to deploy a `local` API environment to use for local development:
 
 ```
-webiny deploy-api
+webiny deploy api --env=local
 ```
+
+If you were to rename the folder you want to deploy your api from to `server` you would just need to run `webiny deploy server` instead.
 
 > NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
 If you use multiple AWS profiles, edit `.env.json` in your project root, to point to the correct profile via `AWS_PROFILE`. Webiny does not use the `AWS_PROFILE` env variable.
 
-## 5. Start `admin` app
+## 4. Start `admin` app
 
 Admin app is the administration system for your project; it contains everything you need to manage your content, users, settings, etc.
 
@@ -77,7 +86,7 @@ Once started, `admin` app will run an installation wizard to setup the system.
 
 > IMPORTANT: Do NOT go onto the next step until you complete the installation wizard.
 
-## 6. Start `site` app
+## 5. Start `site` app
 
 Site app is an actual website you're creating. It is a single page app, but in production it renders via server-side rendering.
 
@@ -85,6 +94,8 @@ Site app is an actual website you're creating. It is a single page app, but in p
 cd apps/site
 yarn start
 ```
+
+> NOTE: you can also run `webiny deploy apps --env=local` to run every folder within the `apps` folder.
 
 ---
 
