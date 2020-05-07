@@ -4,11 +4,11 @@ title: hasScope
 sidebar_label: hasScope
 ---
 
-You can utilize the `hasScope` helper function, which enables you to specify the security scope that the user must possess in order to be able to access a specific field in your GraphQL schema.
+You can utilize the `hasScope` helper function in order to specify the security scope that the user must possess in order to be able to access a specific field in your GraphQL schema.
 
 > To learn more about security scopes, click [here](/docs/webiny-apps/security/development/api/scopes).
 
-The following example shows a complete definition of a simple GraphQL schema (defined using the `graphql-schema` plugin), with the `hasScope` helper function used to wrap resolver with required scope.
+The following example shows a complete definition of a simple GraphQL schema (defined using the `graphql-schema` plugin), with the `hasScope` helper function used to wrap resolvers with required scope.
 
 ```js
 import gql from "graphql-tag";
