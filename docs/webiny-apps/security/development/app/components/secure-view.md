@@ -5,66 +5,61 @@ sidebar_label: SecureView
 ---
 
 ### Using `SecureView` React component
-The `SecureView` component can be used when you want only specific scopes to see that particular item.
-In the following example, the `Book` component will be rendered only if the currently logged-in user has the `library:books:get` scope.
+
+Unlike the [`SecureRoute`](/docs/webiny-apps/security/development/app/components/secure-route) component, which prevents rendering of a complete route if a user doesn't have required security scopes, the `SecureView` component can be used to prevent rendering of just a small section in your view. For example, you might want to show the "Create a book" button only if a user possesses the `library:books:create` security scope.
+
+> To learn more about scopes, click [here](http://localhost:3000/docs/webiny-apps/security/development/api/scopes).
+
+### Basic usage
+
+The following example shows how to use the `SecureView` component in order to prevent users from seeing the `CreateBookButton` component, if they don't possess the `library:books:create` security scope:
 
 ```js
 import { SecureView } from "@webiny/app-security/components";
 
 function myComponent() {
-    return (
-        <SecureView scopes={["library:books:get"]}>
-            <Book />
-        </SecureView>
-    )
+  return (
+    <SecureView scopes={["library:books:create"]}>
+      <CreateBookButton />
+    </SecureView>
+  );
 }
 ```
-The attribute `scopes` can be specified and found once you click Security -> Roles and Groups -> Roles.
 
-Values for the `scopes` attribute can be found here:
+### Checking multiple scopes
 
-![Security Scope Example](/img/webiny-apps/security/development/api/GraphQLHelpers/security-scope.png)
+Instead of an array, you can also pass required security scopes as an object, which enables you to perform multiple checks, and receive results as an argument to the child render function.
 
-By passing `scopes` as prop to `SecureView` you are able to access the check results of the `scopes` and can selectively render different parts of the UI that will be rendered as children of the `SecureView` component.
-
-In following example only a user with a `scope` of `library:books:get` can see the `Book` component. A user a `scope` of `library:books:put` can see both the `EditBook` and `CreateBook` components.
+In the following example, the `ListBooks` component will be rendered only if a user possesses the `library:books:get` security scope (result assigned to the `booksGet` property). Additionally, `EditBook` and `CreateBook` components will be rendered only if a user possesses both `library:books:create` and `library:books:update` security scopes (the result of that check was assigned to the `booksManage` property).
 
 ```js
 import { SecureView } from "@webiny/app-security/components";
 
+function SecureBookView() {
+  return (
+    <SecureView
+      scopes={{
+        booksGet: ["library:books:get"],
+        booksManage: ["library:books:create", "library:books:update"]
+      }}
+    >
+      {({ scopes }) => {
+        // The results are assigned to the "scope" property. 
+        const { bookAccess, bookPut } = scopes;
 
-/**
-    The keys of the objects passed to scopes represent the results
-    of whether the user has those permissions or not.
-    Ex. The value of bookAccess is the result if the user has the scope "library:books:get".
-**/
-function SecureBook() {
-    return (
-        <SecureView
-            scopes={{
-                bookAccess: ["library:books:get"],
-                bookPut: ["library:books:put"],
-            }}
-            >
-            {({ scopes }) => {
-                const { bookAccess, bookPut } = scopes;
-                if (!bookAccess && !bookPut) {
-                    return null;
-                }
-                return (
-                    <div>
-                        {bookAccess && (
-                            <Book />
-                        )}
-                        {bookPut && [
-                            <EditBook />,
-                            <CreateBook />
-                        ]}
-                    </div>
-                );
-            }}
-        </SecureView>
-    )
+        return (
+          <div>
+            {booksGet && <ListBooks />}
+            {booksManage && (
+              <div>
+                <EditBook />
+                <CreateBook />
+              </div>
+            )}
+          </div>
+        );
+      }}
+    </SecureView>
+  );
 }
 ```
-By using `SecureView` similar to the above example, you can set the default behaviour when `scopes` are not defined. In this example, the default behaviour returns `null` when the permissions do not match what is required, but you can create your own component to be returned.

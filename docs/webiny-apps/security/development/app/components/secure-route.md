@@ -6,19 +6,14 @@ sidebar_label: SecureRoute
 
 ### Using `SecureRoute` React component
 
-The `SecureRoute` component prevents rendering of a route if the user doesn't have required security scopes.
+The `SecureRoute` component prevents rendering of a route if a user doesn't possess required security scopes.
 
 The following example shows how to use the `SecureRoute` component in order to prevent users from accessing a route if they don't possess the `library:books:get` security scope:
 
 ```js
 import { SecureRoute } from "@webiny/app-security/components";
 
-
-/**
-    In this example, the scopes used are definitions
-    you might define in order to build an e-library.
-**/
-function myComponent() {
+function SecureBookRoute() {
     return (
         <SecureRoute
             scopes={["library:books:get"]}
