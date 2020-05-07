@@ -8,6 +8,8 @@ sidebar_label: SecureRoute
 
 The `SecureRoute` component prevents rendering of a route if a user doesn't possess required security scopes.
 
+> To learn more about scopes, click [here](http://localhost:3000/docs/webiny-apps/security/development/api/scopes).
+
 The following example shows how to use the `SecureRoute` component in order to prevent users from accessing a route if they don't possess the `library:books:get` security scope:
 
 ```js
