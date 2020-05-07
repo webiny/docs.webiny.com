@@ -6,12 +6,9 @@ sidebar_label: SecureRoute
 
 ### Using `SecureRoute` React component
 
-The `SecureRoute` component will prevent rendering a route if the user doesn't have the matched permissions (i.e security scopes).
-The attribute `scopes` can be specified and found once you click Security -> Roles and Groups -> Roles.
+The `SecureRoute` component prevents rendering of a route if the user doesn't have required security scopes.
 
-Values for the `scopes` attribute can be found here:
-
-![Security Scope Example](/img/webiny-apps/security/development/api/GraphQLHelpers/security-scope.png)
+The following example shows how to use the `SecureRoute` component in order to prevent users from accessing a route if they don't possess the `library:books:get` security scope:
 
 ```js
 import { SecureRoute } from "@webiny/app-security/components";
@@ -32,4 +29,4 @@ function myComponent() {
 }
 ```
 
-If the user does not have the defined `scopes` permissions, the `SecureRoute` component will either render a [secure-route-error plugin](/docs/webiny-apps/security/development/plugin-reference/app#secure-route-error), otherwise it will render a span containing a string "You are not authorized to view this route.".
+If a user doesn't posses required security scopes, by default, the component will just render a simple "You are not authorized to view this route." message. If needed, this fallback render can be customized via a [secure-route-error](/docs/webiny-apps/security/development/plugin-reference/app#secure-route-error) plugin.
