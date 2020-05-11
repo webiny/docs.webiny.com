@@ -15,31 +15,39 @@ Open the `api/.env.json` file. You should see a similar config file:
   "default": {
     "GRAPHQL_INTROSPECTION": true,
     "GRAPHQL_PLAYGROUND": true,
-    "MONGODB_NAME": "webiny-72858e17",
-    "MONGODB_SERVER": "mongodb+srv://username:password@my-db-123.mongodb.net/test?retryWrites=true",
     "S3_BUCKET": "webiny-files-72858e17",
     "JWT_SECRET": "GSyWyuHU2uHrO+wnSO8OjQ+wPbuQmBclVNFejoo9qmsQRNFAZHu+PFSyq48+"
   }
 }
 ```
 
-If you don't want to change anything for your `dev` environment, leave it as is.
+Open the `.env.json` file. You should see a similar config file:
+```json
+{
+    "default": {
+      "AWS_PROFILE": "default",
+      "AWS_REGION": "us-east-1",
+      "MONGODB_SERVER": "mongodb+srv://username:password@my-db-123.mongodb.net/test?retryWrites=true",
+      "MONGODB_NAME": "webiny-72858e17"
+    }
+}
+```
+
+If you don't want to change anything for your `dev` environment, leave them as is.
 
 However, if you want to use a different database, for example, you can create a new config block and override the `default` values:
 
 ```json
 {
   "default": {
-    "GRAPHQL_INTROSPECTION": true,
-    "GRAPHQL_PLAYGROUND": true,
-    "MONGODB_NAME": "webiny-72858e17",
+    "AWS_PROFILE": "default",
+    "AWS_REGION": "us-east-1",
     "MONGODB_SERVER": "mongodb+srv://username:password@my-db-123.mongodb.net/test?retryWrites=true",
-    "S3_BUCKET": "webiny-files-72858e17",
-    "JWT_SECRET": "GSyWyuHU2uHrO+wnSO8OjQ+wPbuQmBclVNFejoo9qmsQRNFAZHu+PFSyq48+"
+    "MONGODB_NAME": "webiny-72858e17"
   },
   "dev": {
     "MONGODB_NAME": "webiny-dev-72858e17",
-    "JWT_SECRET": "A different JWS secret"
+    "JWT_SECRET": "A different JWT secret"
   }
 }
 ```
@@ -49,15 +57,16 @@ However, if you want to use a different database, for example, you can create a 
 From the root of your project, run the following command:
 
 ```
-webiny deploy-api --env=dev
+webiny deploy api --env=dev
 ```
+
 
 ## 3. Deploy apps using `dev` environment
 
 From the root of your project, run the following command:
 
 ```
-webiny deploy-apps --env=dev
+webiny deploy apps --env=dev
 ```
 
 ## Other environments
@@ -74,5 +83,5 @@ apps/site/package.json
 An example script for `staging` environment could look like this:
 
 ```
-"build:staging": "env-cmd -r .env.json -e default,staging rescripts build"
+"build:staging": "env-cmd -r .env.json -e default,staging webiny run build"
 ```
