@@ -1,20 +1,6 @@
 module.exports = {
     docs: {
-        "Webiny": [
-            "webiny/introduction",
-            {
-                type: "category",
-                label: "FAQ",
-                items: ["webiny/faq/how-is-webiny-serverless", "webiny/faq/why-not-dynamodb"]
-            },
-            {
-                type: "link",
-                label: "How To Contribute",
-                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
-            },
-            "webiny/credits",
-        ],
-        "Guides": ["guides/mongodb-atlas"],
+        Webiny: ["webiny/introduction"],
         "Get Started": [
             "get-started/quick-start",
             "get-started/going-live",
@@ -236,6 +222,23 @@ module.exports = {
                         ]
                     }
                 ]
+            }
+        ],
+        Other: [
+            {
+                type: "category",
+                label: "FAQ",
+                items: ["other/faq/how-is-webiny-serverless", "other/faq/why-not-dynamodb"]
+            },
+            {
+                type: "category",
+                label: "Guides",
+                items: ["other/guides/mongodb-atlas"]
+            },
+            {
+                type: "link",
+                label: "How To Contribute",
+                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
             }
         ]
     }
