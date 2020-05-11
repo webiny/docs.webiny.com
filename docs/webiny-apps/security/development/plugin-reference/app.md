@@ -4,14 +4,6 @@ title: App Plugins Reference
 sidebar_label: App
 ---
 
-# Summary
-
-[`security-scopes-list`](/docs/webiny-apps/security/development/plugin-reference/app#security-scopes-list)
-
-[`secure-route-error`](/docs/webiny-apps/security/development/plugin-reference/app#secure-route-error)
-
----
-
 ### [`security-scopes-list`](/docs/webiny-apps/security/development/plugin-reference/app#security-scopes-list)
 
 #### Summary
