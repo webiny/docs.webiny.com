@@ -22,7 +22,14 @@ module.exports = {
             },
             //"deep-dive/database",
             // "deep-dive/deployment",
-            "deep-dive/plugins-crash-course"
+            "deep-dive/plugins-crash-course",
+            {
+                type: "category",
+                label: "Scaffolding",
+                items: [
+                    "deep-dive/scaffolding/your-first-scaffold-plugin",
+                ]
+            },
         ],
         "API Development": [
             "api-development/graphql",
