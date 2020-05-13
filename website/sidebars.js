@@ -168,9 +168,14 @@ module.exports = {
                         label: "Development",
                         items: [
                             "webiny-apps/page-builder/development/rendering-pages",
-                            "webiny-apps/page-builder/development/creating-iframe-element-plugin"
+                            "webiny-apps/page-builder/development/creating-iframe-element-plugin",
                             //"webiny-apps/form-builder/creating-new-form-fields",
                             //"webiny-apps/form-builder/custom-form-triggers"
+                            {
+                                type: "category",
+                                label: "Plugins Reference",
+                                items: ["webiny-apps/page-builder/development/plugins-reference/app"]
+                            }
                         ]
                     }
                 ]
