@@ -6,7 +6,7 @@ sidebar_label: Your first scaffold plugin
 
 This guide will help you create your own scaffolding plugins using our [Plugins system](/docs/deep-dive/plugins-crash-course).
 
-# Alright, how do I do it?
+# Here's how to do it
 First of all, you have to update the `/webiny.root.js` file found in your project's root with your new plugin. Plugins referenced here are mainly resolved using [node module resolution](https://nodejs.org/api/modules.html). 
 
 In this example, we'll create a **local package** called **scaffoldFolder**.
