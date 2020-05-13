@@ -4,14 +4,14 @@ title: Your first scaffold plugin
 sidebar_label: Creating scaffold plugins
 ---
 
-You've already seen our scaffold templates, but you desire more. You want to create your own scripts that improve your project.
+You've already seen our scaffold templates, but you desire more. You want to create your own packages that improve your project.
 
 We have good news: this is completely possible and easy to accomplish using our [Plugins system](/docs/deep-dive/plugins-crash-course).
 
 # Alright, how do I do it?
 First of all, you have to update the `/webiny.root.js` file found in your project's root with your new plugin. Plugins referenced here are mainly resolved using [node module resolution](https://nodejs.org/api/modules.html). 
 
-In this example, we'll create a **local package** called **sampleScaffoldScript**.
+In this example, we'll create a **local package** called **scaffoldFolder**.
 
 You may also use **globally installed packages** and, if you're willing to go as far as to write gross, indecent yet quick **inline** hacky plugins, we've made sure that's possible too.
 
@@ -41,7 +41,7 @@ module.exports = {
             "@webiny/cli-plugin-scaffold",
             "@webiny/cli-plugin-scaffold-graphql-service",
             "@webiny/cli-plugin-scaffold-lambda",
-            "./sampleScaffoldScript",
+            "./scaffoldFolder",
         ]
     }
 };
@@ -57,10 +57,10 @@ module.exports = {
             "@webiny/cli-plugin-scaffold-graphql-service",
             "@webiny/cli-plugin-scaffold-lambda",
             {
-                name: "cli-plugin-scaffold-template-sample-scaffold-script",
+                name: "cli-plugin-scaffold-template-scaffold-folder",
                 type: "cli-plugin-scaffold-template",
                 scaffold: {
-                    name: "Sample scaffold script",
+                    name: "Scaffold folder",
                     questions: () => [
                         /* ... */
                     ],
@@ -87,19 +87,19 @@ The **context** object referenced above contains various data that might be help
 
 
 # Example
-Let's create our first scaffolding plugin. I've navigated to my project's root and created a new folder: `./sampleScaffoldScript`. Here I'll quickly initialise a new package using `npm init -y`.
+Let's create our first scaffolding plugin. I've navigated to my project's root and created a new folder: `./scaffoldFolder`. Here I'll quickly initialise a new package using `npm init -y`.
 
-I've taken the liberty of writing a short plugin in `./sampleScaffoldScript/index.js` that creates a customly named Folder in my project's root:
+I've taken the liberty of writing a short plugin in `./scaffoldFolder/index.js` that creates a customly named Folder in my project's root:
 
 ```js
 const fs = require("fs");
 const path = require("path");
 
 module.exports = {
-    name: "cli-plugin-scaffold-template-sample-scaffold-script",
+    name: "cli-plugin-scaffold-template-scaffold-folder",
     type: "cli-plugin-scaffold-template",
     scaffold: {
-        name: "Sample scaffold script",
+        name: "Scaffold folder",
         questions: ({ context }) => {
             return [
                 {
