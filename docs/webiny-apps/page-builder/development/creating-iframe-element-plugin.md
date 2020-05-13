@@ -46,6 +46,9 @@ In our case is [app-page-builder/src/types.ts](https://github.com/webiny/webiny-
 
 Let's render our plugin in the page builder, first we will use the `PbEditorPageElementPlugin` plugin type
 
+Plugin reference:
+[`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element)
+
 ```jsx
 
 import { ReactComponent as IFrameIcon } from "./iframe-icon.svg";
@@ -122,6 +125,11 @@ Since we are adding a new element in the editor, the type of plugin will be `pb-
 ### Render Plugin
 
 The next plugin type we will use is `PbEditorPageElementAdvancedSettingsPlugin`, we will use this plugin to show a settings dialog so we can provide an iframe URL.
+
+
+Plugin reference: [`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings)
+
+
 
 ```jsx
 import { validation } from "@webiny/validation";
