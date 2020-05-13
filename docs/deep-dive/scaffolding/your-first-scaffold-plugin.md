@@ -9,7 +9,9 @@ You've already seen our scaffold templates, but you desire more. You want to cre
 We have good news: this is completely possible and easy to accomplish using our [Plugins system](/docs/deep-dive/plugins-crash-course).
 
 # Alright, how do I do it?
-First of all, you have to update the `/webiny.root.js` file found in your project's root with your new plugin. In this example, we'll create a **local package** called **sampleScaffoldScript**.
+First of all, you have to update the `/webiny.root.js` file found in your project's root with your new plugin. Plugins referenced here are mainly resolved using [node module resolution](https://nodejs.org/api/modules.html). 
+
+In this example, we'll create a **local package** called **sampleScaffoldScript**.
 
 You may also use **globally installed packages** and, if you're willing to go as far as to write gross, indecent yet quick **inline** hacky plugins, we've made sure that's possible too.
 
@@ -29,7 +31,7 @@ module.exports = {
     }
 };
 ```
-- **Local / Global package** (loaded as a plugin)
+- **Local / Global package** (which exports one or multiple plugins)
 ```js
 module.exports = {
     projectName: "webiny-js",
