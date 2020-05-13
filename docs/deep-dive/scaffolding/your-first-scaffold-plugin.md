@@ -86,7 +86,7 @@ The **context** object referenced above contains some helpful data/information l
 # Example
 Let's create our first scaffolding plugin. First of all I'll navigate to my project's root and created a new folder: `./scaffoldFolder`. Here I'll quickly initialise a new package using `npm init -y`.
 
-I've taken the liberty of writing a short plugin in `./scaffoldFolder/index.js` that creates a customly named Folder in my project's root:
+I've taken the liberty of writing a short plugin in `./scaffoldFolder/index.js`. The plugin will create a folder with whatever name you want to create.
 
 ```js
 const fs = require("fs");
