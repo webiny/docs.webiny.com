@@ -30,6 +30,13 @@ module.exports = {
                     "deep-dive/scaffolding/your-first-scaffold-plugin",
                 ]
             },
+            {
+                type: "category",
+                label: "CLI",
+                items: [
+                    "deep-dive/cli/your-first-cli-plugin",
+                ]
+            },
         ],
         "API Development": [
             "api-development/graphql",
