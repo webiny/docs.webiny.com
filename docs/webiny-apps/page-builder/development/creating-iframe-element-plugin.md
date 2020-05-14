@@ -4,17 +4,16 @@ title: Creating Custom Page Elements
 sidebar_label: Creating Custom Page Elements
 ---
 
-This tutorial guides you through building a new page element plugin for our Page Builder.
-Out of the box, we provide the essential plugins. Writing your own plugin is not difficult, but you must be familiar with a couple of core concepts.
+In this tutorial, we're going to learn how to create a custom page element for the Page Builder app. Although the app comes with a bunch of ready-made page elements, at one point in time, you might need to create your own in order to satisfy your specific requirements. In order to achieve that, we can utilize a couple of simple plugins, which is what we'll cover in this short tutorial.
 
 > If you are not already familiar with how plugins work, we recommend
 > you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
 
 Ready? Let's dive in!
 
-## What we'll build
+## What We'll build
 
-We’ll build an element plugin that will allow content creators to embed content using an iframe.
+We’ll create a new page element that will allow content creators to embed content using an iframe.
 
 Here's what the result will look like:
 
@@ -29,29 +28,28 @@ This tutorial assumes you have already created a new Webiny project to work on. 
 
 Head over to our [Webiny forum](https://community.webiny.com/), [Gitter](https://gitter.im/Webiny/webiny-js)
 
-### Editor
-
-One of the main sections of the Page Builder App is the Editor, you can open the Editor by editing the page that you create.
-Out-of-the-box the PB editor includes a myriad of page elements.
+### Creating the Plugins
 
 ![Editor Elements](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/editor-elements.png)
 
 
 This list of page elements can be expanded and custom page elements can be created via plugins. In order to create a new page element, we need to register two plugins, one that defines how it's rendered in the actual page builder, and the other that defines how it's rendered on the website.
 
-If you are interested on different types of plugins, each app in Webiny consistes of the `types.ts` that includes all the plugin types of that app.
-In our case is [app-page-builder/src/types.ts](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder/src/types.ts)
-
 ### Editor Plugin
 
-Let's render our plugin in the page builder, first we will use the `PbEditorPageElementPlugin` plugin type
+Let's render our page element in the editor. first we will use the [`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element)
+ plugin type.
 
-Plugin reference:
-[`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element)
 
 ```jsx
-
+import React from "react";
+import styled from "@emotion/styled";
+import {
+    PbEditorPageElementPlugin
+} from "@webiny/app-page-builder/types";
 import { ReactComponent as IFrameIcon } from "./iframe-icon.svg";
+import IFrameEmbed from "./iFrameEmbed";
+
 const PreviewBox = styled("div")({
     textAlign: "center",
     height: 50,
@@ -61,8 +59,8 @@ const PreviewBox = styled("div")({
     }
 });
 export default () => {
-    return [
-        {
+
+    return {
             name: "pb-editor-page-element-iframe",
             type: "pb-editor-page-element",
             elementType: "iframe",
@@ -113,7 +111,6 @@ export default () => {
             }
         } as PbEditorPageElementPlugin,
     // Settings dialog comes here
-    ]
 ```
 
 The key properties of the plugin are the `create`, `data`, `settings`, and `render`. They contribute to the state of our plugin. On changing the state, it’s up to the render function to render the component based on the state changes.
@@ -124,14 +121,16 @@ Since we are adding a new element in the editor, the type of plugin will be `pb-
 
 ### Render Plugin
 
-The next plugin type we will use is `PbEditorPageElementAdvancedSettingsPlugin`, we will use this plugin to show a settings dialog so we can provide an iframe URL.
-
-
-Plugin reference: [`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings)
-
-
+The next plugin type we will use is [`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings)
+, we will use this plugin to show a settings dialog so we can provide an iframe URL.
 
 ```jsx
+import { Tab } from "@webiny/ui/Tabs";
+import { Input } from "@webiny/ui/Input";
+import { Grid, Cell } from "@webiny/ui/Grid";
+import {
+    PbEditorPageElementAdvancedSettingsPlugin
+} from "@webiny/app-page-builder/types";
 import { validation } from "@webiny/validation";
 
 {
@@ -162,7 +161,7 @@ import { validation } from "@webiny/validation";
 
 ```
 
-This code shows the settings dialog and asks for the URL of the iframe as shown in the image below
+This code shows the settings dialog and asks for the URL of the iframe as shown in the image below.
 
 ![Settings dialog](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/settings-dialog.png)
 
@@ -170,7 +169,7 @@ This code shows the settings dialog and asks for the URL of the iframe as shown 
 
 After saving the URL, the Bind component will bind the data to the state of our plugin so that the component on the render function will have access to the URL that the user provides, and it renders the IFrameEmbed component.
 
-The IFrameEmbed component
+The IFrameEmbed component:
 
 ```jsx
 const IFrameEmbed = (props) => {
