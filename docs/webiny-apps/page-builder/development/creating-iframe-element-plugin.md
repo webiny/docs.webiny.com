@@ -24,10 +24,6 @@ Here's what the result will look like:
 
 This tutorial assumes you have already created a new Webiny project to work on. If not, we recommend going to our [quick start](/docs/get-started/quick-start.md) guide which will show you how to do it.
 
-### Need Help?
-
-Head over to our [Webiny forum](https://community.webiny.com/), [Gitter](https://gitter.im/Webiny/webiny-js)
-
 ### Creating the Plugins
 
 ![Editor Elements](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/editor-elements.png)
