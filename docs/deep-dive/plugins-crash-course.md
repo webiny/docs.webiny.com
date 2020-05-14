@@ -27,7 +27,7 @@ We will add a section with the full catalog of plugins as we progress with the d
 
 ## Creating a plugin
 
-> NOTE: don't try to create a plugin in your code just yet. Simply go through this section to get an idea of how plugins work. There are more articles on concrete plugins in the docs that will be easy to follow if you understand the concept.
+> NOTE: Don't try to create a plugin in your code just yet. Simply go through this section to get an idea of how plugins work. There are more articles on concrete plugins in the docs that will be easy to follow if you understand the concept.
 
 Let's (virtually) create a simple plugin:
 
@@ -42,7 +42,7 @@ export default () => ({
 });
 ```
 
-> NOTE: we strongly recommend you create your plugins as factory functions. That way it is easy to add configuration that affects how plugin behaves. For API plugins, factory is a requirement.
+> NOTE: We strongly recommend you create your plugins as factory functions. That way it is easy to add configuration that affects how plugin behaves. For API plugins, factory is a requirement.
 
 Now let's register your new plugin. To register React app plugins you need to use a `@webiny/plugins` package, which is always installed with the default project setup:
 
@@ -62,12 +62,12 @@ plugins passed as separate arguments, you name it.
 
 If you have already created a Webiny project, you can find examples of plugin registration in the following files:
 
-- `apps/admin/src/App.js`
-- `apps/site/src/App.js`
+- `apps/admin/src/App.tsx`
+- `apps/site/src/App.tsx`
 
 ## Using your plugin
 
-The last thing to do is get your plugin(s) and use them the way they are meant to be used.
+You can use either `name` or `type` to retrieve your plugin.
 
 ### Using plugins by type
 
@@ -88,7 +88,7 @@ If no plugins were found, an empty array is returned, so you're safe to loop thr
 ```js
 import { getPlugin } from "@webiny/plugins";
 
-// Get all plugins by type
+// Get all plugins by name
 const firstPlugin = getPlugin("first-plugin");
 
 if (!firstPlugin) {
