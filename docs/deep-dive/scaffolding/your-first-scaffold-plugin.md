@@ -6,7 +6,7 @@ sidebar_label: Your first scaffold plugin
 
 This guide will help you create your own scaffolding plugins using our [Plugins system](/docs/deep-dive/plugins-crash-course).
 
-# Here's how to do it
+## Here's how to do it
 First of all, you have to update the `/webiny.root.js` file found in your project's root with your new plugin. Plugins referenced here are mainly resolved using [node module resolution](https://nodejs.org/api/modules.html). 
 
 In this example, we'll create a **local package** called **scaffoldFolder**.
@@ -72,7 +72,7 @@ module.exports = {
 };
 ```
 
-# Scaffold plugin structure
+## Scaffold plugin structure
 Other than the plugin's `name` and `type`, you'll need to provide a scaffold object that contains three fields:
 - **name** - This is the name of your scaffolding plugin as it will appear in the CLI.
 - **questions({ context })** -  A function that returns an array of [inquirer](https://www.npmjs.com/package/inquirer)-like questions.
@@ -83,7 +83,7 @@ Other than the plugin's `name` and `type`, you'll need to provide a scaffold obj
 The **context** object referenced above contains some helpful data/information like certain paths, the config file's data, registered plugins etc... . Feel free to output it and take a deeper look at it.
 
 
-# Example
+## Example
 Let's create our first scaffolding plugin. First of all I'll navigate to my project's root and created a new folder: `./scaffoldFolder`. Here I'll quickly initialise a new package using `npm init -y`.
 
 I've taken the liberty of writing a short plugin in `./scaffoldFolder/index.js`. The plugin will create a folder with whatever name you want to create.

@@ -10,7 +10,7 @@ This process is very similar to [creating scaffold plugins](/docs/deep-dive/scaf
 
 We use [yargs](https://www.npmjs.com/package/yargs) to create our CLI, so you should be somewhat familiar with it.
 
-# Here's how to do it
+## Here's how to do it
 
 We will create a simple CLI plugin called **greetMe** that takes your desired **name** as an argument and prints a nice greeting.
 
