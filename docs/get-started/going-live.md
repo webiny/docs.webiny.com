@@ -4,7 +4,7 @@ title: Going Live
 sidebar_label: Going Live
 ---
 
-This article demonstrates how you can deploy your project to `dev`, `prod` and any other environment you may have. In the end of this process you will have a public URL to show your website to the world.
+This article demonstrates how you can deploy your project to `dev`, `prod` and any other environment you may have. At the end of this process you will have a public URL to show your website to the world.
 
 ## 1. Create a `dev` environment config
 
@@ -21,12 +21,10 @@ Open the `api/.env.json` file. You should see a similar config file:
 }
 ```
 
-Open the `.env.json` file. You should see a similar config file:
+In the top-level of the project, look at the `.env.json` file. You should something similar:
 ```json
 {
     "default": {
-      "AWS_PROFILE": "default",
-      "AWS_REGION": "us-east-1",
       "MONGODB_SERVER": "mongodb+srv://username:password@my-db-123.mongodb.net/test?retryWrites=true",
       "MONGODB_NAME": "webiny-72858e17"
     }
@@ -40,8 +38,6 @@ However, if you want to use a different database, for example, you can create a 
 ```json
 {
   "default": {
-    "AWS_PROFILE": "default",
-    "AWS_REGION": "us-east-1",
     "MONGODB_SERVER": "mongodb+srv://username:password@my-db-123.mongodb.net/test?retryWrites=true",
     "MONGODB_NAME": "webiny-72858e17"
   },
@@ -73,7 +69,7 @@ webiny deploy apps --env=dev
 
 If you also want to deploy a `prod` environment, repeat the procedure using the `prod` value.
 
-If you need more environments, you can easily add those following the same procedure, but you will need to also add the appropriate build scripts to your apps, in the following files:
+This can be extended if you need more environments, you can easily add them in the same procedure shown above, but you will need to also add the appropriate build scripts to your apps, in the following files:
 
 ```
 apps/admin/package.json
