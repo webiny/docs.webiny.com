@@ -27,14 +27,14 @@ module.exports = {
                 type: "category",
                 label: "Scaffolding",
                 items: [
-                    "deep-dive/scaffolding/your-first-scaffold-plugin",
+                    "deep-dive/scaffolding/creating-a-scaffold-plugin",
                 ]
             },
             {
                 type: "category",
                 label: "CLI",
                 items: [
-                    "deep-dive/cli/your-first-cli-plugin",
+                    "deep-dive/cli/creating-a-cli-plugin",
                 ]
             },
         ],

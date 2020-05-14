@@ -1,16 +1,16 @@
 ---
-id: your-first-cli-plugin
-title: Your first CLI plugin
-sidebar_label: Your first CLI plugin
+id: creating-a-cli-plugin
+title: Creating a CLI plugin
+sidebar_label: Creating a CLI plugin
 ---
 
 This guide will help you create your own CLI plugins using our [Plugins system](/docs/deep-dive/plugins-crash-course).
 
-This process is very similar to [creating scaffold plugins](/docs/deep-dive/scaffolding/your-first-scaffold-plugin).
+This process is very similar to [creating scaffold plugins](/docs/deep-dive/scaffolding/creating-a-scaffold-plugin).
 
 We use [yargs](https://www.npmjs.com/package/yargs) to create our CLI, so you should be somewhat familiar with it.
 
-## Here's how to do it
+## Where to start
 
 We will create a simple CLI plugin called **greetMe** that takes your desired **name** as an argument and prints a nice greeting.
 
@@ -51,4 +51,4 @@ $ webiny greetMe Andrei
 Nice to meet you, Andrei!
 ```
 
-This is just a basic example of setting up a CLI plugin, but you can of course write much more complex plugins, it's up to you.
+And now you have created your first CLI plugin.
