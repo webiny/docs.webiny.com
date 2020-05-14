@@ -1,6 +1,19 @@
 module.exports = {
     docs: {
-        Webiny: ["webiny/introduction"],
+        "Webiny": [
+            "webiny/introduction",
+            {
+                type: "category",
+                label: "FAQ",
+                items: ["webiny/faq/how-is-webiny-serverless", "webiny/faq/why-not-dynamodb"]
+            },
+            {
+                type: "link",
+                label: "How To Contribute",
+                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
+            }
+        ],
+        "Guides": ["guides/mongodb-atlas"],
         "Get Started": [
             "get-started/quick-start",
             "get-started/going-live",
@@ -132,44 +145,43 @@ module.exports = {
                     //"webiny-apps/page-builder/introduction",
                     "webiny-apps/page-builder/getting-started",
                     "webiny-apps/page-builder/revisions-and-publishing",
-
-                    {
-                        type: "category",
-                        label: "Theme Development",
-                        items: [
-                            "webiny-apps/page-builder/theme-development/introduction",
-                            "webiny-apps/page-builder/theme-development/basic-concepts",
-                            {
-                                type: "category",
-                                label: "Theme configuration",
-                                items: [
-                                    "webiny-apps/page-builder/theme-development/theme-configuration",
-                                    "webiny-apps/page-builder/theme-development/layouts",
-                                    "webiny-apps/page-builder/theme-development/colors",
-                                    "webiny-apps/page-builder/theme-development/elements",
-                                    "webiny-apps/page-builder/theme-development/typography"
-                                ]
-                            },
-                            "webiny-apps/page-builder/theme-development/stylesheets",
-                            {
-                                type: "category",
-                                label: "Advanced Topics",
-                                items: [
-                                    "webiny-apps/page-builder/theme-development/graphql",
-                                    "webiny-apps/page-builder/theme-development/menus",
-                                    "webiny-apps/page-builder/theme-development/site-settings",
-                                    "webiny-apps/page-builder/theme-development/style-inheritance"
-                                ]
-                            }
-                        ]
-                    },
                     {
                         type: "category",
                         label: "Development",
                         items: [
-                            "webiny-apps/page-builder/development/rendering-pages"
+                            "webiny-apps/page-builder/development/rendering-pages",
                             //"webiny-apps/form-builder/creating-new-form-fields",
-                            //"webiny-apps/form-builder/custom-form-triggers"
+                            //"webiny-apps/form-builder/custom-form-triggers",
+                            {
+                                type: "category",
+                                label: "Themes",
+                                items: [
+                                    "webiny-apps/page-builder/development/themes/introduction",
+                                    "webiny-apps/page-builder/development/themes/basic-concepts",
+                                    {
+                                        type: "category",
+                                        label: "Theme configuration",
+                                        items: [
+                                            "webiny-apps/page-builder/development/themes/theme-configuration",
+                                            "webiny-apps/page-builder/development/themes/layouts",
+                                            "webiny-apps/page-builder/development/themes/colors",
+                                            "webiny-apps/page-builder/development/themes/elements",
+                                            "webiny-apps/page-builder/development/themes/typography"
+                                        ]
+                                    },
+                                    "webiny-apps/page-builder/development/themes/stylesheets",
+                                    {
+                                        type: "category",
+                                        label: "Advanced Topics",
+                                        items: [
+                                            "webiny-apps/page-builder/development/themes/graphql",
+                                            "webiny-apps/page-builder/development/themes/menus",
+                                            "webiny-apps/page-builder/development/themes/site-settings",
+                                            "webiny-apps/page-builder/development/themes/style-inheritance"
+                                        ]
+                                    }
+                                ]
+                            },
                         ]
                     }
                 ]
@@ -222,23 +234,6 @@ module.exports = {
                         ]
                     }
                 ]
-            }
-        ],
-        Other: [
-            {
-                type: "category",
-                label: "FAQ",
-                items: ["other/faq/how-is-webiny-serverless", "other/faq/why-not-dynamodb"]
-            },
-            {
-                type: "category",
-                label: "Guides",
-                items: ["other/guides/mongodb-atlas"]
-            },
-            {
-                type: "link",
-                label: "How To Contribute",
-                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
             }
         ]
     }

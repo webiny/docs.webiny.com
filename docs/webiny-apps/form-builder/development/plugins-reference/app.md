@@ -4,15 +4,6 @@ title: App Plugins Reference
 sidebar_label: App
 ---
 
-# Summary
-
-[`form-editor-field-group`](/docs/webiny-apps/form-builder/development/plugins-reference/app#form-editor-field-group)
-
-[`form-editor-field-type`](/docs/webiny-apps/form-builder/development/plugins-reference/app#form-editor-field-type)
-
-
----
-
 ### [`form-editor-field-group`](/docs/webiny-apps/form-builder/development/plugins-reference/app#form-editor-field-group)
 
 #### Summary
