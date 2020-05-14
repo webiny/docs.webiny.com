@@ -8,7 +8,7 @@ sidebar_label: Plugins Reference
 
 [`graphql-schema`](/docs/api-development/plugins-reference#graphql-schema)
 
-[`graphql-context`](/docs/api-development/plugins-reference#graphql-context)
+[`context`](/docs/api-development/plugins-reference#context)
 
 ---
 
@@ -97,7 +97,7 @@ export default [
 ];
 ```
 
-### [`graphql-context`](/docs/api-development/plugins-reference#graphql-context)
+### [`context`](/docs/api-development/plugins-reference#context)
 
 #### Summary
 
@@ -106,10 +106,10 @@ A plugin which enables you to append additional pieces of information into the G
 #### Type
 
 ```ts
-type GraphQLContextPlugin = Plugin & {
-    preApply?: (context: GraphQLContext) => void | Promise<void>;
-    apply?: (context: GraphQLContext) => void | Promise<void>;
-    postApply?: (context: GraphQLContext) => void | Promise<void>;
+type ContextPlugin = Plugin & {
+    preApply?: (context: Context) => void | Promise<void>;
+    apply?: (context: Context) => void | Promise<void>;
+    postApply?: (context: Context) => void | Promise<void>;
 };
 ```
 
@@ -117,12 +117,12 @@ type GraphQLContextPlugin = Plugin & {
 
 ```ts
 {
-        type: "graphql-context",
-        name: "graphql-context-add-some-meta-data",
+        type: "context",
+        name: "context-add-some-meta-data",
         async apply(context) {
             context.someMetaData = await getSomeMetaData();
         }
 }
 ```
 
-Note that the `graphql-context` plugin's `preApply`, `apply`, and `postApply` methods are executed on every HTTP request, before the actual GraphQL resolvers get triggered. 
+Note that the `context` plugin's `preApply`, `apply`, and `postApply` methods are executed on every HTTP request, before the actual GraphQL resolvers get triggered.
