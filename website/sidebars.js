@@ -235,23 +235,6 @@ module.exports = {
                     }
                 ]
             }
-        ],
-        Other: [
-            {
-                type: "category",
-                label: "FAQ",
-                items: ["other/faq/how-is-webiny-serverless", "other/faq/why-not-dynamodb"]
-            },
-            {
-                type: "category",
-                label: "Guides",
-                items: ["other/guides/mongodb-atlas"]
-            },
-            {
-                type: "link",
-                label: "How To Contribute",
-                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
-            }
         ]
     }
 };
