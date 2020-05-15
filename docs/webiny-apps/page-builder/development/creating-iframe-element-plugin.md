@@ -22,14 +22,18 @@ Here's what the result will look like:
 
 ### Prerequisites
 
-This tutorial assumes you have already created a new Webiny project to work on. If not, we recommend going to our [quick start](/docs/get-started/quick-start.md) guide which will show you how to do it.
+This tutorial assumes you have already created a new Webiny project to work on. We recommend going to our [quick start](/docs/get-started/quick-start.md) guide which will show you how to do it.
 
 ### Creating the Plugins
+
+
+All of the available page elements can be accessed via the elements menu, which can be opened by clicking on the "plus" icon, located on the left side of the editor:
+
 
 ![Editor Elements](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/editor-elements.png)
 
 
-This list of page elements can be expanded and custom page elements can be created via plugins. In order to create a new page element, we need to register two plugins, one that defines how it's rendered in the actual page builder, and the other that defines how it's rendered on the website.
+As metioned, this list of page elements can be expanded and custom page elements can be created via plugins. In order to create a new page element, we need to register two plugins, one that defines how it's rendered in the editor and all of the available settings and options, and the other one that defines how the page element is rendered on the actual page.
 
 ### Editor Plugin
 
@@ -54,8 +58,8 @@ const PreviewBox = styled("div")({
         width: 50
     }
 });
-export default () => {
 
+export default () => {
     return {
             name: "pb-editor-page-element-iframe",
             type: "pb-editor-page-element",
@@ -73,8 +77,8 @@ export default () => {
             },
             settings: ["pb-editor-page-element-settings-delete"],
             onCreate: "open-settings",
-            // Create function creates an element data structure.
             create(options) {
+            // Create function it's here to create the initial data for the page element, which then is utilized in theIFrameEmbed, in settings dialog, etc.
                 return {
                     type: "iframe",
                     elements: [],
@@ -109,15 +113,15 @@ export default () => {
     // Settings dialog comes here
 ```
 
-The key properties of the plugin are the `create`, `data`, `settings`, and `render`. They contribute to the state of our plugin. On changing the state, it’s up to the render function to render the component based on the state changes.
+Since we are adding a new element in the editor, the type of plugin will be `pb-editor-page-element`. This plugin consists of different properties, one of them is the `toolbar` property that helps us put our element into the "Media" group, using `pb-editor-element-group-media`, as seen in the image below.
 
-Since we are adding a new element in the editor, the type of plugin will be `pb-editor-page-element`. This plugin consists of different properties, one of them is the `toolbar` property that helps us put our element on the media group, using `pb-editor-element-group-media`, as seen in the image below.
+The key properties of the plugin are the `create`, `data`, `settings`, and `render`. They contribute to the state of our plugin. On changing the state, it’s up to the render function to render the component based on the state changes.
 
 ![Editor Iframe Element](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/editor-iframe-plugin.png)
 
 ### Render Plugin
 
-The next plugin type we will use is [`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings)
+The next plugin type we will use is the [`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings)
 , we will use this plugin to show a settings dialog so we can provide an iframe URL.
 
 ```jsx
@@ -129,31 +133,33 @@ import {
 } from "@webiny/app-page-builder/types";
 import { validation } from "@webiny/validation";
 
-{
-    name: "pb-editor-page-element-advanced-settings-iframe",
-    type: "pb-editor-page-element-advanced-settings",
-    elementType: "iframe",
-    render({ Bind }) {
-        return (
-            <Tab icon={<IFrameIcon />} label="IFrame">
-                <Grid>
-                    <Cell span={12}>
-                        <Bind
-                            // Binding the iframe.url in the 'data' property
-                            name={"iframe.url"}
-                            validators={validation.create("required,url")}
-                        >
-                            <Input
-                                label={"IFrame URL"}
-                                description={"Enter an iFrame URL"}
-                            />
-                        </Bind>
-                    </Cell>
-                </Grid>
-            </Tab>
-        );
-    }
-} as PbEditorPageElementAdvancedSettingsPlugin
+
+export default () => {
+    return {
+            name: "pb-editor-page-element-advanced-settings-iframe",
+            type: "pb-editor-page-element-advanced-settings",
+            elementType: "iframe",
+            render({ Bind }) {
+                return (
+                    <Tab icon={<IFrameIcon />} label="IFrame">
+                        <Grid>
+                            <Cell span={12}>
+                                <Bind
+                                    // Binding the iframe.url in the 'data' property
+                                    name={"iframe.url"}
+                                    validators={validation.create("required,url")}
+                                >
+                                    <Input
+                                        label={"IFrame URL"}
+                                        description={"Enter an iFrame URL"}
+                                    />
+                                </Bind>
+                            </Cell>
+                        </Grid>
+                    </Tab>
+                );
+            }
+        } as PbEditorPageElementAdvancedSettingsPlugin
 
 ```
 
