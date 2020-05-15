@@ -8,11 +8,11 @@ There are two files you can configure right now: `webiny.root.js` and `webiny.co
 
 ## webiny.root.js
 
-This file appears in your project's root and it's unique. These are the configurable fields:
+This file appears in your project's root and it is unique. These are the configurable fields:
 
-- **projectName** - your project's name; it's passed into the **Context** the plugins receive and it's also used when delpoying to AWS.
+- **projectName** - your project's name; it is passed into the **Context** the plugins receive and it is also used when delpoying to AWS.
 - **cli**
-    -  **plugins** - an array of CLI & Scaffold plugins that are usable in our CLI
+    -  **plugins** - an array of CLI and Scaffold plugins that are usable in our CLI
 
 ## webiny.config.js
 
