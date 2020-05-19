@@ -4,7 +4,7 @@ title: Going Live
 sidebar_label: Going Live
 ---
 
-This article demonstrates how you can deploy your project to `dev`, `prod` and any other environment you may have. At the end of this process you will have a public URL to show your website to the world.
+This article demonstrates how you can deploy your project to `dev`, `prod` and any other environment you may have. At the end of this process, you will have a public URL to show your website to the world.
 
 ## 1. Create a `dev` environment config
 
@@ -21,7 +21,7 @@ Open the `api/.env.json` file. You should see a similar config file:
 }
 ```
 
-In the top-level of the project, look at the `.env.json` file. You should something similar:
+In the project root, look at the `.env.json` file. You should something similar:
 ```json
 {
     "default": {
@@ -31,7 +31,7 @@ In the top-level of the project, look at the `.env.json` file. You should someth
 }
 ```
 
-If you don't want to change anything for your `dev` environment, leave them as is.
+If you don't want to change anything for your `dev` environment, you can use the default parameters.
 
 However, if you want to use a different database, for example, you can create a new config block and override the `default` values:
 
@@ -65,19 +65,32 @@ From the root of your project, run the following command:
 webiny deploy apps --env=dev
 ```
 
-## Other environments
+## Deploying to production
 
-If you also want to deploy a `prod` environment, repeat the procedure using the `prod` value.
+If you also want to deploy a `prod` environment, it's as simple as running:
 
-This can be extended if you need more environments, you can easily add them in the same procedure shown above, but you will need to also add the appropriate build scripts to your apps, in the following files:
+```
+webiny deploy apps --env=prod
+```
+
+## Additional environments
+
+Apart from seen `dev` and `production` environments, Webiny also supports adding your own. In order to do so, the same steps described above are to be taken, with one additional step and that is inserting a build script for existing React apps, in their respective `package.json` files:
 
 ```
 apps/admin/package.json
 apps/site/package.json
+apps/another-app/package.json
 ```
 
-An example script for `staging` environment could look like this:
+An example script for a `staging` environment could look like the following:
 
 ```
 "build:staging": "env-cmd -r .env.json -e default,staging webiny run build"
+```
+
+Once this is inserted, the following command should successfully execute a `staging` environment deployment:
+
+```
+webiny deploy apps --env=staging
 ```
