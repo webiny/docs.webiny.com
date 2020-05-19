@@ -1,6 +1,19 @@
 module.exports = {
     docs: {
-        Webiny: ["webiny/introduction"],
+        "Webiny": [
+            "webiny/introduction",
+            {
+                type: "category",
+                label: "FAQ",
+                items: ["webiny/faq/how-is-webiny-serverless", "webiny/faq/why-not-dynamodb"]
+            },
+            {
+                type: "link",
+                label: "How To Contribute",
+                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
+            }
+        ],
+        "Guides": ["guides/mongodb-atlas"],
         "Get Started": [
             "get-started/quick-start",
             "get-started/going-live",
@@ -22,7 +35,21 @@ module.exports = {
             },
             //"deep-dive/database",
             // "deep-dive/deployment",
-            "deep-dive/plugins-crash-course"
+            "deep-dive/plugins-crash-course",
+            {
+                type: "category",
+                label: "Scaffolding",
+                items: [
+                    "deep-dive/scaffolding/creating-a-scaffold-plugin",
+                ]
+            },
+            {
+                type: "category",
+                label: "CLI",
+                items: [
+                    "deep-dive/cli/creating-a-cli-plugin",
+                ]
+            },
         ],
         "API Development": [
             "api-development/graphql",
@@ -221,23 +248,6 @@ module.exports = {
                         ]
                     }
                 ]
-            }
-        ],
-        Other: [
-            {
-                type: "category",
-                label: "FAQ",
-                items: ["other/faq/how-is-webiny-serverless", "other/faq/why-not-dynamodb"]
-            },
-            {
-                type: "category",
-                label: "Guides",
-                items: ["other/guides/mongodb-atlas"]
-            },
-            {
-                type: "link",
-                label: "How To Contribute",
-                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
             }
         ]
     }
