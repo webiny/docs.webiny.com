@@ -60,7 +60,8 @@ From the root of your project, run the following command:
 webiny deploy apps --env=dev
 ```
 
->Note: if you rename the `apps` folder to something else like `src` you can simply use `webiny deploy src --env=dev`
+>Note: In the example above, `apps` references the folder containing deployment configuration, which is located in `apps/resources.js`. As a result, you can create additional folders like `src`, `api-public`, etc... as long as they have a `resources.js` file inside.
+
 ## Other environments
 
 If you also want to deploy a `prod` environment, repeat the procedure using the `prod` value.
