@@ -10,6 +10,7 @@ sidebar_label: App
 
 [`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings)
 
+[`pb-render-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-render-page-element)
 
 
 ---
@@ -18,7 +19,7 @@ sidebar_label: App
 
 #### Summary
 
-Enables adding custom element plugin in the Editor
+Enables adding new page elements to the page editor.
 
 #### Type
 
@@ -127,7 +128,8 @@ type PbEditorPageElementPlugin = Plugin & {
 
 #### Summary
 
-Enables adding custom settings dialog fields into the page builder.
+Enables defining custom settings dialogs for page elements.
+The `PbEditorPageElementPlugin` will consume the data that is bound up using the Bind component below.
 
 #### Type
 
@@ -183,3 +185,48 @@ type BindComponentProps = {
 ```
 
 ![Editor Iframe Plugin](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/settings-dialog.png)
+
+
+### [`pb-render-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-render-page-element)
+
+#### Summary
+
+Enables rendering new page elements.
+
+#### Type
+
+```ts
+export type PbTheme = {
+    colors: { [key: string]: string };
+    elements: { [key: string]: any };
+    typography: {
+        [key: string]: {
+            label: string;
+            component: string | React.ComponentType<any>;
+            className: string;
+        };
+    };
+};
+
+export type PbRenderElementPlugin = Plugin & {
+    type: "pb-render-page-element";
+    // Name of the pb-element plugin this render plugin is handling.
+    elementType: string;
+    render: (params: { theme: PbTheme; element: PbElement }) => React.ReactNode;
+};
+```
+
+#### Example
+
+```ts
+export default [
+    {
+        name: "pb-render-page-element-iframe",
+        type: "pb-render-page-element",
+        elementType: "iframe",
+        render({element}) {
+            return <Iframe data={element.data} />;
+        }
+    } as PbRenderElementPlugin,
+];
+```
