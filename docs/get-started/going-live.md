@@ -73,6 +73,8 @@ If you also want to deploy a `prod` environment, it's as simple as running:
 webiny deploy apps --env=prod
 ```
 
+>Note: In the example above, `apps` references the folder containing deployment configuration, which is located in `apps/resources.js`. As a result, you can create additional folders like `src`, `api-public`, etc... as long as they have a `resources.js` file inside.
+
 ## Additional environments
 
 Apart from seen `dev` and `production` environments, Webiny also supports adding your own. In order to do so, the same steps described above are to be taken, with one additional step and that is inserting a build script for existing React apps, in their respective `package.json` files:
