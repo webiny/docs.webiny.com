@@ -38,7 +38,7 @@ The following things are mandatory for both local development and production dep
 npx create-webiny-project myProject --template full
 ```
 
-> NOTE: The templateName can either be `full` (This will pull a package named `cwp-template-full` from npm template) or it can be a path to a local template ex. `../dev/template-to-use`
+> NOTE: The `--template` value defaults to `full` if you don't include it (This will pull a package named `cwp-template-full` from npm template) or it can be a path to a local template ex. `../dev/template-to-use`.
 
 ## 2. Setup database connection
 
