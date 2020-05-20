@@ -28,7 +28,7 @@ The following things are mandatory for both local development and production dep
 
 ✅ **MongoDB database** in the cloud
 - we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already
-- you can follow [this guide](/docs/other/guides/mongodb-atlas) to create one
+- you can follow [this guide](/docs/guides/mongodb-atlas) to create one
 
 > NOTE: if you're unsure your AWS credentials are configured correctly, you can verify them by running the following command using [AWS CLI](https://aws.amazon.com/cli/): `aws sts get-caller-identity`. If you don't see the user info, take a look at this tutorial to [create an IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw).
 
@@ -44,7 +44,7 @@ npx create-webiny-project myProject --template full
 
 Edit `.env.json` file in the root of the project and set the `MONGODB_SERVER` value. The values in this file are unique for your project, you do NOT need to change any other values.
 
-> In case you need any help creating a MongoDB cluster on MongoDB Atlas, please follow [this guide](/docs/other/guides/mongodb-atlas).
+> In case you need any help creating a MongoDB cluster on MongoDB Atlas, please follow [this guide](/docs/guides/mongodb-atlas).
 
 > IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
 
@@ -102,4 +102,4 @@ yarn start
 
 ---
 
-This is it! You have deployed a `local` API environment, and can begin developing your React apps on your local machine. For deployments to production and other environments, please see the next page.
+This is it! You have deployed a `local` API environment, and can begin developing your React apps on your local machine. For deployments to production and other environments, please see the [next](/docs/get-started/going-live) page.
