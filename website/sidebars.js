@@ -36,7 +36,21 @@ module.exports = {
             },
             //"deep-dive/database",
             // "deep-dive/deployment",
-            "deep-dive/plugins-crash-course"
+            "deep-dive/plugins-crash-course",
+            {
+                type: "category",
+                label: "Scaffolding",
+                items: [
+                    "deep-dive/scaffolding/creating-a-scaffold-plugin",
+                ]
+            },
+            {
+                type: "category",
+                label: "CLI",
+                items: [
+                    "deep-dive/cli/creating-a-cli-plugin",
+                ]
+            },
         ],
         "API Development": [
             "api-development/graphql",
