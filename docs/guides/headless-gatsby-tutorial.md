@@ -16,6 +16,8 @@ Create a new content model named `BlogPost` inside the default `Ungrouped` conte
 
 Save your new fields before leaving the page and you will be able to create, publish and remove `BlogPost` entries.
 
+![Blog post model](/img/guides/headless-gatsby-tutorial/blog-post-model.png)
+
 ## Managing Blog Posts
 
 Navigate to **Headless CMS > Ungrouped > BlogPost** and create a few Blog Posts. Remember to Publish your articles so that you can fetch them later using the /read API.
@@ -40,3 +42,5 @@ Add the plugin in **gatsby-config.js** and configure its **options** like below.
 We use the `read` API in order to pull Blog Post data and the `production` alias which points to the `production` environment.
 
 Congratulations! Your blog posts are accessible within Gatsby and you can now display them within your app.
+
+![Gatsby blog](/img/guides/headless-gatsby-tutorial/gatsby-blog.png)
