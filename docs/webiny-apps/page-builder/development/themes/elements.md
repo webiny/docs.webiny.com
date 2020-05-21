@@ -37,5 +37,5 @@ In case of the `button` element, the `types` attribute contains available button
 Each type references a specific class name that will be added to the button component when that type is selected.
 
 > **Note:** By default Webiny uses [BEM naming](http://getbem.com/introduction/).
-> The default button class is `webiny-cms-element-button`, so when the user selects the "primary" button type,
-> it will add a modifier of "primary" to the base class, meaning the resulting class name will be "webiny-cms-element-button--primary".
+> The default button class is `webiny-pb-element-button`, so when the user selects the "primary" button type,
+> it will add a modifier of "primary" to the base class, meaning the resulting class name will be "webiny-pb-element-button--primary".
