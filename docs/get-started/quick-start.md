@@ -63,43 +63,18 @@ Your `.env.json` file should look something like this after updating your `MONGO
 
 ```
 
-## 3. Deploy API
+## 3. Template-specific setup
 
-We need to deploy a `local` API environment to use for local development:
+Currently, Webiny supports both `cms` as well as a `full` template, and each have their own setup instructions.
 
-```
-webiny deploy api --env=local
-```
+### Why use cms?
 
-In the command above, `api` references the folder containing deployment configuration, which is located in `api/resources.js`. As a result, you can create additional folders like `api-private`, `api-public`, etc... as long as they have a `resources.js` file inside.
+This template will not include features like `Page Builder` and `Form Builder`, and will only include what's necessary to build a headless application.
 
-> NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
-> If you use multiple AWS profiles, edit `.env.json` in your project root, to point to the correct profile via `AWS_PROFILE`. Webiny does not use the `AWS_PROFILE` env variable.
+Click [here](/docs/get-started/template-setup/cwp-template-cms) for `cms` instructions.
 
-## 4. Start `admin` app
+### Why use full?
 
-Admin app is the administration system for your project; it contains everything you need to manage your content, users, settings, etc... :
+This template will include the full suite of Webiny applications like `Page Builder` and `Form Builder`, and a `site` for you to interact with what was created by your `admin` user.
 
-```
-cd apps/admin
-yarn start
-```
-
-Once started, `admin` app will run an installation wizard to setup the system.
-
-> IMPORTANT: Do NOT go onto the next step until you complete the installation wizard.
-
-## 5. Start `site` app
-
-Site app is an actual website you're creating. It is a single page app, but in production it renders via server-side rendering.
-
-```
-cd apps/site
-yarn start
-```
-
-> NOTE: You can also run `webiny deploy apps --env=local` to run every application within the `apps` folder.
-
----
-
-This is it! You have deployed a `local` API environment, and can begin developing your React apps on your local machine. For deployments to production and other environments, please see the [next](/docs/get-started/going-live) page.
+Click [here](/docs/get-started/template-setup/cwp-template-full) for `full` instructions.
