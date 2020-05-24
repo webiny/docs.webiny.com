@@ -34,7 +34,9 @@ Save your new fields before leaving the page and you will be able to create, pub
 
 You can read your data from your API by navigating to its `/cms/read/production` path, eg: https://dfgk2kz3e3qhn.cloudfront.net/cms/read/production - your URL will of course be different.
 
+<!--
 Note that you will need a Personal Access Token in order to authenticate and use your API. We will create one soon.
+-->
 
 ## Managing Blog Posts
 
