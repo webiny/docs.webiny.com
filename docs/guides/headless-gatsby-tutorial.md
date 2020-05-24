@@ -26,11 +26,15 @@ Create a new content model named `BlogPost` inside the default `Ungrouped` conte
 
 Model groups are a way how you organize the content models inside the main menu, allowing you to build logical sections for your content editors. Every model must belong to a group. You can create as many groups as you need by navigating to **Headless CMS > Content Models > Groups**.  
 
-Next, add two **Text** fields by dragging and dropping them. Label them `title` and `body`, which will match every blog post's title and content. Optionally, it is possible make both of the fields **required** in the `Validators` tab.
+Next, add two fields: `title` as a `Text` and `body` as a `Long Text`. They will match every blog post's title and content. Optionally, it is possible make both of the fields **required** in the `Validators` tab.
 
 Save your new fields before leaving the page and you will be able to create, publish and remove `BlogPost` entries. This is what your model should look like in the `admin` app:
 
 ![Blog post model](/img/guides/headless-gatsby-tutorial/blog-post-model.png)
+
+You can read your data from your API by navigating to its `/cms/read/production` path, eg: https://dfgk2kz3e3qhn.cloudfront.net/cms/read/production - your URL will of course be different.
+
+Note that you will need a Personal Access Token in order to authenticate and use your API. We will create one soon.
 
 ## Managing Blog Posts
 
@@ -46,9 +50,15 @@ This will generate a new folder in your working directory. Make sure the Gatsby 
 
 ## Pulling GraphQL data (Blog Posts) into Gatsby
 
-Install and use [gatsby-source-graphql](https://www.gatsbyjs.org/packages/gatsby-source-graphql/) to fetch the Blog Posts into your Gatsby app.
+<!--
+You need to create a Personal Access Token in order to access your API. Go to your account in **Webiny's Admin app > Personal Access Tokens > Create Token**. Save the token.
+-->
 
-Add the plugin in the `plugins` array found in **gatsby-config.js** and configure its **options** like below. Most importantly, replace `YOUR_API_URL` with your API's url.
+Navigate to your Gatsby project's directory `myBlog` and install [gatsby-source-graphql](https://www.gatsbyjs.org/packages/gatsby-source-graphql/) plugin by running `npm i gatsby-source-graphql`. This will allow us to  fetch the Blog Posts into your Gatsby app.
+
+Add the plugin in the `plugins` array found in **gatsby-config.js** (located in the root of your Gatsby project) and configure its **options** like below. Most importantly, replace `YOUR_API_URL` with your API's url.
+ 
+<!--and `<YOUR_TOKEN>` with the token you created earlier (eg: `d3b45980479...`).-->
 
 ```
 {
@@ -56,16 +66,20 @@ Add the plugin in the `plugins` array found in **gatsby-config.js** and configur
   options: {
     typeName: "someTypeName",
     fieldName: "webinyHeadlessCms",
-    url: "<YOUR_API_URL>/cms/read/production",
+    url: "<YOUR_API_URL>/cms/read/production"
   },
 }
 ```
 
-We are using the `read` API in order to pull Blog Post data and the `production` alias which points to the `production` environment, because that's where we published our content earlier.
+<!--headers: {
+    authorization: "<YOUR_TOKEN>"
+}-->
+
+We are using the `read` API in order to pull Blog Post data and the `production` alias which points to the `production` environment, because that is where we published our content earlier.
 
 ## Displaying blog posts
 
-Go to `myBlog/src/pages/index.js` and export a GraphQL query that pulls the Blog Posts:
+Go to `src/pages/index.js` and export a GraphQL query that pulls the Blog Posts:
 
 ```js
 export const query = graphql`{
@@ -86,11 +100,24 @@ This will supply `data` in our `IndexPage` component, where we have our Posts. T
 
 ```
 const IndexPage = ({data}) => {
-    const blogPosts = data.webinyHeadlessCms.listBlogPosts.data
+  const blogPosts = data.webinyHeadlessCms.listBlogPosts.data
 
-    return /* ... use [blogPosts] to render the data here ... */
+  const BlogPosts = blogPosts.map(post => (
+    <div key={`post-${post.id}`}>
+      <h1>{post.title}</h1>
+      <p style={{whiteSpace: "pre-wrap"}}>{post.body}</p>
+    </div>
+  ))
+
+  return (
+    <Layout>
+      {BlogPosts}
+    </Layout>
+  )
 }
 ```
+
+Run `gatsby develop` and you will be able to see your blog posts in Gatsby's development mode.
 
 Here's what `index.js` looks like in [our demo](https://github.com/webiny/webiny-examples/blob/master/headlesscms-gatsby/src/pages/index.js).
 
