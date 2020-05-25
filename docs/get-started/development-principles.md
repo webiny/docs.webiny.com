@@ -88,7 +88,7 @@ We are aware that this is a huge change. But we're also sure it's for the better
 
 Our CLI supports selective component deploy, so you can only deploy the component you're working on. Depending on how big your service is, a deploy will take from `~7-20` seconds. For example, a service like `i18n` or `security` takes `7s` to deploy. If you're working on a Page Builder API plugin, that will take you around `20s` to deploy, since that service is much bigger.  
 
-We're also working on a watch mechanism, so your components deploy as soon as there is a change in the components being watched.
+Our watch mechanism re-deploys components as soon as there is a change, and will notify you if there is another deploy in progress.
 
 ### GraphQL schema tests
 
@@ -96,7 +96,7 @@ To speed up GraphQL test setup we've created a helper to bootstrap your API for 
 
 ```js
 import { graphql } from "graphql";
-import { setupSchema } from "@webiny/api/testing";
+import { setupSchema } from "@webiny/graphql/testing";
 import yourPlugins from "api-plugin-my-app";
 
 describe("Your plugins", () => {
@@ -144,7 +144,7 @@ describe("Your plugins", () => {
 
 Now not only you don't need to deploy your services all the time, you're much more confident your schemas are working as expected 🎉.
  
-You can find a complete example in the [@webiny/api-files package](https://github.com/webiny/webiny-js/blob/master/packages/api-files/__tests__/graphql.test.js).
+You can find a complete example in the [@webiny/api-files package](https://github.com/webiny/webiny-js/blob/release-4.x/packages/api-files/__tests__/graphql.test.js).
 
 ### Avoid chaotic development
 
