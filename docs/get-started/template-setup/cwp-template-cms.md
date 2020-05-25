@@ -4,7 +4,7 @@ title: CMS template
 sidebar_label: CMS template
 ---
 
-This guide includes what you need to setup a project using `cwp-template-cms`. This guide assumes you already did the first two steps [here](/docs/get-started/quick-start).
+This guide includes what you need to setup a project using the `cms` template. This guide assumes you already did the first two steps [here](/docs/get-started/quick-start).
 
 ## 1. Deploy API
 
@@ -21,7 +21,7 @@ In the command above, `api` references the folder containing deployment configur
 
 ## 2. Start `admin` app
 
-Admin app is the administration system for your project; it contains everything you need to manage your content, users, settings, etc... :
+Admin app is the administration system for your project; it contains everything you need to manage your content, users, settings, etc.:
 
 ```
 cd apps/admin
@@ -29,5 +29,3 @@ yarn start
 ```
 
 Once started, `admin` app will run an installation wizard to setup the system.
-
-> IMPORTANT: Do NOT go onto the next step until you complete the installation wizard.

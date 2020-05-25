@@ -4,7 +4,7 @@ title: Full Template
 sidebar_label: Full Template
 ---
 
-This guide includes what you need to setup a project using `cwp-template-full`. This guide assumes you already did the first two steps [here](/docs/get-started/quick-start).
+This guide includes what you need to setup a project using the `full` template. This guide assumes you already did the first two steps [here](/docs/get-started/quick-start).
 
 ## 1. Deploy API
 
