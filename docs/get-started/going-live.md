@@ -22,14 +22,15 @@ Open the `api/.env.json` file. You should see a similar config file:
 ```
 
 In the project root, look at the `.env.json` file. You should something similar:
+
 ```json
 {
-    "default": {
+  "default": {
     "AWS_PROFILE": "default",
     "AWS_REGION": "us-east-1",
-      "MONGODB_SERVER": "mongodb+srv://username:password@my-db-123.mongodb.net/test?retryWrites=true",
-      "MONGODB_NAME": "webiny-72858e17"
-    }
+    "MONGODB_SERVER": "mongodb+srv://username:password@my-db-123.mongodb.net/test?retryWrites=true",
+    "MONGODB_NAME": "webiny-72858e17"
+  }
 }
 ```
 
@@ -58,7 +59,6 @@ From the root of your project, run the following command:
 yarn webiny deploy api --env=dev
 ```
 
-
 ## 3. Deploy apps using `dev` environment
 
 From the root of your project, run the following command:
@@ -75,7 +75,7 @@ If you also want to deploy a `prod` environment, it's as simple as running:
 yarn webiny deploy apps --env=prod
 ```
 
->Note: In the example above, `apps` references the folder containing deployment configuration, which is located in `apps/resources.js`. As a result, you can create additional folders like `src`, `api-public`, etc... as long as they have a `resources.js` file inside.
+> Note: In the example above, `apps` references the folder containing deployment configuration, which is located in `apps/resources.js`. As a result, you can create additional folders like `src`, `api-public`, etc... as long as they have a `resources.js` file inside.
 
 ## Additional environments
 
