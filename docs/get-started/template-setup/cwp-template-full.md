@@ -1,6 +1,6 @@
 ---
 id: cwp-template-full
-title: cwp-template-full
+title: Full Template
 sidebar_label: Full Template
 ---
 

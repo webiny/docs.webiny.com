@@ -1,6 +1,6 @@
 ---
 id: cwp-template-cms
-title: cwp-template-cms
+title: CMS template
 sidebar_label: CMS template
 ---
 
