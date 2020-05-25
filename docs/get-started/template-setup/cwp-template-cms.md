@@ -18,6 +18,7 @@ In the command above, `api` references the folder containing deployment configur
 
 > NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
 > If you use multiple AWS profiles, edit `.env.json` in your project root, to point to the correct profile via `AWS_PROFILE`.
+
 ## 2. Start `admin` app
 
 Admin app is the administration system for your project; it contains everything you need to manage your content, users, settings, etc... :
