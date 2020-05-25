@@ -7,21 +7,21 @@ sidebar_label: App
 # Summary
 
 
-[`header-left`](/docs/webiny-apps/admin/development/plugins-reference/app#header-left)
+[`admin-header-left`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-header-left)
 
-[`header-middle`](/docs/webiny-apps/admin/development/plugins-reference/app#header-middle)
+[`admin-header-middle`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-header-middle)
 
-[`header-right`](/docs/webiny-apps/admin/development/plugins-reference/app#header-right)
+[`admin-header-right`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-header-right)
 
-[`menu`](/docs/webiny-apps/admin/development/plugins-reference/app#menu)
+[`admin-menu`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-menu)
 
 [`route`](/docs/webiny-apps/admin/development/plugins-reference/app#route)
 
 ---
 
-<!-- --------------------------------- header-left plugin --------------------------------- -->
+<!-- --------------------------------- admin-header-left plugin --------------------------------- -->
 
-### [`header-left`](/docs/webiny-apps/admin/development/plugins-reference/app#header-left)
+### [`admin-header-left`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-header-left)
 
 #### Summary
 
@@ -32,8 +32,8 @@ Enables adding custom header elements to the left side of the top bar.
 #### Type
 
 ```ts
-type HeaderLeftPlugin = Plugin & {
-    type: "header-left";
+type AdminHeaderLeftPlugin = Plugin & {
+    type: "admin-header-left";
     render(params: RenderParams): React.ReactNode;
 };
 ```
@@ -42,18 +42,18 @@ type HeaderLeftPlugin = Plugin & {
 
 ```ts
 {
-    type: "header-left",
-    name: "header-logo",
+    type: "admin-header-left",
+    name: "admin-header-logo",
     render() {
         return <Logo />;
     }
 };
 ```
 
-<!-- --------------------------------- header-middle plugin --------------------------------- -->
+<!-- --------------------------------- admin-header-middle plugin --------------------------------- -->
 
 
-### [`header-middle`](/docs/webiny-apps/admin/development/plugins-reference/app#header-middle)
+### [`admin-header-middle`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-header-middle)
 
 #### Summary
 
@@ -64,8 +64,8 @@ Enables adding custom header elements to the middle of the top bar.
 #### Type
 
 ```ts
-type HeaderMiddlePlugin = Plugin & {
-    type: "header-middle";
+type AdminHeaderMiddlePlugin = Plugin & {
+    type: "admin-header-middle";
     render(params: RenderParams): React.ReactNode;
 };
 ```
@@ -74,18 +74,18 @@ type HeaderMiddlePlugin = Plugin & {
 
 ```ts
 {
-    type: "header-middle",
-    name: "global-search",
+    type: "admin-header-middle",
+    name: "admin-global-search",
     render() {
         return <SearchBar />;
     }
 };
 ```
 
-<!-- --------------------------------- header-right plugin --------------------------------- -->
+<!-- --------------------------------- admin-header-right plugin --------------------------------- -->
 
 
-### [`header-right`](/docs/webiny-apps/admin/development/plugins-reference/app#header-right)
+### [`admin-header-right`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-header-right)
 
 #### Summary
 
@@ -96,8 +96,8 @@ Enables adding custom header elements to the right side of the top bar.
 #### Type
 
 ```ts
-type HeaderRightPlugin = Plugin & {
-    type: "header-right";
+type AdminHeaderRightPlugin = Plugin & {
+    type: "admin-header-right";
     render(params: RenderParams): React.ReactNode;
 };
 ```
@@ -106,7 +106,7 @@ type HeaderRightPlugin = Plugin & {
 
 ```ts
 {
-    type: "header-right",
+    type: "admin-header-right",
     name: "header-user-menu",
     render() {
         return <UserMenu />;
@@ -114,9 +114,9 @@ type HeaderRightPlugin = Plugin & {
 };
 ```
 
-<!-- --------------------------------- menu plugin --------------------------------- -->
+<!-- --------------------------------- admin-menu plugin --------------------------------- -->
 
-### [`menu`](/docs/webiny-apps/admin/development/plugins-reference/app#menu)
+### [`admin-menu`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-menu)
 
 #### Summary
 
@@ -127,8 +127,8 @@ Enables adding custom menu sections and items in the main menu, located on the l
 #### Type
 
 ```ts
-type MenuPlugin = Plugin & {
-    type: "menu";
+type AdminMenuPlugin = Plugin & {
+    type: "admin-menu";
     render(props: {
         Menu: typeof Menu;
         Section: typeof Section;
@@ -142,8 +142,8 @@ type MenuPlugin = Plugin & {
 
 ```ts
 {
-  type: "menu",
-  name: "menu-shop",
+  type: "admin-menu",
+  name: "admin-menu-shop",
   render({ Menu, Section, Item }) {
     return (
       <Menu name="shop" label={"Shop"}>
@@ -183,7 +183,7 @@ type RoutePlugin = Plugin & {
 ```ts
 // Import the Route component from the "@webiny/react-router" package.
 import { Route } from "@webiny/react-router";
-   
+
 (...)
 
 {
