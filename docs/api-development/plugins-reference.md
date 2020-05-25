@@ -101,7 +101,7 @@ export default [
 
 #### Summary
 
-A plugin which enables you to append additional pieces of information into the GraphQL context, that you can then utilize in GraphQL field resolvers. For example, the [Security app](http://localhost:3000/docs/webiny-apps/security/introduction) utilizes this plugin in order to set the currently logged-in user's data, so you can perform user-based checks in your resolvers.
+A plugin which enables you to append additional pieces of information into the GraphQL context, that you can then utilize in GraphQL field resolvers. For example, the [Security app](/docs/webiny-apps/security/introduction) utilizes this plugin in order to set the currently logged-in user's data, so you can perform user-based checks in your resolvers.
 
 #### Type
 
