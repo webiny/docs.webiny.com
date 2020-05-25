@@ -14,7 +14,7 @@ In this section we'll look at the resources deployed when you run the `webiny de
 
 ### GraphQL services
 
-Default Webiny apps (like the [Page Builder](http://localhost:3000/docs/webiny-apps/page-builder/getting-started) or the [Form Builder](http://localhost:3000/docs/webiny-apps/form-builder/introduction) app) are deployed using the `@webiny/serverless-apollo-service` component or a component that is derived from it.
+Default Webiny apps (like the [Page Builder](/docs/webiny-apps/page-builder/getting-started) or the [Form Builder](/docs/webiny-apps/form-builder/introduction) app) are deployed using the `@webiny/serverless-apollo-service` component or a component that is derived from it.
 
 These services consist of an API Gateway and a function which runs your GraphQL API.
 

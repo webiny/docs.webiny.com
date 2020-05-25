@@ -9,7 +9,7 @@ sidebar_label: File Service
 
 The File service is responsible for handling file uploads, file downloads, resizing images, and file delete events.
 
-> The [File Manager](http://localhost:3000/docs/webiny-apps/file-manager/getting-started) app is a good example of an app that relies on the File Service.
+> The [File Manager](/docs/webiny-apps/file-manager/getting-started) app is a good example of an app that relies on the File Service.
 
 ## Components
 - A - **CloudFront web distribution**
@@ -25,7 +25,7 @@ The File service is responsible for handling file uploads, file downloads, resiz
 
 ### A) File upload
 
-1. Client makes a POST request with the file metadata to the [API](http://localhost:3000/docs/deep-dive/architecture/api).
+1. Client makes a POST request with the file metadata to the [API](/docs/deep-dive/architecture/api).
 
     > The client never sends the full file body to the GraphQL endpoint as a Lambda function can't handle large files.
 
