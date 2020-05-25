@@ -38,7 +38,7 @@ The following things are mandatory for both local development and production dep
 yarn create-webiny-project@beta --template=cms --tag=beta new-project
 ```
 
-> NOTE: The `--template` value defaults to `full` if you don't include it (This will pull a package named `cwp-template-full` from npm template) or it can be a path to a local template ex. `../dev/template-to-use`.
+> NOTE: The `--template` value defaults to `full` if you don't include it (this will pull a package named `@webiny/cwp-template-full` from npm).
 
 ## 2. Setup database connection
 
@@ -67,14 +67,14 @@ Your `.env.json` file should look something like this after updating your `MONGO
 
 Currently, Webiny supports both `cms` as well as a `full` template, and each have their own setup instructions.
 
-### Why use cms?
-
-This template will not include features like `Page Builder` and `Form Builder`, and will only include what's necessary to build a headless application.
-
-Click [here](/docs/get-started/template-setup/cwp-template-cms) for `cms` instructions.
-
 ### Why use full?
 
 This template will include the full suite of Webiny applications like `Page Builder` and `Form Builder`, and a `site` for you to interact with what was created by your `admin` user.
 
 Click [here](/docs/get-started/template-setup/cwp-template-full) for `full` instructions.
+
+### Why use CMS?
+
+This template will not include features like `Page Builder` and `Form Builder`, and will only include what's necessary to build a headless application.
+
+Click [here](/docs/get-started/template-setup/cwp-template-cms) for `cms` instructions.
