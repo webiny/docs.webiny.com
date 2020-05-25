@@ -13,6 +13,10 @@ module.exports = {
                 href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
             }
         ],
+        "Guides": [
+          "guides/mongodb-atlas",
+          "guides/headless-gatsby-tutorial"
+        ],
         "Get Started": [
             "get-started/quick-start",
             "get-started/going-live",
@@ -26,7 +30,6 @@ module.exports = {
                 ]
             }
         ],
-        "Guides": ["guides/mongodb-atlas"],
         "Deep Dive": [
             "deep-dive/project-structure",
             {
