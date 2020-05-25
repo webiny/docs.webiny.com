@@ -26,7 +26,10 @@ module.exports = {
                 ]
             }
         ],
-        "Guides": ["guides/mongodb-atlas"],
+        "Guides": [
+          "guides/mongodb-atlas",
+          "guides/headless-gatsby-tutorial"
+        ],
         "Deep Dive": [
             "deep-dive/project-structure",
             {
