@@ -35,7 +35,7 @@ The following things are mandatory for both local development and production dep
 ## 1. Create a new project
 
 ```
-npx create-webiny-project@beta --template=cms --tag=beta new-project
+yarn create-webiny-project@beta --template=cms --tag=beta new-project
 ```
 
 > NOTE: The `--template` value defaults to `full` if you don't include it (This will pull a package named `cwp-template-full` from npm template) or it can be a path to a local template ex. `../dev/template-to-use`.
