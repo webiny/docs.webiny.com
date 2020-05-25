@@ -65,16 +65,32 @@ Your `.env.json` file should look something like this after updating your `MONGO
 
 ## 3. Template-specific setup
 
-Currently, Webiny supports both `cms` as well as a `full` template, and each have their own setup instructions.
+Currently, Webiny supports `cms` and a `full` template, and each have their own setup instructions.
 
-### Why use full?
+### When to use `full` template?
 
-This template will include the full suite of Webiny applications like `Page Builder` and `Form Builder`, and a `site` for you to interact with what was created by your `admin` user.
+The `full` template will include all of the applications Webiny provides at the time you're creating your Webiny project. Currently, the `full` project consists of the following apps:
+- Admin  
+- Security
+- I18N  
+- File Manager  
+- Page Builder  
+- Form Builder 
+- Headless CMS  
 
-Click [here](/docs/get-started/template-setup/cwp-template-full) for `full` instructions.
+If you want to create a project with all the features Webiny has to offer - use this template.
 
-### Why use CMS?
+[Click here](/docs/get-started/template-setup/cwp-template-full) to see the instructions for a project created using `full` template.
 
-This template will not include features like `Page Builder` and `Form Builder`, and will only include what's necessary to build a headless application.
+### When to use `cms` template?
 
-Click [here](/docs/get-started/template-setup/cwp-template-cms) for `cms` instructions.
+The `cms` template will is a bit narrower in scope. It will only create a project that is configured to be used in a `headless` mode, like your regular Headless CMS. A project created using this template will consist of the following apps:
+- Admin  
+- Security
+- I18N  
+- File Manager   
+- Headless CMS  
+
+If you only need the Headless CMS capabilities - use this template.
+
+[Click here](/docs/get-started/template-setup/cwp-template-cms) to see the instructions for a project created using `cms` template.
