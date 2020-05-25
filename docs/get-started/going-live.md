@@ -25,6 +25,8 @@ In the project root, look at the `.env.json` file. You should something similar:
 ```json
 {
     "default": {
+    "AWS_PROFILE": "default",
+    "AWS_REGION": "us-east-1",
       "MONGODB_SERVER": "mongodb+srv://username:password@my-db-123.mongodb.net/test?retryWrites=true",
       "MONGODB_NAME": "webiny-72858e17"
     }
@@ -53,7 +55,7 @@ However, if you want to use a different database, for example, you can create a 
 From the root of your project, run the following command:
 
 ```
-webiny deploy api --env=dev
+yarn webiny deploy api --env=dev
 ```
 
 
@@ -62,7 +64,7 @@ webiny deploy api --env=dev
 From the root of your project, run the following command:
 
 ```
-webiny deploy apps --env=dev
+yarn webiny deploy apps --env=dev
 ```
 
 ## Deploying to production
@@ -70,7 +72,7 @@ webiny deploy apps --env=dev
 If you also want to deploy a `prod` environment, it's as simple as running:
 
 ```
-webiny deploy apps --env=prod
+yarn webiny deploy apps --env=prod
 ```
 
 >Note: In the example above, `apps` references the folder containing deployment configuration, which is located in `apps/resources.js`. As a result, you can create additional folders like `src`, `api-public`, etc... as long as they have a `resources.js` file inside.
@@ -94,5 +96,5 @@ An example script for a `staging` environment could look like the following:
 Once this is inserted, the following command should successfully execute a `staging` environment deployment:
 
 ```
-webiny deploy apps --env=staging
+yarn webiny deploy apps --env=staging
 ```
