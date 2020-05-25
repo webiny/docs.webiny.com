@@ -11,7 +11,7 @@ This guide includes what you need to setup a project using `cwp-template-cms`. T
 We need to deploy a `local` API environment to use for local development:
 
 ```
-webiny deploy api --env=local
+yarn webiny deploy api --env=local
 ```
 
 In the command above, `api` references the folder containing deployment configuration, which is located in `api/resources.js`. As a result, you can create additional folders like `api-private`, `api-public`, etc... as long as they have a `resources.js` file inside.
