@@ -16,19 +16,7 @@ module.exports = {
         "Get Started": [
             "get-started/quick-start",
             "get-started/going-live",
-            "get-started/development-principles",
-            {
-                type: "category",
-                label: "Template Setup",
-                items: [
-                    "get-started/template-setup/cwp-template-full",
-                    "get-started/template-setup/cwp-template-cms"
-                ]
-            }
-        ],
-        "Guides": [
-          "guides/mongodb-atlas",
-          "guides/headless-gatsby-tutorial"
+            "get-started/development-principles"
         ],
         "Guides": [
             "guides/mongodb-atlas",
