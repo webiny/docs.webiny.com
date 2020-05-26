@@ -11,7 +11,7 @@ In this tutorial, we're going to learn how to create a custom page element for t
 
 Ready? Let's dive in!
 
-## What We'll build
+## What We'll Build
 
 We’ll create a new page element that will allow content creators to embed content using an iframe.
 
@@ -25,7 +25,6 @@ Here's what the result will look like:
 This tutorial assumes you have already created a new Webiny project to work on. We recommend going to our [quick start](/docs/get-started/quick-start.md) guide which will show you how to do it.
 
 ### Creating the Plugins
-
 
 All of the available page elements can be accessed via the elements menu, which can be opened by clicking on the "plus" icon, located on the left side of the editor:
 
@@ -78,13 +77,14 @@ export default () => {
             settings: ["pb-editor-page-element-settings-delete"],
             onCreate: "open-settings",
             create(options) {
-            // Create function it's here to create the initial data for the page element, which then is utilized in theIFrameEmbed, in settings dialog, etc.
+            // Create function it's here to create the initial data for the page element,
+            // which then is utilized in the IFrameEmbed, in settings dialog.
                 return {
                     type: "iframe",
                     elements: [],
                     data: {
                         iframe: {
-                            // The URL property will be populated when user enters the URL in the settings dialog
+                            // The URL property will be populated when user enters the URL in the settings dialog.
                             url: "",
                             height: 370
                         },
