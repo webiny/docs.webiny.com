@@ -36,7 +36,7 @@ As mentioned, this list of page elements can be expanded and custom page element
 
 ### Editor Plugin
 
-Let's add the new page element in the editor and define how it will be rendered onto the page.
+Let's add the new page element in the editor.
 First, we will use the [`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element) plugin type.
 
 
@@ -64,6 +64,7 @@ export default () => {
             type: "pb-editor-page-element",
             elementType: "iframe",
             toolbar: {
+                // We use `pb-editor-element-group-media` to put our plugin into the Media group.
                 title: "iFrame",
                 group: "pb-editor-element-group-media",
                 preview() {
@@ -77,8 +78,8 @@ export default () => {
             settings: ["pb-editor-page-element-settings-delete"],
             onCreate: "open-settings",
             create(options) {
-            // Create function it's here to create the initial data for the page element,
-            // which then is utilized in the IFrameEmbed, in settings dialog.
+            // Create function is here to create the initial data for the page element,
+            // which then is utilized in the IFrameEmbed component and in the settings dialog.
                 return {
                     type: "iframe",
                     elements: [],
@@ -113,19 +114,20 @@ export default () => {
     // We will add a settings dialog plugin here, follow the steps in Settings dialog section below.
 ```
 
-This plugin consists of different properties, the key properties of the plugin are the `create` and `render`, they define the initial page element's settings and how it will be rendered on a page, respectively.
+The key properties of the plugin are the `create` and `render`. They define the initial page element's settings and how it will be rendered in the editor, respectively.
 
-The `toolbar` property helps us put our page element into the "Media" group, using `pb-editor-element-group-media`, as seen in the image below.
+The `data` property holds the initial state of the page element which can contain any data you might need.
 
-The `data` property holds the state of the page element, the `settings` property is used to append settings to your page element.
-
-On the state changes, it’s up to the `render` property function that defines how it will be rendered once the user drags it onto the page.
-
+The `toolbar` property helps us put our plugin into the tool bar, as seen in the image below.
+<!-- The `settings` which it is used to append settings to your page element. -->
 ![Editor Iframe Element](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/editor-iframe-plugin.png)
+
+Finally, it’s up to the `render` function to define how the page element will be rendered once the user drops it on the page.
+Notice the props that were passed to the render function. This object contains all of the relevant page element's data and settings.
 
 ### Settings Dialog
 
-The next plugin type we will use is the [`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings). We will use this plugin to show a settings dialog so we can provide an iframe URL, the dialog will be shown automatically when the user drags and drops the page element to the page.
+The next plugin we'll need to define is the [`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings), which we will use to show a settings dialog so the user can provide an iframe URL. The dialog will be shown automatically when the user drags and drops the page element on the page.
 
 ```jsx
 import { Tab } from "@webiny/ui/Tabs";
@@ -163,10 +165,9 @@ export default () => {
                 );
             }
         } as PbEditorPageElementAdvancedSettingsPlugin
-
 ```
 
-This code shows the settings dialog and asks for the URL of the iframe as shown in the image below.
+As mentioned, this code will show the settings dialog and ask for the URL of the iframe, as shown in the image below.
 
 ![Settings dialog](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/settings-dialog.png)
 
