@@ -41,7 +41,6 @@ First, we will use the [`pb-editor-page-element`](/docs/webiny-apps/page-builder
 
 
 ```jsx
-import React from "react";
 import styled from "@emotion/styled";
 import {
     PbEditorPageElementPlugin
@@ -78,14 +77,17 @@ export default () => {
             settings: ["pb-editor-page-element-settings-delete"],
             onCreate: "open-settings",
             create(options) {
-            // Create function is here to create the initial data for the page element,
-            // which then is utilized in the IFrameEmbed component and in the settings dialog.
+                /*
+                    Create function is here to create the initial data
+                    for the page element, which then is utilized in the
+                    IFrameEmbed component and in the settings dialog.
+                */
                 return {
                     type: "iframe",
                     elements: [],
                     data: {
                         iframe: {
-                            // The URL property will be populated when user enters the URL in the settings dialog.
+                             The URL property will be populated when user enters the URL in the settings dialog.
                             url: "",
                             height: 370
                         },
@@ -105,13 +107,21 @@ export default () => {
                 };
             },
             render(props) {
+                /*
+                    Every render function receives the page element's
+                    data assigned to the "element.data" property in
+                    the received props. In here we will store the
+                    "iframe.url" which will be provided via the page
+                    element's settings dialog.
+                */
                 return <IFrameEmbed {...props} />;
             },
             renderElementPreview({ width, height }) {
                 return <img style={{ width, height }} alt={"iFrame"} />;
             }
         } as PbEditorPageElementPlugin,
-    // We will add a settings dialog plugin here, follow the steps in Settings dialog section below.
+    // We will add a settings dialog plugin here,
+    // follow the steps in Settings dialog section below.
 ```
 
 The key properties of the plugin are the `create` and `render`. They define the initial page element's settings and how it will be rendered in the editor, respectively.
@@ -149,8 +159,13 @@ export default () => {
                     <Tab icon={<IFrameIcon />} label="IFrame">
                         <Grid>
                             <Cell span={12}>
+                                {/*
+                                    Using the `Bind` component we are able to set
+                                    the URL to the page elements `data` property,
+                                    which can be accessed in the already mentioned
+                                    render function via received props.
+                                */}
                                 <Bind
-                                    // Binding the iframe.url in the 'data' property
                                     name={"iframe.url"}
                                     validators={validation.create("required,url")}
                                 >
@@ -171,9 +186,7 @@ As mentioned, this code will show the settings dialog and ask for the URL of the
 
 ![Settings dialog](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/settings-dialog.png)
 
-After saving the URL, the `Bind` component will bind the data to the state of our plugin so that the component on the render function will have access to the URL that the user provides, and it renders the IFrameEmbed component.
-
-The IFrameEmbed component:
+The following code snippet shows the entire `IFrameEmbed` component:
 
 ```jsx
 const IFrameEmbed = (props) => {
@@ -200,15 +213,75 @@ const IFrameEmbed = (props) => {
 export default IFrameEmbed;
 ```
 
-One thing to notice is that every element has it's unique CSS class such as `webiny-pb-page-element-iframe`, which enables you to add custom CSS styling if needed.
+Notice we've added `webiny-pb-page-element-iframe` CSS class, which enables us to add custom CSS styling if needed.
 
 ### Render Plugin
 
-Every plugin has two parts, `editor` and `render`. To create the element on the render side we will use the
+As mentioned, every page element consists of two plugins. In order to render it on the actual page, we will use the
 [`pb-render-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-render-page-element)
-plugin type.
+plugin.
 
-This plugin will be used to render the iframe page element in the actual website and can be seen in the page preview as shown in the image below.
+```ts
+import IFrame from "./IFrame";
+import { PbRenderElementPlugin } from "@webiny/app-page-builder/types";
+
+export default (): PbRenderElementPlugin => {
+    return {
+        name: "pb-render-page-element-iframe",
+        type: "pb-render-page-element",
+        elementType: "iframe",
+        render({ element }) {
+            return <IFrame data={element.data} />;
+        }
+    };
+}
+```
+
+The following code snippet shows the `IFrame` component
+
+```ts
+import { css } from "emotion";
+const outerWrapper = css({
+    boxSizing: "border-box"
+});
+
+const innerWrapper = css({
+    left: 0,
+    width: "100%",
+    height: "auto",
+    position: "relative",
+    paddingBottom: 0
+});
+
+const IFrame = ({ data }) => {
+    // If the user didn't enter a URL, let's show a simple message.
+    if (!data.iframe.url) {
+        return <div>IFrame URL is missing.</div>;
+    }
+
+    // Otherwise, let's render the iframe.
+    return (
+        <div
+            className={
+                "webiny-pb-base-page-element-style webiny-pb-page-element-embed-iframe " +
+                outerWrapper
+            }
+        >
+            <div className={innerWrapper}>
+                <div
+                    id={data.id}
+                />
+                <iframe src={data.iframe.url} width="100%" height={data.iframe.height} />
+            </div>
+        </div>
+    );
+};
+
+export default IFrame;
+```
+
+Except on the actual page, this plugin will also be utilized in the page preview, as shown in the image below.
 
 ![Page preview](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/page-preview.png)
 
+Use the same approach on creating other custom page elements.

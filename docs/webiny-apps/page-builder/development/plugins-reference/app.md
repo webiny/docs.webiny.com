@@ -4,17 +4,6 @@ title: App Plugins Reference
 sidebar_label: App
 ---
 
-# Summary
-
-[`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element)
-
-[`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings)
-
-[`pb-render-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-render-page-element)
-
-
----
-
 ### [`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element)
 
 #### Summary
@@ -37,7 +26,7 @@ type PbEditorPageElementPlugin = Plugin & {
     };
     // Help link
     help?: string;
-    // Whitelist elements that can accept this element (for drag&drop interaction)
+    // Whitelist elements that can accept this element (for drag&drop interaction)/
     target?: string[];
     // Array of element settings plugin names.
     settings?: Array<string>;
@@ -54,12 +43,12 @@ type PbEditorPageElementPlugin = Plugin & {
         target: PbElement;
         position: number | null;
     }) => void;
-    // Executed when an immediate child element is deleted
+    // Executed when an immediate child element is deleted.
     onChildDeleted?: (params: { element: PbElement; child: PbElement }) => void;
-    // Executed after element was created
+    // Executed upon creating the element.
     onCreate?: string;
     // Render element preview (used when creating element screenshots; not all elements have a simple DOM representation
-    // so this callback is used to customize the look of the element in a PNG image)
+    // so this callback is used to customize the look of the element in a PNG image).
     renderElementPreview?: (params: {
         element: PbElement;
         width: number;
@@ -129,7 +118,8 @@ type PbEditorPageElementPlugin = Plugin & {
 #### Summary
 
 Enables defining custom settings dialogs for page elements.
-The `PbEditorPageElementPlugin` will consume the data that is bound up using the Bind component below.
+
+Using the `Bind` component we are able to set any data to the page element's `data` property, which will later be accessible in the `render` function of the [`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element)
 
 #### Type
 
@@ -167,7 +157,7 @@ type BindComponentProps = {
                 <Grid>
                     <Cell span={12}>
                         <Bind
-                            name={"source.url"}
+                            name={"iframe.url"}
                             validators={validation.create("required,url")}
                         >
                             <Input
@@ -191,7 +181,7 @@ type BindComponentProps = {
 
 #### Summary
 
-Enables rendering new page elements.
+Enables rendering page elements on the actual pages and in page previews.
 
 #### Type
 
@@ -219,14 +209,18 @@ export type PbRenderElementPlugin = Plugin & {
 #### Example
 
 ```ts
+import IFrame from "./IFrame";
+
 export default [
     {
         name: "pb-render-page-element-iframe",
         type: "pb-render-page-element",
         elementType: "iframe",
-        render({element}) {
-            return <Iframe data={element.data} />;
+        render({ element }) {
+            return <IFrame data={element.data} />;
         }
     } as PbRenderElementPlugin,
 ];
 ```
+
+![Page preview](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/page-preview.png)
