@@ -127,6 +127,24 @@ module.exports = {
             },
             {
                 type: "category",
+                label: "Headless CMS",
+                items: [
+                    {
+                        type: "category",
+                        label: "Features",
+                        items: [
+                            "webiny-apps/headless-cms/features/content-modelling",
+                            // {
+                            //     type: "category",
+                            //     label: "Plugins Reference",
+                            //     items: ["webiny-apps/headless-cms/development/plugin-reference/app"]
+                            // }
+                        ]
+                    }
+                ]
+            },
+            {
+                type: "category",
                 label: "Page Builder",
                 items: [
                     //"webiny-apps/page-builder/introduction",
