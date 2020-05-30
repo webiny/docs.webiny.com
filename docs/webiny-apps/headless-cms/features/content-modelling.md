@@ -7,7 +7,7 @@ sidebar_label: Content Modelling
 Upon setting up your Webiny account, you can move on creating your content models. If you are new to the world of content modelling, don't worry, we got your back = )
 
 > A content model is a formal representation of structured content as a collection of content types and their inter-relationships.
- You can have different content model types as a summary for your content; it will represent the data within each individual entry.
+ You can have different content model types as a summary for your end project.
 
 Webiny offers you powerful modelling features allow you to model the content and define relationships using a simple drag&drop editor as seen in the image below:
 
