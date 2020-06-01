@@ -133,7 +133,7 @@ module.exports = {
                         type: "category",
                         label: "Features",
                         items: [
-                            "webiny-apps/headless-cms/features/content-modelling",
+                            "webiny-apps/headless-cms/features/content-modeling",
                             "webiny-apps/headless-cms/features/content-localization",
                             "webiny-apps/headless-cms/features/graphql-playground",
                             "webiny-apps/headless-cms/features/environments",
