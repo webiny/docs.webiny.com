@@ -4,7 +4,16 @@ title: Content Modeling
 sidebar_label: Content Modeling
 ---
 
+Did you set up your Webiny account? If yes, make sure you have `Headless cms` enabled, if not then follow the [quick start](get-started/quick-start.md).
+
 To get hands-on the `Headless CMS` features, you can start by creating a content model.
+
+Webiny features a menu component that is extended via the content models from the Headless CMS.
+This allows you to build great backend experience for your team, making it easy and intuitive for them to find exactly the content they are looking for.
+
+![Content model menus](/img/webiny-apps/headless-cms/features/content-modeling/content-models-menu.png)
+
+You can navigate to **Headless CMS > Content Models Menu > Models || [Groups](/docs/webiny-apps/headless-cms/features/content-modeling-groups)**
 
 **What is the content model?**
 
