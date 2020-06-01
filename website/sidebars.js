@@ -133,13 +133,14 @@ module.exports = {
                         type: "category",
                         label: "Features",
                         items: [
+                            "webiny-apps/headless-cms/features/content-model-menus",
                             "webiny-apps/headless-cms/features/content-modeling",
-                            "webiny-apps/headless-cms/features/content-localization",
+                            "webiny-apps/headless-cms/features/content-modeling-groups",
+                            "webiny-apps/headless-cms/features/localization",
                             "webiny-apps/headless-cms/features/graphql-playground",
                             "webiny-apps/headless-cms/features/environments",
                             "webiny-apps/headless-cms/features/aliases",
                             "webiny-apps/headless-cms/features/roles-permissions",
-                            "webiny-apps/headless-cms/features/content-model-menus",
                             // {
                             //     type: "category",
                             //     label: "Plugins Reference",

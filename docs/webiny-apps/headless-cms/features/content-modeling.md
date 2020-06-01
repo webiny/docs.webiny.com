@@ -4,28 +4,11 @@ title: Content Modeling
 sidebar_label: Content Modeling
 ---
 
-Did you set up your Webiny account? If yes, make sure you have `Headless cms` enabled, if not then follow the [quick start](get-started/quick-start.md).
-
 To get hands-on the `Headless CMS` features, you can start by creating a content model.
 
 **What is the content model?**
 
-1st option:
-
-> Content models are the place where you set up the structure, which will inform the way your content will assemble, reconfigure, and reuse.
-
-2nd option:
-
-> “A content model documents all the different  types of content you will have for a given project". Each content type will have a detailed definition and the relationships between. Rachel Lovinger writes in Content Modeling: A Master Skill.
-
-
-3rd option:
-
-> A content model is a formal representation of structured content. The content is a collection of content types and their inter-relationships. You can have different content model types as a summary for your end project.
-
-You can navigate to **Headless CMS > Content Models > Models || Groups**. There you can create content models and model groups.
-
-Model groups allow you to manage models in a group. That enables you to build logical sections for your content.
+> A content model is a formal representation of how your content will be structured. Define the content fields and the relationships between other content models.
 
 #### Creating content models
 
