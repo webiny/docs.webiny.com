@@ -139,7 +139,8 @@ module.exports = {
                             "webiny-apps/headless-cms/features/graphql-playground",
                             "webiny-apps/headless-cms/features/environments",
                             "webiny-apps/headless-cms/features/aliases",
-                            "webiny-apps/headless-cms/features/roles-permissions",
+                            "webiny-apps/headless-cms/features/access-tokens",
+                            // "webiny-apps/headless-cms/features/roles-permissions",
                             // {
                             //     type: "category",
                             //     label: "Plugins Reference",
