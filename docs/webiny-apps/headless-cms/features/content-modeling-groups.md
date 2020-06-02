@@ -4,8 +4,8 @@ title: Content Model Groups
 sidebar_label: Content Model Groups
 ---
 
-Model groups allow you to manage models in a group. That enables you to build logical sections for your content.
+Model groups are a way how you organize the content models inside the main menu, allowing you to build logical sections for your content editors. Every model must belong to a group.
 
-You can navigate to **Headless CMS > Content Models Menu > [Models](/docs/webiny-apps/headless-cms/features/content-modeling) || Groups**
+You can create as many groups as you need by navigating to **Headless CMS > Content Models > Groups**
 
 ![Content model groups](/img/webiny-apps/headless-cms/features/content-modeling/content-modeling-groups.png)
