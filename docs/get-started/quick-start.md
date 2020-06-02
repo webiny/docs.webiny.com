@@ -63,7 +63,7 @@ Your `.env.json` file should look something like this after updating your `MONGO
 
 ```
 
-> NOTE: `AWS_PROFILE` as well as `AWS_REGION` can be defined in other methods following [this guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html). As long as AWS SDK can figure out your identity, Webiny will be happy no matter how you configure your credentials.
+> NOTE: `AWS_PROFILE` as well as `AWS_REGION` can be defined by other methods following [this guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html). As long as AWS SDK can figure out your identity, Webiny will be happy no matter how you configure your credentials.
 
 ## 3. Template-specific setup
 
