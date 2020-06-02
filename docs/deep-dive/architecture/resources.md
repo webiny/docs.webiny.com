@@ -6,15 +6,15 @@ sidebar_label: Resources
 
 This article provides a brief overview of the necessary cloud resources that are deployed with Webiny.  
 
-By default, once you deploy Webiny to the cloud, two sets of resources (infrastructures) are created - the API and apps infrastructures, which are deployed via the `webiny deploy-api` and `webiny deploy-apps` CLI commands, respectively.
+By default, once you deploy Webiny to the cloud, two sets of resources (infrastructures) are created - the API and apps infrastructures, which are deployed via the `webiny deploy api` and `webiny deploy apps` CLI commands, respectively.
  
 ## API
 
-In this section we'll look at the resources deployed when you run the `webiny deploy-api` command. The related serverless template file is located in `api/serverless.yml` of your project.
+In this section we'll look at the resources deployed when you run the `webiny deploy api` command. The related file where you find the stack of resources is located in `api/resources.js` of your project.
 
 ### GraphQL services
 
-Default Webiny apps (like the [Page Builder](http://localhost:3000/docs/webiny-apps/page-builder/getting-started) or the [Form Builder](http://localhost:3000/docs/webiny-apps/form-builder/introduction) app) are deployed using the `@webiny/serverless-apollo-service` component or a component that is derived from it.
+Default Webiny apps (like the [Page Builder](/docs/webiny-apps/page-builder/getting-started) or the [Form Builder](/docs/webiny-apps/form-builder/introduction) app) are deployed using the `@webiny/serverless-function` component or a component that is derived from it.
 
 These services consist of an API Gateway and a function which runs your GraphQL API.
 
@@ -22,9 +22,9 @@ The API Gateway serves as a router and an entry point to your service. This way 
 
 ### Apollo Federation
 
-All of the GraphQL services are combined into one big schema using [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/). The component responsible for deploying your Apollo Gateway is `@webiny/serverless-apollo-gateway`. It deploys a simple function which serves as an entry point to your entire GraphQL API.
+All of the GraphQL services are combined into one big schema using [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/). The component responsible for deploying your Apollo Gateway is `@webiny/serverless-function`. It deploys a simple function which serves as an entry point to your entire GraphQL API.
 
-To access this main entry point, we deploy another API Gateway with a single route `/graphql`. This route forwards your requests to the Apollo Gateway function, which in turn builds a Federated Schema using all of the GraphQL services and then executes the query.
+To access this main entry point, we deploy an API Gateway with a single route `/graphql`. This route forwards your requests to the Apollo Gateway function, which in turn builds a Federated Schema using all of the GraphQL services and then executes the query.
 
 ### Other resources
 
@@ -32,7 +32,7 @@ Other resources include a Cognito User Pool and a Cloudfront CDN. The CDN sits i
 
 ## React apps
 
-In this section we'll look at the resources deployed when you run the `webiny deploy-apps` command. The related serverless template file is located in `apps/serverless.yml` of your project.
+In this section we'll look at the resources deployed when you run the `webiny deploy apps` command. The related file where you find the stack of resources is located in `apps/resources.js` of your project.
 
 ### App as a function
 When React apps are deployed to the cloud, each app is deployed as a single function. For the `site` app, we also deploy another function that serves as a server-side rendering (SSR) function. It is invoked by the `site` handler when it determines the content needs to be rendered.
