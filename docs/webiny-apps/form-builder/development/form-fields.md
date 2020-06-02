@@ -8,7 +8,7 @@ Creating custom form field is just a matter of adding a couple of plugins.
 
 > If you are not already familiar with how plugins work, we recommend you take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course).
 
-First we need to register a plugin with the type [`form-editor-field-type`](/docs/webiny-apps/form-builder/development/plugins-reference/app#form-editor-field-type), which will actually add the field to the [form builder](http://localhost:3000/docs/webiny-apps/form-builder/getting-started).
+First we need to register a plugin with the type [`form-editor-field-type`](/docs/webiny-apps/form-builder/development/plugins-reference/app#form-editor-field-type), which will actually add the field to the [form builder](/docs/webiny-apps/form-builder/getting-started).
 
 Let's examine the following example:
 
