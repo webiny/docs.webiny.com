@@ -12,16 +12,15 @@ Let's see in more detail how and we we can utilize each approach.
 
 This is the default approach for every new Webiny project, and it's great if you want to start right away, without manually doing anything by yourself.
 
-> If you are not already familiar with how plugins work, we recommend
-> you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
+> If you are not already familiar with how plugins work, we recommend you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
 
-In your project, if you open the `apps/site/src/plugins/index.js` file, you might notice the following import:
+In your project, if you open the `apps/site/src/index.js` file, you might notice the following import:
 
 ```javascript
-import pageBuilderPlugins from "@webiny/app-page-builder/site/plugins";
+import createSite, { SiteAppOptions } from "@webiny/app-template-site";
 ```
 
-This is a set of plugins that sets up a couple of things, most importantly, automatic page fetching and rendering while the user is navigating your website. With that, the included plugins also do the following:
+This file contains a set of plugins that sets up automatic page fetching and rendering while the user is navigating your website. With that, the included plugins also do the following:
 
 #### Register render plugins for page builder elements
 
