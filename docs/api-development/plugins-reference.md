@@ -4,14 +4,6 @@ title: Plugins Reference
 sidebar_label: Plugins Reference
 ---
 
-# Summary
-
-[`graphql-schema`](/docs/api-development/plugins-reference#graphql-schema)
-
-[`context`](/docs/api-development/plugins-reference#context)
-
----
-
 ### [`graphql-schema`](/docs/api-development/plugins-reference#graphql-schema)
 
 #### Summary
