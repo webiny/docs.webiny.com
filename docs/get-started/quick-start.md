@@ -46,7 +46,7 @@ Edit `.env.json` file in the root of the project and set the `MONGODB_SERVER` va
 
 > In case you need any help creating a MongoDB cluster on MongoDB Atlas, please follow [this guide](/docs/guides/mongodb-atlas).
 
-> IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
+> IMPORTANT: It's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
 
 Your `.env.json` file should look something like this after updating your `MONGODB_SERVER` and `MONGODB_NAME` parameters:
 
@@ -62,6 +62,8 @@ Your `.env.json` file should look something like this after updating your `MONGO
 }
 
 ```
+
+> NOTE: `AWS_PROFILE` as well as `AWS_REGION` can be defined in other methods following [this guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html). As long as AWS SDK can figure out your identity, Webiny will be happy no matter how you configure your credentials.
 
 ## 3. Template-specific setup
 
