@@ -50,7 +50,7 @@ This will generate a new folder in your working directory. Make sure the Gatsby 
 
 ## Pulling GraphQL data (Blog Posts) into Gatsby
 
-You need to create an Access Token in order to access your API. Go to the menu in **Webiny's Admin app > Sidebar > Headless CMS > Access Tokens**. Fill in your token's name, create it by clicking on `Save Access Token` and save the Token you receive.
+You need to create an Access Token in order to access your API. Go to the menu in **Webiny's Admin app > Sidebar > Settings > Headless CMS > Access Tokens**. Fill in your token's name, create it by clicking on `Save Access Token` and save the Token you receive.
 
 Navigate to your Gatsby project's directory `myBlog` and install [gatsby-source-graphql](https://www.gatsbyjs.org/packages/gatsby-source-graphql/) plugin by running `npm i gatsby-source-graphql`. This will allow us to  fetch the Blog Posts into your Gatsby app.
 
