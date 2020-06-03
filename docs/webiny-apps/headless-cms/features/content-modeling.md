@@ -4,7 +4,7 @@ title: Content Modeling
 sidebar_label: Content Modeling
 ---
 
-Did you set up your Webiny account? If yes, make sure you have `Headless cms` enabled, if not then follow the [quick start](get-started/quick-start.md).
+Did you set up your Webiny account? If yes, make sure you have `Headless CMS` enabled, if not then follow the [quick start](get-started/quick-start.md).
 
 To get hands-on the `Headless CMS` features, you can start by creating a content model.
 

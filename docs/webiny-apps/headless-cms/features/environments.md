@@ -17,10 +17,10 @@ In the Headless CMS menu, you can create a new environment by clicking on the `M
 
 You can create a new env and choose the base env which in this case is `production` env, or other env you created earlier.
 
-So, technically if you have `production` and `stage`, and want to create a `dev` you can select `stage` as your source.
+If you have `production` and `stage`, and want to create a `dev` you can select `stage` as your source.
 
 ![Add New Environments](/img/webiny-apps/headless-cms/features/environments/new-env.png)
 
 Env includes the Headless CMS features such as `content models`, `localization`, `roles&permissions`, `content model menus`.
 
-These features can change per env, including `production`, the data in other environments stays the same that means it is not affected.
+These features can change per env, including `production`, the data in other envs stays the same that means it is not affected.
