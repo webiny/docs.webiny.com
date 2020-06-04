@@ -26,7 +26,7 @@ Now we can move on to the next step.
 
 ## 1. Create a `dev` environment config
 
-In the project root, look at the `.env.json` file. You should something similar:
+In the project root, look at the `.env.json` file. You should see something similar to this:
 
 ```json
 {
@@ -39,7 +39,7 @@ In the project root, look at the `.env.json` file. You should something similar:
 }
 ```
 
-The `default` section contains the values that will be used for every environment, unless you overwrite them using specific environment sections. For each new environment, it's best to use a different database. Update your `.env.json` to look similar to this:
+The `default` section contains the values of environment variables that will be used for every environment, unless you overwrite them using specific environment sections. For each new environment, it's best to use a different database. Update your `.env.json` to look similar to this:
 
 ```json
 {
@@ -50,7 +50,7 @@ The `default` section contains the values that will be used for every environmen
     "MONGODB_NAME": "webiny-72858e17"
   },
   "dev": {
-    "MONGODB_NAME": "webiny-dev-72858e17-dev"
+    "MONGODB_NAME": "webiny-dev-72858e17"
   }
 }
 ```
