@@ -10,30 +10,31 @@ Let's see in more detail how and we we can utilize each approach.
 
 ## Using default plugins
 
-This is the default approach for every new Webiny project, and it's great if you want to start right away, without manually doing anything by yourself.
+> If you are not already familiar with how plugins work, we recommend you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
 
-> If you are not already familiar with how plugins work, we recommend
-> you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
-
-In your project, if you open the `apps/site/src/plugins/index.js` file, you might notice the following import:
+With a default Webiny project, you get everything set up for you in the `apps/site` app. But if you want to setup your own app and register those plugins manually, you can import them from `@webiny/app-page-builder` package:
 
 ```javascript
+import { registerPlugins } from "@webiny/plugins";
 import pageBuilderPlugins from "@webiny/app-page-builder/site/plugins";
+
+// `pageBuilderPlugins` is a factory, so we need to call it as a function
+registerPlugins(pageBuilderPlugins());
 ```
 
-This is a set of plugins that sets up a couple of things, most importantly, automatic page fetching and rendering while the user is navigating your website. With that, the included plugins also do the following:
+This file contains a set of plugins that sets up automatic data prefetching and rendering while the user is navigating your website. With that, the included plugins also do the following:
 
-#### Register render plugins for page builder elements
+#### Register render plugins for Page Builder elements
 
-When creating pages via the page builder, you are using page elements (e.g. Text, Image, Form, ...), which are registered in the system via plugins. In terms of rendering, every element has to have two plugins, one that defines how it's rendered in the actual page builder, and the other that defines how it's rendered on the website, which is precisely what is included in this set of plugins.
+When creating pages via the Page Builder, you are using page elements (e.g. Text, Image, Form, ...), which are registered in the system via plugins. In terms of rendering, every element has to have two plugins, one that defines how it's rendered in the actual Page Builder, and the other that defines how it's rendered on the website, which is precisely what is included in this set of plugins.
 
 #### Link preloading
 
-Adds tracking of links that are present on the page that the user is currently viewing, and to improve the performance, fetches the content in advance. This enables smooth transitions while the user is navigating throughout your website.
+Tracks links that are present on the page being viewed, and fetches the content of those linked pages in advance. By doing so, we populate Apollo Client cache which in turn enables smooth transitions while the user is navigating your website.
 
 #### Populate `<head/>` portion of the page
 
-For SEO purposes, it fetches basic website information, like title or default OG image, and populates the `<head/>` portion of the page with it.
+For SEO purposes, it fetches basic website information like title or default OG image, and populates the `<head/>` portion of the page with it.
 
 > To check out the actual code, click [here](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder/src/site/plugins/index.tsx).
 
@@ -43,7 +44,7 @@ The `Page` React component is useful when you want to programmatically include a
 
 The component can be imported like so:
 
-```js
+```typescript jsx
 import { Page } from "@webiny/app-page-builder/site/components/Page";
 ```
 
@@ -53,13 +54,13 @@ You can then render any published page by simply passing an adequate set of prop
 <Page url="/my-awesome-page" />
 ```
 
-This will automatically fetch the content for the published page that has "/my-awesome-page" set as its URL via the page builder.
+This will automatically fetch the content for the published page that has "/my-awesome-page" set as its URL via the Page Builder.
 
 > More information on publishing pages and page revisions can be found [here](/docs/webiny-apps/page-builder/revisions-and-publishing)
 
 ### Full example
 
-The following code shows a simple component in which we utilize the shown `Page` component:
+The following code shows a simple component in which we utilize the `Page` component:
 
 ```jsx
 import React from "react";
@@ -81,7 +82,7 @@ export default MyComponent;
 
 ### Manually passing the page data
 
-When you pass the `url` prop to the `Page` component, fetching of the data is abstracted from you.
+When you pass the `url` prop to the `Page` component, fetching of data is abstracted from you.
 
 But in some cases, you might want to fetch the page data manually and that's when you can utilize other props.
 
@@ -89,7 +90,7 @@ But in some cases, you might want to fetch the page data manually and that's whe
 
 Consider the following example:
 
-```jsx
+```typescript jsx
 import React, { useMemo } from "react";
 import { useQuery } from "react-apollo";
 import { Page, GET_PUBLISHED_PAGE } from "@webiny/app-page-builder/site/components/Page";
@@ -99,15 +100,15 @@ import { PbDefaultPagePlugin, PbPageLayoutComponentPlugin } from "@webiny/app-pa
 function MyComponent() {
   // Get the loader component via plugin (or directly import your own component).
   const Loader = useMemo(() => {
-    const plugins = getPlugins < PbPageLayoutComponentPlugin > "pb-layout-component";
+    const plugins = getPlugins<PbPageLayoutComponentPlugin>("pb-layout-component");
     const pl = plugins.find(pl => pl.componentType === "loader");
     return pl ? pl.component : null;
   }, []);
 
   // Get the default error and not-found pages (or directly import your own component).
   const { DefaultErrorPage, DefaultNotFoundPage } = useMemo(() => {
-    const defaultErrorPagePlugin = getPlugin < PbDefaultPagePlugin > "pb-default-page-error";
-    const defaultNotFoundPagePlugin = getPlugin < PbDefaultPagePlugin > "pb-default-page-not-found";
+    const defaultErrorPagePlugin = getPlugin<PbDefaultPagePlugin>("pb-default-page-error");
+    const defaultNotFoundPagePlugin = getPlugin<PbDefaultPagePlugin>("pb-default-page-not-found");
 
     return {
       DefaultNotFoundPage: defaultNotFoundPagePlugin?.component,
@@ -155,7 +156,7 @@ If you just want to render the page content explicitly, you can also utilize the
 
 The `content` prop allows you tu literally just render the page content. The following example shows how to do it:
 
-```jsx
+```typescript jsx
 import React, { useMemo } from "react";
 import { Page } from "@webiny/app-page-builder/site/components/Page";
 import { useQuery } from "react-apollo";
@@ -230,7 +231,7 @@ function MyComponent() {
 
 ### Existing React apps
 
-As mentioned, the `Page` React component can also be used if you want to bring the Page Builder app into your existing React app (that wasn't created with Webiny at all). If that is your case, when importing the Page Builder plugins, it's best to just manually import only the functionality that's actually needed. 
+As mentioned, the `Page` React component can also be used if you want to bring the Page Builder app into your existing React app (that wasn't created with Webiny at all). If that is your case, when importing the Page Builder plugins, it's best to just manually import only the functionality that's actually needed.
 
 Consider the following import statement:
 
