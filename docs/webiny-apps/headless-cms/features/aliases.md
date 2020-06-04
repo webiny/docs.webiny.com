@@ -16,4 +16,4 @@ For example: `https://dfgk2kz3e3qhn.cloudfront.net/cms/read/production`.
 
 The `production` keyword in the url is the Alias slug.
 
-![Aliases](/img/webiny-apps/headless-cms/features/content-modeling/aliases.png)
+![Aliases](/img/webiny-apps/headless-cms/features/aliases/aliases.png)
