@@ -13,7 +13,33 @@ This file is always located in your project's root and is unique. Our CLI relies
 - **template** - this property contains the name and version of the project template you used to bootstrap your project. It may not be very important to you at this point, but it will help us to provide you with migration tools and other support in the future.
 - **projectName** - generated using your project folder name. This one is used to name resources during deployment of infrastructure to the cloud. It will help you to look for specific resources in AWS Console.
 - **cli**
+
   - **plugins** - an array of CLI plugins. You can easily add your own CLI plugins here to expand the Webiny CLI capabilities.
+
+Here's what this file may look like in your project:
+
+```js
+module.exports = {
+  template: "@webiny/cwp-template-full@4.0.0",
+  projectName: "my-project",
+  cli: {
+    plugins: [
+      require("@webiny/cli-plugin-deploy-components")({
+        hooks: {
+          api: [
+            "@webiny/cwp-template-full/hooks/api",
+            "./apps/admin/webiny.config.js",
+            "./apps/site/webiny.config.js"
+          ]
+        }
+      }),
+      "@webiny/cli-plugin-scaffold",
+      "@webiny/cli-plugin-scaffold-graphql-service",
+      "@webiny/cli-plugin-scaffold-lambda"
+    ]
+  }
+};
+```
 
 ## webiny.config.js
 
@@ -62,5 +88,6 @@ You can also run the command by calling `yarn webiny run [name]`.
 ### Command parameters
 
 Every command you define will have the same parameters, `options` and `context`:
-- **options** - is an object containing input parameters parsed by [yargs](https://www.npmjs.com/package/yargs) which we use under the hood for our CLI. By running `yarn webiny run myCommand --custom=value`, `yargs` will parse that command and your `custom` parameter will be accessible via the `options`.  
+
+- **options** - is an object containing input parameters parsed by [yargs](https://www.npmjs.com/package/yargs) which we use under the hood for our CLI. By running `yarn webiny run myCommand --custom=value`, `yargs` will parse that command and your `custom` parameter will be accessible via the `options`.
 - **context** - this is a `Context` object provided by Webiny CLI. It contains helper methods, plugins and other useful information constructed at runtime.
