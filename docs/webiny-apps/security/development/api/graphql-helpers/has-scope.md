@@ -4,11 +4,11 @@ title: hasScope
 sidebar_label: hasScope
 ---
 
-Along with the [hasRole](/docs/webiny-apps/security/development/api/scopes), you can also utilize the `hasScope` helper function, which enables you to specify the security scope that the user must possess in order to be able to access a specific field in your GraphQL schema. 
+You can utilize the `hasScope` helper function in order to specify the security scope that the user must possess in order to be able to access a specific field in your GraphQL schema.
 
 > To learn more about security scopes, click [here](/docs/webiny-apps/security/development/api/scopes).
 
-The following example shows a complete definition of a simple GraphQL schema (defined using the `graphql-schema` plugin), with the `hasScope` helper function used in the `security` section. 
+The following example shows a complete definition of a simple GraphQL schema (defined using the `graphql-schema` plugin), with the `hasScope` helper function used to wrap resolvers with required scope.
 
 ```js
 import gql from "graphql-tag";
@@ -58,27 +58,17 @@ export default [
                     library: emptyResolver
                 },
                 LibraryQuery: {
-                    getBook: () => { ... }
+                    // To access the "getBook" field, the user must posses the
+                    // "library:books:get" security scope.
+                    getBook: hasScope("library:books:get")(getBookResolver)
                 },
                 LibraryMutation: {
-                    createBook: () => { ... }
-                }
-            },
-            security: {
-                shield: {
-                    LibraryQuery: {
-                        // To access the "getBook" field, the user must posses the 
-                        // "library:books:get" security scope.
-                        getBook: hasScope("library:books:get")
-                    },
-                    LibraryMutation: {
-                        // To access the "createBook" field, the user must posses the 
-                        // "library:books:create" security scope.
-                        createBook: hasScope("library:books:create"),
-                        // To access the "updateBook" field, the user must posses the 
-                        // "library:books:update" security scope.
-                        updateBook: hasScope("library:books:update")
-                    }
+                    // To access the "createBook" field, the user must posses the
+                    // "library:books:create" security scope.
+                    createBook: hasScope("library:books:create")(createBookResolver),
+                    // To access the "updateBook" field, the user must posses the
+                    // "library:books:update" security scope.
+                    updateBook: hasScope("library:books:update")(updateBookResolver)
                 }
             }
         }

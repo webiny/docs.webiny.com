@@ -6,14 +6,14 @@ sidebar_label: Header Elements
 
 One of the main sections of the Admin app is the Header, which is located on the top of the screen. By default, it contains a few header elements, for example Logo, Search bar and Settings.
 
-![Header example](/img/webiny-apps/admin/development/header/header-1.png)
+![Header example](/img/webiny-apps/admin/development/Header/header-1.png)
 
-You can easily add your own header element by registering a new `header-left`, `header-middle` or `header-right` plugin:
+You can easily add your own header element by registering a new `admin-header-left`, `admin-header-middle` or `admin-header-right` plugin:
 
 ```javascript
 {
-    type: "header-left",
-    name: "header-logo",
+    type: "admin-header-left",
+    name: "admin-header-logo",
     render() {
         return <Logo />;
     }
@@ -22,8 +22,8 @@ You can easily add your own header element by registering a new `header-left`, `
 
 ```javascript
 {
-    type: "header-middle",
-    name: "global-search",
+    type: "admin-header-middle",
+    name: "admin-global-search",
     render() {
         return <SearchBar />;
     }
@@ -32,8 +32,8 @@ You can easily add your own header element by registering a new `header-left`, `
 
 ```javascript
 {
-    type: "header-right",
-    name: "header-user-menu",
+    type: "admin-header-right",
+    name: "admin-header-user-menu",
     render() {
       return <UserMenu />;
     }
@@ -44,12 +44,12 @@ You can easily add your own header element by registering a new `header-left`, `
 
 The key property of the plugin is the `render` property, which represents a function that returns one or more React components which will render the header element.
 
-Lets add a custom component to the `header-right` element of the header elements plugin
+Lets add a custom component to the `admin-header-right` element of the header elements plugin
 
 ```javascript
 {
-  type: "header-right",
-  name: "header-logout-button",
+  type: "admin-header-right",
+  name: "admin-header-logout-button",
   render() {
     return <LogoutButton />;
   }
@@ -58,4 +58,4 @@ Lets add a custom component to the `header-right` element of the header elements
 
 After registering the above plugin, the following element should be added in the right side of the header:
 
-![header-right Registration](/img/webiny-apps/admin/development/header/header-2.png)
+![header-right Registration](/img/webiny-apps/admin/development/Header/header-2.png)
