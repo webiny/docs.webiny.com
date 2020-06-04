@@ -4,13 +4,14 @@ title: Introduction
 sidebar_label: Introduction
 ---
 
-Webiny is a developer-friendly serverless CMS which helps you build websites, apps and APIs by providing a set of tools for fast frontend and backend development, a complete plugin based admin interface and a set of ready-made apps. It is built for self-hosting on AWS, but we do consider multi-cloud deployment in the future.
+Webiny is a platform for building serverless applications and APIs. Out of the box, we provide a complete plugin based admin interface and a set of ready-made apps. It is built for self-hosting on AWS, but we do consider multi-cloud deployment in the future.
 
 We've created a very simple system of plugins that powers both the React apps and the API services. As soon as you begin developing something with Webiny, you'll be working with plugins.
 
 ## Webiny apps
 
 With Webiny, you don't have to start from scratch. We've developed several apps to get you going right away:
+
 - `Admin` - this app is a skeleton for all your administration apps.
 - `File Manager` - this app sits at the very core and handles everything related to file management.
 - `Page Builder` - this app helps you to create your pages using a visual editor, without any coding.
@@ -28,7 +29,7 @@ Webiny is based on the following tools:
 - [React](https://reactjs.org/) for everything related to UI.
 - [Apollo GraphQL](https://www.apollographql.com/) for everything GraphQL (both React and API).
 - [MongoDB database](https://www.mongodb.com/) as our go-to database, but we support database drivers (see next section).
-- [Typescript](https://www.typescriptlang.org/) to make coding with plugins an enjoyable experience.  
+- [Typescript](https://www.typescriptlang.org/) to make coding with plugins an enjoyable experience.
 
 On top of that we've created a very thin layer to bootstrap the API so you don't have to do it yourself. Simply create your GQL Schema plugin and start bringing your ideas to life. Almost everything can be overridden by creating a plugin so there are virtually no limits.
 
@@ -42,7 +43,7 @@ Our database of choice is MongoDB and we've developed our apps using that partic
 
 ### Deployment to the Cloud
 
-To make it as simple as possible for you to get started, all you need is an AWS account. At this point we're deploying infrastructure using a custom deploy process which is based on reusable components which internally use plain AWS SDK. However, Webiny project is structured in such a way that allows you to use any Infrastructure-as-Code tool you want, so you don't have to use our deploy process. 
+To make it as simple as possible for you to get started, all you need is an AWS account. At this point we're deploying infrastructure using a custom deploy process which is based on reusable components which internally use plain AWS SDK. However, Webiny project is structured in such a way that allows you to use any Infrastructure-as-Code tool you want, so you don't have to use our deploy process.
 
 ### Multi-cloud
 
