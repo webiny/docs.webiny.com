@@ -4,22 +4,27 @@ title: Going Live
 sidebar_label: Going Live
 ---
 
-This article demonstrates how you can deploy your project to `dev`, `prod` and any other environment you may have. At the end of this process, you will have a public URL to show your website to the world.
+This article demonstrates how you can deploy your project to your AWS account. At the end of this process, you will have a public URL to show your website to the world.
+
+In the previous article you deployed your `api` stack using `local` environment to be able to develop your React app.
+Now we need to create another instance of your `api` stack, to handle the `dev` environment.
+
+> It's a good idea to completely separate your `local` environment from `dev` and `prod` environments. By deploying a new environment you're creating a completely new copy of your infrastructure.
+
+## Environment variables
+
+This is an important thing to know to have complete control over your environments.
+
+Environment variables in Webiny are loaded in the following order:
+
+1. `.env.json`
+2. `{stack}/.env.json`
+
+When you're deploying your `api` stack, Webiny will first load your `.env.json` in the root of the project, then `api/.env.json`. Same order applies to any stack you want to deploy. Values from the second file will always override the matching values from the first file.
+
+Now we can move on to the next step.
 
 ## 1. Create a `dev` environment config
-
-Open the `api/.env.json` file. You should see a similar config file:
-
-```json
-{
-  "default": {
-    "GRAPHQL_INTROSPECTION": true,
-    "GRAPHQL_PLAYGROUND": true,
-    "S3_BUCKET": "webiny-files-72858e17",
-    "JWT_SECRET": "GSyWyuHU2uHrO+wnSO8OjQ+wPbuQmBclVNFejoo9qmsQRNFAZHu+PFSyq48+"
-  }
-}
-```
 
 In the project root, look at the `.env.json` file. You should something similar:
 
@@ -34,24 +39,25 @@ In the project root, look at the `.env.json` file. You should something similar:
 }
 ```
 
-If you don't want to change anything for your `dev` environment, you can use the default parameters.
-
-However, if you want to use a different database, for example, you can create a new config block and override the `default` values:
+The `default` section contains the values that will be used for every environment, unless you overwrite them using specific environment sections. For each new environment, it's best to use a different database. Update your `.env.json` to look similar to this:
 
 ```json
 {
   "default": {
+    "AWS_PROFILE": "default",
+    "AWS_REGION": "us-east-1",
     "MONGODB_SERVER": "mongodb+srv://username:password@my-db-123.mongodb.net/test?retryWrites=true",
     "MONGODB_NAME": "webiny-72858e17"
   },
   "dev": {
-    "MONGODB_NAME": "webiny-dev-72858e17",
-    "JWT_SECRET": "A different JWT secret"
+    "MONGODB_NAME": "webiny-dev-72858e17-dev"
   }
 }
 ```
 
-## 2. Deploy API using `dev` environment
+The new database will be used by both the `api` and `apps` stacks as they both use this environment variable.
+
+## 2. Deploy your `api` stack using `dev` environment
 
 From the root of your project, run the following command:
 
@@ -59,7 +65,9 @@ From the root of your project, run the following command:
 yarn webiny deploy api --env=dev
 ```
 
-## 3. Deploy apps using `dev` environment
+Since this is a new instance of the `api` stack, it will take some time to deploy. Wait for the stack deployment to finish, before moving to the next step.
+
+## 3. Deploy `apps` stack using `dev` environment
 
 From the root of your project, run the following command:
 
@@ -67,34 +75,28 @@ From the root of your project, run the following command:
 yarn webiny deploy apps --env=dev
 ```
 
+Once this stack is deployed, you have to run through the installation wizard, just like you did for your `local` environment.
+
 ## Deploying to production
 
-If you also want to deploy a `prod` environment, it's as simple as running:
-
-```
-yarn webiny deploy apps --env=prod
-```
-
-> Note: In the example above, `apps` references the folder containing deployment configuration, which is located in `apps/resources.js`. As a result, you can create additional folders like `src`, `api-public`, etc... as long as they have a `resources.js` file inside.
+If you also want to deploy a `prod` environment, repeat the steps described above using the `prod` value.
+Your apps are, by default, configured to support `dev` and `prod` environments.
 
 ## Additional environments
 
-Apart from seen `dev` and `production` environments, Webiny also supports adding your own. In order to do so, the same steps described above are to be taken, with one additional step and that is inserting a build script for existing React apps, in their respective `package.json` files:
+Apart from the `dev` and `prod` environments that come preconfigured for you, Webiny also supports adding your own environments. The steps are the same as described above, with one additional step for the `apps` stack and that is inserting a build script for existing React apps, in their respective `package.json` files:
 
 ```
 apps/admin/package.json
 apps/site/package.json
-apps/another-app/package.json
 ```
 
-An example script for a `staging` environment could look like the following:
+An example script for a `staging` environment could look like this:
 
 ```
 "build:staging": "env-cmd -r .env.json -e default,staging webiny run build"
 ```
 
-Once this is inserted, the following command should successfully execute a `staging` environment deployment:
+What this script says is: load environment variables from `.env.json` file, first load `default` values, then merge `staging` values, and then run `webiny run buid`, which will execute a `build` command in your `webiny.config.js` file.
 
-```
-yarn webiny deploy apps --env=staging
-```
+Once this scripts is inserted, you can repeat steps 1. to 3. of this article.

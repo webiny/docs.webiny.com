@@ -12,7 +12,7 @@ In this tutorial you will learn how to use Gatsby with our Headless CMS.
 
 Make sure you have Webiny installed and your `admin` app is running with Headless CMS enabled. You will use it to create `Content Models` and `Publish` content.
 
-You also need to know your API's url. You receive it when running `webiny deploy api` and it can also be found int your AWS Management Console.
+You also need to know your API's url. You receive it when running `yarn webiny deploy api` and it can also be found int your AWS Management Console.
 
 Finally, install gatsby-cli using `npm install -g gatsby-cli`. We will use it to create our Gatsby Blog.
 

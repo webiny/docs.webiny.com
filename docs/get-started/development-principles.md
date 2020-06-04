@@ -5,7 +5,7 @@ sidebar_label: Development Principles
 ---
 
 Webiny is built using a simple system of plugins. This applies to both React apps and the API.
-This makes it easy to simply create a plugin of a certain type and add it to an existing service or app to add new or replace the existing functionality.   
+This makes it easy to simply create a plugin of a certain type and add it to an existing service or app to add new or replace the existing functionality.
 
 ## Plugins system
 
@@ -19,13 +19,13 @@ In React, you interact with plugins using the `@webiny/plugins` package which in
 import { registerPlugins } from "@webiny/plugins";
 
 registerPlugins({
-    name: "my-new-plugin",
-    type: "useful-plugin",
-    beUseful() {
-        console.log("I am useful!");
-        
-        return "Useful data";
-    }
+  name: "my-new-plugin",
+  type: "useful-plugin",
+  beUseful() {
+    console.log("I am useful!");
+
+    return "Useful data";
+  }
 });
 ```
 
@@ -39,9 +39,9 @@ const usefulPlugins = getPlugins("useful-plugin");
 // Run plugins
 const result = usefulPlugins.map(plugin => plugin.beUseful());
 // Do whatever you need with the result
-``` 
+```
 
-### Plugins in GraphQL 
+### Plugins in GraphQL
 
 The API environment is slightly different: here we have an instance of `PluginsContainer` which is always available to your resolvers via `context.plugins`.
 
@@ -50,18 +50,20 @@ This is a simplified example of how a GraphQL handler is executed (note that all
 ```js
 import { createHandler, PluginsContainer } from "@webiny/api";
 
-const myPlugins = [{
+const myPlugins = [
+  {
     name: "my-new-plugin",
     type: "useful-plugin",
     beUseful() {
-        return "Useful data";
+      return "Useful data";
     }
-}];
+  }
+];
 
 export const handler = async (event, context) => {
-    const plugins = new PluginsContainer([myPlugins]);
-    const { handler } = await createHandler({ plugins });
-    return handler(event, context);
+  const plugins = new PluginsContainer([myPlugins]);
+  const { handler } = await createHandler({ plugins });
+  return handler(event, context);
 };
 ```
 
@@ -86,9 +88,9 @@ As cumbersome as it may sound, this brings a huge benefit of increased reliabili
 
 We are aware that this is a huge change. But we're also sure it's for the better. At Webiny, we've embraced this way of development and it is pushing us to write tests for our GraphQL schemas, which eliminates the need to deploy all the time. But also, it pushes us to optimize our serverless components even further, to reduce the deploy time as much as possible.
 
-Our CLI supports selective component deploy, so you can only deploy the component you're working on. Depending on how big your service is, a deploy will take from `~7-20` seconds. For example, a service like `i18n` or `security` takes `7s` to deploy. If you're working on a Page Builder API plugin, that will take you around `20s` to deploy, since that service is much bigger.  
+Our CLI supports selective component deploy, so you can only deploy the component you're working on. Depending on how big your service is, a deploy will take from `~7-20` seconds. For example, a service like `i18n` or `security` takes `7s` to deploy. If you're working on a Page Builder API plugin, that will take you around `20s` to deploy, since that service is much bigger.
 
-Our watch mechanism re-deploys components as soon as there is a change, and will notify you if there is another deploy in progress.
+Our watch mechanism redeploys components as soon as there is a change, and will notify you if there is another deploy in progress.
 
 ### GraphQL schema tests
 
@@ -143,11 +145,11 @@ describe("Your plugins", () => {
 ```
 
 Now not only you don't need to deploy your services all the time, you're much more confident your schemas are working as expected 🎉.
- 
+
 You can find a complete example in the [@webiny/api-files package](https://github.com/webiny/webiny-js/blob/release-4.x/packages/api-files/__tests__/graphql.test.js).
 
 ### Avoid chaotic development
 
-This is something full-stack developers are guilty of. We've done this ourselves for so many years, but the move to cloud native development made us stop and rethink this horrible practice. 
+This is something full-stack developers are guilty of. We've done this ourselves for so many years, but the move to cloud native development made us stop and rethink this horrible practice.
 
 You should not develop your API and React at the same time. Do your API first, test it, deploy it. Then confidently move to your React app and work with the deployed API knowing it works as expected. This will also improve the quality of what you're developing because the context shift will not waste your time and distract you constantly.
