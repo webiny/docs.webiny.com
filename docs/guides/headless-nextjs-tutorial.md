@@ -48,7 +48,7 @@ This will generate a new folder in your working directory. Make sure the Next.js
 
 You may delete the `myBlog/pages/api` folder, as we will not use it.
 
-## Pulling GraphQL data (Blog Posts) into Next.js
+## Pulling GraphQL data (Blog Posts) into Next.js & displaying it
 
 You need to create an Access Token in order to access your API. Go to the menu in **Webiny's Admin app > Sidebar > Settings > Headless CMS > Access Tokens**. Fill in your token's name, create it by clicking on `Save Access Token` and save the Token you receive.
 
@@ -60,7 +60,7 @@ Write an async function `getStaticProps` that queries your Headless CMS API and 
 
 Finally, update the rendered element's `div` indentified by `className="grid"` so that it now displays our Blog Posts instead. Your code will look like this in the end: 
 
-```
+```ts
 import Head from "next/head";
 import { GraphQLClient } from "graphql-request";
 import fetch from "node-fetch";
@@ -98,15 +98,12 @@ export async function getStaticProps(context) {
 export default function Home({ blogPostsData }) {
     const blogPosts = blogPostsData.listBlogPosts.data;
 
-    const BlogPosts =
-        blogPosts && blogPosts.length > 0
-            ? blogPosts.map((post) => (
-                  <div key={`post-${post.id}`}>
-                      <h1>{post.title}</h1>
-                      <p style={{ whiteSpace: "pre-wrap" }}>{post.body}</p>
-                  </div>
-              ))
-            : [];
+    const BlogPosts = blogPosts.map(post => (
+        <div key={`post-${post.id}`}>
+            <h1>{post.title}</h1>
+            <p style={{ whiteSpace: "pre-wrap" }}>{post.body}</p>
+        </div>
+    ));
 
     return (
         <div className="container">
@@ -131,46 +128,6 @@ export default function Home({ blogPostsData }) {
 Replace `<YOUR_API_URL>` and `<YOUR_ACCESS_TOKEN>` with your API's url and the Token created in the `admin` app earlier.
 
 We are using the `read` API in order to pull Blog Post data and the `production` alias which points to the `production` environment, because that is where we published our content earlier.
-
-## Displaying blog posts
-
-Go to `src/pages/index.js` and export a GraphQL query that pulls the Blog Posts:
-
-```js
-export const query = graphql`{
-  webinyHeadlessCms {
-    listBlogPosts {
-      data {
-        id
-        createdOn
-        title
-        body
-      }
-    }
-  }
-}`
-```
-
-This will supply `data` in our `IndexPage` component, where we have our Posts. Tweak `IndexPage` and add a little JSX to nicely display them:
-
-```
-const IndexPage = ({data}) => {
-  const blogPosts = data.webinyHeadlessCms.listBlogPosts.data
-
-  const BlogPosts = blogPosts.map(post => (
-    <div key={`post-${post.id}`}>
-      <h1>{post.title}</h1>
-      <p style={{whiteSpace: "pre-wrap"}}>{post.body}</p>
-    </div>
-  ))
-
-  return (
-    <Layout>
-      {BlogPosts}
-    </Layout>
-  )
-}
-```
 
 Run `yarn dev` and you will be able to see your blog posts in Next.js's development mode.
 
