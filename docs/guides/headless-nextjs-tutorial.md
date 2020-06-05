@@ -14,8 +14,6 @@ Make sure you have Webiny installed and your `admin` app is running with Headles
 
 You also need to know your API's url. You receive it when running `yarn webiny deploy api` and it can also be found int your AWS Management Console.
 
-Finally, install create-next-app using `npm install -g @create-next-app/core`. We will use it to create our Next.js Blog.
-
 ## Creating a Blog Post model in Headless CMS
 
 Run the `admin` app and navigate to **Headless CMS > Content Models > Models**. I will use the default `production` environment.
