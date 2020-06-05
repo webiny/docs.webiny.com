@@ -1,25 +1,13 @@
 module.exports = {
     docs: {
-        "Webiny": [
-            "webiny/introduction",
-            {
-                type: "category",
-                label: "FAQ",
-                items: ["webiny/faq/how-is-webiny-serverless", "webiny/faq/why-not-dynamodb"]
-            },
-            {
-                type: "link",
-                label: "How To Contribute",
-                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
-            }
-        ],
         "Get Started": [
+            "webiny/introduction",
             "get-started/quick-start",
             "get-started/going-live",
             "get-started/development-principles",
             "get-started/configuration"
         ],
-        "Guides": [
+        Guides: [
             "guides/mongodb-atlas",
             "guides/headless-gatsby-tutorial",
             "guides/headless-nextjs-tutorial"
@@ -44,17 +32,13 @@ module.exports = {
             {
                 type: "category",
                 label: "Scaffolding",
-                items: [
-                    "deep-dive/scaffolding/creating-a-scaffold-plugin",
-                ]
+                items: ["deep-dive/scaffolding/creating-a-scaffold-plugin"]
             },
             {
                 type: "category",
                 label: "CLI",
-                items: [
-                    "deep-dive/cli/creating-a-cli-plugin",
-                ]
-            },
+                items: ["deep-dive/cli/creating-a-cli-plugin"]
+            }
         ],
         "API Development": [
             "api-development/graphql",
@@ -171,7 +155,7 @@ module.exports = {
                             "webiny-apps/headless-cms/features/graphql-playground",
                             "webiny-apps/headless-cms/features/environments",
                             "webiny-apps/headless-cms/features/aliases",
-                            "webiny-apps/headless-cms/features/access-tokens",
+                            "webiny-apps/headless-cms/features/access-tokens"
                             // "webiny-apps/headless-cms/features/roles-permissions",
                             // {
                             //     type: "category",
@@ -226,7 +210,7 @@ module.exports = {
                                         ]
                                     }
                                 ]
-                            },
+                            }
                         ]
                     }
                 ]
@@ -279,6 +263,15 @@ module.exports = {
                         ]
                     }
                 ]
+            }
+        ],
+        FAQ: [
+            "faq/how-is-webiny-serverless",
+            "faq/why-not-dynamodb",
+            {
+                type: "link",
+                label: "How do I Contribute?",
+                href: "https://github.com/webiny/webiny-js/blob/master/docs/CONTRIBUTING.md"
             }
         ]
     }
