@@ -7,7 +7,11 @@ module.exports = {
             "get-started/development-principles",
             "get-started/configuration"
         ],
-        Guides: ["guides/mongodb-atlas", "guides/headless-gatsby-tutorial"],
+        Guides: [
+            "guides/mongodb-atlas",
+            "guides/headless-gatsby-tutorial",
+            "guides/headless-nextjs-tutorial"
+        ],
         "Deep Dive": [
             "deep-dive/project-structure",
             {
