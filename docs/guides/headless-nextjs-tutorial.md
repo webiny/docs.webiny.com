@@ -4,180 +4,190 @@ title: Creating a blog with Headless CMS + Next.js
 sidebar_label: Creating a blog with Headless CMS + Next.js
 ---
 
-In this tutorial you will learn how to use Next.js with our Headless CMS.
+In this short tutorial, we will learn how to use the popular [Next.js](https://nextjs.org/) React framework with the [Webiny Headless CMS](http://localhost:3000/docs/webiny-apps/headless-cms/features/content-modeling).
 
-[Here is a sample next.js blog using Webiny's Headless CMS](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs)   
+> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs) repository.
 
 ## Prerequisites
 
-Make sure you have Webiny installed and your `admin` app is running with Headless CMS enabled. You will use it to create `Content Models` and `Publish` content.
+##### 1. A Webiny Project
 
-You also need to know your API's url. You receive it when running `yarn webiny deploy api` and it can also be found int your AWS Management Console.
+First of all, make sure you have a working [Webiny project](/docs/get-started/quick-start) set up.
 
-## Creating a Blog Post model in Headless CMS
+> When setting up a new project, currently, there are [two project templates](/docs/get-started/quick-start#3-template-specific-setup) you can choose from: `full` and `cms`. Both include the Headless CMS app by default.
 
-Run the `admin` app and navigate to **Headless CMS > Content Models > Models**. I will use the default `production` environment.
+##### 2. Content Delivery API URL
 
-Environments allow you to create different content pools. They are particularly useful when separating `production`, `staging` and `development` envs. They never share data between each other after creation, so make sure you always stick to the same environment.
+The Headless CMS app exposes data via the Content Delivery API, which is a simple GraphQL API that dynamically updates its schema on content model changes that you make.
+Once you've deployed your API stack (using the `yarn webiny deploy api` command), you should be able to find the Content Delivery API URL in the console output:
 
-Create a new content model named `BlogPost` inside the default `Ungrouped` content model group. 
+![Headless CMS API URLs](/img/guides/headless-nextjs-tutorial/headless-cms-api-url.png)
 
-Model groups are a way how you organize the content models inside the main menu, allowing you to build logical sections for your content editors. Every model must belong to a group. You can create as many groups as you need by navigating to **Headless CMS > Content Models > Groups**.  
+##### 3. Content Delivery API Access Token
 
-Next, add two fields: `title` as a `Text` and `body` as a `Long Text`. They will match every blog post's title and content. Optionally, it is possible make both of the fields **required** in the `Validators` tab.
+In order to access the data via the Content Delivery API, we'll need a valid [Access Token](/docs/webiny-apps/headless-cms/features/access-tokens). These can be created via the Access Tokens form, which you can reach via the main menu:
 
-Save your new fields before leaving the page and you will be able to create, publish and remove `BlogPost` entries. This is what your model should look like in the `admin` app:
+![Headless CMS API Access Tokens](/img/guides/headless-nextjs-tutorial/access-tokens-menu.png)
 
-![Blog post model](/img/guides/headless-gatsby-tutorial/blog-post-model.png)
+Create a new token and make sure to copy the actual token string. We'll need it soon.
 
-You can read your data from your API by navigating to its `/cms/read/production` path, eg: https://dfgk2kz3e3qhn.cloudfront.net/cms/read/production - your URL will of course be different.
+![Headless CMS API Access Tokens](/img/guides/headless-nextjs-tutorial/access-tokens-form.png)
 
->Note that you will need an Access Token in order to authenticate and use your API. We will create one soon.
+## Creating our first content model
 
-## Managing Blog Posts
+Now that we have all of the prerequisites out of the way, it's time to create our first [content model](http://localhost:3000/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
 
-Navigate to **Headless CMS > Ungrouped > BlogPost** and create a few Blog Posts. Use your creativity. 
+![The Models View](/img/guides/headless-nextjs-tutorial/content-models-menu.png)
 
-Remember to Publish your articles, otherwise they will not be visible through the `/read` API.
+Let's create a new content model named **Blog Post**. Click on the "plus" icon in the lower right corner of the screen and in the dialog that's about to be shown, enter the following:
 
-## Creating a Next.js Blog
+![New Content Mode Dialogl](/img/guides/headless-nextjs-tutorial/new-content-model-dialog.png)
 
-Create a [new Next.js app](https://nextjs.org/docs/getting-started/) by running `npx create-next-app`. I will use project name `myBlog` and the `Default starter app` template. 
+For the content model group, we'll use the `Ungrouped`, which is the default group that comes out of the box with every Headless CMS app installation.
 
-This will generate a new folder in your working directory. Make sure the Next.js app is generated outside of your `Webiny` folder.
+> Content model groups give you a way to organize the content models inside the main menu, allowing you to build logical sections for your content editors. You can click [here](/docs/webiny-apps/headless-cms/features/content-modeling-groups) to learn more.
 
-You may delete the `myBlog/pages/api` folder, as we will not use it.
+Once we've submitted the form in the dialog, we should be redirected to the [Content Model Editor](/docs/webiny-apps/headless-cms/features/content-modeling). Let's add two fields: `title` as a `Text`, and `body` as a `Rich Text` field. They will match every blog post's title and body (content), respectively.
 
-## Pulling GraphQL data (Blog Posts) into Next.js
+<!---
+Optionally, it is possible make both of the fields **required** in the `Validators` tab.
+-->
 
-You need to create an Access Token in order to access your API. Go to the menu in **Webiny's Admin app > Sidebar > Settings > Headless CMS > Access Tokens**. Fill in your token's name, create it by clicking on `Save Access Token` and save the Token you receive.
+![Blog Post Model](/img/guides/headless-nextjs-tutorial/editor-blog-post-model.png)
 
-Navigate to your Next.js project's directory `myBlog` and install `graphql-request` and `node-fetch` using `npm i graphql-request` and `npm i node-fetch` respectively, which we will use in order to fetch the Blog Posts into our Next.js app.
+Save the changes by clicking on the **Save** button in the top right corner of the screen.
 
-Open `pages/index.js`, import `GraphQLClient`, import `node-fetch`, set `global.fetch`'s value to the imported `node-fetch` object: this is important, as `graphql-request` makes use of `fetch` which does not exist by default in NodeJs. 
+Now it's time to create the actual content. Proceed by clicking on the **View content** button, located on the left side of the **Save** button.
 
-Write an async function `getStaticProps` that queries your Headless CMS API and returns the blog posts. This will employ of `graphql-request` and return a `props` object containing the Blog Posts' data.
+You can also reach the content area by clicking on the newly added **Blog Post** item in the main menu:
 
-Finally, update the rendered element's `div` indentified by `className="grid"` so that it now displays our Blog Posts instead. Your code will look like this in the end: 
+![Blog Post Model - Main Menu](/img/guides/headless-nextjs-tutorial/blog-post-in-menu.png)
+
+## Managing Content
+
+As mentioned, navigate to **Headless CMS > Ungrouped > Blog Post** and create a blog post or two. Feel free to unleash your creativity. 😉
+
+![Blog Post Form](/img/guides/headless-nextjs-tutorial/blog-post-form.png)
+
+Once you feel happy with the blog post, you can save the changes by clicking the **Save** button, located at the bottom of the form.
+
+The next and final step is to publish the blog post, which will make it actually visible in the Content Delivery API. To do that, click on the **Publish** icon, found at the right side in the form header.
+
+Now that we've covered the basics of creating content models and managing content, we can move on to the Next.js part of this tutorial.
+
+## Creating a new Next.js app
+
+We can create a [new Next.js app](https://nextjs.org/docs/getting-started/) by running the `npx create-next-app` command. We will use `my-blog` as the project name, and the `Default starter app` template with it.
+
+![Creating a New Next.js App](/img/guides/headless-nextjs-tutorial/npx-next.png)
+
+> Ideally, you should create your Next.js project in a folder outside of the Webiny project.
+
+Now that we have a new Next.js app ready to go, let's see what it takes to make a simple page that renders a list of all blog posts that we've just created.
+
+## Fetching Blog Posts
+
+We're going to start off by installing two NPM packages - [`graphql-request`](https://github.com/prisma-labs/graphql-requeNst) and [`node-fetch`](https://github.com/node-fetch/node-fetch). These will help us with fetching the actual blog posts from the Content Delivery API.
+
+In your Next.js project root, run the following command:
 
 ```
+yarn add graphql-request node-fetch
+```
+
+Once we have these ready, we can jump to the code. The following snippet shows the code located in the [`pages/index.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs/pages/index.js) file:
+
+```ts
 import Head from "next/head";
 import { GraphQLClient } from "graphql-request";
 import fetch from "node-fetch";
+
+// The "graphql-request" library relies on "fetch" for
+// making actual HTTP requests, which does't exist in Node.js.
 global.fetch = fetch;
 
-export async function getStaticProps(context) {
-    const webinyHeadlessCmss = new GraphQLClient(
-        "<YOUR_API_URL>",
-        {
-            headers: {
-                authorization: "<YOUR_ACCESS_TOKEN>",
-            },
-        }
-    );
+// Your Content Delivery API URL.
+const CONTENT_DELIVERY_API_URL = "...";
 
-    const blogPostsData = await webinyHeadlessCmss.request(`
-      {
-        listBlogPosts{
-          data{
-            id
-            body
-            title
-          }
-        }
-      }
-    `);
+// Your Content Delivery API Access Token.
+const CONTENT_DELIVERY_API_ACCESS_TOKEN = "...";
 
-    return {
-        props: {
-            blogPostsData,
-        },
-    };
-}
-
-export default function Home({ blogPostsData }) {
-    const blogPosts = blogPostsData.listBlogPosts.data;
-
-    const BlogPosts =
-        blogPosts && blogPosts.length > 0
-            ? blogPosts.map((post) => (
-                  <div key={`post-${post.id}`}>
-                      <h1>{post.title}</h1>
-                      <p style={{ whiteSpace: "pre-wrap" }}>{post.body}</p>
-                  </div>
-              ))
-            : [];
-
-    return (
-        <div className="container">
-            <Head>
-                <title>Create Next App</title>
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
-
-            <main>
-                <h1 className="title">My Awesome Blog</h1>
-
-                <p className="description">
-                    Created using <a href="https://nextjs.org">Next.js</a> and{" "}
-                    <a href="https://www.webiny.com/">Webiny Headless CMS</a>
-                </p>
-
-                <div className="grid">{BlogPosts}</div>
-            ... 
-            /* the rest of index.js remains unmodified */
-```
-
-Replace `<YOUR_API_URL>` and `<YOUR_ACCESS_TOKEN>` with your API's url and the Token created in the `admin` app earlier.
-
-We are using the `read` API in order to pull Blog Post data and the `production` alias which points to the `production` environment, because that is where we published our content earlier.
-
-## Displaying blog posts
-
-Go to `src/pages/index.js` and export a GraphQL query that pulls the Blog Posts:
-
-```js
-export const query = graphql`{
-  webinyHeadlessCms {
+// A simple GQL query that fetches a list of blog posts.
+const LIST_BLOG_POSTS = /* GraphQL */ `
+  {
     listBlogPosts {
       data {
         id
-        createdOn
-        title
         body
+        title
       }
     }
   }
-}`
-```
+`;
 
-This will supply `data` in our `IndexPage` component, where we have our Posts. Tweak `IndexPage` and add a little JSX to nicely display them:
+// We query the Content Delivery API here. More information about the "getStaticProps":
+// https://nextjs.org/docs/basic-features/data-fetching#getstaticprops-static-generation
+export async function getStaticProps(context) {
+  const webinyHeadlessCms = new GraphQLClient(CONTENT_DELIVERY_API_URL, {
+    headers: {
+      authorization: CONTENT_DELIVERY_API_ACCESS_TOKEN
+    }
+  });
 
-```
-const IndexPage = ({data}) => {
-  const blogPosts = data.webinyHeadlessCms.listBlogPosts.data
+  const blogPostsData = await webinyHeadlessCms.request(LIST_BLOG_POSTS);
+
+  return {
+    props: {
+      blogPostsData
+    }
+  };
+}
+
+// The main React component that renders the list of blog posts.
+export default function Home({ blogPostsData }) {
+  const blogPosts = blogPostsData.listBlogPosts.data;
 
   const BlogPosts = blogPosts.map(post => (
     <div key={`post-${post.id}`}>
       <h1>{post.title}</h1>
-      <p style={{whiteSpace: "pre-wrap"}}>{post.body}</p>
+      <p style={{ whiteSpace: "pre-wrap" }}>{post.body}</p>
     </div>
-  ))
+  ));
 
   return (
-    <Layout>
-      {BlogPosts}
-    </Layout>
-  )
+    <div className="container">
+      <Head>
+        <title>Create Next App</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <main>
+        <h1 className="title">My Awesome Blog</h1>
+
+        <p className="description">
+          Created using <a href="https://nextjs.org">Next.js</a> and{" "}
+          <a href="https://www.webiny.com/">Webiny Headless CMS</a>
+        </p>
+
+        <div className="grid">{BlogPosts}</div>
+
+        {/* remaning code removed for brevity */}
+      </main>
+    </div>
+  );
 }
 ```
 
-Run `yarn dev` and you will be able to see your blog posts in Next.js's development mode.
+## Previewing the page
 
-Here's what `index.js` looks like in [our demo](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs/pages/index.js).
+Let's run `yarn dev` in our Next.js project directory so we can see our page in action:
+
+![Next.js Blog](/img/guides/headless-nextjs-tutorial/nextjs-blog.png)
 
 ## Conclusion
 
-Congratulations! Your blog posts are accessible within Next.js and you can now display them within your app.
+Congratulations! 🎉
 
-![Next.js blog](/img/guides/headless-nextjs-tutorial/nextjs-blog.png)
+We've have successfully created a simple page that displays a list of all created blog posts, all powered by Webiny Headless CMS and Next.js React framework.
+
+> The same can also be achieved with other popular tools, like [Gatsby](https://www.gatsbyjs.org/). To learn more, click [here](<(/docs/guides/headless-gatsby-tutorial)>).
