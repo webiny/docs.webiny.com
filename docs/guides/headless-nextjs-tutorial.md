@@ -67,7 +67,7 @@ import fetch from "node-fetch";
 global.fetch = fetch;
 
 export async function getStaticProps(context) {
-    const webinyHeadlessCmss = new GraphQLClient(
+    const webinyHeadlessCms = new GraphQLClient(
         "<YOUR_API_URL>",
         {
             headers: {
@@ -76,7 +76,7 @@ export async function getStaticProps(context) {
         }
     );
 
-    const blogPostsData = await webinyHeadlessCmss.request(`
+    const blogPostsData = await webinyHeadlessCms.request(`
       {
         listBlogPosts{
           data{
