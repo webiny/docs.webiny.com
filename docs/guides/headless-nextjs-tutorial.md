@@ -62,7 +62,7 @@ Write an async function `getStaticProps` that queries your Headless CMS API and 
 
 Finally, update the rendered element's `div` indentified by `className="grid"` so that it now displays our Blog Posts instead. Your code will look like this in the end: 
 
-```js
+```
 import Head from "next/head";
 import { GraphQLClient } from "graphql-request";
 import fetch from "node-fetch";
