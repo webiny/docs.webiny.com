@@ -87,12 +87,12 @@ Now that we have a new Next.js app ready to go, let's see what it takes to make 
 
 ## Fetching Blog Posts
 
-We're going to start off by installing two NPM packages - [`graphql-request`](https://github.com/prisma-labs/graphql-requeNst) and [`node-fetch`](https://github.com/node-fetch/node-fetch). These will help us with fetching the actual blog posts from the Content Delivery API.
+We're going to start off by installing an NPM package - [`graphql-request`](https://github.com/prisma-labs/graphql-requeNst). This will help us with fetching the actual blog posts from the Content Delivery API.
 
 In your Next.js project root, run the following command:
 
 ```
-yarn add graphql-request node-fetch
+yarn add graphql-request
 ```
 
 Once we have these ready, we can jump to the code. The following snippet shows the code located in the [`pages/index.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs/pages/index.js) file:
@@ -100,11 +100,6 @@ Once we have these ready, we can jump to the code. The following snippet shows t
 ```ts
 import Head from "next/head";
 import { GraphQLClient } from "graphql-request";
-import fetch from "node-fetch";
-
-// The "graphql-request" library relies on "fetch" for
-// making actual HTTP requests, which does't exist in Node.js.
-global.fetch = fetch;
 
 // Your Content Delivery API URL.
 const CONTENT_DELIVERY_API_URL = "...";
