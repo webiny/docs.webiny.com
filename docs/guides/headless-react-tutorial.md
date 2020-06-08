@@ -1,10 +1,10 @@
 ---
 id: headless-react-tutorial
-title: Creating an e-library with Headless CMS and React
-sidebar_label: Integrating React with Headless CMS
+title: Integrating React and Apollo Client with Headless CMS
+sidebar_label: Integrating React and Apollo Client with Headless CMS
 ---
 
-In this tutorial you will learn how to integrate [React](https://reactjs.org/) and [Apollo Client](https://www.apollographql.com/docs/react/) with our Headless CMS.
+In this tutorial you will learn how to integrate [React](https://reactjs.org/) and [Apollo Client](https://www.apollographql.com/docs/react/) with our Headless CMS to create an e-library.
 
 > All the code shown in the tutorial can be found [here](https://github.com/webiny/webiny-examples/).
 
@@ -93,9 +93,12 @@ Let's setup our React application using create react app:
 npx create-react-app react-project
 
 cd react-project
+yarn start
 ```
 
 > Ideally, you should create your React project in a folder outside of the Webiny project.
+
+> Note: Running `yarn start` will have the React application built and has hot re-loading enabled so we can see our changes while we are coding them.
 
 Next we need to install some of our extra dependencies:
 
@@ -205,7 +208,7 @@ $tertiary-color: #255C99;
 $quart-color: #4E4E4E;
 ```
 
-> Note: You can always change these 4 colors to another palette that might interest you more. If you want to learn more about SCSS look [here](https://sass-lang.com/documentation/syntax).
+> Note: You can always change these 4 colors to another palette that might interest you more. If you want to learn more about SCSS, look [here](https://sass-lang.com/documentation/syntax).
 
 Now you can copy below into the following file  `partials/_main.scss`:
 
@@ -218,7 +221,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
-  
+
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
@@ -462,5 +465,6 @@ export default App;
 Voila! Now when we look at our react application we should find our site like this:
 
 ![List Books](/img/guides/headless-react-tutorial/e-library.png)
+> Note: Make sure you are running `yarn start` inside the `react-project` directory so your site is running.
 
 Congrats, we now completed a e-library for our books with React, Apollo Client, and Webiny Headless CMS.
