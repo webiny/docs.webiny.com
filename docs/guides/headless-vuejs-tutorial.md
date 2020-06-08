@@ -4,7 +4,7 @@ title: Creating a blog with Headless CMS + Vue.js
 sidebar_label: Creating a blog with Headless CMS + Vue.js
 ---
 
-In this short tutorial, we will learn how to use the popular [Vue.js](https://vuejs.org/) The Progressive JavaScript Framework. [Webiny Headless CMS](http://localhost:3000/docs/webiny-apps/headless-cms/features/content-modeling).
+In this short tutorial, we will learn how to use the popular [Vue.js](https://vuejs.org/) The Progressive JavaScript Framework with the [Webiny Headless CMS](http://localhost:3000/docs/webiny-apps/headless-cms/features/content-modeling).
 
 > All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs) repository.
 
@@ -47,7 +47,7 @@ For the content model group, we'll use the `Ungrouped`, which is the default gro
 
 > Content model groups give you a way to organize the content models inside the main menu, allowing you to build logical sections for your content editors. You can click [here](/docs/webiny-apps/headless-cms/features/content-modeling-groups) to learn more.
 
-Once we've submitted the form in the dialog, we should be redirected to the [Content Model Editor](/docs/webiny-apps/headless-cms/features/content-modeling). Let's add two fields: `title` as a `Text`, `description` as a `LongText`, and `image` as a `File` field. They will match every fact's title, description and image (content), respectively.
+Once we've submitted the form in the dialog, we should be redirected to the [Content Model Editor](/docs/webiny-apps/headless-cms/features/content-modeling). Let's add three fields: `title` as a `Text`, `description` as a `Long Text`, and `image` as a `Files` field. They will match every fact's title, description and image, respectively.
 
 <!---
 Optionally, it is possible make both of the fields **required** in the `Validators` tab.
@@ -100,7 +100,7 @@ In your Vue.js project root, run the following command:
 yarn add vue-apollo graphql apollo-client apollo-link-http apollo-cache-inmemory apollo-link-context graphql-tag
 ```
 
-Once we have these ready, we can jump to the code. The following snippet shows the code located in the [`apolloClient.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs/apolloClient.js) file:
+Once we have these ready, we can jump to the code. The following snippet shows the code located in the [`apolloClient.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs/src/apolloClient.js) file:
 
 ```ts
 import { ApolloClient } from "apollo-client";
@@ -144,7 +144,9 @@ const apolloClient = new ApolloClient({
 export default apolloClient;
 ```
 
-Now we will add this apollo Client to our Vue app so that we can fetch the content from the Content Delivery API, [`main.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs/main.js)
+Now we will add this apollo Client to our Vue app so that we can fetch the content from the Content Delivery API.
+
+Let's head over to [`main.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs/src/main.js) file:
 
 ```ts
 import Vue from 'vue'
@@ -190,8 +192,9 @@ new Vue({
 
 ```
 
-Finally let's render some mark up :)
-Head over to [`App.vue`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs/App.vue)
+Finally let's render some mark up 🙂
+
+Head over to [`App.vue`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs/src/App.vue) file:
 
 ```ts
 <template>
