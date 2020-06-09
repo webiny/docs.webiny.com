@@ -75,18 +75,18 @@ From the root of your project, run the following command:
 yarn webiny deploy api <resource-name> --env=dev
 ```
 
-for example, running this command will only deploy `securityGraphQL` resource
+For example, running this command will only deploy `securityGraphQL` resource:
 
 ```
 yarn webiny deploy api securityGraphQL --env=dev
 ```
 
-If you want to deploy more resources just add them to the list, for example
+If you want to deploy more resources just add them to the list, for example:
 
 ```
 yarn webiny deploy api securityGraphQL filesManage databaseProxy --env=dev
 ```
-> To see the list of all available resources, checkout `resources.js` file inside api folder
+> To see the list of all available resources, checkout `resources.js` file inside api folder.
 
 ## 3. Deploy `apps` stack using `dev` environment
 
