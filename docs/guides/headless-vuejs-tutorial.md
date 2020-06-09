@@ -4,7 +4,7 @@ title: Creating a blog with Headless CMS + Vue.js
 sidebar_label: Creating a blog with Headless CMS + Vue.js
 ---
 
-In this short tutorial, we will learn how to use the popular [Vue.js](https://vuejs.org/) The Progressive JavaScript Framework with the [Webiny Headless CMS](http://localhost:3000/docs/webiny-apps/headless-cms/features/content-modeling).
+In this short tutorial, we will learn how to use the popular [Vue.js](https://vuejs.org/) The Progressive JavaScript Framework with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
 > All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs) repository.
 
@@ -21,7 +21,7 @@ First of all, make sure you have a working [Webiny project](/docs/get-started/qu
 The Headless CMS app exposes data via the Content Delivery API, which is a simple GraphQL API that dynamically updates its schema on content model changes that you make.
 Once you've deployed your API stack (using the `yarn webiny deploy api` command), you should be able to find the Content Delivery API URL in the console output:
 
-![Headless CMS API URLs](/img/guides/headless-nextjs-tutorial/headless-cms-api-url.png)
+![Headless CMS API URLs](/img/guides/headless-vuejs-tutorial/headless-cms-api-url.jpg)
 
 ##### 3. Content Delivery API Access Token
 
@@ -35,7 +35,7 @@ Create a new token and make sure to copy the actual token string. We'll need it 
 
 ## Creating our first content model
 
-Now that we have all of the prerequisites out of the way, it's time to create our first [content model](http://localhost:3000/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
+Now that we have all of the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
 
 ![The Models View](/img/guides/headless-nextjs-tutorial/content-models-menu.png)
 
@@ -77,7 +77,11 @@ Now that we've covered the basics of creating content models and managing conten
 
 ## Creating a new Vue.js app
 
-We can create a [new Vue.js app](https://cli.vuejs.org/) by running the `npx @vue/cli create <project-name>` command. We will use `coffeeshop` as the project name, and the `default` preset with it.
+We can create a [new Vue.js app](https://cli.vuejs.org/) by running this command.
+```
+npx @vue/cli create <project-name>
+```
+For this example we'll use `coffeeshop` as the project name, and the `default` preset with it.
 
 ![Creating a New Vue.js App](/img/guides/headless-vuejs-tutorial/vue-js-create.png)
 
@@ -89,8 +93,12 @@ Now that we have a new Vue.js app ready to go, let's see what it takes to make a
 
 We're going to start off by installing few NPM packages:
 - [`vue-apollo`](https://github.com/vuejs/vue-apollo)
+- [`graphql`](https://github.com/graphql/graphql-js)
 - [`apollo-client`](https://github.com/apollographql/apollo-client)
-- few others
+- [`apollo-link-http`](https://github.com/apollographql/apollo-link)
+- [`apollo-cache-inmemory`](https://www.npmjs.com/package/apollo-cache-inmemory)
+- [`apollo-link-context`](https://www.npmjs.com/package/apollo-link-context)
+- [`graphql-tag`](https://github.com/apollographql/graphql-tag)
 
 These will help us with fetching the actual content from the Content Delivery API.
 
@@ -149,33 +157,18 @@ Now we will add this apollo Client to our Vue app so that we can fetch the conte
 Let's head over to [`main.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs/src/main.js) file:
 
 ```ts
-import Vue from 'vue'
-import VueApollo from "vue-apollo"
-import Vue from 'vue'
-import VueApollo from "vue-apollo"
+import Vue from 'vue';
+import VueApollo from "vue-apollo";
+import Vue from 'vue';
+import VueApollo from "vue-apollo";
 
 import "./assets/styles.css";
-import App from './App.vue'
-import apolloClient from './apolloClient'
-
-Vue.config.productionTip = false
-
-Vue.use(VueApollo);
-
-const apolloProvider = new VueApollo({
-  defaultClient: apolloClient
-});
-
-new Vue({
-  apolloProvider,
-  render: h => h(App),
-}).$mount('#app')
-
+import App from './App.vue';
 
 // import the `apolloClient` that we just created
-import apolloClient from './apolloClient'
+import apolloClient from './apolloClient';
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
 // add `VueApollo`
 Vue.use(VueApollo);
@@ -188,7 +181,7 @@ const apolloProvider = new VueApollo({
 new Vue({
   apolloProvider,
   render: h => h(App),
-}).$mount('#app')
+}).$mount('#app');
 
 ```
 
@@ -275,6 +268,6 @@ Let's run `yarn serve` in our Vue.js project directory so we can see our page in
 
 Congratulations! 🎉
 
-We've have successfully created a simple page that displays a list of all created facts, all powered by Webiny Headless CMS and Vue.js The Progressive JavaScript Framework
+We've successfully created a simple page that displays a list of all created facts, powered by Webiny Headless CMS and Vue.js.
 
-> The same can also be achieved with other popular tools, like [Gatsby](https://www.gatsbyjs.org/). To learn more, click [here](<(/docs/guides/headless-gatsby-tutorial)>).
+> The same can also be achieved with other popular tools, like [Gatsby](https://www.gatsbyjs.org/). To learn more, click [here](<headless-gatsby-tutorial>).
