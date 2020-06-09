@@ -8,10 +8,10 @@ module.exports = {
             "get-started/configuration"
         ],
         Guides: [
+            "guides/aws-credentials",
             "guides/mongodb-atlas",
             "guides/headless-gatsby-tutorial",
             "guides/headless-nextjs-tutorial",
-            "guides/aws-credentials",
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
