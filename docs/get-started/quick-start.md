@@ -37,19 +37,11 @@ The following things are mandatory for both local development and production dep
 
 ## 1. Create a new project
 
-For a full Webiny project with everything we have to offer:
+To create a Webiny project:
 
 ```
 npx create-webiny-project new-project
 ```
-
-For just the Headless CMS setup:
-
-```
-npx create-webiny-project new-project --template=cms
-```
-
-> NOTE: The `--template` value defaults to `full` if you don't include it (this will pull a package named `@webiny/cwp-template-full` from npm).
 
 ## 2. Setup database connection
 
@@ -75,36 +67,44 @@ Your `.env.json` file should look something like this after updating your `MONGO
 
 > NOTE: `AWS_PROFILE` as well as `AWS_REGION` can be defined by other methods following [this guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html). As long as AWS SDK can figure out your identity, Webiny will be happy no matter how you configure your credentials.
 
-## 3. Template-specific setup
+## 3. Project runtime
 
-Currently, Webiny supports `cms` and a `full` template, and each have their own setup instructions.
 
-### When to use `full` template?
+### 1. Deploy API
 
-The `full` template will include all of the applications Webiny provides at the time you're creating your Webiny project. Currently, the `full` project consists of the following apps:
+We need to deploy a `local` API environment to use for local development:
 
-- Admin
-- Security
-- I18N
-- File Manager
-- Page Builder
-- Form Builder
-- Headless CMS
+```
+yarn webiny deploy api --env=local
+```
 
-If you want to create a project with all the features Webiny has to offer - use this template.
+In the command above, `api` references the folder containing deployment configuration, which is located in `api/resources.js`. As a result, you can create additional folders like `api-private`, `api-public`, etc... as long as they have a `resources.js` file inside.
 
-[Click here](/docs/get-started/template-setup/cwp-template-full) to see the instructions for a project created using `full` template.
+> NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
+> If you use multiple AWS profiles, edit `.env.json` in your project root, to point to the correct profile via `AWS_PROFILE`.
 
-### When to use `cms` template?
+### 2. Start `admin` app
 
-The `cms` template will is a bit narrower in scope. It will only create a project that is configured to be used in a `headless` mode, like your regular Headless CMS. A project created using this template will consist of the following apps:
+Admin app is the administration system for your project; it contains everything you need to manage your content, users, settings, etc... :
 
-- Admin
-- Security
-- I18N
-- File Manager
-- Headless CMS
+```
+cd apps/admin
+yarn start
+```
 
-If you only need the Headless CMS capabilities - use this template.
+Once started, `admin` app will run an installation wizard to setup the system.
 
-[Click here](/docs/get-started/template-setup/cwp-template-cms) to see the instructions for a project created using `cms` template.
+> IMPORTANT: Do NOT go onto the next step until you complete the installation wizard.
+
+### 3. Start `site` app
+
+Site app is an actual website you're creating. It is a single page app, but in production it renders via server-side rendering.
+
+```
+cd apps/site
+yarn start
+```
+
+---
+
+This is it! You have deployed your own API environment, and can begin developing your React apps on your local machine. For deployments to production and other environments, please see the [next](/docs/get-started/going-live) page.
