@@ -15,9 +15,11 @@ For detailed explanations of concepts and processes, see the [Deep Dive](/docs/d
 The following things are mandatory for both local development and production deployments:
 
 ✅ **node.js >= 10.14.0**
+
 - we recommend [this tool](https://www.npmjs.com/package/n) to manage your node.js versions
 
 ✅ **`yarn` < 2.0**
+
 - [https://yarnpkg.com/en/docs/install](https://yarnpkg.com/en/docs/install)
 - or your can just run `npm install yarn -g`
 
@@ -27,6 +29,7 @@ The following things are mandatory for both local development and production dep
 - [Setup IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_create-admin-group.html)
 
 ✅ **MongoDB database** in the cloud
+
 - we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already
 - you can follow [this guide](/docs/guides/mongodb-atlas) to create one
 
@@ -34,8 +37,16 @@ The following things are mandatory for both local development and production dep
 
 ## 1. Create a new project
 
+For a full Webiny project with everything we have to offer:
+
 ```
-npx create-webiny-project@beta new-project --template=cms --tag=beta
+npx create-webiny-project new-project
+```
+
+For just the Headless CMS setup:
+
+```
+npx create-webiny-project new-project --template=cms
 ```
 
 > NOTE: The `--template` value defaults to `full` if you don't include it (this will pull a package named `@webiny/cwp-template-full` from npm).
@@ -46,7 +57,7 @@ Edit `.env.json` file in the root of the project and set the `MONGODB_SERVER` va
 
 > In case you need any help creating a MongoDB cluster on MongoDB Atlas, please follow [this guide](/docs/guides/mongodb-atlas).
 
-> IMPORTANT: it's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
+> IMPORTANT: It's important to give the outside world access to your database because the database will be accessed from your cloud functions, thus you'll never have a fixed IP address. See the [Whitelist Your Connection IP Address](https://docs.atlas.mongodb.com/getting-started/#whitelist-your-connection-ip-address). Make sure you add a `0.0.0.0/0` entry.
 
 Your `.env.json` file should look something like this after updating your `MONGODB_SERVER` and `MONGODB_NAME` parameters:
 
@@ -60,8 +71,9 @@ Your `.env.json` file should look something like this after updating your `MONGO
     "DEBUG": true
   }
 }
-
 ```
+
+> NOTE: `AWS_PROFILE` as well as `AWS_REGION` can be defined by other methods following [this guide](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html). As long as AWS SDK can figure out your identity, Webiny will be happy no matter how you configure your credentials.
 
 ## 3. Template-specific setup
 
@@ -70,13 +82,14 @@ Currently, Webiny supports `cms` and a `full` template, and each have their own 
 ### When to use `full` template?
 
 The `full` template will include all of the applications Webiny provides at the time you're creating your Webiny project. Currently, the `full` project consists of the following apps:
-- Admin  
+
+- Admin
 - Security
-- I18N  
-- File Manager  
-- Page Builder  
-- Form Builder 
-- Headless CMS  
+- I18N
+- File Manager
+- Page Builder
+- Form Builder
+- Headless CMS
 
 If you want to create a project with all the features Webiny has to offer - use this template.
 
@@ -85,11 +98,12 @@ If you want to create a project with all the features Webiny has to offer - use 
 ### When to use `cms` template?
 
 The `cms` template will is a bit narrower in scope. It will only create a project that is configured to be used in a `headless` mode, like your regular Headless CMS. A project created using this template will consist of the following apps:
-- Admin  
+
+- Admin
 - Security
-- I18N  
-- File Manager   
-- Headless CMS  
+- I18N
+- File Manager
+- Headless CMS
 
 If you only need the Headless CMS capabilities - use this template.
 

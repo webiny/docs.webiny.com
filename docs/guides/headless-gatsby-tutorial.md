@@ -12,7 +12,7 @@ In this tutorial you will learn how to use Gatsby with our Headless CMS.
 
 Make sure you have Webiny installed and your `admin` app is running with Headless CMS enabled. You will use it to create `Content Models` and `Publish` content.
 
-You also need to know your API's url. You receive it when running `webiny deploy api` and it can also be found int your AWS Management Console.
+You also need to know your API's url. You receive it when running `yarn webiny deploy api` and it can also be found int your AWS Management Console.
 
 Finally, install gatsby-cli using `npm install -g gatsby-cli`. We will use it to create our Gatsby Blog.
 
@@ -34,9 +34,7 @@ Save your new fields before leaving the page and you will be able to create, pub
 
 You can read your data from your API by navigating to its `/cms/read/production` path, eg: https://dfgk2kz3e3qhn.cloudfront.net/cms/read/production - your URL will of course be different.
 
-<!--
-Note that you will need a Personal Access Token in order to authenticate and use your API. We will create one soon.
--->
+>Note that you will need an Access Token in order to authenticate and use your API. We will create one soon.
 
 ## Managing Blog Posts
 
@@ -52,15 +50,11 @@ This will generate a new folder in your working directory. Make sure the Gatsby 
 
 ## Pulling GraphQL data (Blog Posts) into Gatsby
 
-<!--
-You need to create a Personal Access Token in order to access your API. Go to your account in **Webiny's Admin app > Personal Access Tokens > Create Token**. Save the token.
--->
+You need to create an Access Token in order to access your API. Go to the menu in **Webiny's Admin app > Sidebar > Settings > Headless CMS > Access Tokens**. Fill in your token's name, create it by clicking on `Save Access Token` and save the Token you receive.
 
 Navigate to your Gatsby project's directory `myBlog` and install [gatsby-source-graphql](https://www.gatsbyjs.org/packages/gatsby-source-graphql/) plugin by running `npm i gatsby-source-graphql`. This will allow us to  fetch the Blog Posts into your Gatsby app.
 
-Add the plugin in the `plugins` array found in **gatsby-config.js** (located in the root of your Gatsby project) and configure its **options** like below. Most importantly, replace `YOUR_API_URL` with your API's url.
- 
-<!--and `<YOUR_TOKEN>` with the token you created earlier (eg: `d3b45980479...`).-->
+Add the plugin in the `plugins` array found in **gatsby-config.js** (located in the root of your Gatsby project) and configure its **options** like below. Most importantly, replace `YOUR_API_URL` with your API's url and `<YOUR_TOKEN>` with the token you created earlier (eg: `d3b45980479...`)..
 
 ```
 {
@@ -68,14 +62,13 @@ Add the plugin in the `plugins` array found in **gatsby-config.js** (located in 
   options: {
     typeName: "someTypeName",
     fieldName: "webinyHeadlessCms",
-    url: "<YOUR_API_URL>/cms/read/production"
+    url: "<YOUR_API_URL>/cms/read/production",
+    headers: {
+      authorization: "<YOUR_TOKEN>"
+    }
   },
 }
 ```
-
-<!--headers: {
-    authorization: "<YOUR_TOKEN>"
-}-->
 
 We are using the `read` API in order to pull Blog Post data and the `production` alias which points to the `production` environment, because that is where we published our content earlier.
 

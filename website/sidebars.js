@@ -1,34 +1,16 @@
 module.exports = {
     docs: {
-        "Webiny": [
-            "webiny/introduction",
-            {
-                type: "category",
-                label: "FAQ",
-                items: ["webiny/faq/how-is-webiny-serverless", "webiny/faq/why-not-dynamodb"]
-            },
-            {
-                type: "link",
-                label: "How To Contribute",
-                href: "https://github.com/webiny/webiny-js/blob/master/CONTRIBUTING.md"
-            }
-        ],
         "Get Started": [
+            "webiny/introduction",
             "get-started/quick-start",
             "get-started/going-live",
             "get-started/development-principles",
-            {
-                type: "category",
-                label: "Template Setup",
-                items: [
-                    "get-started/template-setup/cwp-template-full",
-                    "get-started/template-setup/cwp-template-cms"
-                ]
-            }
+            "get-started/configuration"
         ],
-        "Guides": [
-          "guides/mongodb-atlas",
-          "guides/headless-gatsby-tutorial"
+        Guides: [
+            "guides/mongodb-atlas",
+            "guides/headless-gatsby-tutorial",
+            "guides/headless-nextjs-tutorial"
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
@@ -50,17 +32,13 @@ module.exports = {
             {
                 type: "category",
                 label: "Scaffolding",
-                items: [
-                    "deep-dive/scaffolding/creating-a-scaffold-plugin",
-                ]
+                items: ["deep-dive/scaffolding/creating-a-scaffold-plugin"]
             },
             {
                 type: "category",
                 label: "CLI",
-                items: [
-                    "deep-dive/cli/creating-a-cli-plugin",
-                ]
-            },
+                items: ["deep-dive/cli/creating-a-cli-plugin"]
+            }
         ],
         "API Development": [
             "api-development/graphql",
@@ -165,6 +143,31 @@ module.exports = {
             },
             {
                 type: "category",
+                label: "Headless CMS",
+                items: [
+                    {
+                        type: "category",
+                        label: "Features",
+                        items: [
+                            "webiny-apps/headless-cms/features/content-modeling",
+                            "webiny-apps/headless-cms/features/content-modeling-groups",
+                            "webiny-apps/headless-cms/features/localization",
+                            "webiny-apps/headless-cms/features/graphql-playground",
+                            "webiny-apps/headless-cms/features/environments",
+                            "webiny-apps/headless-cms/features/aliases",
+                            "webiny-apps/headless-cms/features/access-tokens"
+                            // "webiny-apps/headless-cms/features/roles-permissions",
+                            // {
+                            //     type: "category",
+                            //     label: "Plugins Reference",
+                            //     items: ["webiny-apps/headless-cms/development/plugin-reference/app"]
+                            // }
+                        ]
+                    }
+                ]
+            },
+            {
+                type: "category",
                 label: "Page Builder",
                 items: [
                     //"webiny-apps/page-builder/introduction",
@@ -207,7 +210,7 @@ module.exports = {
                                         ]
                                     }
                                 ]
-                            },
+                            }
                         ]
                     }
                 ]
@@ -260,6 +263,15 @@ module.exports = {
                         ]
                     }
                 ]
+            }
+        ],
+        FAQ: [
+            "faq/how-is-webiny-serverless",
+            "faq/why-not-dynamodb",
+            {
+                type: "link",
+                label: "How do I Contribute?",
+                href: "https://github.com/webiny/webiny-js/blob/master/docs/CONTRIBUTING.md"
             }
         ]
     }

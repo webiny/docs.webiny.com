@@ -8,7 +8,7 @@ sidebar_label: SecureView
 
 Unlike the [`SecureRoute`](/docs/webiny-apps/security/development/app/components/secure-route) component, which prevents rendering of a complete route if a user doesn't have required security scopes, the `SecureView` component can be used to prevent rendering of just a small section in your view. For example, you might want to show the "Create a book" button only if a user possesses the `library:books:create` security scope.
 
-> To learn more about scopes, click [here](http://localhost:3000/docs/webiny-apps/security/development/api/scopes).
+> To learn more about scopes, click [here](/docs/webiny-apps/security/development/api/scopes).
 
 ### Basic usage
 

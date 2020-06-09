@@ -4,20 +4,6 @@ title: App Plugins Reference
 sidebar_label: App
 ---
 
-# Summary
-
-
-[`admin-header-left`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-header-left)
-
-[`admin-header-middle`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-header-middle)
-
-[`admin-header-right`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-header-right)
-
-[`admin-menu`](/docs/webiny-apps/admin/development/plugins-reference/app#admin-menu)
-
-[`route`](/docs/webiny-apps/admin/development/plugins-reference/app#route)
-
----
 
 <!-- --------------------------------- admin-header-left plugin --------------------------------- -->
 
