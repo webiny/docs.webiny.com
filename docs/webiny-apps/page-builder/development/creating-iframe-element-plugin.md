@@ -6,8 +6,10 @@ sidebar_label: Creating Custom Page Elements
 
 In this tutorial, we're going to learn how to create a custom page element for the Page Builder app. Although the app comes with a bunch of ready-made page elements, at one point in time, you might need to create your own to satisfy your specific requirements. To achieve that, we can utilize a couple of simple plugins, which is what we'll cover in this short tutorial.
 
-> If you are not already familiar with how plugins work, we recommend
-> you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
+If you are not already familiar with how plugins work, we recommend
+you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
+
+> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element) repository.
 
 Ready? Let's dive in!
 
@@ -22,15 +24,27 @@ Here's what the result will look like:
 
 ### Prerequisites
 
-This tutorial assumes you have already created a new Webiny project to work on. We recommend going to our [quick start](/docs/get-started/quick-start.md) guide which will show you how to do it.
+##### 1. A Webiny Project
+
+This tutorial assumes you have already created a new Webiny project to work on. We recommend going to our [quick start](/docs/get-started/quick-start) guide which will show you how to do it.
+
+##### 2. Project structure
+
+We will add our plugins in the `apps/admin/src/iframe` folder.
+
+The project structure will look as shown in the image below.
+
+![Project Structure](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/project-structure.png)
+
+Note that all the plugins defined in the [`apps/admin/src/iframe/index.tsx`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/apps/admin/src/iframe/index.tsx) will need to be imported and registered in the `admin/src/App.tsx` shown in the image below.
+
+![Register Plugins](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/register-plugins.jpeg)
 
 ### Creating the Plugins
 
 All of the available page elements can be accessed via the elements menu, which can be opened by clicking on the "plus" icon, located on the left side of the editor:
 
-
 ![Editor Elements](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/editor-elements.png)
-
 
 As mentioned, this list of page elements can be expanded and custom page elements can be created via plugins. To create a new page element, we need to register two plugins, one that defines how it's rendered in the editor and all of the available settings and options, and the other one that defines how the page element is rendered on the actual page.
 
@@ -87,7 +101,7 @@ export default () => {
                     elements: [],
                     data: {
                         iframe: {
-                             The URL property will be populated when user enters the URL in the settings dialog.
+                            // The URL property will be populated when user enters the URL in the settings dialog.
                             url: "",
                             height: 370
                         },
