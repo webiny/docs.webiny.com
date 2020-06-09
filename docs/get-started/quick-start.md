@@ -97,7 +97,7 @@ If you want to create a project with all the features Webiny has to offer - use 
 
 ### When to use `cms` template?
 
-The `cms` template will is a bit narrower in scope. It will only create a project that is configured to be used in a `headless` mode, like your regular Headless CMS. A project created using this template will consist of the following apps:
+The `cms` template is a bit narrower in scope. It will only create a project that is configured to be used in a `headless` mode, like your regular Headless CMS. A project created using this template will consist of the following apps:
 
 - Admin
 - Security
