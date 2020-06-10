@@ -1,7 +1,7 @@
 ---
 id: headless-react-tutorial
-title: Integrating React and Apollo Client with Headless CMS
-sidebar_label: Integrating React and Apollo Client with Headless CMS
+title: Creating an e-library with Headless CMS + React
+sidebar_label: Creating an e-library with Headless CMS + React
 ---
 
 In this tutorial you will learn how to integrate [React](https://reactjs.org/) and [Apollo Client](https://www.apollographql.com/docs/react/) with our Headless CMS to create an e-library.
