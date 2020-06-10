@@ -10,7 +10,8 @@ module.exports = {
         Guides: [
             "guides/mongodb-atlas",
             "guides/headless-gatsby-tutorial",
-            "guides/headless-nextjs-tutorial"
+            "guides/headless-nextjs-tutorial",
+            "guides/headless-vuejs-tutorial"
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
