@@ -4,7 +4,7 @@ title: Creating a blog with Headless CMS + Vue.js
 sidebar_label: Creating a blog with Headless CMS + Vue.js
 ---
 
-In this short tutorial, we will learn how to use the popular [Vue.js](https://vuejs.org/) The Progressive JavaScript Framework with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
+In this short tutorial, we will learn how to use the popular [Vue.js](https://vuejs.org/) (The Progressive JavaScript Framework) with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
 > All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs) repository.
 
