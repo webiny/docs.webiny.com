@@ -67,6 +67,27 @@ yarn webiny deploy api --env=dev
 
 Since this is a new instance of the `api` stack, it will take some time to deploy. Wait for the stack deployment to finish, before moving to the next step.
 
+### 2.1 Deploy specific `api` resource
+
+From the root of your project, run the following command:
+
+```
+yarn webiny deploy api <resource-name> --env=dev
+```
+
+For example, running this command will only deploy `securityGraphQL` resource:
+
+```
+yarn webiny deploy api securityGraphQL --env=dev
+```
+
+If you want to deploy more resources just add them to the list, for example:
+
+```
+yarn webiny deploy api securityGraphQL filesManage databaseProxy --env=dev
+```
+> To see the list of all available resources, checkout `resources.js` file inside api folder.
+
 ## 3. Deploy `apps` stack using `dev` environment
 
 From the root of your project, run the following command:
@@ -76,6 +97,27 @@ yarn webiny deploy apps --env=dev
 ```
 
 Once this stack is deployed, you have to run through the installation wizard, just like you did for your `local` environment.
+
+## 4. Remove your `api` stack using `dev` environment
+
+From the root of your project, run the following command:
+
+```
+yarn webiny remove api --env=dev
+```
+
+This will remove your entire api stack deployed to `dev` environment.
+
+
+## 5. Remove your `apps` stack using `dev` environment
+
+From the root of your project, run the following command:
+
+```
+yarn webiny remove apps --env=dev
+```
+
+This will remove your entire apps stack deployed to `dev` environment.
 
 ## Deploying to production
 

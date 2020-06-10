@@ -42,7 +42,7 @@ function getLink({ url, title }) {
   return <a href={url}>{title}</a>;
 }
 
-const DefaultMenu = ({ data }: Object) => {
+const MenuRenderComponent = ({ data }: Object) => {
   if (!data) {
     return null;
   }
@@ -69,7 +69,7 @@ const DefaultMenu = ({ data }: Object) => {
   );
 };
 
-export default DefaultMenu;
+export default MenuRenderComponent;
 ```
 
-You might notice a small optimization inside the `getLink` function. The function uses the `Link` component from `react-router-dom` library to handle the clicks on internal links. If the link is not an internal link than a standard `anchor` element is used.
+>Note: You might notice a small optimization inside the `getLink` function. The function uses the `Link` component from `react-router-dom` library to handle the clicks on internal links. If the link is not an internal link than a standard `anchor` element is used.
