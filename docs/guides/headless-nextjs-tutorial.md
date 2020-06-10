@@ -4,7 +4,7 @@ title: Creating a blog with Headless CMS + Next.js
 sidebar_label: Creating a blog with Headless CMS + Next.js
 ---
 
-In this short tutorial, we will learn how to use the popular [Next.js](https://nextjs.org/) React framework with the [Webiny Headless CMS](http://localhost:3000/docs/webiny-apps/headless-cms/features/content-modeling).
+In this short tutorial, we will learn how to use the popular [Next.js](https://nextjs.org/) React framework with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
 > All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs) repository.
 
@@ -35,13 +35,13 @@ Create a new token and make sure to copy the actual token string. We'll need it 
 
 ## Creating our first content model
 
-Now that we have all of the prerequisites out of the way, it's time to create our first [content model](http://localhost:3000/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
+Now that we have all of the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
 
 ![The Models View](/img/guides/headless-nextjs-tutorial/content-models-menu.png)
 
 Let's create a new content model named **Blog Post**. Click on the "plus" icon in the lower right corner of the screen and in the dialog that's about to be shown, enter the following:
 
-![New Content Mode Dialogl](/img/guides/headless-nextjs-tutorial/new-content-model-dialog.png)
+![New Content Model Dialog](/img/guides/headless-nextjs-tutorial/new-content-model-dialog.png)
 
 For the content model group, we'll use the `Ungrouped`, which is the default group that comes out of the box with every Headless CMS app installation.
 

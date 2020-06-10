@@ -12,6 +12,7 @@ module.exports = {
             "guides/mongodb-atlas",
             "guides/headless-gatsby-tutorial",
             "guides/headless-nextjs-tutorial",
+            "guides/headless-react-tutorial",
             "guides/headless-vuejs-tutorial"
         ],
         "Deep Dive": [
