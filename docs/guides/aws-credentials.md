@@ -4,7 +4,7 @@ title: Configuring AWS Credentials
 sidebar_label: Configuring AWS Credentials
 ---
 
-To create your AWS account and set up your IAM credentials we should first navigate [here](https://aws.amazon.com/console/).
+To create your AWS account and set up your IAM credentials we should first navigate [here](https://aws.amazon.com/console/):
 
 ![aws-sign-in](/img/guides/aws-iam/aws-sign-in.png)
 

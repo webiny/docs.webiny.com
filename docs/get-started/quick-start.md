@@ -25,8 +25,7 @@ The following things are mandatory for both local development and production dep
 
 ✅ **AWS account with an IAM user for programmatic usage**
 
-- [Setup AWS credentials](https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html)
-- [Setup IAM user](https://docs.aws.amazon.com/IAM/latest/UserGuide/getting-started_create-admin-group.html)
+- you can follow [this guide](/docs/guides/aws-credentials)
 
 ✅ **MongoDB database** in the cloud
 
