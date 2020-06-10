@@ -6,6 +6,8 @@ sidebar_label: Configuring AWS Credentials
 
 To create your AWS account and set up your IAM credentials we should first navigate [here](https://aws.amazon.com/console/).
 
+![aws-sign-in](/img/guides/aws-iam/aws-sign-in.png)
+
 Next we click on Create a new AWS account:
 
 ![aws-login](/img/guides/aws-iam/aws-login.png)
@@ -45,5 +47,9 @@ After all the steps are complete, we will see a Review page, make sure your page
 Lastly, you will receive a Success message where you will see your **Access key ID** and **secret access key**. You need to copy these strings and keep them safe somewhere for your use when creating projects with Webiny.
 
 ![aws-user-created](/img/guides/aws-iam/aws-user-created.png)
+
+Now that we have the **Access key ID** and **secret access key** we can put them in `~/.aws/credentials`. It should look something like this:
+
+![aws-credentials](/img/guides/aws-iam/aws-credentials.png)
 
 And that's it! You now have your AWS credentials, happy coding!
