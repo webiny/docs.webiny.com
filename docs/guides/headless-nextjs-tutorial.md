@@ -185,4 +185,4 @@ Congratulations! 🎉
 
 We've have successfully created a simple page that displays a list of all created blog posts, all powered by Webiny Headless CMS and Next.js React framework.
 
-> The same can also be achieved with other popular tools, like [Gatsby](https://www.gatsbyjs.org/). To learn more, click [here](<(/docs/guides/headless-gatsby-tutorial)>).
+> The same can also be achieved with other popular tools, like [Gatsby](https://www.gatsbyjs.org/). To learn more, click [here](/docs/guides/headless-gatsby-tutorial).
