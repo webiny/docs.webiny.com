@@ -114,6 +114,8 @@ const IndexPage = ({data}) => {
 
 Run `gatsby develop` and you will be able to see your blog posts in Gatsby's development mode.
 
+>Note: In order to fetch the latest CMS data and update your content you will need to stop your Gatsby app and run `gatsby develop` again. If you are in production mode, you need to run `gatsby build` as well as `gatsby serve`.
+
 Here's what `index.js` looks like in [our demo](https://github.com/webiny/webiny-examples/blob/master/headlesscms-gatsby/src/pages/index.js).
 
 ## Conclusion
