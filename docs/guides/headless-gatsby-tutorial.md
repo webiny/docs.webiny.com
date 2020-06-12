@@ -6,19 +6,19 @@ sidebar_label: Creating a blog with Headless CMS + Gatsby
 
 In this tutorial we will learn how to use [Gatsby](https://www.gatsbyjs.org/) with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
-> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs) repository.) repository.
+> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs) repository.
 
 ## Prerequisites
 
 ##### 1. Gatsby-cli 
 
-Install gatsby-cli using `npm install -g gatsby-cli`. We will use it to create our Gatsby Blog.
+Install gatsby-cli using the command below. We will use it to create our Gatsby Blog.
+
+```npm install -g gatsby-cli```
 
 ##### 2. A Webiny Project
 
-First of all, make sure you have a working [Webiny project](/docs/get-started/quick-start) set up.
-
-> When setting up a new project, currently, there are [two project templates](/docs/get-started/quick-start#3-template-specific-setup) you can choose from: `full` and `cms`. Both include the Headless CMS app by default.
+Make sure you have a working [Webiny project](/docs/get-started/quick-start) set up.
 
 ##### 3. Content Delivery API URL
 
@@ -52,10 +52,6 @@ For the content model group, we'll use the `Ungrouped`, which is the default gro
 > Content model groups give you a way to organize the content models inside the main menu, allowing you to build logical sections for your content editors. You can click [here](/docs/webiny-apps/headless-cms/features/content-modeling-groups) to learn more.
 
 Once we've submitted the form in the dialog, we should be redirected to the [Content Model Editor](/docs/webiny-apps/headless-cms/features/content-modeling). Let's add two fields: `title` as a `Text`, and `body` as a `Rich Text` field. They will match every blog post's title and body (content), respectively.
-
-<!---
-Optionally, it is possible make both of the fields **required** in the `Validators` tab.
--->
 
 ![Blog Post Model](/img/guides/headless-nextjs-tutorial/editor-blog-post-model.png)
 
