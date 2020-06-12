@@ -4,10 +4,10 @@ title: Can I host Webiny on my laptop?
 sidebar_label: Can I host Webiny on my laptop?
 ---
 
-No, you can't.
+The short answer is that you are unable to do so.
 
-Webiny deploys various serverless resources to AWS, including but not limited to: Lambda Functions, S3 buckets, Cognito (authentication service), API Gateways, ...
+We have various serverless resources that are deployed to AWS such as Lambda Functions, S3 Buckets and Cognito.
 
 We even advise [deploying MongoDB on a managed service](/docs/faq/how-is-webiny-serverless#webiny-uses-mongodb-that-is-not-serverless) in order to be 100% serverless.
 
-You can, however, [run the admin and site](quick-start#2-start-admin-app) apps locally if you have deployed your API. Of course, when going into production mode, you will have to deploy the apps aswell. 😄
+You can, however, [run the admin and site](/docs/get-started/quick-start#2-start-admin-app) apps locally if you have deployed your API. Of course, when going into production mode, you will have to deploy the apps aswell. 😄
