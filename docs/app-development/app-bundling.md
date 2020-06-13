@@ -1,5 +1,5 @@
 ---
-id: bundling
+id: app-bundling
 title: App Bundling
 sidebar_label: App Bundling
 ---
