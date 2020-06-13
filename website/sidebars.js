@@ -60,7 +60,11 @@ module.exports = {
              "api-schema-plugin",
              "api-schema-test",*/
         ],
-        "App Development": ["coming-soon"],
+        "App Development": [
+            "app-development/introduction",
+            "app-development/app-templates",
+            "app-development/app-bundling"
+        ],
         /*Plugins: [
       'plugins/adding-your-plugin',
       // add your plugin page below, make sure it's ordered alphabetically
