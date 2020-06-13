@@ -13,7 +13,8 @@ module.exports = {
             "guides/headless-gatsby-tutorial",
             "guides/headless-nextjs-tutorial",
             "guides/headless-react-tutorial",
-            "guides/headless-vuejs-tutorial"
+            "guides/headless-vuejs-tutorial",
+            "guides/headless-angular-tutorial"
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
