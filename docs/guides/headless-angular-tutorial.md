@@ -4,9 +4,11 @@ title: Creating a blog with Headless CMS + Angular
 sidebar_label: Creating a blog with Headless CMS + Angular
 ---
 
-In this short tutorial, we will learn how to use the popular [Angular](https://angular.io/) () with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
+In this short tutorial, we will learn how to use the popular [Angular](https://angular.io/) with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
 > All of the code shown in this tutorial is also hosted in our [GitHub Examples](https://github.com/webiny/webiny-examples/blob/master/headlesscms-angular) repository.
+
+* Our Headless CMS + Angular project is available on [CodeSandbox](https://codesandbox.io/s/headless-cms-angular-ky5le) too.
 
 ## Prerequisites
 
