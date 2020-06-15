@@ -275,7 +275,8 @@ module.exports = {
                 type: "link",
                 label: "How do I Contribute?",
                 href: "https://github.com/webiny/webiny-js/blob/master/docs/CONTRIBUTING.md"
-            }
+            },
+            "faq/how-long-does-it-take-to-deploy"
         ]
     }
 };
