@@ -159,6 +159,8 @@ Let's run `yarn dev` in our Gatsby project directory so we can see our page in a
 
 ![Gatsby Blog](/img/guides/headless-gatsby-tutorial/gatsby-blog.png)
 
+>Note: In order to fetch the latest CMS data and update your content you will need to stop your Gatsby app and run `gatsby develop` again. If you are in production mode, you need to run `gatsby build` as well as `gatsby serve`.
+
 ## Conclusion
 
 Congratulations! 🎉
