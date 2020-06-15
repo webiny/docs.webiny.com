@@ -79,6 +79,8 @@ yarn webiny deploy api --env=local
 
 In the command above, `api` references the folder containing deployment configuration, which is located in `api/resources.js`. As a result, you can create additional folders like `api-private`, `api-public`, etc... as long as they have a `resources.js` file inside.
 
+The deployment will take around **5 to 15 minutes** depending on your internet connection and the AWS region.
+
 > NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
 > If you use multiple AWS profiles, edit `.env.json` in your project root, to point to the correct profile via `AWS_PROFILE`.
 
