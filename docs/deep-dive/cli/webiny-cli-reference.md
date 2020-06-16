@@ -7,7 +7,7 @@ sidebar_label: Webiny Command-Line Interface (CLI) reference
 
 `webiny <command> [options]`
 
-Use webiny command help for information on a specific command. The synopsis for each command shows its parameters and their usage. Optional parameters are shown in square brackets.
+Use webiny command help for information on a specific command. The brief explanation for each command shows its parameters and their usage.
 
 ## Commands
 
