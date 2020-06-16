@@ -41,7 +41,10 @@ module.exports = {
             {
                 type: "category",
                 label: "CLI",
-                items: ["deep-dive/cli/creating-a-cli-plugin"]
+                items: [
+                    "deep-dive/cli/creating-a-cli-plugin",
+                    "deep-dive/cli/webiny-cli-reference"
+                ]
             }
         ],
         "API Development": [
