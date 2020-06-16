@@ -273,6 +273,7 @@ module.exports = {
             "faq/how-is-webiny-serverless",
             "faq/why-not-dynamodb",
             "faq/is-webiny-free",
+            "faq/can-i-host-webiny-on-my-laptop",
             {
                 type: "link",
                 label: "How do I Contribute?",
