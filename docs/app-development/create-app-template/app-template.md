@@ -1,7 +1,7 @@
 ---
-id: app-templates
-title: App Templates
-sidebar_label: App Templates
+id: app-template
+title: App Template
+sidebar_label: App Template
 ---
 
 In the previous article, we've seen how app templates reduce the amount of boilerplate code and make your apps reusable. Reusable on a whole new level: you can now create complete apps and distribute them as simple `npm` packages for your friends, team and clients to use, and expand further with plugins.

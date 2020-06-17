@@ -40,4 +40,6 @@ const App = adminTemplate({
 ReactDOM.render(<App />, document.getElementById("root"));
 ```
 
-And there you have your fully featured Webiny Admin app! Pretty cool, isn't it? In the next article we'll dive deeper into the anatomy of an app template and how plugins make all of this possible.
+And there you have your fully featured Webiny Admin app! Pretty cool, isn't it? In the following articles we'll dive deeper into the anatomy of an app template and how plugins make all of this possible.
+
+But first, we need to learn how to setup a new React app within your Webiny project.

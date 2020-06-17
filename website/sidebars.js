@@ -62,7 +62,16 @@ module.exports = {
         ],
         "App Development": [
             "app-development/introduction",
-            "app-development/app-templates",
+            {
+                type: "category",
+                label: "Creating an app",
+                items: ["app-development/create-app/app-structure"]
+            },
+            {
+                type: "category",
+                label: "Creating an app template",
+                items: ["app-development/create-app-template/app-template"]
+            },
             "app-development/app-bundling"
         ],
         /*Plugins: [
