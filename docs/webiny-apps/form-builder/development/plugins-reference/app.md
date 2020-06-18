@@ -4,6 +4,62 @@ title: App Plugins Reference
 sidebar_label: App
 ---
 
+### [`fb-form-details-submissions-list-multi-select-action`](/docs/webiny-apps/form-builder/development/plugins-reference/app#fb-form-details-submissions-list-multi-select-actionx)
+
+#### Summary
+
+If needed, via the multi select checkboxes, users can perform a specific action on multiple form submissions. Out of the box, the Form Builder app provides a simple CSV export action, but more can be added via the `fb-form-details-submissions-list-multi-select-action` plugin.
+
+![](/img/webiny-apps/form-builder/development/plugins-reference/fb-form-details-submissions-list-multi-select-action/example-submissions-list.png)
+
+> To learn more about this view, please visit the [Stats and Submissions](/docs/webiny-apps/form-builder/form-stats) article.
+
+#### Type
+
+```ts
+type FbFormDetailsSubmissionsListMultiSelectActionPlugin = Plugin & {
+    type: "fb-form-details-submissions-list-multi-select-action";
+    render: (props: { dataList: DataListProps }) => React.ReactNode;
+}
+```
+
+#### Example
+
+```ts
+import { Tooltip } from "@webiny/ui/Tooltip";
+import { IconButton } from "@webiny/ui/Button";
+import { ReactComponent as ImportExport } from "./icons/importExportIcon.svg";
+
+const sendToMixPanel = selectedItems => {
+    // Do the actual API call and everything else that might be needed.
+};
+
+(...)
+
+{
+    name: "fb-form-details-submissions-list-multi-select-action-send-to-mix-panel",
+    type: "fb-form-details-submissions-list-multi-select-action",
+    render({ dataList }) {
+        return (
+            // Tooltip was added here for better UX.
+            <Tooltip content={"Send to MixPanel"}>
+                <IconButton
+                    disabled={dataList.isNoneMultiSelected()}
+                    icon={<ImportExport />}
+                    onClick={async () => {
+                        // Get the list of all selected items from the "dataList" object.
+                        sendToMixPanel(dataList.getMultiSelected());
+                    }}
+                />
+            </Tooltip>
+        );
+    }
+}
+```
+
+![](/img/webiny-apps/form-builder/development/plugins-reference/fb-form-details-submissions-list-multi-select-action/example-results.png)
+
+
 ### [`form-editor-field-group`](/docs/webiny-apps/form-builder/development/plugins-reference/app#form-editor-field-group)
 
 #### Summary
