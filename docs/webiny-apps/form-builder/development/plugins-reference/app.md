@@ -4,7 +4,7 @@ title: App Plugins Reference
 sidebar_label: App
 ---
 
-### [`fb-form-details-submissions-list-multi-select-action`](/docs/webiny-apps/form-builder/development/plugins-reference/app#fb-form-details-submissions-list-multi-select-actionx)
+### [`fb-form-details-submissions-list-multi-select-action`](/docs/webiny-apps/form-builder/development/plugins-reference/app#fb-form-details-submissions-list-multi-select-action)
 
 #### Summary
 
