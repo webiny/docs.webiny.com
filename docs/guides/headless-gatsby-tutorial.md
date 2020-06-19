@@ -6,7 +6,7 @@ sidebar_label: Creating a blog with Headless CMS + Gatsby
 
 In this tutorial we will learn how to use [Gatsby](https://www.gatsbyjs.org/) with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
-> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs) repository.
+> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-gatsby) repository.
 
 ## Prerequisites
 
@@ -73,7 +73,7 @@ Once you feel happy with the blog post, you can save the changes by clicking the
 
 The next and final step is to publish the blog post, which will make it actually visible in the Content Delivery API. To do that, click on the **Publish** icon, found at the right side in the form header.
 
-Now that we've covered the basics of creating content models and managing content, we can move on to the Next.js part of this tutorial.
+Now that we've covered the basics of creating content models and managing content, we can move on to the Gatsby part of this tutorial.
 
 ## Creating a Gatsby Blog
 
@@ -81,7 +81,7 @@ We can create a [new Gatsby app](https://www.gatsbyjs.org/docs/quick-start/) by 
 
 This will generate a new folder in your working directory.
 
-> Ideally, you should create your Next.js project in a folder outside of the Webiny project.
+> Ideally, you should create your Gatsby project in a folder outside of the Webiny project.
 
 Now that we have a new Gatsby app ready to go, let's see what it takes to make a simple page that renders a list of all blog posts that we have just created.
 
