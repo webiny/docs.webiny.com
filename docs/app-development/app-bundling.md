@@ -19,15 +19,15 @@ Below is the snippet from `apps/site/package.json` file which we'll use as a cas
 {
   scripts: {
     // Build app using "dev" environment
-    "build:dev": "env-cmd -r .env.json -e default,dev webiny run build",
+    "build:dev": "env-cmd -r .env.json -e default webiny run build --env=dev --stack=api",
     // Build app using "prod" environment
-    "build:prod": "env-cmd -r .env.json -e default,prod webiny run build",
+    "build:prod": "env-cmd -r .env.json -e default webiny run build --env=prod --stack=api",
     // Build SSR bundle app using "dev" environment
-    "build:ssr:dev": "env-cmd -r .env.json -e default,dev webiny run build-ssr",
+    "build:ssr:dev": "env-cmd -r .env.json -e default webiny run build-ssr --env=dev --stack=api",
     // Build SSR bundle app using "prod" environment
-    "build:ssr:prod": "env-cmd -r .env.json -e default,prod webiny run build-ssr",
+    "build:ssr:prod": "env-cmd -r .env.json -e default webiny run build-ssr --env=prod --stack=api",
     // Start local dev server
-    start: "env-cmd -r .env.json -e default,local webiny run start"
+    start: "env-cmd -r .env.json -e default webiny run start --env=local --stack=api"
   }
 }
 ```

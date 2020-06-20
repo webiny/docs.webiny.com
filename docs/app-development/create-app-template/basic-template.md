@@ -1,16 +1,22 @@
 ---
-id: app-template
-title: App Template
-sidebar_label: App Template
+id: basic-template
+title: Basic Template
+sidebar_label: Basic Template
 ---
 
-In the previous article, we've seen how app templates reduce the amount of boilerplate code and make your apps reusable. Reusable on a whole new level: you can now create complete apps and distribute them as simple `npm` packages for your friends, team and clients to use, and expand further with plugins.
+:::info important
+This article assumes you've followed the previous article on App Structure, and have your basic app ready. If not, please go to [App Structure](/docs/app-development/app-structure) and setup a basic React app.
+:::
+
+In the [introduction](/docs/app-development/introduction), we've seen how app templates reduce the amount of boilerplate code and make your apps reusable. Reusable on a whole new level: you can now create complete apps and distribute them as simple `npm` packages for your friends, team and clients to use, and expand further with plugins.
+
+In this article we'll learn how App Templates work, and what they consists of.
 
 ## Anatomy of an app template
 
-App template is a factory function that produces a React component. This way, your apps are configurable and expandable. Under the hood, an app template is created using one single plugin type:
+In short, app template is a factory function that produces a React component. This way, your apps are configurable and expandable. Under the hood, an app template is created using one single plugin type:
 
-```typescript
+```typescript title="AppTemplateRendererPlugin"
 type AppTemplateRendererPlugin = {
   name: string;
   type: "app-template-renderer";
@@ -26,15 +32,21 @@ Each `AppTemplateRendererPlugin` will receive the result of the previous plugin 
 
 ## Creating an app template
 
-Let's create a very basic React app template consisting of nothing more than a router. We'll use a utility package to build app templates, called `@webiny/app-template`:
+Let's create a very basic React app template consisting of nothing more than a router. We'll use a utility package to build app templates, called `@webiny/app-template`. In your base React app created in the previous article, create a new file `src/template.tsx`:
 
-```typescript jsx
-// template.tsx
+```typescript jsx title="src/template.tsx"
 import React from "react";
 import { createTemplate } from "@webiny/app-template";
 import { BrowserRouter } from "@webiny/react-router";
+import { Plugin } from "@webiny/plugins/types";
 
-export default createTemplate(opts => {
+// Options for your App Template
+type Options = {
+  basename: string;
+  plugins?: Plugin[];
+};
+
+export default createTemplate<Options>(opts => {
   return [
     {
       type: "app-template-renderer",
@@ -49,30 +61,34 @@ export default createTemplate(opts => {
 });
 ```
 
-Let's now render it:
+Congratulations! You've just created your first configurable app template! 🎉
 
-```typescript jsx
-// index.tsx
+Your template is now capable of rendering routes provided to your app via plugins of type `RoutePlugin`.
+Let's now use your shiny new template and give it a route to render:
+
+```diff title="src/index.tsx"
 import React from "react";
 import ReactDOM from "react-dom";
-import { Route } from "@webiny/react-router";
-import appTemplate from "./template";
 
-const App = appTemplate({
-  basename: process.env.PUBLIC_URL,
-  plugins: [
-    {
-      name: "route-welcome",
-      type: "route",
-      route: <Route exact path={"/"} render={() => <h2>Welcome!</h2>} />
-    }
-  ]
-});
-
-ReactDOM.render(<App />, document.getElementById("root"));
++ import { Route } from "@webiny/react-router";
++ import appTemplate from "./template";
++ const App = appTemplate({
++   basename: "/",
++   plugins: [
++     {
++       name: "route-welcome",
++       type: "route",
++       route: <Route exact path={"/"} render={() => <h2>Welcome!</h2>} />
++     }
++   ]
++ });
+- ReactDOM.render(<div>Welcome!</div>, document.getElementById("root"));
++ ReactDOM.render(<App />, document.getElementById("root"));
 ```
 
 When you run this app, you'll see a `Welcome!` message. The best thing about these app templates is that they are configurable. See how we defined a `basename`, and some extra plugins dynamically, when invoking the factory. This way you can support all kinds of configuration parameters, and create really versatile app templates.
+
+You can have plugins built into your template to provide the basic functionality, and allow the users of your template to add more plugins or override existing plugins. You can even compose app templates! Possibilities are endless.
 
 ## More examples
 

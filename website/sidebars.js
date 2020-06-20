@@ -62,15 +62,16 @@ module.exports = {
         ],
         "App Development": [
             "app-development/introduction",
-            {
-                type: "category",
-                label: "Creating an app",
-                items: ["app-development/create-app/app-structure"]
-            },
+            "app-development/app-structure",
             {
                 type: "category",
                 label: "Creating an app template",
-                items: ["app-development/create-app-template/app-template"]
+                items: [
+                    "app-development/create-app-template/basic-template",
+                    "app-development/create-app-template/adding-apollo-provider",
+                    "app-development/create-app-template/using-env-variables",
+                    //"app-development/create-app-template/adding-security"
+                ]
             },
             "app-development/app-bundling"
         ],
