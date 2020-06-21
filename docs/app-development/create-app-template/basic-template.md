@@ -10,7 +10,7 @@ This article assumes you've followed the previous article on App Structure, and 
 
 In the [introduction](/docs/app-development/introduction), we've seen how app templates reduce the amount of boilerplate code and make your apps reusable. Reusable on a whole new level: you can now create complete apps and distribute them as simple `npm` packages for your friends, team and clients to use, and expand further with plugins.
 
-In this article we'll learn how App Templates work, and what they consists of.
+In this article we'll learn how App Templates work, and what they consists of. We'll build a brand new app template from scratch to cover everything you need to know to confidently develop your own app templates.
 
 ## Anatomy of an app template
 
