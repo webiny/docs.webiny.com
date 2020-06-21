@@ -34,7 +34,7 @@ Below is the snippet from `apps/site/package.json` file which we'll use as a cas
 
 These scripts are pretty straightforward: in each one of them, we load `.env.json` file, and load the appropriate ENV variables. Then we run `webiny run <command>`.
 
-> We use [env-cmd](https://www.npmjs.com/package/env-cmd) to load environment variables before bundling your app. This tool fits perfectly into the multi-environment setup of Webiny, and it allows us to load different variable presets depending on which environment we're bundling. This is also not a requirement - if you want, you an use any other tool to load ENV variables.
+> We use [env-cmd](https://www.npmjs.com/package/env-cmd) to load environment variables before bundling your app. This tool fits perfectly into the multi-environment setup of Webiny, and it allows us to load different variable presets depending on which environment we're bundling. This is also not a requirement - if you want, you can use any other tool to load ENV variables.
 
 The `webiny run` command is provided by the `@webiny/cli` package. It looks for a `webiny.config.js` file and tries to run the specified command. Learn more about `webiny.config.js` [in this article](/docs/get-started/configuration#webinyconfigjs).
 

@@ -12,7 +12,7 @@ In this article we'll learn what is necessary to create a new app from scratch. 
 
 ## Folder structure
 
-The most basic app setup looks like this:
+In your `apps` folder, create a new folder, for example `my-app`, and create the following structure:
 
 ```
 .

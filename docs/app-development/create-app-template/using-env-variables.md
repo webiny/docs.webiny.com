@@ -51,4 +51,4 @@ The last thing to do is to tell the `start` command, what `env` and `state` we w
 
 Now we can start our app again. The value of `REACT_APP_GRAPHQL_API_URL` will be assigned to `process.env.REACT_APP_GRAPHQL_API_URL`, which will be picked up by `webpack`, and in turn be injected wherever you reference this variable in your app.
 
-Now our `<ApolloProvider>` now knows where the API is!
+Now our `<ApolloProvider>` knows where the API is!
