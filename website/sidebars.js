@@ -34,13 +34,12 @@ module.exports = {
             "deep-dive/plugins-crash-course",
             {
                 type: "category",
-                label: "Scaffolding",
-                items: ["deep-dive/scaffolding/creating-a-scaffold-plugin"]
-            },
-            {
-                type: "category",
                 label: "CLI",
-                items: ["deep-dive/cli/creating-a-cli-plugin"]
+                items: [
+                    "deep-dive/cli/overview",
+                    "deep-dive/cli/creating-a-cli-plugin",
+                    "deep-dive/cli/creating-a-scaffold-plugin"
+                ]
             }
         ],
         "API Development": [
