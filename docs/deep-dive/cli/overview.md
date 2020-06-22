@@ -16,10 +16,6 @@ Out of the box, the CLI itself only has 3 commands:
 - **enable-tracking** - enables anonymous Webiny telemetry
 - **disable-tracking** - disables telemetry
 
-:::tip telemetry
-[Click here](https://www.webiny.com/telemetry/) to learn more about Webiny Telemetry.
-:::
-
 You can see the actual implementation of these commands in our Github repo:
 https://github.com/webiny/webiny-js/tree/master/packages/cli/commands
 
