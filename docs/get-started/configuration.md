@@ -20,22 +20,16 @@ Here's what this file may look like in your project:
 
 ```js
 module.exports = {
-  template: "@webiny/cwp-template-full@4.0.0",
+  template: "@webiny/cwp-template-full@4.2.0",
   projectName: "my-project",
   cli: {
     plugins: [
-      require("@webiny/cli-plugin-deploy-components")({
-        hooks: {
-          api: [
-            "@webiny/cwp-template-full/hooks/api",
-            "./apps/admin/webiny.config.js",
-            "./apps/site/webiny.config.js"
-          ]
-        }
-      }),
-      "@webiny/cli-plugin-scaffold",
-      "@webiny/cli-plugin-scaffold-graphql-service",
-      "@webiny/cli-plugin-scaffold-lambda"
+      require("@webiny/cli-plugin-deploy-components")(),
+      require("@webiny/cwp-template-full/hooks/api")(),
+      require("@webiny/cwp-template-full/hooks/apps")(),
+      require("@webiny/cli-plugin-scaffold"),
+      require("@webiny/cli-plugin-scaffold-graphql-service"),
+      require("@webiny/cli-plugin-scaffold-lambda")
     ]
   }
 };
@@ -46,21 +40,37 @@ module.exports = {
 You will find this file in each package that represents an app or an API resource. In this file we define:
 
 - **commands** - arbitrary functions to be executed by `yarn webiny run [command]`
-- **hooks** - deploy hooks to be processed after infrastructure deployment
+
+In the future, we may add more features in here, but for now it's just `commands`.
 
 This file gives you a way to create your own commands to handle your code, by writing simple functions. We provide a lot of utility functions in our `@webiny/project-utils` package for you to use for bundling apps, functions, etc. A good example is found in `apps/admin/webiny.config.js`. The example below shows a simplified version of the aforementioned file:
 
 ```js
 // webiny.config.js
 const { startApp, buildApp, buildAppHandler } = require("@webiny/project-utils");
+const { setEnvironmentFromState } = require("@webiny/cli-plugin-deploy-components/utils");
+
+const map = {
+  REACT_APP_USER_POOL_REGION: "${cognito.userPool.Region}",
+  REACT_APP_GRAPHQL_API_URL: "${cdn.url}/graphql",
+  REACT_APP_API_URL: "${cdn.url}",
+  REACT_APP_FILES_PROXY: "${cdn.url}",
+  REACT_APP_USER_POOL_ID: "${cognito.userPool.Id}",
+  REACT_APP_USER_POOL_WEB_CLIENT_ID: "${cognito.appClients[0].ClientId}"
+};
 
 module.exports = {
   commands: {
-    async start(options, context) {
+    async start({ env, stack, ...options }, context) {
+      // Set environment variables from state
+      await setEnvironmentFromState({ env, stack, map }, context);
+
       // Start local development
       await startApp(options, context);
     },
-    async build(options, context) {
+    async build({ env, stack, ...options }, context) {
+      // Set environment variables from state
+      await setEnvironmentFromState({ env, stack, map }, context);
       // Bundle app for deployment
       await buildApp(options, context);
       // Build Lambda handler which will serve files to CDN
@@ -76,9 +86,9 @@ With this you defined a `webiny.config.js` file and 2 commands: `start` and `bui
 // package.json (most of the file contents is skipped to focus on the example at hand)
 {
   "scripts": {
-    "start": "env-cmd -r .env.json -e default,local webiny run start",
-    "build:dev": "env-cmd -r .env.json -e default,dev webiny run build",
-    "build:prod": "env-cmd -r .env.json -e default,prod webiny run build"
+    "start": "env-cmd -r .env.json -e default webiny run start --env=local --stack=api",
+    "build:dev": "env-cmd -r .env.json -e default webiny run build --env=dev --stack=api",
+    "build:prod": "env-cmd -r .env.json -e default webiny run build --env=prod --stack=api"
   }
 }
 ```
