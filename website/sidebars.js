@@ -60,7 +60,21 @@ module.exports = {
              "api-schema-plugin",
              "api-schema-test",*/
         ],
-        "App Development": ["coming-soon"],
+        "App Development": [
+            "app-development/introduction",
+            "app-development/app-structure",
+            {
+                type: "category",
+                label: "Creating an app template",
+                items: [
+                    "app-development/create-app-template/basic-template",
+                    "app-development/create-app-template/adding-apollo-provider",
+                    "app-development/create-app-template/using-env-variables",
+                    //"app-development/create-app-template/adding-security"
+                ]
+            },
+            "app-development/app-bundling"
+        ],
         /*Plugins: [
       'plugins/adding-your-plugin',
       // add your plugin page below, make sure it's ordered alphabetically
