@@ -14,7 +14,8 @@ module.exports = {
             "guides/headless-nextjs-tutorial",
             "guides/headless-react-tutorial",
             "guides/headless-vuejs-tutorial",
-            "guides/headless-angular-tutorial"
+            "guides/headless-angular-tutorial",
+            "guides/creating-iframe-element-plugin",
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
@@ -195,7 +196,6 @@ module.exports = {
                         label: "Development",
                         items: [
                             "webiny-apps/page-builder/development/rendering-pages",
-                            "webiny-apps/page-builder/development/creating-iframe-element-plugin",
                             //"webiny-apps/form-builder/creating-new-form-fields",
                             //"webiny-apps/form-builder/custom-form-triggers",
                             {
