@@ -42,7 +42,8 @@ module.exports = {
                 type: "category",
                 label: "CLI",
                 items: ["deep-dive/cli/creating-a-cli-plugin"]
-            }
+            },
+            "deep-dive/development-workflow",
         ],
         "API Development": [
             "api-development/graphql",
