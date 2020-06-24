@@ -30,15 +30,29 @@ This tutorial assumes you have already created a new Webiny project to work on. 
 
 ##### 2. Project structure
 
-We will add our plugins in the `apps/admin/src/iframe` folder.
+We will add our plugins in the `apps/admin/src/iframe` folder for the `admin app`, and in the `apps/site/src/iframe`.
 
-The project structure will look as shown in the image below.
+The project structure in the `admin` app will look as shown in the image below.
 
-![Project Structure](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/project-structure.png)
+![Project Structure Admin](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/project-structure-admin.png)
 
-Note that all the plugins defined in the [`apps/admin/src/iframe/index.tsx`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/apps/admin/src/iframe/index.tsx) will need to be imported and registered in the `admin/src/App.tsx` shown in the image below.
+The project structure in the `site` app will look as shown in the image below.
 
-![Register Plugins](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/register-plugins.jpeg)
+![Project Structure Site](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/project-structure-site.png)
+
+:::note
+All the plugins defined in the [apps/admin/src/iframe/index.tsx](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/apps/admin/src/iframe/index.tsx) will need to be imported and registered in the `admin/src/App.tsx` shown in the image below.
+:::
+
+![Register Plugins Admin](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/register-plugins-admin.jpeg)
+
+:::note
+All the plugin defined in the [apps/site/src/iframe/index.tsx](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/site/src/iframe/index.tsx) will need to be imported and registered in the `site/src/App.tsx` shown in the image below.
+:::
+
+![Register Plugins Site](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/register-plugins-site.png)
+
+
 
 ## Creating the Plugins
 
@@ -48,10 +62,13 @@ All of the available page elements can be accessed via the elements menu, which 
 
 As mentioned, this list of page elements can be expanded and custom page elements can be created via plugins. To create a new page element, we need to register two plugins, one that defines how it's rendered in the editor and all of the available settings and options, and the other one that defines how the page element is rendered on the actual page.
 
-## Editor Plugin
+## Add Plugins in the `Admin` App
+### Editor Plugin
 
 Let's add the new page element in the editor.
-First, we will use the [`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element) plugin type.
+First, we will add the necessary plugins in the `apps/admin/src/iframe/iframeEditor.tsx` file.
+
+We will start with the [`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element) plugin type.
 
 
 ```jsx
@@ -149,9 +166,11 @@ The `toolbar` property helps us put our plugin into the tool bar, as seen in the
 Finally, it’s up to the `render` function to define how the page element will be rendered once the user drops it on the page.
 Notice the props that were passed to the render function. This object contains all of the relevant page element's data and settings.
 
-## Settings Dialog
+### Settings Dialog
 
 The next plugin we'll need to define is the [`pb-editor-page-element-advanced-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-advanced-settings), which we will use to show a settings dialog so the user can provide an iframe URL. The dialog will be shown automatically when the user drags and drops the page element on the page.
+
+This plugin type will be added in the `apps/admin/src/iframe/iframeEditor.tsx` file too.
 
 ```jsx
 import { Tab } from "@webiny/ui/Tabs";
@@ -229,11 +248,13 @@ export default IFrameEmbed;
 
 Notice we've added `webiny-pb-page-element-iframe` CSS class, which enables us to add custom CSS styling if needed.
 
-## Render Plugin
+### Render Plugin
 
 As mentioned, every page element consists of two plugins. In order to render it on the actual page, we will use the
 [`pb-render-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-render-page-element)
 plugin.
+
+We will add this plugin in the `apps/admin/src/iframe/iframeEditor.tsx` file too.
 
 ```ts
 import IFrame from "./IFrame";
@@ -300,6 +321,86 @@ Except on the actual page, this plugin will also be utilized in the page preview
 
 Use the same approach on creating other custom page elements.
 
+
+## Add Plugins in the `Site` App
+
+### Render Plugin
+
+In order to render the page element on the `site` app, we will use the
+[`pb-render-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-render-page-element)
+plugin again.
+
+The render plugin is necessary to load our page element in the page. This plugin will be added in the `apps/site/src/iframe/iframeEditor.tsx` file.
+
+```ts
+import React from "react";
+import { PbRenderElementPlugin } from "@webiny/app-page-builder/types";
+import IFrameRender from "./iFrameRender";
+
+export default () => {
+    return [
+        {
+            name: "pb-render-page-element-iframe",
+            type: "pb-render-page-element",
+            elementType: "iframe",
+            render({ element }) {
+                return <IFrameRender data={element.data} />
+            }
+        } as PbRenderElementPlugin,
+    ];
+};
+```
+
+The following code snippet shows the `IFrameRender` component
+
+```ts
+
+import * as React from "react";
+import { css } from "emotion";
+const outerWrapper = css({
+    boxSizing: "border-box"
+});
+
+const innerWrapper = css({
+    left: 0,
+    width: "100%",
+    height: "auto",
+    position: "relative",
+    paddingBottom: 0
+});
+
+const IFrame = ({ data }) => {
+
+    console.log('data data in site:', data);
+    // If the user didn't enter a URL, let's show a simple message.
+    if (!data.iframe.url) {
+        return <div>IFrame URL is missing.</div>;
+    }
+
+    // Otherwise, let's render the iframe.
+    return (
+        <div
+            className={
+                "webiny-pb-base-page-element-style webiny-pb-page-element-embed-iframe " + outerWrapper
+            }
+        >
+            <div className={innerWrapper}>
+                <div
+                    id={data.id}
+                />
+                <iframe src={data.iframe.url} width="100%" height={data.iframe.height} />
+            </div>
+        </div>
+    );
+};
+```
+
+The page element now will be available in your `site` app, shown in the image below.
+
+![Page preview](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/site-app.png)
+
+Use the same approach on creating other custom page elements.
+
 ## Conclusion
 
 Congratulations! 🎉
@@ -308,4 +409,4 @@ We've successfully created a simple page element in our Page Builder app.
 
 Are you interested on building your own plugin? You can easily add custom elements following the [plugin crash course](</docs/deep-dive/plugins-crash-course>).
 
-> Checkout other Guides on builsing apps with popular tools such as [Gatsby](<headless-gatsby-tutorial>), [Vue.js](<headless-vuejs-tutorial>), [React.js](<headless-react-tutorial>), and [Next.js](<headless-nextjs-tutorial>). 
+> Checkout other Guides on building apps with popular tools such as [Gatsby](<headless-gatsby-tutorial>), [Vue.js](<headless-vuejs-tutorial>), [React.js](<headless-react-tutorial>), [Next.js](<headless-nextjs-tutorial>), and [Angular](<headless-angular-tutorial>)
