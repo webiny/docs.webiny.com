@@ -5,7 +5,7 @@ sidebar_label: Layouts
 ---
 
 `layouts` are linked to page categories. When you create a page category, say "Blog", you need to select a layout inside which that content will be displayed.
-The options available inside the layout dropdown are registered by the [`pb-page-layout`](/docs/webiny-apps/page-builder/theme-development/theme-configuration#pb-page-layout-plugin) plugin.
+The options available inside the layout dropdown are registered by the [`pb-page-layout`](/docs/webiny-apps/page-builder/development/themes/theme-configuration#pb-page-layout-plugin) plugin.
 
 Each page created inside the "Blog" category, by default, will use that layout. However, inside the page settings, you can overwrite that on a per-page basis if you need to.
 
@@ -43,7 +43,7 @@ const Static = ({ children }) => {
 export default Static;
 ```
 
-By default, if you are creating your own theme, make sure to include the `Addons` component. This is a component that allows other plugins to register them self into an actual page. This is used for things like Google Tag Manager, Cookie policy banners and similar. 
+By default, if you are creating your own theme, make sure to include the `Addons` component. This is a component that allows other plugins to register them self into an actual page. This is used for things like Google Tag Manager, Cookie policy banners and similar.
 
 The upper bit of the static layout that uses the `useMemo` React hook is a simple optimization that prevents the need to call `getPlugins` function when a component needs to render. You can just copy/paste that block into your own layout.
 
