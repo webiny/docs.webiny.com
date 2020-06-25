@@ -4,13 +4,13 @@ title: Page Builder Theme - Overview
 sidebar_label: Overview
 ---
 
-In this section we'll dive deeper into the theme configuration file, the sections inside, and what are their roles. 
+In this section we'll dive deeper into the theme configuration file, the sections inside, and what are their roles.
 
 > It's best to follow this article by viewing the default Page Builder theme. You can find it [here on github](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder-theme).
 
 ## Configuration overview
 
-The main configuration file is found under the `src/index.ts`. This file exports a list of Page Builder theme plugins, and that's what you later import in your `site` app and then register as a plugin. 
+The main configuration file is found under the `src/index.ts`. This file exports a list of Page Builder theme plugins, and that's what you later import in your `site` app and then register as a plugin.
 
 The configuration file is structured in several sections like so:
 
@@ -58,7 +58,7 @@ The configuration file is structured in several sections like so:
 
 As it's illustrated, we export a plugin that holds a theme definition, then a plugin for a layout to render static pages, and finally several layout components to render the main theme elements such as header and footer.
 
-The reason why we don't "lump" all these elements into a single plugin is because this way you can overwrite just a specific piece of a particular theme with your own plugin, without the need to copy or replace the whole theme. 
+The reason why we don't "lump" all these elements into a single plugin is because this way you can overwrite just a specific piece of a particular theme with your own plugin, without the need to copy or replace the whole theme.
 
 For example, if you wanted to replace the header with your custom component, you could to this:
 
@@ -118,13 +118,13 @@ In full a `pb-theme` plugin contains the following elements:
     } as PbThemePlugin
 ```
 Learn more about the specific theme elements:
-- [colors](/docs/webiny-apps/page-builder/theme-development/colors) 
-- [elements](/docs/webiny-apps/page-builder/theme-development/elements) 
-- [typography](/docs/webiny-apps/page-builder/theme-development/typography)
+- [colors](/docs/webiny-apps/page-builder/development/themes/colors)
+- [elements](/docs/webiny-apps/page-builder/development/themes/elements)
+- [typography](/docs/webiny-apps/page-builder/development/themes/typography)
 
 ## `pb-page-layout` plugin
 
-The layout plugin is used to register layouts. Layouts are used to render the page content. 
+The layout plugin is used to register layouts. Layouts are used to render the page content.
 Here is an example of how to register a layout:
 ```ts
 import StaticLayout from "./layouts/Static";
@@ -171,14 +171,14 @@ const plugins = [
 export default plugins;
 ```
 
-To learn more about layouts and how to compose one, have a look at the [layouts page](/docs/webiny-apps/page-builder/theme-development/layouts).
+To learn more about layouts and how to compose one, have a look at the [layouts page](/docs/webiny-apps/page-builder/development/themes/layouts).
 
 ## `pb-layout-component` plugin
-This plugin is used to register various theme layout components, such as header, footer and a loader component. 
+This plugin is used to register various theme layout components, such as header, footer and a loader component.
 
-We intentionally decoupled those elements from the theme so you have the option to overwrite only parts of your theme. 
+We intentionally decoupled those elements from the theme so you have the option to overwrite only parts of your theme.
 
-You can view the content of those elements inside the default theme on github. Also to overwrite any of those elements with your own component you just need to register a new plugin under the same name. 
+You can view the content of those elements inside the default theme on github. Also to overwrite any of those elements with your own component you just need to register a new plugin under the same name.
 
 ```ts
 // apps/site/src/plugins/index.ts

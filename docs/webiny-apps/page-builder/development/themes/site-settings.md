@@ -8,7 +8,7 @@ Inside Webiny administration under the settings menu you'll find `Site Settings`
 
 ![Webiny - Theme Menu](/img/theme-development/webiny-theme-site-settings.png)
 
-This information is often needed inside a theme but it's not directly exposed. To retrieve the site settings you will need to issue a GraphQL query. [This article](/docs/webiny-apps/page-builder/theme-development/graphql) explains how to do that.
+This information is often needed inside a theme but it's not directly exposed. To retrieve the site settings you will need to issue a GraphQL query. [This article](/docs/webiny-apps/page-builder/development/themes/graphql) explains how to do that.
 
 Inside the default theme, the required GraphQL implementation is already made for you. Have a look at [Header](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder-theme/src/components/Header.tsx) component, or similarly to that, the [Footer](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder-theme/src/components/Footer.tsx) component.
 
