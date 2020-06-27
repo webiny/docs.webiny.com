@@ -15,7 +15,7 @@ module.exports = {
             "guides/headless-react-tutorial",
             "guides/headless-vuejs-tutorial",
             "guides/headless-angular-tutorial",
-            "guides/creating-iframe-element-plugin",
+            "guides/creating-iframe-element-plugin"
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
@@ -70,7 +70,7 @@ module.exports = {
                 items: [
                     "app-development/create-app-template/basic-template",
                     "app-development/create-app-template/adding-apollo-provider",
-                    "app-development/create-app-template/using-env-variables",
+                    "app-development/create-app-template/using-env-variables"
                     //"app-development/create-app-template/adding-security"
                 ]
             },
@@ -293,6 +293,7 @@ module.exports = {
                 href: "https://github.com/webiny/webiny-js/blob/master/docs/CONTRIBUTING.md"
             },
             "faq/how-long-does-it-take-to-deploy"
-        ]
+        ],
+        "Project Migration": ["migration/410-to-420"]
     }
 };
