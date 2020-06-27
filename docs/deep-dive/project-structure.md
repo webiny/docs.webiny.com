@@ -6,7 +6,7 @@ sidebar_label: Project Structure
 
 In this article we'll look at the project structure and explain the responsibilities of certain files.
 
-Once your [project is set up](/docs/get-started/quick-start.md), it will look like this:
+Once your [project is set up](/docs/get-started/quick-start), it will look like this:
 
 ```
 ├── api
