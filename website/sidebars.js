@@ -42,7 +42,8 @@ module.exports = {
                     "deep-dive/cli/creating-a-cli-plugin",
                     "deep-dive/cli/creating-a-scaffold-plugin"
                 ]
-            }
+            },
+            "deep-dive/development-workflow"
         ],
         "API Development": [
             "api-development/graphql",
