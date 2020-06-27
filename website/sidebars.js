@@ -14,7 +14,8 @@ module.exports = {
             "guides/headless-nextjs-tutorial",
             "guides/headless-react-tutorial",
             "guides/headless-vuejs-tutorial",
-            "guides/headless-angular-tutorial"
+            "guides/headless-angular-tutorial",
+            "guides/creating-iframe-element-plugin",
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
@@ -35,15 +36,13 @@ module.exports = {
             "deep-dive/plugins-crash-course",
             {
                 type: "category",
-                label: "Scaffolding",
-                items: ["deep-dive/scaffolding/creating-a-scaffold-plugin"]
-            },
-            {
-                type: "category",
                 label: "CLI",
-                items: ["deep-dive/cli/creating-a-cli-plugin"]
-            },
-            "deep-dive/development-workflow",
+                items: [
+                    "deep-dive/cli/overview",
+                    "deep-dive/cli/creating-a-cli-plugin",
+                    "deep-dive/cli/creating-a-scaffold-plugin"
+                ]
+            }
         ],
         "API Development": [
             "api-development/graphql",
@@ -62,7 +61,21 @@ module.exports = {
              "api-schema-plugin",
              "api-schema-test",*/
         ],
-        "App Development": ["coming-soon"],
+        "App Development": [
+            "app-development/introduction",
+            "app-development/app-structure",
+            {
+                type: "category",
+                label: "Creating an app template",
+                items: [
+                    "app-development/create-app-template/basic-template",
+                    "app-development/create-app-template/adding-apollo-provider",
+                    "app-development/create-app-template/using-env-variables",
+                    //"app-development/create-app-template/adding-security"
+                ]
+            },
+            "app-development/app-bundling"
+        ],
         /*Plugins: [
       'plugins/adding-your-plugin',
       // add your plugin page below, make sure it's ordered alphabetically
@@ -183,7 +196,6 @@ module.exports = {
                         label: "Development",
                         items: [
                             "webiny-apps/page-builder/development/rendering-pages",
-                            "webiny-apps/page-builder/development/creating-iframe-element-plugin",
                             //"webiny-apps/form-builder/creating-new-form-fields",
                             //"webiny-apps/form-builder/custom-form-triggers",
                             {
@@ -273,6 +285,7 @@ module.exports = {
         FAQ: [
             "faq/how-is-webiny-serverless",
             "faq/why-not-dynamodb",
+            "faq/is-webiny-free",
             "faq/can-i-host-webiny-on-my-laptop",
             {
                 type: "link",

@@ -34,4 +34,4 @@ The reason why we import the site theme into the administration is that inside t
 
 ## SaaS variables
 
-Webiny themes use Sass variables, and all the colors are also mapped to CSS variables for ease of use and to enable better [style inheritance](/docs/webiny-apps/page-builder/theme-development/style-inheritance). If you open the [variables.scss](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder-theme/src/styles/variables.scss) file you'll find the default definitions inside.
+Webiny themes use Sass variables, and all the colors are also mapped to CSS variables for ease of use and to enable better [style inheritance](/docs/webiny-apps/page-builder/development/themes/style-inheritance). If you open the [variables.scss](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder-theme/src/styles/variables.scss) file you'll find the default definitions inside.
