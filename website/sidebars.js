@@ -19,6 +19,7 @@ module.exports = {
         ],
         "Deep Dive": [
             "deep-dive/project-structure",
+            "deep-dive/stacks",
             {
                 type: "category",
                 label: "Webiny Architecture",
