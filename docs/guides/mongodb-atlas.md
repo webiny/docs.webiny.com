@@ -4,6 +4,12 @@ title: Configuring MongoDB Atlas
 sidebar_label: Configuring MongoDB Atlas
 ---
 
+This article will guide you through Configuring MongoDB Atlas. 
+
+If you prefer the Video version, check out our YouTube video below:
+
+[![Configuring MongoDB Atlas](/img/get-started/configuring-mongodb.jpg)](http://www.youtube.com/watch?v=GOMvnI-r2qs "Configuring MongoDB Atlas")
+
 > This guide might look long, but it's gonna take you less than 5 minutes to go through it.
 
 To create a free MongoDB cluster head over to MongoDB Atlas and create an account (no credit card is required). https://www.mongodb.com/cloud/atlas/register
