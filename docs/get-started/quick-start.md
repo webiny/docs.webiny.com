@@ -10,6 +10,10 @@ At the end of this guide, you'll have a simple website, that already comes with 
 
 For detailed explanations of concepts and processes, see the [Deep Dive](/docs/deep-dive/project-structure) section of the docs.
 
+If you prefer the Video version of the Webiny Quick Start, check out our YouTube videos below:
+
+[![Prerequisites for Getting Started with Webiny](/img/get-started/prerequisites.jpg)](http://www.youtube.com/watch?v=G_du-yE_DL4 "Prerequisites")
+
 ## Prerequisites
 
 The following things are mandatory for both local development and production deployments:

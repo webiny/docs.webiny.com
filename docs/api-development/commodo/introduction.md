@@ -4,6 +4,10 @@ title: Introduction
 sidebar_label: Introduction
 ---
 
+Webiny is organizing Knowledge-Sharing sessions to create a knowledge database for our users. Check out our API Development With Webiny Session below:
+
+[![API Development With Webiny](/img/api-development/commodo/api-development-with-webiny.png)](http://www.youtube.com/watch?v=8aJ_Ja1aTy0 "API Development With Webiny")
+
 To simplify API development, Webiny heavily relies on a package called [Commodo](https://github.com/webiny/commodo).
 
 What is Commodo?
