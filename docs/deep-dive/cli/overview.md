@@ -10,14 +10,7 @@ Webiny CLI is a small command-line tool containing a set of commands to make you
 To see all the available CLI commands at any time, run `yarn webiny help`.
 :::
 
-Out of the box, the CLI itself only has 3 commands:
-
-- **run** - runs commands defined in `webiny.config.js` files
-- **enable-tracking** - enables anonymous Webiny telemetry
-- **disable-tracking** - disables telemetry
-
-You can see the actual implementation of these commands in our Github repo:
-https://github.com/webiny/webiny-js/tree/master/packages/cli/commands
+Out of the box, the CLI itself only has a **run** command  which runs commands defined in `webiny.config.js` files.
 
 Commands can be added to the CLI by adding plugins to the `webiny.root.js` file in your project root. When you setup your Webiny project, you'll notice that we configure your CLI with plugins by adding them to your `webiny.root.js`. This way you can configure the behavior of plugins, add your own, or remove unused plugins from your project.
 
