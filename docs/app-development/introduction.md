@@ -17,7 +17,7 @@ Bootstrapping an app is as simple as importing an app template package (which is
 ```typescript jsx
 /**
  * This is a real-life example that can be seen in your Webiny project in `apps/admin`.
- * Also seen at: https://github.com/webiny/webiny-js/tree/develop/sample-project/apps/admin
+ * Also seen at: https://github.com/webiny/webiny-js/tree/master/apps/admin
  * For the purpose of this article, the original code is slightly simplified.
  */
 import React from "react";
