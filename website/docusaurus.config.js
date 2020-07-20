@@ -43,7 +43,7 @@ const siteConfig = {
             trackingID: "UA-35527198-1"
         },
         navbar: {
-            title: "Webiny CMS Documentation",
+            title: "Webiny Documentation",
             logo: {
                 alt: "Webiny Serverless CMS Logo",
                 src: "img/white-square-icon.svg",

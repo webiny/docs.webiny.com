@@ -8,7 +8,7 @@ This article will guide you through Configuring MongoDB Atlas.
 
 If you prefer the Video version, check out our YouTube video below:
 
-[![Configuring MongoDB Atlas](/img/get-started/configuring-mongodb.jpg)](http://www.youtube.com/watch?v=GOMvnI-r2qs "Configuring MongoDB Atlas")
+<iframe width="805" height="390" src="http://www.youtube.com/embed/GOMvnI-r2qs" frameborder="0" allowfullscreen></iframe>
 
 > This guide might look long, but it's gonna take you less than 5 minutes to go through it.
 
