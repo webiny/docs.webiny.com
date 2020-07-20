@@ -8,7 +8,7 @@ This article will guide you through Configuring AWS Credentials.
 
 If you prefer the Video version, check out our YouTube video below:
 
-<iframe width="805" height="390" src="http://www.youtube.com/embed/qmtDRmplMG4" frameborder="0" allowfullscreen></iframe>
+<iframe width="805" height="390" src="https://www.youtube.com/embed/qmtDRmplMG4" frameborder="0" allowfullscreen></iframe>
 
 To create your AWS account and set up your IAM credentials we should first navigate [here](https://aws.amazon.com/console/):
 
