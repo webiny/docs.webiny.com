@@ -203,7 +203,7 @@ As noted in the Prerequisites section, having a Webiny project ready is crucial 
 
 Before continuing to build our API service, let's see how Webiny project its organized. 
 
-Check out our Webiny **serverless-api** project structure in the image below:
+Check out our Webiny [**serverless-api**](https://github.com/AlbionaHoti/serverless-api) project structure in the image below:
 
 ![Webiny project structure](/img/tutorials/serverless-graphql-api/webiny-project-structure.png)
 
@@ -218,7 +218,7 @@ As you can see these are other folders of individual apps that Webiny provides o
 > Our goal is to create our API service in the `api` folder.
 
 :::info
-In terms of deployments, the ***resources.js*** file is essential. In this file, we have all of the Cloud **[resources](https://docs.webiny.com/docs/deep-dive/architecture/resources)** are necessary for the Webiny API to work.
+In terms of deployments, the ***resources.js*** file is essential. In this file, we have all of the Cloud **[resources](https://docs.webiny.com/docs/deep-dive/architecture/resources)** that are necessary for the Webiny API to work.
 :::
 
 ### Creating API Service
