@@ -12,7 +12,7 @@ For detailed explanations of concepts and processes, see the [Deep Dive](/docs/d
 
 If you prefer the Video version of the Webiny Quick Start, check out our YouTube videos below:
 
-[![Prerequisites for Getting Started with Webiny](/img/get-started/prerequisites.jpg)](http://www.youtube.com/watch?v=G_du-yE_DL4 "Prerequisites")
+<iframe width="805" height="390" src="http://www.youtube.com/embed/G_du-yE_DL4" frameborder="0" allowfullscreen></iframe>
 
 ## Prerequisites
 
