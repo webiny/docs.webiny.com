@@ -6,7 +6,7 @@ sidebar_label: Introduction
 
 Webiny is organizing Knowledge-Sharing sessions to create a knowledge database for our users. Check out our API Development With Webiny Session below:
 
-<iframe width="805" height="390" src="http://www.youtube.com/embed/8aJ_Ja1aTy0" frameborder="0" allowfullscreen></iframe>
+<iframe width="805" height="390" src="https://www.youtube.com/embed/8aJ_Ja1aTy0" frameborder="0" allowfullscreen></iframe>
 
 To simplify API development, Webiny heavily relies on a package called [Commodo](https://github.com/webiny/commodo).
 

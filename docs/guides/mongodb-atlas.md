@@ -8,7 +8,7 @@ This article will guide you through Configuring MongoDB Atlas.
 
 If you prefer the Video version, check out our YouTube video below:
 
-<iframe width="805" height="390" src="http://www.youtube.com/embed/GOMvnI-r2qs" frameborder="0" allowfullscreen></iframe>
+<iframe width="805" height="390" src="https://www.youtube.com/embed/GOMvnI-r2qs" frameborder="0" allowfullscreen></iframe>
 
 > This guide might look long, but it's gonna take you less than 5 minutes to go through it.
 
