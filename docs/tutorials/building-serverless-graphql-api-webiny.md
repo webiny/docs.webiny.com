@@ -380,7 +380,7 @@ See the changes in the image below.
 
 Now we need to deploy our changes by deploying only our API service. Our API service name is in the `resources.js` file; we can look for the Habits-tracker entry. Check the image below.
 
-![Habits Tracker resources](/img/tutorials/serverless-graphql-api/habit-tracker-resources.png)
+![Habits Tracker resources](/img/tutorials/serverless-graphql-api/habit-tracker-resources-api.png)
 
 Deploy our new API service by running this command
 
