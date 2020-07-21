@@ -18,7 +18,7 @@ You can find the example repo for this tutorial [here](https://github.com/Albion
 
 ## Learning goals
 
-Before we continue creating the API service, let's look at our ***learning goals*** for this tutorial. 
+Before we continue creating the API service, lets look at our ***learning goals*** for this tutorial. 
 
 **Why Webiny,** Webiny is the easiest way to adopt serverless. It is a framework for building Serverless applications and APIs.
 
@@ -104,7 +104,7 @@ GraphQL is a query language for APIs and a runtime for fulfilling those queries 
 
 **Core Concepts**
 
-Let's check some of the fundamental language constructs of GraphQL. Defining ***types*** as well as sending ***queries*** and ***mutations***.
+Lets check some of the fundamental language constructs of GraphQL. Defining ***types*** as well as sending ***queries*** and ***mutations***.
 
 We define the schema of our API with the GraphQL type system  ***[Schema Definition Language (SDL)](https://blog.graph.cool/graphql-sdl-schema-definition-language-6755bcb9ce51) →*** Which is the syntax for writing schemas.
 
@@ -211,7 +211,7 @@ Precisely as with queries, the server response is shaped according to the mutati
 
 As noted in the Prerequisites section, having a Webiny project ready is crucial for this tutorial to create a custom API Service. 
 
-Before continuing to build the API service, let's see how Webiny project its organized. 
+Before continuing to build the API service, lets see how Webiny project its organized. 
 
 Check out the Webiny [**serverless-api**](https://github.com/AlbionaHoti/serverless-api) project structure in the image below:
 
