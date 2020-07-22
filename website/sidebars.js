@@ -36,7 +36,18 @@ module.exports = {
             {
                 type: "category",
                 label: "Scaffolding",
-                items: ["deep-dive/scaffolding/creating-a-scaffold-plugin"]
+                items: [
+                    "deep-dive/scaffolding/creating-a-scaffold-plugin",
+                    {
+                        type: "category",
+                        label: "Available Templates",
+                        items: [
+                            "deep-dive/scaffolding/available-plugins/scaffold-react-app",
+                            "deep-dive/scaffolding/available-plugins/scaffold-react-package",
+                            "deep-dive/scaffolding/available-plugins/scaffold-node-package"
+                        ]
+                    }
+                ]
             },
             {
                 type: "category",
