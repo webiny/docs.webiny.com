@@ -14,44 +14,8 @@ This Scaffolding Plugin generates a `Node Package` similar to [Webiny's **api** 
 
 ## Using it in your project
 
-In order to use your newly scaffolded **api** package in your Webiny project through the **context** object, add it to `webiny.root.js` like this:
+You can now use use your newly scaffolded **Node** package in your Webiny project by adding it to one of your `api` stacks.
+ 
+You can also use it as a [scaffolding plugin](https://docs.webiny.com/docs/deep-dive/cli/creating-a-scaffold-plugin)
 
-```javascript
-module.exports = {
-    projectName: "webiny-js",
-    cli: {
-        plugins: [
-            require("@webiny/cli-plugin-deploy-components")(),
-            require("@webiny/cwp-template-full/hooks/api")(),
-            require("@webiny/cwp-template-full/hooks/apps")(),
-            require("@webiny/cli-plugin-scaffold"),
-            require("@webiny/cli-plugin-scaffold-graphql-service"),
-            require("@webiny/cli-plugin-scaffold-lambda"),
-            require("@webiny/cli-plugin-scaffold-node-package"),
-            // require("[YOUR_PACKAGE'S_NAME]")
-        ]
-    }
-};
-```
-
-The scaffolded plugin is [linked](https://classic.yarnpkg.com/en/docs/cli/link/) to the other packages in the repository automatically.
-
-You only need to add it to the list of exported [plugins](https://docs.webiny.com/docs/deep-dive/plugins-crash-course) like in the example code above. Of course, rename `[YOUR_PACKAGE'S_NAME]` accordingly and uncomment the code. 
-
-## Upgrading your Node package
-
-By default, the scaffolded Node package exports a single plugin which provides an utility function:
-
-```javascript
-import React from "react";
-
-export default {
-    name: "utility-plugins-remove-vowels",
-    type: "utility-plugins",
-    removeVowels: str => {
-        return str.replace(/[aeiouAEIOU]/g, "");
-    }
-};
-```
-
-With our scaffolding tool, you are ready to add more plugins with more complex logic attached to them. 
+The scaffolded plugin is [linked](https://classic.yarnpkg.com/en/docs/cli/link/) to the other packages in the repository automatically, so you do not have to worry about it. 
