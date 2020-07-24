@@ -4,7 +4,7 @@ title: React App
 sidebar_label: React App
 ---
 
-This Scaffolding Plugin generates a `React App` [ready to be deployed](https://docs.webiny.com/docs/get-started/going-live/#3-deploy-apps-stack-using-dev-environment).
+This scaffolding plugin generates a `react app` [ready to be deployed](https://docs.webiny.com/docs/get-started/going-live/#3-deploy-apps-stack-using-dev-environment).
 
 ## Contents
 

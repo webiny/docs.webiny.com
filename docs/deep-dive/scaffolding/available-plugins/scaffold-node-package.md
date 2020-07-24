@@ -4,7 +4,7 @@ title: Node Package
 sidebar_label: Node Package
 ---
 
-This Scaffolding Plugin generates a `Node Package` similar to [Webiny's **api** packages](https://github.com/webiny/webiny-js/tree/master/packages).
+This scaffolding plugin generates a `node package` similar to [Webiny's **api** packages](https://github.com/webiny/webiny-js/tree/master/packages).
 
 ## Contents
 
@@ -15,7 +15,5 @@ This Scaffolding Plugin generates a `Node Package` similar to [Webiny's **api** 
 ## Using it in your project
 
 You can now use use your newly scaffolded **Node** package in your Webiny project by adding it to one of your `api` stacks.
- 
-You can also use it as a [scaffolding plugin](https://docs.webiny.com/docs/deep-dive/cli/creating-a-scaffold-plugin)
 
-The scaffolded plugin is [linked](https://classic.yarnpkg.com/en/docs/cli/link/) to the other packages in the repository automatically, so you do not have to worry about it. 
+The scaffolded package is [linked](https://classic.yarnpkg.com/en/docs/cli/link/) to the other packages in the repository via node_modules automatically, so you do not have to worry about it. 

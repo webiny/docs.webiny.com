@@ -4,7 +4,7 @@ title: React Package
 sidebar_label: React Package
 ---
 
-This Scaffolding Plugin generates a `React Package` similar to [Webiny's **app** packages](https://github.com/webiny/webiny-js/tree/master/packages).
+This scaffolding plugin generates a `react package` similar to [Webiny's **app** packages](https://github.com/webiny/webiny-js/tree/master/packages).
 
 ## Contents
 
@@ -16,4 +16,4 @@ This Scaffolding Plugin generates a `React Package` similar to [Webiny's **app**
 
 You can now use use your newly scaffolded **React** package in your Webiny project by importing it in one of your `apps`.
 
-The scaffolded plugin is [linked](https://classic.yarnpkg.com/en/docs/cli/link/) to the other packages in the repository automatically, so you do not have to worry about it. 
+The scaffolded package is [linked](https://classic.yarnpkg.com/en/docs/cli/link/) to the other packages in the repository via node_modules automatically, so you do not have to worry about it. 
