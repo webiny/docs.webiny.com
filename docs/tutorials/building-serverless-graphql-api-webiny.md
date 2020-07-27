@@ -31,7 +31,7 @@ You can find the example repo for this tutorial [here](https://github.com/webiny
 
 --- 
 
-## What is Webiny?
+## Why Webiny?
 
 **Webiny** is the easiest way to adopt serverless. It is a framework for building Serverless applications and APIs.
 
