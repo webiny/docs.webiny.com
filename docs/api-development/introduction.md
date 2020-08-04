@@ -4,7 +4,7 @@ title: Introduction
 sidebar_label: Introduction
 ---
 
-When you create a new Webiny project, on the admin app's menu, you will find the `API Information,` which consists of the main `GraphQL` API, as seen in the image below. 
+When you create a new [Webiny project](/docs/get-started/quick-start), on the admin app's menu, you will find the `API Information,` which consists of the main `GraphQL` API, as seen in the image below. 
 
 ![API Information](/img/api-development/introduction/api-information.png)
 
