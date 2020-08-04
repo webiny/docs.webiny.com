@@ -8,6 +8,28 @@ Everything in Webiny is built using plugins. To build a React app or an API you 
 
 Plugins are the smallest building blocks. They are used to add routes, menus, page builder elements, settings, handle API security, add data models, GraphQL schemas, etc. The list is just too long to name all the usages here.
 
+:::info
+Check out our knowledge-sharing session on `Webiny Plugins`. 
+In this session, we'll look at three main groups of plugins:
+- `CLI plugins`
+- `API plugins`
+- `App plugins`
+
+We'll first learn how `@webiny/plugins` package works outside of Webiny, using [codesandbox.io](https://www.codesandbox.io). Then we'll see how this same package is utilized within the CLI, within Apollo Server (resolvers) and within React apps.
+:::
+
+<iframe width="805" height="390" src="https://youtube.com/embed/4qcDLzu8kVM" frameborder="0" allowfullscreen></iframe>
+
+:::info
+Now that we understand the basics of Webiny Plugins, we will continue on practical examples. 
+
+We will demonstrate how plugins are actually used in your everyday development: in the Admin app, where we’ll show how we can use plugins to add new routes, menus, and even how we can replace the logo in the top header bar. 
+
+Also on the API side, we’ll learn what are context plugins and what they are used for, and finally, how we can use plugins to expand our GraphQL schema with additional GraphQL types and resolvers.
+:::
+
+<iframe width="805" height="390" src="https://youtube.com/embed/NGoZ3TDTYus" frameborder="0" allowfullscreen></iframe>
+
 ## Anatomy of a plugin
 
 A plugin is nothing more than a simple object with 2 mandatory keys:

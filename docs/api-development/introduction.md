@@ -18,9 +18,9 @@ In this URL, you will find several queries and mutations preinstalled with Webin
 
 ### API Development with Webiny
 
-As noted in the Commodo section:
+As noted in the [Commodo](/docs/api-development/commodo/introduction) section:
 
-:::note Note
+:::info Note
 To simplify API development, Webiny heavily relies on a package called [Commodo](https://github.com/webiny/commodo).
 
 What is Commodo?
@@ -29,6 +29,6 @@ Learn more about it [here](/docs/api-development/commodo/introduction).
 
 Webiny is organizing Knowledge-Sharing sessions to create a knowledge database for our users. 
 
-Learn how to create custom APIs with Webiny in the session below.
+Learn how to develop APIs with Webiny in the session below.
 
 <iframe width="805" height="390" src="https://www.youtube.com/embed/8aJ_Ja1aTy0" frameborder="0" allowfullscreen></iframe>
