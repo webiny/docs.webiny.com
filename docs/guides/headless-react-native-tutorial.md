@@ -109,8 +109,10 @@ Now that we have covered the basics of creating content models and managing cont
 ## Creating a new React Native app
 
 We can create a [new React Native app](https://reactnative.dev/docs/environment-setup) by running the `npx react-native init MyTestApp` command. We will use `disclose` as the project name.
-
-![Creating a New React Native App](/img/guides/headless-nextjs-tutorial/npx-next.png)
+```
+  npx react-native init disclose
+```
+![Creating a New React Native App](/img/guides/headless-react-native-tutorial/react-native-init.png)
 
 > Ideally, you should create your React Native project in a folder outside of the Webiny project.
 
@@ -347,7 +349,8 @@ export default CreateAnnouncement;
 
 Now, finally we're going to start fetching the actual content from the Content Delivery API.
 
-The following snippet shows the code located in the [`src/components/Channel.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Channel.js) file:
+- First we'll see how list of **channels** are being fetched and rendered in the UI. <br />
+To do that, let's head over to the following snippet shows the code located in the [`src/components/Channel.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Channel.js) file:
 
 ```js
 import React from 'react';
