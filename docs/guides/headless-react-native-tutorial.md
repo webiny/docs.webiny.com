@@ -349,8 +349,8 @@ export default CreateAnnouncement;
 
 Now, finally we're going to start fetching the actual content from the Content Delivery API.
 
-- First we'll see how list of **channels** are being fetched and rendered in the UI. <br />
-To do that, let's head over to the following snippet shows the code located in the [`src/components/Channel.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Channel.js) file:
+- First we'll see how list of **channel** is being fetched and rendered in the UI.
+For that, let's look at the following snippet of the code which is located in the [`src/components/Channel.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Channel.js) file:
 
 ```js
 import React from 'react';
@@ -381,8 +381,9 @@ const LIST_CHANNELS = gql`
 `;
 
 export default ({handleNavigate}) => {
+  // Get channels data using "LIST_CHANNELS" query.
   const {loading, error, data} = useQuery(LIST_CHANNELS);
-
+  // Show "Activity spinner" if data is loading.
   if (loading) {
     return (
       <ActivityIndicator
@@ -392,7 +393,7 @@ export default ({handleNavigate}) => {
       />
     );
   }
-
+  // Show "Error message" if there is error while performing query.
   if (error) {
     return <Paragraph>Error! {error.message} </Paragraph>;
   }
@@ -401,7 +402,7 @@ export default ({handleNavigate}) => {
     <ScrollView showsVerticalScrollIndicator={false}>
       <Headline>All Channels</Headline>
       <Caption>Total: {data.listChannels.data.length}</Caption>
-      // Iterate and render data
+      {/* Iterate over the "channel list" and render each "channel" data. */}
       {data.listChannels.data.map(channel => (
         <Card key={channel.id} style={styles.channelListWrapper}>
           <List.Item
@@ -424,9 +425,8 @@ export default ({handleNavigate}) => {
 // remaining code removed for brevity
 ```
 
-We do a similar thing for fetching the announcements for a particular channel.
-
-The following snippet shows the code located in the [`src/components/Announcement.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Announcement.js) file:
+- Now that we know how **Channel** component works. Let's do a similar thing for fetching the announcements for a particular channel.
+For that, let's look at the following snippet of the code which is located in the [`src/components/Announcement.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Announcement.js) file:
 
 ```js
 
@@ -455,12 +455,14 @@ const GET_CHANNELS = gql`
 `;
 
 export default ({channelId}) => {
+  // Get a channel data by "id" using "GET_CHANNELS" query.
   const [loadChannel, {loading, error, data}] = useLazyQuery(GET_CHANNELS);
-
+  // Once we have the "channelId", we'll execute the query by passing "channelId" as "id"
   useEffect(() => {
     loadChannel({variables: {where: {id: channelId}}});
   }, [channelId, loadChannel]);
 
+  // Show "Activity spinner" if data is loading.
   if (!data || loading) {
     return (
       <ActivityIndicator
@@ -470,7 +472,7 @@ export default ({channelId}) => {
       />
     );
   }
-
+  // Show "Error message" if there is error while performing query.
   if (error) {
     return <Paragraph>Error! {error.message} </Paragraph>;
   }
@@ -479,7 +481,7 @@ export default ({channelId}) => {
     <ScrollView showsVerticalScrollIndicator={false}>
       <Headline># {data.getChannel.data.name}</Headline>
       <Caption>Total: {data.getChannel.data.announcements.length}</Caption>
-      // Iterate and render announcement list
+      {/* Iterate over the "announcement list" and render each "announcement" data. */}
       {data.getChannel.data.announcements.map(announcement => (
         <Card key={announcement.id} style={styles.announcement}>
           <Card.Cover source={{uri: announcement.banner}} />
