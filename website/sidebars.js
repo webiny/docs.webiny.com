@@ -14,6 +14,7 @@ module.exports = {
         'guides/headless-gatsby-tutorial',
         'guides/headless-nextjs-tutorial',
         'guides/headless-react-tutorial',
+        'guides/headless-react-native-tutorial',
         'guides/headless-vuejs-tutorial',
         'guides/headless-angular-tutorial',
         'guides/creating-iframe-element-plugin',
