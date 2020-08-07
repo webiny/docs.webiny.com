@@ -6,7 +6,7 @@ sidebar_label: Creating a React Native app with Headless CMS
 
 In this short tutorial, we will learn how to use the popular [React Native](https://reactnative.dev/) (a framework for building native apps using React) with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
-We'll be creating an React Native app which will list channels and their announcement created and delivered by Headless CMS. Here is what we will get in the end:
+We'll be creating a React Native app that will list channels and their announcement created and delivered by Headless CMS. Here is what we will get in the end:
 
 ![React Native app demo](/img/guides/headless-react-native-tutorial/react-native-app-demo.gif)
 
@@ -43,7 +43,12 @@ Now that we have all of the prerequisites out of the way, it's time to create ou
 
 ![The Models View](/img/guides/headless-nextjs-tutorial/content-models-menu.png)
 
-Let's create a new content model named **Announcement**. Click on the "plus" icon in the lower right corner of the screen and in the dialog that's about to be shown, enter the following:
+Let's create a new content model named **Announcement**.
+Click on the "plus" icon as seen in the image below.
+
+![Models View](/img/guides/headless-react-native-tutorial/content-model-view.png)
+
+Enter the following:
 
 ![New Content Model Dialog](/img/guides/headless-react-native-tutorial/announcement-content-model.png)
 
@@ -63,18 +68,18 @@ Save the changes by clicking on the **Save** button in the top right corner of t
 
 We'll also create one another content model named **Channel** which we'll use to group `announcements`.
 
-Go back to content model view by pressing back button from the content model editor.
+Go back to the content model view from the content model editor.
 Again, click on the "plus" icon in the lower right corner of the screen and enter the details in the dialog as follow:
 
 ![New Content Model Dialog](/img/guides/headless-react-native-tutorial/channel-content-model.png)
 
-Once again upon form submission we'll be redirected to content model editor.
+Once again, upon form submission, we'll be redirected to the content model editor.
 Let's add two fields: `Name` as a `Text` and `Announcements` as `Reference` field with multiple values. They will match every channel's name and announcements list (content), respectively.
 
 ![Channel Model](/img/guides/headless-react-native-tutorial/channel-content-model-editor.png)
 
 :::note
-Make sure you toggle on the `use as list of references` option for `Reference` Field. <br />
+Make sure you toggle on the `use as list of references` option for the `Reference` Field. <br />
 This way we can easily link multiple `announcements` to a `channel`
 :::
 
@@ -96,12 +101,12 @@ Once you feel happy with the announcement, you can save the changes by clicking 
 
 This will save and publish the announcement, which will make it actually visible in the Content Delivery API.
 
-Now let's repeat the similar steps that is, navigate to **Headless CMS > Ungrouped > Channel** and create few channels and link the announcements that we just created.
+Now let's repeat the similar steps that are, navigate to **Headless CMS > Ungrouped > Channel** and create few channels and link the announcements that we just created.
 
 ![Channel Form](/img/guides/headless-react-native-tutorial/channel-content-entry.png)
 
 :::note
-Make sure you publish all the content entries, otherwise they will not be visible in the Content Delivery API.
+Make sure you publish all the content entries; otherwise they will not be visible in the Content Delivery API.
 :::
 
 Now that we have covered the basics of creating content models and managing content, we can move on to the React Native part of this tutorial.
@@ -118,7 +123,7 @@ We can create a [new React Native app](https://reactnative.dev/docs/environment-
 
 Now that we have a new React Native app ready to go, let's see what it takes to make a simple app that will have just two screens.
 
-A **Home screen** that will show listing of all channels and an **Announcements screen** which will renders the list of all announcements in a channel that we have just created.
+A **Home screen** that will show a listing of all channels and an **Announcements screen**, which will renders the list of all announcements in a channel that we have just created.
 
 ## Installing packages needed for the app
 
@@ -176,9 +181,9 @@ ___
 
 Now that we have covered the packages used and the folder structure of our React Native app, let's jump to the code. <br/>
 
-We'll first create the structure of the app i.e boilerplate code and then move on to more interesting part that is fetching the announcement from our Content Delivery GraphQL API and rendering them in the UI.
+We'll first create the app structure, i.e., boilerplate code, and then move on to a more exciting part that is fetching the **announcement** from our Content Delivery GraphQL API and rendering them in the UI.
 
-First let's see what's inside the `src/App.js` because it contains the whole app.
+First, let's see what's inside the `src/App.js` because it contains the whole app.
 
 The following snippet shows the code located in the [`src/App.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/App.js) file:
 
@@ -347,10 +352,10 @@ export default CreateAnnouncement;
 
 ## Fetching the actual content
 
-Now, finally we're going to start fetching the actual content from the Content Delivery API.
+Now, finally, we're going to start fetching the actual content from the Content Delivery API.
 
-- First we'll see how list of **channel** is being fetched and rendered in the UI.
-For that, let's look at the following snippet of the code which is located in the [`src/components/Channel.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Channel.js) file:
+- First, we'll see how list of **channel** is being fetched and rendered in the UI.
+For that, let's look at the following snippet of the code located in the [`src/components/Channel.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Channel.js) file:
 
 ```js
 import React from 'react';
@@ -426,7 +431,7 @@ export default ({handleNavigate}) => {
 ```
 
 - Now that we know how **Channel** component works. Let's do a similar thing for fetching the announcements for a particular channel.
-For that, let's look at the following snippet of the code which is located in the [`src/components/Announcement.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Announcement.js) file:
+For that, let's look at the following snippet of the code located in the [`src/components/Announcement.js`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native/src/components/Announcement.js) file:
 
 ```js
 
@@ -512,6 +517,6 @@ Let's run our app using `yarn start` and `yarn run android` in our React Native 
 
 Congratulations! 🎉
 
-We have have successfully created a simple app that displays a list of all created channels and their announcements, all powered by Webiny Headless CMS and React Native.
+We have successfully created a simple app that displays a list of all created channels and their announcements, all powered by Webiny Headless CMS and React Native.
 
 > The same can also be achieved with other popular tools, like [React](https://www.reactjs.org/). To learn more, click [here](/docs/guides/headless-react-tutorial).
