@@ -12,6 +12,13 @@ With traditional React apps, you would import all your components and mount them
 
 ## How does it work in practice?
 
+:::info
+Check out our knowledge-sharing session on `APP Development With Webiny.` We'll get to know the structure of the app, how it is bundled, and how to make reusable app templates.
+:::
+<iframe width="805" height="390" src="https://youtube.com/embed/EQxNsDSdpsQ" frameborder="0" allowfullscreen></iframe>
+
+---
+
 Bootstrapping an app is as simple as importing an app template package (which is essentially a React component factory), and executing it with the supported options to get your app component:
 
 ```typescript jsx
