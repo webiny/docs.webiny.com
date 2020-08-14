@@ -18,6 +18,7 @@ module.exports = {
         'guides/headless-vuejs-tutorial',
         'guides/headless-angular-tutorial',
         'guides/creating-iframe-element-plugin',
+        'guides/creating-custom-element-settings-plugin',
       ],
       'Deep Dive': [
         'deep-dive/project-structure',
@@ -200,6 +201,13 @@ module.exports = {
               type: 'category',
               label: 'Development',
               items: [
+                {
+                  type: 'category',
+                  label: 'Plugins Reference',
+                  items: [
+                    'webiny-apps/page-builder/development/plugins-reference/app',
+                  ],
+                },
                 'webiny-apps/page-builder/development/rendering-pages',
                 //"webiny-apps/form-builder/creating-new-form-fields",
                 //"webiny-apps/form-builder/custom-form-triggers",
