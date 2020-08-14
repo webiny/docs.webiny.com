@@ -137,7 +137,7 @@ Before we cover what's inside **Action** and **Settings** component. Let's, firs
     - or a boolean value of **true** which enable this setting to be available to every page element. As shown in the above example.
 
 
-### What's inside `renderAction` ?
+### Implement `renderAction`
 
 The `renderAction` property of [`pb-editor-page-element-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-settings) plugin is a function that renders the **settings action**, which when rendered, will be located on top toolbar bar of the page editor.
 
@@ -149,7 +149,7 @@ Now, let's take a look at this **Action** component, it is a simple React compon
 
 Checkout the full source code of [Action](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder/src/editor/plugins/elementSettings/components/Action.tsx) component in our Github repo.
 
-### What's inside `renderMenu` ?
+### Implement `renderMenu`
 
 The `renderMenu` property of [`pb-editor-page-element-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-settings) plugin is a function that renders the **settings menu**, which will get rendered when the **action** icon in clicked.
 
@@ -294,7 +294,7 @@ Our goal is to edit and store `className` key-value to this very object i.e `ele
 - Then, we need to implement a `onChange` handler for the form so that the `className` value can be update using the input field. For that, we'll import `useHandler` hook that will help us to implement `updateSettings` change handler.
 
 
-```typescript jsx{5,20-33,35-41} title="src/plugins/cssClass/Settings.tsx"
+```typescript jsx{5,20-41} title="src/plugins/cssClass/Settings.tsx"
 import React from "react";
 import { get } from "lodash";
 import { set } from "dot-prop-immutable";
@@ -379,6 +379,6 @@ We've successfully created a simple page element settings, which can be use to a
 Plugins are one of the core feature of Webiny. The whole Webiny Architecture is based on it.
 The plugin system is so versatile yet simple. It makes it very easy to extend an existing functionality or to add a new functionality.
 
-I hope you enjoyed the guide. If you want to learn more about Webiny please checkout our [Youtube channel](https://youtube.com/webiny) where we post a lot of new content every week.
+I hope you enjoyed the guide. If you want to learn more about Webiny plugins please checkout our [Webiny Plugins](https://www.youtube.com/watch?v=4qcDLzu8kVM) video on our [Youtube channel](https://www.youtube.com/webiny) where we post a lot of new content every week.
 
 Are you interested on building your own plugin? You can easily add custom elements following the [plugin crash course](/docs/deep-dive/plugins-crash-course).
