@@ -19,7 +19,7 @@ module.exports = {
         'guides/creating-iframe-element-plugin',
       ],
       Tutorials: [
-        'tutorials/building-serverless-graphql-api-webiny'
+        'tutorials/build-your-serverless-graphql-api-webiny'
       ],
       'Deep Dive': [
         'deep-dive/project-structure',
