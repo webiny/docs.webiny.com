@@ -8,10 +8,6 @@ Everything in Webiny is built using plugins. To build a React app or an API you 
 
 Plugins are the smallest building blocks. They are used to add routes, menus, page builder elements, settings, handle API security, add data models, GraphQL schemas, etc. The list is just too long to name all the usages here.
 
-If you prefer the Video version, please check out our YouTube video below:
-
-<iframe width="805" height="390" src="https://www.youtube.com/embed/4qcDLzu8kVM" frameborder="0" allowfullscreen></iframe>
-
 ## Anatomy of a plugin
 
 A plugin is nothing more than a simple object with 2 mandatory keys:
