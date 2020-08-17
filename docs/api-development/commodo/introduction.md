@@ -4,6 +4,10 @@ title: Introduction
 sidebar_label: Introduction
 ---
 
+Learn the basics of Commodo in our knowledge-sharing playlist below.
+
+<iframe width="805" height="390" src="https://www.youtube.com/embed/i9xRDdqCzjk" frameborder="0" allowfullscreen></iframe>
+
 To simplify API development, Webiny heavily relies on a package called [Commodo](https://github.com/webiny/commodo).
 
 What is Commodo?
