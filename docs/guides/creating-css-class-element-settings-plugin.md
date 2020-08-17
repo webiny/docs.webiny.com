@@ -21,6 +21,14 @@ Here's what the result will look like:
 
 ![Add CSS class using settings plugin](/img/guides/custom-element-settings-plugin/css-class-plugin.gif)
 
+As under the hood, every page element is a React component. Therefore the value of `CSS class` will translates to `className` prop on component level.
+The `settings.className` property of an element is special because the rendering of this property is already handled for you.
+
+How is it handled, you asked?
+
+Well, every page element is wrapped with the [ElementRoot](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder/src/render/components/ElementRoot.tsx#L62) component. Among other things, it is also responsible for extracting the `className` value from the `element.data` and adding it to the actual element root so that it will be rendered correctly
+
+
 ## Prerequisites
 
 ##### 1. A Webiny Project
