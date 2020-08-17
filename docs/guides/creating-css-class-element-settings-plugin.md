@@ -4,7 +4,7 @@ title: Creating custom page element settings
 sidebar_label: Creating custom page element settings
 ---
 
-In this tutorial, we're going to learn how to create a custom page element settings for the Page Builder app. Although the app comes with a bunch of ready-made page element settings, at one point in time, you might need to create your own to satisfy your specific requirements. To achieve that, we can utilize a simple plugins, which is what we'll cover in this short tutorial.
+In this tutorial, we're going to learn how to create a custom element settings for the Page Builder app. Although the app comes with a bunch of ready-made element settings, at one point in time, you might need to create your own to satisfy your specific requirements. To achieve that, we can utilize a simple plugins, which is what we'll cover in this short tutorial.
 
 If you are not already familiar with how plugins work, we recommend
 you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
@@ -88,7 +88,7 @@ All of the settings available for a page element can be accessed via the top app
 
 ![Editor Element settings](/img/guides/custom-element-settings-plugin/pb-editor-toolbar.png)
 
-As mentioned, this list of page element settings can be expanded and custom page element settings can be created via plugins. To create a new page element setting, we only need to register a single plugin, that will define three things for us:
+As mentioned, this list of element settings can be expanded and custom element settings can be created via plugins. To create a new page element setting, we only need to register a single plugin, that will define three things for us:
 
 - How it's rendered in the top action menu of the page editor?
 - What settings that plugin will apply to the page element?
@@ -292,7 +292,7 @@ export default connect<any, any, any>(mapStateToProps, mapDispatchToProps)(Setti
 Now that we have the active page element and a helper to get active element's data. Let's implement the actual business logic.
 
 :::info
- `element.data` contains the information about various attributes of a page element. One of the attribute is the `settings`, which holds the data manage by various **page element settings** plugins.
+ `element.data` contains the information about various attributes of a page element. One of the attribute is the `settings`, which holds the data manage by various **element settings** plugins.
 :::
 
 Our goal is to edit and store `className` key-value to this very object i.e `element.data.settings`. In order to do that we'll follow the below mentioned steps:
@@ -382,7 +382,7 @@ And with these changes in place. Now, our `CSS class` page element setting will 
 
 Congratulations! 🎉
 
-We've successfully created a simple page element settings, which can be use to add `CSS class` to every page element in our Page Builder app.
+We've successfully created a simple element settings, which can be use to add `CSS class` to every page element in our Page Builder app.
 
 Plugins are one of the core feature of Webiny. The whole Webiny Architecture is based on it.
 The plugin system is so versatile yet simple. It makes it very easy to extend an existing functionality or to add a new functionality.
