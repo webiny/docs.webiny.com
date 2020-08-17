@@ -9,7 +9,7 @@ In this tutorial, we're going to learn how to create a custom element settings f
 If you are not already familiar with how plugins work, we recommend
 you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
 
-> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element) repository.
+> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/css-class-page-element-setting) repository.
 
 Ready? Let's dive in!
 
