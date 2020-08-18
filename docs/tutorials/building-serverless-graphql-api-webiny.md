@@ -1,7 +1,7 @@
 ---
 id: build-your-serverless-graphql-api-webiny
-title: Build Your Serverless GraphQL API with Webiny in 10 minutes
-sidebar_label: Build Your Serverless GraphQL API with Webiny in 10 minutes
+title: Build Your Serverless GraphQL API with Webiny
+sidebar_label: Build Your Serverless GraphQL API with Webiny
 ---
 
  
