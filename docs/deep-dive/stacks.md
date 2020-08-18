@@ -57,43 +57,47 @@ module.exports = ({ cli }) => ({
       }
     },
     api: {
-      component: "@webiny/serverless-api-gateway",
-      inputs: {
-        name: "Apps Gateway",
-        region: process.env.AWS_REGION,
-        description: "Serverless React Apps",
-        binaryMediaTypes: ["*/*"],
-        endpoints: [
-          {
-            path: "/{key+}",
-            method: "ANY",
-            function: "${myApp}"
-          },
-          {
-            path: "/",
-            method: "ANY",
-            function: "${myApp}"
-          }
-        ]
+      deploy: {
+        component: "@webiny/serverless-api-gateway",
+        inputs: {
+          name: "Apps Gateway",
+          region: process.env.AWS_REGION,
+          description: "Serverless React Apps",
+          binaryMediaTypes: ["*/*"],
+          endpoints: [
+            {
+              path: "/{key+}",
+              method: "ANY",
+              function: "${myApp}"
+            },
+            {
+              path: "/",
+              method: "ANY",
+              function: "${myApp}"
+            }
+          ]
+        }
       }
     },
     cdn: {
-      component: "@webiny/serverless-aws-cloudfront",
-      inputs: {
-        forwardIdViaHeaders: true,
-        defaults: {
-          ttl: 300,
-          allowedHttpMethods: ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
-          forward: {
-            queryString: true
-          }
-        },
-        origins: [
-          {
-            url: "${api.url}",
-            allowedHttpMethods: ["HEAD", "GET"]
-          }
-        ]
+      deploy: {
+        component: "@webiny/serverless-aws-cloudfront",
+        inputs: {
+          forwardIdViaHeaders: true,
+          defaults: {
+            ttl: 300,
+            allowedHttpMethods: ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
+            forward: {
+              queryString: true
+            }
+          },
+          origins: [
+            {
+              url: "${api.url}",
+              allowedHttpMethods: ["HEAD", "GET"]
+            }
+          ]
+        }
       }
     }
   }
@@ -108,4 +112,4 @@ To deploy this stack, you need to run a command `yarn webiny deploy my-stack --e
 
 ## Summary
 
-Stacks allow you to organize your project no matter how small or large it is. By default, Webiny project is configured using 2 stacks, one for GraphQL API, and one for React apps. In your project, you may need a REST API, or maybe another GraphQL API that has nothing to do with the main Webiny API. Using stacks you can quickly setup those standalone units and deploy them independently. 
+Stacks allow you to organize your project no matter how small or large it is. By default, Webiny project is configured using 2 stacks, one for GraphQL API, and one for React apps. In your project, you may need a REST API, or maybe another GraphQL API that has nothing to do with the main Webiny API. Using stacks you can quickly setup those standalone units and deploy them independently.
