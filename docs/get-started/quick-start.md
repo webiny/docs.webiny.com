@@ -18,8 +18,9 @@ If you prefer the Video version of the Webiny Quick Start, check out our YouTube
 
 The following things are mandatory for both local development and production deployments:
 
-✅ **node.js >= 10.14.2**
+✅ **node.js >= 12.0.0**
 
+- earlier node versions may also work but we don't test them regularly
 - we recommend [this tool](https://www.npmjs.com/package/n) to manage your node.js versions
 
 ✅ **`yarn` < 2.0**
