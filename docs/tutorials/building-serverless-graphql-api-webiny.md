@@ -4,7 +4,7 @@ title: Build Your Serverless GraphQL API with Webiny
 sidebar_label: Build Your Serverless GraphQL API with Webiny
 ---
  
-In this tutorial, you will create a Habits Tracker API service, which will consist of the `Habit`  model. By accessing the **`/graphql URL,`** you will read (query) and write (mutations) new data for our habits.
+In this tutorial, you will create a Habits Tracker API service, which will consist of the `Habit` model. By accessing the **`/graphql URL,`** you will read (query) and write (mutations) new data for our habits.
  
 Webiny framework provides different scaffolding tools. What you will use is the GraphQL Apollo service scaffold to create the API service. 
  
