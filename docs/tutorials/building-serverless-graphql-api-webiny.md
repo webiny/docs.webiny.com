@@ -3,17 +3,12 @@ id: build-your-serverless-graphql-api-webiny
 title: Build Your Serverless GraphQL API with Webiny
 sidebar_label: Build Your Serverless GraphQL API with Webiny
 ---
-
  
-When you read the title, for sure, you will notice the buzzwords, which are the `Serverless`, `GraphQL`, and `Webiny`. 
+In this tutorial, you will create a Habits Tracker API service, which will consist of the `Habit`  model. By accessing the **`/graphql URL,`** you will read (query) and write (mutations) new data for our habits.
  
-In this tutorial, you will create a Serverless GraphQL API service with Webiny.
+Webiny framework provides different scaffolding tools. What you will use is the GraphQL Apollo service scaffold to create the API service. 
  
-Webiny framework provides different scaffolding tools. What you will use is the GraphQL Apollo service scaffold to create our API service. 
- 
-Before adding more functionalities, you will learn the queries and mutations in the `How to GraphQL` section. Then, you will test the GraphQL service with the out-of-the-box TDD setup from Webiny.
- 
-You will build a Habits Tracker API service, which will consist of the `Habit`  model. By accessing the **`/graphql URL,`** you will read (query) and write (mutations) new data for our habits.
+Before adding more functionalities, you will learn the `queries` and `mutations` in the `How to GraphQL` section. Then, you will test the GraphQL service with the out-of-the-box TDD setup from Webiny.
 
 > You can find the example repo for this tutorial [here](https://github.com/webiny/webiny-examples/tree/master/serverless-graphql-api).
 
@@ -455,7 +450,7 @@ The tests are passing because I already added the `habitScore` field on the test
 
 As a practice, you can continue and add the changes in the [`__tests__/graphql/habits.js`](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/__tests__/graphql/habits.js) file, and in the [`__tests__/crud.test.js`](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/__tests__/crud.test.js) file, to see if the tests will pass or fail.
 
-You can continue writing other functionalities to the API, and by adding the tests, you can be assured that the API is working, and you can quickly debug if something goes wrong.
+You can expand your API with other functionalities, and by adding the tests, you can be assured that the API is working, by quickly debugging if something goes wrong.
 
 If you have any question, as we noted earlier, join our **Slack Community** [here](https://www.webiny.com/slack). Our team is always there for any questions.
 
@@ -469,14 +464,17 @@ If you have any question, as we noted earlier, join our **Slack Community** [her
 
 ## Conclusion
 
+Congrats 🎉
+
 You learned what [Webiny](https://www.webiny.com/) offers in terms of serverless applications. Having a [Webiny project](https://docs.webiny.com/docs/get-started/quick-start) set up means having [several apps](https://www.webiny.com/serverless-apps) to get you going right away.
 
 With a couple of steps, you were able to start testing your custom API service immediately.
  
-You learned the GraphQL fundamentals such as queries and mutations and tested your knowledge with the Webiny API service scaffold.
+You learned the `GraphQL` fundamentals such as `queries` and `mutations` and tested your knowledge with the Webiny API service scaffold.
  
 You can continue developing your API service with additional models and functionalities.
 
-Want to learn more about Serverless API with Webiny? Check our docs [here](/docs/api-development/commodo/introduction).
+Want to learn more about `Serverless APIs` with Webiny? Check our docs [here](/docs/api-development/commodo/introduction).
  
+Until next time, happy Coding = )
 Until next time, happy Coding = )
