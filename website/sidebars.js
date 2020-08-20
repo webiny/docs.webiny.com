@@ -19,6 +19,9 @@ module.exports = {
         'guides/headless-angular-tutorial',
         'guides/creating-iframe-element-plugin',
       ],
+      Tutorials: [
+        'tutorials/build-your-serverless-graphql-api-webiny'
+      ],
       'Deep Dive': [
         'deep-dive/project-structure',
         'deep-dive/stacks',
