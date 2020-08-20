@@ -464,7 +464,7 @@ If you have any question, as we noted earlier, join our **Slack Community** [her
 
 ## Conclusion
 
-Congrats 🎉
+**Congrats** 🎉
 
 You learned what [Webiny](https://www.webiny.com/) offers in terms of serverless applications. Having a [Webiny project](https://docs.webiny.com/docs/get-started/quick-start) set up means having [several apps](https://www.webiny.com/serverless-apps) to get you going right away.
 
@@ -476,5 +476,4 @@ You can continue developing your API service with additional models and function
 
 Want to learn more about `Serverless APIs` with Webiny? Check our docs [here](/docs/api-development/commodo/introduction).
  
-Until next time, happy Coding = )
 Until next time, happy Coding = )
