@@ -44,7 +44,7 @@ At its core, GraphQL enables declarative data fetching where a client can specif
 :::
 **Webiny** is the easiest way to adopt serverless.
  
-It uses these technologies:
+It is created with technology and tools you know and Love:
  
  - [React](https://reactjs.org/) → For everything related to UI.
  - [Apollo GraphQL](https://www.apollographql.com/) → for everything GraphQL (both React and API).
@@ -63,9 +63,9 @@ As noted in the [GraphQL](https://graphql.org/) website. GraphQL is a query lang
  
 Let’s go through the fundamental language constructs of GraphQL. 
  
-Defining ***types*** as well as sending ***queries*** and ***mutations***.
+Defining **types** as well as sending **queries** and **mutations**.
  
-We define the schema of our API with the GraphQL type system  ***[Schema Definition Language (SDL)](https://blog.graph.cool/graphql-sdl-schema-definition-language-6755bcb9ce51) →*** Which is the syntax for writing schemas.
+We define the schema of our API with the GraphQL type system  **[Schema Definition Language (SDL)](https://blog.graph.cool/graphql-sdl-schema-definition-language-6755bcb9ce51) →** Which is the syntax for writing schemas.
 
 ### Fetching Data With Queries
 
@@ -122,7 +122,7 @@ One of the significant strengths of GraphQL is it allows for querying nested inf
 
 Next to requesting information from a server with *queries*, we can change server-side data through *mutations*.
  
-With GraphQL, we do these changes with so-called ***mutations***.
+With GraphQL, we do these changes with so-called **mutations**.
 
 ### Writing Data with Mutations
 
@@ -132,7 +132,7 @@ There are three kinds of mutations:
 - **updating** existing data
 - **deleting** existing data
 
-Mutations generally follow the same syntactical structure as queries. What differentiates them from queries is that they always need to start with the ***mutation*** keyword.
+Mutations generally follow the same syntactical structure as queries. What differentiates them from queries is that they always need to start with the **mutation** keyword.
 
 Example mutation
 
@@ -145,7 +145,7 @@ mutation {
 }
 ```
 
-Notice that similar to the query that you wrote before, the mutation also has a root field, the ***createHabit*** root field. You also learned about the concept of arguments for fields.
+Notice that similar to the query that you wrote before, the mutation also has a root field, the **createHabit** root field. You also learned about the concept of arguments for fields.
  
 The `createHabit` fields take two arguments that specify the habits title and habit score. Like with the query, you are also able to determine the payload for the mutation, in which you can ask for different properties of a new person object.
 
@@ -185,13 +185,13 @@ The **base prerequisites** to create a Webiny project are:
 
 ### Webiny Project
 
-When you create your [Webiny project](https://docs.webiny.com/docs/get-started/quick-start#1-create-a-new-project) and deploy it with ***yarn webiny deploy api --env=local***, the output of this command will look like below.
+When you create your [Webiny project](https://docs.webiny.com/docs/get-started/quick-start#1-create-a-new-project) and deploy it with ```yarn webiny deploy api --env=local```, the output of this command will look like below.
 
 ![Webiny project deploy result](/img/tutorials/serverless-graphql-api/webiny-project-deploy-result.png)
 
-For now, the ***Main GraphQL API*** URL is what we care about the most.
+For now, the **Main GraphQL API** URL is what we care about the most.
 
-In this URL, you can access the *`GraphQL playground`* in which you can see the complete GraphQL schema created from all of the services that Webiny provides.
+Using this URL, you can access the *`GraphQL playground`* in which you can see the complete GraphQL schema created from all of the services that Webiny provides.
 
 Check out the schema below.
 
@@ -211,7 +211,7 @@ Check out the Webiny [**serverless-api**](https://github.com/webiny/webiny-examp
 
 ![Webiny project structure](/img/tutorials/serverless-graphql-api/webiny-project-structure.png)
 
-To learn more about the Webiny project structure, check out our docs ***[here](https://docs.webiny.com/docs/deep-dive/project-structure)***. 
+To learn more about the Webiny project structure, check out our docs **[here](https://docs.webiny.com/docs/deep-dive/project-structure)**. 
 
 The one folder that is important for us is the `API` folder.
 
@@ -222,7 +222,7 @@ As you can see, these are other folders of individual apps that Webiny provides 
 > Our goal is to create our API service in the `api` folder.
 
 :::info
-In terms of deployments, the ***resources.js*** file is essential. In this file, we have all of the Cloud **[resources](https://docs.webiny.com/docs/deep-dive/architecture/resources)** are necessary for the Webiny API to work.
+In terms of deployments, the **resources.js** file is essential. In this file, we have all of the Cloud **[resources](https://docs.webiny.com/docs/deep-dive/architecture/resources)** that are necessary for the Webiny API to work.
 :::
 ### Creating API Service
 
@@ -236,7 +236,7 @@ npx webiny scaffold
 
 ![Webiny GraphQL Apollo service scaffold](/img/tutorials/serverless-graphql-api/webiny-graphql-apollo-service-scaffold.png)
 
-We will create a minimal API service, which we will name it the ***habits-tracker*** API. It will consist of one model, the habit model. You will be able to access the **`/graphql URL,`** by querying and writing new habits.
+We will create a minimal API service, which we will name it the **habits-tracker** API. It will consist of one model, the habit model. You will be able to access the **`/graphql URL,`** by querying and writing new habits.
 
 ![Webiny GraphQL Apollo service location](/img/tutorials/serverless-graphql-api/webiny-gas-package-location.png)
 
@@ -250,7 +250,7 @@ As you can see in the image below, the `habits-tracker` folder is inside the `AP
 
 ![Habits Tracker API service](/img/tutorials/serverless-graphql-api/habit-tracker-api-service.png)
 
-We mentioned earlier, the ***resources.js*** file represents the whole cloud infrastructure that needs to be deployed. The scaffolding tool created another entry in the ***resources.js*** file that describes the newly added API. Check the image below.
+We mentioned earlier, the **resources.js** file represents the whole cloud infrastructure that needs to be deployed. The scaffolding tool created another entry in the **resources.js** file that describes the newly added API. Check the image below.
 
 ![Habits Tracker resources](/img/tutorials/serverless-graphql-api/habit-tracker-resources.png)
 
@@ -268,17 +268,17 @@ The two most essential plugins are the **graphql** and the **model** plugin. We 
 
 **Model plugin**
 
-The ***[models.ts](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/src/plugins/models.ts)*** file has a list of commodo models that we want our GraphQL to have.
+The **[models.ts](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/src/plugins/models.ts)** file has a list of commodo models that we want our GraphQL to have.
 
 :::info 
-[***Commodo***](https://github.com/webiny/commodo) is a set of higher order functions (HOFs) that let you define and **com**pose rich data **mod**el **o**bjects.
+[**Commodo**](https://github.com/webiny/commodo) is a set of higher order functions (HOFs) that let you define and **com**pose rich data **mod**el **o**bjects.
 :::
 
 The Commodo library is part of the Webiny project by default. It enables you to create data models.
 
 **GraphQL plugin**
 
-The ***[graphql.ts](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/src/plugins/graphql.ts)*** file represents the schema we want the API to have. The scaffolding tool creates the whole schema for us. We will have basic **getHabit** and **listHabits** **queries** and the basic mutations in place such as **createHabit, deleteHabit,** and **updateHabit.**
+The **[graphql.ts](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/src/plugins/graphql.ts)** file represents the schema we want the API to have. The scaffolding tool creates the whole schema for us. We will have basic **getHabit** and **listHabits** **queries** and the basic mutations in place such as **createHabit, deleteHabit,** and **updateHabit.**
 
 This is a very convenient and *easy to start with* for every developer to develop their custom API services.
 
@@ -292,11 +292,11 @@ yarn webiny deploy api --env=local
 
 If you are deploying a completely new service, you deploy the whole API stack. After the first deploy of the created service, you can continue deploying only that particular API service.
 
-Now you can open the Main GraphQL URL, and see the updated GraphQL schema with ***Habits queries***.
+Now you can open the Main GraphQL URL, and see the updated GraphQL schema with **Habits queries**.
 
 ![Habits Tracker query Habits](/img/tutorials/serverless-graphql-api/habit-tracker-query-habits.png)
 
-And the ***Habits mutations***.
+And the **Habits mutations**.
 
 ![Habits Tracker mutation habits](/img/tutorials/serverless-graphql-api/habit-tracker-mutation-habits.png)
 
@@ -368,7 +368,7 @@ We mentioned in the Habits Tracker API section that the scaffolding tool setup p
 
 **Model plugin**
 
-In the ***[models.ts](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/src/plugins/models.ts)*** file, we will add another field in the Habit model such as `habitScore.` As shown in the image below
+In the **[models.ts](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/src/plugins/models.ts)** file, we will add another field in the Habit model such as `habitScore.` As shown in the image below
 
 ![Expand API service](/img/tutorials/serverless-graphql-api/expand-api-service.png)
 
@@ -477,6 +477,6 @@ You learned the GraphQL fundamentals such as queries and mutations and tested yo
  
 You can continue developing your API service with additional models and functionalities.
 
-Want to learn more about Serverless API with Webiny? Check our docs [here](http://localhost:3000/docs/api-development/commodo/introduction).
+Want to learn more about Serverless API with Webiny? Check our docs [here](/docs/api-development/commodo/introduction).
  
 Until next time, happy Coding = )
