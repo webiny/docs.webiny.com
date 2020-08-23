@@ -4,7 +4,7 @@ title: Creating custom page element settings
 sidebar_label: Creating custom page element settings
 ---
 
-In this tutorial, we're going to learn how to create a custom element settings for the Page Builder app. Although the app comes with a bunch of ready-made element settings, at one point in time, you might need to create your own to satisfy your specific requirements. To achieve that, we can utilize a simple plugins, which is what we'll cover in this short tutorial.
+In this tutorial, we're going to learn how to create custom element settings for the Page Builder app. Although the app comes with a bunch of ready-made element settings plugins, at one point in time, you might need to create your own to satisfy your specific requirements. To achieve that, we can utilize a simple plugin, which is what we'll cover in this short tutorial.
 
 If you are not already familiar with how plugins work, we recommend
 you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
@@ -15,18 +15,18 @@ Ready? Let's dive in!
 
 ## What we'll build
 
-We’ll create a new page element setting that will allow a user of page builder app, to add css class to any page element.
+We’ll create a new page element settings plugin, which will allow a user of the page builder app to add CSS classes to any page element.
 
 Here's what the result will look like:
 
 ![Add CSS class using settings plugin](/img/guides/custom-element-settings-plugin/css-class-plugin.gif)
 
-As under the hood, every page element is a React component. Therefore the value of `CSS class` will translates to `className` prop on component level.
+Under the hood, every page element is a React component. Therefore, the value of the `CSS class` will translates to `className` prop on component level.
 The `settings.className` property of an element is special because the rendering of this property is already handled for you.
 
-How is it handled, you asked?
+How is it handled, you ask?
 
-Well, every page element is wrapped with the [ElementRoot](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder/src/render/components/ElementRoot.tsx#L62) component. Among other things, it is also responsible for extracting the `className` value from the `element.data` and adding it to the actual element root so that it will be rendered correctly
+Well, every page element is wrapped with the [ElementRoot](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder/src/render/components/ElementRoot.tsx#L62) component. Among other things, it is also responsible for extracting the `className` value from the `element.data` and and passing it to the element for rendering.
 
 
 ## Prerequisites
@@ -37,14 +37,13 @@ This tutorial assumes you have already created a new Webiny project to work on. 
 
 ##### 2. Project structure
 
-We'll add the code for our plugins in the `apps/admin/src/plugins/cssClass` folder so that we can register in to the `admin app` later.
+We'll add the code for our plugin in the `apps/admin/src/plugins/cssClass` folder and we'll pass it to the app later on.
 
 :::info
 You can place the code for plugins anywhere inside `src` folder. For convenience, I like to group all plugins under a single folder named `plugins`.
 :::
 
-After following later sections of this guide and making changes accordingly.
-The project structure of out `admin` app will look similar to what is shown below.
+The project structure of our `admin` app will look similar to this:
 
 ```
 ├── src
@@ -84,7 +83,7 @@ export default adminTemplate({
 
 ## Creating the Plugin
 
-All of the settings available for a page element can be accessed via the top app bar, which appear as soon as you select an page element in the editor:
+All of the settings available for a page element can be accessed via the top app bar, which appear as soon as you select a page element in the editor:
 
 ![Editor Element settings](/img/guides/custom-element-settings-plugin/pb-editor-toolbar.png)
 
@@ -97,10 +96,10 @@ As mentioned, this list of element settings can be expanded and custom element s
 ### Defining the Plugin
 
 Let's add the new page element setting in the editor.
-For that, first, we'll create/define the necessary plugin in the `apps/admin/src/plugins/cssClass/index.tsx` file.
+First, we'll create/define the necessary plugin in the `apps/admin/src/plugins/cssClass/index.tsx` file.
 
 :::info
-This plugin we'll of [`pb-editor-page-element-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-settings) type.
+This plugin will of [`pb-editor-page-element-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-settings) type.
 :::
 
 ```jsx title="src/plugins/cssClass/index.tsx"
@@ -119,7 +118,7 @@ export default () =>
         renderAction() {
             return <Action tooltip={"CSS class"} plugin={this.name} icon={<CssClassIcon />} />;
         },
-        // A function to render an settings menu in the editor.
+        // A function to render a settings menu in the editor.
         renderMenu() {
             return <Settings />;
         },
@@ -128,30 +127,30 @@ export default () =>
     } as PbEditorPageElementSettingsPlugin);
 
 ```
-Before we cover what's inside **Action** and **Settings** component. Let's, first understand what each property means in the above defined plugin.
+Before we cover what's inside of **Action** and **Settings** components, let's first understand what each property means in the plugin we just created.
 
 - `name` property holds a special meaning here. Unlike other plugins, the name property is required here because it will be use to assign element settings to a page element using `settings` key in [`pb-editor-page-element`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element) plugin type.
 
-- `renderAction` and `renderMenu` are the two key properties of this plugin. They define how the **settings action** and **settings menu** will be render in the editor, respectively.
+- `renderAction` and `renderMenu` are the two key properties of this plugin. They define how the **settings action** and **settings menu** will be rendered in the editor, respectively.
 
-- `elements` property holds either a list of page elements for which this setting will be available or a boolean value of **true** which enable this setting to be available to every page element.
+- `elements` property holds either a list of page elements for which this setting will be available or a boolean value of **true** which enables the setting on every page element.
 
 - `elements` property can be set to one of these two things:
-    - either a list of page elements for which this setting will be available. For example,
+    - either a list of page element types for which this setting will be available. For example,
 
     ```ts
         elements: ["text", "column"]
     ```
-    - or a boolean value of **true** which enable this setting to be available to every page element. As shown in the above example.
+    - or a boolean value of **true** which enables the setting on every page element. As shown in the above example.
 
 
 ### Implement `renderAction`
 
-The `renderAction` property of [`pb-editor-page-element-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-settings) plugin is a function that renders the **settings action**, which when rendered, will be located on top toolbar bar of the page editor.
+The `renderAction` property of [`pb-editor-page-element-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-settings) plugin is a function that renders the **settings action** in the top editor toolbar.
 
-If we look at the implementation of `renderAction` in case of our `"pb-editor-page-element-settings-css-class"` plugin. It just returns a **Action** component.
+If we look at the implementation of `renderAction` in case of our `"pb-editor-page-element-settings-css-class"` plugin, it just returns a **Action** component.
 
-Now, let's take a look at this **Action** component, it is a simple React component which is responsible of mainly two things:
+Now, let's take a look at this **Action** component. Tt is a simple React component which is responsible of mainly two things:
 - Rendering of the **tooltip** and **icon** for the settings action, which are passed as props to it.
 - For opening and closing of the actual settings menu for the very plugin provided as prop.
 
@@ -159,14 +158,14 @@ Checkout the full source code of [Action](https://github.com/webiny/webiny-js/bl
 
 ### Implement `renderMenu`
 
-The `renderMenu` property of [`pb-editor-page-element-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-settings) plugin is a function that renders the **settings menu**, which will get rendered when the **action** icon in clicked.
+The `renderMenu` property of [`pb-editor-page-element-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-settings) plugin is a function that renders the **settings menu**, which will get rendered when the **action** icon is clicked.
 
-If we look at the implementation of `renderMenu` in case of our `"pb-editor-page-element-settings-css-class"` plugin. It just returns a **Settings** component, which we'll implement in a moment.
+If we look at the implementation of `renderMenu` in case of our `"pb-editor-page-element-settings-css-class"` plugin, it just returns a **Settings** component, which we'll implement in a moment.
 
 That's a lot of words to process. Let's take moment to briefly look away from the computer screen for a minute or two to a more distant scene or maybe brew a cup of coffee. Alright...
 
 
-Now, let's implement the **Settings** component. The goal for this component is render the menu for the actual setting, which generally involves a **Form** so that the user can edit the settings. We'll go through the implementation step by step. We'll start by adding the boilerplate code and then move to the actual business logic.
+Now, let's implement the **Settings** component. The goal for this component is to render the menu for the actual setting, which generally involves a **Form** so that the user can edit the settings. We'll go through the implementation step by step. We'll start by adding the boilerplate code and then move to the actual business logic.
 
 Let's create a simple form that will render a tab containing a **label** and **input** box.
 
@@ -185,7 +184,7 @@ import { Form } from "@webiny/form";
 const validateClassName = () => {};
 
 const Settings = props => {
-    // TODO: We'll soon, implement this function.
+    // TODO: We'll soon implement this function.
     const updateSettings = () => {};
     // TODO: We'll see soon, how to get the "settings" property for an element.
     const settings = {};
@@ -289,13 +288,13 @@ const mapDispatchToProps = { updateElement };
 export default connect<any, any, any>(mapStateToProps, mapDispatchToProps)(Settings);
 ```
 
-Now that we have the active page element and a helper to get active element's data. Let's implement the actual business logic.
+Now that we have the active page element and a helper to get active element's data, let's implement the actual business logic.
 
 :::info
- `element.data` contains the information about various attributes of a page element. One of the attribute is the `settings`, which holds the data manage by various **element settings** plugins.
+ `element.data` contains the information about various attributes of a page element. One of the attribute is the `settings`, which managed by various **element settings** plugins.
 :::
 
-Our goal is to edit and store `className` key-value to this very object i.e `element.data.settings`. In order to do that we'll follow the below mentioned steps:
+Our goal is to edit and store `className` key-value to this very object i.e `element.data.settings`.
 
 - First, we're going to extract the `settings` property from element's data object and attach `className` key to it.
 
@@ -376,17 +375,17 @@ const mapDispatchToProps = { updateElement };
 export default connect<any, any, any>(mapStateToProps, mapDispatchToProps)(Settings);
 ```
 
-And with these changes in place. Now, our `CSS class` page element setting will be able to add/edit class name on every page element.
+With these changes in place, our CSS class plugin will allow us to add a class name to every page element.
 
 ## Conclusion
 
 Congratulations! 🎉
 
-We've successfully created a simple element settings, which can be use to add `CSS class` to every page element in our Page Builder app.
+We've successfully created a simple element settings plugin, which can be use to add `CSS class` to every page element in our Page Builder app.
 
-Plugins are one of the core feature of Webiny. The whole Webiny Architecture is based on it.
-The plugin system is so versatile yet simple. It makes it very easy to extend an existing functionality or to add a new functionality.
+Plugins are one of the core feature of Webiny. The whole Webiny architecture is based on it.
+The plugin system is very simple, yet powerful, and allows you to easily add new functionality.
 
 I hope you enjoyed the guide. If you want to learn more about Webiny plugins please checkout our [Webiny Plugins](https://www.youtube.com/watch?v=4qcDLzu8kVM) video on our [Youtube channel](https://www.youtube.com/webiny) where we post a lot of new content every week.
 
-Are you interested on building your own plugin? You can easily add custom elements following the [plugin crash course](/docs/deep-dive/plugins-crash-course).
+Are you interested in building your own plugin? You can easily add custom elements following the [plugin crash course](/docs/deep-dive/plugins-crash-course).
