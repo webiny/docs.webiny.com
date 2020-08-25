@@ -1,7 +1,7 @@
 ---
 id: creating-custom-element-settings-plugin
-title: Creating custom page element settings
-sidebar_label: Creating custom page element settings
+title: Creating Custom Page Element Settings
+sidebar_label: Creating Custom Page Element Settings
 ---
 
 In this tutorial, we're going to learn how to create custom element settings for the Page Builder app. Although the app comes with a bunch of ready-made element settings plugins, at one point in time, you might need to create your own to satisfy your specific requirements. To achieve that, we can utilize a simple plugin, which is what we'll cover in this short tutorial.
