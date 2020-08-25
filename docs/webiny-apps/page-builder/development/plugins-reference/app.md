@@ -224,3 +224,48 @@ export default [
 ```
 
 ![Page preview](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/page-preview.png)
+
+### [`pb-editor-page-element-settings`](/docs/webiny-apps/page-builder/development/plugins-reference/app#pb-editor-page-element-settings)
+
+#### Summary
+
+Enables defining custom settings for page elements.
+
+#### Type
+
+```ts
+export type PbEditorPageElementSettingsPlugin = Plugin & {
+    type: "pb-editor-page-element-settings";
+    renderAction(params: { options?: any }): ReactElement;
+    renderMenu?: (params: { options?: any }) => ReactElement;
+    // When an array of page elements "elementType", only those elements can use this setting.
+    // When `true`, all page elements can use this setting.
+    elements?: boolean | string[];
+};
+```
+
+#### Example
+
+```ts
+import React from "react";
+import { PbEditorPageElementSettingsPlugin } from "@webiny/app-page-builder/types";
+import Action from "@webiny/app-page-builder/editor/plugins/elementSettings/components/Action";
+import Settings from "./Settings";
+import { ReactComponent as ClassNameIcon } from "./style.svg";
+
+export default () =>
+    ({
+        name: "pb-editor-page-element-settings-css-class",
+        type: "pb-editor-page-element-settings",
+        renderAction() {
+            return <Action tooltip={"CSS class"} plugin={this.name} icon={<ClassNameIcon />} />;
+        },
+        renderMenu() {
+            return <Settings />;
+        },
+        elements: true
+    } as PbEditorPageElementSettingsPlugin);
+
+```
+
+![Page element settings CSS class](/img/guides/custom-element-settings-plugin/css-class-plugin.gif)

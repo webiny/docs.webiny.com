@@ -7,7 +7,7 @@ sidebar_label: Creating Custom Page Elements
 In this tutorial, we're going to learn how to create a custom page element for the Page Builder app. Although the app comes with a bunch of ready-made page elements, at one point in time, you might need to create your own to satisfy your specific requirements. To achieve that, we can utilize a couple of simple plugins, which is what we'll cover in this short tutorial.
 
 If you are not already familiar with how plugins work, we recommend
-you first take a look at the [Plugins Crash Course](/docs/developer-tutorials/plugins-crash-course) before reading this article.
+you first take a look at the [Plugins Crash Course](/docs/deep-dive/plugins-crash-course) before reading this article.
 
 > All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element) repository.
 
