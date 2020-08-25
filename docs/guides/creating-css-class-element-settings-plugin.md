@@ -291,7 +291,7 @@ export default connect<any, any, any>(mapStateToProps, mapDispatchToProps)(Setti
 Now that we have the active page element and a helper to get active element's data, let's implement the actual business logic.
 
 :::info
- `element.data` contains the information about various attributes of a page element. One of the attribute is the `settings`, which managed by various **element settings** plugins.
+ `element.data` contains the information about various attributes of a page element. One of the attributes is `settings`, which managed by various **element settings** plugins.
 :::
 
 Our goal is to edit and store `className` key-value to this very object i.e `element.data.settings`.
@@ -383,7 +383,7 @@ Congratulations! 🎉
 
 We've successfully created a simple element settings plugin, which can be use to add `CSS class` to every page element in our Page Builder app.
 
-Plugins are one of the core feature of Webiny. The whole Webiny architecture is based on it.
+Plugins are one of the core features of Webiny. The whole Webiny architecture is based on it.
 The plugin system is very simple, yet powerful, and allows you to easily add new functionality.
 
 I hope you enjoyed the guide. If you want to learn more about Webiny plugins please checkout our [Webiny Plugins](https://www.youtube.com/watch?v=4qcDLzu8kVM) video on our [Youtube channel](https://www.youtube.com/webiny) where we post a lot of new content every week.
