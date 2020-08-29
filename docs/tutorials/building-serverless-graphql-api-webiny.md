@@ -14,7 +14,7 @@ Before adding more functionalities, you will learn the `queries` and `mutations`
 
 We have an [active community on slack](https://www.webiny.com/slack). If you struggle in any part of the tutorial, talk to the core-team, and get help. Webiny team is always there for any questions.
 
-First, let’s go through the core concepts used in this tutorial.
+Before we start, let’s go through the core concepts used in this tutorial.
  
 ## Core Concepts
  
@@ -180,7 +180,21 @@ The **base prerequisites** to create a Webiny project are:
 
 ### Webiny Project
 
-When you create your [Webiny project](https://docs.webiny.com/docs/get-started/quick-start#1-create-a-new-project) and deploy it with ```yarn webiny deploy api --env=local```, the output of this command will look like below.
+First, create a Webiny project by using the command
+
+```tsx
+npx create-webiny-project new-project
+```
+
+Then move into this directory with the command 
+
+```tsx
+cd new-project
+```
+
+You can find more information on the [Quick Start page](https://docs.webiny.com/docs/get-started/quick-start#1-create-a-new-project) 
+
+When you create your project and deploy it with ```yarn webiny deploy api --env=local```, the output of this command will look like below.
 
 ![Webiny project deploy result](/img/tutorials/serverless-graphql-api/webiny-project-deploy-result.png)
 
