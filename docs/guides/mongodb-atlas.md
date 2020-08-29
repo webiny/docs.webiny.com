@@ -50,7 +50,7 @@ Now it's time to select your connection method. For your case select the "Connec
 
 ![MongoDB Atlas Cluster Connection Method](/img/guides/mongodb-atlas/mongodb-atlas-connection-method.png)
 
-This will present you with a connection string. You want to copy that string and replace `<password>` with the password you assigned to your MongoDB user.
+This will present you with a connection string. You want to copy that string and replace `<password>` with the password you assigned to your MongoDB user, and `<dbname>` with the name of the database (the project name).
 
 ![MongoDB Atlas Cluster Connection Method](/img/guides/mongodb-atlas/mongodb-atlas-connection-string.png)
 
