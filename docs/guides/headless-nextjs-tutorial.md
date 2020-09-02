@@ -144,6 +144,9 @@ export async function getStaticProps(context) {
   };
 }
 
+// Implement a custom parser or use one from the community: `webiny-richtext-serializer`
+function parseRichTextDataAsHTML(data) { ... }
+
 // The main React component that renders the list of blog posts.
 export default function Home({ blogPostsData }) {
   const blogPosts = blogPostsData.listBlogPosts.data;
@@ -151,7 +154,10 @@ export default function Home({ blogPostsData }) {
   const BlogPosts = blogPosts.map(post => (
     <div key={`post-${post.id}`}>
       <h1>{post.title}</h1>
-      <p style={{ whiteSpace: "pre-wrap" }}>{post.body}</p>
+      <p
+        style={{whiteSpace: "pre-wrap"}}
+        dangerouslySetInnerHTML={{ __html: parseRichTextDataAsHTML(post.body) }}
+      />
     </div>
   ));
 

@@ -121,6 +121,9 @@ import React from "react"
 import { graphql } from 'gatsby'
 import Layout from "../components/layout"
 
+// Implement a custom parser or use one from the community: `webiny-richtext-serializer`
+function parseRichTextDataAsHTML(data) { ... }
+
 // The IndexPage component that renders our blog posts
 const IndexPage = ({data}) => {
   // GraphQL queried data is automatically inserted into the `data` parameter used below
@@ -130,7 +133,10 @@ const IndexPage = ({data}) => {
   const BlogPosts = blogPosts.map(post => (
     <div key={`post-${post.id}`}>
       <h1>{post.title}</h1>
-      <p style={{whiteSpace: "pre-wrap"}}>{post.body}</p>
+      <p
+        style={{whiteSpace: "pre-wrap"}}
+        dangerouslySetInnerHTML={{ __html: parseRichTextDataAsHTML(post.body) }}
+      />
     </div>
   ))
 
