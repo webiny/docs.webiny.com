@@ -10,7 +10,7 @@ In this tutorial we will learn how to use [Gatsby](https://www.gatsbyjs.org/) wi
 
 ## Prerequisites
 
-##### 1. Gatsby-cli 
+##### 1. Gatsby-cli
 
 Install gatsby-cli using the command below. We will use it to create our Gatsby Blog.
 
@@ -51,7 +51,13 @@ For the content model group, we'll use the `Ungrouped`, which is the default gro
 
 > Content model groups give you a way to organize the content models inside the main menu, allowing you to build logical sections for your content editors. You can click [here](/docs/webiny-apps/headless-cms/features/content-modeling-groups) to learn more.
 
-Once we've submitted the form in the dialog, we should be redirected to the [Content Model Editor](/docs/webiny-apps/headless-cms/features/content-modeling). Let's add two fields: `title` as a `Text`, and `body` as a `Rich Text` field. They will match every blog post's title and body (content), respectively.
+Once we've submitted the form in the dialog, we should be redirected to the [Content Model Editor](/docs/webiny-apps/headless-cms/features/content-modeling). Let's add two fields: `title` as a `Text`, and `body` as a `Rich Text` field.
+:::info
+  `Rich Text` field returns a [slate](https://github.com/ianstormtaylor/slate) object, which is not a valid **React** element. So, you need to parse that data to render it.
+  You can implement your own parser or use a package created by one of our community members: [`webiny-richtext-serializer`](https://www.npmjs.com/package/webiny-richtext-serializer)
+  For usage example, please see this [sandbox](https://codesandbox.io/s/cold-frog-vfu5j?file=/src/App.js).
+:::
+They will match every blog post's title and body (content), respectively.
 
 ![Blog Post Model](/img/guides/headless-nextjs-tutorial/editor-blog-post-model.png)
 
