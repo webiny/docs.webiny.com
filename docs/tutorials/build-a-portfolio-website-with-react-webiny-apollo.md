@@ -13,8 +13,14 @@ These are the features of the Portfolio Website:
 - Apollo Client to fetch the content models data
 - Responsive design using Material UI React Components
 
-
 ![Cover](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/cover.png)
+
+## Demo
+
+Here is what we'll build:
+![What we'll build](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/blogs.png)
+
+Or, you can [Watch the live demo](https://webiny-starter-react-portfolio.vercel.app/).
 
 ## Prerequisites
 
@@ -24,7 +30,7 @@ First of all, make sure you follow the [prerequisites](http://localhost:3000/doc
    
 ## Steps
 
-### 1. Back-end
+## 1. Back-end
 When setting up a new Webiny project, there are currently two project templates you can choose, `full` and `cms` template. Both include the Headless CMS app by default.
 
 ### 1.1 Webiny Headless CMS project
@@ -136,7 +142,7 @@ Learn more about the [Webiny Access Tokens](http://docs.webiny.com/docs/webiny-a
 
 Now that we are getting our data, it’s time to start building the `Front-end`.
 
-### 2. Front-end
+## 2. Front-end
 
 We will create a `create-react-project` front-end application. On top of that, we will use the Material-UI framework. The React component library, based on Google Material Design, allows us a fast and easy usage of stylized web components.
 
@@ -209,95 +215,96 @@ Let's add the styles:
 ```tsx
 const drawerWidth = 220;
 
-const useStyles = makeStyles((theme: Theme) => 
-    createStyles({
-      root: {
-        display: 'flex',
-      },
-      appBar: {
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: drawerWidth,
-      },
-      drawer: {
-        width: drawerWidth,
-        flexShrink: 0,
-      },
-      drawerPaper: {
-        width: drawerWidth,
-        flexShrink: 0,
-      },
-      // necessary for content to be below app bar
-      toolbar: theme.mixins.toolbar,
-      content: {
-        flexGrow: 1,
-        backgroundColor: theme.palette.background.default,
-        padding: theme.spacing(3),
-      },
-      link: { 
-        textDecoration: 'none', 
-        color: theme.palette.text.primary 
-      },
-      webinyLink: {
-        textDecoration: 'none', 
-        color: theme.palette.text.secondary,
-        width: '100%'
-      }
-    })
+const useStyles = makeStyles((theme: Theme) =>
+  createStyles({
+    root: {
+      display: 'flex',
+    },
+    appBar: {
+      width: `calc(100% - ${drawerWidth}px)`,
+      marginLeft: drawerWidth,
+    },
+    drawer: {
+      width: drawerWidth,
+      flexShrink: 0,
+    },
+    drawerPaper: {
+      width: drawerWidth,
+      flexShrink: 0,
+    },
+    // necessary for content to be below app bar
+    toolbar: theme.mixins.toolbar,
+    content: {
+      flexGrow: 1,
+      backgroundColor: theme.palette.background.default,
+      padding: theme.spacing(3),
+    },
+    link: {
+      textDecoration: 'none',
+      color: theme.palette.text.primary
+    },
+    webinyLink: {
+      textDecoration: 'none',
+      color: theme.palette.text.secondary,
+      width: '100%'
+    }
+  })
 )
 ```
 
 Now, we will create the `Navbar` component:
 
 ```tsx
-export default function Navbar() {
-    const classes = useStyles();
 
-    return (
-        <div className={classes.root}>
-          <CssBaseline />
-          <Drawer 
-            className={classes.drawer}
-            open={true}
-            variant="permanent"
-            classes={{
-                paper: classes.drawerPaper,
-            }}
-            anchor="left"
+export default function Navbar() {
+  const classes = useStyles();
+
+  return (
+    <div className={classes.root}>
+      {/* <CssBaseline /> */}
+      <Drawer
+        className={classes.drawer}
+        open={true}
+        variant="permanent"
+        classes={{
+          paper: classes.drawerPaper,
+        }}
+        anchor="left"
+      >
+        <List style={{ height: '100%' }}>
+          {['About', 'Blogs', 'Projects'].map((text, index) => {
+            return (
+              <Link to={'/' + text.toLowerCase()} className={classes.link} key={index}>
+                <ListItem button>
+                  <ListItemIcon>
+                    <InfoIcon />
+                  </ListItemIcon>
+                  <ListItemText primary={text} />
+                </ListItem>
+              </Link>
+            )
+          }
+          )}
+          <a
+            href='https://webiny.com/serverless-app/headless-cms'
+            className={classes.webinyLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ position: 'absolute', bottom: 0 }}
           >
-              <List style={{ height: '100%' }}>
-                {['About', 'Blogs', 'Projects'].map((text, index) => {
-                    return (
-                        <Link to={'/'+text.toLowerCase()} className={classes.link} key={index}>
-                            <ListItem button>
-                                <ListItemIcon>
-                                    <InfoIcon />
-                                </ListItemIcon>
-                                <ListItemText primary={text} />
-                            </ListItem>
-                        </Link>
-                        )
-                    }
-                )}
-                <a 
-                  href='https://webiny.com/serverless-app/headless-cms' 
-                  className={classes.webinyLink} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  style={{ position: 'absolute', bottom: 0 }}
-                >
-                  <Divider light />
-                    <ListItem>
-                      <ListItemIcon>
-                          <img src={logo} width='25' alt="webiny" />
-                      </ListItemIcon>
-                      <ListItemText primary={'Webiny Headless CMS'} />
-                    </ListItem>
-                </a>
-              </List>
-              <Divider light />
-            </Drawer>
-        </div>
-    )
+            <Divider light />
+            <ListItem>
+              <ListItemIcon>
+                <img src={logo} width='25' alt="webiny" />
+              </ListItemIcon>
+              <ListItemText primary={'Webiny Headless CMS'} />
+            </ListItem>
+          </a>
+        </List>
+        <Divider light />
+      </Drawer>
+    </div>
+  )
 }
 ```
 
@@ -316,7 +323,6 @@ Let's test this component on the react project. To see the difference, we have t
 Let's import the `Navigation` component, and the `Router`.
 
 ```tsx
-
 import React from 'react';
 
 import { BrowserRouter as Router } from 'react-router-dom';
@@ -350,15 +356,15 @@ Create `icons.tsx` file in the `components` folder, and add the following snippe
 
 ```tsx
 import React, { Component } from 'react';
-// Icons from Material UI
+
 import InfoIcon from '@material-ui/icons/Info';
 import BookIcon from '@material-ui/icons/Book';
 import WebIcon from '@material-ui/icons/Web';
 
-interface IconProps{
+interface IconProps {
     icon: string;
-  }
-  
+}
+
 export default class MyIcons extends Component<IconProps> {
 
     constructor(props: IconProps) {
@@ -401,11 +407,12 @@ The Material-UI components we will use to create the Card component are the `Car
 Create a `card.tsx` file in the `components` folder and add the snippet below.
 
 ```tsx
+
 import React from 'react';
 
-import { 
-  makeStyles, 
-  createStyles, 
+import {
+  makeStyles,
+  createStyles,
   Theme
 } from '@material-ui/core/styles';
 
@@ -447,7 +454,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 
-export default function StarterCard({...pro}) {
+export default function StarterCard({ ...pro }) {
   const classes = useStyles();
   return (
     <Card className={classes.root}>
@@ -457,7 +464,7 @@ export default function StarterCard({...pro}) {
             {pro.title}
           </Typography>
           <Typography variant="subtitle1" color="textSecondary">
-           {pro.subtitle}
+            {pro.subtitle}
           </Typography>
         </CardContent>
         <div className={classes.controls}>
@@ -479,7 +486,6 @@ export default function StarterCard({...pro}) {
     </Card>
   );
 }
-
 ```
 
 The `starterCard` function will be used in both the `Blogs` and `Projects` pages. The Card component already has the data we need from the Content Models. Each of our Content Models has these fields:
@@ -503,16 +509,16 @@ import pink from '@material-ui/core/colors/pink';
 const theme = createMuiTheme({
   palette: {
     primary: {
-        light: '#f381a7',
-        main: pink[300],
-        dark: '#f57c00',
-        contrastText: '#ffffff',
-      },
+      light: '#f381a7',
+      main: pink[300],
+      dark: '#f57c00',
+      contrastText: '#ffffff',
+    },
     secondary: {
-        light: '#bdbdbd',
-        main: grey[500],
-        dark: '#616161',
-        contrastText: '#ffffff',
+      light: '#bdbdbd',
+      main: grey[500],
+      dark: '#616161',
+      contrastText: '#ffffff',
     },
     error: {
       main: red.A400,
@@ -527,7 +533,6 @@ const theme = createMuiTheme({
 });
 
 export default theme;
-
 ```
 
 ### 2.3 Pages
@@ -551,13 +556,12 @@ Let's start with the home page. Create a `home.tsx` file in the `pages` folder, 
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { 
-    Container, 
-    Typography
+import {
+  Container,
+  Typography
 } from '@material-ui/core';
 
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
+const useStyles = makeStyles((theme) => ({
   root: {
     ...theme.typography.button,
     backgroundColor: theme.palette.background.paper,
@@ -575,21 +579,21 @@ const useStyles = makeStyles((theme: Theme) =>
 }));
 
 export default function Home() {
-   const classes = useStyles();
-   
-   return (
-   <Container maxWidth='md' className={classes.root}>
+  const classes = useStyles();
+
+  return (
+    <Container maxWidth='md' className={classes.root}>
       <Typography variant="h3" component="h2" className={classes.title}>
-         Build a Portfolio Website with React, Webiny, and Apollo
-      </Typography>
+        Build a Portfolio Website with React, Webiny, and Apollo
+            </Typography>
 
       <div className={classes.secondary}>
-         What is Webiny? Webiny is an open-source framework for building serverless applications. 
-         It provides you with developer tools, libraries, ready-made apps and processes. 
-         It's built on top of AWS cloud and uses the latest technologies such as NodeJs, React and GraphQL.
-      </div>
-   </Container>
-   )
+        What is Webiny? Webiny is an open-source framework for building serverless applications.
+        It provides you with developer tools, libraries, ready-made apps and processes.
+        It's built on top of AWS cloud and uses the latest technologies such as NodeJs, React and GraphQL.
+            </div>
+    </Container>
+  )
 }
 ```
 
@@ -603,17 +607,17 @@ Create the `about.tsx` file in the `pages` folder and add the code snippet below
 import React from 'react';
 import { Theme, createStyles } from '@material-ui/core/styles';
 
-import { 
-    Container, 
-    Typography
+import {
+  Container,
+  Typography
 } from '@material-ui/core';
 
 import {
-    makeStyles
+  makeStyles
 } from '@material-ui/core/styles';
 
 import Image from 'material-ui-image';
- 
+
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     title: {
@@ -627,32 +631,32 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export default function About() {
-    const classes = useStyles();
-    return (
-      <Container maxWidth='md'>
-         <Typography variant="h3" component="h2" className={classes.title}>
-            About
-         </Typography>
+  const classes = useStyles();
+  return (
+    <Container maxWidth='md'>
+      <Typography variant="h3" component="h2" className={classes.title}>
+        About
+          </Typography>
 
-         <Image
-            src="https://images.unsplash.com/photo-1554774853-719586f82d77?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2550&q=80"
-            aspectRatio={(16/9)}
-         />
-         <Typography variant="body1" component="p" className={classes.about}>
-            Do so written as raising parlors spirits mr elderly. Made late in of high left hold. 
-            Carried females of up highest calling. Limits marked led silent dining her
-            she far. Sir but elegance marriage dwelling likewise position old pleasure men. 
-            Dissimilar themselves simplicity no of contrasted as. Delay great day hours men. 
-            Stuff front to do allow to asked he. 
-            No opinions answered oh felicity is resolved hastened. Produced it friendly 
-            my if opinions humoured. Enjoy is wrong folly no taken. 
-            It sufficient instrument insipidity simplicity at interested. 
-            Law pleasure attended differed mrs fat and formerly. Merely thrown garret her
-            law danger him son better excuse. Effect extent narrow in up chatty. 
-            Small are his chief offer happy had. 
-         </Typography>
-      </Container>
-    )
+      <Image
+        src="https://images.unsplash.com/photo-1554774853-719586f82d77?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2550&q=80"
+        aspectRatio={(16 / 9)}
+      />
+      <Typography variant="body1" component="p" className={classes.about}>
+        Do so written as raising parlors spirits mr elderly. Made late in of high left hold.
+        Carried females of up highest calling. Limits marked led silent dining her
+        she far. Sir but elegance marriage dwelling likewise position old pleasure men.
+        Dissimilar themselves simplicity no of contrasted as. Delay great day hours men.
+        Stuff front to do allow to asked he.
+        No opinions answered oh felicity is resolved hastened. Produced it friendly
+        my if opinions humoured. Enjoy is wrong folly no taken.
+        It sufficient instrument insipidity simplicity at interested.
+        Law pleasure attended differed mrs fat and formerly. Merely thrown garret her
+        law danger him son better excuse. Effect extent narrow in up chatty.
+        Small are his chief offer happy had.
+          </Typography>
+    </Container>
+  )
 }
 ```
 
@@ -666,17 +670,16 @@ For the `Blogs` page, we will use the `Grid` Material-UI component to show the B
 import React from 'react';
 import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 import StarterCard from '../components/card';
-import { 
-  Grid, 
-  Container, 
-  Typography } from '@material-ui/core'
+import {
+  Grid,
+  Container,
+  Typography,
+  CircularProgress
+} from '@material-ui/core'
+// import theme from '../theme';
 
-import CircularProgress from '@material-ui/core/CircularProgress'
+import { useQuery } from '@apollo/react-hooks';
 
-// The useQuery React hook is the primary API for executing queries in an Apollo application.
-import { useQuery } from '@apollo/client';
-
-// You will write the GET_BLOGS query in the next step
 import { GET_BLOGS } from '../apolloClient/queries';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -708,10 +711,10 @@ const Blogs = () => {
       <Container maxWidth='md' className={classes.loading}>
         <CircularProgress />
       </Container>
-    ) 
+    )
   }
 
-  if(error) {
+  if (error) {
     return <p>Error fetching books</p>;
   }
 
@@ -722,28 +725,30 @@ const Blogs = () => {
       </Typography>
 
       <div className={classes.description}>
-        What is Webiny? Webiny is an open-source framework for building serverless applications. 
-        It provides you with developer tools, libraries, ready-made apps and processes. 
+        What is Webiny? Webiny is an open-source framework for building serverless applications.
+        It provides you with developer tools, libraries, ready-made apps and processes.
         It's built on top of AWS cloud and uses the latest technologies such as NodeJs, React and GraphQL.
       </div>
-      <Grid 
-        container 
-        spacing={4} 
+      <Grid
+        container
+        spacing={4}
+        direction="row"
+        alignItems="center"
+
         className={classes.root}
         justify="center"
-        alignItems="center"
       >
         {
           data.listBlogs.data.map((blogs, index) => {
             return (
-              <Grid 
-                item 
-                xs={12} 
-                sm={6} 
+              <Grid
+                item
+                xs={12}
+                sm={6}
                 md={6}
                 key={index}
               >
-                <StarterCard 
+                <StarterCard
                   {...blogs}
                 />
               </Grid>
@@ -784,14 +789,14 @@ import Projects from './projects';
 import Home from './home';
 import Blogs from './blogs';
 
-import { 
+import {
     Container
 } from '@material-ui/core';
 
-interface PageProps{
+interface PageProps {
     page: string;
-  }
-  
+}
+
 export default class MyPages extends Component<PageProps> {
 
     constructor(props) {
@@ -813,7 +818,6 @@ export default class MyPages extends Component<PageProps> {
         )
     }
 }
- 
 ```
 
 ### 2.4 Fetching Content Models - Apollo Client
@@ -827,17 +831,17 @@ Now that we have all the dependencies we need let's initialize an `ApolloClient`
 Go through the code snippet below, and follow the comments to understand the connection parts.
 
 ```tsx
-import { 
-  ApolloClient, 
-  createHttpLink, 
-  InMemoryCache 
+import {
+  ApolloClient,
+  createHttpLink,
+  InMemoryCache
 } from '@apollo/client';
 
 import { setContext } from '@apollo/client/link/context';
 
 //This REACT_APP_GRAPHQL_URL is defined in a .env file at the root of the project
 const httpLink = createHttpLink({
-    uri: process.env.REACT_APP_GRAPHQL_URL
+  uri: process.env.REACT_APP_GRAPHQL_URL
 });
 
 const authLink = setContext((_, { headers }) => {
@@ -911,21 +915,21 @@ function App() {
 
   return (
     <div style={{ display: 'flex' }}>
-        <Router>
-          <Navbar />
-          <Switch>
-            {['', 'About', 'Blogs', 'Projects'].map((text, index) => {
-              return (
-                <Route exact path={ '/'+ text} key={index}>
-                  <MyPages page={text} />
-                </Route>
-              )
-            })}
-          </Switch>
-        </Router>
-      </div>
-    ) 
-  }
+      <Router>
+        <Navbar />
+        <Switch>
+          {['', 'About', 'Blogs', 'Projects'].map((text, index) => {
+            return (
+              <Route exact path={'/' + text} key={index}>
+                <MyPages page={text} />
+              </Route>
+            )
+          })}
+        </Switch>
+      </Router>
+    </div>
+  )
+}
 
 export default App;
 ```
