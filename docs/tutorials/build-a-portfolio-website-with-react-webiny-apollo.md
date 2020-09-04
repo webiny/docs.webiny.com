@@ -13,7 +13,6 @@ These are the features of the Portfolio Website:
 - Apollo Client to fetch the content models data
 - Responsive design using Material UI React Components
 
-
 ![Cover](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/cover.png)
 
 ## Prerequisites
@@ -24,7 +23,7 @@ First of all, make sure you follow the [prerequisites](http://localhost:3000/doc
    
 ## Steps
 
-### 1. Back-end
+## 1. Back-end
 When setting up a new Webiny project, there are currently two project templates you can choose, `full` and `cms` template. Both include the Headless CMS app by default.
 
 ### 1.1 Webiny Headless CMS project
@@ -136,7 +135,7 @@ Learn more about the [Webiny Access Tokens](http://docs.webiny.com/docs/webiny-a
 
 Now that we are getting our data, it’s time to start building the `Front-end`.
 
-### 2. Front-end
+## 2. Front-end
 
 We will create a `create-react-project` front-end application. On top of that, we will use the Material-UI framework. The React component library, based on Google Material Design, allows us a fast and easy usage of stylized web components.
 
