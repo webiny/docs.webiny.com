@@ -21,7 +21,8 @@ module.exports = {
         'guides/creating-custom-element-settings-plugin',
       ],
       Tutorials: [
-        'tutorials/build-your-serverless-graphql-api-webiny'
+        'tutorials/build-your-serverless-graphql-api-webiny',
+        'tutorials/build-a-portfolio-website-with-react-webiny-apollo'
       ],
       'Deep Dive': [
         'deep-dive/project-structure',
