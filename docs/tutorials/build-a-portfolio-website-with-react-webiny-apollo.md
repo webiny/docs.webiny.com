@@ -3,9 +3,7 @@ id: build-a-portfolio-website-with-react-webiny-apollo
 title: Build a Portfolio Website with React, Webiny, and Apollo
 sidebar_label: Build a Portfolio Website with React, Webiny, and Apollo
 ---
-![Cover](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/cover.png)
-  
-## Introduction
+
 In this tutorial, you will set up a portfolio website to showcase your projects and your blogs using React, Webiny Headless CMS, and Apollo GraphQL. After setting up your portfolio website, you will be able to focus all of your creativity on the content for blogs and projects.
 
 These are the features of the Portfolio Website:
@@ -14,6 +12,8 @@ These are the features of the Portfolio Website:
 - 6 Created projects
 - Apollo Client to fetch the content models data
 - Responsive design using Material UI React Components
+
+![Cover](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/cover.png)
 
 ## Prerequisites
 
