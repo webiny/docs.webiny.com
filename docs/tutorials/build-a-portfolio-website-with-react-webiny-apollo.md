@@ -8,23 +8,23 @@ sidebar_label: Build a Portfolio Website with React, Webiny, and Apollo
 ## Introduction
 In this tutorial, you will set up a portfolio website to showcase your projects and your blogs using React, Webiny Headless CMS, and Apollo GraphQL. After setting up your portfolio website, you will be able to focus all of your creativity on the content for blogs and projects.
 
-These are the features of the Portfolio Website
-- 3 Content types: Blogs, Projects
+These are the features of the Portfolio Website:
+- 2 Content types: Blogs, Projects
 - 6 Created blogs
 - 6 Created projects
-- Permissions set to `true` for blogs and projects
+- Apollo Client to fetch the content models data
 - Responsive design using Material UI React Components
 
 ## Prerequisites
 
 - A Webiny Project
 
-First of all, make sure you follow the [Prerequisites](http://localhost:3000/docs/get-started/quick-start#prerequisites) to create a Webiny project.
+First of all, make sure you follow the [prerequisites](http://localhost:3000/docs/get-started/quick-start#prerequisites) to create a Webiny project.
    
 ## Steps
 
 ### 1. Back-end
-When setting up a new Webiny project, currently, there are two project templates you can choose from `full` and `cms`. Both include the Headless CMS app by default.
+When setting up a new Webiny project, there are currently two project templates you can choose, `full` and `cms` template. Both include the Headless CMS app by default.
 
 ### 1.1 Webiny Headless CMS project
 To create a Webiny Headless CMS project, run the following command:
@@ -129,11 +129,15 @@ To be able to read our data, you need to create an `Access Token` in your backen
 
 ![Access token](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/access-token.png)
 
+:::info
+Learn more about the [Webiny Access Tokens](http://docs.webiny.com/docs/webiny-apps/headless-cms/features/access-tokens/).
+:::
+
 Now that we are getting our data, it’s time to start building the `Front-end`.
 
 ### 2. Front-end
 
-We will create a `create-react-project` front-end application. On top of that, we will use the Material-UI framework. The React component library, based on Google Material Design, allows us a fast and easy usage of stylized web components. With basic knowledge of the React framework, you can build a useful looking material application.
+We will create a `create-react-project` front-end application. On top of that, we will use the Material-UI framework. The React component library, based on Google Material Design, allows us a fast and easy usage of stylized web components.
 
 First, let's start by creating a react application from scratch by running this command:
 
@@ -142,7 +146,7 @@ npx create-react-app my-app --template typescript
 cd frontend
 npm run start
 ```
-One of the advantages of using TypeScript is that Type errors will show up in the same console as the building one. You'll have to fix these type errors before you continue development or build your project. For advanced configuration, [see here](https://create-react-app.dev/docs/advanced-configuration/).
+One of the advantages of using TypeScript is that Type errors will show up in the same console as the building one. You'll have to fix these type errors to continue development or build the project. For advanced configuration, [see here](https://create-react-app.dev/docs/advanced-configuration/).
 
 Now, you will install all the necessary libraries you need to build your Portfolio website. Run the below command to install the packages for Material-UI and Apollo GraphQL.
 
@@ -151,12 +155,10 @@ npm i --save
    @material-ui/core 
    @material-ui/icons 
    material-ui-image 
-   @apollo/client 
-   @apollo/react-hooks
+   @apollo/client
    graphql 
    react-router-dom
    react-dom
-   apollo-boost
 ```
 
 ### 2.1 Front-end structure
@@ -671,7 +673,7 @@ import {
 import CircularProgress from '@material-ui/core/CircularProgress'
 
 // The useQuery React hook is the primary API for executing queries in an Apollo application.
-import { useQuery } from '@apollo/react-hooks';
+import { useQuery } from '@apollo/client';
 
 // You will write the GET_BLOGS query in the next step
 import { GET_BLOGS } from '../apolloClient/queries';
@@ -860,7 +862,7 @@ export default client;
 Now that we have the `Apollo Client` set up. We will write queries to read our content models' data. Go ahead and create a file in the `apolloClient` name it `queries.jsx`.
 
 ```tsx
-import { gql } from 'apollo-boost';
+import { gql } from '@apollo/client';
 
 // You will change the queries here based on your Content Models 
 export const GET_BLOGS = gql`
@@ -996,7 +998,7 @@ Yay 🎉, you created a Portfolio Website with React, Webiny, and Apollo.
 
 ### 2.7 Deployment
 
-One more on the completion of the Portfolio is having the project online, so you can share with potential employees, recruiters or your friends 😊
+One more detail on the completion of the Portfolio is having the project online to share with potential employees, recruiters, or friends. 😊
 
 #### Vercel Deployment
 
@@ -1046,3 +1048,8 @@ to re-deploy for the latest changes.
 
 You learned Webiny Headless CMS; now you are one command away from creating different Webiny Projects. You set up your React Portfolio website using Material-UI, one of the best UI frameworks out there. You connected the Apollo Client with your React application to query your content models data from the Headless CMS.
 
+Are you interested to build more serverless applications? Webiny provides you with tools on building [websites](https://www.webiny.com/use-case/serverless-websites), [apps](https://www.webiny.com/serverless-apps) and [APIs](https://www.webiny.com/use-case/serverless-graphql-api) that scale to millions of users and run on top of [serverless](https://www.webiny.com/roadmap) infrastructure like AWS Lambda.
+
+:::note
+Webiny has a very welcoming Community! If you have any questions, join us [here](https://www.webiny.com/slack)
+:::
