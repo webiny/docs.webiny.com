@@ -13,6 +13,7 @@ These are the features of the Portfolio Website:
 - Apollo Client to fetch the content models data
 - Responsive design using Material UI React Components
 
+
 ![Cover](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/cover.png)
 
 ## Prerequisites
