@@ -19,6 +19,7 @@ module.exports = {
         'guides/headless-angular-tutorial',
         'guides/creating-iframe-element-plugin',
         'guides/creating-custom-element-settings-plugin',
+        'guides/webiny-bootstrap-react-portfolio'
       ],
       Tutorials: [
         'tutorials/build-your-serverless-graphql-api-webiny',
