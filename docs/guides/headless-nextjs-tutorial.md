@@ -8,6 +8,8 @@ In this short tutorial, we will learn how to use the popular [Next.js](https://n
 
 > All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs) repository.
 
+![Cover](/img/guides/headless-nextjs-tutorial/headless-nextjs.png)
+
 ## Prerequisites
 
 ##### 1. A Webiny Project

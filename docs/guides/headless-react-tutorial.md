@@ -8,6 +8,8 @@ In this tutorial you will learn how to integrate [React](https://reactjs.org/) a
 
 > All the code shown in the tutorial can be found [here](https://github.com/webiny/webiny-examples/).
 
+![Cover](/img/guides/headless-react-tutorial/headless-react.png)
+
 ## Prerequisites
 
 #### 1. A Webiny Project
