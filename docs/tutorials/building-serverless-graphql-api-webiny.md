@@ -10,6 +10,8 @@ Webiny framework provides different scaffolding tools. What you will use is the 
  
 Before adding more functionalities, you will learn the `queries` and `mutations` in the `How to GraphQL` section. Then, you will test the GraphQL service with the out-of-the-box TDD setup from Webiny.
 
+![cover](/img/tutorials/serverless-graphql-api/serverless-api.png)
+
 > You can find the example repo for this tutorial [here](https://github.com/webiny/webiny-examples/tree/master/serverless-graphql-api).
 
 We have an [active community on slack](https://www.webiny.com/slack). If you struggle in any part of the tutorial, talk to the core-team, and get help. Webiny team is always there for any questions.

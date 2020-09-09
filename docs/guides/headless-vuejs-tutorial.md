@@ -8,6 +8,8 @@ In this short tutorial, we will learn how to use the popular [Vue.js](https://vu
 
 > All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs) repository.
 
+![Cover](/img/guides/headless-vuejs-tutorial/headless-vue-cover.png)
+
 ## Prerequisites
 
 ##### 1. A Webiny Project

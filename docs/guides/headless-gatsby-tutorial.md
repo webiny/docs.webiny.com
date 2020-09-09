@@ -8,6 +8,8 @@ In this tutorial we will learn how to use [Gatsby](https://www.gatsbyjs.org/) wi
 
 > All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-gatsby) repository.
 
+![Cover](/img/guides/headless-gatsby-tutorial/headless-cms-gatsby.png)
+
 ## Prerequisites
 
 ##### 1. Gatsby-cli

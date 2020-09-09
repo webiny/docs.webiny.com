@@ -10,6 +10,8 @@ In this short tutorial, we will learn how to use the popular [Angular](https://a
 
 * Our Headless CMS + Angular project is available on [CodeSandbox](https://codesandbox.io/s/headless-cms-angular-ky5le) too.
 
+![Cover](/img/guides/headless-angular-tutorial//headless-angular.png)
+
 ## Prerequisites
 
 ##### 1. A Webiny Project
