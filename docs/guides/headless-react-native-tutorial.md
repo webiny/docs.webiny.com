@@ -12,6 +12,8 @@ We'll be creating a React Native app that will list channels and their announcem
 
 > All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native) repository.
 
+![Cover](/img/guides/headless-react-native-tutorial/react-native-cover.png)
+
 ## Prerequisites
 
 ##### 1. A Webiny Project
