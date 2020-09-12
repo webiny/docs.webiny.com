@@ -27,7 +27,7 @@ Or, you can [Watch the live demo](https://webiny-starter-react-portfolio.vercel.
 
 - A Webiny Project
 
-First of all, make sure you follow the [prerequisites](http://localhost:3000/docs/get-started/quick-start#prerequisites) to create a Webiny project.
+First of all, make sure you follow the [prerequisites](https://docs.webiny.com/docs/get-started/quick-start/#prerequisites) to create a Webiny project.
    
 ## Steps
 
