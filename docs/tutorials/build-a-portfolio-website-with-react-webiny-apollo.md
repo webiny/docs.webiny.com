@@ -145,12 +145,12 @@ Now that we are getting our data, it’s time to start building the `Front-end`.
 
 ## 2. Front-end
 
-We will create a `create-react-project` front-end application. On top of that, we will use the Material-UI framework. The React component library, based on Google Material Design, allows us a fast and easy usage of stylized web components.
+We will create a `create-react-app` front-end application. On top of that, we will use the Material-UI framework. The React component library, based on Google Material Design, allows us a fast and easy usage of stylized web components.
 
 First, let's start by creating a react application from scratch by running this command:
 
 ```tsx
-npx create-react-app my-app --template typescript
+npx create-react-app frontend --template typescript
 cd frontend
 npm run start
 ```
