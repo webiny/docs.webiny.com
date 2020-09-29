@@ -15,6 +15,7 @@ module.exports = {
                 "guides/headless-gatsby-tutorial",
                 "guides/headless-nextjs-tutorial",
                 "guides/headless-react-tutorial",
+                "guides/build-your-serverless-graphql-api-webiny",
                 "guides/headless-react-native-tutorial",
                 "guides/headless-vuejs-tutorial",
                 "guides/headless-angular-tutorial",
@@ -23,7 +24,7 @@ module.exports = {
                 "guides/webiny-bootstrap-react-portfolio"
             ],
             Tutorials: [
-                "tutorials/build-your-serverless-graphql-api-webiny"
+                // "tutorials/build-your-serverless-graphql-api-webiny"
                 // "tutorials/build-a-portfolio-website-with-react-webiny-apollo"
             ],
             "Deep Dive": [

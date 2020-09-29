@@ -7,6 +7,7 @@ sidebar_label: Build a Portfolio Website with React, Webiny, and Apollo
 In this tutorial, you will set up a simple portfolio website to showcase your projects and your blogs using pure React, Webiny Headless CMS, and Apollo GraphQL. After setting up your portfolio website, you will be able to focus all of your creativity on the content for blogs and projects.
 
 These are the features of the Portfolio Website:
+
 - 2 Content types: Blogs, Projects
 - 6 Created blogs
 - 6 Created projects
@@ -28,27 +29,35 @@ Or, you can [Watch the live demo](https://webiny-starter-react-portfolio.vercel.
 - A Webiny Project
 
 First of all, make sure you follow the [prerequisites](https://docs.webiny.com/docs/get-started/quick-start/#prerequisites) to create a Webiny project.
-   
+
 ## Steps
 
 ## 1. Back-end
+
 When setting up a new Webiny project, there are currently two project templates you can choose, `full` and `cms` template. Both include the Headless CMS app by default.
 
 ### 1.1 Webiny Headless CMS project
+
 To create a Webiny Headless CMS project, run the following command:
+
 ```
  npx create-webiny-project backend --template=cms
 ```
+
 Learn more about the [Webiny project structure](http://docs.webiny.com/docs/deep-dive/project-structure).
 
 ### 1.2 Setup database connection
+
 Follow this [guide to set up your database connection](http://docs.webiny.com/docs/get-started/quick-start#2-setup-database-connection).
 
 ### 1.3 API Deployment
+
 We need to deploy a `local` API environment for our backend project to use for local development by running this command:
+
 ```
 yarn webiny deploy api --env=local
 ```
+
 For more information on the deployment, read through [Webiny documentation for Deployment](http://docs.webiny.com/docs/get-started/quick-start#1-deploy-api).
 
 :::info
@@ -59,14 +68,16 @@ The deployment will take around 5-15 minutes depending on your internet connecti
 
 The admin app is the administration system for your project; it contains everything you need to manage your content, users, settings, etc.
 Start the admin app by moving to the `apps/admin` folder and running the command below.
+
 ```
 yarn start
 ```
+
 Create your admin user by filling the form as shown in the image below.
 
 ![Admin user](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/admin-user.png)
 
-When creating a Webiny project with the CMS template, the security application will be part of the Headless CMS project. To learn more about what Webiny offers regarding the ready-made serverless applications, check out the [Webiny Websites](https://www.webiny.com/serverless-apps). 
+When creating a Webiny project with the CMS template, the security application will be part of the Headless CMS project. To learn more about what Webiny offers regarding the ready-made serverless applications, check out the [Webiny Websites](https://www.webiny.com/serverless-apps).
 
 :::info
 Learn more about the [Webiny Headless CMS features](https://www.webiny.com/serverless-app/headless-cms)
@@ -82,12 +93,13 @@ To create the content models click on the `New Content Model` or open the menu o
 
 Now that we have the backend application set up, we will continue to create the content models for Blogs, and Projects.
 
-Click on the `+` green button to create the `Blogs` Content Model. 
+Click on the `+` green button to create the `Blogs` Content Model.
 These are the fields we will use for our Blogs:
+
 - `Title` with type `TEXT`
 - `Subtitle` with type `TEXT`
 - `Cover` with type `FILES`
-- `Content` with type `RICH TEXT` 
+- `Content` with type `RICH TEXT`
 - `Link` with type `TEXT`
 - `CTA` with type `TEXT`
 
@@ -96,6 +108,7 @@ These are the fields we will use for our Blogs:
 Press the `SAVE` button on the right corner. Go back and create `Projects` content model.
 
 These are the fields we will use for our `Projects`:
+
 - `Title` with type `TEXT`
 - `Cover` with type `FILES`
 - `Content` with type `LONG TEXT`
@@ -119,7 +132,8 @@ Now that we have our data created, we can go ahead and check the `API informatio
 ![API Information](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/api-information.png)
 
 Open the Content Delivery API which ends with the `/cms/read/production`. Now, let’s write some queries to read our Blog content.
-``` 
+
+```
 query getBlogs {
   listBlogs {
     data {
@@ -128,7 +142,7 @@ query getBlogs {
       link
     }
   }
-} 
+}
 ```
 
 ![Get blogs query](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/get-blogs-query.png)
@@ -154,24 +168,25 @@ npx create-react-app my-app --template typescript
 cd frontend
 npm run start
 ```
+
 One of the advantages of using TypeScript is that Type errors will show up in the same console as the building one. You'll have to fix these type errors to continue development or build the project. For advanced configuration, [see here](https://create-react-app.dev/docs/advanced-configuration/).
 
 Now, you will install all the necessary libraries you need to build your Portfolio website. Run the below command to install the packages for Material-UI and Apollo GraphQL.
 
 ```
-npm i --save 
-   @material-ui/core 
-   @material-ui/icons 
-   material-ui-image 
+npm i --save
+   @material-ui/core
+   @material-ui/icons
+   material-ui-image
    @apollo/client
-   graphql 
+   graphql
    react-router-dom
    react-dom
 ```
 
 ### 2.1 Front-end structure
 
-You are ready to start building the frontend components for your Portfolio website. The project will have a simple structure when it comes to the components and pages. 
+You are ready to start building the frontend components for your Portfolio website. The project will have a simple structure when it comes to the components and pages.
 
 Let’s create the `components` folder and add the first react component to our project, the `Navbar.`
 
@@ -183,80 +198,68 @@ We created the project using the TypeScript template. When importing modules, th
 
 #### Navbar Component
 
-For the `Navbar,` we will use the `Drawer,` `List,` `Link,` and other material components to fill the `List` component.  
+For the `Navbar,` we will use the `Drawer,` `List,` `Link,` and other material components to fill the `List` component.
 
 Let's start with importing what we need:
 
 ```tsx
-import React from 'react';
-import { 
-    createStyles,
-    makeStyles,
-    Theme,
-  } from '@material-ui/core/styles';
+import React from "react";
+import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 
-import { 
-    Drawer, 
-    List, 
-    ListItem, 
-    ListItemIcon, 
-    ListItemText,
-    Divider
-} from '@material-ui/core';
+import { Drawer, List, ListItem, ListItemIcon, ListItemText, Divider } from "@material-ui/core";
 
-import InfoIcon from '@material-ui/icons/Info';
+import InfoIcon from "@material-ui/icons/Info";
 
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
-
+import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 ```
 
 Next, we will add the `makeStyles` (hook generator) and `withStyles` (HOC) that allows you to create multiple styles rules per style sheet. Learn more about [Overriding styles classes](https://material-ui.com/styles/advanced/#overriding-styles-classes-prop) in material-UI.
 
 Let's add the styles:
+
 ```tsx
 const drawerWidth = 220;
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      display: 'flex',
+      display: "flex"
     },
     appBar: {
       width: `calc(100% - ${drawerWidth}px)`,
-      marginLeft: drawerWidth,
+      marginLeft: drawerWidth
     },
     drawer: {
       width: drawerWidth,
-      flexShrink: 0,
+      flexShrink: 0
     },
     drawerPaper: {
       width: drawerWidth,
-      flexShrink: 0,
+      flexShrink: 0
     },
     // necessary for content to be below app bar
     toolbar: theme.mixins.toolbar,
     content: {
       flexGrow: 1,
       backgroundColor: theme.palette.background.default,
-      padding: theme.spacing(3),
+      padding: theme.spacing(3)
     },
     link: {
-      textDecoration: 'none',
+      textDecoration: "none",
       color: theme.palette.text.primary
     },
     webinyLink: {
-      textDecoration: 'none',
+      textDecoration: "none",
       color: theme.palette.text.secondary,
-      width: '100%'
+      width: "100%"
     }
   })
-)
+);
 ```
 
 Now, we will create the `Navbar` component:
 
 ```tsx
-
 export default function Navbar() {
   const classes = useStyles();
 
@@ -268,14 +271,14 @@ export default function Navbar() {
         open={true}
         variant="permanent"
         classes={{
-          paper: classes.drawerPaper,
+          paper: classes.drawerPaper
         }}
         anchor="left"
       >
-        <List style={{ height: '100%' }}>
-          {['About', 'Blogs', 'Projects'].map((text, index) => {
+        <List style={{ height: "100%" }}>
+          {["About", "Blogs", "Projects"].map((text, index) => {
             return (
-              <Link to={'/' + text.toLowerCase()} className={classes.link} key={index}>
+              <Link to={"/" + text.toLowerCase()} className={classes.link} key={index}>
                 <ListItem button>
                   <ListItemIcon>
                     <InfoIcon />
@@ -283,29 +286,28 @@ export default function Navbar() {
                   <ListItemText primary={text} />
                 </ListItem>
               </Link>
-            )
-          }
-          )}
+            );
+          })}
           <a
-            href='https://webiny.com/serverless-app/headless-cms'
+            href="https://webiny.com/serverless-app/headless-cms"
             className={classes.webinyLink}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ position: 'absolute', bottom: 0 }}
+            style={{ position: "absolute", bottom: 0 }}
           >
             <Divider light />
             <ListItem>
               <ListItemIcon>
-                <img src={logo} width='25' alt="webiny" />
+                <img src={logo} width="25" alt="webiny" />
               </ListItemIcon>
-              <ListItemText primary={'Webiny Headless CMS'} />
+              <ListItemText primary={"Webiny Headless CMS"} />
             </ListItem>
           </a>
         </List>
         <Divider light />
       </Drawer>
     </div>
-  )
+  );
 }
 ```
 
@@ -319,19 +321,20 @@ Inside the `List,` we created an array with values of pages we will navigate to.
 Next, we are using the `InfoIcon` as an example of an icon in each of the `Navigation` items.
 
 Let's test this component on the react project. To see the difference, we have to make some changes in the `App.tsx.` file.
+
 #### App.tsx file
 
 Let's import the `Navigation` component, and the `Router`.
 
 ```tsx
-import React from 'react';
+import React from "react";
 
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router } from "react-router-dom";
 
-import Navbar from './components/navbar';
+import Navbar from "./components/navbar";
 function App() {
   return (
-    <div style={{ display: 'flex' }}>
+    <div style={{ display: "flex" }}>
       <Router>
         <Navbar />
       </Router>
@@ -340,7 +343,6 @@ function App() {
 }
 
 export default App;
-
 ```
 
 If you didn't start already the server, run the `npm run start or yarn start` to see the changes.
@@ -351,45 +353,43 @@ This is our first version of the `Navigation Drawer.` Now let's add the `icons` 
 
 #### Icons Component
 
-The purpose of creating an `Icons` component is to have the opportunity to add dynamic items on our `Navigation Drawer.` 
+The purpose of creating an `Icons` component is to have the opportunity to add dynamic items on our `Navigation Drawer.`
 
 Create `icons.tsx` file in the `components` folder, and add the following snippet:
 
 ```tsx
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import InfoIcon from '@material-ui/icons/Info';
-import BookIcon from '@material-ui/icons/Book';
-import WebIcon from '@material-ui/icons/Web';
+import InfoIcon from "@material-ui/icons/Info";
+import BookIcon from "@material-ui/icons/Book";
+import WebIcon from "@material-ui/icons/Web";
 
 interface IconProps {
-    icon: string;
+  icon: string;
 }
 
 export default class MyIcons extends Component<IconProps> {
+  constructor(props: IconProps) {
+    super(props);
+    this.state = {
+      About: InfoIcon,
+      Blogs: BookIcon,
+      Projects: WebIcon
+    };
+  }
 
-    constructor(props: IconProps) {
-        super(props);
-        this.state = {
-            'About': InfoIcon,
-            'Blogs': BookIcon,
-            'Projects': WebIcon
-        }
-    }
-
-    render() {
-        const IconName = this.state[this.props.icon || 'About'];
-        return (
-            <IconName />
-        )
-    }
+  render() {
+    const IconName = this.state[this.props.icon || "About"];
+    return <IconName />;
+  }
 }
 ```
+
 To use this component, we have to make a small change in our `Navigation` component.
 
 ```tsx
 <ListItemIcon>
-   <MyIcons icon={text} />
+  <MyIcons icon={text} />
 </ListItemIcon>
 ```
 
@@ -408,52 +408,39 @@ The Material-UI components we will use to create the Card component are the `Car
 Create a `card.tsx` file in the `components` folder and add the snippet below.
 
 ```tsx
+import React from "react";
 
-import React from 'react';
+import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
 
-import {
-  makeStyles,
-  createStyles,
-  Theme
-} from '@material-ui/core/styles';
-
-import {
-  Card,
-  CardActions,
-  CardContent,
-  CardMedia,
-  Button,
-  Typography
-} from '@material-ui/core';
+import { Card, CardActions, CardContent, CardMedia, Button, Typography } from "@material-ui/core";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      display: 'flex',
+      display: "flex"
     },
     details: {
-      display: 'flex',
-      flexDirection: 'column',
+      display: "flex",
+      flexDirection: "column"
     },
     content: {
-      flex: '1 0 auto',
+      flex: "1 0 auto"
     },
     cover: {
-      width: 251,
+      width: 251
     },
     controls: {
-      display: 'flex',
-      alignItems: 'center',
+      display: "flex",
+      alignItems: "center",
       paddingLeft: theme.spacing(1),
-      paddingBottom: theme.spacing(1),
+      paddingBottom: theme.spacing(1)
     },
     playIcon: {
       height: 38,
-      width: 38,
-    },
-  }),
+      width: 38
+    }
+  })
 );
-
 
 export default function StarterCard({ ...pro }) {
   const classes = useStyles();
@@ -461,7 +448,7 @@ export default function StarterCard({ ...pro }) {
     <Card className={classes.root}>
       <div className={classes.details}>
         <CardContent className={classes.content}>
-          <Typography component="h5" variant="h5" >
+          <Typography component="h5" variant="h5">
             {pro.title}
           </Typography>
           <Typography variant="subtitle1" color="textSecondary">
@@ -479,17 +466,14 @@ export default function StarterCard({ ...pro }) {
           </CardActions>
         </div>
       </div>
-      <CardMedia
-        className={classes.cover}
-        image={pro.cover}
-        title={pro.title}
-      />
+      <CardMedia className={classes.cover} image={pro.cover} title={pro.title} />
     </Card>
   );
 }
 ```
 
 The `starterCard` function will be used in both the `Blogs` and `Projects` pages. The Card component already has the data we need from the Content Models. Each of our Content Models has these fields:
+
 - Title
 - Subtitle
 - CTA
@@ -498,39 +482,39 @@ The `starterCard` function will be used in both the `Blogs` and `Projects` pages
 
 We will get back to this component after we create all of the `About,` `Blogs,` `Projects` pages.
 
-Before jumping on the pages, Material-UI gives you the opportunity to customize Material-UI with your theme. You can change the colors, the typography and much more. If you wish to customize the theme, you need to use the ThemeProvider component in order to inject a theme into your application. 
+Before jumping on the pages, Material-UI gives you the opportunity to customize Material-UI with your theme. You can change the colors, the typography and much more. If you wish to customize the theme, you need to use the ThemeProvider component in order to inject a theme into your application.
 
-Below you will find the `theme.tsx` code snippet. Create the `theme.tsx` in the `src` folder and add the code below. 
+Below you will find the `theme.tsx` code snippet. Create the `theme.tsx` in the `src` folder and add the code below.
 
 ```tsx
-import { red, grey } from '@material-ui/core/colors';
-import { createMuiTheme } from '@material-ui/core/styles';
-import pink from '@material-ui/core/colors/pink';
+import { red, grey } from "@material-ui/core/colors";
+import { createMuiTheme } from "@material-ui/core/styles";
+import pink from "@material-ui/core/colors/pink";
 // A custom theme for this app
 const theme = createMuiTheme({
   palette: {
     primary: {
-      light: '#f381a7',
+      light: "#f381a7",
       main: pink[300],
-      dark: '#f57c00',
-      contrastText: '#ffffff',
+      dark: "#f57c00",
+      contrastText: "#ffffff"
     },
     secondary: {
-      light: '#bdbdbd',
+      light: "#bdbdbd",
       main: grey[500],
-      dark: '#616161',
-      contrastText: '#ffffff',
+      dark: "#616161",
+      contrastText: "#ffffff"
     },
     error: {
-      main: red.A400,
+      main: red.A400
     },
     background: {
-      default: '#fff',
+      default: "#fff"
     },
     text: {
-      primary: '#f381a7'
+      primary: "#f381a7"
     }
-  },
+  }
 });
 
 export default theme;
@@ -539,12 +523,14 @@ export default theme;
 ### 2.3 Pages
 
 Create the `pages` folder in the `src` folder. The Material-UI components we will use for the pages are:
+
 - Container
 - Typography
 - Grid
 - CircularProgress
 
 The styles components:
+
 - makeStyles
 - crateStyles
 - Theme
@@ -554,47 +540,44 @@ The styles components:
 Let's start with the home page. Create a `home.tsx` file in the `pages` folder, and add the code from the snippet below.
 
 ```tsx
-import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import React from "react";
+import { makeStyles } from "@material-ui/core/styles";
 
-import {
-  Container,
-  Typography
-} from '@material-ui/core';
+import { Container, Typography } from "@material-ui/core";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     ...theme.typography.button,
     backgroundColor: theme.palette.background.paper,
-    padding: theme.spacing(1),
+    padding: theme.spacing(1)
   },
   title: {
-    margin: '20px'
+    margin: "20px"
   },
   secondary: {
     color: theme.palette.secondary.main
   },
   loading: {
     color: theme.palette.secondary.main
-  },
+  }
 }));
 
 export default function Home() {
   const classes = useStyles();
 
   return (
-    <Container maxWidth='md' className={classes.root}>
+    <Container maxWidth="md" className={classes.root}>
       <Typography variant="h3" component="h2" className={classes.title}>
         Build a Portfolio Website with React, Webiny, and Apollo
-            </Typography>
+      </Typography>
 
       <div className={classes.secondary}>
-        What is Webiny? Webiny is an open-source framework for building serverless applications.
-        It provides you with developer tools, libraries, ready-made apps and processes.
-        It's built on top of AWS cloud and uses the latest technologies such as NodeJs, React and GraphQL.
-            </div>
+        What is Webiny? Webiny is an open-source framework for building serverless applications. It
+        provides you with developer tools, libraries, ready-made apps and processes. It's built on
+        top of AWS cloud and uses the latest technologies such as NodeJs, React and GraphQL.
+      </div>
     </Container>
-  )
+  );
 }
 ```
 
@@ -605,59 +588,51 @@ You can use this component as a Welcoming page to your Portfolio Website.
 Create the `about.tsx` file in the `pages` folder and add the code snippet below.
 
 ```tsx
-import React from 'react';
-import { Theme, createStyles } from '@material-ui/core/styles';
+import React from "react";
+import { Theme, createStyles } from "@material-ui/core/styles";
 
-import {
-  Container,
-  Typography
-} from '@material-ui/core';
+import { Container, Typography } from "@material-ui/core";
 
-import {
-  makeStyles
-} from '@material-ui/core/styles';
+import { makeStyles } from "@material-ui/core/styles";
 
-import Image from 'material-ui-image';
+import Image from "material-ui-image";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     title: {
-      margin: '20px'
+      margin: "20px"
     },
     about: {
       color: theme.palette.secondary.main,
-      margin: '20px'
-    },
-  }),
+      margin: "20px"
+    }
+  })
 );
 
 export default function About() {
   const classes = useStyles();
   return (
-    <Container maxWidth='md'>
+    <Container maxWidth="md">
       <Typography variant="h3" component="h2" className={classes.title}>
         About
-          </Typography>
+      </Typography>
 
       <Image
         src="https://images.unsplash.com/photo-1554774853-719586f82d77?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2550&q=80"
-        aspectRatio={(16 / 9)}
+        aspectRatio={16 / 9}
       />
       <Typography variant="body1" component="p" className={classes.about}>
-        Do so written as raising parlors spirits mr elderly. Made late in of high left hold.
-        Carried females of up highest calling. Limits marked led silent dining her
-        she far. Sir but elegance marriage dwelling likewise position old pleasure men.
-        Dissimilar themselves simplicity no of contrasted as. Delay great day hours men.
-        Stuff front to do allow to asked he.
-        No opinions answered oh felicity is resolved hastened. Produced it friendly
-        my if opinions humoured. Enjoy is wrong folly no taken.
-        It sufficient instrument insipidity simplicity at interested.
-        Law pleasure attended differed mrs fat and formerly. Merely thrown garret her
-        law danger him son better excuse. Effect extent narrow in up chatty.
-        Small are his chief offer happy had.
-          </Typography>
+        Do so written as raising parlors spirits mr elderly. Made late in of high left hold. Carried
+        females of up highest calling. Limits marked led silent dining her she far. Sir but elegance
+        marriage dwelling likewise position old pleasure men. Dissimilar themselves simplicity no of
+        contrasted as. Delay great day hours men. Stuff front to do allow to asked he. No opinions
+        answered oh felicity is resolved hastened. Produced it friendly my if opinions humoured.
+        Enjoy is wrong folly no taken. It sufficient instrument insipidity simplicity at interested.
+        Law pleasure attended differed mrs fat and formerly. Merely thrown garret her law danger him
+        son better excuse. Effect extent narrow in up chatty. Small are his chief offer happy had.
+      </Typography>
     </Container>
-  )
+  );
 }
 ```
 
@@ -668,39 +643,34 @@ Check out other [Material-UI components](https://material-ui.com/) to add more v
 For the `Blogs` page, we will use the `Grid` Material-UI component to show the Blogs cards. Create a `blogs.tsx` file and add the below code snippet.
 
 ```tsx
-import React from 'react';
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
-import StarterCard from '../components/card';
-import {
-  Grid,
-  Container,
-  Typography,
-  CircularProgress
-} from '@material-ui/core'
+import React from "react";
+import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
+import StarterCard from "../components/card";
+import { Grid, Container, Typography, CircularProgress } from "@material-ui/core";
 // import theme from '../theme';
 
-import { useQuery } from '@apollo/react-hooks';
+import { useQuery } from "@apollo/react-hooks";
 
-import { GET_BLOGS } from '../apolloClient/queries';
+import { GET_BLOGS } from "../apolloClient/queries";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      flexGrow: 1,
+      flexGrow: 1
     },
     loading: {
       color: theme.palette.secondary.main,
-      display: 'flex',
-      margin: '10%'
+      display: "flex",
+      margin: "10%"
     },
     title: {
-      margin: '20px'
+      margin: "20px"
     },
     description: {
       color: theme.palette.secondary.main,
-      margin: '20px'
-    },
-  }),
+      margin: "20px"
+    }
+  })
 );
 
 const Blogs = () => {
@@ -709,10 +679,10 @@ const Blogs = () => {
 
   if (loading) {
     return (
-      <Container maxWidth='md' className={classes.loading}>
+      <Container maxWidth="md" className={classes.loading}>
         <CircularProgress />
       </Container>
-    )
+    );
   }
 
   if (error) {
@@ -720,46 +690,35 @@ const Blogs = () => {
   }
 
   return (
-    <Container maxWidth='md' className={classes.root}>
+    <Container maxWidth="md" className={classes.root}>
       <Typography variant="h3" component="h2" className={classes.title}>
         Webiny Blogs
       </Typography>
 
       <div className={classes.description}>
-        What is Webiny? Webiny is an open-source framework for building serverless applications.
-        It provides you with developer tools, libraries, ready-made apps and processes.
-        It's built on top of AWS cloud and uses the latest technologies such as NodeJs, React and GraphQL.
+        What is Webiny? Webiny is an open-source framework for building serverless applications. It
+        provides you with developer tools, libraries, ready-made apps and processes. It's built on
+        top of AWS cloud and uses the latest technologies such as NodeJs, React and GraphQL.
       </div>
       <Grid
         container
         spacing={4}
         direction="row"
         alignItems="center"
-
         className={classes.root}
         justify="center"
       >
-        {
-          data.listBlogs.data.map((blogs, index) => {
-            return (
-              <Grid
-                item
-                xs={12}
-                sm={6}
-                md={6}
-                key={index}
-              >
-                <StarterCard
-                  {...blogs}
-                />
-              </Grid>
-            )
-          })
-        }
+        {data.listBlogs.data.map((blogs, index) => {
+          return (
+            <Grid item xs={12} sm={6} md={6} key={index}>
+              <StarterCard {...blogs} />
+            </Grid>
+          );
+        })}
       </Grid>
     </Container>
   );
-}
+};
 
 export default Blogs;
 ```
@@ -778,46 +737,43 @@ Create a `projects.tsx` file in the `pages` folder, and as a challenge, go ahead
 Webiny's Community is a welcoming one for any questions you might have :) Join us here: https://www.webiny.com/slack
 :::
 
-Yay 🎉, You achieved to create the pages you need for your Portfolio website. 
+Yay 🎉, You achieved to create the pages you need for your Portfolio website.
 
 We will create another file that will manage the pages for routes, create an `index.tsx` file in the `pages` folder. The file is self-explanatory as you go through it:
 
 ```tsx
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import About from './about';
-import Projects from './projects';
-import Home from './home';
-import Blogs from './blogs';
+import About from "./about";
+import Projects from "./projects";
+import Home from "./home";
+import Blogs from "./blogs";
 
-import {
-    Container
-} from '@material-ui/core';
+import { Container } from "@material-ui/core";
 
 interface PageProps {
-    page: string;
+  page: string;
 }
 
 export default class MyPages extends Component<PageProps> {
+  constructor(props) {
+    super(props);
+    this.state = {
+      "": Home,
+      About: About,
+      Blogs: Blogs,
+      Projects: Projects
+    };
+  }
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            '': Home,
-            'About': About,
-            'Blogs': Blogs,
-            'Projects': Projects,
-        }
-    }
-
-    render() {
-        const PageName = this.state[this.props.page || ''];
-        return (
-            <Container maxWidth='md'>
-                <PageName />
-            </Container>
-        )
-    }
+  render() {
+    const PageName = this.state[this.props.page || ""];
+    return (
+      <Container maxWidth="md">
+        <PageName />
+      </Container>
+    );
+  }
 }
 ```
 
@@ -832,13 +788,9 @@ Now that we have all the dependencies we need let's initialize an `ApolloClient`
 Go through the code snippet below, and follow the comments to understand the connection parts.
 
 ```tsx
-import {
-  ApolloClient,
-  createHttpLink,
-  InMemoryCache
-} from '@apollo/client';
+import { ApolloClient, createHttpLink, InMemoryCache } from "@apollo/client";
 
-import { setContext } from '@apollo/client/link/context';
+import { setContext } from "@apollo/client/link/context";
 
 //This REACT_APP_GRAPHQL_URL is defined in a .env file at the root of the project
 const httpLink = createHttpLink({
@@ -852,9 +804,9 @@ const authLink = setContext((_, { headers }) => {
   return {
     headers: {
       ...headers,
-      authorization: token ? `${token}` : "",
+      authorization: token ? `${token}` : ""
     }
-  }
+  };
 });
 
 const client = new ApolloClient({
@@ -868,9 +820,9 @@ export default client;
 Now that we have the `Apollo Client` set up. We will write queries to read our content models' data. Go ahead and create a file in the `apolloClient` name it `queries.jsx`.
 
 ```tsx
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 
-// You will change the queries here based on your Content Models 
+// You will change the queries here based on your Content Models
 export const GET_BLOGS = gql`
   query listBlogs {
     listBlogs {
@@ -885,7 +837,8 @@ export const GET_BLOGS = gql`
   }
 `;
 
-export const GET_PROJECTS = gql`{
+export const GET_PROJECTS = gql`
+  {
     listProjects {
       data {
         title
@@ -893,7 +846,8 @@ export const GET_PROJECTS = gql`{
         link
       }
     }
-}`;
+  }
+`;
 ```
 
 There is one more thing that we need to set up, so all of these changes can work together. As you may already notice, we didn't connect the pages to the React Router.
@@ -903,33 +857,32 @@ Let's go at the `App.tsx` file where we imported the `Navigation` Component in t
 Update your `App.tsx` file by following the changes below:
 
 ```tsx
-import React from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import React from "react";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 // Nav
-import Navbar from './components/navbar';
+import Navbar from "./components/navbar";
 
 // Pages
-import MyPages from './pages';
+import MyPages from "./pages";
 
 function App() {
-
   return (
-    <div style={{ display: 'flex' }}>
+    <div style={{ display: "flex" }}>
       <Router>
         <Navbar />
         <Switch>
-          {['', 'About', 'Blogs', 'Projects'].map((text, index) => {
+          {["", "About", "Blogs", "Projects"].map((text, index) => {
             return (
-              <Route exact path={'/' + text} key={index}>
+              <Route exact path={"/" + text} key={index}>
                 <MyPages page={text} />
               </Route>
-            )
+            );
           })}
         </Switch>
       </Router>
     </div>
-  )
+  );
 }
 
 export default App;
@@ -948,30 +901,30 @@ To be able to show the blogs and projects, we need to do some small adjustments.
 Let's open the `index.tsx` file in the `src` folder. To make the Apollo Client work, we need to connect it to React with the `ApolloProvider`. In `index.js`, let's wrap our React app with an `ApolloProvider`. Beside the Apollo Client, in this file, we will connect our React app with the Material-UI theme that we created earlier.
 
 ```tsx
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import { ThemeProvider } from '@material-ui/core/styles';
-import theme from './theme';
-import * as serviceWorker from './serviceWorker';
+import React from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import App from "./App";
+import CssBaseline from "@material-ui/core/CssBaseline";
+import { ThemeProvider } from "@material-ui/core/styles";
+import theme from "./theme";
+import * as serviceWorker from "./serviceWorker";
 
 // ApolloClient
 import { ApolloProvider } from "@apollo/client";
-import client from './apolloClient/index';
-
+import client from "./apolloClient/index";
 
 ReactDOM.render(
-  (<ApolloProvider client={client}>
+  <ApolloProvider client={client}>
     <ThemeProvider theme={theme}>
       <React.Fragment>
         <CssBaseline />
         <App />
       </React.Fragment>
-    </ThemeProvider>,
-  </ApolloProvider>),
-  document.getElementById('root')
+    </ThemeProvider>
+    ,
+  </ApolloProvider>,
+  document.getElementById("root")
 );
 
 // If you want your app to work offline and load faster, you can change
@@ -1001,7 +954,6 @@ Let's test it now 🚀
 
 Yay 🎉, you created a Portfolio Website with React, Webiny, and Apollo.
 
-
 ### 2.7 Front-end Deployment
 
 One more detail on the completion of the Portfolio is having the project online to share with potential employees, recruiters, or friends. 😊
@@ -1009,23 +961,28 @@ One more detail on the completion of the Portfolio is having the project online 
 #### Vercel Deployment
 
 Steps:
+
 - Sign up at https://vercel.com
 - Install the Vercel CLI
 - Run 'vercel' in the project directory
 
-Once you sign up, now we go back to our frontend project. Navigate to your frontend project directory. 
+Once you sign up, now we go back to our frontend project. Navigate to your frontend project directory.
 
 Run the following command:
+
 ```
 npm install -g vercel
 ```
-This command will install the vercel CLI into your local machine. 
+
+This command will install the vercel CLI into your local machine.
 
 Next, we will sign in into Vercel through the CLI. Run the command:
+
 ```
 vercel login
 ```
-As soon as you run this command, you will enter your email address, that is associated with the account provider you used to sign in into Vercel. 
+
+As soon as you run this command, you will enter your email address, that is associated with the account provider you used to sign in into Vercel.
 
 After this step, you will receive a confimation email to your email address from Vercel. You will need to confirm your email, so you can continue with other steps.
 
@@ -1035,22 +992,24 @@ The confirmation email will look like below.
 
 This confirmation will login you into the Vercel.
 
-Go back to your terminal, and see if everything is resolved regarding the login. 
+Go back to your terminal, and see if everything is resolved regarding the login.
 
-Next, run this command: 
-```vercel```
+Next, run this command:
+`vercel`
 
 By running the command, you will get different questions, you can leave all the default answers and hit enter. After around 30 seconds, you will get a link which is accessible online, and that is your project 🎉
 
 When making changes to your application, you can run:
+
 ```
 vercel --prod
 ```
-to re-deploy for the latest changes. 
+
+to re-deploy for the latest changes.
 
 ## Conclusion
 
-🎉🎉 Congratulations! You've built a Portfolio website with the coolest tech stack! 
+🎉🎉 Congratulations! You've built a Portfolio website with the coolest tech stack!
 
 You learned Webiny Headless CMS; now you are one command away from creating different Webiny Projects. You set up your React Portfolio website using Material-UI, one of the best UI frameworks out there. You connected the Apollo Client with your React application to query your content models data from the Headless CMS.
 
