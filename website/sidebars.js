@@ -214,7 +214,7 @@ module.exports = {
                     'webiny-apps/page-builder/development/plugins-reference/app',
                   ],
                 },
-                'webiny-apps/page-builder/development/rendering-pages',
+                //'webiny-apps/page-builder/development/rendering-pages',
                 //"webiny-apps/form-builder/creating-new-form-fields",
                 //"webiny-apps/form-builder/custom-form-triggers",
                 {
