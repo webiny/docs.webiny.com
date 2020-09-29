@@ -16,7 +16,7 @@ menu.
 
 For example, for the "List of pages" element, we can choose the render component in the settings dialog:
 
-![Webiny Admin Layout](assets/developer-tutorials/new-theme-addons-pages-list.png)
+![Webiny Admin Layout](/img/developer-tutorials/new-theme-addons-pages-list.png)
 
 To list your own render component in the menu, you would just need to register an element-specific 
 plugin. This is a very convenient way of having multiple variants of the same component, where each one is used only 

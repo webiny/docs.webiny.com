@@ -42,7 +42,7 @@ const siteConfig = {
         src: 'img/white-square-icon.svg',
         href: '/docs/webiny/introduction',
       },
-      links: [
+      items: [
         {
           href: 'https://www.webiny.com/',
           label: 'Webiny Home',

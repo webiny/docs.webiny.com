@@ -18,7 +18,7 @@ Webiny CMS ships with a set of default element groups:
 - `cms-element-group-saved`
 
 They can be found in the editor sidebar:
-![Webiny CMS - Element Settings Toolbar](assets/developer-tutorials/cms-element-groups.png)
+![Webiny CMS - Element Settings Toolbar](/img/developer-tutorials/cms-element-groups.png)
 
 You can easily create new groups for your new elements.
 

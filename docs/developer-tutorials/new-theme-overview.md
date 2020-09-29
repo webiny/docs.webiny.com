@@ -78,7 +78,7 @@ Here is an example of how to define a layout:
 }
 ```
 
-![Webiny - Theme Layout](assets/developer-tutorials/theme-overview-layout.png)
+![Webiny - Theme Layout](/img/developer-tutorials/theme-overview-layout.png)
 
 Each layout has the following attributes:
 
@@ -126,7 +126,7 @@ Colors are defined in the `color` section. As a general practice, don't define H
 }
 ```
 
-![Webiny - Theme Colors](assets/developer-tutorials/theme-overview-color.png)
+![Webiny - Theme Colors](/img/developer-tutorials/theme-overview-color.png)
 
 
 > **Note:** The reason why this is the preferred way is that when you select a color in page builder for a certain element property, be that background-color, border color or shadow, the value of the color is stored in the database. In case of CSS variables, the CSS variable is stored, meaning that if you later decide to change the value of that color, you just change it in your CSS file, and all the existing content will pick up the new value - which won't be the case when we store the HEX or RGB value.
@@ -156,7 +156,7 @@ Depending on the element, different attributes are available.
 In case of a `button` element, the `types` attribute contains available button types.
 Each type references a specific class name that will be added to the button component when that type is selected.
 
-![Webiny - Theme Button](assets/developer-tutorials/theme-overview-button.png)
+![Webiny - Theme Button](/img/developer-tutorials/theme-overview-button.png)
 
 > **Note:** By default Webiny uses [BEM naming](http://getbem.com/introduction/).
 The default button class is `webiny-cms-element-button`, so when the user selects the "primary" button type,
@@ -167,7 +167,7 @@ it will add a modifier of "primary" to the base class, meaning the resulting cla
 
 When editing any text inside the page builder, you can select a different style for your text.
 
-![Webiny - Theme Typography](assets/developer-tutorials/theme-overview-typography.png)
+![Webiny - Theme Typography](/img/developer-tutorials/theme-overview-typography.png)
 
 The list of available styles is defined under the `typography` key inside your theme definition file.
 

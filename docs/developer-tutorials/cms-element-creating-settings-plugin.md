@@ -11,7 +11,7 @@ Element settings toolbar becomes visible when one of the page elements is
 selected by clicking on it. Each element can have a different set of settings
 plugins.
 
-![Webiny CMS - Element Settings Toolbar](assets/developer-tutorials/cms-element-settings-toolbar.png)
+![Webiny CMS - Element Settings Toolbar](/img/developer-tutorials/cms-element-settings-toolbar.png)
 
 ## Creating a settings plugin
 To register a new plugin:

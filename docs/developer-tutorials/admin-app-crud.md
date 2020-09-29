@@ -17,7 +17,7 @@ than having a separate route for a list and a form, accordingly.
 Webiny provides multiple components to develop these CRUD views, and the end
 result looks something like this:
 
-![Webiny CRUD View](assets/developer-tutorials/admin-app-crud-view.png)
+![Webiny CRUD View](/img/developer-tutorials/admin-app-crud-view.png)
 
 This is an example of the `Categories` CRUD view in our CMS.
 There are a lot of moving parts involved in creation of any CRUD module:

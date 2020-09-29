@@ -161,7 +161,7 @@ Once we have these ready, we can jump to the code.
 
 First, create the `apolloClient.ts` file in `/src/app` folder.
 
-We will add the following snippet code in the [`apolloClient.ts`]() file.
+We will add the following snippet code in the `apolloClient.ts` file.
 
 ```ts
 import { HttpLink } from 'apollo-angular-link-http';
@@ -222,9 +222,9 @@ Take a closer look what we did there:
 
 Now we will add this apollo Client to our Angular app so that we can fetch the content from the Content Delivery API.
 
-In our [`src/app/app.module.ts`]() file use ApolloModule and APOLLO_OPTIONS token to configure Apollo Client. 
+In our `src/app/app.module.ts` file use ApolloModule and APOLLO_OPTIONS token to configure Apollo Client. 
 
-Add the following snippet in [`src/app/app.module.ts`]() file.
+Add the following snippet in `src/app/app.module.ts` file.
 
 ```ts
 import { BrowserModule } from '@angular/platform-browser';
@@ -276,7 +276,7 @@ import { provideApollo } from '../apolloClient';
 export class AppModule { };
 ```
 
-Now we will write our query to fetch blog posts. Add the following snippet code in [`src/app/blogs/blogs.component.ts`]() file:
+Now we will write our query to fetch blog posts. Add the following snippet code in `src/app/blogs/blogs.component.ts` file:
 
 ```ts
 import { Component, OnInit } from '@angular/core';
@@ -353,7 +353,7 @@ The `watchQuery` method returns a `QueryRef` object which has the `valueChanges`
 
 ## Displaying blog posts
 
-Finally, let's create some mark up in [`src/app/blogs/blogs.component.html`]() by adding the below code snippet and render our blog posts list 🙂
+Finally, let's create some mark up in `src/app/blogs/blogs.component.html` by adding the below code snippet and render our blog posts list 🙂
 
 ```html
 <div style="text-align:center">

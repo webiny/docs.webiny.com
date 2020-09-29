@@ -27,7 +27,7 @@ to easily add checks for scopes and roles to your schema. Scopes defined
 via `hasScope` function will be picked up by the system and will be available in the admin app
 while creating roles.
 
-![Webiny Role View](assets/developer-tutorials/api-security-scopes.png)
+![Webiny Role View](/img/developer-tutorials/api-security-scopes.png)
 
 To create your own rule use the `graphql-shield` package directly.
 Let's create an `isAuthenticated` rule to simply check if user is logged in:
