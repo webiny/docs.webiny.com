@@ -13,7 +13,9 @@ To run the docs portal locally on your machine:
 1. `git clone https://github.com/webiny/docs.webiny.com.git`
 2. `cd docs.webiny.com/website`
 3. `npm install`
-4. `npm start`
+4. `cd /debo/docs.webiny.com/website`
+5. `npm install`
+6. `npm start`
 
 All the articles are inside the `/docs` folder. Edit `/website/sidebars.js` if you need to manage the items in the sidebar.
 
