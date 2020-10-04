@@ -11,9 +11,9 @@ Webiny docs repo uses [docusaurus](https://docusaurus.io/) as the system to mana
 
 To run the docs portal locally on your machine:
 1. `git clone https://github.com/webiny/docs.webiny.com.git`
-2. `cd docs.webiny.com/website`
+2. `cd docs.webiny.com/`
 3. `npm install`
-4. `cd /debo/docs.webiny.com/website`
+4. `cd /docs.webiny.com/website`
 5. `npm install`
 6. `npm start`
 
