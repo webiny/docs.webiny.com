@@ -10,7 +10,7 @@ Webiny framework provides different scaffolding tools. What you will use is the 
 
 Before adding more functionalities, you will learn the `queries` and `mutations` in the `How to GraphQL` section. Then, you will test the GraphQL service with the out-of-the-box TDD setup from Webiny.
 
-![cover](/img/guides/serverless-graphql-api/serverless-api.png)
+![cover](/img/tutorials/serverless-graphql-api/serverless-api.png)
 
 > You can find the example repo for this tutorial [here](https://github.com/webiny/webiny-examples/tree/master/serverless-graphql-api).
 
@@ -182,7 +182,7 @@ The **base prerequisites** to create a Webiny project are:
 
 When you create your [Webiny project](https://docs.webiny.com/docs/get-started/quick-start#1-create-a-new-project) and deploy it with `yarn webiny deploy api --env=local`, the output of this command will look like below.
 
-![Webiny project deploy result](/img/guides/serverless-graphql-api/webiny-project-deploy-result.png)
+![Webiny project deploy result](/img/tutorials/serverless-graphql-api/webiny-project-deploy-result.png)
 
 For now, the **Main GraphQL API** URL is what we care about the most.
 
@@ -190,7 +190,7 @@ Using this URL, you can access the _`GraphQL playground`_ in which you can see t
 
 Check out the schema below.
 
-![Webiny project GraphQL playground](/img/guides/serverless-graphql-api/webiny-project-graphql-playground.png)
+![Webiny project GraphQL playground](/img/tutorials/serverless-graphql-api/webiny-project-graphql-playground.png)
 
 When you create your API service, you will see your APIs `Queries` and `Mutations` sections. That means you have successfully created and deployed our API service.
 
@@ -204,13 +204,13 @@ Before continuing to build the API service, let’s see how Webiny projects are 
 
 Check out the Webiny [**serverless-api**](https://github.com/webiny/webiny-examples/tree/master/serverless-graphql-api) project structure in the image below:
 
-![Webiny project structure](/img/guides/serverless-graphql-api/webiny-project-structure.png)
+![Webiny project structure](/img/tutorials/serverless-graphql-api/webiny-project-structure.png)
 
 To learn more about the Webiny project structure, check out our docs **[here](https://docs.webiny.com/docs/deep-dive/project-structure)**.
 
 The one folder that is important for us is the `API` folder.
 
-![Webiny project API folder](/img/guides/serverless-graphql-api/webiny-project-api-folder.png)
+![Webiny project API folder](/img/tutorials/serverless-graphql-api/webiny-project-api-folder.png)
 
 As you can see, these are other folders of individual apps that Webiny provides out of the box. These folders represent the API code that is triggered in the Cloud.
 
@@ -230,25 +230,25 @@ The one we need for our project is the **GraphQL Apollo Scaffold**.
 npx webiny scaffold
 ```
 
-![Webiny GraphQL Apollo service scaffold](/img/guides/serverless-graphql-api/webiny-graphql-apollo-service-scaffold.png)
+![Webiny GraphQL Apollo service scaffold](/img/tutorials/serverless-graphql-api/webiny-graphql-apollo-service-scaffold.png)
 
 We will create a minimal API service, which we will name it the **habits-tracker** API. It will consist of one model, the habit model. You will be able to access the **`/graphql URL,`** by querying and writing new habits.
 
-![Webiny GraphQL Apollo service location](/img/guides/serverless-graphql-api/webiny-gas-package-location.png)
+![Webiny GraphQL Apollo service location](/img/tutorials/serverless-graphql-api/webiny-gas-package-location.png)
 
 You need to provide the location of our new API service in the `api` folder because the `API` folder represents the whole Webiny API stack, and that's the location where you want to have our API service.
 
 Every Apollo service that you create consists of different models. The _core data model_ that you will have will be the **Habit** model.
 
-![Webiny scaffold GraphQL Apollo Service model](/img/guides/serverless-graphql-api/webiny-scaffold-gas-model.png)
+![Webiny scaffold GraphQL Apollo Service model](/img/tutorials/serverless-graphql-api/webiny-scaffold-gas-model.png)
 
 As you can see in the image below, the `habits-tracker` folder is inside the `API` folder. Except for the `habits-tracker` folder, there are some other changes.
 
-![Habits Tracker API service](/img/guides/serverless-graphql-api/habit-tracker-api-service.png)
+![Habits Tracker API service](/img/tutorials/serverless-graphql-api/habit-tracker-api-service.png)
 
 We mentioned earlier, the **resources.js** file represents the whole cloud infrastructure that needs to be deployed. The scaffolding tool created another entry in the **resources.js** file that describes the newly added API. Check the image below.
 
-![Habits Tracker resources](/img/guides/serverless-graphql-api/habit-tracker-resources.png)
+![Habits Tracker resources](/img/tutorials/serverless-graphql-api/habit-tracker-resources.png)
 
 ## Habits tracker API
 
@@ -256,11 +256,11 @@ We mentioned earlier that Webiny has a simple system of plugins that powers both
 
 The source code of the API service is in the `src` folder. The `plugins` folder is the place that contains all the plugins we are using.
 
-![Habits Tracker source code structure](/img/guides/serverless-graphql-api/habit-tracker-folder-structure.png)
+![Habits Tracker source code structure](/img/tutorials/serverless-graphql-api/habit-tracker-folder-structure.png)
 
 The two most essential plugins are the **graphql** and the **model** plugin. We will go through each of the plugins and see what they represent.
 
-![Habits Tracker plugins](/img/guides/serverless-graphql-api/habit-tracker-plugins.png)
+![Habits Tracker plugins](/img/tutorials/serverless-graphql-api/habit-tracker-plugins.png)
 
 **Model plugin**
 
@@ -290,11 +290,11 @@ If you are deploying a completely new service, you deploy the whole API stack. A
 
 Now you can open the Main GraphQL URL, and see the updated GraphQL schema with **Habits queries**.
 
-![Habits Tracker query Habits](/img/guides/serverless-graphql-api/habit-tracker-query-habits.png)
+![Habits Tracker query Habits](/img/tutorials/serverless-graphql-api/habit-tracker-query-habits.png)
 
 And the **Habits mutations**.
 
-![Habits Tracker mutation habits](/img/guides/serverless-graphql-api/habit-tracker-mutation-habits.png)
+![Habits Tracker mutation habits](/img/tutorials/serverless-graphql-api/habit-tracker-mutation-habits.png)
 
 <!-- Writing data with the mutation. -->
 
@@ -359,13 +359,13 @@ query {
 
 We mentioned in the Habits Tracker API section that the scaffolding tool setup provides two plugins. They are the **graphql** and the **model** plugins.
 
-![Habits Tracker plugins](/img/guides/serverless-graphql-api/habit-tracker-plugins.png)
+![Habits Tracker plugins](/img/tutorials/serverless-graphql-api/habit-tracker-plugins.png)
 
 **Model plugin**
 
 In the **[models.ts](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/src/plugins/models.ts)** file, we will add another field in the Habit model such as `habitScore.` As shown in the image below
 
-![Expand API service](/img/guides/serverless-graphql-api/expand-api-service.png)
+![Expand API service](/img/tutorials/serverless-graphql-api/expand-api-service.png)
 
 After you change the model, you will need to change the GraphQL schema in the GraphQL too in the [`src/plugins/graphql.ts`](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/src/plugins/graphql.ts) file
 
@@ -373,13 +373,13 @@ You have the `Habit` type; besides the `Habit,` you will have the `input` type u
 
 See the changes in the image below.
 
-![Extend Habit model](/img/guides/serverless-graphql-api/extend-habit-model.png)
+![Extend Habit model](/img/tutorials/serverless-graphql-api/extend-habit-model.png)
 
 Now you will deploy only the new API service you created, for the changes to take place in the cloud.
 
 The API service name is in the `resources.js` file; you can look for the Habits-tracker entry. Check the image below.
 
-![Habits Tracker resources](/img/guides/serverless-graphql-api/habit-tracker-resources-api.png)
+![Habits Tracker resources](/img/tutorials/serverless-graphql-api/habit-tracker-resources-api.png)
 
 Deploy the new API service by running this command:
 
@@ -387,42 +387,42 @@ Deploy the new API service by running this command:
 yarn webiny deploy api apiHabitsTracker api --env=local
 ```
 
-![Habits Tracker deploy after extending our API](/img/guides/serverless-graphql-api/habit-tracker-deploy-extending-api.png)
+![Habits Tracker deploy after extending our API](/img/tutorials/serverless-graphql-api/habit-tracker-deploy-extending-api.png)
 
 As you can see, since you deployed the API Service, the deploy time is 13 seconds.
 
 You can now open the Main GraphQL API and see the newly added fields in the Habit model.
 
-![Habits Tracker habitScore field](/img/guides/serverless-graphql-api/habit-tracker-habitscore-field.png)
+![Habits Tracker habitScore field](/img/tutorials/serverless-graphql-api/habit-tracker-habitscore-field.png)
 
 Now, you can test out the API service by creating a new Habit. Check out the image below.
 
-![Create new Habit - GraphQL Playground](/img/guides/serverless-graphql-api/graphql-playground-unauthorized.png)
+![Create new Habit - GraphQL Playground](/img/tutorials/serverless-graphql-api/graphql-playground-unauthorized.png)
 
 As you can see, you got an error `Not authorized.` - To create new data, you need to create a Personal Access Token from the Admin UI. Check your profile by clicking on your image profile and then in your name.
 
-![Personal Access Tokens in user profile](/img/guides/serverless-graphql-api/generate-access-token-to-access-graphql.png)
+![Personal Access Tokens in user profile](/img/tutorials/serverless-graphql-api/generate-access-token-to-access-graphql.png)
 
 Click on the Personal Access Tokens field, as shown in the image below:
 
-![Personal access token](/img/guides/serverless-graphql-api/pat-profile.png)
+![Personal access token](/img/tutorials/serverless-graphql-api/pat-profile.png)
 
 And provide a token name in the input, as shown in the image below.
 
-![Pat name](/img/guides/serverless-graphql-api/pat-name.png)
+![Pat name](/img/tutorials/serverless-graphql-api/pat-name.png)
 
 Copy the provided Personal Access token
 
-![Copy Pat](/img/guides/serverless-graphql-api/copy-pat.png)
+![Copy Pat](/img/tutorials/serverless-graphql-api/copy-pat.png)
 
 Now we are ready to read queries and write mutations to the Habit model = )
 
 Querying Habits
 
-![Habit Tracker Query](/img/guides/serverless-graphql-api/habit-tracker-query.png)
+![Habit Tracker Query](/img/tutorials/serverless-graphql-api/habit-tracker-query.png)
 
 Creating Habits
-![Habit Tracker mutation](/img/guides/serverless-graphql-api/habit-tracker-mutation.png)
+![Habit Tracker mutation](/img/tutorials/serverless-graphql-api/habit-tracker-mutation.png)
 
 ## Debug with TDD
 
@@ -434,7 +434,7 @@ The Debugging process is prolonged; you can use console logs in the code and the
 
 To experience an excellent flow of work, you write tests. As you may be noticed, in the `Habits Tracker` folder, you had a folder called `__tests__.`
 
-![Habits Tracker source code structure](/img/guides/serverless-graphql-api/habit-tracker-folder-structure.png)
+![Habits Tracker source code structure](/img/tutorials/serverless-graphql-api/habit-tracker-folder-structure.png)
 
 The scaffolding tool created the `__tests__` folder for us. With the existing tests, you are creating the local GraphQL Service, by creating the same function that the API Gateway will execute in the Cloud.
 
@@ -444,7 +444,7 @@ This process is much faster because by running the `yarn test` command, the test
 
 You have one test for the CRUD operations for the base model, and one for the validation if the title field is not valid. See the image below.
 
-![Habits Tracker source code tests](/img/guides/serverless-graphql-api/habit-tracker-tdd-test.png)
+![Habits Tracker source code tests](/img/tutorials/serverless-graphql-api/habit-tracker-tdd-test.png)
 
 The tests are passing because I already added the `habitScore` field on the tests.
 

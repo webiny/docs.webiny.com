@@ -9,19 +9,55 @@ module.exports = {
                 "get-started/configuration"
             ],
             Guides: [
-                "guides/aws-credentials",
-                "guides/mongodb-atlas",
-                "guides/build-a-portfolio-website-with-react-webiny-apollo",
-                "guides/headless-gatsby-tutorial",
-                "guides/headless-nextjs-tutorial",
-                "guides/headless-react-tutorial",
-                "guides/build-your-serverless-graphql-api-webiny",
-                "guides/headless-react-native-tutorial",
-                "guides/headless-vuejs-tutorial",
-                "guides/headless-angular-tutorial",
-                "guides/creating-iframe-element-plugin",
-                "guides/creating-custom-element-settings-plugin",
-                "guides/webiny-bootstrap-react-portfolio"
+                {
+                    type: "category",
+                    label: "Get Started",
+                    items: [
+                        "guides/get-started/aws-credentials",
+                        "guides/get-started/mongodb-atlas"
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "Serverless Applications",
+                    items: [
+                        {
+                            type: "category",
+                            label: "Headless CMS",
+                            items: [
+                                "guides/serverless-applications/headless-cms/build-a-portfolio-website-with-react-webiny-apollo",
+                                "guides/serverless-applications/headless-cms/headless-gatsby-tutorial",
+                                "guides/serverless-applications/headless-cms/webiny-bootstrap-react-portfolio",
+                                "guides/serverless-applications/headless-cms/headless-nextjs-tutorial",
+                                "guides/serverless-applications/headless-cms/headless-react-tutorial",
+                                "guides/serverless-applications/headless-cms/headless-react-native-tutorial",
+                                "guides/serverless-applications/headless-cms/headless-vuejs-tutorial",
+                                "guides/serverless-applications/headless-cms/headless-angular-tutorial"
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "Page Builder",
+                            items: [
+                                "guides/serverless-applications/page-builder/creating-iframe-element-plugin",
+                                "guides/serverless-applications/page-builder/creating-custom-element-settings-plugin"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "Serverless Solutions",
+                    items: [
+                        {
+                            type: "category",
+                            label: "APIs",
+                            items: [
+                                "guides/serverless-solutions/build-your-serverless-graphql-api-webiny"
+                            ]
+                        }
+                    ]
+                }
             ],
             Tutorials: [
                 // "tutorials/build-your-serverless-graphql-api-webiny"
