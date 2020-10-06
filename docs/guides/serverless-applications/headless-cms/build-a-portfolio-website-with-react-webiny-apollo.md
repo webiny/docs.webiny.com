@@ -15,12 +15,12 @@ These are the features of the Portfolio Website:
 - Responsive design using Material UI React Components
 - Front-end deployment with Vercel
 
-![Cover](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/cover.png)
+![Cover](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/cover.png)
 
 ## Demo
 
 Here is what we'll build:
-![What we'll build](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/blogs.png)
+![What we'll build](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/blogs.png)
 
 Or, you can [Watch the live demo](https://webiny-starter-react-portfolio.vercel.app/).
 
@@ -75,7 +75,7 @@ yarn start
 
 Create your admin user by filling the form as shown in the image below.
 
-![Admin user](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/admin-user.png)
+![Admin user](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/admin-user.png)
 
 When creating a Webiny project with the CMS template, the security application will be part of the Headless CMS project. To learn more about what Webiny offers regarding the ready-made serverless applications, check out the [Webiny Websites](https://www.webiny.com/serverless-apps).
 
@@ -87,7 +87,7 @@ After we create our admin user account, we will be redirected to the admin view 
 
 To create the content models click on the `New Content Model` or open the menu on the right-left corner.
 
-![Admin view](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/admin-view.png)
+![Admin view](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/admin-view.png)
 
 ### 1.5 Creating the content models for Blogs, Projects, and Categories
 
@@ -103,7 +103,7 @@ These are the fields we will use for our Blogs:
 - `Link` with type `TEXT`
 - `CTA` with type `TEXT`
 
-![Blogs content model](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/blogs-content-model.png)
+![Blogs content model](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/blogs-content-model.png)
 
 Press the `SAVE` button on the right corner. Go back and create `Projects` content model.
 
@@ -115,13 +115,13 @@ These are the fields we will use for our `Projects`:
 - `Link` with type `TEXT`
 - `CTA` with type `TEXT`
 
-![Projects content model](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/projects-content-model.png)
+![Projects content model](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/projects-content-model.png)
 
 ### 1.6 Filling the data for the content models
 
 Here you will create your creative content for Blogs, by filling all the input fields that we created in the above step.
 
-![Blogs data](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/blogs-data.png)
+![Blogs data](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/blogs-data.png)
 
 You will follow the same process to create content for your project’s content models.
 
@@ -129,7 +129,7 @@ You will follow the same process to create content for your project’s content 
 
 Now that we have our data created, we can go ahead and check the `API information` of our `backend` project. We have all of the URLs we need to continue building our project. The one we need for now is the Headless CMS - Content Delivery API `cms/read/production`, where Webiny exposes a GraphQL Playground you can use to easily test and debug your API calls.
 
-![API Information](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/api-information.png)
+![API Information](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/api-information.png)
 
 Open the Content Delivery API which ends with the `/cms/read/production`. Now, let’s write some queries to read our Blog content.
 
@@ -145,11 +145,11 @@ query getBlogs {
 }
 ```
 
-![Get blogs query](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/get-blogs-query.png)
+![Get blogs query](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/get-blogs-query.png)
 
 To be able to read our data, you need to create an `Access Token` in your backend project. Go ahead at the `Settings` menu and create an access token. Then copy and paste it to the HTTP HEADERS for the **Authorization** in the GraphQL Playground. Check out the image below.
 
-![Access token](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/access-token.png)
+![Access token](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/access-token.png)
 
 :::info
 Learn more about the [Webiny Access Tokens](http://docs.webiny.com/docs/webiny-apps/headless-cms/features/access-tokens/).
@@ -159,12 +159,12 @@ Now that we are getting our data, it’s time to start building the `Front-end`.
 
 ## 2. Front-end
 
-We will create a `create-react-app` front-end application. On top of that, we will use the Material-UI framework. The React component library, based on Google Material Design, allows us a fast and easy usage of stylized web components.
+We will create a `create-react-project` front-end application. On top of that, we will use the Material-UI framework. The React component library, based on Google Material Design, allows us a fast and easy usage of stylized web components.
 
 First, let's start by creating a react application from scratch by running this command:
 
 ```tsx
-npx create-react-app frontend --template typescript
+npx create-react-app my-app --template typescript
 cd frontend
 npm run start
 ```
@@ -347,7 +347,7 @@ export default App;
 
 If you didn't start already the server, run the `npm run start or yarn start` to see the changes.
 
-![Drawer first version](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/drawer-1.png)
+![Drawer first version](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/drawer-1.png)
 
 This is our first version of the `Navigation Drawer.` Now let's add the `icons` component.
 
@@ -395,7 +395,7 @@ To use this component, we have to make a small change in our `Navigation` compon
 
 Let's see how it looks below.
 
-![Icons](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/icons.png)
+![Icons](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/icons.png)
 
 Well done!
 
@@ -892,7 +892,7 @@ The new changes are based on different routes we provide in the array in the `Sw
 
 Let's see what happened in our Portfolio website.
 
-![Admin user](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/result-apollo-client.png)
+![Admin user](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/result-apollo-client.png)
 
 **Yay** 🎉
 
@@ -935,7 +935,7 @@ serviceWorker.unregister();
 
 Let's see the changes regarding the theme we provided:
 
-![result-apollo-client](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/result-apollo-client-2.png)
+![result-apollo-client](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/result-apollo-client-2.png)
 
 Now the colors have been changed 😊
 
@@ -950,7 +950,7 @@ REACT_APP_ACCESS_TOKEN="Your Access Token"
 
 Let's test it now 🚀
 
-![result-apollo-client](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/result-apollo-client-3.png)
+![result-apollo-client](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/result-apollo-client-3.png)
 
 Yay 🎉, you created a Portfolio Website with React, Webiny, and Apollo.
 
@@ -988,7 +988,7 @@ After this step, you will receive a confimation email to your email address from
 
 The confirmation email will look like below.
 
-![result-apollo-client](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/vercel-confirmation.png)
+![result-apollo-client](/img/guides/build-a-portfolio-webste-with-react-webiny-apollo/vercel-confirmation.png)
 
 This confirmation will login you into the Vercel.
 
