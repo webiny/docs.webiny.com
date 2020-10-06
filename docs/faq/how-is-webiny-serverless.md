@@ -36,7 +36,7 @@ FaaS is a type of serverless compute. It is "stateless", meaning the function in
 
 FaaS allows developers to only worry about his code and not the underlying compute infrastructure. 
 
-Webiny is using FaaS functions, like Lambda, to power it's API. 
+Webiny is using FaaS functions, like Lambda, to power its API. 
 
 ---
 
