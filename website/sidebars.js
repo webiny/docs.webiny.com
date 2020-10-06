@@ -196,8 +196,8 @@ module.exports = {
                                     items: [
                                         "webiny-apps/form-builder/development/plugins-reference/app"
                                     ]
-                                }
-                                //"webiny-apps/form-builder/custom-form-triggers"
+                                },
+                                "webiny-apps/form-builder/custom-form-triggers"
                             ]
                         }
                     ]
