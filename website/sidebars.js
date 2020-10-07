@@ -194,7 +194,8 @@ module.exports = {
                                     type: "category",
                                     label: "Plugins Reference",
                                     items: [
-                                        "webiny-apps/form-builder/development/plugins-reference/app"
+                                        "webiny-apps/form-builder/development/plugins-reference/api",
+                                        "webiny-apps/form-builder/development/plugins-reference/app",
                                     ]
                                 },
                                 "webiny-apps/form-builder/custom-form-triggers"
