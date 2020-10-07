@@ -30,12 +30,12 @@ The following things are mandatory for both local development and production dep
 
 ✅ **AWS account with an IAM user for programmatic usage**
 
-- you can follow [this guide](/docs/guides/aws-credentials)
+- you can follow [this guide](/docs/guides/get-started/aws-credentials)
 
 ✅ **MongoDB database** in the cloud
 
 - we recommend [MongoDB Atlas](https://docs.atlas.mongodb.com/getting-started/) if don't have a database already
-- you can follow [this guide](/docs/guides/mongodb-atlas) to create one
+- you can follow [this guide](/docs/guides/get-started/mongodb-atlas/) to create one
 
 > NOTE: if you're unsure your AWS credentials are configured correctly, you can verify them by running the following command using [AWS CLI](https://aws.amazon.com/cli/): `aws sts get-caller-identity`. If you don't see the user info, take a look at this tutorial to [create an IAM user for programmatic usage](https://www.youtube.com/watch?v=tgb_MRVylWw).
 
