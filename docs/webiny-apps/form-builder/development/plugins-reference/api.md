@@ -4,7 +4,7 @@ title: API Plugins Reference
 sidebar_label: API
 ---
 
-### [`form-trigger-handler`](/docs/webiny-apps/form-builder/development/plugins-reference/app#form-trigger-handler)
+### [`form-trigger-handler`](/docs/webiny-apps/form-builder/development/plugins-reference/api#form-trigger-handler)
 
 #### Summary
 
