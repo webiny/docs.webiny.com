@@ -47,7 +47,7 @@ Now that we have all of the prerequisites out of the way, it's time to create ou
 
 Let's create a new content model named **Blog Post**. Click on the "plus" icon in the lower right corner of the screen and in the dialog that's about to be shown, enter the following:
 
-![New Content Mode Dialogl](/img/guides/headless-angular-tutorial/new-content-model-dialog.png)
+![New Content Mode Dialog](/img/guides/headless-angular-tutorial/new-content-model-dialog.png)
 
 For the content model group, we'll use the `Ungrouped`, which is the default group that comes out of the box with every Headless CMS app installation.
 

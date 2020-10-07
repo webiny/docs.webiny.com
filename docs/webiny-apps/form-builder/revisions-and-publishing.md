@@ -14,7 +14,7 @@ In order to make it work, you need to publish your form, which can be done direc
 
 ![Publish the form the forms list](/img/webiny-apps/form-builder/revisions-and-publishing/forms-list-publish.png)
 
-Once you publish your form, you'll be able to show it either via the provided React components or by embeding it into your pages created via the [Page Builder](/docs/webiny-apps/page-builder/introduction) app.
+Once you publish your form, you'll be able to show it either via the provided React components or by embedding it into your pages created via the [Page Builder](/docs/webiny-apps/page-builder/introduction) app.
 
 # Revisions
 

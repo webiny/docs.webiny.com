@@ -24,7 +24,7 @@ Colors are defined in the `color` section of the `pb-theme` plugin. As a general
 }
 ```
 
-> **Note:** The reason why defining them as CSS variable is important is that when you select a color in page builder for a certain element property, be that background-color, border color or shadow, the value of the color is stored in the database. In case of CSS variables, the CSS variable is stored, meaning that if you later decide to change the value of that color, you just change it in your CSS file, and all the existing content will pick up the new value - which won't be the case when if we storred HEX or RGB values.
+> **Note:** The reason why defining them as CSS variable is important is that when you select a color in page builder for a certain element property, be that background-color, border color or shadow, the value of the color is stored in the database. In case of CSS variables, the CSS variable is stored, meaning that if you later decide to change the value of that color, you just change it in your CSS file, and all the existing content will pick up the new value - which won't be the case when if we stored HEX or RGB values.
 
 You can add as many colors as you want, and name them whatever best fits your requirements. Make sure to have the actual color definitions somewhere inside your theme stylesheet.
 

@@ -17,7 +17,7 @@ To add your plugin all you need to do is publish the plugin on NPM following a c
 3. [Set a plugin description](#packagejson-description)
 4. [Plugin README.md notes](#plugin-readmemd-notes)
 
-> Once your plugin is published it might be a few minutes before it's visible in the plugin repolistory.
+> Once your plugin is published it might be a few minutes before it's visible in the plugin repository.
 
 ### Naming your plugin
 
