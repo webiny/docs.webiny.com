@@ -23,7 +23,7 @@ server ready for deployment to Lambda or local development using `serverless` fr
 Everything else is done using plugins. In the upcoming articles we will take a look
 at the variety of plugins you can register to build your API.
 
-To see an actual API project structure, visit the [demo-api package](https://github.com/Webiny/webiny-js/tree/master/packages/demo-api/src) on our Github
+To see an actual API project structure, visit the [demo-api package](https://github.com/Webiny/webiny-js/tree/master/packages/demo-api/src) on our GitHub
 or [setup a local Webiny project](/docs/developer-tutorials/local-setup) to
 play with the code from your IDE.
 

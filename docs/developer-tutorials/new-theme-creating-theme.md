@@ -26,7 +26,7 @@ git clone https://github.com/Webiny/webiny-theme-template.git .
 
 ### `package.json`
 
-The first thing you should do is open the `package.json` file in your text editor. That file contains some basic information, like the theme name, authors, version and the javascript packages upon which this theme depends. Edit the file and populate at least the name field, others you can leave at they are.
+The first thing you should do is open the `package.json` file in your text editor. That file contains some basic information, like the theme name, authors, version and the JavaScript packages upon which this theme depends. Edit the file and populate at least the name field, others you can leave at they are.
 
 ### `index.js`
 

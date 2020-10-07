@@ -63,6 +63,6 @@ The `admin` and `site` apps are almost like `create-react-app` apps, but with mo
 - `jest.config.base.js` - contains the presets for running jest tests.
 - `jest.config.js` - contains configuration for running jest tests.
 - `lerna.json` - contains Lerna configuration to manage your future packages.
-- `tsconfig.build.json` - contains base configuration for developing using typescript.
+- `tsconfig.build.json` - contains base configuration for developing using TypeScript.
 - `tsconfig.json` - extends `tsconfig.build.json` and is configured to play nicely with your IDE for instant type checks.
 - `webiny.root.js` - this file is used by our CLI to get the plugins you are using for this project. We may add more configuration options to this file in the future.

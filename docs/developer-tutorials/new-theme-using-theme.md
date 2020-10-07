@@ -24,7 +24,7 @@ import myTheme from "my-theme";
 ```
 
 > A real life example can be found in `packages/site/src/App.js` of your [local Webiny project](/docs/developer-tutorials/local-setup)
- or [in our Github repo](https://github.com/Webiny/webiny-js/blob/master/packages/demo-site/src/App.js).
+ or [in our GitHub repo](https://github.com/Webiny/webiny-js/blob/master/packages/demo-site/src/App.js).
 
 Once your theme is passed to `CmsProvider` you can access it anywhere in your app.
 

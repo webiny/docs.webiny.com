@@ -42,7 +42,7 @@ There is a lot you can do with the settings plugins.
 
 If you are interested to see how the existing plugins work,
 please see a list of our [official element settings plugins](https://github.com/Webiny/webiny-js/tree/master/packages/webiny-app-cms/src/editor/plugins/elementSettings)
-on Github and feel free to copy and play with the code to create your own plugins.
+on GitHub and feel free to copy and play with the code to create your own plugins.
 
 > When dealing with settings plugins, the same principles of rendering optimization apply:
 be careful when and what to re-render as it is very easy to slow down the entire editor

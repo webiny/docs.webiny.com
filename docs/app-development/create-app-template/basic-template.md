@@ -98,4 +98,4 @@ To see examples of more complex templates, and even template composition, see ou
 - [Admin app template](https://github.com/webiny/webiny-js/tree/master/packages/app-template-admin) - this template is used to bootstrap an empty Admin app, with just the basic features like Security and File Manager.
 - [Full Webiny template](https://github.com/webiny/webiny-js/tree/master/packages/app-template-admin-full) - this template uses [Admin app template](https://github.com/webiny/webiny-js/tree/master/packages/app-template-admin) and adds some more plugins to it. This is a great way to reuse existing app templates and enrich them with new functionality.
 
-Typescript makes all this even more fun: by defining your template parameter types, the user of your app template will not have to dig though your code, and instead use autocomplete and quickly learn what's possible with your app template.
+TypeScript makes all this even more fun: by defining your template parameter types, the user of your app template will not have to dig though your code, and instead use autocomplete and quickly learn what's possible with your app template.

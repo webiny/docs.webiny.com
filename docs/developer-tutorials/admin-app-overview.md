@@ -36,7 +36,7 @@ Once security is enabled, the logged in user appears in the top right menu and c
 or sign out:
 ![Webiny Admin Layout](/img/developer-tutorials/admin-app-security-user-menu.png)
 
-To see the full admin app setup, please visit the [demo-admin app](https://github.com/Webiny/webiny-js/blob/master/packages/demo-admin/src) on our Github.
+To see the full admin app setup, please visit the [demo-admin app](https://github.com/Webiny/webiny-js/blob/master/packages/demo-admin/src) on our GitHub.
 
 > The easiest way to get up and running, and have everything set up for you, is to use our [webiny-cli](https://www.npmjs.com/package/webiny-cli) package to create
 a blank Webiny project that is ready to develop your custom stuff straight away.
