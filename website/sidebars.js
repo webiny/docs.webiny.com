@@ -53,7 +53,7 @@ module.exports = {
                             type: "category",
                             label: "APIs",
                             items: [
-                                "guides/serverless-solutions/build-your-serverless-graphql-api-webiny"
+                                "guides/serverless-solutions/api/build-your-serverless-graphql-api-webiny"
                             ]
                         }
                     ]
