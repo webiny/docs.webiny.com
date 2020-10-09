@@ -4,7 +4,7 @@ title: Quick Start
 sidebar_label: Quick Start
 ---
 
-This is a quick start guide which should help you setup Webiny as fast as possible.
+This is a quick start guide that should help you setup Webiny as fast as possible.
 
 At the end of this guide, you'll have a simple website, that already comes with a couple of default pages to get you started, and a complete admin interface that will enable you to manage it. All of this will be deployed to the AWS Cloud.
 
@@ -26,7 +26,7 @@ The following things are mandatory for both local development and production dep
 ✅ **`yarn` < 2.0**
 
 - [https://yarnpkg.com/en/docs/install](https://yarnpkg.com/en/docs/install)
-- or your can just run `npm install yarn -g`
+- or you can just run `npm install yarn -g`
 
 ✅ **AWS account with an IAM user for programmatic usage**
 
@@ -86,7 +86,7 @@ In the command above, `api` references the folder containing deployment configur
 
 The deployment will take around **5 to 15 minutes** depending on your internet connection and the AWS region.
 
-> NOTE: If you run into error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
+> NOTE: If you run into an error: `CredentialsError: Missing credentials in config`, it means you have to configure your [provider credentials here](https://github.com/serverless/serverless/blob/master/docs/providers/aws/guide/credentials.md).
 > If you use multiple AWS profiles, edit `.env.json` in your project root, to point to the correct profile via `AWS_PROFILE`.
 
 ### 2. Start `admin` app
