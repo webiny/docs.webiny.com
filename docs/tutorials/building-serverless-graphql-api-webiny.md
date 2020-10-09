@@ -90,7 +90,7 @@ The client needs to send more information to the server to express its data need
 // The response
 {
   "listHabits": [
-    { "title": "Dring Water", "habitScore": 3 },
+    { "title": "Drink Water", "habitScore": 3 },
     { "title": "Run", "habitScore": 2 },
     { "title": "Journey", "habitScore": 3 }
   ]

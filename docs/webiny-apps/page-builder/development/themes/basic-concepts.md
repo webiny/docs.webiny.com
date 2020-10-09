@@ -10,7 +10,7 @@ There are a few main things you need to understand about Webiny themes. This art
 
 Webiny doesn't have a concept of a "global" theme that is shared across all applications. Each application, or in some cases even plugins, can register their own theme. 
 
-With this approach each time you install a new app or a plugin, it automatically comes with all the visuals and layouts you need to start using it immediatelly. 
+With this approach each time you install a new app or a plugin, it automatically comes with all the visuals and layouts you need to start using it immediately. 
 
 You have to understand that Webiny is not your basic blogging platform, Webiny is a CMS upon which powerful serverless applications can be built. Those applications might have complex theme requirements. So instead of you going through dozens of files and pasting numerous code snippets in your existing theme, just to get the new app working, this one-theme-per-app concept removes that complexity since every apps automatically ships with its own theme package.
 

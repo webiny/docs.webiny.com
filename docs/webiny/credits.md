@@ -18,7 +18,7 @@ Licence: [Custom](https://github.com/nodejs/node/blob/master/LICENSE)
 
 #### MySQL
 
-[MySQL](https://www.mysql.com/) is the default database that ships with Webiny. We've been a long time users of MySQL, as well as other databases, like MongoDb, but we felt going forward with MySQL is the best choice, due to developments in areas like Serveerless Aurora, which enables Webiny to easily scale database workload, with almost to no maintenance or management required on the database side.
+[MySQL](https://www.mysql.com/) is the default database that ships with Webiny. We've been a long time users of MySQL, as well as other databases, like MongoDb, but we felt going forward with MySQL is the best choice, due to developments in areas like Serverless Aurora, which enables Webiny to easily scale database workload, with almost to no maintenance or management required on the database side.
 
 Licence: [GPL](http://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 

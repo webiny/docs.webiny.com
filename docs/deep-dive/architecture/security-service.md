@@ -23,7 +23,7 @@ The Security service architecture is used in cases where the client needs to go 
 
 2. The request is sent to the **(F) Cognito** for the verification of user credentials. 
 
-    > By default Webiny uses Cognito as the user pool and authentication service. In case you want to intergrate any other service, that is possible by creating a new security plugin. Please open an issue on our [GitHub](https://github.com/webiny/webiny-js) and we'll provide you with the steps and required know-how. 
+    > By default Webiny uses Cognito as the user pool and authentication service. In case you want to integrate any other service, that is possible by creating a new security plugin. Please open an issue on our [GitHub](https://github.com/webiny/webiny-js) and we'll provide you with the steps and required know-how. 
 
 3. If the credentials are valid, **(F) Cognito** returns a Cognito token back to the client.
 

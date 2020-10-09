@@ -984,7 +984,7 @@ vercel login
 
 As soon as you run this command, you will enter your email address, that is associated with the account provider you used to sign in into Vercel.
 
-After this step, you will receive a confimation email to your email address from Vercel. You will need to confirm your email, so you can continue with other steps.
+After this step, you will receive a confirmation email to your email address from Vercel. You will need to confirm your email, so you can continue with other steps.
 
 The confirmation email will look like below.
 

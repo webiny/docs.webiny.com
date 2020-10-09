@@ -193,7 +193,7 @@ The list of available styles is defined under the `typography` key inside your t
 }
 ```
 
-You can have as many styles as you would like. Each style has a root key, for example like `h6White`. It's important that the root key is unique in your list of availably styles. Then each key has an object that must have the following three attributes:
+You can have as many styles as you would like. Each style has a root key, for example like `h6White`. It's important that the root key is unique in your list of available styles. Then each key has an object that must have the following three attributes:
 
 - `label` - defines the human readable name of that style
 - `component` - which HTML component will be used to render your text when you select this style
