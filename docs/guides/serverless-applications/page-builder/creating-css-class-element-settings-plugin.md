@@ -154,7 +154,7 @@ Now, let's take a look at this **Action** component. Tt is a simple React compon
 - Rendering of the **tooltip** and **icon** for the settings action, which are passed as props to it.
 - For opening and closing of the actual settings menu for the very plugin provided as prop.
 
-Checkout the full source code of [Action](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder/src/editor/plugins/elementSettings/components/Action.tsx) component in our Github repo.
+Checkout the full source code of [Action](https://github.com/webiny/webiny-js/blob/master/packages/app-page-builder/src/editor/plugins/elementSettings/components/Action.tsx) component in our GitHub repo.
 
 ### Implement `renderMenu`
 

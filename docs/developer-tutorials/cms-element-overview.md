@@ -42,7 +42,7 @@ There is also a wide range of state selectors available for you to use
 in your plugins, so most likely you won't need to create your own selectors
 any time soon.
 
-Please refer to our Github for a [list of available selectors](https://github.com/Webiny/webiny-js/blob/master/packages/webiny-app-cms/src/editor/selectors/index.js).
+Please refer to our GitHub for a [list of available selectors](https://github.com/Webiny/webiny-js/blob/master/packages/webiny-app-cms/src/editor/selectors/index.js).
 
 ## Anatomy of an element (and its plugins).
 Element is a concept represented by 2 plugins. One serves for content
@@ -130,4 +130,4 @@ you need to handle the received element with the `onReceived` callback.
 
 So far, the only 3 elements that have drop zones are `block`, `row` and `column`.
 If you are interested in how they work, please refer to the corresponding
-plugins on Github in the [element plugins folder](https://github.com/Webiny/webiny-js/tree/master/packages/webiny-app-cms/src/editor/plugins/elements).
+plugins on GitHub in the [element plugins folder](https://github.com/Webiny/webiny-js/tree/master/packages/webiny-app-cms/src/editor/plugins/elements).

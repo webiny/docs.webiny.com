@@ -64,4 +64,4 @@ and resolvers by feature and reduce the size of the main schema.
 
 A good example of such approach can be found in the
 [webiny-api-cms](https://github.com/Webiny/webiny-js/blob/master/packages/webiny-api-cms/src/plugins/graphql.js)
-or [webiny-api-security](https://github.com/Webiny/webiny-js/blob/master/packages/webiny-api-security/src/plugins/graphql.js) package on our Github.
+or [webiny-api-security](https://github.com/Webiny/webiny-js/blob/master/packages/webiny-api-security/src/plugins/graphql.js) package on our GitHub.

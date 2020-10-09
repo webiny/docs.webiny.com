@@ -87,7 +87,7 @@ You're free to replace this with `dotenv` if you prefer to use that. For Webiny,
 
 ### tsconfig.json
 
-Since we're using Typescript, we need to have a `tsconfig.json` in our app, and this is what it looks like:
+Since we're using TypeScript, we need to have a `tsconfig.json` in our app, and this is what it looks like:
 
 ```json title="tsconfig.json"
 {
@@ -96,7 +96,7 @@ Since we're using Typescript, we need to have a `tsconfig.json` in our app, and 
 }
 ```
 
-We're extending the `tsconfig.json` file from the root of the project. This way, all our apps will use the same Typescript configuration and it's easy to tweak your TS configuration for the entire project.
+We're extending the `tsconfig.json` file from the root of the project. This way, all our apps will use the same TypeScript configuration and it's easy to tweak your TS configuration for the entire project.
 
 ### package.json
 

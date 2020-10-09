@@ -6,7 +6,7 @@ sidebar_label: Coming Soon...
 
 We're working hard to get all the docs in order. New articles will be added daily.
 
-In the meantime, take a look at our [Github repo](https://github.com/webiny/webiny-js), it contains tons of examples to get you on track. 
+In the meantime, take a look at our [GitHub repo](https://github.com/webiny/webiny-js), it contains tons of examples to get you on track. 
 
 For API examples, take a look at the packages that have an `api-` prefix. Some good packages to study:
 

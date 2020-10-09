@@ -106,4 +106,4 @@ Now we're able to run `webiny scaffold` within our project's root, select our ne
 
 Congratulations! You've just finished your first scaffolding plugin. 🚀
 
-To see a more complex example, take a look at our [cli-plugin-scaffold-graphql-service](https://github.com/webiny/webiny-js/tree/master/packages/cli-plugin-scaffold-graphql-service) package, on our Github.
+To see a more complex example, take a look at our [cli-plugin-scaffold-graphql-service](https://github.com/webiny/webiny-js/tree/master/packages/cli-plugin-scaffold-graphql-service) package, on our GitHub.

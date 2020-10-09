@@ -12,7 +12,7 @@ Webiny as an open source project depends on many 3rd party open source libraries
 
 #### Node.js
 
-Webiny code base is primarily written in Javascript and [Node.js](https://nodejs.org/en/) is the technology that allows us to run JavaScript server side.
+Webiny code base is primarily written in JavaScript and [Node.js](https://nodejs.org/en/) is the technology that allows us to run JavaScript server side.
 
 Licence: [Custom](https://github.com/nodejs/node/blob/master/LICENSE)
 

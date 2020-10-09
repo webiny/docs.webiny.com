@@ -29,7 +29,7 @@ Webiny is based on the following tools:
 - [React](https://reactjs.org/) for everything related to UI.
 - [Apollo GraphQL](https://www.apollographql.com/) for everything GraphQL (both React and API).
 - [MongoDB database](https://www.mongodb.com/) as our go-to database, but we support database drivers (see next section).
-- [Typescript](https://www.typescriptlang.org/) to make coding with plugins an enjoyable experience.
+- [TypeScript](https://www.typescriptlang.org/) to make coding with plugins an enjoyable experience.
 
 On top of that we've created a very thin layer to bootstrap the API so you don't have to do it yourself. Simply create your GQL Schema plugin and start bringing your ideas to life. Almost everything can be overridden by creating a plugin so there are virtually no limits.
 
@@ -47,7 +47,7 @@ To make it as simple as possible for you to get started, all you need is an AWS 
 
 ### Multi-cloud
 
-We want Webiny to be deployable to the cloud of your choice. At this point in time, you can only deploy to AWS, but multi-cloud support is one of our main goals. See our [Roadmap](https://github.com/webiny/webiny-js/projects/7) and get involved on our Github.
+We want Webiny to be deployable to the cloud of your choice. At this point in time, you can only deploy to AWS, but multi-cloud support is one of our main goals. See our [Roadmap](https://github.com/webiny/webiny-js/projects/7) and get involved on our GitHub.
 
 ## Community
 
@@ -55,10 +55,10 @@ There are several places you can join and get involved with Webiny:
 
 - [Slack Community](https://www.webiny.com/slack) - join to get help or discuss bugs and features
 - [Community Forum](https://community.webiny.com/) - if you prefer forum for discussions
-- [Github Repo](https://github.com/webiny/webiny-js) - this is where Webiny code lives
+- [GitHub Repo](https://github.com/webiny/webiny-js) - this is where Webiny code lives
 
 ## Start contributing
 
 We're glad you're interested in contributing and would love to see your PR! Head over to our [contribution guidelines](https://github.com/webiny/webiny-js/blob/master/docs/CONTRIBUTING.md) to get familiar with the process.
 
-Open a topic [on the forum](https://community.webiny.com/), file an [issue on Github](https://github.com/webiny/webiny-js/issues) or join our [Slack community](https://www.webiny.com/slack), we'll be glad to discuss the issue with you and provide help and directions.
+Open a topic [on the forum](https://community.webiny.com/), file an [issue on GitHub](https://github.com/webiny/webiny-js/issues) or join our [Slack community](https://www.webiny.com/slack), we'll be glad to discuss the issue with you and provide help and directions.

@@ -30,7 +30,7 @@ Webiny has around 70 packages where 90% of them are written in TypeScript.
 
 Lerna analyses all packages and dependencies, then it builds a dependency graph. The packages are build in a particular order. First the packages that don't have dependencies start to be build, then the next level of dependencies and so on.
 
-This is an important because typescript declarations that define one package, are used by in other packages. The order of building is very important and for that Lerna does the job as a champ. -->
+This is an important because TypeScript declarations that define one package, are used by in other packages. The order of building is very important and for that Lerna does the job as a champ. -->
 
 ### Lerna
 
@@ -42,7 +42,7 @@ Lerna optimizes the workflow around managing multi-package repositories with `gi
 :::
 
  * We will use Lerna to watch for changes in packages we are working on.
-  The `watch` script transpile typescript files into javascript. 
+  The `watch` script transpile TypeScript files into JavaScript. 
  
   We use `--scope` to watch a particular package.
  
@@ -55,7 +55,7 @@ Lerna optimizes the workflow around managing multi-package repositories with `gi
  `--scope=@webiny/package_name --scope=@webiny/package_name --parallel` 
  
     :::info
-    The `parallel` parameter will tell Lerna to run typescript compilations.
+    The `parallel` parameter will tell Lerna to run TypeScript compilations.
     This parameter is dangerous when you want to build packages.
     :::
 
@@ -135,7 +135,7 @@ The `dist` folder will be where our actually compiled code will take place, from
 The `src` folder will be the place where we will write our code.
 
 We have two `tsconfig` files:
-- `tsconfig.build.json` - contains base configuration for developing using typescript.
+- `tsconfig.build.json` - contains base configuration for developing using TypeScript.
 - `tsconfig.json` - extends `tsconfig.build.json` and is configured to play with your IDE for instant type checks.
 
 Since we have `src` and `dist` folders, yarn links packages as workspaces. Each package is a separate workspace.
