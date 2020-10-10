@@ -86,7 +86,7 @@ As cumbersome as it may sound, this brings a huge benefit of increased reliabili
 
 ### How we do it
 
-We are aware that this is a huge change. But we're also sure it's for the better. At Webiny, we've embraced this way of development and it is pushing us to write tests for our GraphQL schemas, which eliminates the need to deploy all the time. But also, it pushes us to optimize our serverless components even further, to reduce the deploy time as much as possible.
+We are aware that this is a huge change. But we're also sure it's for the better. At Webiny, we've embraced this way of development and it is pushing us to write tests for our GraphQL schemas, which eliminates the need to deploy all the time. But also, it pushes us to optimize our serverless components even further, to reduce the deployment time as much as possible.
 
 Our CLI supports selective component deploy, so you can only deploy the component you're working on. Depending on how big your service is, a deployment will take from `~7-20` seconds. For example, a service like `i18n` or `security` takes `7s` to deploy. If you're working on a Page Builder API plugin, that will take you around `20s` to deploy, since that service is much bigger.
 
