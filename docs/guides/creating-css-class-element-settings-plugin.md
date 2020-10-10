@@ -9,7 +9,7 @@ In this tutorial, we're going to learn how to create custom element settings for
 If you are not already familiar with how plugins work, we recommend
 you first take a look at the [Plugins Crash Course](/docs/deep-dive/plugins-crash-course) before reading this article.
 
-> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/css-class-page-element-setting) repository.
+> All the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/css-class-page-element-setting) repository.
 
 Ready? Let's dive in!
 
@@ -83,7 +83,7 @@ export default adminTemplate({
 
 ## Creating the Plugin
 
-All of the settings available for a page element can be accessed via the top app bar, which appear as soon as you select a page element in the editor:
+All the settings available for a page element can be accessed via the top app bar, which appear as soon as you select a page element in the editor:
 
 ![Editor Element settings](/img/guides/custom-element-settings-plugin/pb-editor-toolbar.png)
 

@@ -78,7 +78,7 @@ export default (_, args, context) => {
 
 ## Cloud native development
 
-Now that we've completely embraced the Cloud and all of its services, our local development habits will have to change. It's simply impossible to simulate all of the cloud services locally. You can still develop React locally, but your API will have to be deployed to the cloud to access it.
+Now that we've completely embraced the Cloud and all of its services, our local development habits will have to change. It's simply impossible to simulate all the cloud services locally. You can still develop React locally, but your API will have to be deployed to the cloud to access it.
 
 `But you can easily simulate a function locally!` - a function yes, but not the rest of the cloud. And Webiny is not just powered by functions. There is file storage, events, API gateways, etc. To get the most out of these services, you must use them in a native way.
 

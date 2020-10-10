@@ -6,7 +6,7 @@ sidebar_label: Creating a blog with Headless CMS + Gatsby
 
 In this tutorial we will learn how to use [Gatsby](https://www.gatsbyjs.org/) with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
-> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-gatsby) repository.
+> All the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-gatsby) repository.
 
 ![Cover](/img/guides/headless-gatsby-tutorial/headless-cms-gatsby.png)
 
@@ -41,7 +41,7 @@ Create a new token and make sure to copy the actual token string. We'll need it 
 
 ## Creating our first content model
 
-Now that we have all of the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
+Now that we have all the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
 
 ![The Models View](/img/guides/headless-nextjs-tutorial/content-models-menu.png)
 

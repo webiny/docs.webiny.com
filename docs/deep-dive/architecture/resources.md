@@ -18,9 +18,9 @@ All GraphQL API functions are deployed using the `@webiny/serverless-function` c
 
 ### Apollo Federation
 
-All of the GraphQL services are combined into one big schema using [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/). The component responsible for deploying your Apollo Gateway is `@webiny/serverless-function`. It deploys a simple function which serves as an entry point to your entire GraphQL API.
+All the GraphQL services are combined into one big schema using [Apollo Federation](https://www.apollographql.com/docs/apollo-server/federation/introduction/). The component responsible for deploying your Apollo Gateway is `@webiny/serverless-function`. It deploys a simple function which serves as an entry point to your entire GraphQL API.
 
-Once a request hits the Apollo Gateway function, it builds a Federated Schema using all of the GraphQL services and then executes the query.
+Once a request hits the Apollo Gateway function, it builds a Federated Schema using all the GraphQL services and then executes the query.
 
 ### Other resources
 

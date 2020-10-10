@@ -33,7 +33,7 @@ import { Route } from "@webiny/react-router";
 
 The key property of the plugin is the `route` property, which represents the new route you wish to create.
 
-Note that because the Admin app relies on [`@webiny/react-router`](https://github.com/webiny/webiny-js/tree/master/packages/react-router) library for all of the routing functionality, the shown `Route` component must be used here. 
+Note that because the Admin app relies on [`@webiny/react-router`](https://github.com/webiny/webiny-js/tree/master/packages/react-router) library for all the routing functionality, the shown `Route` component must be used here. 
 
 > Use the `path` prop on the `Route` component to specify the route's path, for example `path="/my-app/products/discounts"`. 
 

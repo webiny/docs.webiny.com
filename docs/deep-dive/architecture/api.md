@@ -8,7 +8,7 @@ sidebar_label: API
 
 [![Webiny Serverless CMS - Architecture - API](/img/deep-dive/architecture/webiny-architecture-api.png)](/img/deep-dive/architecture/webiny-architecture-api.png)
 
-The API architecture represents all of the cloud resources needed to host HTTP APIs, be it a simple [REST API](https://en.wikipedia.org/wiki/Representational_state_transfer) consisting of a couple of REST routes, or a fully fledged GraphQL API, consisting of many [federated Federated GraphQL services](https://www.apollographql.com/docs/apollo-server/federation/introduction/) and served via a single endpoint (URL) via the [Apollo GraphQL gateway](https://www.apollographql.com/docs/apollo-server/federation/implementing/). 
+The API architecture represents all the cloud resources needed to host HTTP APIs, be it a simple [REST API](https://en.wikipedia.org/wiki/Representational_state_transfer) consisting of a couple of REST routes, or a fully fledged GraphQL API, consisting of many [federated Federated GraphQL services](https://www.apollographql.com/docs/apollo-server/federation/introduction/) and served via a single endpoint (URL) via the [Apollo GraphQL gateway](https://www.apollographql.com/docs/apollo-server/federation/implementing/). 
 
 ## Components
 

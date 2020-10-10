@@ -32,7 +32,7 @@ const Dog = withFields({
 })();
 ```
 
-> To make it easier, we've created the `@webiny/commodo` package, which [aggregates](https://github.com/webiny/webiny-js/blob/master/packages/commodo/src/index.ts) all of the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement. The list of all included packages can be found [here](/docs/api-development/commodo/packages-list).
+> To make it easier, we've created the `@webiny/commodo` package, which [aggregates](https://github.com/webiny/webiny-js/blob/master/packages/commodo/src/index.ts) all the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement. The list of all included packages can be found [here](/docs/api-development/commodo/packages-list).
 
 Now that we have our models defined, we can instantiate them and populate with data:
 
@@ -212,7 +212,7 @@ await dog.delete();
 We can also use the `findById`, `findOne`, and `find` methods to load the data from the database. Once the data is retrieved, a new model instance will be populated with it.
 
 ```js
-// Returns a new `Dog` model instance, with all of the data already assigned to it.
+// Returns a new `Dog` model instance, with all the data already assigned to it.
 // If an entry with given ID doesn't exist in the database, null will be returned.
 await Dog.findById("some-mongodb-id");
 ```

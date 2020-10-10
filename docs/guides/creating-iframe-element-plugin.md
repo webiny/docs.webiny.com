@@ -9,7 +9,7 @@ In this tutorial, we're going to learn how to create a custom page element for t
 If you are not already familiar with how plugins work, we recommend
 you first take a look at the [Plugins Crash Course](/docs/deep-dive/plugins-crash-course) before reading this article.
 
-> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element) repository.
+> All the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element) repository.
 
 Ready? Let's dive in!
 
@@ -56,11 +56,11 @@ All the plugin defined in the [apps/site/src/iframe/index.tsx](https://github.co
 
 ## Creating the Plugins
 
-All of the available page elements can be accessed via the elements menu, which can be opened by clicking on the "plus" icon, located on the left side of the editor:
+All the available page elements can be accessed via the elements menu, which can be opened by clicking on the "plus" icon, located on the left side of the editor:
 
 ![Editor Elements](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/editor-elements.png)
 
-As mentioned, this list of page elements can be expanded and custom page elements can be created via plugins. To create a new page element, we need to register two plugins, one that defines how it's rendered in the editor and all of the available settings and options, and the other one that defines how the page element is rendered on the actual page.
+As mentioned, this list of page elements can be expanded and custom page elements can be created via plugins. To create a new page element, we need to register two plugins, one that defines how it's rendered in the editor and all the available settings and options, and the other one that defines how the page element is rendered on the actual page.
 
 ## Add Plugins in the `Admin` App
 ### Editor Plugin
@@ -164,7 +164,7 @@ The `toolbar` property helps us put our plugin into the tool bar, as seen in the
 ![Editor Iframe Element](/img/webiny-apps/page-builder/development/development/plugin-reference/editor/iframe/editor-iframe-plugin.png)
 
 Finally, it’s up to the `render` function to define how the page element will be rendered once the user drops it on the page.
-Notice the props that were passed to the render function. This object contains all of the relevant page element's data and settings.
+Notice the props that were passed to the render function. This object contains all the relevant page element's data and settings.
 
 ### Settings Dialog
 

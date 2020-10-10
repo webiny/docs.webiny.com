@@ -42,7 +42,7 @@ export default () => [
 
 Note that the plugin is defined once, but must be registered both in your Admin and website apps. This is, respectively, because you'll want to select the form layout and see the form preview in the form builder, and because you'll want to be able to show your form on the actual website.
 
-> By default, all of the Admin and website plugins are registered in `apps/admin/src/plugins/index.js` and `apps/site/src/plugins/index.js`, respectively.
+> By default, all the Admin and website plugins are registered in `apps/admin/src/plugins/index.js` and `apps/site/src/plugins/index.js`, respectively.
 
 The following table shows a list of all keys and values that the plugin must define:
 

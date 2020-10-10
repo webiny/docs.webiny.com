@@ -86,7 +86,7 @@ the delete icon.
 Below is the code used to implement the `form` part of the CRUD module:
 <script src="https://gist.github.com/Pavel910/f91b84d407d0974fb5c978e74fcbb690.js?file=crud.form.js"></script>
 
-All of the props required for this view are provided by the `withCrud` HOC in the parent component
+All the props required for this view are provided by the `withCrud` HOC in the parent component
 so here we simply render our form and pass those props in.
 
 `loading` is also handled by the `withCrud` HOC and will be equal to `true`

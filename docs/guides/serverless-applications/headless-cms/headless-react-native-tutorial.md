@@ -10,7 +10,7 @@ We'll be creating a React Native app that will list channels and their announcem
 
 ![React Native app demo](/img/guides/headless-react-native-tutorial/react-native-app-demo.gif)
 
-> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native) repository.
+> All the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-react-native) repository.
 
 ![Cover](/img/guides/headless-react-native-tutorial/react-native-cover.png)
 
@@ -41,7 +41,7 @@ Create a new token and make sure to copy the actual token string. We'll need it 
 
 ## Creating our first content model
 
-Now that we have all of the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
+Now that we have all the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
 
 ![The Models View](/img/guides/headless-nextjs-tutorial/content-models-menu.png)
 

@@ -100,7 +100,7 @@ yarn start
 
 > Ideally, you should create your React project in a folder outside of the Webiny project.
 
-> Note: Running `yarn start` will have the React application built and has hot re-loading enabled so we can see our changes while we are coding them.
+> Note: Running `yarn start` will have the React application built and has hot re-loading enabled, so we can see our changes while we are coding them.
 
 Next we need to install some of our extra dependencies:
 
@@ -469,4 +469,4 @@ Voila! Now when we look at our react application we should find our site like th
 ![List Books](/img/guides/headless-react-tutorial/e-library.png)
 > Note: Make sure you are running `yarn start` inside the `react-project` directory so your site is running.
 
-Congrats, we now completed a e-library for our books with React, Apollo Client, and Webiny Headless CMS.
+Congrats, we now completed an e-library for our books with React, Apollo Client, and Webiny Headless CMS.

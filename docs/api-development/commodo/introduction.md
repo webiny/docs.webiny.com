@@ -107,7 +107,7 @@ user.populate({
 await user.save();
 ```
 
-> To make it easier, we've created the `@webiny/commodo` package, which aggregates all of the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement. The list of all included packages can be found [here](/docs/api-development/commodo/packages-list).
+> To make it easier, we've created the `@webiny/commodo` package, which aggregates all the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement. The list of all included packages can be found [here](/docs/api-development/commodo/packages-list).
 
 > Using higher order functions (HOFs) is a very flexible approach for defining your data models, because you get to choose which functionality the model will posses.
 

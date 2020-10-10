@@ -6,7 +6,7 @@ sidebar_label: Form Fields
 
 Every form consists of fields, for example inputs, text areas, radio buttons, checkboxes and so on. You place these on a form in order to gather any type of information you might need for your particular case. You might want to ask your site visitors to enter their first and last name, e-mail address, phone number, job title, and similar.
 
-Form builder lets you easily add any number of fields to your form. Once the form builder is opened, all of the available fields can be found in the left menu:
+Form builder lets you easily add any number of fields to your form. Once the form builder is opened, all the available fields can be found in the left menu:
 
 ![Fields menu.](/img/webiny-apps/form-builder/form-fields/fields-menu.png)
 
@@ -38,7 +38,7 @@ Once selected, in the next screen, you can specify field's general settings and 
 
 ![Field's general settings.](/img/webiny-apps/form-builder/form-fields/field-settings-general.png)
 
-Every field has a few basic settings, like for example "Label", "Field ID", and "Help text". But, depending on the chosen field type, there may be additional ones. A good example is the chosen Radio field, which has the "Options" section that enables us to define all of the available options that will be presented to the site visitor.
+Every field has a few basic settings, like for example "Label", "Field ID", and "Help text". But, depending on the chosen field type, there may be additional ones. A good example is the chosen Radio field, which has the "Options" section that enables us to define all the available options that will be presented to the site visitor.
 
 If we look at the above screenshot, we can see we created a new Radio field, with a label "Your favorite animal?", and we offered three options to choose from: "Dog", "Cat", and "Parrot".
 

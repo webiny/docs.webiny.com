@@ -186,7 +186,7 @@ When you create your [Webiny project](https://docs.webiny.com/docs/get-started/q
 
 For now, the **Main GraphQL API** URL is what we care about the most.
 
-Using this URL, you can access the _`GraphQL playground`_ in which you can see the complete GraphQL schema created from all of the services that Webiny provides.
+Using this URL, you can access the _`GraphQL playground`_ in which you can see the complete GraphQL schema created from all the services that Webiny provides.
 
 Check out the schema below.
 
@@ -217,7 +217,7 @@ As you can see, these are other folders of individual apps that Webiny provides 
 > Our goal is to create our API service in the `api` folder.
 
 :::info
-In terms of deployments, the **resources.js** file is essential. In this file, we have all of the Cloud **[resources](https://docs.webiny.com/docs/deep-dive/architecture/resources)** that are necessary for the Webiny API to work.
+In terms of deployments, the **resources.js** file is essential. In this file, we have all the Cloud **[resources](https://docs.webiny.com/docs/deep-dive/architecture/resources)** that are necessary for the Webiny API to work.
 :::
 
 ### Creating API Service

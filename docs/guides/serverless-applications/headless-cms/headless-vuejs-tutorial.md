@@ -6,7 +6,7 @@ sidebar_label: Creating a blog with Headless CMS + Vue.js
 
 In this short tutorial, we will learn how to use the popular [Vue.js](https://vuejs.org/) (The Progressive JavaScript Framework) with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
-> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs) repository.
+> All the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs) repository.
 
 ![Cover](/img/guides/headless-vuejs-tutorial/headless-vue-cover.png)
 
@@ -37,7 +37,7 @@ Create a new token and make sure to copy the actual token string. We'll need it 
 
 ## Creating our first content model
 
-Now that we have all of the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
+Now that we have all the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
 
 ![The Models View](/img/guides/headless-nextjs-tutorial/content-models-menu.png)
 
@@ -67,7 +67,7 @@ You can also reach the content area by clicking on the newly added **Fact** item
 
 ## Managing Content
 
-As mentioned, navigate to **Headless CMS > Ungrouped > Fact** and create couple of facts. Feel free to unleash your creativity. 😉
+As mentioned, navigate to **Headless CMS > Ungrouped > Fact** and create a couple of facts. Feel free to unleash your creativity. 😉
 
 ![Fact Form](/img/guides/headless-vuejs-tutorial/fact-form.png)
 
@@ -187,7 +187,7 @@ new Vue({
 
 ```
 
-Finally let's render some mark up 🙂
+Finally, let's render some mark up 🙂
 
 Head over to [`App.vue`](https://github.com/webiny/webiny-examples/blob/master/headlesscms-vuejs/src/App.vue) file:
 
@@ -262,7 +262,7 @@ export default {
 
 ## Previewing the page
 
-Let's run `yarn serve` in our Vue.js project directory so we can see our page in action:
+Let's run `yarn serve` in our Vue.js project directory, so we can see our page in action:
 
 ![Vue.js Blog](/img/guides/headless-vuejs-tutorial/output.png)
 

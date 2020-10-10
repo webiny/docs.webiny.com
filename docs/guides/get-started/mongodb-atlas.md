@@ -10,7 +10,7 @@ If you prefer the Video version, check out our YouTube video below:
 
 <iframe width="805" height="390" src="https://www.youtube.com/embed/GOMvnI-r2qs" frameborder="0" allowfullscreen></iframe>
 
-> This guide might look long, but it's gonna take you less than 5 minutes to go through it.
+> This guide might look long, but it's going to take you less than 5 minutes to go through it.
 
 To create a free MongoDB cluster head over to MongoDB Atlas and create an account (no credit card is required). https://www.mongodb.com/cloud/atlas/register
 
@@ -20,7 +20,7 @@ Once your account is created, you'll be presented with an option to create your 
 
 ![MongoDB Atlas Select Cluster Type](/img/guides/mongodb-atlas/mongodb-atlas-select-cluster.png)
 
-Afterwards select your cloud provider and region. We recommend to select AWS and the same region where you will deploy your Webiny instance, but this is not a requirement.
+Afterwards select your cloud provider and region. We recommend selecting AWS and the same region where you will deploy your Webiny instance, but this is not a requirement.
 
 Once you are ready, click the create cluster button.
 

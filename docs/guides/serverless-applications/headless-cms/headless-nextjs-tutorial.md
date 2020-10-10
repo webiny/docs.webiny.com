@@ -6,7 +6,7 @@ sidebar_label: Creating a blog with Headless CMS + Next.js
 
 In this short tutorial, we will learn how to use the popular [Next.js](https://nextjs.org/) React framework with the [Webiny Headless CMS](/docs/webiny-apps/headless-cms/features/content-modeling).
 
-> All of the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs) repository.
+> All the code shown in this tutorial is also hosted in our [GitHub](https://github.com/webiny/webiny-examples/blob/master/headlesscms-nextjs) repository.
 
 ![Cover](/img/guides/headless-nextjs-tutorial/headless-nextjs.png)
 
@@ -37,7 +37,7 @@ Create a new token and make sure to copy the actual token string. We'll need it 
 
 ## Creating our first content model
 
-Now that we have all of the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
+Now that we have all the prerequisites out of the way, it's time to create our first [content model](/docs/webiny-apps/headless-cms/features/content-modeling). Let's open the **Models** section of the Headless CMS app.
 
 ![The Models View](/img/guides/headless-nextjs-tutorial/content-models-menu.png)
 
@@ -89,7 +89,7 @@ We can create a [new Next.js app](https://nextjs.org/docs/getting-started/) by r
 
 ![Creating a New Next.js App](/img/guides/headless-nextjs-tutorial/npx-next.png)
 
-> Ideally, you should create your Next.js project in a folder outside of the Webiny project.
+> Ideally, you should create your Next.js project in a folder outside the Webiny project.
 
 Now that we have a new Next.js app ready to go, let's see what it takes to make a simple page that renders a list of all blog posts that we have just created.
 
@@ -189,7 +189,7 @@ export default function Home({ blogPostsData }) {
 
 ## Previewing the page
 
-Let's run `yarn dev` in our Next.js project directory so we can see our page in action:
+Let's run `yarn dev` in our Next.js project directory, so we can see our page in action:
 
 ![Next.js Blog](/img/guides/headless-nextjs-tutorial/nextjs-blog.png)
 

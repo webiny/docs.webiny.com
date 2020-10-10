@@ -16,7 +16,7 @@ like into your pages built with [Webiny Page Builder](/docs/webiny-apps/page-bui
 
 ![Form Builder](/img/webiny-apps/form-builder/introduction/page-builder-embed.png)
 
-Last but not least, the app also lets you review all of the received form submissions,
+Last but not least, the app also lets you review all the received form submissions,
 check out conversion rates, create CSV exports, define additional behaviour on successful form submissions via triggers, and more.
 
 In the following section we will cover everything you need to know in order to get started with the Form Builder app.

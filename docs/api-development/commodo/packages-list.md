@@ -6,7 +6,7 @@ sidebar_label: Packages List
 
 The following is a list of all `@commodo` packages, and some other external ones that you might find useful.
 
-Note that, when using Commodo with Webiny, to make it easier, we've created the `@webiny/commodo` package, which [aggregates](https://github.com/webiny/webiny-js/blob/master/packages/commodo/src/index.ts) all of the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement. For example:
+Note that, when using Commodo with Webiny, to make it easier, we've created the `@webiny/commodo` package, which [aggregates](https://github.com/webiny/webiny-js/blob/master/packages/commodo/src/index.ts) all the relevant `@commodo/*` and `commodo-*` packages and lets you import any HOF (or any other construct) within a single import statement. For example:
 
 ```javascript
 import { withHooks, withStorage, withFields, string, number } from "@webiny/commodo";

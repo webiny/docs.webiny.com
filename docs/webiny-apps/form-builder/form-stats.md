@@ -4,7 +4,7 @@ title: Webiny Form Builder - Stats and Submissions
 sidebar_label: Stats and Submissions
 ---
 
-Once you've published your form and embedded it into your website, over time you will definitely want to check how it's performing. With the Form Builder app, you automatically get access to basic stats for all of your forms. You can also check out all of the received form submissions, with the complete data that was submitted.
+Once you've published your form and embedded it into your website, over time you will definitely want to check how it's performing. With the Form Builder app, you automatically get access to basic stats for all of your forms. You can also check out all the received form submissions, with the complete data that was submitted.
 
 > NOTE: form stats are tracked and submissions are saved only when the form is accessed from the actual website. Viewing / submitting the form from, for example, the Page Builder, or from the preview tab in the form builder, won't actually have any affect on the form.
 
@@ -20,7 +20,7 @@ You can check the stats of your form simply by selecting it from the forms list.
 
 # Form submissions
 
-In the same tab, you can also see the list that contains all of the form submissions. Clicking on a single form submission will show you a dialog with all of the submitted form data:
+In the same tab, you can also see the list that contains all the form submissions. Clicking on a single form submission will show you a dialog with all the submitted form data:
 
 ![Form submission data](/img/webiny-apps/form-builder/form-stats/submission-data.png)
 

@@ -127,7 +127,7 @@ You will follow the same process to create content for your project’s content 
 
 ### 1.7 Access Token
 
-Now that we have our data created, we can go ahead and check the `API information` of our `backend` project. We have all of the URLs we need to continue building our project. The one we need for now is the Headless CMS - Content Delivery API `cms/read/production`, where Webiny exposes a GraphQL Playground you can use to easily test and debug your API calls.
+Now that we have our data created, we can go ahead and check the `API information` of our `backend` project. We have all the URLs we need to continue building our project. The one we need for now is the Headless CMS - Content Delivery API `cms/read/production`, where Webiny exposes a GraphQL Playground you can use to easily test and debug your API calls.
 
 ![API Information](/img/tutorials/build-a-portfolio-webste-with-react-webiny-apollo/api-information.png)
 
@@ -480,7 +480,7 @@ The `starterCard` function will be used in both the `Blogs` and `Projects` pages
 - Link
 - Cover
 
-We will get back to this component after we create all of the `About,` `Blogs,` `Projects` pages.
+We will get back to this component after we create all the `About,` `Blogs,` `Projects` pages.
 
 Before jumping on the pages, Material-UI gives you the opportunity to customize Material-UI with your theme. You can change the colors, the typography and much more. If you wish to customize the theme, you need to use the ThemeProvider component in order to inject a theme into your application.
 

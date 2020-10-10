@@ -58,5 +58,5 @@ the actual class from the context. Lines `47-49` make use of one of many
 entity events to assign the current authenticated user when a new record
 is created. Note that the `user` object is taken from `context` on line `26`.
 
-And that is basically how all of the entities are handled in Webiny and how
+And that is basically how all the entities are handled in Webiny and how
 we've been using them to build our CMS.

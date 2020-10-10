@@ -7,7 +7,7 @@ sidebar_label: Webiny Bootstrap React Portfolio
 This is a simple bootstrap project to create a portfolio website with [React](https://reactjs.org/), [Webiny Headless CMS](https://www.webiny.com/serverless-app/headless-cms) and [Apollo](https://www.apollographql.com/docs/react/).
 
 :::info
-All of the code shown in this tutorial is also hosted in our [GitHub repository](https://github.com/webiny/webiny-bootstrap-react-portfolio/).
+All the code shown in this tutorial is also hosted in our [GitHub repository](https://github.com/webiny/webiny-bootstrap-react-portfolio/).
 :::
 
 We will continue adding a series of bootstrap projects with different front-end frameworks.

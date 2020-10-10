@@ -33,7 +33,7 @@ Tip: If you are submitting a feature request, you need to sell it to us. Explain
 
 ### Glossary
 
-In order to make the documentation pages as clear as possible, throughout all of the topics, we are trying to stick to a set of
+In order to make the documentation pages as clear as possible, throughout all the topics, we are trying to stick to a set of
 standardized terms. Below is the list of terms (alphabetically sorted) that contributors should use when referencing different parts of Webiny.
 
 #### Terms
@@ -41,7 +41,7 @@ standardized terms. Below is the list of terms (alphabetically sorted) that cont
 | Term           | Meaning                                                                                                                 |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | Admin          | Administration UI that is included by default in every Webiny installation.                                             |
-| API            | References all of the services that were deployed to the cloud.                                                         |
+| API            | References all the services that were deployed to the cloud.                                                         |
 | cloud resource | When deploying Webiny to a cloud of user's choice, it deploys various cloud resources, eg. S3, API Gateway and similar. |
 | React apps     | Used when you want to reference Webiny apps like e.g. Admin or Site.                                                    |
 

@@ -31,7 +31,7 @@ This shows the current status of your form and its name. You can click on the na
 
 #### 2 - Fields menu
 
-The fields menu contains all of the fields that can be added to your form. They are organized into field groups, such as the "contact information" group, where each group contains a set of predefined fields. If you need to create a new field from scratch, you can do that with the "custom field", which sits above all field groups.
+The fields menu contains all the fields that can be added to your form. They are organized into field groups, such as the "contact information" group, where each group contains a set of predefined fields. If you need to create a new field from scratch, you can do that with the "custom field", which sits above all field groups.
 
 Fields are added by simply dragging and dropping them in the preferred location in the fields editor. You can add multiple fields in a row, and have as many rows as needed.
 
@@ -39,11 +39,11 @@ Note: additional form fields can be added via plugins (more on this in the follo
 
 #### 3 - Fields editor
 
-This is the section of form builder which shows you all of the added fields and allows you to edit them, enables you to preview your form and finally, define triggers (more on this in the following sections).
+This is the section of form builder which shows you all the added fields and allows you to edit them, enables you to preview your form and finally, define triggers (more on this in the following sections).
 
 #### 4 - Form options
 
-A couple of options are available here. The "revisions" dropdown shows you all of the available revisions you've created for this particular form (more on revisions in the following sections). Then, the little cogwheel icon will show you additional options like enabling Google ReCaptcha, terms of service checkbox, switching visual layouts, and more. Finally, the publish button publishes current form revision.
+A couple of options are available here. The "revisions" dropdown shows you all the available revisions you've created for this particular form (more on revisions in the following sections). Then, the little cogwheel icon will show you additional options like enabling Google ReCaptcha, terms of service checkbox, switching visual layouts, and more. Finally, the publish button publishes current form revision.
 
 ## Publish a simple form and display it in the Page Builder
 

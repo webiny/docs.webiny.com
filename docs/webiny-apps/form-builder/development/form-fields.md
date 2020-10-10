@@ -23,7 +23,7 @@ import { ReactComponent as SecretIcon } from "my-webiny-app/icons/lock.svg";
 (...)
 
 // The following shows a complete plugin definition for a new "Secrets" form field.
-// All of the relevant options are contained in the "field" property.
+// All the relevant options are contained in the "field" property.
 const secretTextFormField: FbBuilderFieldPlugin = {
     type: "form-editor-field-type",
     name: "form-editor-field-type-secret-text",

@@ -61,7 +61,7 @@ This callback will only be executed if the form data is valid.
 `Bind` component is provided by the Form itself and is used to bind the value
 of an input to the form data.
 
-Here are all of the props `Bind` component can handle:
+Here are all the props `Bind` component can handle:
 
 ```
 type Props = {

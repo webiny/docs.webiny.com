@@ -148,7 +148,7 @@ function MyComponent() {
 }
 ```
 
-Note the `GET_PUBLISHED_PAGE` GraphQL query that we've used to fetch the page data. Very convenient if you want to be sure that all of the relevant page information gets retrieved, which the `Page` component will internally utilize.
+Note the `GET_PUBLISHED_PAGE` GraphQL query that we've used to fetch the page data. Very convenient if you want to be sure that all the relevant page information gets retrieved, which the `Page` component will internally utilize.
 
 If you just want to render the page content explicitly, you can also utilize the `content` prop.
 
