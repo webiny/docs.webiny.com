@@ -141,4 +141,4 @@ An example script for a `staging` environment could look like this:
 
 What this script says is: load environment variables from `.env.json` file, first load `default` values, then merge `staging` values, and then run `webiny run build`, which will execute a `build` command in your `webiny.config.js` file.
 
-Once this script is inserted, you can repeat steps 1. to 3. of this article.
+Once this script is inserted, you can repeat steps 1 to 3 of this article.

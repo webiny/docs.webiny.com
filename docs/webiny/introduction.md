@@ -37,13 +37,13 @@ To build React apps we use a custom build process which is, at its core, a custo
 
 ### Database support
 
-Our database of choice is MongoDB and we've developed our apps using that particular database. However, we don't interact with the database directly. We use an ODM package called `Commodo`, which is also a Webiny package. It supports different database drivers so you can create a driver for the database of your choice and remove the MongoDB plugins. Remember? Everything is a plugin, even a database connection. How cool is that?
+Our database of choice is MongoDB and we've developed our apps using that particular database. However, we don't interact with the database directly. We use an ODM package called [`Commodo`](https://github.com/webiny/commodo), which is also a Webiny package. It supports different database drivers so you can create a driver for the database of your choice and remove the MongoDB plugins. Remember? Everything is a plugin, even a database connection. How cool is that?
 
 > We've taken good care to not lock our code into specifics of MongoDB. Parts of the apps which required us to use some specific database concepts (like `aggregate` for example) are implemented as plugins. Those are easy to override to suite your particular database.
 
 ### Deployment to the Cloud
 
-To make it as simple as possible for you to get started, all you need is an AWS account. At this point we're deploying infrastructure using a custom deploy process which is based on reusable components which internally use plain AWS SDK. However, Webiny project is structured in such a way that allows you to use any Infrastructure-as-Code tool you want, so you don't have to use our deploy process.
+To make it as simple as possible for you to get started, all you need is an AWS account. At this point we're deploying infrastructure using a custom deployment process which is based on reusable components which internally use plain AWS SDK. However, Webiny project is structured in such a way that allows you to use any Infrastructure-as-Code tool you want, so you don't have to use our deployment process.
 
 ### Multi-cloud
 
