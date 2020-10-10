@@ -405,7 +405,7 @@ yarn webiny deploy api apiHabitsTracker api --env=local
 
 ![Habits Tracker deploy after extending our API](/img/tutorials/serverless-graphql-api/habit-tracker-deploy-extending-api.png)
  
-As you can see, since you deployed the API Service, the deploy time is 13 seconds.
+As you can see, since you deployed the API Service, the deployment time is 13 seconds.
  
 You can now open the Main GraphQL API and see the newly added fields in the Habit model.
 
