@@ -54,7 +54,7 @@ Lastly, you will receive a Success message where you will see your **Access key 
 
 ![aws-user-created](/img/guides/aws-iam/aws-user-created.png)
 
-Now that we have the **Access key ID** and **secret access key** we can put them in `~/.aws/credentials` on Linux/macOS or at `C:\Users\USERNAME.aws\credentials`on Windows.It should look something like this:
+Now that we have the **Access key ID** and **secret access key** we can put them in `~/.aws/credentials` on Linux/macOS or at `C:\Users\USERNAME\.aws\credentials`on Windows.It should look something like this:
 
 ![aws-credentials](/img/guides/aws-iam/aws-credentials.png)
 
