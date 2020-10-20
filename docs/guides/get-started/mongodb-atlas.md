@@ -50,8 +50,9 @@ Now it's time to select your connection method. For your case select the "Connec
 
 ![MongoDB Atlas Cluster Connection Method](/img/guides/mongodb-atlas/mongodb-atlas-connection-method.png)
 
-This will present you with a connection string. You want to copy that string and replace `<password>` with the password you assigned to your MongoDB user.
+This will present you with a connection string. You want to copy that string and replace `<password>` with the password you assigned to your MongoDB user while you
+replace `<dbname>` with the name of the default database that connections will use.
 
 ![MongoDB Atlas Cluster Connection Method](/img/guides/mongodb-atlas/mongodb-atlas-connection-string.png)
 
-At this point you can close this window and paste the connection string into the `.env.json` file in your webiny project folder. Just make sure you've replaced the `<password>`.
+At this point you can close this window and paste the connection string into the `.env.json` file in your Webiny project folder. Just make sure you've replaced the `<password>` and `<dbname>`.
