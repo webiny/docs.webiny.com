@@ -974,7 +974,7 @@ Run the following command:
 npm install -g vercel
 ```
 
-This command will install the vercel CLI into your local machine.
+This command will install the Vercel CLI into your local machine.
 
 Next, we will sign in into Vercel through the CLI. Run the command:
 

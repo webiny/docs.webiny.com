@@ -267,7 +267,7 @@ The two most essential plugins are the **graphql** and the **model** plugin. We 
 The **[models.ts](https://github.com/webiny/webiny-examples/blob/master/serverless-graphql-api/api/habits-tracker/src/plugins/models.ts)** file has a list of commodo models that we want our GraphQL to have.
 
 :::info
-[**Commodo**](https://github.com/webiny/commodo) is a set of higher order functions (HOFs) that let you define and **com**pose rich data **mod**el **o**bjects.
+[**Commodo**](https://github.com/webiny/commodo) is a set of higher order functions (HOFs) that let you define and compose rich data model objects.
 :::
 
 The Commodo library is part of the Webiny project by default. It enables you to create data models.

@@ -85,13 +85,13 @@ This is the reason we use yarn because its workspace management makes working wi
 
 Check out our [project structure](https://docs.webiny.com/docs/deep-dive/project-structure) and content here.
 
-When you navigate to `packages` you will see around 70 packages. We also have the `sample-project` folder. This is the project which the user will get when creating a new webiny project. The `sample-project` is the project we simulate users project, we will use it as a sandbox.
+When you navigate to `packages` you will see around 70 packages. We also have the `sample-project` folder. This is the project which the user will get when creating a new Webiny project. The `sample-project` is the project we simulate users project, we will use it as a sandbox.
 
 - Deploy your API by running 
 `npx webiny deploy api --env=local` from the `sample-project` folder.
 
 :::note NOTES: 
-Webiny should run from the root of the Webiny project. Since `sample-project` folder is a sandbox, this is the place to run your webiny commands from.
+Webiny should run from the root of the Webiny project. Since `sample-project` folder is a sandbox, this is the place to run your Webiny commands from.
 
 Run `npx webiny --help` to see the available commands in our CLI
 :::
@@ -118,7 +118,7 @@ Why? Because `npx` will resolve the CLI binary to the node_modules in the root o
 
  - The easiest way to run a watch is by running ```lerna run watch --scope=name_of_package --stream --parallel```.
 
-Now that we set up webiny project, we can notice that webiny is set up as a monorepo so you can manage your packages, for both API and React.
+Now that we set up Webiny project, we can notice that Webiny is set up as a monorepo so you can manage your packages, for both API and React.
 
 This is the reason we use yarn because its workspace management makes working with monorepos enjoyable.
 

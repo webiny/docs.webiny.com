@@ -55,7 +55,7 @@ The File service is responsible for handling file uploads, file downloads, resiz
 1. If the request is for an image for a specific image size, the **(F) File download service** will pass on the request to **(G) Image resize service**.
 
 2. **(G) Image resize service** resizes the image and saves the specific image to the **(E) S3 file storage**. 
-    - To protect agains brute-force attacks, Webiny has a fixed set of image sizes.
+    - To protect against brute-force attacks, Webiny has a fixed set of image sizes.
     - In case you request an image of 282px, Webiny will return the first greater image size.
 
 3. The image is returned to the client, by passing it to the **(A) CloudFront** CDN, where it's also cached.

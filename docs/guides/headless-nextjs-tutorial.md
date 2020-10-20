@@ -180,7 +180,7 @@ export default function Home({ blogPostsData }) {
 
         <div className="grid">{BlogPosts}</div>
 
-        {/* remaning code removed for brevity */}
+        {/* remaining code removed for brevity */}
       </main>
     </div>
   );
