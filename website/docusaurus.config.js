@@ -37,6 +37,7 @@ const siteConfig = {
         },
         navbar: {
             title: "Webiny Docs",
+            hideOnScroll: true,
             logo: {
                 alt: "Webiny Serverless CMS Logo",
                 src: "img/white-square-icon.svg",
@@ -59,7 +60,15 @@ const siteConfig = {
                     position: "right"
                 }
             ]
-        }
+        },
+        announcementBar: {
+            id: 'support_us', // Any value that will identify this message.
+            content:
+              '⭐️ If you like Webiny, give it a star on <a href="https://github.com/webiny/webiny-js" target="_blank">GitHub</a>! ⭐️',
+            backgroundColor: '#fafbfc', // Defaults to `#fff`.
+            textColor: '#091E42', // Defaults to `#000`.
+            isCloseable: false, // Defaults to `true`.
+          }
     }
 };
 
