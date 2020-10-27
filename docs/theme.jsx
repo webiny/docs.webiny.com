@@ -1,5 +1,5 @@
 import React from 'react';
-import { jsx, ThemeProvider } from 'theme-ui'
+import { ThemeProvider } from 'theme-ui'
 
 const theme = {
     space: [
