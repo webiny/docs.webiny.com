@@ -26,6 +26,7 @@ module.exports = {
             Contributing: [
                 "contributing/documentation"
             ]
-        }
+        },
+        "webiny-telemetry"
     ]
 };
