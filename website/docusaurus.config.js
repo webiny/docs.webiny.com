@@ -18,7 +18,7 @@ const siteConfig = {
                     sidebarPath: require.resolve("./sidebars.js"),
                     editUrl: "https://github.com/webiny/docs.webiny.com/edit/master/docs/",
                     showLastUpdateAuthor: true,
-                    showLastUpdateTime: true
+                    showLastUpdateTime: true,
                 },
                 theme: {
                     customCss: require.resolve("./static/css/custom.css")
