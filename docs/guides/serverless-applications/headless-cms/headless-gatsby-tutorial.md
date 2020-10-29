@@ -179,6 +179,6 @@ Let's run `yarn dev` in our Gatsby project directory so we can see our page in a
 
 Congratulations! 🎉
 
-We have have successfully created a simple page that displays a list of all created blog posts, all powered by Webiny Headless CMS and Gatsby.
+We have successfully created a simple page that displays a list of all created blog posts, all powered by Webiny Headless CMS and Gatsby.
 
 > The same can also be achieved with other popular tools, like [Next.js](https://nextjs.org/). To learn more, click [here](/docs/guides/headless-nextjs-tutorial).
