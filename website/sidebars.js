@@ -3,29 +3,22 @@ module.exports = {
         "introduction",
         {
             Tutorials: [
-                
                 {
                     type: "category",
                     label: "Install Webiny",
-                    items: [
-                        "tutorials/install-webiny/overview",
-                    ]
-                },
+                    items: ["tutorials/install-webiny/overview"]
+                }
             ],
             "How-to guides": [
                 {
                     type: "category",
                     label: "Deployment",
-                    items: [
-                        "how-to-guides/deployment/configure-aws-credentials",
-                    ]
-                },   
+                    items: ["how-to-guides/deployment/configure-aws-credentials"]
+                }
             ]
         },
         {
-            Contributing: [
-                "contributing/documentation"
-            ]
+            Contributing: ["contributing/documentation"]
         },
         "webiny-telemetry"
     ]

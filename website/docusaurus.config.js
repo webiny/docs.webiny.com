@@ -18,7 +18,7 @@ const siteConfig = {
                     sidebarPath: require.resolve("./sidebars.js"),
                     editUrl: "https://github.com/webiny/docs.webiny.com/edit/master/docs/",
                     showLastUpdateAuthor: true,
-                    showLastUpdateTime: true,
+                    showLastUpdateTime: true
                 },
                 theme: {
                     customCss: require.resolve("./static/css/custom.css")
@@ -62,13 +62,13 @@ const siteConfig = {
             ]
         },
         announcementBar: {
-            id: 'support_us', // Any value that will identify this message.
+            id: "support_us", // Any value that will identify this message.
             content:
-              '⭐️ If you like Webiny, give it a star on <a href="https://github.com/webiny/webiny-js" target="_blank">GitHub</a>! ⭐️',
-            backgroundColor: '#fafbfc', // Defaults to `#fff`.
-            textColor: '#091E42', // Defaults to `#000`.
-            isCloseable: false, // Defaults to `true`.
-          }
+                '⭐️ If you like Webiny, give it a star on <a href="https://github.com/webiny/webiny-js" target="_blank">GitHub</a>! ⭐️',
+            backgroundColor: "#fafbfc", // Defaults to `#fff`.
+            textColor: "#091E42", // Defaults to `#000`.
+            isCloseable: false // Defaults to `true`.
+        }
     }
 };
 
