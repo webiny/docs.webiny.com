@@ -174,7 +174,6 @@ One of the advantages of using TypeScript is that Type errors will show up in th
 Now, you will install all the necessary libraries you need to build your Portfolio website. Run the below command to install the packages for Material-UI and Apollo GraphQL.
 
 ```
-yarn add @material-ui/core @material-ui/icons material-ui-image @apollo/client graphql react-router-dom react-dom
 yarn add @material-ui/core @material-ui/icons material-ui-image @apollo/client graphql react-router-dom @types/react-router-dom react-dom
 ```
 
