@@ -12,7 +12,7 @@ For detailed explanations of concepts and processes, see the [Deep Dive](/docs/d
 
 If you prefer the Video version of the Webiny Quick Start, check out our YouTube videos below:
 
-<iframe width="805" height="390" src="https://www.youtube.com/embed/G_du-yE_DL4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="100%" height="390" src="https://www.youtube.com/embed/G_du-yE_DL4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Prerequisites
 

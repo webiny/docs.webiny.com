@@ -31,4 +31,4 @@ Webiny is organizing Knowledge-Sharing sessions to create a knowledge database f
 
 Learn how to develop APIs with Webiny in the session below.
 
-<iframe width="805" height="390" src="https://www.youtube.com/embed/8aJ_Ja1aTy0" frameborder="0" allowfullscreen></iframe>
+<iframe width="100%" height="390" src="https://www.youtube.com/embed/8aJ_Ja1aTy0" frameborder="0" allowfullscreen></iframe>

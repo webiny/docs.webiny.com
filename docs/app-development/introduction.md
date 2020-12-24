@@ -15,7 +15,7 @@ With traditional React apps, you would import all your components and mount them
 :::info
 Check out our knowledge-sharing session on `APP Development With Webiny.` We'll get to know the structure of the app, how it is bundled, and how to make reusable app templates.
 :::
-<iframe width="805" height="390" src="https://youtube.com/embed/EQxNsDSdpsQ" frameborder="0" allowfullscreen></iframe>
+<iframe width="100%" height="390" src="https://youtube.com/embed/EQxNsDSdpsQ" frameborder="0" allowfullscreen></iframe>
 
 ---
 

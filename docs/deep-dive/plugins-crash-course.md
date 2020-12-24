@@ -18,7 +18,7 @@ In this session, we'll look at three main groups of plugins:
 We'll first learn how `@webiny/plugins` package works outside of Webiny, using [codesandbox.io](https://www.codesandbox.io). Then we'll see how this same package is utilized within the CLI, within Apollo Server (resolvers) and within React apps.
 :::
 
-<iframe width="805" height="390" src="https://youtube.com/embed/4qcDLzu8kVM" frameborder="0" allowfullscreen></iframe>
+<iframe width="100%" height="390" src="https://youtube.com/embed/4qcDLzu8kVM" frameborder="0" allowfullscreen></iframe>
 
 :::info
 Now that we understand the basics of Webiny Plugins, we will continue on practical examples. 
@@ -28,7 +28,7 @@ We will demonstrate how plugins are actually used in your everyday development: 
 Also on the API side, we’ll learn what are context plugins and what they are used for, and finally, how we can use plugins to expand our GraphQL schema with additional GraphQL types and resolvers.
 :::
 
-<iframe width="805" height="390" src="https://youtube.com/embed/NGoZ3TDTYus" frameborder="0" allowfullscreen></iframe>
+<iframe width="100%" height="390" src="https://youtube.com/embed/NGoZ3TDTYus" frameborder="0" allowfullscreen></iframe>
 
 ## Anatomy of a plugin
 
