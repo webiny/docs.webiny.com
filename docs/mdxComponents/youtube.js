@@ -6,8 +6,8 @@ export default props => (
             width="805"
             height="390"
             src={"https://www.youtube.com/embed/" + props.id}
-            frameborder="0"
-            allowfullscreen
+            frameBorder="0"
+            allowFullScreen
         />
     </div>
 );
