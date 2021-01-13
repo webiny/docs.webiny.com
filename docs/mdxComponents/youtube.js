@@ -1,13 +1,13 @@
-import React from 'react';
+import React from "react";
 
 export default props => (
-    <div class="video-responsive">
+    <div className="video-responsive">
         <iframe
             width="805"
             height="390"
-            src={"https://www.youtube.com/embed/"+props.id}
-            frameborder="0"
-            allowfullscreen
-        ></iframe>
+            src={"https://www.youtube.com/embed/" + props.id}
+            frameBorder="0"
+            allowFullScreen
+        />
     </div>
 );

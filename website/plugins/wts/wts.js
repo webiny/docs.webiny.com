@@ -1,18 +1,18 @@
-import {activateTracking} from 'wts';
-import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
+import { activateTracking } from "wts";
+import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
 
-export default (function () {
-  activateTracking ();
+export default (function() {
+    activateTracking();
 
-  if (!ExecutionEnvironment.canUseDOM) {
-    return null;
-  }
+    if (!ExecutionEnvironment.canUseDOM) {
+        return null;
+    }
 
-  return {
-    onRouteUpdate () {
-      if (window.posthog) {
-        window.posthog.capture ('$pageview');
-      }
-    },
-  };
-}) ();
+    return {
+        onRouteUpdate() {
+            if (window.posthog) {
+                window.posthog.capture("$pageview");
+            }
+        }
+    };
+})();
