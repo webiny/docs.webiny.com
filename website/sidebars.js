@@ -3,11 +3,7 @@ module.exports = {
         "introduction",
         {
             Tutorials: [
-                {
-                    type: "category",
-                    label: "Install Webiny",
-                    items: ["tutorials/install-webiny/overview"]
-                }
+                "tutorials/install-webiny"
             ],
             "How-to guides": [
                 {
