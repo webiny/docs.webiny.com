@@ -2,7 +2,16 @@ module.exports = {
     docs: [
         "introduction",
         {
-            Tutorials: ["tutorials/install-webiny"],
+            Tutorials: [
+                "tutorials/install-webiny",
+                {
+                    type: "category",
+                    label: "Headless CMS",
+                    items: [
+                        "tutorials/headless-cms/create-a-webiny-headless-cms-avatar-field-plugin"
+                    ]
+                }
+            ],
             "How-to guides": [
                 {
                     type: "category",
