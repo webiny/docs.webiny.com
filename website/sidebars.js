@@ -8,7 +8,7 @@ module.exports = {
                     type: "category",
                     label: "Headless CMS",
                     items: [
-                        "tutorials/headless-cms/create-a-webiny-headless-cms-avatar-field-plugin"
+                        "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin"
                     ]
                 }
             ],
