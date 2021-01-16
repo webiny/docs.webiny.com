@@ -12,17 +12,16 @@ module.exports = {
             ],
             "Key Topics": [
                 "key-topics/project-organisation",
-                "key-topics/cloud-infrastructure",
                 {
                     type: "category",
-                    label: "Project Stacks",
+                    label: "Project Applications",
                     items: [
-                        "key-topics/stacks/overview",
-                        "key-topics/stacks/deploying-with-pulumi",
-                        "key-topics/stacks/working-with-stacks-using-cli",
-                        "key-topics/stacks/environments",
+                        "key-topics/project-applications/overview",
+                        "key-topics/project-applications/environments",
                     ]
-                }
+                },
+                "key-topics/cloud-infrastructure",
+                "key-topics/iac-with-pulumi",
             ]
         },
         {
