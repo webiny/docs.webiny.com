@@ -52,7 +52,7 @@ export default(): CmsEditorFieldTypePlugin => ({
         icon: <AddressIcon />,
         allowMultipleValues: false,
         allowPredefinedValues: false,
-        multipleValuesLabel: "",
+        multipleValuesLabel: "Use as list of addresses",
         createField() {}
     }
 });
@@ -63,7 +63,6 @@ And in the `createField()` function we return the field data:
 createField() {
     return {
         type: "address",
-        name: "address",
         validation: [],
         renderer: {
             name: ""
@@ -78,7 +77,7 @@ Now we can create the second UI plugin, a renderer for the field we just created
 A base for the renderer plugin is:
 
 ```tsx title="[UI]/addressFieldRendererPlugin.tsx"
-export default(): CmsEditorFieldRendererPlugin => {
+export default(): CmsEditorFieldRendererPlugin => ({
     type: "cms-editor-field-renderer",
     name: "cms-editor-field-renderer-address",
     renderer: {
@@ -88,7 +87,7 @@ export default(): CmsEditorFieldRendererPlugin => {
         canUse({ field }) {},
         render({ field, getBind }) {}
     }
-};
+});
 ```
 
 Remember that we left the `renderer.name` property blank when we created the field? Now in the `canUse()` function you put the condition that determines if that particular renderer is for a given field:
@@ -102,7 +101,7 @@ In the `render()` function you put what is actually displayed when the field ren
 ```tsx title="[UI]/addressFieldRendererPlugin.tsx"
 render({ field, getBind }) {
     const Bind = getBind();
-    const onSelect = ({coordinates, ...address}) => {
+    const onSelect = (bind, {coordinates, ...address}) => {
         bind.onChange({
             address,// an object containing country, city, zipCode, street and streetNumber
             coordinates
@@ -113,7 +112,7 @@ render({ field, getBind }) {
             {bind => (
                 <AddressSearch
                     {...bind}
-                    onSelect={onSelect}
+                    onSelect={(value) => onSelect(bind, value)}
                     label={field.label}
                     placeholder="Type to find the address."
                 />
@@ -144,18 +143,18 @@ export default(): CmsModelFieldToGraphQLPlugin => ({
 #### Read definitions
 
 In the read definition, for the read and preview API, we can have a user-friendly GraphQL field:
-```typescript title="[API]/addressFieldPlugin.ts"
+```ts title="[API]/addressFieldPlugin.ts"
 read: {
     createSchema() {
         return {
             typeDefs: `
                 type Address {
-                    country
-                    city
-                    zipCode
-                    street
-                    streetNumber
-                    coordinates
+                    country: String
+                    city: String
+                    zipCode: String
+                    street: String
+                    streetNumber: String
+                    coordinates: String
                 }
             `,
             resolvers: {}
@@ -193,7 +192,7 @@ Since we do not want the field to be filtered, we do not need to define `createG
 
 The manage side of the API can be exactly the same as the read one, but in our case it is a bit different.
 Since we save plain JSON value, this part is quite simple:
-```typescript title="[API]/addressFieldPlugin.ts"
+```ts title="[API]/addressFieldPlugin.ts"
 manage: {
     createTypeField({ field }) {
         return `${field.fieldId}: JSON`;
@@ -208,7 +207,7 @@ manage: {
 
 Now we have everything required to create and save the field. Next thing we need is to prevent the indexing of the field. By default, if a field is not searchable it is removed from the index. But for this tutorial we can create our own plugin. This is the base of that plugin:
 
-```typescript title="[API]/addressFieldIndexPlugin.ts"
+```ts title="[API]/addressFieldIndexPlugin.ts"
 export default (): CmsModelFieldToElasticsearchPlugin => ({
     type: "cms-model-field-to-elastic-search",
     name: "cms-model-field-to-elastic-search-address",
@@ -219,7 +218,7 @@ export default (): CmsModelFieldToElasticsearchPlugin => ({
 ```
 
 In `toIndex` we must remove the field from `values` and put it into non-indexable `rawValues` object:
-```typescript title="[API]/addressFieldIndexPlugin.ts"
+```ts title="[API]/addressFieldIndexPlugin.ts"
 toIndex({field, toIndexEntry}) {
     const values = toIndexEntry.values;
     const value = values[field.fieldId];
@@ -235,7 +234,7 @@ toIndex({field, toIndexEntry}) {
 ```
 
 And in `fromIndex` we must revert that action:
-```typescript title="[API]/addressFieldIndexPlugin.ts"
+```ts title="[API]/addressFieldIndexPlugin.ts"
 fromIndex({ field, entry }) {
     const rawValues = entry.rawValues || {};
     const value = rawValues[field.fieldId];
@@ -296,3 +295,5 @@ async fromStorage({ field, value }) {
 
 
 You should now have a functioning field, apart the `AddressSearch` component and `encrypt`/`decrypt` functions - it is up to you to created them.
+
+Tutorial example files are located in our [example repository](https://github.com/webiny/webiny-examples/tree/master/headless-cms/address-field).
