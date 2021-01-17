@@ -6,20 +6,23 @@ keywords: ["webiny", "project", "install", "setup", "create"]
 description: Create a Webiny Headless CMS address field plugin.
 ---
 
-:::tip You can specify an optional title
-Heads up! Here's a pro-tip.
+:::tip What you'll learn
+* where to put the plugins
+* which plugins are required and which are optional
+* how can you modify the data that is indexed
+* how can you modify the data that is stored
 :::
 
-### Overview
+## Overview
 A detailed and more in-depth explanation and how-to for a Webiny Headless CMS field plugins. The tutorial example is the idea you need to search for some address and get it's coordinates.
 In this tutorial we assume that you know how Webiny plugins work.
 
-For quick info on required plugins check our [How-to Guide: Create a Webiny Headless CMS field plugin](https://www.notion.so/webiny/How-to-Guide-Create-a-Webiny-Headless-CMS-field-plugin-cbe2bc97f19c4909a32d5032e0a9c143).
+For quick info on required plugins check our [How-to Guide: Create a Webiny Headless CMS field plugin](/docs/how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin).
 
-### Narrative
+## Tutorial narrative
 You need a field that gives you a functionality to search for an address via Google Maps API. When you select the address information (for example: coordinates) are set also set in the data. Also, you do not want to index that field and you want to encrypt it before saving into the storage.
 
-**The placement of the plugins**
+## The placement of the plugins
 
 By all means, you can create plugins where ever you want - but try to stick to some structure. You have `api` and `apps` directories, so put your plugins in those, according to a plugin type. Our suggestion would be something like this:
 1. `[UI]` plugins folder - `apps/admin/code/src/plugins/headlessCMS/fields/address/`
@@ -34,7 +37,9 @@ Files we are creating are:
 4. `addressFieldPlugin.tsx` - UI field definition and display when creating a model
 5. `addressFieldRendererPlugin.tsx` - UI display of the field when creating or updating the entry
 
-First we need to create a field definition plugin. We can start with the UI one. The base for the plugin is:
+## UI plugins
+### Definition plugin
+First we need to create a field definition plugin. The base for the plugin is:
 
 ```tsx title="[UI]/addressFieldPlugin.tsx"
 export default(): CmsEditorFieldTypePlugin => ({
@@ -68,7 +73,7 @@ createField() {
 ```
 Note that renderer name is left blank so code automatically determines which renderer to use. You can put the name of the renderer, but for our tutorial we leave it blank to use that for later.
 
-
+### Renderer plugin
 Now we can create the second UI plugin, a renderer for the field we just created.
 A base for the renderer plugin is:
 
@@ -118,6 +123,9 @@ render({ field, getBind }) {
 }
 ```
 
+## API plugins
+### Definition plugin
+
 Now let's go solve the API plugins. First we need to create a plugin of type `CmsContentModelField`.
 This is the base of that plugin:
 
@@ -133,7 +141,7 @@ export default(): CmsModelFieldToGraphQLPlugin => ({
 });
 ```
 
-**Read definitions**
+#### Read definitions
 
 In the read definition, for the read and preview API, we can have a user-friendly GraphQL field:
 ```typescript title="[API]/addressFieldPlugin.ts"
@@ -181,6 +189,8 @@ read: {
 
 Since we do not want the field to be filtered, we do not need to define `createGetFilters` or `createListFilters`.
 
+#### Manage definitions
+
 The manage side of the API can be exactly the same as the read one, but in our case it is a bit different.
 Since we save plain JSON value, this part is quite simple:
 ```typescript title="[API]/addressFieldPlugin.ts"
@@ -194,7 +204,9 @@ manage: {
 }
 ```
 
-Now we have everything required to create and save the field. Next thing we need is to prevent the indexing of the field. By default if a field is not searchable it is removed from the index. But for this tutorial we can create our own plugin. This is the base of that plugin:
+### Indexing plugin
+
+Now we have everything required to create and save the field. Next thing we need is to prevent the indexing of the field. By default, if a field is not searchable it is removed from the index. But for this tutorial we can create our own plugin. This is the base of that plugin:
 
 ```typescript title="[API]/addressFieldIndexPlugin.ts"
 export default (): CmsModelFieldToElasticsearchPlugin => ({
@@ -239,6 +251,8 @@ fromIndex({ field, entry }) {
 ```
 
 This plugin now does what we want - disables the field indexing. Of course, we could pack the field with `jsonpack` or compress it in the `toIndex` method to take less space. The choice is all yours, just remember to revert what ever action you do.
+
+### Storage plugin
 
 All we have left to write is the plugin for storage. As we said, we want to encrypt the data for the storage. You can what ever library you want, it is all up to you. For this tutorial we can use some custom `encrypt` and `decrypt` functions. The base of the plugin looks like this:
 
