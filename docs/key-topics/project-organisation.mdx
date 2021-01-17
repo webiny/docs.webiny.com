@@ -9,41 +9,95 @@ description: Installing Webiny on your AWS cloud.
 import Theme from "../mdxComponents/theme";
 import { Box, Button, Grid, Link } from "theme-ui";
 
-This key topic covers key organisational units of every Webiny project.
+:::tip What you’ll learn
+- what are the fundamental organisational units of every Webiny project and their most important characteristics
+:::
 
----
+
+## Overview
+
+Every Webiny project consists of two fundamental organisation units - **packages** and **project applications** (or just **applications**).
+
+Packages are just regular [NPM packages](https://docs.npmjs.com/about-packages-and-modules#about-packages), or in other words, folders with its own `package.json` declaration file and some code.
+On the other hand, project applications are higher-level organisational units formed from one or more packages that, as the name itself suggest, form applications. Applications consist of both application code and cloud infrastructure that is needed in order to run them.
+
+:::info
+Visit the [Project Applications](/docs/key-topics/project-applications/overview) section to learn more about applications - what they consist of, what tools we use, how they are deployed, and more.
+:::
+
+The following diagram shows the project organisation in a simplified and clear manner:
 
 <img
-  src={require('./assets/project-units.png').default}
-  class="no-shadow"
+  src={require("./assets/project-organisation/organisation.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Nice image"
+/>
+
+If we were to translate the above diagram into a directory tree, we would end up with the following:
+
+```
+.
+├── Project Application 1
+│   └── code
+│       ├── package-1a
+│       ├── package-1b
+│       └── package-1c
+│  
+├── Project Application 2
+│   └── code
+│       ├── package-2a
+│       └── package-2b
+│  
+├── packages
+│   ├── shared-package-1
+│   └── shared-package-2
+└── (...)
+```
+
+Packages **1a**, **1b**, and **1c** are located in the `Project Application 1/code` folder, and the **2a** and **2b** in `Project Application 2/code`. As seen in the diagram above, these projects are also using shared packages `shared-package-1` and `shared-package-2`, and these are located in a separate `packages` folder.
+
+## Important Characteristics
+Here are some of the most important characteristics of packages and applications.
+
+#### Package scope
+
+A package can represent literally anything. From a simple JavaScript function, or a class, one, or more plugins, a whole REST/GraphQL API, or even a full-blown React app. You can even create utility packages that, for example, export one, or more utilities, and are imported by other packages (applications) in your project.
+
+#### Limits
+
+There is no limit in terms of the total number of packages and applications a single Webiny project can have.
+
+#### Package and project application dependencies
+
+Packages and applications can be independent, but, more importantly, can also be dependent on other packages, and applications, respectively.
+
+In terms of packages, an example might be a utility (shared) package whose code is imported by other packages. This way you keep your code in a single location and don't repeat yourself, which effectively makes the code easier to maintain.
+
+The same can happen with project applications. For example, let's say you have a simple HTTP API and a React app that's relying on it. In this case, the project application that's holding the React app depends on the project application that's holding the HTTP API.
+
+
+<img
+  src={require("./assets/project-organisation/dependent-packages-apps.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
   alt="Nice image"
 />
 
 ## Monorepo organisation
 
-Every Webiny project is organized as a [monorepo](https://www.atlassian.com/git/tutorials/monorepos), which means the project consists of multiple packages (also known as workspaces). A package can serve a different purpose. For example, a package can represent a GraphQL API, a single Lambda function, or even a whole React app. You can even create utility packages that are used by multiple other packages in your project.
+Every Webiny project is structured as a [monorepo](https://www.atlassian.com/git/tutorials/monorepos), using [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
 
-Monorepo organisation is established using [yarn workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
+This benefits us in a couple of ways. Most importantly, it makes sure downloaded packages are stored in a most efficient way. It also makes it possible to organize different logical sections of your project as multiple packages, and easily import them from any other package (application).
 
-:::info Webiny CLI
+:::info
 Webiny CLI provides the `webiny workspaces` command, which makes it a bit easier to perform commands across multiple workspaces. Be sure to check the [CLI Reference](#) or run `webiny workspaces --help` in your terminal for more information.
 :::
 
-## Project Applications
 
-With packages as the essential organisational units of every Webiny project, another unit are stacks.
+## FAQ
 
-Webiny uses the term "stack" in order to depict a specific segment of your project, which essentially consists of two elements:
-1. your code, which includes one or more packages, and can be anything from a simple GraphQL API, to a complete React application
-2. cloud infrastructure that supports your code or which is being utilized by it
+**Can we use a different package manager, like yarn2 or NPM?**
 
-For example, in a newly created project, by default you receive three stacks. The `api` stack which represents your project's API, `apps/admin` stack which is your Admin area, and finally, the `apps/site` stack, which is your public website.
-
-Each of these three stacks are standalone units, and are built and deployed separately, using Webiny CLI.
-
-:::info Learn more about stacks
-To learn about stacks, how they work, how you can update and deploy them, and other helpful information, click [here](/docs/key-topics/stacks).
-:::
-
-## Webiny Project
-
+At the moment, Webiny projects are set up to work with [yarn 1](https://classic.yarnpkg.com/lang/en/), exclusively. This is simply because it and its `workspaces` functionality is still a solid solution.
+We've looked into [yarn 2](https://yarnpkg.com/), and [npm](https://docs.npmjs.com/cli/v6), but found these not to be as stable, and proven as we'd like them to be. We are definitely all-in when it comes to simplifying the development toolchain, but at this moment, that is simply not possible.
