@@ -29,7 +29,7 @@ module.exports = {
                 "key-topics/project-applications",
                 {
                     type: "category",
-                    label: "Deployments",
+                    label: "Deployment",
                     items: ["key-topics/deployment/iac-with-pulumi", "key-topics/deployment/environments"]
                 },
                 "key-topics/cloud-infrastructure"
