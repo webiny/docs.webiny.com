@@ -7,20 +7,16 @@ description: Create a Webiny Headless CMS address field plugin.
 ---
 
 :::tip What you'll learn
-* where to put the plugins
-* which plugins are required and which are optional
-* how can you modify the data that is indexed
-* how can you modify the data that is stored
+* How to create a new content model field plugin
+* How a plugin stores and retrieves data
 :::
 
 ## Overview
 A detailed and more in-depth explanation and how-to for a Webiny Headless CMS field plugins.
-The tutorial example is the idea you need to search for some address and get the coordinates of the address.
+As an example, in this tutorial you will create a new field plugin that uses Google Maps API to retrieve a location or an address.
 In this tutorial we assume that you know how Webiny plugins work.
 
-:::info
-For quick info on required plugins check our [How-to Guide: Create a Webiny Headless CMS field plugin](/docs/how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin).
-:::
+Tutorial example files are located in our [example repository](https://github.com/webiny/webiny-examples/tree/master/headless-cms/address-field-tutorial).
 
 ## Tutorial narrative
 You need a field that gives you a functionality to search for an address via Google Maps API.
@@ -45,7 +41,12 @@ Files we are creating are:
 4. `addressFieldPlugin.tsx` - UI field definition and display when creating a model
 5. `addressFieldRendererPlugin.tsx` - UI display of the field when creating or updating the entry
 
+:::info
+For quick info on required plugins check our [How-to Guide: Create a Webiny Headless CMS field plugin](/docs/how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin).
+:::
+
 ## UI plugins
+
 ### Definition plugin
 First we need to create a field definition plugin. The base for the plugin is:
 
@@ -78,7 +79,7 @@ createField() {
     };
 }
 ```
-Note that renderer name is left blank so code automatically determines which renderer to use. You can put the name of the renderer, but for our tutorial we leave it blank to use that for later.
+Note that renderer name is left blank so code automatically determines which renderer to use. You can put the name of the renderer, but for our tutorial we leave it blank and use it later.
 
 ### Renderer plugin
 Now we can create the second UI plugin, a renderer for the field we just created.
@@ -175,7 +176,7 @@ read: {
 ```
 
 And the resolver for that field:
-```typescript title="[API]/addressFieldPlugin.ts"
+```ts title="[API]/addressFieldPlugin.ts"
 read: {
     createResolver({ field }) {
         return instance => {
@@ -269,7 +270,7 @@ This plugin now does what we want - disables the field indexing. Of course, we c
 
 All we have left to write is the plugin for storage. As we said, we want to encrypt the data for the storage. You can what ever library you want, it is all up to you. For this tutorial we can use some custom `encrypt` and `decrypt` functions. The base of the plugin looks like this:
 
-```typescript title="[API]/addressFieldStoragePlugin.ts"
+```ts title="[API]/addressFieldStoragePlugin.ts"
 export default (): CmsModelFieldToStoragePlugin => ({
     type: "cms-model-field-to-storage",
     name: "cms-model-field-to-storage-address",
@@ -280,7 +281,7 @@ export default (): CmsModelFieldToStoragePlugin => ({
 ```
 
 First, we encrypt the data. Our suggestion is to encrypt the data and return an object with encrypted value and method of encryption:
-```typescript title="[API]/addressFieldStoragePlugin.ts"
+```ts title="[API]/addressFieldStoragePlugin.ts"
 async toStorage({ value }) {
     return {
         encryption: "webiny",
@@ -292,7 +293,7 @@ Of course if you want to just return the encrypted value, feel free, the choice 
 
 
 And then comes the decryption. Because we expect our value to have some structure, it is easy to check if decryption is necessary. Or if we need to throw an error due to something we expect is not there.
-```typescript title="[API]/addressFieldStoragePlugin.ts"
+```ts title="[API]/addressFieldStoragePlugin.ts"
 async fromStorage({ field, value }) {
     if (!value) {
         return value;
@@ -310,4 +311,8 @@ async fromStorage({ field, value }) {
 
 You should now have a functioning field, apart the `AddressSearch` component and `encrypt`/`decrypt` functions - it is up to you to created them.
 
-Tutorial example files are located in our [example repository](https://github.com/webiny/webiny-examples/tree/master/headless-cms/address-field-tutorial).
+## Last steps
+
+Remember that you need to import the plugins.
+Default import file location for API is `api/code/headlessCMS/src/index.ts` and for UI it is `apps/admin/code/src/plugins/headlessCms.ts`.
+If you changed that, import in these locations.
