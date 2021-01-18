@@ -11,7 +11,7 @@ module.exports = {
                 }
             ],
             "Key Topics": [
-                "key-topics/project-organisation",
+                "key-topics/project-organization",
                 "key-topics/project-applications",
                 {
                     type: "category",
