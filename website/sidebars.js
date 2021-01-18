@@ -12,16 +12,13 @@ module.exports = {
             ],
             "Key Topics": [
                 "key-topics/project-organisation",
+                "key-topics/project-applications",
                 {
                     type: "category",
-                    label: "Project Applications",
-                    items: [
-                        "key-topics/project-applications/overview",
-                        "key-topics/project-applications/environments",
-                    ]
+                    label: "Deployments",
+                    items: ["key-topics/deployment/iac-with-pulumi", "key-topics/deployment/environments"]
                 },
-                "key-topics/cloud-infrastructure",
-                "key-topics/iac-with-pulumi",
+                "key-topics/cloud-infrastructure"
             ]
         },
         {
