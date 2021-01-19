@@ -316,3 +316,81 @@ You should now have a functioning field, apart the `AddressSearch` component and
 Remember that you need to import the plugins.
 Default import file location for API is `api/code/headlessCMS/src/index.ts` and for UI it is `apps/admin/code/src/plugins/headlessCms.ts`.
 If you changed that, import in these locations.
+
+```ts title="api/code/headlessCMS/src/index.ts"
+import { DocumentClient } from "aws-sdk/clients/dynamodb";
+import { createHandler } from "@webiny/handler-aws";
+import i18nPlugins from "@webiny/api-i18n/graphql";
+import i18nContentPlugins from "@webiny/api-i18n-content/plugins";
+import dbPlugins from "@webiny/handler-db";
+import { DynamoDbDriver } from "@webiny/db-dynamodb";
+import elasticSearch from "@webiny/api-plugin-elastic-search-client";
+import headlessCmsPlugins from "@webiny/api-headless-cms/content";
+import securityPlugins from "./security";
+// import your field plugins
+import addressFieldPlugin from "./fields/address/addressFieldPlugin";
+import addressFieldStoragePlugin from "./fields/address/addressFieldStoragePlugin";
+import addressFieldIndexPlugin from "./addressFieldIndexPlugin";
+
+export const handler = createHandler(
+    elasticSearch({ endpoint: `https://${process.env.ELASTIC_SEARCH_ENDPOINT}` }),
+    dbPlugins({
+        table: process.env.DB_TABLE,
+        driver: new DynamoDbDriver({
+            documentClient: new DocumentClient({
+                convertEmptyValues: true,
+                region: process.env.AWS_REGION
+            })
+        })
+    }),
+    securityPlugins(),
+    i18nPlugins(),
+    i18nContentPlugins(),
+    headlessCmsPlugins({ debug: Boolean(process.env.DEBUG) }),
+	// add plugins to handler
+	addressFieldPlugin(),
+	addressFieldStoragePlugin(),
+	addressFieldIndexPlugin()
+);
+```
+
+
+```ts title="apps/admin/code/src/plugins/headlessCms.ts"
+import headlessCmsPlugins from "@webiny/app-headless-cms/admin/plugins";
+// .
+// .
+// .
+import richTextEditor from "./headlessCMS/richTextEditor";
+// import your field plugins
+import addressFieldPlugin from "./headlessCMS/fields/address/addressFieldPlugin";
+import addressFieldRendererPlugin from "./headlessCMS/fields/address/addressFieldRendererPlugin";
+
+export default [
+    // .
+	// .
+	// .
+    richTextEditor,
+	// add plugins to export
+	addressFieldPlugin(),
+	addressFieldRendererPlugin()
+];
+
+```
+
+
+:::danger
+Do not forget to rerun, rebuild and redeploy your application.
+:::
+
+```shell title="redeploy your api"
+./yarn webiny stack deploy api --env=YOUR_ENVIRONMENT
+```
+
+```shell title="rerun admin app if you are running locally"
+cd ./apps/admin/code/
+yarn start --env=YOUR_ENVIRONMENT
+```
+
+```shell title="redeploy if you are running in the cloud"
+./yarn webiny stack deploy apps/admin --env=YOUR_ENVIRONMENT
+```
