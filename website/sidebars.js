@@ -16,7 +16,10 @@ module.exports = {
                 {
                     type: "category",
                     label: "Deployment",
-                    items: ["how-to-guides/deployment/configure-aws-credentials"]
+                    items: [
+                        "how-to-guides/deployment/deploy-your-project",
+                        "how-to-guides/deployment/configure-aws-credentials",
+                    ]
                 },
                 {
                     type: "category",
@@ -30,8 +33,13 @@ module.exports = {
                 {
                     type: "category",
                     label: "Deployment",
-                    items: ["key-topics/deployment/iac-with-pulumi", "key-topics/deployment/environments"]
+                    items: [
+                        "key-topics/deployment/introduction",
+                        "key-topics/deployment/iac-with-pulumi",
+                        "key-topics/deployment/environments"
+                    ]
                 },
+                "key-topics/webiny-cli",
                 "key-topics/cloud-infrastructure"
             ]
         },
