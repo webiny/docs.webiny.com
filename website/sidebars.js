@@ -18,7 +18,7 @@ module.exports = {
                     label: "Deployment",
                     items: [
                         "how-to-guides/deployment/deploy-your-project",
-                        "how-to-guides/deployment/configure-aws-credentials",
+                        "how-to-guides/deployment/configure-aws-credentials"
                     ]
                 },
                 {
@@ -28,6 +28,7 @@ module.exports = {
                 }
             ],
             "Key Topics": [
+                "key-topics/technologies",
                 "key-topics/project-organization",
                 "key-topics/project-applications",
                 {
@@ -40,7 +41,16 @@ module.exports = {
                     ]
                 },
                 "key-topics/webiny-cli",
-                "key-topics/cloud-infrastructure"
+                {
+                    type: "category",
+                    label: "Cloud Infrastructure",
+                    items: [
+                        "key-topics/cloud-infrastructure/introduction",
+                        "key-topics/cloud-infrastructure/api",
+                        "key-topics/cloud-infrastructure/admin",
+                        "key-topics/cloud-infrastructure/website"
+                    ]
+                }
             ]
         },
         {
