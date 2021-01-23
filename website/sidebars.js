@@ -18,7 +18,7 @@ module.exports = {
                     label: "Deployment",
                     items: [
                         "how-to-guides/deployment/deploy-your-project",
-                        "how-to-guides/deployment/configure-aws-credentials",
+                        "how-to-guides/deployment/configure-aws-credentials"
                     ]
                 },
                 {
@@ -41,7 +41,8 @@ module.exports = {
                 },
                 "key-topics/webiny-cli",
                 "key-topics/cloud-infrastructure"
-            ]
+            ],
+            References: ["references/api-headless-cms"]
         },
         {
             Contributing: ["contributing/documentation"]
