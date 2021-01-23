@@ -1,0 +1,130 @@
+# Interface: CmsModelFieldToElasticsearchPlugin
+
+A plugin defining transformation of entry for Elasticsearch.
+
+## Hierarchy
+
+* *Plugin*
+
+  ↳ **CmsModelFieldToElasticsearchPlugin**
+
+## Table of contents
+
+### Properties
+
+- [fieldType](cmsmodelfieldtoelasticsearchplugin.mdx#fieldtype)
+- [init](cmsmodelfieldtoelasticsearchplugin.mdx#init)
+- [name](cmsmodelfieldtoelasticsearchplugin.mdx#name)
+- [type](cmsmodelfieldtoelasticsearchplugin.mdx#type)
+- [unmappedType](cmsmodelfieldtoelasticsearchplugin.mdx#unmappedtype)
+
+### Methods
+
+- [fromIndex](cmsmodelfieldtoelasticsearchplugin.mdx#fromindex)
+- [toIndex](cmsmodelfieldtoelasticsearchplugin.mdx#toindex)
+
+## Properties
+
+### fieldType
+
+• **fieldType**: *string*
+
+A unique identifier of the field type (text, number, json, myField, ...).
+
+```ts
+fieldType: "myField"
+```
+
+___
+
+### init
+
+• `Optional` **init**: () => *void*
+
+___
+
+### name
+
+• `Optional` **name**: *string*
+
+___
+
+### type
+
+• **type**: *cms-model-field-to-elastic-search*
+
+A plugin type
+
+___
+
+### unmappedType
+
+• `Optional` **unmappedType**: *string*
+
+If you need to define a type when building an Elasticsearch query.
+Check [dateTimeIndexing](https://github.com/webiny/webiny-js/blob/3074165701b8b45e5fc6ac2444caace7d04ada66/packages/api-headless-cms/src/content/plugins/es/indexing/dateTimeIndexing.ts) plugin for usage example.
+
+```ts
+unmappedType: "date"
+```
+
+## Methods
+
+### fromIndex
+
+▸ `Optional`**fromIndex**(`params`: { `context`: [*CmsContext*](cmscontext.mdx) ; `entry`: [*CmsContentIndexEntry*](cmscontentindexentry.mdx) ; `field`: [*CmsContentModelField*](cmscontentmodelfield.mdx) ; `fieldTypePlugin`: [*CmsModelFieldToGraphQLPlugin*](cmsmodelfieldtographqlplugin.mdx) ; `model`: [*CmsContentModel*](cmscontentmodel.mdx)  }): *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry.mdx)\>
+
+This is meant to revert a transformation done in the `toIndex` method. Again, you can transform any field but try to keep things separated. It returns `Partial<CmsContentIndexEntryType>`. Always return a top-level property of the entry since it is merged via spread operator.
+
+```ts
+fromIndex({entry, field}) {
+    const value = entry.rawValues[field.fieldId];
+    delete entry.rawValues[field.fieldId];
+    return {
+        values: {
+            ...entry.values,
+            [field.fieldId]: JSON.parse(value),
+        },
+        rawValues: entry.rawValues,
+    };
+}
+```
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`params` | { `context`: [*CmsContext*](cmscontext.mdx) ; `entry`: [*CmsContentIndexEntry*](cmscontentindexentry.mdx) ; `field`: [*CmsContentModelField*](cmscontentmodelfield.mdx) ; `fieldTypePlugin`: [*CmsModelFieldToGraphQLPlugin*](cmsmodelfieldtographqlplugin.mdx) ; `model`: [*CmsContentModel*](cmscontentmodel.mdx)  } |
+
+**Returns:** *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry.mdx)\>
+
+___
+
+### toIndex
+
+▸ `Optional`**toIndex**(`params`: { `context`: [*CmsContext*](cmscontext.mdx) ; `field`: [*CmsContentModelField*](cmscontentmodelfield.mdx) ; `fieldTypePlugin`: [*CmsModelFieldToGraphQLPlugin*](cmsmodelfieldtographqlplugin.mdx) ; `model`: [*CmsContentModel*](cmscontentmodel.mdx) ; `originalEntry`: [*CmsContentEntry*](cmscontententry.mdx) ; `storageEntry`: [*CmsContentEntry*](cmscontententry.mdx) ; `toIndexEntry`: [*CmsContentIndexEntry*](cmscontentindexentry.mdx)  }): *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry.mdx)\>
+
+This is meant to do some transformation of the entry, preferably only to fieldType it was defined for. Nothing is stopping you to do anything you want to other fields, but try to separate field transformations.
+It returns `Partial<CmsContentIndexEntryType>`. Always return a top-level property of the entry since it is merged via spread operator.
+
+```ts
+toIndex({toIndexEntry, storageEntry, originalEntry, field}) {
+   const value = toIndexEntry.values[field.fieldId];
+   delete toIndexEntry.values[field.fieldId];
+   return {
+       values: toIndexEntry.values,
+       rawValues: {
+           ...toIndexEntry.rawValues,
+           [field.fieldId]: JSON.stringify(value),
+       },
+   };
+}
+```
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`params` | { `context`: [*CmsContext*](cmscontext.mdx) ; `field`: [*CmsContentModelField*](cmscontentmodelfield.mdx) ; `fieldTypePlugin`: [*CmsModelFieldToGraphQLPlugin*](cmsmodelfieldtographqlplugin.mdx) ; `model`: [*CmsContentModel*](cmscontentmodel.mdx) ; `originalEntry`: [*CmsContentEntry*](cmscontententry.mdx) ; `storageEntry`: [*CmsContentEntry*](cmscontententry.mdx) ; `toIndexEntry`: [*CmsContentIndexEntry*](cmscontentindexentry.mdx)  } |
+
+**Returns:** *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry.mdx)\>
