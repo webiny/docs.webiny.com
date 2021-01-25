@@ -1,46 +1,72 @@
-import React, { useState } from "react";
-import classnames from "classnames";
+import React, { useState, useEffect } from "react";
+import preloadImages from "./utils/preloadImages";
 
-import defaultApi from "./DiagramApi/images/webiny_api_default.png";
+import overview from "./DiagramApi/images/webiny_api_overview.png";
 import gqlRequest from "./DiagramApi/images/webiny_api_gql_request.png";
 import fmUpload from "./DiagramApi/images/webiny_api_fm_upload.png";
 import fmDownload from "./DiagramApi/images/webiny_api_fm_download.png";
 
-const style = {
-  hidden: { display: "none" }
+import Overview from "./DiagramApi/content/Overview.mdx";
+import GqlRequest from "./DiagramApi/content/GqlRequest.mdx";
+import FmUpload from "./DiagramApi/content/FmUpload.mdx";
+import FmDownload from "./DiagramApi/content/FmDownload.mdx";
+
+const FLOW = {
+  OVERVIEW: "overview",
+  GQL_REQUEST: "gqlRequest",
+  FM_UPLOAD: "fmUpload",
+  FM_DOWNLOAD: "fmDownload"
 };
 
 export default () => {
-  const [flow, setFlow] = useState("defaultApi");
+  const [flow, setFlow] = useState(FLOW.OVERVIEW);
+  useEffect(() => {
+    preloadImages(overview, gqlRequest, fmUpload, fmDownload);
+  }, []);
 
   return (
-    <>
+    <React.Fragment>
       <label htmlFor="flowSelector">
-        Select flow: &nbsp;
+        Diagram: &nbsp;
         <select id={"flowSelector"} onChange={e => setFlow(e.target.value)}>
-          <option value={"defaultApi"}>Default</option>
-          <option value={"gqlRequest"}>GraphQL request</option>
-          <option value={"fmUpload"}>Upload file</option>
-          <option value={"fmDownload"}>Download file</option>
+          <option value={FLOW.OVERVIEW}>Overview</option>
+          <option disabled>──────────</option>
+          <option value={FLOW.GQL_REQUEST}>GraphQL Request</option>
+          <optgroup label={"File Manager:"}>
+            <option value={FLOW.FM_UPLOAD}>File Upload</option>
+            <option value={FLOW.FM_DOWNLOAD}>File Download</option>
+          </optgroup>
         </select>
       </label>
-
       <hr />
-      <br />
 
-      <img
-        className={classnames("no-shadow", { hidden: flow !== "defaultApi" })}
-        src={defaultApi}
-      />
-      <img
-        className={classnames("no-shadow", { hidden: flow !== "gqlRequest" })}
-        src={gqlRequest}
-      />
-      <img className={classnames("no-shadow", { hidden: flow !== "fmUpload" })} src={fmUpload} />
-      <img
-        className={classnames("no-shadow", { hidden: flow !== "fmDownload" })}
-        src={fmDownload}
-      />
-    </>
+      {flow === FLOW.OVERVIEW && (
+        <React.Fragment>
+          <img className={"no-shadow"} src={overview} alt={"Overview"} />
+          <Overview/>
+        </React.Fragment>
+      )}
+
+      {flow === FLOW.GQL_REQUEST && (
+        <React.Fragment>
+          <img className={"no-shadow"} src={gqlRequest} alt={"GraphQL Request"} />
+          <GqlRequest/>
+        </React.Fragment>
+      )}
+
+      {flow === FLOW.FM_UPLOAD && (
+        <React.Fragment>
+          <img className={"no-shadow"} src={fmUpload} alt={"Upload File"} />
+          <FmUpload/>
+        </React.Fragment>
+      )}
+
+      {flow === FLOW.FM_DOWNLOAD && (
+        <React.Fragment>
+          <img className={"no-shadow"} src={fmDownload} alt={"Download File"} />
+          <FmDownload/>
+        </React.Fragment>
+      )}
+    </React.Fragment>
   );
 };

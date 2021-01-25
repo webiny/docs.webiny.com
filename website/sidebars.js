@@ -40,6 +40,11 @@ module.exports = {
                         "key-topics/deployment/environments"
                     ]
                 },
+                {
+                    type: "category",
+                    label: "Page Builder",
+                    items: ["key-topics/page-builder/prerendering-pages"]
+                },
                 "key-topics/webiny-cli",
                 {
                     type: "category",

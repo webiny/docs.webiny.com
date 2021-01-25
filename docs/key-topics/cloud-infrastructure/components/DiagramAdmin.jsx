@@ -1,30 +1,48 @@
-import React, { useState } from "react";
-import classnames from "classnames";
+import React, { useState, useEffect } from "react";
+import preloadImages from "./utils/preloadImages";
 
-import defaultAdmin from "./DiagramAdmin/images/webiny_admin_default.png";
-import visit from "./DiagramAdmin/images/webiny_admin_visit.png";
-import Content from "./DiagramAdmin/Content.mdx";
+import overview from "./DiagramAdmin/images/webiny_admin_overview.png";
+import pageVisit from "./DiagramAdmin/images/webiny_admin_page_visit.png";
+
+import Overview from "./DiagramAdmin/content/Overview.mdx";
+import PageVisit from "./DiagramAdmin/content/PageVisit.mdx";
+
+const FLOW = {
+  OVERVIEW: "overview",
+  PAGE_VISIT: "pageVisit"
+};
 
 export default () => {
-  const [flow, setFlow] = useState("defaultAdmin");
+  const [flow, setFlow] = useState(FLOW.OVERVIEW);
+  useEffect(() => {
+    preloadImages(overview, pageVisit);
+  }, []);
 
   return (
     <React.Fragment>
       <label htmlFor="flowSelector">
-        Select flow: &nbsp;
+        Diagram: &nbsp;
         <select id={"flowSelector"} onChange={e => setFlow(e.target.value)}>
-          <option value={"defaultAdmin"}>Default</option>
-          <option value={"visit"}>Open Admin Area</option>
+          <option value={FLOW.OVERVIEW}>Overview</option>
+          <option disabled>──────────</option>
+          <option value={FLOW.PAGE_VISIT}>Serving the Application</option>
         </select>
       </label>
-
       <hr />
-      <br />
 
-      <img className={classnames("no-shadow", { hidden: flow !== "defaultAdmin" })} src={defaultAdmin} />
-      <img className={classnames("no-shadow", { hidden: flow !== "visit" })} src={visit} />
+      {flow === FLOW.OVERVIEW && (
+        <React.Fragment>
+          <img className={"no-shadow"} src={overview} alt={"Overview"} />
+          <Overview />
+        </React.Fragment>
+      )}
 
-      <Content />
+      {flow === FLOW.PAGE_VISIT && (
+        <React.Fragment>
+          <img className={"no-shadow"} src={pageVisit} alt={"Serving Application"} />
+          <PageVisit />
+        </React.Fragment>
+      )}
     </React.Fragment>
   );
 };
