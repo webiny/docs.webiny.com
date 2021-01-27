@@ -54,9 +54,28 @@ module.exports = {
                     label: "Cloud Infrastructure",
                     items: [
                         "key-topics/cloud-infrastructure/introduction",
-                        "key-topics/cloud-infrastructure/api",
-                        "key-topics/cloud-infrastructure/admin",
-                        "key-topics/cloud-infrastructure/website"
+                        {
+                            type: "category",
+                            label: "API",
+                            items: [
+                                "key-topics/cloud-infrastructure/api/overview",
+                                "key-topics/cloud-infrastructure/api/overview-vpc-default",
+                                "key-topics/cloud-infrastructure/api/overview-vpc",
+                                "key-topics/cloud-infrastructure/api/graphql-requests",
+                                "key-topics/cloud-infrastructure/api/file-upload",
+                                "key-topics/cloud-infrastructure/api/file-download"
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "Admin Area",
+                            items: ["key-topics/cloud-infrastructure/admin"]
+                        },
+                        {
+                            type: "category",
+                            label: "Website",
+                            items: ["key-topics/cloud-infrastructure/website"]
+                        }
                     ]
                 }
             ]
