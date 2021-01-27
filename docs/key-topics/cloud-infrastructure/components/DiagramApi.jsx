@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import preloadImages from "./utils/preloadImages";
 
 import overview from "./DiagramApi/images/webiny_api_overview.png";
+import overviewVpc from "./DiagramApi/images/webiny_api_overview_vpc.png";
 import gqlRequest from "./DiagramApi/images/webiny_api_gql_request.png";
 import fmUpload from "./DiagramApi/images/webiny_api_fm_upload.png";
 import fmDownload from "./DiagramApi/images/webiny_api_fm_download.png";
@@ -23,7 +24,7 @@ const FLOW = {
 export default () => {
   const [flow, setFlow] = useState(FLOW.OVERVIEW);
   useEffect(() => {
-    preloadImages(overview, gqlRequest, fmUpload, fmDownload);
+    preloadImages(overview, overviewVpc, gqlRequest, fmUpload, fmDownload);
   }, []);
 
   return (
