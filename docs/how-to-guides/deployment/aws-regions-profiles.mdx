@@ -1,0 +1,98 @@
+---
+id: aws-regions-profiles
+title: AWS Regions and Profiles
+sidebar_label: AWS Regions and Profiles
+keywords: ["deploy", "project", "application", "cli"]
+description: Learn how to deploy your Webiny project and its project applications, using the Webiny CLI.
+---
+
+:::tip What you’ll learn
+
+- how to deploy your project into multiple environments
+- how to deploy project applications into multiple environments
+:::
+
+## Introduction
+
+Webiny makes it easy to deploy your project, using the [Webiny CLI](/docs/key-topics/webiny-cli) and [Pulumi](/docs/key-topics/deployment/iac-with-pulumi) as the default infrastructure as code and deployment solution. You can also easily deploy your project into multiple [environments](/docs/key-topics/deployment/environments), which is covered in this guide as well.
+
+:::info
+To learn more about project organization, check out the [Project organisation](/docs/key-topics/project-organization) and [Project Applications](/docs/key-topics/project-applications) key topics. To learn more about deployments in general, check out the [Deployment](/docs/key-topics/deployment/introduction) key topics section.
+:::
+
+## Before we begin
+
+Before we begin, it's worth mentioning that the deployment commands shown below also build your application code. They perform this task by just running the following **workspaces** command:
+
+```
+yarn webiny workspaces run build --folder {STACK_FOLDER}
+```
+
+The command first finds all packages that are located in the project application folder. Then, for every found package, it runs the `build` command that's specified in the `webiny.config.js` - a configuration file that every package possesses. If the `build` command is defined, it gets executed, otherwise, the process just continues with the next package.
+
+## The `deploy` command
+
+As explained in the [introduction to deployment](/docs/key-topics/deployment/introduction) key topic, doing a complete project deployment entails deploying all of its project applications.
+
+To make it a bit easier for new users, Webiny CLI provides the `deploy` command, which deploys all of the three applications that are by default included in a Webiny project. It deploys them in the following order:
+
+<!-- vale off -->
+1. **api**
+2. **apps/admin**
+3. **apps/site**
+<!-- vale on -->
+
+So, to do a complete deployment of your Webiny project, in your terminal of choice, and in your project root, execute the following command:
+
+```
+yarn webiny deploy
+```
+
+:::info
+Note that the first deployment can take up to 20 minutes! So even though it might look like nothing is happening in the terminal, please be patient and let the process finish. If something went wrong, an error will be shown, and the process will exit with an appropriate error code.
+:::
+
+### Different environments
+In general, when deploying projects or project applications, an environment must be specified. The `deploy` command deploys your project into the `dev` environment by default, but you can also specify a different environment with the `--env` argument. For example, to deploy your project into the `prod` environment, you can run the following command:
+
+```
+yarn webiny deploy --env prod
+```
+
+### Limitations
+
+As mentioned, the `deploy` command is made for new users, making the initial deployment as easy as possible. In that sense, you need to be aware of a couple of limitations of this command.
+
+#### 1. Deploys everything
+With this command, you cannot pick a specific project application you wish to deploy. It's all or nothing.
+
+This can become problematic. If changes were made to just one application, which now needs to be deployed, you probably don't want to deploy your whole project. Deploying this single application will suffice in most cases.
+
+To avoid deploying your whole project, use the `app deploy` command (explained below).
+
+#### 2. Only works with default project applications
+The moment you start adding more applications to your project and your project starts growing, you will need to come up with your own command for complete project deployment. It's either that, or you'll need to rely on the `app deploy` command to separately deploy your applications. This is simply because Webiny [cannot predict](/docs/key-topics/deployment/introduction#dependent-project-applications) which project applications need to be deployed and in what order.
+
+Still, if you aren't about to add new project applications and maybe you just end up expanding the default ones, then the `deploy` command will most probably serve you well.
+
+## The `app deploy` command
+
+This command lets you deploy your project in a more granular way, by enabling you to deploy a single project application. This can be handy if you want to avoid deploying your whole project, which is one of the caveats of the shown `deploy` command.
+
+As its first argument, the `app deploy` command receives the path to the application folder. You also need to specify the environment in which you want to deploy it, which is specified via the `--env` argument. Note that, unlike with the `deploy` command, the `--env` argument is not optional and it needs to be provided explicitly.
+
+The following deploy commands deploy three different applications, all into the `dev` environment:
+
+```
+yarn webiny app deploy api --env dev
+yarn webiny app deploy apps/admin --env dev
+yarn webiny app deploy apps/site --env dev
+```
+
+
+
+## FAQ
+
+**Is there a built-in command that destroys the whole project?**
+
+At the moment, there is not. To destroy the whole project, run separate `webiny app destroy` commands on each project application.

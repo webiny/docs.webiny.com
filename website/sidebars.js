@@ -20,6 +20,7 @@ module.exports = {
                         "how-to-guides/deployment/deploy-your-project",
                         "how-to-guides/deployment/destroy-your-project",
                         "how-to-guides/deployment/preview-deployments",
+                        "how-to-guides/deployment/aws-regions-profiles",
                         "how-to-guides/deployment/configure-aws-credentials"
                     ]
                 },
