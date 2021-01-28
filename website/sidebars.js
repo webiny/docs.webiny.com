@@ -20,7 +20,7 @@ module.exports = {
                         "how-to-guides/deployment/deploy-your-project",
                         "how-to-guides/deployment/destroy-your-project",
                         "how-to-guides/deployment/preview-deployments",
-                        "how-to-guides/deployment/aws-regions-profiles",
+                        /*"how-to-guides/deployment/aws-regions-profiles",*/
                         "how-to-guides/deployment/configure-aws-credentials"
                     ]
                 },
@@ -31,7 +31,7 @@ module.exports = {
                 }
             ],
             "Key Topics": [
-                "key-topics/technologies",
+                /*"key-topics/technologies",*/
                 "key-topics/project-organization",
                 "key-topics/project-applications",
                 {
@@ -43,12 +43,12 @@ module.exports = {
                         "key-topics/deployment/environments"
                     ]
                 },
-                {
+                /*{
                     type: "category",
                     label: "Page Builder",
                     items: ["key-topics/page-builder/prerendering-pages"]
-                },
-                "key-topics/webiny-cli",
+                },*/
+                /*"key-topics/webiny-cli",*/
                 {
                     type: "category",
                     label: "Cloud Infrastructure",
