@@ -73,7 +73,7 @@ module.exports = {
                             items: [
                                 "key-topics/cloud-infrastructure/admin/introduction",
                                 "key-topics/cloud-infrastructure/admin/overview",
-                                "key-topics/cloud-infrastructure/admin/page-visit"
+                                "key-topics/cloud-infrastructure/admin/serving-application-files"
                             ]
                         },
                         {
@@ -82,8 +82,8 @@ module.exports = {
                             items: [
                                 "key-topics/cloud-infrastructure/website/introduction",
                                 "key-topics/cloud-infrastructure/website/overview",
-                                "key-topics/cloud-infrastructure/website/prerendering",
-                                "key-topics/cloud-infrastructure/website/serving"
+                                "key-topics/cloud-infrastructure/website/prerendering-pages",
+                                "key-topics/cloud-infrastructure/website/serving-pages"
                             ]
                         }
                     ]
