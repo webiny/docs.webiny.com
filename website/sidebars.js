@@ -58,23 +58,33 @@ module.exports = {
                             type: "category",
                             label: "API",
                             items: [
+                                "key-topics/cloud-infrastructure/api/introduction",
                                 "key-topics/cloud-infrastructure/api/overview",
-                                "key-topics/cloud-infrastructure/api/overview-vpc-default",
-                                "key-topics/cloud-infrastructure/api/overview-vpc",
                                 "key-topics/cloud-infrastructure/api/graphql-requests",
                                 "key-topics/cloud-infrastructure/api/file-upload",
-                                "key-topics/cloud-infrastructure/api/file-download"
+                                "key-topics/cloud-infrastructure/api/file-download",
+                                "key-topics/cloud-infrastructure/api/overview-vpc-default",
+                                "key-topics/cloud-infrastructure/api/overview-vpc-custom",
                             ]
                         },
                         {
                             type: "category",
                             label: "Admin Area",
-                            items: ["key-topics/cloud-infrastructure/admin"]
+                            items: [
+                                "key-topics/cloud-infrastructure/admin/introduction",
+                                "key-topics/cloud-infrastructure/admin/overview",
+                                "key-topics/cloud-infrastructure/admin/page-visit"
+                            ]
                         },
                         {
                             type: "category",
                             label: "Website",
-                            items: ["key-topics/cloud-infrastructure/website"]
+                            items: [
+                                "key-topics/cloud-infrastructure/website/introduction",
+                                "key-topics/cloud-infrastructure/website/overview",
+                                "key-topics/cloud-infrastructure/website/prerendering",
+                                "key-topics/cloud-infrastructure/website/serving"
+                            ]
                         }
                     ]
                 }
