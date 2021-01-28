@@ -8,9 +8,9 @@ module.exports = {
                     type: "category",
                     label: "Headless CMS",
                     items: [
-                        "tutorials/headless-cms/create-a-webiny-headless-cms-avatar-field-plugin"
-                    ]
-                }
+                        "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin",
+                    ],
+                },
             ],
             "How-to guides": [
                 {
@@ -27,8 +27,8 @@ module.exports = {
                 {
                     type: "category",
                     label: "Headless CMS",
-                    items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"]
-                }
+                    items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"],
+                },
             ],
             "Key Topics": [
                 /*"key-topics/technologies",*/
