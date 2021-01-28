@@ -18,8 +18,11 @@ module.exports = {
                     label: "Deployment",
                     items: [
                         "how-to-guides/deployment/deploy-your-project",
-                        "how-to-guides/deployment/configure-aws-credentials",
-                    ],
+                        "how-to-guides/deployment/destroy-your-project",
+                        "how-to-guides/deployment/preview-deployments",
+                        /*"how-to-guides/deployment/aws-regions-profiles",*/
+                        "how-to-guides/deployment/configure-aws-credentials"
+                    ]
                 },
                 {
                     type: "category",
@@ -28,6 +31,7 @@ module.exports = {
                 },
             ],
             "Key Topics": [
+                /*"key-topics/technologies",*/
                 "key-topics/project-organization",
                 "key-topics/project-applications",
                 {
@@ -36,16 +40,59 @@ module.exports = {
                     items: [
                         "key-topics/deployment/introduction",
                         "key-topics/deployment/iac-with-pulumi",
-                        "key-topics/deployment/environments",
-                    ],
+                        "key-topics/deployment/environments"
+                    ]
                 },
-                //"key-topics/webiny-cli",
-                //"key-topics/cloud-infrastructure"
-            ],
+                /*{
+                    type: "category",
+                    label: "Page Builder",
+                    items: ["key-topics/page-builder/prerendering-pages"]
+                },*/
+                /*"key-topics/webiny-cli",*/
+                {
+                    type: "category",
+                    label: "Cloud Infrastructure",
+                    items: [
+                        "key-topics/cloud-infrastructure/introduction",
+                        {
+                            type: "category",
+                            label: "API",
+                            items: [
+                                "key-topics/cloud-infrastructure/api/introduction",
+                                "key-topics/cloud-infrastructure/api/overview",
+                                "key-topics/cloud-infrastructure/api/graphql-requests",
+                                "key-topics/cloud-infrastructure/api/file-upload",
+                                "key-topics/cloud-infrastructure/api/file-download",
+                                "key-topics/cloud-infrastructure/api/overview-vpc-default",
+                                "key-topics/cloud-infrastructure/api/overview-vpc-custom",
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "Admin Area",
+                            items: [
+                                "key-topics/cloud-infrastructure/admin/introduction",
+                                "key-topics/cloud-infrastructure/admin/overview",
+                                "key-topics/cloud-infrastructure/admin/serving-application-files"
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "Website",
+                            items: [
+                                "key-topics/cloud-infrastructure/website/introduction",
+                                "key-topics/cloud-infrastructure/website/overview",
+                                "key-topics/cloud-infrastructure/website/prerendering-pages",
+                                "key-topics/cloud-infrastructure/website/serving-pages"
+                            ]
+                        }
+                    ]
+                }
+            ]
         },
         {
-            Contributing: ["contributing/documentation"],
+            Contributing: ["contributing/documentation"]
         },
-        "webiny-telemetry",
-    ],
+        "webiny-telemetry"
+    ]
 };
