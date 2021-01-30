@@ -8,9 +8,9 @@ module.exports = {
                     type: "category",
                     label: "Headless CMS",
                     items: [
-                        "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin",
-                    ],
-                },
+                        "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin"
+                    ]
+                }
             ],
             "How-to guides": [
                 {
@@ -27,8 +27,9 @@ module.exports = {
                 {
                     type: "category",
                     label: "Headless CMS",
-                    items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"],
+                    items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"]
                 },
+                "how-to-guides/upgrading"
             ],
             "Key Topics": [
                 /*"key-topics/technologies",*/
@@ -64,7 +65,7 @@ module.exports = {
                                 "key-topics/cloud-infrastructure/api/file-upload",
                                 "key-topics/cloud-infrastructure/api/file-download",
                                 "key-topics/cloud-infrastructure/api/overview-vpc-default",
-                                "key-topics/cloud-infrastructure/api/overview-vpc-custom",
+                                "key-topics/cloud-infrastructure/api/overview-vpc-custom"
                             ]
                         },
                         {
