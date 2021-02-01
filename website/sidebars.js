@@ -29,7 +29,7 @@ module.exports = {
                     label: "Headless CMS",
                     items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"]
                 },
-                "how-to-guides/upgrading"
+                "how-to-guides/upgrade-webiny"
             ],
             "Key Topics": [
                 /*"key-topics/technologies",*/
