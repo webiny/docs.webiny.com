@@ -1,0 +1,197 @@
+---
+id: content-models
+title: Content models
+sidebar_label: Content models
+keywords: ["webiny", "content model", "headless cms", "data mapping", "dynamodb"]
+description: A deep-dive into how data models are mapped and stored to the database
+---
+
+:::tip What you'll learn
+* How are we creating content models out of input data
+* How are we storing and retrieving content model definitions
+:::
+
+## Before you start
+You should read about Webiny plugins and how they work.
+
+## Overview
+We will go through all files that are connected with `./packages/api-headless-cms/src/content/plugins/crud/contentModel.crud.ts`, including that file, to explain what do we do with the input on the manage API.
+
+Content models are saved only into the DynamoDB because we do not search through them nor there will, probably, be thousands of models.
+
+For the article we will use `en-US` locale example setting. The manage endpoint is `/cms/manage/en-US`.
+
+## Common parts of all methods
+At the start of each method we check for user permissions (read, write and delete), depending on what the method is. We do not check, directly, combinations of the permissions like `write+read` or `read+delete`.
+
+### Creating the content model
+Input data for creating the content model is [CmsContentModelCreateInput](../../references/headless-cms/api/cmscontentmodelcreateinput). At this point there are no fields defined yet.
+
+<img
+	src={require("./assets/new-content-model.png").default}
+	style={{ margin: "0 auto 20px auto", display: "block", maxWidth: "100%" }}
+	alt="New content model"
+/>
+
+When the data is sent to the API and passed into the `contentModel.crud`.`create` method flow looks like this:
+1. check for write permission
+```ts
+await checkPermissions("w");
+```
+2. create the data model
+```ts
+const createdData = new CreateContentModelModel().populate(data);
+```
+3. validate the data model
+```ts
+await createdData.validate();
+```
+4. get the group for the content model
+```ts
+const group = await context.cms.groups.noAuth().get(createdDataJson.group);
+if (!group) {
+    throw new NotFoundError(`There is no group "${createdDataJson.group}".`);
+}
+```
+5. build actual model for the database
+```ts
+const model: CmsContentModel = {
+    ...createdDataJson,
+    group: {
+        id: group.id,
+        name: group.name
+    },
+    createdBy: {
+        id: identity.id,
+        displayName: identity.displayName,
+        type: identity.type
+    },
+    createdOn: new Date().toISOString(),
+    savedOn: new Date().toISOString(),
+    fields: [],
+    lockedFields: [],
+    layout: []
+};
+```
+6. run before create hook
+```ts
+await beforeCreateHook({ context, model });
+```
+7. create record in the database
+```ts
+await db.create({
+    ...utils.defaults.db,
+    data: {
+        PK: PK_CONTENT_MODEL(),
+        SK: model.modelId,
+        TYPE: "cms.model",
+        ...model
+    }
+});
+```
+8. update model manager - used in the code to ease the handling of content entries
+```ts
+await updateManager(context, model);
+```
+9. run after create hook
+```ts
+await afterCreateHook({ context, model });
+```
+With all these steps successfully ran, you have a content model into which you can add fields.
+
+### Updating the content model
+Input data for updating the content model is [CmsContentModelUpdateInput](../../references/headless-cms/api/cmscontentmodelupdateinput). This is where you define the fields you want in your content model.
+
+<img
+	src={require("./assets/update-content-model.png").default}
+	style={{ margin: "0 auto 20px auto", display: "block", maxWidth: "100%" }}
+	alt="New content model"
+/>
+
+When the data is sent to the API and passed into the `contentModel.crud`.`update` method flow looks like this:
+1. check for write permission
+```ts
+await checkPermissions("w");
+```
+2. fetch existing content model from the database - which also checks read permission and ownership
+```ts
+const model = await context.cms.models.get(modelId);
+```
+3. create the data model
+```ts
+const updatedData = new UpdateContentModelModel().populate(data);
+```
+4. validate the data model
+```ts
+await updatedData.validate();
+```
+5. fetch group if it was changed
+```ts
+if (updatedDataJson.group) {
+	const group = await context.cms.groups.noAuth().get(updatedDataJson.group);
+	if (!group) {
+		throw new NotFoundError(`There is no group "${updatedDataJson.group}".`);
+	}
+	updatedDataJson.group = {
+		id: group.id,
+		name: group.name
+	};
+}
+```
+6. create model fields out of data received ([read more](#content-model-fields))
+```ts
+const modelFields = await createFieldModels(model, data);
+```
+7. validate the layout received
+```ts
+validateLayout(updatedDataJson, modelFields);
+```
+8. build actual model for the database
+```ts
+const modelData: Partial<CmsContentModel> = {
+	...updatedDataJson,
+	fields: modelFields,
+	savedOn: new Date().toISOString()
+};
+```
+9. run before save hook
+```ts
+await beforeSaveHook({ context, model, data: modelData });
+```
+10. store the updated record to the database
+```ts
+await db.update({
+	...utils.defaults.db,
+	query: { PK: PK_CONTENT_MODEL(), SK: modelId },
+	data: modelData
+});
+```
+11. create full model to be returned
+```ts
+const fullModel: CmsContentModel = {
+	...model,
+	...modelData
+};
+```
+12. update model manager
+```ts
+await updateManager(context, fullModel);
+```
+13. run the after save hook
+```ts
+await afterSaveHook({ context, model: fullModel });
+```
+
+This completes the content model definition.
+Without update part of the flow, your content model does not contain any of the fields and so it is not usable in creating the content entries.
+
+
+### Content model fields[](#content-model-fields)
+
+The content model field definition, that we store in the database, is [CmsContentModelField](../../references/headless-cms/api/cmscontentmodelfield).
+Input for the field is [CmsContentModelFieldInput](../../references/headless-cms/api/cmscontentmodelfieldinput) and, as you can see, we do not actually transform the input to storage type.
+There are some optional properties in the input, but we have defaults for them when the field is stored.
+
+### Content model fields layout
+
+The layout is saved as an array of strings array. The type Representation is `string[][]`. This is basically the list of content model field IDs. It is used to display fields in some order when creating or updating the content entry.
