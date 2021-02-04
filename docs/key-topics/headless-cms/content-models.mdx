@@ -15,16 +15,20 @@ description: A deep-dive into how data models are mapped and stored to the datab
 You should read about Webiny plugins and how they work.
 
 ## Overview
-We will go through all files that are connected with `./packages/api-headless-cms/src/content/plugins/crud/contentModel.crud.ts`, including that file, to explain what do we do with the input on the manage API.
+We will go through the crud file `./packages/api-headless-cms/src/content/plugins/crud/contentModel.crud.ts`, to explain what we do with the input on the manage API.
 
 Content models are saved only into the DynamoDB because we do not search through them nor there will, probably, be thousands of models.
 
-For the article we will use `en-US` locale example setting. The manage endpoint is `/cms/manage/en-US`.
+For the article, we will use `en-US` locale example setting. The manage endpoint is `/cms/manage/en-US`.
 
 ## Common parts of all methods
-At the start of each method we check for user permissions (read, write and delete), depending on what the method is. We do not check, directly, combinations of the permissions like `write+read` or `read+delete`.
+At the start of each method we check for user permissions (read, write and delete), depending on what the method is.
+We do not check, directly, combinations of the permissions like `write+read` or `read+delete`.
 
-### Creating the content model
+## Lifecycle hooks
+All lifecycle calls can trigger custom plugin hooks via [CmsContentModelHookPlugin](../../references/headless-cms/api/cmscontentmodelhookplugin) plugin type.
+
+## Creating the content model
 Input data for creating the content model is [CmsContentModelCreateInput](../../references/headless-cms/api/cmscontentmodelcreateinput). At this point there are no fields defined yet.
 
 <img
@@ -97,9 +101,9 @@ await updateManager(context, model);
 ```ts
 await afterCreateHook({ context, model });
 ```
-With all these steps successfully ran, you have a content model into which you can add fields.
+With all these steps completed, you have a content model into which you can add fields.
 
-### Updating the content model
+## Updating the content model
 Input data for updating the content model is [CmsContentModelUpdateInput](../../references/headless-cms/api/cmscontentmodelupdateinput). This is where you define the fields you want in your content model.
 
 <img
@@ -154,9 +158,9 @@ const modelData: Partial<CmsContentModel> = {
 	savedOn: new Date().toISOString()
 };
 ```
-9. run before save hook
+9. run before update hook
 ```ts
-await beforeSaveHook({ context, model, data: modelData });
+await beforeUpdateHook({ context, model, data: modelData });
 ```
 10. store the updated record to the database
 ```ts
@@ -177,14 +181,13 @@ const fullModel: CmsContentModel = {
 ```ts
 await updateManager(context, fullModel);
 ```
-13. run the after save hook
+13. run the after update hook
 ```ts
-await afterSaveHook({ context, model: fullModel });
+await afterUpdateHook({ context, model: fullModel });
 ```
 
-This completes the content model definition.
-Without update part of the flow, your content model does not contain any of the fields and so it is not usable in creating the content entries.
-
+With this, we complete the content model definition.
+Without update part of the flow, your content model does not contain any of the fields. Which makes it unusable in creating the content entries.
 
 ### Content model fields[](#content-model-fields)
 
@@ -194,4 +197,24 @@ There are some optional properties in the input, but we have defaults for them w
 
 ### Content model fields layout
 
-The layout is saved as an array of strings array. The type Representation is `string[][]`. This is basically the list of content model field IDs. It is used to display fields in some order when creating or updating the content entry.
+The layout is stored as an array of strings array, where the type representation is `string[][]`.
+It is a list of content model field IDs in a row -> column type, which is used to display fields in some order when creating or updating the content entry.
+```ts
+const layout = [
+    // row 1
+    [
+        // column 1 - 50% of the row width
+        "id1",
+        // column 2 - 50% of the row width
+        "id2"
+    ],
+    // row 2
+    [
+        // column - 100% of the row width
+        "id1"
+    ],
+    
+];
+````
+
+For the next topic we would suggest reading about [lifecycle hooks](./lifecycle-hooks).
