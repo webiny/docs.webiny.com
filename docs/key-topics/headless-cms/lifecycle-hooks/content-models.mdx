@@ -17,21 +17,25 @@ You should read about Webiny plugins and the key topic on content models.
 ## Overview
 We will go through a list of hooks that you can define to be executed. We will also give some examples on how the hooks can be used.
 
-For the article we will assume that we have some outside service, named `ModelService`, that also stores models. Also, we will split hook plugins to simplify the examples.
+For the article we will assume that we have some remote service, named `ModelService`, that also stores models. Also, we will split hook plugins to simplify the examples.
 
 In the hooks you can modify the values of the model object, but we do not recommend it.
 
 ## Plugin type
 The plugin type to define the hooks is [CmsContentModelHookPlugin](../../references/headless-cms/api/cmscontentmodelhookplugin.mdx).
+
 All hooks are async and are executed in the order the plugins were registered. You can check that [here](https://github.com/webiny/webiny-js/blob/v5/packages/api-headless-cms/src/content/plugins/crud/contentModel/runContentModelLifecycleHooks.ts).
 
-## Before create
+Each hook receives `context` and `model` as a part of argument object, except the `beforeSave` hook which also receives modified `data` object.
+
+## Hooks
+### Before create
 This hook is triggered before we store the content model to the storage.
 
 We use this hook to verify that `modelId` is a unique one in our system.
 
 
-What can you do in this hook? You want to check to make sure that `modelId` is unique in the `ModelService`:
+What can you do in this hook? You can run a check to make sure that `modelId` is unique in the `ModelService`:
 ```ts title="modelServiceBeforeCreate.ts"
 const modelServiceBeforeCreate = (): CmsContentModelHookPlugin => ({
 	type: "content-model-hook",
@@ -46,10 +50,10 @@ const modelServiceBeforeCreate = (): CmsContentModelHookPlugin => ({
 });
 ```
 
-## After create
+### After create
 This hook is triggered after the content model was successfully stored.
 
-What can you do in this hook? You can now add the model to the outside service:
+What can you do in this hook? You can now store the model to the remote service:
 ```ts title="modelServiceAfterCreate.ts"
 const modelServiceAfterCreate = (): CmsContentModelHookPlugin => ({
 	type: "content-model-hook",
@@ -69,7 +73,7 @@ const modelServiceAfterCreate = (): CmsContentModelHookPlugin => ({
 ```
 
 
-## Before update
+### Before update
 This hook is triggered before we store the updated content model to the storage.
 This is a bit specific hook since it receives a data object which contains changes from the input.
 Arguments interface is [CmsContentModelUpdateHookPluginArgs](../../reference/headless-cms/api/cmscontentmodelupdatehookpluginargs.mdx).

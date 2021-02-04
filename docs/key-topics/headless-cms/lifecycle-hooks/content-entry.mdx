@@ -12,7 +12,41 @@ description: An explanation of lifecycle hooks plugins for content entries
 :::
 
 ## Before you start
-You should read about Webiny plugins and how they work and the key topic on content entries.
+You should read about Webiny plugins and the key topic on content entries.
 
 ## Overview
-We will go through possible
+We will go through a list of hooks that you can define to be executed. We will also give some examples on how the hooks can be used.
+
+For the article we will assume that we have some remote service, named `EntryService`, which starts build of some sort and store entries. Also, we will split hook plugins to simplify the examples.
+
+In the hooks you can modify the values of the entry object, but we do not recommend it.
+
+## Plugin type
+The plugin type to define the hooks is [CmsContentEntryHookPlugin](../../references/headless-cms/api/cmscontententryhookplugin.mdx).
+
+All hooks are async and are executed in the order the plugins were registered. You can check that [here](https://github.com/webiny/webiny-js/blob/v5/packages/api-headless-cms/src/content/plugins/crud/contentEntry/runContentEntryLifecycleHooks.ts).
+
+Each hook receives `context`, `model` and `entry` as a part of argument object.
+
+## Hooks
+
+### Before create
+This hook is triggered before we store the entry data to the storage.
+
+We use this hook to lock fields on the `model` - to make sure they cannot be changed or deleted.
+
+What can you do in this hook? You can run a check to make sure that entry with same name does not exist in the remote `EntryService`.
+```ts title="entryServiceBeforeCreate.ts"
+const entryServiceBeforeCreate = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeCreate: async({entry}): Promise<void> => {
+	    const result = await entryServiceApi.fetch({
+			name: entry.values.name,
+	    });
+	    if (result === null) {
+	        return;
+	    }
+	    throw new Error(`Entry with name "${entry.values.name}" already exists in "EntryService".`);
+	}
+});
+```
