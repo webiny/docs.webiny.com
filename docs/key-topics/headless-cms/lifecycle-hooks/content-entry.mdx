@@ -298,7 +298,7 @@ What can you do in this hook? You can check on remote `ReviewService` if entry r
 const afterRequestReview = (): CmsContentEntryHookPlugin => ({
 	type: "content-entry-hook",
 	afterRequestReview: async({model, entry}): Promise<void> => {
-		const result = await ReviewService.request(entry);
+		const result = await ReviewService.requestReview(entry);
 		if (result){
 		    return;
 		}
@@ -310,12 +310,16 @@ const afterRequestReview = (): CmsContentEntryHookPlugin => ({
 ### Before request changes
 This hook is triggered before we request changes for the entry revision.
 
-What can you do in this hook?
+What can you do in this hook? You can prepare remote "ReviewService" to expect the request change on the entry.
 ```ts title="beforeRequestChanges.ts"
 const beforeRequestChanges = (): CmsContentEntryHookPlugin => ({
 	type: "content-entry-hook",
 	beforeRequestChanges: async({model, entry}): Promise<void> => {
-
+		const result = await ReviewService.prepareRequestChanges(entry);
+		if (result) {
+		    return;
+		}
+		throw new Error(`Could not prepare to request changes for entry "${entry.id}".`);
 	}
 });
 ```
@@ -323,12 +327,16 @@ const beforeRequestChanges = (): CmsContentEntryHookPlugin => ({
 ### After request changes
 This hook is triggered after we request review for the entry revision.
 
-What can you do in this hook?
+What can you do in this hook?  You can now store the request change on the entry.
 ```ts title="afterRequestChanges.ts"
 const afterRequestChanges = (): CmsContentEntryHookPlugin => ({
 	type: "content-entry-hook",
 	afterRequestChanges: async({model, entry}): Promise<void> => {
-
+		const result = await ReviewService.storeRequestChanges(entry);
+		if (result) {
+		    return;
+		}
+		throw new Error(`Could not store request changes for entry "${entry.id}".`);
 	}
 });
 ```
