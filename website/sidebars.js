@@ -56,6 +56,13 @@ module.exports = {
                         }
                     ]
                 }
+            ],
+            References: [
+                {
+                    type: "category",
+                    label: "Headless CMS",
+                    items: ["references/headless-cms/api/index"]
+                }
             ]
         },
         {
