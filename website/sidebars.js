@@ -45,7 +45,7 @@ module.exports = {
                     type: "category",
                     label: "Headless CMS",
                     items: [
-                        "key-topics/headless-cms/content-models",
+                        "key-topics/headless-cms/content-models-explained",
                         {
                             type: "category",
                             label: "Lifecycle hooks",
