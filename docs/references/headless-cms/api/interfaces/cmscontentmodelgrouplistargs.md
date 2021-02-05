@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentModelGroupListArgs
+[Headless CMS API](../index) / CmsContentModelGroupListArgs
 
 # Interface: CmsContentModelGroupListArgs
 

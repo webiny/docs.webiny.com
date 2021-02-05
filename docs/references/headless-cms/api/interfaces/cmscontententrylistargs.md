@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentEntryListArgs
+[Headless CMS API](../index) / CmsContentEntryListArgs
 
 # Interface: CmsContentEntryListArgs
 
@@ -33,7 +33,7 @@ ___
 
 ### sort
 
-• `Optional` **sort**: [*CmsContentEntryListSort*](../types/cmscontententrylistsort.md)
+• `Optional` **sort**: [*CmsContentEntryListSort*](../types/cmscontententrylistsort)
 
 ___
 

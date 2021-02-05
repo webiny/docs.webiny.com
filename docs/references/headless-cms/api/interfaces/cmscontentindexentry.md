@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentIndexEntry
+[Headless CMS API](../index) / CmsContentIndexEntry
 
 # Interface: CmsContentIndexEntry
 

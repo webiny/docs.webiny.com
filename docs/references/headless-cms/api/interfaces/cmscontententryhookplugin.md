@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentEntryHookPlugin
+[Headless CMS API](../index) / CmsContentEntryHookPlugin
 
 # Interface: CmsContentEntryHookPlugin
 

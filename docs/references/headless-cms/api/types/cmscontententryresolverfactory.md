@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentEntryResolverFactory
+[Headless CMS API](../index) / CmsContentEntryResolverFactory
 
 # Type alias: CmsContentEntryResolverFactory<TSource, TArgs, TContext\>
 
@@ -12,4 +12,4 @@ Name | Default |
 ------ | ------ |
 `TSource` | *any* |
 `TArgs` | *any* |
-`TContext` | [*CmsContext*](../interfaces/cmscontext.md) |
+`TContext` | [*CmsContext*](../interfaces/cmscontext) |

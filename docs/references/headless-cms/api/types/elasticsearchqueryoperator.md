@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / ElasticsearchQueryOperator
+[Headless CMS API](../index) / ElasticsearchQueryOperator
 
 # Type alias: ElasticsearchQueryOperator
 

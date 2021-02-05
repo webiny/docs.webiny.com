@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsFieldTypePlugins
+[Headless CMS API](../index) / CmsFieldTypePlugins
 
 # Interface: CmsFieldTypePlugins
 

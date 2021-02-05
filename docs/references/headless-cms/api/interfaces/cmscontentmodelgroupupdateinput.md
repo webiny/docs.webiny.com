@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentModelGroupUpdateInput
+[Headless CMS API](../index) / CmsContentModelGroupUpdateInput
 
 # Interface: CmsContentModelGroupUpdateInput
 

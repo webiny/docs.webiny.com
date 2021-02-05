@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentModelGroupPermission
+[Headless CMS API](../index) / CmsContentModelGroupPermission
 
 # Type alias: CmsContentModelGroupPermission
 

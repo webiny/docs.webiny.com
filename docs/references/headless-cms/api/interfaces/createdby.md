@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CreatedBy
+[Headless CMS API](../index) / CreatedBy
 
 # Interface: CreatedBy
 

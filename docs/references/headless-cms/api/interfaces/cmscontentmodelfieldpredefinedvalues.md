@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentModelFieldPredefinedValues
+[Headless CMS API](../index) / CmsContentModelFieldPredefinedValues
 
 # Interface: CmsContentModelFieldPredefinedValues
 

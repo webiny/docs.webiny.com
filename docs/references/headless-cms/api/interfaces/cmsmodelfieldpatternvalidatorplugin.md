@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsModelFieldPatternValidatorPlugin
+[Headless CMS API](../index) / CmsModelFieldPatternValidatorPlugin
 
 # Interface: CmsModelFieldPatternValidatorPlugin
 

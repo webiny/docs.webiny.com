@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentEntryListWhere
+[Headless CMS API](../index) / CmsContentEntryListWhere
 
 # Interface: CmsContentEntryListWhere
 

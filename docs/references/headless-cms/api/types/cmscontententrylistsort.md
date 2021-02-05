@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentEntryListSort
+[Headless CMS API](../index) / CmsContentEntryListSort
 
 # Type alias: CmsContentEntryListSort
 

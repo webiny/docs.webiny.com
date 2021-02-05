@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsSettingsPermission
+[Headless CMS API](../index) / CmsSettingsPermission
 
 # Type alias: CmsSettingsPermission
 

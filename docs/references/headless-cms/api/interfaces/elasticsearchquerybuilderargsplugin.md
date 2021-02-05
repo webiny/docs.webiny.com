@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / ElasticsearchQueryBuilderArgsPlugin
+[Headless CMS API](../index) / ElasticsearchQueryBuilderArgsPlugin
 
 # Interface: ElasticsearchQueryBuilderArgsPlugin
 

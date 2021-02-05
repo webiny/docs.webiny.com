@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / ContentModelManagerPlugin
+[Headless CMS API](../index) / ContentModelManagerPlugin
 
 # Interface: ContentModelManagerPlugin
 

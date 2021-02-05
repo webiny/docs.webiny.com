@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / ElasticsearchQueryBuilderPlugin
+[Headless CMS API](../index) / ElasticsearchQueryBuilderPlugin
 
 # Interface: ElasticsearchQueryBuilderPlugin
 
@@ -47,7 +47,7 @@ ___
 
 ### operator
 
-• **operator**: [*ElasticsearchQueryOperator*](../types/elasticsearchqueryoperator.md)
+• **operator**: [*ElasticsearchQueryOperator*](../types/elasticsearchqueryoperator)
 
 Target operator.
 

@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / ElasticsearchQuery
+[Headless CMS API](../index) / ElasticsearchQuery
 
 # Interface: ElasticsearchQuery
 

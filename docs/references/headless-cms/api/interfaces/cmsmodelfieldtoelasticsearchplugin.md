@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsModelFieldToElasticsearchPlugin
+[Headless CMS API](../index) / CmsModelFieldToElasticsearchPlugin
 
 # Interface: CmsModelFieldToElasticsearchPlugin
 

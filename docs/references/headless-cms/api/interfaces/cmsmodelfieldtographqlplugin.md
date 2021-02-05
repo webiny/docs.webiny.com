@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsModelFieldToGraphQLPlugin
+[Headless CMS API](../index) / CmsModelFieldToGraphQLPlugin
 
 # Interface: CmsModelFieldToGraphQLPlugin
 

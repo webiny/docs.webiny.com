@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / LockedField
+[Headless CMS API](../index) / LockedField
 
 # Interface: LockedField
 

@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsSettings
+[Headless CMS API](../index) / CmsSettings
 
 # Interface: CmsSettings
 

@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsModelLockedFieldPlugin
+[Headless CMS API](../index) / CmsModelLockedFieldPlugin
 
 # Interface: CmsModelLockedFieldPlugin
 

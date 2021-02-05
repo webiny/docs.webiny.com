@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsContentEntryGetArgs
+[Headless CMS API](../index) / CmsContentEntryGetArgs
 
 # Interface: CmsContentEntryGetArgs
 
@@ -19,7 +19,7 @@ Get entry GraphQL resolver args.
 
 ### sort
 
-• `Optional` **sort**: [*CmsContentEntryListSort*](../types/cmscontententrylistsort.md)
+• `Optional` **sort**: [*CmsContentEntryListSort*](../types/cmscontententrylistsort)
 
 ___
 

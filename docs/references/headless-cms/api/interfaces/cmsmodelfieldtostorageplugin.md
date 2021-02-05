@@ -1,4 +1,4 @@
-[Webiny](../README.md) / [Exports](../modules.md) / CmsModelFieldToStoragePlugin
+[Headless CMS API](../index) / CmsModelFieldToStoragePlugin
 
 # Interface: CmsModelFieldToStoragePlugin
 
