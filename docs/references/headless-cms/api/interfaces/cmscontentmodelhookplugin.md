@@ -14,15 +14,15 @@ A plugin type that defines lifecycle hooks for content model.
 
 ### Properties
 
-- [afterCreate](cmscontentmodelhookplugin.md#aftercreate)
-- [afterDelete](cmscontentmodelhookplugin.md#afterdelete)
-- [afterUpdate](cmscontentmodelhookplugin.md#afterupdate)
-- [beforeCreate](cmscontentmodelhookplugin.md#beforecreate)
-- [beforeDelete](cmscontentmodelhookplugin.md#beforedelete)
-- [beforeUpdate](cmscontentmodelhookplugin.md#beforeupdate)
-- [init](cmscontentmodelhookplugin.md#init)
-- [name](cmscontentmodelhookplugin.md#name)
-- [type](cmscontentmodelhookplugin.md#type)
+- [afterCreate](cmscontentmodelhookplugin#aftercreate)
+- [afterDelete](cmscontentmodelhookplugin#afterdelete)
+- [afterUpdate](cmscontentmodelhookplugin#afterupdate)
+- [beforeCreate](cmscontentmodelhookplugin#beforecreate)
+- [beforeDelete](cmscontentmodelhookplugin#beforedelete)
+- [beforeUpdate](cmscontentmodelhookplugin#beforeupdate)
+- [init](cmscontentmodelhookplugin#init)
+- [name](cmscontentmodelhookplugin#name)
+- [type](cmscontentmodelhookplugin#type)
 
 ## Properties
 

@@ -12,15 +12,15 @@ Arguments for the field validator validate method.
 
 ### Properties
 
-- [context](cmsmodelfieldvalidatorvalidateargs.md#context)
-- [validator](cmsmodelfieldvalidatorvalidateargs.md#validator)
-- [value](cmsmodelfieldvalidatorvalidateargs.md#value)
+- [context](cmsmodelfieldvalidatorvalidateargs#context)
+- [validator](cmsmodelfieldvalidatorvalidateargs#validator)
+- [value](cmsmodelfieldvalidatorvalidateargs#value)
 
 ## Properties
 
 ### context
 
-• **context**: [*CmsContext*](cmscontext.md)
+• **context**: [*CmsContext*](cmscontext)
 
 An instance of the current context.
 
@@ -28,7 +28,7 @@ ___
 
 ### validator
 
-• **validator**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation.md)
+• **validator**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation)
 
 Options from the CmsContentModelField validations.
 

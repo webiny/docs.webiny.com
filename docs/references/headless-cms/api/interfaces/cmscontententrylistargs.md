@@ -12,10 +12,10 @@ List entries GraphQL resolver args.
 
 ### Properties
 
-- [after](cmscontententrylistargs.md#after)
-- [limit](cmscontententrylistargs.md#limit)
-- [sort](cmscontententrylistargs.md#sort)
-- [where](cmscontententrylistargs.md#where)
+- [after](cmscontententrylistargs#after)
+- [limit](cmscontententrylistargs#limit)
+- [sort](cmscontententrylistargs#sort)
+- [where](cmscontententrylistargs#where)
 
 ## Properties
 
@@ -39,4 +39,4 @@ ___
 
 ### where
 
-• `Optional` **where**: [*CmsContentEntryListWhere*](cmscontententrylistwhere.md)
+• `Optional` **where**: [*CmsContentEntryListWhere*](cmscontententrylistwhere)

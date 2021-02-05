@@ -15,21 +15,21 @@ The default one uses `CmsContentEntryContext` methods internally, but devs can c
 
 ### Methods
 
-- [create](cmscontentmodelmanager.md#create)
-- [delete](cmscontentmodelmanager.md#delete)
-- [get](cmscontentmodelmanager.md#get)
-- [getLatestByIds](cmscontentmodelmanager.md#getlatestbyids)
-- [getPublishedByIds](cmscontentmodelmanager.md#getpublishedbyids)
-- [list](cmscontentmodelmanager.md#list)
-- [listLatest](cmscontentmodelmanager.md#listlatest)
-- [listPublished](cmscontentmodelmanager.md#listpublished)
-- [update](cmscontentmodelmanager.md#update)
+- [create](cmscontentmodelmanager#create)
+- [delete](cmscontentmodelmanager#delete)
+- [get](cmscontentmodelmanager#get)
+- [getLatestByIds](cmscontentmodelmanager#getlatestbyids)
+- [getPublishedByIds](cmscontentmodelmanager#getpublishedbyids)
+- [list](cmscontentmodelmanager#list)
+- [listLatest](cmscontentmodelmanager#listlatest)
+- [listPublished](cmscontentmodelmanager#listpublished)
+- [update](cmscontentmodelmanager#update)
 
 ## Methods
 
 ### create
 
-▸ **create**(`data`: *Record*<*string*, *any*\>): *Promise*<[*CmsContentEntry*](cmscontententry.md)\>
+▸ **create**(`data`: *Record*<*string*, *any*\>): *Promise*<[*CmsContentEntry*](cmscontententry)\>
 
 Create a entry.
 
@@ -39,7 +39,7 @@ Name | Type |
 ------ | ------ |
 `data` | *Record*<*string*, *any*\> |
 
-**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry.md)\>
+**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry)\>
 
 ___
 
@@ -61,7 +61,7 @@ ___
 
 ### get
 
-▸ **get**(`args?`: [*CmsContentEntryGetArgs*](cmscontententrygetargs.md)): *Promise*<[*CmsContentEntry*](cmscontententry.md)\>
+▸ **get**(`args?`: [*CmsContentEntryGetArgs*](cmscontententrygetargs)): *Promise*<[*CmsContentEntry*](cmscontententry)\>
 
 Get an entry filtered by given args. Will always get one.
 
@@ -69,15 +69,15 @@ Get an entry filtered by given args. Will always get one.
 
 Name | Type |
 ------ | ------ |
-`args?` | [*CmsContentEntryGetArgs*](cmscontententrygetargs.md) |
+`args?` | [*CmsContentEntryGetArgs*](cmscontententrygetargs) |
 
-**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry.md)\>
+**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry)\>
 
 ___
 
 ### getLatestByIds
 
-▸ **getLatestByIds**(`ids`: *string*[]): *Promise*<[*CmsContentEntry*](cmscontententry.md)[]\>
+▸ **getLatestByIds**(`ids`: *string*[]): *Promise*<[*CmsContentEntry*](cmscontententry)[]\>
 
 Get a list of latest entries by the ID list.
 
@@ -87,13 +87,13 @@ Name | Type |
 ------ | ------ |
 `ids` | *string*[] |
 
-**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry.md)[]\>
+**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry)[]\>
 
 ___
 
 ### getPublishedByIds
 
-▸ **getPublishedByIds**(`ids`: *string*[]): *Promise*<[*CmsContentEntry*](cmscontententry.md)[]\>
+▸ **getPublishedByIds**(`ids`: *string*[]): *Promise*<[*CmsContentEntry*](cmscontententry)[]\>
 
 Get a list of published entries by the ID list.
 
@@ -103,13 +103,13 @@ Name | Type |
 ------ | ------ |
 `ids` | *string*[] |
 
-**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry.md)[]\>
+**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry)[]\>
 
 ___
 
 ### list
 
-▸ **list**(`args?`: [*CmsContentEntryListArgs*](cmscontententrylistargs.md), `options?`: [*CmsContentEntryListOptions*](cmscontententrylistoptions.md)): *Promise*<[[*CmsContentEntry*](cmscontententry.md)[], [*CmsContentEntryMeta*](cmscontententrymeta.md)]\>
+▸ **list**(`args?`: [*CmsContentEntryListArgs*](cmscontententrylistargs), `options?`: [*CmsContentEntryListOptions*](cmscontententrylistoptions)): *Promise*<[[*CmsContentEntry*](cmscontententry)[], [*CmsContentEntryMeta*](cmscontententrymeta)]\>
 
 List entries in this content model.
 
@@ -117,16 +117,16 @@ List entries in this content model.
 
 Name | Type |
 ------ | ------ |
-`args?` | [*CmsContentEntryListArgs*](cmscontententrylistargs.md) |
-`options?` | [*CmsContentEntryListOptions*](cmscontententrylistoptions.md) |
+`args?` | [*CmsContentEntryListArgs*](cmscontententrylistargs) |
+`options?` | [*CmsContentEntryListOptions*](cmscontententrylistoptions) |
 
-**Returns:** *Promise*<[[*CmsContentEntry*](cmscontententry.md)[], [*CmsContentEntryMeta*](cmscontententrymeta.md)]\>
+**Returns:** *Promise*<[[*CmsContentEntry*](cmscontententry)[], [*CmsContentEntryMeta*](cmscontententrymeta)]\>
 
 ___
 
 ### listLatest
 
-▸ **listLatest**(`args?`: [*CmsContentEntryListArgs*](cmscontententrylistargs.md)): *Promise*<[[*CmsContentEntry*](cmscontententry.md)[], [*CmsContentEntryMeta*](cmscontententrymeta.md)]\>
+▸ **listLatest**(`args?`: [*CmsContentEntryListArgs*](cmscontententrylistargs)): *Promise*<[[*CmsContentEntry*](cmscontententry)[], [*CmsContentEntryMeta*](cmscontententrymeta)]\>
 
 List latest entries in the content model. Used for administration.
 
@@ -134,15 +134,15 @@ List latest entries in the content model. Used for administration.
 
 Name | Type |
 ------ | ------ |
-`args?` | [*CmsContentEntryListArgs*](cmscontententrylistargs.md) |
+`args?` | [*CmsContentEntryListArgs*](cmscontententrylistargs) |
 
-**Returns:** *Promise*<[[*CmsContentEntry*](cmscontententry.md)[], [*CmsContentEntryMeta*](cmscontententrymeta.md)]\>
+**Returns:** *Promise*<[[*CmsContentEntry*](cmscontententry)[], [*CmsContentEntryMeta*](cmscontententrymeta)]\>
 
 ___
 
 ### listPublished
 
-▸ **listPublished**(`args?`: [*CmsContentEntryListArgs*](cmscontententrylistargs.md)): *Promise*<[[*CmsContentEntry*](cmscontententry.md)[], [*CmsContentEntryMeta*](cmscontententrymeta.md)]\>
+▸ **listPublished**(`args?`: [*CmsContentEntryListArgs*](cmscontententrylistargs)): *Promise*<[[*CmsContentEntry*](cmscontententry)[], [*CmsContentEntryMeta*](cmscontententrymeta)]\>
 
 List only published entries in the content model.
 
@@ -150,15 +150,15 @@ List only published entries in the content model.
 
 Name | Type |
 ------ | ------ |
-`args?` | [*CmsContentEntryListArgs*](cmscontententrylistargs.md) |
+`args?` | [*CmsContentEntryListArgs*](cmscontententrylistargs) |
 
-**Returns:** *Promise*<[[*CmsContentEntry*](cmscontententry.md)[], [*CmsContentEntryMeta*](cmscontententrymeta.md)]\>
+**Returns:** *Promise*<[[*CmsContentEntry*](cmscontententry)[], [*CmsContentEntryMeta*](cmscontententrymeta)]\>
 
 ___
 
 ### update
 
-▸ **update**(`id`: *string*, `data`: *Record*<*string*, *any*\>): *Promise*<[*CmsContentEntry*](cmscontententry.md)\>
+▸ **update**(`id`: *string*, `data`: *Record*<*string*, *any*\>): *Promise*<[*CmsContentEntry*](cmscontententry)\>
 
 Update a entry.
 
@@ -169,4 +169,4 @@ Name | Type |
 `id` | *string* |
 `data` | *Record*<*string*, *any*\> |
 
-**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry.md)\>
+**Returns:** *Promise*<[*CmsContentEntry*](cmscontententry)\>

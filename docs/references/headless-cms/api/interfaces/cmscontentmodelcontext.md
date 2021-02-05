@@ -12,20 +12,20 @@ Content model in the context.
 
 ### Properties
 
-- [create](cmscontentmodelcontext.md#create)
-- [delete](cmscontentmodelcontext.md#delete)
-- [get](cmscontentmodelcontext.md#get)
-- [getManager](cmscontentmodelcontext.md#getmanager)
-- [getManagers](cmscontentmodelcontext.md#getmanagers)
-- [list](cmscontentmodelcontext.md#list)
-- [noAuth](cmscontentmodelcontext.md#noauth)
-- [update](cmscontentmodelcontext.md#update)
+- [create](cmscontentmodelcontext#create)
+- [delete](cmscontentmodelcontext#delete)
+- [get](cmscontentmodelcontext#get)
+- [getManager](cmscontentmodelcontext#getmanager)
+- [getManagers](cmscontentmodelcontext#getmanagers)
+- [list](cmscontentmodelcontext#list)
+- [noAuth](cmscontentmodelcontext#noauth)
+- [update](cmscontentmodelcontext#update)
 
 ## Properties
 
 ### create
 
-• **create**: (`data`: [*CmsContentModelCreateInput*](cmscontentmodelcreateinput.md)) => *Promise*<[*CmsContentModel*](cmscontentmodel.md)\>
+• **create**: (`data`: [*CmsContentModelCreateInput*](cmscontentmodelcreateinput)) => *Promise*<[*CmsContentModel*](cmscontentmodel)\>
 
 Create a content model.
 
@@ -41,7 +41,7 @@ ___
 
 ### get
 
-• **get**: (`modelId`: *string*) => *Promise*<[*CmsContentModel*](cmscontentmodel.md)\>
+• **get**: (`modelId`: *string*) => *Promise*<[*CmsContentModel*](cmscontentmodel)\>
 
 Get a single content model.
 
@@ -49,7 +49,7 @@ ___
 
 ### getManager
 
-• **getManager**: (`modelId`: *string*) => *Promise*<[*CmsContentModelManager*](cmscontentmodelmanager.md)\>
+• **getManager**: (`modelId`: *string*) => *Promise*<[*CmsContentModelManager*](cmscontentmodelmanager)\>
 
 Get a instance of CmsContentModelManager for given content modelId.
 
@@ -59,7 +59,7 @@ ___
 
 ### getManagers
 
-• **getManagers**: () => *Map*<*string*, [*CmsContentModelManager*](cmscontentmodelmanager.md)\>
+• **getManagers**: () => *Map*<*string*, [*CmsContentModelManager*](cmscontentmodelmanager)\>
 
 Get all content model managers mapped by modelId.
 
@@ -69,7 +69,7 @@ ___
 
 ### list
 
-• **list**: () => *Promise*<[*CmsContentModel*](cmscontentmodel.md)[]\>
+• **list**: () => *Promise*<[*CmsContentModel*](cmscontentmodel)[]\>
 
 Get all content models.
 
@@ -77,7 +77,7 @@ ___
 
 ### noAuth
 
-• **noAuth**: () => { `get`: (`modelId`: *string*) => *Promise*<[*CmsContentModel*](cmscontentmodel.md)\> ; `list`: () => *Promise*<[*CmsContentModel*](cmscontentmodel.md)[]\>  }
+• **noAuth**: () => { `get`: (`modelId`: *string*) => *Promise*<[*CmsContentModel*](cmscontentmodel)\> ; `list`: () => *Promise*<[*CmsContentModel*](cmscontentmodel)[]\>  }
 
 A function defining usage of a method without authenticating the user.
 
@@ -85,6 +85,6 @@ ___
 
 ### update
 
-• **update**: (`modelId`: *string*, `data`: [*CmsContentModelUpdateInput*](cmscontentmodelupdateinput.md)) => *Promise*<[*CmsContentModel*](cmscontentmodel.md)\>
+• **update**: (`modelId`: *string*, `data`: [*CmsContentModelUpdateInput*](cmscontentmodelupdateinput)) => *Promise*<[*CmsContentModel*](cmscontentmodel)\>
 
 Update content model.

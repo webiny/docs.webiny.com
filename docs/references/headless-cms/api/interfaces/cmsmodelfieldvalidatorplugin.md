@@ -14,10 +14,10 @@ Definition for the field validator.
 
 ### Properties
 
-- [init](cmsmodelfieldvalidatorplugin.md#init)
-- [name](cmsmodelfieldvalidatorplugin.md#name)
-- [type](cmsmodelfieldvalidatorplugin.md#type)
-- [validator](cmsmodelfieldvalidatorplugin.md#validator)
+- [init](cmsmodelfieldvalidatorplugin#init)
+- [name](cmsmodelfieldvalidatorplugin#name)
+- [type](cmsmodelfieldvalidatorplugin#type)
+- [validator](cmsmodelfieldvalidatorplugin#validator)
 
 ## Properties
 
@@ -43,7 +43,7 @@ ___
 
 ### validator
 
-• **validator**: { `name`: *string* ; `validate`: (`params`: [*CmsModelFieldValidatorValidateArgs*](cmsmodelfieldvalidatorvalidateargs.md)) => *Promise*<*boolean*\>  }
+• **validator**: { `name`: *string* ; `validate`: (`params`: [*CmsModelFieldValidatorValidateArgs*](cmsmodelfieldvalidatorvalidateargs)) => *Promise*<*boolean*\>  }
 
 Actual validator definition.
 
@@ -52,4 +52,4 @@ Actual validator definition.
 Name | Type | Description |
 ------ | ------ | ------ |
 `name` | *string* | Name of the validator.   |
-`validate` | (`params`: [*CmsModelFieldValidatorValidateArgs*](cmsmodelfieldvalidatorvalidateargs.md)) => *Promise*<*boolean*\> | - |
+`validate` | (`params`: [*CmsModelFieldValidatorValidateArgs*](cmsmodelfieldvalidatorvalidateargs)) => *Promise*<*boolean*\> | - |

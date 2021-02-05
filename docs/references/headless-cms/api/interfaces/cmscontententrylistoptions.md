@@ -12,7 +12,7 @@ List entries crud options.
 
 ### Properties
 
-- [type](cmscontententrylistoptions.md#type)
+- [type](cmscontententrylistoptions#type)
 
 ## Properties
 

@@ -12,8 +12,8 @@ A data.where parameter received when listing content model groups.
 
 ### Properties
 
-- [limit](cmscontentmodelgrouplistargs.md#limit)
-- [where](cmscontentmodelgrouplistargs.md#where)
+- [limit](cmscontentmodelgrouplistargs#limit)
+- [where](cmscontentmodelgrouplistargs#where)
 
 ## Properties
 

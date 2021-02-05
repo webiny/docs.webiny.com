@@ -8,6 +8,6 @@
 
 ## Indexable
 
-▪ [key: *string*]: [*CmsModelFieldToGraphQLPlugin*](cmsmodelfieldtographqlplugin.md)
+▪ [key: *string*]: [*CmsModelFieldToGraphQLPlugin*](cmsmodelfieldtographqlplugin)
 
 ## Table of contents

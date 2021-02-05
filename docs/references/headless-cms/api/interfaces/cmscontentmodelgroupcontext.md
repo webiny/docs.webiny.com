@@ -12,18 +12,18 @@ Content model group in context.
 
 ### Properties
 
-- [create](cmscontentmodelgroupcontext.md#create)
-- [delete](cmscontentmodelgroupcontext.md#delete)
-- [get](cmscontentmodelgroupcontext.md#get)
-- [list](cmscontentmodelgroupcontext.md#list)
-- [noAuth](cmscontentmodelgroupcontext.md#noauth)
-- [update](cmscontentmodelgroupcontext.md#update)
+- [create](cmscontentmodelgroupcontext#create)
+- [delete](cmscontentmodelgroupcontext#delete)
+- [get](cmscontentmodelgroupcontext#get)
+- [list](cmscontentmodelgroupcontext#list)
+- [noAuth](cmscontentmodelgroupcontext#noauth)
+- [update](cmscontentmodelgroupcontext#update)
 
 ## Properties
 
 ### create
 
-• **create**: (`data`: [*CmsContentModelGroupCreateInput*](cmscontentmodelgroupcreateinput.md)) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup.md)\>
+• **create**: (`data`: [*CmsContentModelGroupCreateInput*](cmscontentmodelgroupcreateinput)) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup)\>
 
 Create a new content model group.
 
@@ -39,7 +39,7 @@ ___
 
 ### get
 
-• **get**: (`id`: *string*) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup.md)\>
+• **get**: (`id`: *string*) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup)\>
 
 Gets content model group by given id.
 
@@ -47,7 +47,7 @@ ___
 
 ### list
 
-• **list**: (`args?`: [*CmsContentModelGroupListArgs*](cmscontentmodelgrouplistargs.md)) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup.md)[]\>
+• **list**: (`args?`: [*CmsContentModelGroupListArgs*](cmscontentmodelgrouplistargs)) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup)[]\>
 
 List all content model groups. Filterable via params.
 
@@ -55,7 +55,7 @@ ___
 
 ### noAuth
 
-• **noAuth**: () => { `get`: (`id`: *string*) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup.md)\> ; `list`: (`args?`: [*CmsContentModelGroupListArgs*](cmscontentmodelgrouplistargs.md)) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup.md)[]\>  }
+• **noAuth**: () => { `get`: (`id`: *string*) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup)\> ; `list`: (`args?`: [*CmsContentModelGroupListArgs*](cmscontentmodelgrouplistargs)) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup)[]\>  }
 
 A function defining usage of a method without authenticating the user.
 
@@ -63,6 +63,6 @@ ___
 
 ### update
 
-• **update**: (`id`: *string*, `data`: [*CmsContentModelGroupUpdateInput*](cmscontentmodelgroupupdateinput.md)) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup.md)\>
+• **update**: (`id`: *string*, `data`: [*CmsContentModelGroupUpdateInput*](cmscontentmodelgroupupdateinput)) => *Promise*<[*CmsContentModelGroup*](cmscontentmodelgroup)\>
 
 Update existing content model group.

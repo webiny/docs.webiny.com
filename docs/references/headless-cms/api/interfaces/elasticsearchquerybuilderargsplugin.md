@@ -14,10 +14,10 @@ Definition for arguments of the ElasticsearchQueryBuilderPlugin.apply method.
 
 ### Properties
 
-- [field](elasticsearchquerybuilderargsplugin.md#field)
-- [originalField](elasticsearchquerybuilderargsplugin.md#originalfield)
-- [parentObject](elasticsearchquerybuilderargsplugin.md#parentobject)
-- [value](elasticsearchquerybuilderargsplugin.md#value)
+- [field](elasticsearchquerybuilderargsplugin#field)
+- [originalField](elasticsearchquerybuilderargsplugin#originalfield)
+- [parentObject](elasticsearchquerybuilderargsplugin#parentobject)
+- [value](elasticsearchquerybuilderargsplugin#value)
 
 ## Properties
 

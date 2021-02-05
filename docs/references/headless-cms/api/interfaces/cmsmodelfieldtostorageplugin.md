@@ -14,15 +14,15 @@ A plugin defining transformation of field value to and from storage.
 
 ### Properties
 
-- [fieldType](cmsmodelfieldtostorageplugin.md#fieldtype)
-- [init](cmsmodelfieldtostorageplugin.md#init)
-- [name](cmsmodelfieldtostorageplugin.md#name)
-- [type](cmsmodelfieldtostorageplugin.md#type)
+- [fieldType](cmsmodelfieldtostorageplugin#fieldtype)
+- [init](cmsmodelfieldtostorageplugin#init)
+- [name](cmsmodelfieldtostorageplugin#name)
+- [type](cmsmodelfieldtostorageplugin#type)
 
 ### Methods
 
-- [fromStorage](cmsmodelfieldtostorageplugin.md#fromstorage)
-- [toStorage](cmsmodelfieldtostorageplugin.md#tostorage)
+- [fromStorage](cmsmodelfieldtostorageplugin#fromstorage)
+- [toStorage](cmsmodelfieldtostorageplugin#tostorage)
 
 ## Properties
 
@@ -60,7 +60,7 @@ A plugin type
 
 ### fromStorage
 
-▸ **fromStorage**(`args`: [*CmsModelFieldToStoragePluginFromStorageArgs*](cmsmodelfieldtostoragepluginfromstorageargs.md)): *Promise*<*any*\>
+▸ **fromStorage**(`args`: [*CmsModelFieldToStoragePluginFromStorageArgs*](cmsmodelfieldtostoragepluginfromstorageargs)): *Promise*<*any*\>
 
 A function that is ran when retrieving the data from the database. You either revert the action you did in the `toStorage` or handle it via some other way available to you.
 
@@ -74,7 +74,7 @@ fromStorage({value}) {
 
 Name | Type |
 ------ | ------ |
-`args` | [*CmsModelFieldToStoragePluginFromStorageArgs*](cmsmodelfieldtostoragepluginfromstorageargs.md) |
+`args` | [*CmsModelFieldToStoragePluginFromStorageArgs*](cmsmodelfieldtostoragepluginfromstorageargs) |
 
 **Returns:** *Promise*<*any*\>
 
@@ -82,7 +82,7 @@ ___
 
 ### toStorage
 
-▸ **toStorage**(`args`: [*CmsModelFieldToStoragePluginToStorageArgs*](cmsmodelfieldtostorageplugintostorageargs.md)): *Promise*<*any*\>
+▸ **toStorage**(`args`: [*CmsModelFieldToStoragePluginToStorageArgs*](cmsmodelfieldtostorageplugintostorageargs)): *Promise*<*any*\>
 
 A function that is ran when storing the data. You can do what ever transformations you need on input value and return a new value that is stored into the database.
 
@@ -96,6 +96,6 @@ toStorage({value}) {
 
 Name | Type |
 ------ | ------ |
-`args` | [*CmsModelFieldToStoragePluginToStorageArgs*](cmsmodelfieldtostorageplugintostorageargs.md) |
+`args` | [*CmsModelFieldToStoragePluginToStorageArgs*](cmsmodelfieldtostorageplugintostorageargs) |
 
 **Returns:** *Promise*<*any*\>

@@ -12,9 +12,9 @@ A interface describing the reference to a user that created some data in the dat
 
 ### Properties
 
-- [displayName](createdby.md#displayname)
-- [id](createdby.md#id)
-- [type](createdby.md#type)
+- [displayName](createdby#displayname)
+- [id](createdby#id)
+- [type](createdby#type)
 
 ## Properties
 

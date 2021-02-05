@@ -14,10 +14,10 @@ A pattern validator for the content entry field value.
 
 ### Properties
 
-- [init](cmsmodelfieldpatternvalidatorplugin.md#init)
-- [name](cmsmodelfieldpatternvalidatorplugin.md#name)
-- [pattern](cmsmodelfieldpatternvalidatorplugin.md#pattern)
-- [type](cmsmodelfieldpatternvalidatorplugin.md#type)
+- [init](cmsmodelfieldpatternvalidatorplugin#init)
+- [name](cmsmodelfieldpatternvalidatorplugin#name)
+- [pattern](cmsmodelfieldpatternvalidatorplugin#pattern)
+- [type](cmsmodelfieldpatternvalidatorplugin#type)
 
 ## Properties
 

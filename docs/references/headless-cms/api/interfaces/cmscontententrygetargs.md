@@ -12,8 +12,8 @@ Get entry GraphQL resolver args.
 
 ### Properties
 
-- [sort](cmscontententrygetargs.md#sort)
-- [where](cmscontententrygetargs.md#where)
+- [sort](cmscontententrygetargs#sort)
+- [where](cmscontententrygetargs#where)
 
 ## Properties
 
@@ -25,4 +25,4 @@ ___
 
 ### where
 
-• `Optional` **where**: [*CmsContentEntryListWhere*](cmscontententrylistwhere.md)
+• `Optional` **where**: [*CmsContentEntryListWhere*](cmscontententrylistwhere)

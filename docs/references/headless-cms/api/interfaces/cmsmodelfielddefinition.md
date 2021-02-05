@@ -10,8 +10,8 @@
 
 ### Properties
 
-- [fields](cmsmodelfielddefinition.md#fields)
-- [typeDefs](cmsmodelfielddefinition.md#typedefs)
+- [fields](cmsmodelfielddefinition#fields)
+- [typeDefs](cmsmodelfielddefinition#typedefs)
 
 ## Properties
 

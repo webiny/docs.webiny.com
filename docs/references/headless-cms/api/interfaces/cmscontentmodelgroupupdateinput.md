@@ -12,10 +12,10 @@ A GraphQL args.data parameter received when updating content model group.
 
 ### Properties
 
-- [description](cmscontentmodelgroupupdateinput.md#description)
-- [icon](cmscontentmodelgroupupdateinput.md#icon)
-- [name](cmscontentmodelgroupupdateinput.md#name)
-- [slug](cmscontentmodelgroupupdateinput.md#slug)
+- [description](cmscontentmodelgroupupdateinput#description)
+- [icon](cmscontentmodelgroupupdateinput#icon)
+- [name](cmscontentmodelgroupupdateinput#name)
+- [slug](cmscontentmodelgroupupdateinput#slug)
 
 ## Properties
 

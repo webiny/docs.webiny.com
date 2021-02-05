@@ -12,11 +12,11 @@ A GraphQL args.data parameter received when updating content model.
 
 ### Properties
 
-- [description](cmscontentmodelupdateinput.md#description)
-- [fields](cmscontentmodelupdateinput.md#fields)
-- [layout](cmscontentmodelupdateinput.md#layout)
-- [name](cmscontentmodelupdateinput.md#name)
-- [titleFieldId](cmscontentmodelupdateinput.md#titlefieldid)
+- [description](cmscontentmodelupdateinput#description)
+- [fields](cmscontentmodelupdateinput#fields)
+- [layout](cmscontentmodelupdateinput#layout)
+- [name](cmscontentmodelupdateinput#name)
+- [titleFieldId](cmscontentmodelupdateinput#titlefieldid)
 
 ## Properties
 
@@ -30,7 +30,7 @@ ___
 
 ### fields
 
-• **fields**: [*CmsContentModelFieldInput*](cmscontentmodelfieldinput.md)[]
+• **fields**: [*CmsContentModelFieldInput*](cmscontentmodelfieldinput)[]
 
 A list of content model fields to define the entry values.
 

@@ -12,14 +12,14 @@
 
 ### Properties
 
-- [fieldType](cmsmodelfieldtographqlplugin.md#fieldtype)
-- [init](cmsmodelfieldtographqlplugin.md#init)
-- [isSearchable](cmsmodelfieldtographqlplugin.md#issearchable)
-- [isSortable](cmsmodelfieldtographqlplugin.md#issortable)
-- [manage](cmsmodelfieldtographqlplugin.md#manage)
-- [name](cmsmodelfieldtographqlplugin.md#name)
-- [read](cmsmodelfieldtographqlplugin.md#read)
-- [type](cmsmodelfieldtographqlplugin.md#type)
+- [fieldType](cmsmodelfieldtographqlplugin#fieldtype)
+- [init](cmsmodelfieldtographqlplugin#init)
+- [isSearchable](cmsmodelfieldtographqlplugin#issearchable)
+- [isSortable](cmsmodelfieldtographqlplugin#issortable)
+- [manage](cmsmodelfieldtographqlplugin#manage)
+- [name](cmsmodelfieldtographqlplugin#name)
+- [read](cmsmodelfieldtographqlplugin#read)
+- [type](cmsmodelfieldtographqlplugin#type)
 
 ## Properties
 
@@ -67,17 +67,17 @@ ___
 
 ### manage
 
-• **manage**: { `createInputField`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* ; `createListFilters?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* ; `createResolver?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md) ; `models`: [*CmsContentModel*](cmscontentmodel.md)[]  }) => *GraphQLFieldResolver*<*any*, *Context*<*Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>\>, *any*\> ; `createSchema?`: (`params`: { `model`: [*CmsContentModel*](cmscontentmodel.md) ; `models`: [*CmsContentModel*](cmscontentmodel.md)[]  }) => *GraphQLSchemaDefinition*<[*CmsContext*](cmscontext.md)\> ; `createTypeField`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* \| [*CmsModelFieldDefinition*](cmsmodelfielddefinition.md)  }
+• **manage**: { `createInputField`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* ; `createListFilters?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* ; `createResolver?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel) ; `models`: [*CmsContentModel*](cmscontentmodel)[]  }) => *GraphQLFieldResolver*<*any*, *Context*<*Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>\>, *any*\> ; `createSchema?`: (`params`: { `model`: [*CmsContentModel*](cmscontentmodel) ; `models`: [*CmsContentModel*](cmscontentmodel)[]  }) => *GraphQLSchemaDefinition*<[*CmsContext*](cmscontext)\> ; `createTypeField`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* \| [*CmsModelFieldDefinition*](cmsmodelfielddefinition)  }
 
 #### Type declaration:
 
 Name | Type |
 ------ | ------ |
-`createInputField` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* |
-`createListFilters?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* |
-`createResolver?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md) ; `models`: [*CmsContentModel*](cmscontentmodel.md)[]  }) => *GraphQLFieldResolver*<*any*, *Context*<*Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>\>, *any*\> |
-`createSchema?` | (`params`: { `model`: [*CmsContentModel*](cmscontentmodel.md) ; `models`: [*CmsContentModel*](cmscontentmodel.md)[]  }) => *GraphQLSchemaDefinition*<[*CmsContext*](cmscontext.md)\> |
-`createTypeField` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* \| [*CmsModelFieldDefinition*](cmsmodelfielddefinition.md) |
+`createInputField` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* |
+`createListFilters?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* |
+`createResolver?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel) ; `models`: [*CmsContentModel*](cmscontentmodel)[]  }) => *GraphQLFieldResolver*<*any*, *Context*<*Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>\>, *any*\> |
+`createSchema?` | (`params`: { `model`: [*CmsContentModel*](cmscontentmodel) ; `models`: [*CmsContentModel*](cmscontentmodel)[]  }) => *GraphQLSchemaDefinition*<[*CmsContext*](cmscontext)\> |
+`createTypeField` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* \| [*CmsModelFieldDefinition*](cmsmodelfielddefinition) |
 
 ___
 
@@ -89,17 +89,17 @@ ___
 
 ### read
 
-• **read**: { `createGetFilters?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* ; `createListFilters?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* ; `createResolver?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md) ; `models`: [*CmsContentModel*](cmscontentmodel.md)[]  }) => *GraphQLFieldResolver*<*any*, *Context*<*Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>\>, *any*\> ; `createSchema?`: (`params`: { `model`: [*CmsContentModel*](cmscontentmodel.md) ; `models`: [*CmsContentModel*](cmscontentmodel.md)[]  }) => *GraphQLSchemaDefinition*<[*CmsContext*](cmscontext.md)\> ; `createTypeField`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string*  }
+• **read**: { `createGetFilters?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* ; `createListFilters?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* ; `createResolver?`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel) ; `models`: [*CmsContentModel*](cmscontentmodel)[]  }) => *GraphQLFieldResolver*<*any*, *Context*<*Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>\>, *any*\> ; `createSchema?`: (`params`: { `model`: [*CmsContentModel*](cmscontentmodel) ; `models`: [*CmsContentModel*](cmscontentmodel)[]  }) => *GraphQLSchemaDefinition*<[*CmsContext*](cmscontext)\> ; `createTypeField`: (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string*  }
 
 #### Type declaration:
 
 Name | Type |
 ------ | ------ |
-`createGetFilters?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* |
-`createListFilters?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* |
-`createResolver?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md) ; `models`: [*CmsContentModel*](cmscontentmodel.md)[]  }) => *GraphQLFieldResolver*<*any*, *Context*<*Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>\>, *any*\> |
-`createSchema?` | (`params`: { `model`: [*CmsContentModel*](cmscontentmodel.md) ; `models`: [*CmsContentModel*](cmscontentmodel.md)[]  }) => *GraphQLSchemaDefinition*<[*CmsContext*](cmscontext.md)\> |
-`createTypeField` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `model`: [*CmsContentModel*](cmscontentmodel.md)  }) => *string* |
+`createGetFilters?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* |
+`createListFilters?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* |
+`createResolver?` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel) ; `models`: [*CmsContentModel*](cmscontentmodel)[]  }) => *GraphQLFieldResolver*<*any*, *Context*<*Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>, *Record*<*string*, *any*\>\>, *any*\> |
+`createSchema?` | (`params`: { `model`: [*CmsContentModel*](cmscontentmodel) ; `models`: [*CmsContentModel*](cmscontentmodel)[]  }) => *GraphQLSchemaDefinition*<[*CmsContext*](cmscontext)\> |
+`createTypeField` | (`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `model`: [*CmsContentModel*](cmscontentmodel)  }) => *string* |
 
 ___
 

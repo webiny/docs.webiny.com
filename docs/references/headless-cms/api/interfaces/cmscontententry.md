@@ -8,30 +8,30 @@ A content entry definition for and from the database.
 
 * **CmsContentEntry**
 
-  ↳ [*CmsContentIndexEntry*](cmscontentindexentry.md)
+  ↳ [*CmsContentIndexEntry*](cmscontentindexentry)
 
 ## Table of contents
 
 ### Properties
 
-- [createdBy](cmscontententry.md#createdby)
-- [createdOn](cmscontententry.md#createdon)
-- [id](cmscontententry.md#id)
-- [locale](cmscontententry.md#locale)
-- [locked](cmscontententry.md#locked)
-- [modelId](cmscontententry.md#modelid)
-- [ownedBy](cmscontententry.md#ownedby)
-- [publishedOn](cmscontententry.md#publishedon)
-- [savedOn](cmscontententry.md#savedon)
-- [status](cmscontententry.md#status)
-- [values](cmscontententry.md#values)
-- [version](cmscontententry.md#version)
+- [createdBy](cmscontententry#createdby)
+- [createdOn](cmscontententry#createdon)
+- [id](cmscontententry#id)
+- [locale](cmscontententry#locale)
+- [locked](cmscontententry#locked)
+- [modelId](cmscontententry#modelid)
+- [ownedBy](cmscontententry#ownedby)
+- [publishedOn](cmscontententry#publishedon)
+- [savedOn](cmscontententry#savedon)
+- [status](cmscontententry#status)
+- [values](cmscontententry#values)
+- [version](cmscontententry#version)
 
 ## Properties
 
 ### createdBy
 
-• **createdBy**: [*CreatedBy*](createdby.md)
+• **createdBy**: [*CreatedBy*](createdby)
 
 CreatedBy object reference.
 
@@ -84,7 +84,7 @@ ___
 
 ### ownedBy
 
-• **ownedBy**: [*CreatedBy*](createdby.md)
+• **ownedBy**: [*CreatedBy*](createdby)
 
 OwnedBy object reference. Can be different from CreatedBy.
 

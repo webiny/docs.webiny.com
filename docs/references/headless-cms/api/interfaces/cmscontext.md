@@ -26,15 +26,15 @@
 
 ### Properties
 
-- [args](cmscontext.md#args)
-- [cms](cmscontext.md#cms)
-- [db](cmscontext.md#db)
-- [elasticSearch](cmscontext.md#elasticsearch)
-- [http](cmscontext.md#http)
-- [i18n](cmscontext.md#i18n)
-- [i18nContent](cmscontext.md#i18ncontent)
-- [plugins](cmscontext.md#plugins)
-- [security](cmscontext.md#security)
+- [args](cmscontext#args)
+- [cms](cmscontext#cms)
+- [db](cmscontext#db)
+- [elasticSearch](cmscontext#elasticsearch)
+- [http](cmscontext#http)
+- [i18n](cmscontext#i18n)
+- [i18nContent](cmscontext#i18ncontent)
+- [plugins](cmscontext#plugins)
+- [security](cmscontext#security)
 
 ## Properties
 

@@ -20,9 +20,9 @@ Locked field in the content model
 
 ### Properties
 
-- [fieldId](lockedfield.md#fieldid)
-- [multipleValues](lockedfield.md#multiplevalues)
-- [type](lockedfield.md#type)
+- [fieldId](lockedfield#fieldid)
+- [multipleValues](lockedfield#multiplevalues)
+- [type](lockedfield#type)
 
 ## Properties
 

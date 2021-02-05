@@ -12,9 +12,9 @@ Definition for content model field validator.
 
 ### Properties
 
-- [message](cmscontentmodelfieldvalidation.md#message)
-- [name](cmscontentmodelfieldvalidation.md#name)
-- [settings](cmscontentmodelfieldvalidation.md#settings)
+- [message](cmscontentmodelfieldvalidation#message)
+- [name](cmscontentmodelfieldvalidation#name)
+- [settings](cmscontentmodelfieldvalidation#settings)
 
 ## Properties
 

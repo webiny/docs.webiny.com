@@ -16,18 +16,18 @@ Input type for `CmsContentModelField`.
 
 ### Properties
 
-- [fieldId](cmscontentmodelfieldinput.md#fieldid)
-- [helpText](cmscontentmodelfieldinput.md#helptext)
-- [id](cmscontentmodelfieldinput.md#id)
-- [label](cmscontentmodelfieldinput.md#label)
-- [listValidation](cmscontentmodelfieldinput.md#listvalidation)
-- [multipleValues](cmscontentmodelfieldinput.md#multiplevalues)
-- [placeholderText](cmscontentmodelfieldinput.md#placeholdertext)
-- [predefinedValues](cmscontentmodelfieldinput.md#predefinedvalues)
-- [renderer](cmscontentmodelfieldinput.md#renderer)
-- [settings](cmscontentmodelfieldinput.md#settings)
-- [type](cmscontentmodelfieldinput.md#type)
-- [validation](cmscontentmodelfieldinput.md#validation)
+- [fieldId](cmscontentmodelfieldinput#fieldid)
+- [helpText](cmscontentmodelfieldinput#helptext)
+- [id](cmscontentmodelfieldinput#id)
+- [label](cmscontentmodelfieldinput#label)
+- [listValidation](cmscontentmodelfieldinput#listvalidation)
+- [multipleValues](cmscontentmodelfieldinput#multiplevalues)
+- [placeholderText](cmscontentmodelfieldinput#placeholdertext)
+- [predefinedValues](cmscontentmodelfieldinput#predefinedvalues)
+- [renderer](cmscontentmodelfieldinput#renderer)
+- [settings](cmscontentmodelfieldinput#settings)
+- [type](cmscontentmodelfieldinput#type)
+- [validation](cmscontentmodelfieldinput#validation)
 
 ## Properties
 
@@ -65,7 +65,7 @@ ___
 
 ### listValidation
 
-• **listValidation**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation.md)[]
+• **listValidation**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation)[]
 
 **`see`** CmsContentModelField.listValidation
 
@@ -89,7 +89,7 @@ ___
 
 ### predefinedValues
 
-• `Optional` **predefinedValues**: [*CmsContentModelFieldPredefinedValues*](cmscontentmodelfieldpredefinedvalues.md)
+• `Optional` **predefinedValues**: [*CmsContentModelFieldPredefinedValues*](cmscontentmodelfieldpredefinedvalues)
 
 Predefined values options for the field. Check the reference for more information.
 
@@ -123,6 +123,6 @@ ___
 
 ### validation
 
-• `Optional` **validation**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation.md)[]
+• `Optional` **validation**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation)[]
 
 List of validations for the field.

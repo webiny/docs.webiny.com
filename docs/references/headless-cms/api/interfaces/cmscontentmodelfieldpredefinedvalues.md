@@ -12,8 +12,8 @@ Object containing content model field predefined options and values.
 
 ### Properties
 
-- [enabled](cmscontentmodelfieldpredefinedvalues.md#enabled)
-- [values](cmscontentmodelfieldpredefinedvalues.md#values)
+- [enabled](cmscontentmodelfieldpredefinedvalues#enabled)
+- [values](cmscontentmodelfieldpredefinedvalues#values)
 
 ## Properties
 

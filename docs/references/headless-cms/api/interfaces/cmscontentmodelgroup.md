@@ -12,20 +12,20 @@ A representation of content model group in the database.
 
 ### Properties
 
-- [createdBy](cmscontentmodelgroup.md#createdby)
-- [createdOn](cmscontentmodelgroup.md#createdon)
-- [description](cmscontentmodelgroup.md#description)
-- [icon](cmscontentmodelgroup.md#icon)
-- [id](cmscontentmodelgroup.md#id)
-- [name](cmscontentmodelgroup.md#name)
-- [savedOn](cmscontentmodelgroup.md#savedon)
-- [slug](cmscontentmodelgroup.md#slug)
+- [createdBy](cmscontentmodelgroup#createdby)
+- [createdOn](cmscontentmodelgroup#createdon)
+- [description](cmscontentmodelgroup#description)
+- [icon](cmscontentmodelgroup#icon)
+- [id](cmscontentmodelgroup#id)
+- [name](cmscontentmodelgroup#name)
+- [savedOn](cmscontentmodelgroup#savedon)
+- [slug](cmscontentmodelgroup#slug)
 
 ## Properties
 
 ### createdBy
 
-• **createdBy**: [*CreatedBy*](createdby.md)
+• **createdBy**: [*CreatedBy*](createdby)
 
 CreatedBy reference object.
 

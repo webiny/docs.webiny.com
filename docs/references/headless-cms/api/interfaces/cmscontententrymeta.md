@@ -12,9 +12,9 @@ Meta information for GraphQL output.
 
 ### Properties
 
-- [cursor](cmscontententrymeta.md#cursor)
-- [hasMoreItems](cmscontententrymeta.md#hasmoreitems)
-- [totalCount](cmscontententrymeta.md#totalcount)
+- [cursor](cmscontententrymeta#cursor)
+- [hasMoreItems](cmscontententrymeta#hasmoreitems)
+- [totalCount](cmscontententrymeta#totalcount)
 
 ## Properties
 

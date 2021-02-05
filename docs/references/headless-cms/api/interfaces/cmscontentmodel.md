@@ -12,23 +12,23 @@ Content model defining an entry.
 
 ### Properties
 
-- [createdBy](cmscontentmodel.md#createdby)
-- [createdOn](cmscontentmodel.md#createdon)
-- [description](cmscontentmodel.md#description)
-- [fields](cmscontentmodel.md#fields)
-- [group](cmscontentmodel.md#group)
-- [layout](cmscontentmodel.md#layout)
-- [lockedFields](cmscontentmodel.md#lockedfields)
-- [modelId](cmscontentmodel.md#modelid)
-- [name](cmscontentmodel.md#name)
-- [savedOn](cmscontentmodel.md#savedon)
-- [titleFieldId](cmscontentmodel.md#titlefieldid)
+- [createdBy](cmscontentmodel#createdby)
+- [createdOn](cmscontentmodel#createdon)
+- [description](cmscontentmodel#description)
+- [fields](cmscontentmodel#fields)
+- [group](cmscontentmodel#group)
+- [layout](cmscontentmodel#layout)
+- [lockedFields](cmscontentmodel#lockedfields)
+- [modelId](cmscontentmodel#modelid)
+- [name](cmscontentmodel#name)
+- [savedOn](cmscontentmodel#savedon)
+- [titleFieldId](cmscontentmodel#titlefieldid)
 
 ## Properties
 
 ### createdBy
 
-• `Optional` **createdBy**: [*CreatedBy*](createdby.md)
+• `Optional` **createdBy**: [*CreatedBy*](createdby)
 
 CreatedBy object wrapper. Contains id, name and type of the user.
 
@@ -52,7 +52,7 @@ ___
 
 ### fields
 
-• **fields**: [*CmsContentModelField*](cmscontentmodelfield.md)[]
+• **fields**: [*CmsContentModelField*](cmscontentmodelfield)[]
 
 List of fields defining entry values.
 
@@ -90,7 +90,7 @@ ___
 
 ### lockedFields
 
-• **lockedFields**: [*LockedField*](lockedfield.md)[]
+• **lockedFields**: [*LockedField*](lockedfield)[]
 
 List of locked fields. Updated when entry is saved and a field has been used.
 

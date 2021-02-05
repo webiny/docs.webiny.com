@@ -12,8 +12,8 @@ Representation of settings database model.
 
 ### Properties
 
-- [contentModelLastChange](cmssettings.md#contentmodellastchange)
-- [isInstalled](cmssettings.md#isinstalled)
+- [contentModelLastChange](cmssettings#contentmodellastchange)
+- [isInstalled](cmssettings#isinstalled)
 
 ## Properties
 

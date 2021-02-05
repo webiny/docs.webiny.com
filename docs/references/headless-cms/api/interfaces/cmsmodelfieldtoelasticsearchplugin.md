@@ -14,16 +14,16 @@ A plugin defining transformation of entry for Elasticsearch.
 
 ### Properties
 
-- [fieldType](cmsmodelfieldtoelasticsearchplugin.md#fieldtype)
-- [init](cmsmodelfieldtoelasticsearchplugin.md#init)
-- [name](cmsmodelfieldtoelasticsearchplugin.md#name)
-- [type](cmsmodelfieldtoelasticsearchplugin.md#type)
-- [unmappedType](cmsmodelfieldtoelasticsearchplugin.md#unmappedtype)
+- [fieldType](cmsmodelfieldtoelasticsearchplugin#fieldtype)
+- [init](cmsmodelfieldtoelasticsearchplugin#init)
+- [name](cmsmodelfieldtoelasticsearchplugin#name)
+- [type](cmsmodelfieldtoelasticsearchplugin#type)
+- [unmappedType](cmsmodelfieldtoelasticsearchplugin#unmappedtype)
 
 ### Methods
 
-- [fromIndex](cmsmodelfieldtoelasticsearchplugin.md#fromindex)
-- [toIndex](cmsmodelfieldtoelasticsearchplugin.md#toindex)
+- [fromIndex](cmsmodelfieldtoelasticsearchplugin#fromindex)
+- [toIndex](cmsmodelfieldtoelasticsearchplugin#toindex)
 
 ## Properties
 
@@ -74,7 +74,7 @@ unmappedType: "date"
 
 ### fromIndex
 
-▸ `Optional`**fromIndex**(`params`: CmsModelFieldToElasticsearchFromArgs): *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry.md)\>
+▸ `Optional`**fromIndex**(`params`: CmsModelFieldToElasticsearchFromArgs): *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry)\>
 
 This is meant to revert a transformation done in the `toIndex` method. Again, you can transform any field but try to keep things separated. It returns `Partial<CmsContentIndexEntryType>`. Always return a top-level property of the entry since it is merged via spread operator.
 
@@ -98,13 +98,13 @@ Name | Type |
 ------ | ------ |
 `params` | CmsModelFieldToElasticsearchFromArgs |
 
-**Returns:** *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry.md)\>
+**Returns:** *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry)\>
 
 ___
 
 ### toIndex
 
-▸ `Optional`**toIndex**(`params`: CmsModelFieldToElasticsearchToArgs): *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry.md)\>
+▸ `Optional`**toIndex**(`params`: CmsModelFieldToElasticsearchToArgs): *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry)\>
 
 This is meant to do some transformation of the entry, preferably only to fieldType it was defined for. Nothing is stopping you to do anything you want to other fields, but try to separate field transformations.
 It returns `Partial<CmsContentIndexEntryType>`. Always return a top-level property of the entry since it is merged via spread operator.
@@ -129,4 +129,4 @@ Name | Type |
 ------ | ------ |
 `params` | CmsModelFieldToElasticsearchToArgs |
 
-**Returns:** *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry.md)\>
+**Returns:** *Partial*<[*CmsContentIndexEntry*](cmscontentindexentry)\>

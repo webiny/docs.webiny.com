@@ -14,17 +14,17 @@ A plugin definition to build Elasticsearch query
 
 ### Properties
 
-- [apply](elasticsearchquerybuilderplugin.md#apply)
-- [init](elasticsearchquerybuilderplugin.md#init)
-- [name](elasticsearchquerybuilderplugin.md#name)
-- [operator](elasticsearchquerybuilderplugin.md#operator)
-- [type](elasticsearchquerybuilderplugin.md#type)
+- [apply](elasticsearchquerybuilderplugin#apply)
+- [init](elasticsearchquerybuilderplugin#init)
+- [name](elasticsearchquerybuilderplugin#name)
+- [operator](elasticsearchquerybuilderplugin#operator)
+- [type](elasticsearchquerybuilderplugin#type)
 
 ## Properties
 
 ### apply
 
-• **apply**: (`query`: [*ElasticsearchQuery*](elasticsearchquery.md), `args`: [*ElasticsearchQueryBuilderArgsPlugin*](elasticsearchquerybuilderargsplugin.md)) => *void*
+• **apply**: (`query`: [*ElasticsearchQuery*](elasticsearchquery), `args`: [*ElasticsearchQueryBuilderArgsPlugin*](elasticsearchquerybuilderargsplugin)) => *void*
 
 Method used to modify received query object.
 Has access to whole query object so it can remove something added by other plugins.

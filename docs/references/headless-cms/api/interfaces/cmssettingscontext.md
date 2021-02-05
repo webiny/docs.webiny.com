@@ -12,12 +12,12 @@ Settings crud in context.
 
 ### Properties
 
-- [contentModelLastChange](cmssettingscontext.md#contentmodellastchange)
-- [get](cmssettingscontext.md#get)
-- [getContentModelLastChange](cmssettingscontext.md#getcontentmodellastchange)
-- [install](cmssettingscontext.md#install)
-- [noAuth](cmssettingscontext.md#noauth)
-- [updateContentModelLastChange](cmssettingscontext.md#updatecontentmodellastchange)
+- [contentModelLastChange](cmssettingscontext#contentmodellastchange)
+- [get](cmssettingscontext#get)
+- [getContentModelLastChange](cmssettingscontext#getcontentmodellastchange)
+- [install](cmssettingscontext#install)
+- [noAuth](cmssettingscontext#noauth)
+- [updateContentModelLastChange](cmssettingscontext#updatecontentmodellastchange)
 
 ## Properties
 
@@ -31,7 +31,7 @@ ___
 
 ### get
 
-• **get**: () => *Promise*<[*CmsSettings*](cmssettings.md)\>
+• **get**: () => *Promise*<[*CmsSettings*](cmssettings)\>
 
 Gets settings model from the database.
 
@@ -47,7 +47,7 @@ ___
 
 ### install
 
-• **install**: () => *Promise*<[*CmsSettings*](cmssettings.md)\>
+• **install**: () => *Promise*<[*CmsSettings*](cmssettings)\>
 
 Install the CMS.
 
@@ -55,7 +55,7 @@ ___
 
 ### noAuth
 
-• **noAuth**: () => { `get`: () => *Promise*<[*CmsSettings*](cmssettings.md)\>  }
+• **noAuth**: () => { `get`: () => *Promise*<[*CmsSettings*](cmssettings)\>  }
 
 A function defining usage of a method without authenticating the user.
 
@@ -63,6 +63,6 @@ ___
 
 ### updateContentModelLastChange
 
-• **updateContentModelLastChange**: () => *Promise*<[*CmsSettings*](cmssettings.md)\>
+• **updateContentModelLastChange**: () => *Promise*<[*CmsSettings*](cmssettings)\>
 
 Updates settings model with a new date.

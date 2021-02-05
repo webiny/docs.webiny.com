@@ -14,28 +14,28 @@ A argument definition for CmsModelFieldToStoragePlugin.toStorage
 
 ### Properties
 
-- [context](cmsmodelfieldtostorageplugintostorageargs.md#context)
-- [field](cmsmodelfieldtostorageplugintostorageargs.md#field)
-- [model](cmsmodelfieldtostorageplugintostorageargs.md#model)
-- [value](cmsmodelfieldtostorageplugintostorageargs.md#value)
+- [context](cmsmodelfieldtostorageplugintostorageargs#context)
+- [field](cmsmodelfieldtostorageplugintostorageargs#field)
+- [model](cmsmodelfieldtostorageplugintostorageargs#model)
+- [value](cmsmodelfieldtostorageplugintostorageargs#value)
 
 ## Properties
 
 ### context
 
-• **context**: [*CmsContext*](cmscontext.md)
+• **context**: [*CmsContext*](cmscontext)
 
 ___
 
 ### field
 
-• **field**: [*CmsContentModelField*](cmscontentmodelfield.md)
+• **field**: [*CmsContentModelField*](cmscontentmodelfield)
 
 ___
 
 ### model
 
-• **model**: [*CmsContentModel*](cmscontentmodel.md)
+• **model**: [*CmsContentModel*](cmscontentmodel)
 
 ___
 

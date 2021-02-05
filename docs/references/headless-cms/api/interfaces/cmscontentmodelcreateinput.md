@@ -12,9 +12,9 @@ A GraphQL args.data parameter received when creating content model.
 
 ### Properties
 
-- [description](cmscontentmodelcreateinput.md#description)
-- [modelId](cmscontentmodelcreateinput.md#modelid)
-- [name](cmscontentmodelcreateinput.md#name)
+- [description](cmscontentmodelcreateinput#description)
+- [modelId](cmscontentmodelcreateinput#modelid)
+- [name](cmscontentmodelcreateinput#name)
 
 ## Properties
 

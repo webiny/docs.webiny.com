@@ -15,15 +15,15 @@ A custom plugin definable by the user.
 
 ### Properties
 
-- [fieldType](cmsmodellockedfieldplugin.md#fieldtype)
-- [init](cmsmodellockedfieldplugin.md#init)
-- [name](cmsmodellockedfieldplugin.md#name)
-- [type](cmsmodellockedfieldplugin.md#type)
+- [fieldType](cmsmodellockedfieldplugin#fieldtype)
+- [init](cmsmodellockedfieldplugin#init)
+- [name](cmsmodellockedfieldplugin#name)
+- [type](cmsmodellockedfieldplugin#type)
 
 ### Methods
 
-- [checkLockedField](cmsmodellockedfieldplugin.md#checklockedfield)
-- [getLockedFieldData](cmsmodellockedfieldplugin.md#getlockedfielddata)
+- [checkLockedField](cmsmodellockedfieldplugin#checklockedfield)
+- [getLockedFieldData](cmsmodellockedfieldplugin#getlockedfielddata)
 
 ## Properties
 
@@ -57,7 +57,7 @@ A plugin type
 
 ### checkLockedField
 
-▸ `Optional`**checkLockedField**(`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `lockedField`: [*LockedField*](lockedfield.md)  }): *void*
+▸ `Optional`**checkLockedField**(`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `lockedField`: [*LockedField*](lockedfield)  }): *void*
 
 A method to check if field really is locked.
 
@@ -65,7 +65,7 @@ A method to check if field really is locked.
 
 Name | Type |
 ------ | ------ |
-`params` | { `field`: [*CmsContentModelField*](cmscontentmodelfield.md) ; `lockedField`: [*LockedField*](lockedfield.md)  } |
+`params` | { `field`: [*CmsContentModelField*](cmscontentmodelfield) ; `lockedField`: [*LockedField*](lockedfield)  } |
 
 **Returns:** *void*
 
@@ -73,7 +73,7 @@ ___
 
 ### getLockedFieldData
 
-▸ `Optional`**getLockedFieldData**(`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield.md)  }): *object*
+▸ `Optional`**getLockedFieldData**(`params`: { `field`: [*CmsContentModelField*](cmscontentmodelfield)  }): *object*
 
 A method to get the locked field data.
 
@@ -81,6 +81,6 @@ A method to get the locked field data.
 
 Name | Type |
 ------ | ------ |
-`params` | { `field`: [*CmsContentModelField*](cmscontentmodelfield.md)  } |
+`params` | { `field`: [*CmsContentModelField*](cmscontentmodelfield)  } |
 
 **Returns:** *object*

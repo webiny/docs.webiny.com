@@ -12,10 +12,10 @@ Definition for Elasticsearch query.
 
 ### Properties
 
-- [match](elasticsearchquery.md#match)
-- [must](elasticsearchquery.md#must)
-- [mustNot](elasticsearchquery.md#mustnot)
-- [should](elasticsearchquery.md#should)
+- [match](elasticsearchquery#match)
+- [must](elasticsearchquery#must)
+- [mustNot](elasticsearchquery#mustnot)
+- [should](elasticsearchquery#should)
 
 ## Properties
 

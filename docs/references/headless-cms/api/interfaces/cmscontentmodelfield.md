@@ -12,18 +12,18 @@ A definition for content model field. This type exists on the app side as well.
 
 ### Properties
 
-- [fieldId](cmscontentmodelfield.md#fieldid)
-- [helpText](cmscontentmodelfield.md#helptext)
-- [id](cmscontentmodelfield.md#id)
-- [label](cmscontentmodelfield.md#label)
-- [listValidation](cmscontentmodelfield.md#listvalidation)
-- [multipleValues](cmscontentmodelfield.md#multiplevalues)
-- [placeholderText](cmscontentmodelfield.md#placeholdertext)
-- [predefinedValues](cmscontentmodelfield.md#predefinedvalues)
-- [renderer](cmscontentmodelfield.md#renderer)
-- [settings](cmscontentmodelfield.md#settings)
-- [type](cmscontentmodelfield.md#type)
-- [validation](cmscontentmodelfield.md#validation)
+- [fieldId](cmscontentmodelfield#fieldid)
+- [helpText](cmscontentmodelfield#helptext)
+- [id](cmscontentmodelfield#id)
+- [label](cmscontentmodelfield#label)
+- [listValidation](cmscontentmodelfield#listvalidation)
+- [multipleValues](cmscontentmodelfield#multiplevalues)
+- [placeholderText](cmscontentmodelfield#placeholdertext)
+- [predefinedValues](cmscontentmodelfield#predefinedvalues)
+- [renderer](cmscontentmodelfield#renderer)
+- [settings](cmscontentmodelfield#settings)
+- [type](cmscontentmodelfield#type)
+- [validation](cmscontentmodelfield#validation)
 
 ## Properties
 
@@ -61,7 +61,7 @@ ___
 
 ### listValidation
 
-• **listValidation**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation.md)[]
+• **listValidation**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation)[]
 
 List of validations for the list of values, when a field is set to accept a list of values.
 These validations will be applied to the entire list, and `validation` (see above) will be applied
@@ -89,7 +89,7 @@ ___
 
 ### predefinedValues
 
-• **predefinedValues**: [*CmsContentModelFieldPredefinedValues*](cmscontentmodelfieldpredefinedvalues.md)
+• **predefinedValues**: [*CmsContentModelFieldPredefinedValues*](cmscontentmodelfieldpredefinedvalues)
 
 Are predefined values enabled? And list of them
 
@@ -123,7 +123,7 @@ ___
 
 ### validation
 
-• **validation**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation.md)[]
+• **validation**: [*CmsContentModelFieldValidation*](cmscontentmodelfieldvalidation)[]
 
 List of validations for the field
 

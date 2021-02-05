@@ -16,14 +16,14 @@ A plugin to load a CmsContentModelManager.
 
 ### Properties
 
-- [init](contentmodelmanagerplugin.md#init)
-- [modelId](contentmodelmanagerplugin.md#modelid)
-- [name](contentmodelmanagerplugin.md#name)
-- [type](contentmodelmanagerplugin.md#type)
+- [init](contentmodelmanagerplugin#init)
+- [modelId](contentmodelmanagerplugin#modelid)
+- [name](contentmodelmanagerplugin#name)
+- [type](contentmodelmanagerplugin#type)
 
 ### Methods
 
-- [create](contentmodelmanagerplugin.md#create)
+- [create](contentmodelmanagerplugin#create)
 
 ## Properties
 
@@ -58,7 +58,7 @@ A plugin type.
 
 ### create
 
-▸ **create**(`context`: [*CmsContext*](cmscontext.md), `model`: [*CmsContentModel*](cmscontentmodel.md)): *Promise*<[*CmsContentModelManager*](cmscontentmodelmanager.md)\>
+▸ **create**(`context`: [*CmsContext*](cmscontext), `model`: [*CmsContentModel*](cmscontentmodel)): *Promise*<[*CmsContentModelManager*](cmscontentmodelmanager)\>
 
 Create a CmsContentModelManager for specific type - or new default one.
 For reference in how is this plugin run check [contentModelManagerFactory](https://github.com/webiny/webiny-js/blob/f15676/packages/api-headless-cms/src/content/plugins/crud/contentModel/contentModelManagerFactory.ts)
@@ -67,7 +67,7 @@ For reference in how is this plugin run check [contentModelManagerFactory](https
 
 Name | Type |
 ------ | ------ |
-`context` | [*CmsContext*](cmscontext.md) |
-`model` | [*CmsContentModel*](cmscontentmodel.md) |
+`context` | [*CmsContext*](cmscontext) |
+`model` | [*CmsContentModel*](cmscontentmodel) |
 
-**Returns:** *Promise*<[*CmsContentModelManager*](cmscontentmodelmanager.md)\>
+**Returns:** *Promise*<[*CmsContentModelManager*](cmscontentmodelmanager)\>
