@@ -1,4 +1,4 @@
-[Headless CMS API](../index) / CmsContentModelHookPlugin
+[Headless CMS API](../index) /  CmsContentModelHookPlugin
 
 # Interface: CmsContentModelHookPlugin
 
@@ -14,21 +14,21 @@ A plugin type that defines lifecycle hooks for content model.
 
 ### Properties
 
-- [afterCreate](cmscontentmodelhookplugin#aftercreate)
-- [afterDelete](cmscontentmodelhookplugin#afterdelete)
-- [afterUpdate](cmscontentmodelhookplugin#afterupdate)
-- [beforeCreate](cmscontentmodelhookplugin#beforecreate)
-- [beforeDelete](cmscontentmodelhookplugin#beforedelete)
-- [beforeUpdate](cmscontentmodelhookplugin#beforeupdate)
-- [init](cmscontentmodelhookplugin#init)
-- [name](cmscontentmodelhookplugin#name)
-- [type](cmscontentmodelhookplugin#type)
+- [afterCreate](cmscontentmodelhookplugin.md#aftercreate)
+- [afterDelete](cmscontentmodelhookplugin.md#afterdelete)
+- [afterUpdate](cmscontentmodelhookplugin.md#afterupdate)
+- [beforeCreate](cmscontentmodelhookplugin.md#beforecreate)
+- [beforeDelete](cmscontentmodelhookplugin.md#beforedelete)
+- [beforeUpdate](cmscontentmodelhookplugin.md#beforeupdate)
+- [init](cmscontentmodelhookplugin.md#init)
+- [name](cmscontentmodelhookplugin.md#name)
+- [type](cmscontentmodelhookplugin.md#type)
 
 ## Properties
 
 ### afterCreate
 
-• `Optional` **afterCreate**: (`args`: CmsContentModelHookPluginArgs) => *void*
+• `Optional` **afterCreate**: (`args`: [*CmsContentModelHookPluginArgs*](cmscontentmodelhookpluginargs.md)) => *void*
 
 A hook triggered after the content model is created.
 
@@ -36,7 +36,7 @@ ___
 
 ### afterDelete
 
-• `Optional` **afterDelete**: (`args`: CmsContentModelHookPluginArgs) => *void*
+• `Optional` **afterDelete**: (`args`: [*CmsContentModelHookPluginArgs*](cmscontentmodelhookpluginargs.md)) => *void*
 
 A hook triggered after the content model is deleted.
 
@@ -44,7 +44,7 @@ ___
 
 ### afterUpdate
 
-• `Optional` **afterUpdate**: (`args`: CmsContentModelHookPluginArgs) => *void*
+• `Optional` **afterUpdate**: (`args`: [*CmsContentModelHookPluginArgs*](cmscontentmodelhookpluginargs.md)) => *void*
 
 A hook triggered after the content model is updated.
 
@@ -52,7 +52,7 @@ ___
 
 ### beforeCreate
 
-• `Optional` **beforeCreate**: (`args`: CmsContentModelHookPluginArgs) => *void*
+• `Optional` **beforeCreate**: (`args`: [*CmsContentModelHookPluginArgs*](cmscontentmodelhookpluginargs.md)) => *void*
 
 A hook triggered before the content model is created.
 
@@ -60,7 +60,7 @@ ___
 
 ### beforeDelete
 
-• `Optional` **beforeDelete**: (`args`: CmsContentModelHookPluginArgs) => *void*
+• `Optional` **beforeDelete**: (`args`: [*CmsContentModelHookPluginArgs*](cmscontentmodelhookpluginargs.md)) => *void*
 
 A hook triggered before the content model is deleted.
 
@@ -68,7 +68,7 @@ ___
 
 ### beforeUpdate
 
-• `Optional` **beforeUpdate**: (`args`: CmsContentModelUpdateHookPluginArgs) => *void*
+• `Optional` **beforeUpdate**: (`args`: [*CmsContentModelUpdateHookPluginArgs*](cmscontentmodelupdatehookpluginargs.md)) => *void*
 
 A hook triggered before the content model is updated.
 
