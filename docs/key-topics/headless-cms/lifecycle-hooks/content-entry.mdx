@@ -1,0 +1,346 @@
+---
+id: content-entry
+title: Content entry lifecycle hooks
+sidebar_label: Content entry
+keywords: ["webiny", "content entry", "headless cms", "lifecycle hooks", "plugins"]
+description: An explanation of lifecycle hooks plugins for content entries
+---
+
+:::tip What you'll learn
+* When are hooks triggered
+* What can you do with the hooks
+:::
+
+## Before you start
+You should read about Webiny plugins and the key topic on content entries.
+
+## Overview
+We will go through a list of hooks that you can define to be executed. We will also give some examples on how the hooks can be used.
+
+For the article we will assume that we have some remote service, named `EntryService`, which stores the entries and a webhook call that can run some background process.
+We also have `ReviewService` that handles reviews of the entries in another app.
+Also, we will split hook plugins to simplify the examples.
+
+In the hooks you can modify the values of the entry object, but we do not recommend it.
+
+## Plugin type
+The plugin type to define the hooks is [CmsContentEntryHookPlugin](../../references/headless-cms/api/cmscontententryhookplugin.mdx).
+
+All hooks are async and are executed in the order the plugins were registered. You can check that [here](https://github.com/webiny/webiny-js/blob/v5/packages/api-headless-cms/src/content/plugins/crud/contentEntry/runContentEntryLifecycleHooks.ts).
+
+Each hook receives `context`, `model` and `entry` as a part of argument object.
+
+## Hooks
+
+### Before create
+This hook is triggered before we store the entry data to the storage.
+
+We use this hook to lock fields on the `model` - to make sure they cannot be changed or deleted.
+
+What can you do in this hook? You can run a check to make sure that entry with same name does not exist in the remote `EntryService`.
+```ts title="beforeCreate.ts"
+const beforeCreate = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeCreate: async({entry}): Promise<void> => {
+	    const result = await entryServiceApi.fetch({
+			name: entry.values.name,
+	    });
+	    if (result === null) {
+	        return;
+	    }
+	    throw new Error(`Entry with name "${entry.values.name}" already exists in "EntryService".`);
+	}
+});
+```
+
+### After create
+This hook is triggered after we store the entry data to the storage and to the Elasticsearch.
+
+What can you do in this hook? You can store the entry to the remote `EntryService`. Also, you can call some webhook that, for example, runs some background process that you require.
+```ts title="afterCreate.ts"
+const afterCreate = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	afterCreate: async({entry}): Promise<void> => {
+	    const result = await entryServiceApi.store(entry);
+	    if (result === null) {
+	    	throw new Error(`Entry "${entry.values.name}" could not be stored to the "EntryService".`);
+	    }
+	    await webhookApi.trigger("entryCreate", {entry});
+	}
+});
+```
+
+### Before createRevisionFrom
+This hook is triggered before we store a new entry revision to the storage.
+
+What can you do in this hook?
+```ts title="beforeCreateRevisionFrom.ts"
+const beforeCreateRevisionFrom = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeBeforeCreateRevisionFrom: async({entry}): Promise<void> => {
+
+	}
+});
+```
+
+### After createRevisionFrom
+This hook is triggered after we store a new entry revision to the storage and Elasticsearch.
+
+What can you do in this hook? You can update your remote entry to reflect the data from the entry's new revision.
+```ts title="afterCreateRevisionFrom.ts"
+const afterCreateRevisionFrom = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeAfterCreateRevisionFrom: async({entry}): Promise<void> => {
+	    const result = await entryServiceApi.update(entry);
+	    if (!result) {
+	        return;
+	    }
+	    throw new Error(`Entry "${entry.values.name}" could not be updated in the "EntryService".`);
+	}
+});
+```
+
+
+### Before update
+This hook is triggered before we store an update entry to the storage.
+
+What can you do in this hook? You can call some webhook that will in turn check the entry cache.
+```ts title="beforeUpdate.ts"
+const beforeUpdate = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeBeforeUpdate: async({model, entry}): Promise<void> => {
+		const result = await webhookApi.trigger("cacheValidate", {model, entry});
+		if (result){
+		    return;
+		}
+		throw new Error(`Cache for model / entry combination "${model.modelId} / ${entry.id}" does not exist.`);
+	}
+});
+```
+
+### After update
+This hook is triggered before we store an update entry to the storage.
+
+What can you do in this hook? You can call some webhook that will start a prerendering of the pages that are loading the entry.
+```ts title="afterUpdate.ts"
+const afterUpdate = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeAfterUpdate: async({model, entry}): Promise<void> => {
+		const result = await webhookApi.trigger("prerender", {model, entry});
+		if (result){
+		    return;
+		}
+		throw new Error(`Could not prerender pages.`);
+	}
+});
+```
+
+### Before delete revision
+This hook is triggered before we delete entry revision from the storage.
+
+What can you do in this hook? You can call some webhook that will in turn check the entry cache.
+```ts title="beforeDeleteRevision.ts"
+const beforeDeleteRevision = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeBeforeDeleteRevision: async({model, entry}): Promise<void> => {
+		const result = await webhookApi.trigger("cacheValidate", {model, entry});
+		if (result){
+		    return;
+		}
+		throw new Error(`Cache for model / entry combination "${model.modelId} / ${entry.id}" does not exist.`);
+	}
+});
+```
+
+### Before delete revision
+This hook is triggered after we delete entry revision from the storage and Elasticsearch.
+
+What can you do in this hook? You can call some webhook that will in turn refresh the cache.
+```ts title="afterDeleteRevision.ts"
+const afterDeleteRevision = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeAfterDeleteRevision: async({model, entry}): Promise<void> => {
+		const result = await webhookApi.trigger("cacheRefresh", {model, entry});
+		if (result){
+		    return;
+		}
+		throw new Error(`Cache for model / entry combination "${model.modelId} / ${entry.id}" cannot be refreshed.`);
+	}
+});
+```
+
+
+### Before delete
+This hook is triggered before we delete whole entry from the storage.
+
+What can you do in this hook? You can call some webhook that will check if entry is allowed to be deleted.
+```ts title="beforeDelete.ts"
+const beforeDelete = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeDelete: async({model, entry}): Promise<void> => {
+		const result = await webhookApi.trigger("entryAllowDelete", {model, entry});
+		if (result){
+		    return;
+		}
+		throw new Error(`Entry "${entry.id}" is not allowed to be deleted!`);
+	}
+});
+```
+
+### After delete
+This hook is triggered after we delete whole entry from the storage.
+
+What can you do in this hook? You can call some webhook that will clear the cache.
+```ts title="afterDelete.ts"
+const afterDelete = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	afterDelete: async({model, entry}): Promise<void> => {
+		const result = await webhookApi.trigger("cacheClear", {model, entry});
+		if (result){
+		    return;
+		}
+		throw new Error(`Could not clear model / entry combination "${model.modelId} / ${entry.id}" cache.`);
+	}
+});
+```
+
+
+### Before publish
+This hook is triggered before we publish the entry revision.
+
+What can you do in this hook? You can clear the local cache in Memcached.
+```ts title="beforePublish.ts"
+const beforePublish = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforePublish: async({model, entry}): Promise<void> => {
+		const result = await Memcache.clear(entry.id);
+		if (result){
+		    return;
+		}
+		throw new Error(`Entry "${entry.id}" cache could not be cleared!`);
+	}
+});
+```
+
+### After publish
+This hook is triggered after we publish the entry revision.
+
+What can you do in this hook? You can set the local cache in Memcached.
+```ts title="afterPublish.ts"
+const afterPublish = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	afterPublish: async({model, entry}): Promise<void> => {
+		const result = await Memcache.set(entry.id, entry);
+		if (result){
+		    return;
+		}
+		throw new Error(`Entry "${entry.id}" cache could not be set!`);
+	}
+});
+```
+
+### Before unpublish
+This hook is triggered before we unpublish the entry revision.
+
+What can you do in this hook? You can check if entry is being used in your remote `EntryService`.
+```ts title="beforeUnpublish.ts"
+const beforeUnpublish = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeUnpublish: async({model, entry}): Promise<void> => {
+		const result = await EntryService.isUsed(entry.id);
+		if (!result){
+		    return;
+		}
+		throw new Error(`Entry "${entry.id}" is being used, cannot be unpublished!`);
+	}
+});
+```
+
+### After unpublish
+This hook is triggered after we unpublish the entry revision.
+
+What can you do in this hook? You can trigger a build via webhook.
+```ts title="afterUnpublish.ts"
+const afterUnpublish = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	afterUnpublish: async({model, entry}): Promise<void> => {
+		const result = await webhookApi.trigger("build");
+		if (result){
+		    return;
+		}
+		throw new Error(`Webhook build trigger failed.`);
+	}
+});
+```
+
+### Before request review
+This hook is triggered before we request review for the entry revision.
+
+What can you do in this hook? You can check on remote `ReviewService` if entry review was already requested.
+```ts title="beforeRequestReview.ts"
+const beforeRequestReview = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeRequestReview: async({model, entry}): Promise<void> => {
+		const result = await ReviewService.fetch(entry.id);
+		if (!result){
+		    return;
+		}
+		throw new Error(`Entry "${entry.id}" review was already requested!`);
+	}
+});
+```
+
+### After request review
+This hook is triggered after we request review for the entry revision.
+
+What can you do in this hook? You can check on remote `ReviewService` if entry review was already requested.
+```ts title="afterRequestReview.ts"
+const afterRequestReview = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	afterRequestReview: async({model, entry}): Promise<void> => {
+		const result = await ReviewService.requestReview(entry);
+		if (result){
+		    return;
+		}
+		throw new Error(`Entry "${entry.id}" review could not be requested!`);
+	}
+});
+```
+
+### Before request changes
+This hook is triggered before we request changes for the entry revision.
+
+What can you do in this hook? You can prepare remote "ReviewService" to expect the request change on the entry.
+```ts title="beforeRequestChanges.ts"
+const beforeRequestChanges = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	beforeRequestChanges: async({model, entry}): Promise<void> => {
+		const result = await ReviewService.prepareRequestChanges(entry);
+		if (result) {
+		    return;
+		}
+		throw new Error(`Could not prepare to request changes for entry "${entry.id}".`);
+	}
+});
+```
+
+### After request changes
+This hook is triggered after we request review for the entry revision.
+
+What can you do in this hook?  You can now store the request change on the entry.
+```ts title="afterRequestChanges.ts"
+const afterRequestChanges = (): CmsContentEntryHookPlugin => ({
+	type: "content-entry-hook",
+	afterRequestChanges: async({model, entry}): Promise<void> => {
+		const result = await ReviewService.storeRequestChanges(entry);
+		if (result) {
+		    return;
+		}
+		throw new Error(`Could not store request changes for entry "${entry.id}".`);
+	}
+});
+```
+
+
+## Conclusion
+There are a lot of hooks, yes, but probably will not use most of them. Also, feel free to define hooks in a single plugin, eg. Memcache hooks should be in a single plugin.

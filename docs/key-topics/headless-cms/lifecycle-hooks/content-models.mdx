@@ -1,0 +1,164 @@
+---
+id: content-model
+title: Content model lifecycle hooks
+sidebar_label: Content model
+keywords: ["webiny", "content model", "headless cms", "lifecycle hooks", "plugins"]
+description: An explanation of lifecycle hooks plugins for content models
+---
+
+:::tip What you'll learn
+* When are hooks triggered
+* What can you do with the hooks
+:::
+
+## Before you start
+You should read about Webiny plugins and the key topic on content models.
+
+## Overview
+We will go through a list of hooks that you can define to be executed. We will also give some examples on how the hooks can be used.
+
+For the article we will assume that we have some remote service, named `ModelService`, that also stores models. Also, we will split hook plugins to simplify the examples.
+
+In the hooks you can modify the values of the model object, but we do not recommend it.
+
+## Plugin type
+The plugin type to define the hooks is [CmsContentModelHookPlugin](../../references/headless-cms/api/cmscontentmodelhookplugin.mdx).
+
+All hooks are async and are executed in the order the plugins were registered. You can check that [here](https://github.com/webiny/webiny-js/blob/v5/packages/api-headless-cms/src/content/plugins/crud/contentModel/runContentModelLifecycleHooks.ts).
+
+Each hook receives `context` and `model` as a part of argument object, except the `beforeSave` hook which also receives modified `data` object.
+
+## Hooks
+### Before create
+This hook is triggered before we store the content model to the storage.
+
+We use this hook to verify that `modelId` is a unique one in our system.
+
+
+What can you do in this hook? You can run a check to make sure that `modelId` is unique in the `ModelService`:
+```ts title="modelServiceBeforeCreate.ts"
+const modelServiceBeforeCreate = (): CmsContentModelHookPlugin => ({
+	type: "content-model-hook",
+	beforeCreate: async({model}): Promise<void> => {
+	    const {modelId} = model;
+	    const result = await modelServiceApi.fetch(modelid);
+	    if (result === null) {
+	        return;
+	    }
+	    throw new Error(`Model id "${modelId}" already exists in "ModelService".`);
+	}
+});
+```
+
+### After create
+This hook is triggered after the content model was successfully stored.
+
+What can you do in this hook? You can now store the model to the remote service:
+```ts title="modelServiceAfterCreate.ts"
+const modelServiceAfterCreate = (): CmsContentModelHookPlugin => ({
+	type: "content-model-hook",
+	afterCreate: async({model}): Promise<void> => {
+	    const {modelId} = model;
+	    const result = await modelServiceApi.store({
+			id: model.modelId,
+			name: model.name,
+			group: model.group.id,
+	    });
+	    if (result) {
+	        return;
+	    }
+	    throw new Error(`Could not store model "${modelId}" to "ModelService".`);
+	}
+});
+```
+
+
+### Before update
+This hook is triggered before we store the updated content model to the storage.
+This is a bit specific hook since it receives a data object which contains changes from the input.
+Arguments interface is [CmsContentModelUpdateHookPluginArgs](../../reference/headless-cms/api/cmscontentmodelupdatehookpluginargs.mdx).
+
+We use this hook to check if `titleFieldId` changed and if it is set correctly according to our specifications.
+Also, we check if any field that has been used in the entries was removed or changed, and we do not allow it.
+
+What can you do in this hook? You can check if model exists in the `ModelService`.
+```ts title="modelServiceBeforeUpdate.ts"
+const modelServiceBeforeUpdate = (): CmsContentModelHookPlugin => ({
+	type: "content-model-hook",
+	beforeUpdate: async({model}): Promise<void> => {
+	    const {modelId} = model;
+	    const result = await modelServiceApi.fetch(modelId);
+	    if (result) {
+	        return;
+	    }
+	    throw new Error(`Could not find model "${modelId}"`);
+	}
+});
+```
+
+
+### After update
+This hook is triggered after we store the content model to the storage.
+
+We use this hook to update the internal cache for the GraphQL schema.
+
+What can you do in this hook? You can update the model in the `ModelService`.
+```ts title="modelServiceAfterUpdate.ts"
+const modelServiceAfterUpdate = (): CmsContentModelHookPlugin => ({
+	type: "content-model-hook",
+	afterUpdate: async({model}): Promise<void> => {
+	    const {modelId} = model;
+	    const result = await modelServiceApi.store({
+			id: model.modelId,
+			name: model.name,
+			group: model.group.id,
+	    });
+	    if (result) {
+	        return;
+	    }
+	    throw new Error(`Could not store model "${modelId}" to "ModelService".`);
+	}
+});
+```
+
+### Before delete
+This hook is triggered before we delete the content model from the storage.
+
+We use this hook to make sure that there are no entries in given content model. We do not allow deletion of content models that have entries.
+
+What can you do in this hook? You can check if model has some related data in the `ModelService`.
+```ts title="modelServiceBeforeDelete.ts"
+const modelServiceBeforeDelete = (): CmsContentModelHookPlugin => ({
+	type: "content-model-hook",
+	beforeDelete: async({model}): Promise<void> => {
+	    const {modelId} = model;
+	    const results = await modelServiceApi.fetchRelated(modelId, {
+	        limit: 1
+	    });
+	    if (results.length === 0) {
+	        return;
+	    }
+	    throw new Error(`It appears that "${modelId}" has some related data in the "ModelService".`);
+	}
+});
+```
+
+### After delete
+This hook is triggered after we delete the content model from the storage.
+
+We use this hook to update the internal cache for the GraphQL schema.
+
+What can you do in this hook? You can delete the model from the `ModelService`.
+```ts title="modelServiceAfterDelete.ts"
+const modelServiceAfterDelete = (): CmsContentModelHookPlugin => ({
+	type: "content-model-hook",
+	afterDelete: async({model}): Promise<void> => {
+	    const {modelId} = model;
+	    const result = await modelServiceApi.delete(modelId);
+	    if (result) {
+	        return;
+	    }
+	    throw new Error(`It appears that "${modelId}" cannot be deleted from "ModelService".`);
+	}
+});
+```
