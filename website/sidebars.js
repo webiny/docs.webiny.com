@@ -26,6 +26,17 @@ module.exports = {
                 },
                 {
                     type: "category",
+                    label: "Development Workflows",
+                    items: [
+                        "how-to-guides/development-workflows/introduction",
+                        "how-to-guides/development-workflows/development",
+                        "how-to-guides/development-workflows/environments",
+                        "how-to-guides/development-workflows/cloud-infrastructure-state",
+                        "how-to-guides/development-workflows/ci-cd",
+                    ]
+                },
+                {
+                    type: "category",
                     label: "Headless CMS",
                     items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"]
                 },
