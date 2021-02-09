@@ -46,10 +46,13 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "Page Builder",
+                    label: "Serverless CMS",
                     items: [
-                        "key-topics/page-builder/responsive-mode"
-                        // "key-topics/page-builder/prerendering-pages"
+                        {
+                            type: "category",
+                            label: "Page Builder",
+                            items: ["key-topics/serverless-cms/page-builder/responsive-mode"]
+                        }
                     ]
                 },
                 /*"key-topics/webiny-cli",*/
