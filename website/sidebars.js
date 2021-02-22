@@ -31,6 +31,7 @@ module.exports = {
                         "how-to-guides/development-workflows/introduction",
                         "how-to-guides/development-workflows/development",
                         "how-to-guides/development-workflows/environments",
+                        "how-to-guides/development-workflows/branching",
                         "how-to-guides/development-workflows/cloud-infrastructure-state",
                         "how-to-guides/development-workflows/ci-cd",
                     ]
