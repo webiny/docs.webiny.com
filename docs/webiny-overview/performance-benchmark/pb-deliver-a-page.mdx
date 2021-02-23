@@ -1,0 +1,73 @@
+---
+id: pb-deliver-a-page
+title: Page Builder - Deliver a page benchmark
+sidebar_label: Page Builder - Deliver a page benchmark
+keywords: ["serverless", "performance", "benchmark", "page builder"]
+description: Webiny Page Builder performance benchmark.
+---
+
+:::tip What you’ll learn
+
+- the performance of Webiny Page Builder
+
+:::
+
+## Benchmark overview
+
+In this test we are requesting the default homepage that comes with Webiny Page Builder. We're fetching the HTML of that page. The linked assets like CSS, JS and images are not loaded. The payload size we are retrieving is 25.9kb compressed (or 778kb uncompressed).
+
+### Load structure
+
+We are sending 400 users to the website with a ramp up period of 20s, meaning each second 20 new users are coming to the page. After the ramp up period, for the next 4 minutes and 40 seconds we are keeping the load of 400 users constantly requesting the page until the timer expires. The total test duration is 5 minutes.
+
+## Results
+
+### Summary
+
+- **Total requests generated:** 221,935
+- **Average response time:** 515.27 ms (0.5s)
+- **Throughput:** 738req/sec
+
+**What this means?**
+
+Requests per second is a number that helps you calculate how many users you can actually serve. The other part of that calculation is to know how your users behave. How fast they navigate between pages in this case.
+
+As an example say your visitors stay one each page for 1 minute (60sec). Based on that information and the throughput of 738req/sec you can handle 44,280 concurrent users.
+
+If your users are navigating between pages much faster, say every 20 seconds, you're looking at 14,760 concurrent users.
+
+### Response times
+
+<img
+  src={require("./assets/pb-deliver-a-page/response-time.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Page Builder benchmark - Response time"
+/>
+
+Average response time is 515.27ms, while the median is 443ms and 95% of all the requests were delivered with a response time not greater than 1.3 seconds (p95).
+
+### Throughput
+
+<img
+  src={require("./assets/pb-deliver-a-page/throughput.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Page Builder benchmark - Throughput"
+/>
+
+In the beginning of the graph you can see the ramp up period of 20 seconds, after which more or less a consistent throughput is maintained.
+
+---
+
+**Important note**
+
+Due to the nature of how Webiny works, when you publish a page in the Page Builder, Webiny triggers a prerendering service which creates a HTML snapshot of your page, together with a file that caches all your GraphQL queries. This is then stored to S3. That S3 acts like an origin to a CloudFront distribution which is what the end user requests.
+
+This is what we also test in our benchmark. Because CloudFront is a CDN with many distributed edges, the throughput actually increases if your users are geographically distributed as the load is spread across multiple edges. In our test we always hit the same edge node.
+
+You might say we're load testing a CDN in our case, that's true, but this is how your Webiny production would look like and it's a representative example.
+
+---
+
+You can download and check the full report here: https://github.com/webiny/benchmark/tree/main/benchmarks/results/pb-page-delivery
