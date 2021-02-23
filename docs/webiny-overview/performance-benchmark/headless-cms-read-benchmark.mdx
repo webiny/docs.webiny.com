@@ -1,0 +1,78 @@
+---
+id: headless-cms-read-benchmark
+title: Headless CMS - Read operation benchmark
+sidebar_label: Headless CMS - Read operation benchmark
+keywords: ["serverless", "performance", "benchmark", "headless cms", "graphql"]
+description: Webiny Headless CMS performance benchmark.
+---
+
+:::tip What you’ll learn
+
+- performance of read operations on Webiny Headless CMS
+- optimization suggestions
+
+:::
+
+## Benchmark overview
+
+In this benchmark we are doing a GraphQL query to the Headless CMS preview API. The query is requesting an "Order" record by providing the `OrderID` attribute. Note that `OrderID` is a random attribute and not the built in `id` attribute which is the primary key in the database. We wanted to test filtering on a sample attribute.
+
+Here is the full query that is being issued:
+
+```graphql
+{
+  listOrders(where:{orderId: ${OrderID}}){
+    data{
+      id
+    }
+  }
+}
+```
+
+The `OrderID` variable is replaced with a random value on each request.
+
+> For scalability purposes, the queries are done on a database with 1 million records. In the test security is enabled, where the user's token is verified on each request.
+
+### Load structure
+
+The test is configured by ramping up 500 user threads within 25 second period, that's 20 users every second. After 25 seconds we keep a steady state of 500 doing requests as fast as the system can handle for a period of 4 minutes and 40 seconds. Total test duration is 5 minutes.
+
+## Results
+
+### Summary
+
+- **Total requests generated:** 221,935
+- **Average response time:** 515.27 ms (0.5s)
+- **Throughput:** 738req/sec
+
+**What this means?**
+
+### Response times
+
+---
+
+## Why is read slower than write?
+
+As you probably noticed, the read operation is actually slower than the write operation, which might seem odd as write is the more operationally costly one.
+
+The key here is in the architecture. The flow of the write operation looks like this:
+
+Client -> CloudFront -> API Gateway -> Lambda -> DynamoDB -> (stream) -> Elasticsearch
+
+While the read operation looks like so:
+
+Client -> CloudFront -> API Gateway -> Lambda -> Elasticsearch
+
+In the write operation we don't talk to Elasticsearch synchronously, rather over an async stream. This means that Elasticsearch doesn't slow down the main request.
+
+In the read operation there is no DynamoDB, the read operations go and talk directly to Elasticsearch. The reason for this is that DynamoDB, although a very powerful and scalable database is very feature-limited when it comes to filtering, sorting and searching.
+
+This usually is not a problem when you know your access patters as you can model your data accordingly. However with a headless CMS you cannot predict what models the users will build and how will they access their data. Because of that we couldn't rely on DynamoDB as the primary database for the read operations.
+
+Also, in our test we're using the default Webiny installation which comes with the smallest possible Elasticsearch instance, `t3.small.elasticsearch`. Scaling this instance will improve your throughput. Here is the same test done with different Elasticsearch instance sizes:
+
+xxxxtodoxxx
+
+---
+
+You can download and check the full report here: https://github.com/webiny/benchmark/tree/main/benchmarks/results/hc-read-benchmark

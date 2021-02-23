@@ -1,0 +1,101 @@
+---
+id: headless-cms-write-benchmark
+title: Headless CMS - Write operation benchmark
+sidebar_label: Headless CMS - Write operation benchmark
+keywords: ["serverless", "performance", "benchmark", "headless cms", "graphql"]
+description: Webiny Headless CMS performance benchmark.
+---
+
+:::tip What you’ll learn
+
+- performance of write operations on Webiny Headless CMS
+- optimization suggestions
+
+:::
+
+## Benchmark overview
+
+In this benchmark we are doing a GraphQL mutation request to the Headless CMS manage API. The mutation is inserting a new "Order" record and upon successful save, returning back the `id` of the new record.
+
+Here is the full mutation that is being issued:
+
+```graphql
+mutation {
+    createOrder(data:
+      {
+        orderId: ${OrderID}
+        orderDate: "${OrderDate}"
+        shippingDate: "${ShipDate}"
+        unitsSold: ${UnitsSold}
+        unitPrice: ${UnitPrice}
+        totalPrice: ${TotalRevenue}
+        country: {
+          modelId: "country"
+          entryId: "${Country}"
+        },
+        itemType: {
+          modelId: "itemType"
+          entryId: "${ItemType}"
+        },
+        salesChannel: {
+          modelId: "salesChannel"
+          entryId: "${SalesChannel}"
+        },
+        orderPriority: {
+          modelId: "orderPriority"
+          entryId: "${OrderPriority}"
+        },
+      }) {
+      data {
+        id
+      }
+      error {
+        message
+      }
+    }
+}
+```
+
+The variables are replaced with real values during the test by Apache JMeter.
+
+> For scalability purposes, we are first populating the database with 1 million records, and only then starting our benchmark. In the test security is enabled, where the user's token is verified on each request.
+
+### Load structure
+
+The test is configured by ramping up 500 user threads within 25 second period, that's 20 users every second. After 25 seconds we keep a steady state of 500 doing requests as fast as the system can handle for a period of 4 minutes and 40 seconds. Total test duration is 5 minutes.
+
+## Results
+
+### Summary
+
+- **Total requests generated:** 221,935
+- **Average response time:** 515.27 ms (0.5s)
+- **Throughput:** 738req/sec
+
+**What this means?**
+
+### Response times
+
+---
+
+## Optimization suggestions
+
+There are 3 key components that control your throughput in the basic setup.
+
+**1. DynamoDB**
+
+By default DynamoDB is configured with `on demand` capacity. To increase throughput, once you have a good sense of your access patters, we recommend you switch to `provisioned capacity` mode. This mode will be cheaper, if configured correctly, and more performant.
+
+**2. Lambda concurrency**
+
+By default your AWS account will have a soft limit of 1000 lambda concurrent executions. We recommend you increase this limit by filing a support request with AWS.
+
+**3. Elasticsearch service**
+
+This is the only service which is not fully serverless and needs to be manually scaled. By default Webiny creates the smallest possible ES instance `t3.small.elasticsearch`. This is the instance that was used in our test.
+This instance usually won't go over 50-60 req/sec, but Webiny doesn't store data directly into ES, rather there is a DynamoDB stream configured that batches operations and ensures that even this small instance can handle close to 1000req/sec on the write API.
+For production workloads we recommend you take a larger instance with multi-az deployment.
+
+---
+
+You can download and check the full report here: https://github.com/webiny/benchmark/tree/main/benchmarks/results/hc-write-benchmark
