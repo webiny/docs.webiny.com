@@ -18,23 +18,21 @@ In this test we are requesting the default homepage that comes with Webiny Page 
 
 ### Load structure
 
-We are sending 400 users to the website with a ramp up period of 20s, meaning each second 20 new users are coming to the page. After the ramp up period, for the next 4 minutes and 40 seconds we are keeping the load of 400 users constantly requesting the page until the timer expires. The total test duration is 5 minutes.
+We are sending 1,000 users to the website with a ramp up period of 25s, meaning each second 40 new users are coming to the page. After the ramp up period, for the next 10 minutes we are keeping the load of 1000 users constantly requesting the page. There is no caching on the "client" side happening.
 
 ## Results
 
 ### Summary
 
-- **Total requests generated:** 221,935
-- **Average response time:** 515.27 ms (0.5s)
-- **Throughput:** 738req/sec
+- **Total requests generated:** 2,274,117
+- **Average response time:** 267 ms (0.27s)
+- **Throughput:** 3,613 req/sec
 
 **What this means?**
 
 Requests per second is a number that helps you calculate how many users you can actually serve. The other part of that calculation is to know how your users behave. How fast they navigate between pages in this case.
 
-As an example say your visitors stay one each page for 1 minute (60sec). Based on that information and the throughput of 738req/sec you can handle 44,280 concurrent users.
-
-If your users are navigating between pages much faster, say every 20 seconds, you're looking at 14,760 concurrent users.
+As an example say your average visitors stays on your site 5 minutes, and visits around 10 pages. That's 2 pages a minute. With a throughput of 3,613req/sec, you can handle 216,780 pages a minute, or 108,390 visitors in a minute.
 
 ### Response times
 
@@ -45,7 +43,7 @@ If your users are navigating between pages much faster, say every 20 seconds, yo
   alt="Page Builder benchmark - Response time"
 />
 
-Average response time is 515.27ms, while the median is 443ms and 95% of all the requests were delivered with a response time not greater than 1.3 seconds (p95).
+Average response time is 267ms, while 95% of all the requests were delivered with a response time not greater than 805ms (p95).
 
 ### Throughput
 
@@ -56,17 +54,41 @@ Average response time is 515.27ms, while the median is 443ms and 95% of all the 
   alt="Page Builder benchmark - Throughput"
 />
 
-In the beginning of the graph you can see the ramp up period of 20 seconds, after which more or less a consistent throughput is maintained.
+Average throughput was 3,613 req/sec, while at peak the system handled more than 6500 req/sec. From the picture you can see that the pattern was more or less consistent, especially after the first 2 minutes have elapsed.
 
 ---
 
 **Important note**
 
-Due to the nature of how Webiny works, when you publish a page in the Page Builder, Webiny triggers a prerendering service which creates a HTML snapshot of your page, together with a file that caches all your GraphQL queries. This is then stored to S3. That S3 acts like an origin to a CloudFront distribution which is what the end user requests.
+Due to the nature of how Webiny works, when you publish a page in the Page Builder, Webiny triggers a prerendering service which creates a HTML snapshot of your page, together with a file that caches all the GraphQL queries that page issues. It's a very similar mechanism to how most static page generators work like Gatsby, Jekyll and Hugo.
 
-This is what we also test in our benchmark. Because CloudFront is a CDN with many distributed edges, the throughput actually increases if your users are geographically distributed as the load is spread across multiple edges. In our test we always hit the same edge node.
+However Webiny differs in its workflow. In Page Builder when you press the publish button on a page, this generation of the HTML and GraphQL cache is created in the background by a dedicated Lambda function. There is no need to upload any files, or do rebuilds of your whole site locally. Incremental builds are automatically handle, so you also don't worry about that. This whole process takes a few seconds after the page has been published.
 
-You might say we're load testing a CDN in our case, that's true, but this is how your Webiny production would look like and it's a representative example.
+The cached files are then saved on to an S3 bucket, which has a CloudFront CDN in front. When a client requests a page, it's only a request to CloudFront and then to S3, is the page is not already cached. There no Lambdas are involved in the delivery.
+
+Because CloudFront is a CDN with many distributed edges, the throughput actually increases if your users are geographically distributed as the load is spread across multiple edges. In our test we always hit the same edge node. By default a single CloudFront distribution can handle around 250,000 req/sec.
+
+You might say we're load testing a CDN in our case, that's true, but this is how your Webiny instance will look in production and it's a representative example.
+
+---
+
+## Cost
+
+Calculating the cost in this case is rather simple, due to the flow explained above. The only cost that is occurring are the CloudFront hits and traffic. We're ignoring S3 in this case, as only a few request landed there before the file was cached in CloudFront.
+
+In our tests the cost factors are:
+
+<!-- prettier-ignore -->
+- **Total number of hits**: 2,274,117
+<!-- prettier-ignore -->
+- **Total traffic**: ~588GB (number of hits \* 25.9kb payload size)
+<!-- prettier-ignore -->
+- **Hits cost** = $2.73 ($0.0120 price per 10k HTTPS requests \* 2,274,117)
+<!-- prettier-ignore -->
+- **Traffic cost** = $49.98 ($0.085 price per GB \* 588 GB)
+
+<!-- prettier-ignore -->
+**TOTAL COST** = $52.71
 
 ---
 
