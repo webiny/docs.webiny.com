@@ -64,9 +64,9 @@ Due to the nature of how Webiny works, when you publish a page in the Page Build
 
 However Webiny differs in its workflow. In Page Builder when you press the publish button on a page, this generation of the HTML and GraphQL cache is created in the background by a dedicated Lambda function. There is no need to upload any files, or do rebuilds of your whole site locally. Incremental builds are automatically handle, so you also don't worry about that. This whole process takes a few seconds after the page has been published.
 
-The cached files are then saved on to an S3 bucket, which has a CloudFront CDN in front. When a client requests a page, it's only a request to CloudFront and then to S3, is the page is not already cached. There no Lambdas are involved in the delivery.
+The cached files are then saved on to an S3 bucket, which has a CloudFront CDN in front. When a client requests a page, it's only a request to CloudFront and then to S3, if the page is not already cached. There no Lambdas are involved in the delivery.
 
-Because CloudFront is a CDN with many distributed edges, the throughput actually increases if your users are geographically distributed as the load is spread across multiple edges. In our test we always hit the same edge node. By default a single CloudFront distribution can handle around 250,000 req/sec.
+Because CloudFront is a CDN with many distributed edges, the throughput actually increases if your users are geographically distributed as the load is spread across multiple edges. By default a single CloudFront distribution can handle around 250,000 req/sec.
 
 You might say we're load testing a CDN in our case, that's true, but this is how your Webiny instance will look in production and it's a representative example.
 
@@ -74,7 +74,7 @@ You might say we're load testing a CDN in our case, that's true, but this is how
 
 ## Cost
 
-Calculating the cost in this case is rather simple, due to the flow explained above. The only cost that is occurring are the CloudFront hits and traffic. We're ignoring S3 in this case, as only a few request landed there before the file was cached in CloudFront.
+Calculating the cost in this case is rather simple, due to the flow explained above. The costs that are occurring are the CloudFront hits and traffic. We're ignoring S3 in this case, as only a few request landed there before the file was cached in CloudFront.
 
 In our tests the cost factors are:
 
@@ -82,6 +82,9 @@ In our tests the cost factors are:
 - **Total number of hits**: 2,274,117
 <!-- prettier-ignore -->
 - **Total traffic**: ~588GB (number of hits \* 25.9kb payload size)
+
+Which brings us to:
+
 <!-- prettier-ignore -->
 - **Hits cost** = $2.73 ($0.0120 price per 10k HTTPS requests \* 2,274,117)
 <!-- prettier-ignore -->
