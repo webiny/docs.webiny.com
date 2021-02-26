@@ -12,13 +12,13 @@ module.exports = {
                     ]
                 }
             ],
-            "How-to guides": [
+            "How-to Guides": [
                 {
                     type: "category",
                     label: "Deployment",
                     items: [
                         "how-to-guides/deployment/deploy-your-project",
-                        "how-to-guides/deployment/destroy-your-project",
+                        "how-to-guides/deployment/destroy-cloud-infrastructure",
                         "how-to-guides/deployment/preview-deployments",
                         /*"how-to-guides/deployment/aws-regions-profiles",*/
                         "how-to-guides/deployment/configure-aws-credentials"
@@ -26,14 +26,13 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "Development Workflows",
+                    label: "CI/CD",
                     items: [
-                        "how-to-guides/development-workflows/introduction",
-                        "how-to-guides/development-workflows/development",
-                        "how-to-guides/development-workflows/environments",
-                        "how-to-guides/development-workflows/branching",
-                        "how-to-guides/development-workflows/cloud-infrastructure-state",
-                        "how-to-guides/development-workflows/ci-cd",
+                        "how-to-guides/ci-cd/introduction",
+                        "how-to-guides/ci-cd/ci-cd",
+                        "how-to-guides/ci-cd/development",
+                        "how-to-guides/ci-cd/environments",
+                        "how-to-guides/ci-cd/version-control"
                     ]
                 },
                 {
@@ -41,10 +40,10 @@ module.exports = {
                     label: "Headless CMS",
                     items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"]
                 },
+                "how-to-guides/working-with-workspaces",
                 "how-to-guides/upgrade-webiny"
             ],
             "Key Topics": [
-                /*"key-topics/technologies",*/
                 "key-topics/project-organization",
                 "key-topics/project-applications",
                 {
@@ -61,7 +60,6 @@ module.exports = {
                     label: "Page Builder",
                     items: ["key-topics/page-builder/prerendering-pages"]
                 },*/
-                /*"key-topics/webiny-cli",*/
                 {
                     type: "category",
                     label: "Cloud Infrastructure",
@@ -100,7 +98,10 @@ module.exports = {
                             ]
                         }
                     ]
-                }
+                },
+                "key-topics/tools-libraries",
+                "key-topics/ci-cd",
+                "key-topics/webiny-cli"
             ]
         },
         {
