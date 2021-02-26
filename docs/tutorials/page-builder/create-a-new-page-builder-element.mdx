@@ -13,7 +13,7 @@ description: Create a new Page Builder element.
 
 ## Overview
 
-Although the Page Builder app comes with a bunch of ready-made page elements, at one point in time, you might need to create your own to satisfy your specific requirements.
+Although the Page Builder app comes with a lot of ready-made page elements, at one point in time, you might need to create your own to satisfy your specific requirements.
 To achieve that, we can utilize a couple of simple plugins, which is what we'll cover in this short tutorial. So, without further ado let's get started.
 
 ## What We'll Build
@@ -49,19 +49,24 @@ which is easy to understand and maintain later on.
 
 In this particular case, we'll need to share some logic (a plugin) across multiple apps i.e. `apps/admin` and `apps/website`.
 
+For this we're going to create a package named `iFrameElement` inside `packages` folder, and simply import and reuse the code (plugin) across apps.
+
 :::note
-Please note that this is very common scenario for Page Builder plugins as the Admin app needs to have the plugin to show it inside the page editor,
-and the website app, which is the frontend where the Page Builder pages are rendered, needs to have the same plugin to display it on the page.
+This is a very common scenario for Page Builder plugins because the Admin app use the plugin to render element inside editor
+and the Website app need the same plugin to render element in the actual page.
 :::
 
-We can simply copy that code over to the app we need it in but that will violate the don't-repeat-yourself (DRY) principle.
-So, for a clean solution we're going to create a package named `iFrameElement` inside `packages` folder, and simply import and reuse the code (plugin) across apps.
+To create a new page element, we need to register two sets of plugins:
+1. For the `admin` app:
+   - a plugin that will defines how it's rendered in the editor
+   - a plugin that will defines all of the available settings and options for it
+2. For the `website` app:
+   - a plugin that will defines how the page element is rendered on the actual page
 
-:::info
-Webiny uses monorepo structure.
-:::
+To better organize files we'll write all the plugins needed for the Admin app in `iFrameElement/src/admin` and plugins needed for
+the Website app in `iFrameElement/src/render`.
 
-After creating the package, the folder structure of our project will look similar to this:
+In the end the folder structure of our project will look similar to this:
 
 ```
 // Config files are omitted for sake of brevity.
@@ -107,13 +112,7 @@ All of the available page elements can be accessed via the elements menu, which 
 <!-- vale on -->
 
 As mentioned, this list of page elements can be expanded and custom page elements can be created via plugins.
-To create a new page element, we need to register two sets of plugins:
-
-1. For the `admin` app:
-   - a plugin that will defines how it's rendered in the editor
-   - a plugin that will defines all of the available settings and options for it
-2. For the `website`:
-   - a plugin that will defines how the page element is rendered on the actual page
+Now that we have covered the brief overview of what we need to do and how to organize files. Let's get started with creating plugins.
 
 ## Add Plugins in the Admin App
 
@@ -205,22 +204,7 @@ They define the initial page element's settings and how it will be rendered in t
 
 The `data` property holds the initial state of the page element which can contain any data you might need.
 
-The `toolbar` property helps us put our plugin into the tool bar, as seen in the image below:
-
-<!-- vale off -->
-
-<img
-  src={require("../assets/page-builder/editor-iframe-element.png").default}
-  style={{ marginBottom: 20 }}
-  alt="Editor Iframe page element"
-/>
-
-<!-- vale on -->
-
-:::note
-In order for these plugins to actually work and show up in UI. We need to add them to plugins inside `apps/admin`.
-Please see the [example](/docs/tutorials/page-builder/create-a-new-page-builder-element#register-plugins-in-the-admin-app).
-:::
+The `toolbar` property helps us put our plugin into the tool bar.
 
 Finally, it’s up to the `render` function to define how the page element will be rendered once the user drops it on the page.
 
@@ -228,7 +212,20 @@ Finally, it’s up to the `render` function to define how the page element will 
 Notice the `props` that were passed to the render function. This object contains all of the relevant page element's data and settings.
 :::
 
-The following code snippet shows the entire `IFrameEditor` component:
+After registering the plugin in the Admin app it will appear in Page Builder editor toolbar as shown below:
+
+<!-- vale off -->
+
+<img
+  src={require("../assets/page-builder/pb-editor-toolbar-demo.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="Editor Iframe page element"
+/>
+
+<!-- vale on -->
+
+Now that we've covered the overall structure of plugin. Let's see what's inside `IFrameEmbed` component.
+The following code snippet shows the entire `IFrameEmbed` component:
 
 ```tsx title="packages/iFrameElement/src/admin/components/iFrameEmbed.tsx"
 // ...
@@ -261,6 +258,8 @@ const IFrameEmbed = props => {
 
 export default IFrameEmbed;
 ```
+
+As you can see it's a simple React component which render an `iframe` HTML element.
 
 :::note
 Every element needs to have [`ElementRoot`](https://github.com/webiny/webiny-js/blob/v5/packages/app-page-builder/src/render/components/ElementRoot.tsx#L31)
@@ -328,11 +327,6 @@ As mentioned, this code will show the settings UI in sidebar and ask for the URL
 
 <!-- vale on -->
 
-:::note
-In order for these plugins to actually work and show up in UI. We need to add them to plugins inside `apps/admin`.
-Please see the [example](/docs/tutorials/page-builder/create-a-new-page-builder-element#register-plugins-in-the-admin-app).
-:::
-
 ### Render Plugin
 
 As mentioned, every page element consists of two sets of plugins. We've already covered the editor side of the logic now, let's also see the actual plugin/code that will render it to the page.
@@ -393,11 +387,6 @@ const IFrame = ({ element }) => {
 export default IFrame;
 ```
 
-:::note
-In order for these plugins to actually work. We need to add them to plugins inside `apps/admin`.
-Please see the [example](/docs/tutorials/page-builder/create-a-new-page-builder-element#register-plugins-in-the-admin-app).
-:::
-
 Along with the actual page, this plugin will also responsible for rendering the element in the page preview, as shown in the image below:
 
 <!-- vale off -->
@@ -439,6 +428,18 @@ Let's make the required changes as shown below:
     alt="Page Builder editor plugins"
   />
 </a>
+
+<!-- vale on -->
+
+After registering the plugins successfully you will see them in the Admin app as shown below:
+
+<!-- vale off -->
+
+<img
+  src={require("../assets/page-builder/pb-editor-toolbar-iframe-demo.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="Editor Iframe page element"
+/>
 
 <!-- vale on -->
 
@@ -505,18 +506,6 @@ const IFrame = ({ element }) => {
 export default IFrame;
 ```
 
-The page element now will be available in your `website` app, shown in the image below:
-
-<!-- vale off -->
-
-<img
-  src={require("../assets/page-builder/iframe-website.png").default}
-  style={{ marginBottom: 20 }}
-  alt="Page preview inside editor"
-/>
-
-<!-- vale on -->
-
 :::note
 In order for these plugins to actually work. We need to add them to plugins inside `apps/website`. Please see the example below.
 :::
@@ -532,6 +521,18 @@ In order for these plugins to actually work. We need to add them to plugins insi
     alt="Page Builder editor plugins"
   />
 </a>
+
+<!-- vale on -->
+
+After registering the plugins successfully the page element now will be available in your `website` app, shown in the image below:
+
+<!-- vale off -->
+
+<img
+  src={require("../assets/page-builder/iframe-website.png").default}
+  style={{ marginBottom: 20 }}
+  alt="Page preview inside editor"
+/>
 
 <!-- vale on -->
 
