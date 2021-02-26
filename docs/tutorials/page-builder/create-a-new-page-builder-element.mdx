@@ -108,11 +108,12 @@ All of the available page elements can be accessed via the elements menu, which 
 
 As mentioned, this list of page elements can be expanded and custom page elements can be created via plugins.
 To create a new page element, we need to register two sets of plugins:
+
 1. For the `admin` app:
-    - a plugin that will defines how it's rendered in the editor
-    - a plugin that will defines all of the available settings and options for it
+   - a plugin that will defines how it's rendered in the editor
+   - a plugin that will defines all of the available settings and options for it
 2. For the `website`:
-    - a plugin that will defines how the page element is rendered on the actual page
+   - a plugin that will defines how the page element is rendered on the actual page
 
 ## Add Plugins in the Admin App
 
@@ -126,78 +127,76 @@ We will start with the [`pb-editor-page-element`](/docs/reference/page-builder/p
 // ...
 // Some code is removed for sake of brevity.
 // ...
-import {
-    PbEditorPageElementPlugin
-} from "@webiny/app-page-builder/types";
+import { PbEditorPageElementPlugin } from "@webiny/app-page-builder/types";
 import { ReactComponent as IFrameIcon } from "./iframe-icon.svg";
 import IFrameEmbed from "./components/IFrameEmbed";
 
 export default () => {
-    return [
-        {
-            name: "pb-editor-page-element-iframe",
-            type: "pb-editor-page-element",
-            elementType: "iframe",
-            toolbar: {
-                // We use `pb-editor-element-group-media` to put our plugin into the Media group.
-                title: "iFrame",
-                group: "pb-editor-element-group-media",
-                preview() {
-                    return (
-                        <PreviewBox>
-                            <IFrameIcon />
-                        </PreviewBox>
-                    );
-                }
-            },
-            settings: ["pb-editor-page-element-settings-delete"],
-            target: ["row", "column"],
-            onCreate: "open-settings",
-            create(options) {
-                /*
+  return [
+    {
+      name: "pb-editor-page-element-iframe",
+      type: "pb-editor-page-element",
+      elementType: "iframe",
+      toolbar: {
+        // We use `pb-editor-element-group-media` to put our plugin into the Media group.
+        title: "iFrame",
+        group: "pb-editor-element-group-media",
+        preview() {
+          return (
+            <PreviewBox>
+              <IFrameIcon />
+            </PreviewBox>
+          );
+        }
+      },
+      settings: ["pb-editor-page-element-settings-delete"],
+      target: ["row", "column"],
+      onCreate: "open-settings",
+      create(options) {
+        /*
                     Create function is here to create the initial data
                     for the page element, which then is utilized in the
                     IFrameEditor component and in the settings dialog.
                 */
-                return {
-                    type: "iframe",
-                    elements: [],
-                    data: {
-                        iframe: {
-                            // The URL property will be populated when user enters the URL in the settings dialog.
-                            url: "",
-                            height: 370
-                        },
-                        settings: {
-                            horizontalAlign: "center",
-                            margin: {
-                                desktop: { all: 0 },
-                                mobile: { all: 0 }
-                            },
-                            padding: {
-                                desktop: { all: 0 },
-                                mobile: { all: 0 }
-                            }
-                        }
-                    },
-                    ...options
-                };
+        return {
+          type: "iframe",
+          elements: [],
+          data: {
+            iframe: {
+              // The URL property will be populated when user enters the URL in the settings dialog.
+              url: "",
+              height: 370
             },
-            render(props) {
-                /*
+            settings: {
+              horizontalAlign: "center",
+              margin: {
+                desktop: { all: 0 },
+                mobile: { all: 0 }
+              },
+              padding: {
+                desktop: { all: 0 },
+                mobile: { all: 0 }
+              }
+            }
+          },
+          ...options
+        };
+      },
+      render(props) {
+        /*
                     Every render function receives the page element's
                     data assigned to the "element.data" property in
                     the received props. In here we will store the
                     "iframe.url" which will be provided via the page
                     element's settings dialog.
                 */
-                return <IFrameEmbed {...props} />;
-            },
-            renderElementPreview({ width, height }) {
-                return <img style={{ width, height }} alt={"iFrame"} />;
-            }
-        } as PbEditorPageElementPlugin
-    ];
+        return <IFrameEmbed {...props} />;
+      },
+      renderElementPreview({ width, height }) {
+        return <img style={{ width, height }} alt={"iFrame"} />;
+      }
+    } as PbEditorPageElementPlugin
+  ];
 };
 ```
 
@@ -218,12 +217,16 @@ The `toolbar` property helps us put our plugin into the tool bar, as seen in the
 
 <!-- vale on -->
 
+:::note
+In order for these plugins to actually work and show up in UI. We need to add them to plugins inside `apps/admin`.
+Please see the [example](/docs/tutorials/page-builder/create-a-new-page-builder-element#register-plugins-in-the-admin-app).
+:::
+
 Finally, it’s up to the `render` function to define how the page element will be rendered once the user drops it on the page.
 
 :::note
 Notice the `props` that were passed to the render function. This object contains all of the relevant page element's data and settings.
 :::
-
 
 The following code snippet shows the entire `IFrameEditor` component:
 
@@ -233,34 +236,27 @@ The following code snippet shows the entire `IFrameEditor` component:
 // ...
 
 const IFrameEmbed = props => {
-    const { element } = props;
+  const { element } = props;
 
-    if (!element.data.iframe.url) {
-        return (
-            <PreviewBox>
-                <IFrameIcon />
-            </PreviewBox>
-        );
-    }
-
+  if (!element.data.iframe.url) {
     return (
-        <ElementRoot
-            className={
-                "webiny-pb-base-page-element-style webiny-pb-page-element-iframe " +
-                outerWrapper
-            }
-            element={element}
-        >
-            <div className={innerWrapper}>
-                <div id={element.id} />
-                <iframe
-                    src={element.data.iframe.url}
-                    width="100%"
-                    height={element.data.iframe.height}
-                />
-            </div>
-        </ElementRoot>
+      <PreviewBox>
+        <IFrameIcon />
+      </PreviewBox>
     );
+  }
+
+  return (
+    <ElementRoot
+      className={"webiny-pb-base-page-element-style webiny-pb-page-element-iframe " + outerWrapper}
+      element={element}
+    >
+      <div className={innerWrapper}>
+        <div id={element.id} />
+        <iframe src={element.data.iframe.url} width="100%" height={element.data.iframe.height} />
+      </div>
+    </ElementRoot>
+  );
 };
 
 export default IFrameEmbed;
@@ -268,7 +264,7 @@ export default IFrameEmbed;
 
 :::note
 Every element needs to have [`ElementRoot`](https://github.com/webiny/webiny-js/blob/v5/packages/app-page-builder/src/render/components/ElementRoot.tsx#L31)
-component as root because it apply `styles, classes and attributes` to the element assigned via right sidebar style tab. 
+component as root because it apply `styles, classes and attributes` to the element assigned via right sidebar style tab.
 :::
 
 :::info
@@ -279,7 +275,6 @@ Every element needs to have it as it contains all base styles applied by Page Bu
 :::tip
 Notice we've added `webiny-pb-page-element-iframe` CSS class, which enables us to add custom CSS styling if needed.
 :::
-
 
 ### Element Settings
 
@@ -333,6 +328,11 @@ As mentioned, this code will show the settings UI in sidebar and ask for the URL
 
 <!-- vale on -->
 
+:::note
+In order for these plugins to actually work and show up in UI. We need to add them to plugins inside `apps/admin`.
+Please see the [example](/docs/tutorials/page-builder/create-a-new-page-builder-element#register-plugins-in-the-admin-app).
+:::
+
 ### Render Plugin
 
 As mentioned, every page element consists of two sets of plugins. We've already covered the editor side of the logic now, let's also see the actual plugin/code that will render it to the page.
@@ -348,14 +348,14 @@ import { PbRenderElementPlugin } from "@webiny/app-page-builder/types";
 import IFrame from "./components/iFrame";
 
 export default () =>
-    ({
-        name: "pb-render-page-element-iframe",
-        type: "pb-render-page-element",
-        elementType: "iframe",
-        render({ element }) {
-            return <IFrame element={element} />;
-        }
-    } as PbRenderElementPlugin);
+  ({
+    name: "pb-render-page-element-iframe",
+    type: "pb-render-page-element",
+    elementType: "iframe",
+    render({ element }) {
+      return <IFrame element={element} />;
+    }
+  } as PbRenderElementPlugin);
 ```
 
 The following code snippet shows the `IFrame` component:
@@ -368,33 +368,35 @@ import { ElementRoot } from "@webiny/app-page-builder/render/components/ElementR
 //...
 
 const IFrame = ({ element }) => {
-    const { data } = element;
-    // If the user didn't enter a URL, let's show a simple message.
-    if (!data.iframe.url) {
-        return <div>IFrame URL is missing.</div>;
-    }
+  const { data } = element;
+  // If the user didn't enter a URL, let's show a simple message.
+  if (!data.iframe.url) {
+    return <div>IFrame URL is missing.</div>;
+  }
 
-    // Otherwise, let's render the iframe.
-    return (
-        <ElementRoot
-            className={
-                "webiny-pb-base-page-element-style webiny-pb-page-element-embed-iframe " +
-                outerWrapper
-            }
-            element={element}
-        >
-            <div className={innerWrapper}>
-                <div
-                    id={data.id}
-                />
-                <iframe src={data.iframe.url} width="100%" height={data.iframe.height} />
-            </div>
-        </ElementRoot>
-    );
+  // Otherwise, let's render the iframe.
+  return (
+    <ElementRoot
+      className={
+        "webiny-pb-base-page-element-style webiny-pb-page-element-embed-iframe " + outerWrapper
+      }
+      element={element}
+    >
+      <div className={innerWrapper}>
+        <div id={data.id} />
+        <iframe src={data.iframe.url} width="100%" height={data.iframe.height} />
+      </div>
+    </ElementRoot>
+  );
 };
 
 export default IFrame;
 ```
+
+:::note
+In order for these plugins to actually work. We need to add them to plugins inside `apps/admin`.
+Please see the [example](/docs/tutorials/page-builder/create-a-new-page-builder-element#register-plugins-in-the-admin-app).
+:::
 
 Along with the actual page, this plugin will also responsible for rendering the element in the page preview, as shown in the image below:
 
@@ -408,16 +410,13 @@ Along with the actual page, this plugin will also responsible for rendering the 
 
 <!-- vale on -->
 
-:::info
-Using the same approach you can create as many custom elements as you need for your project.
-:::
+#### Register Plugins in the Admin App
 
-:::note
-In order for these plugins to actually work. We need to add them to plugins inside `apps/admin`.
-Please see the examples below.
-:::
+Now that we've created plugins for `iFrame` element. We need to register them in `apps/admin` to work.
+Let's make the required changes as shown below:
 
 `apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts`
+
 <!-- vale off -->
 
 <img
@@ -429,6 +428,7 @@ Please see the examples below.
 <!-- vale on -->
 
 `apps/admin/code/src/plugins/pageBuilder/renderPlugins.ts`
+
 <!-- vale off -->
 
 <img
@@ -439,7 +439,9 @@ Please see the examples below.
 
 <!-- vale on -->
 
-
+:::info
+Using the same approach you can create as many custom elements as you need for your project.
+:::
 
 ## Add Plugins in the Website App
 
@@ -455,14 +457,14 @@ import { PbRenderElementPlugin } from "@webiny/app-page-builder/types";
 import IFrame from "./components/iFrame";
 
 export default () =>
-    ({
-        name: "pb-render-page-element-iframe",
-        type: "pb-render-page-element",
-        elementType: "iframe",
-        render({ element }) {
-            return <IFrame element={element} />;
-        }
-    } as PbRenderElementPlugin);
+  ({
+    name: "pb-render-page-element-iframe",
+    type: "pb-render-page-element",
+    elementType: "iframe",
+    render({ element }) {
+      return <IFrame element={element} />;
+    }
+  } as PbRenderElementPlugin);
 ```
 
 Like mentioned before the following code snippet shows the `IFrame` component:
@@ -475,29 +477,26 @@ import { ElementRoot } from "@webiny/app-page-builder/render/components/ElementR
 //...
 
 const IFrame = ({ element }) => {
-    const { data } = element;
-    // If the user didn't enter a URL, let's show a simple message.
-    if (!data.iframe.url) {
-        return <div>IFrame URL is missing.</div>;
-    }
+  const { data } = element;
+  // If the user didn't enter a URL, let's show a simple message.
+  if (!data.iframe.url) {
+    return <div>IFrame URL is missing.</div>;
+  }
 
-    // Otherwise, let's render the iframe.
-    return (
-        <ElementRoot
-            className={
-                "webiny-pb-base-page-element-style webiny-pb-page-element-embed-iframe " +
-                outerWrapper
-            }
-            element={element}
-        >
-            <div className={innerWrapper}>
-                <div
-                    id={data.id}
-                />
-                <iframe src={data.iframe.url} width="100%" height={data.iframe.height} />
-            </div>
-        </ElementRoot>
-    );
+  // Otherwise, let's render the iframe.
+  return (
+    <ElementRoot
+      className={
+        "webiny-pb-base-page-element-style webiny-pb-page-element-embed-iframe " + outerWrapper
+      }
+      element={element}
+    >
+      <div className={innerWrapper}>
+        <div id={data.id} />
+        <iframe src={data.iframe.url} width="100%" height={data.iframe.height} />
+      </div>
+    </ElementRoot>
+  );
 };
 
 export default IFrame;
@@ -520,6 +519,7 @@ In order for these plugins to actually work. We need to add them to plugins insi
 :::
 
 `apps/website/code/src/plugins/pageBuilder.ts`
+
 <!-- vale off -->
 
 <img
@@ -531,7 +531,11 @@ In order for these plugins to actually work. We need to add them to plugins insi
 <!-- vale on -->
 
 ## Conclusion
+
 Congratulations!! 🎉🥳
 
 We've successfully created a custom page element for our Page Builder app.
-Similar approach can be used to easily create a whole array of custom elements for Page Builder app.
+Use similar approach to easily create a whole array of custom elements for Page Builder app.
+
+You can also checkout the full code example in our [repo](https://github.com/webiny/webiny-examples/tree/master/iframe-page-element).
+If you have further questions, feel free to [ask](https://www.webiny.com/slack) for additional help.

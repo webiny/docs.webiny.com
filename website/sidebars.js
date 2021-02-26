@@ -8,14 +8,14 @@ module.exports = {
                     type: "category",
                     label: "Headless CMS",
                     items: [
-                        "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin",
-                    ],
+                        "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin"
+                    ]
                 },
                 {
                     type: "category",
                     label: "Page Builder",
-                    items: ["tutorials/page-builder/create-a-new-page-builder-element"],
-                },
+                    items: ["tutorials/page-builder/create-a-new-page-builder-element"]
+                }
             ],
             "How-to guides": [
                 {
@@ -26,15 +26,15 @@ module.exports = {
                         "how-to-guides/deployment/destroy-your-project",
                         "how-to-guides/deployment/preview-deployments",
                         /*"how-to-guides/deployment/aws-regions-profiles",*/
-                        "how-to-guides/deployment/configure-aws-credentials",
-                    ],
+                        "how-to-guides/deployment/configure-aws-credentials"
+                    ]
                 },
                 {
                     type: "category",
                     label: "Headless CMS",
-                    items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"],
+                    items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"]
                 },
-                "how-to-guides/upgrade-webiny",
+                "how-to-guides/upgrade-webiny"
             ],
             "Key Topics": [
                 /*"key-topics/technologies",*/
@@ -46,8 +46,8 @@ module.exports = {
                     items: [
                         "key-topics/deployment/introduction",
                         "key-topics/deployment/iac-with-pulumi",
-                        "key-topics/deployment/environments",
-                    ],
+                        "key-topics/deployment/environments"
+                    ]
                 },
                 /*{
                     type: "category",
@@ -70,8 +70,8 @@ module.exports = {
                                 "key-topics/cloud-infrastructure/api/file-upload",
                                 "key-topics/cloud-infrastructure/api/file-download",
                                 "key-topics/cloud-infrastructure/api/overview-vpc-default",
-                                "key-topics/cloud-infrastructure/api/overview-vpc-custom",
-                            ],
+                                "key-topics/cloud-infrastructure/api/overview-vpc-custom"
+                            ]
                         },
                         {
                             type: "category",
@@ -79,8 +79,8 @@ module.exports = {
                             items: [
                                 "key-topics/cloud-infrastructure/admin/introduction",
                                 "key-topics/cloud-infrastructure/admin/overview",
-                                "key-topics/cloud-infrastructure/admin/serving-application-files",
-                            ],
+                                "key-topics/cloud-infrastructure/admin/serving-application-files"
+                            ]
                         },
                         {
                             type: "category",
@@ -89,23 +89,23 @@ module.exports = {
                                 "key-topics/cloud-infrastructure/website/introduction",
                                 "key-topics/cloud-infrastructure/website/overview",
                                 "key-topics/cloud-infrastructure/website/prerendering-pages",
-                                "key-topics/cloud-infrastructure/website/serving-pages",
-                            ],
-                        },
-                    ],
-                },
+                                "key-topics/cloud-infrastructure/website/serving-pages"
+                            ]
+                        }
+                    ]
+                }
             ],
-            Reference: [
+            References: [
                 {
                     type: "category",
                     label: "Page Builder",
-                    items: ["reference/page-builder/plugins"],
-                },
-            ],
+                    items: ["references/page-builder/plugins"]
+                }
+            ]
         },
         {
-            Contributing: ["contributing/documentation"],
+            Contributing: ["contributing/documentation"]
         },
-        "webiny-telemetry",
-    ],
+        "webiny-telemetry"
+    ]
 };
