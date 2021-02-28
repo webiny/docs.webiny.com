@@ -1,5 +1,5 @@
 ## Short Description
-<!--- Shortly describe what this PR introduces. Make sure to include the URLs of the newly added or edited pages. -->
+<!--- Shortly describe what this PR introduces. If possible, please include the URLs of the newly added or edited pages (wait for the Netlify preview to be deployed and then paste the links). -->
 <!--- For help on writing docs, visit https://docs.webiny.com/docs/contributing/documentation -->
 
 ## Checklist
