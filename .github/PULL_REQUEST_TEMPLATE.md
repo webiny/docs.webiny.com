@@ -1,16 +1,10 @@
-## Related Issue
-<!--- This project only accepts pull requests related to open issues -->
-<!--- If suggesting a new feature or change, please discuss it in an issue first -->
-<!--- If fixing a bug, there should be an issue describing it with steps to reproduce -->
-<!--- Please link to the issue here: -->
-Closes #ISSUE_NUMBER
+## Short Description
+<!--- Shortly describe what this PR introduces. -->
 
-## Your solution
-<!--- Please describe your solution, have you encountered any issues along the way? -->
-
-## How Has This Been Tested?
-<!--- Please describe in detail how you tested your changes. -->
-<!--- Include details of your testing environment, and the tests you ran to -->
-<!--- see how your change affects other areas of the code, etc. -->
+## Checklist (if introducting one or more new pages)
+- [ ] I added page meta ([check the template](https://titlecaseconverter.com/))
+- [ ] I added a proper description for inserted images (if any)
+- [ ] I added `What You'll Learn` at the top of the page and every item in the list starts with lower case ([example](http://localhost:3000/docs/how-to-guides/upgrade-webiny))
+- [ ] I used [title case](https://titlecaseconverter.com/) for titles and subtitles - in main menu and in page content ([example](https://docs.webiny.com/docs/key-topics/deployment/iac-with-pulumi))
 
 ## Screenshots (if relevant):
