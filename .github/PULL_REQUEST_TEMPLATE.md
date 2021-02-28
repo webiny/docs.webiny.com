@@ -1,7 +1,7 @@
 ## Short Description
-<!--- Shortly describe what this PR introduces. -->
+<!--- Shortly describe what this PR introduces. Make sure to include the URLs of the newly added or edited pages. -->
 
-## Checklist (if introducting one or more new pages)
+## Checklist
 - [ ] I added page meta information (description, keywords) <!--- New document template here: https://docs.webiny.com/docs/contributing/documentation#template-for-new-docs -->
 - [ ] I added a proper description for inserted images (if any)
 - [ ] I added `What You'll Learn` at the top of the page and every item in the list starts with lower case letter <!--- Example: https://docs.webiny.com/docs/how-to-guides/upgrade-webiny -->
