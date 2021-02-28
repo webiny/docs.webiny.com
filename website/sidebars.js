@@ -104,7 +104,7 @@ module.exports = {
             ]
         },
         {
-            Contributing: ["contributing/documentation"]
+            Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         "webiny-telemetry"
     ]
