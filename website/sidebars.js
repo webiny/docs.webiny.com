@@ -40,12 +40,26 @@ module.exports = {
                     label: "Headless CMS",
                     items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"]
                 },
-                "how-to-guides/working-with-workspaces",
+                {
+                    type: "category",
+                    label: "Webiny CLI",
+                    items: [
+                        "how-to-guides/webiny-cli/working-with-workspaces",
+                        "how-to-guides/webiny-cli/adding-custom-commands"
+                    ]
+                },
                 "how-to-guides/upgrade-webiny"
             ],
             "Key Topics": [
-                "key-topics/project-organization",
-                "key-topics/project-applications",
+                {
+                    type: "category",
+                    label: "Project Organization",
+                    items: [
+                        "key-topics/project-organization/project-applications-and-packages",
+                        "key-topics/project-organization/project-applications",
+                        "key-topics/project-organization/monorepo-organization"
+                    ]
+                },
                 {
                     type: "category",
                     label: "Deployment",
