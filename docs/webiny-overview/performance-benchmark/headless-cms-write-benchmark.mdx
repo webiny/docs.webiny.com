@@ -13,6 +13,24 @@ description: Webiny Headless CMS performance benchmark.
 
 :::
 
+## Results
+
+| Test   | Records inserted | Avg. response time (ms) | Throughput (req/sec) |
+| ------ | ---------------: | ----------------------: | -------------------: |
+| Test A |           77,197 |                  408.05 |               116.88 |
+| Test B |              500 |                     000 |                  000 |
+| Test C |             1000 |                     000 |                  000 |
+
+:::info **What this means?**
+
+TODO!!!
+
+Requests per second is a number that helps you calculate how many users you can actually serve. The other part of that calculation is to know how your users behave. How fast they navigate between pages in this case.
+
+As an example say your average visitors stays on your site 5 minutes, and visits around 10 pages. That's 2 pages a minute. With a throughput of 3,613req/sec, you can handle 216,780 pages a minute, or 108,390 visitors in a minute.
+
+:::
+
 ## Benchmark overview
 
 In this benchmark we are doing a GraphQL mutation request to the Headless CMS manage API. The mutation is inserting a new "Order" record and upon successful save, returning back the `id` of the new record.
@@ -70,35 +88,17 @@ We performed 3 variations of this test. The reason is that Webiny uses Elasticse
 
 | Test   | Number of users |              Instance               |                 Price per hour |
 | ------ | :-------------: | :---------------------------------: | -----------------------------: |
-| Test A |       250       | t3.small.elasticsearch (single AZ)  | <!-- prettier-ignore -->$0.038 |
+| Test A |       50        | t3.small.elasticsearch (single AZ)  | <!-- prettier-ignore -->$0.038 |
 | Test B |       500       | m4.xlarge.elasticsearch (multi AZ)  | <!-- prettier-ignore -->$0.369 |
 | Test C |      1000       | m5.2xlarge.elasticsearch (multi AZ) | <!-- prettier-ignore -->$0.655 |
 
 ### Load structure
 
-The test is configured by ramping up to the defined number of user threads within 25 second period. After 25 seconds we keep a steady state where the maximum amount of user threads are doing requests as fast as the system can handle for a period of 10 minutes.
-
-## Results
-
-### Summary
-
-| Test   | Records inserted |              Avg response time (ms) |           Throughput (req/sec) |
-| ------ | ---------------: | ----------------------------------: | -----------------------------: |
-| Test A |              250 |  t3.small.elasticsearch (single AZ) | <!-- prettier-ignore -->$0.038 |
-| Test B |              500 |  m4.xlarge.elasticsearch (multi AZ) | <!-- prettier-ignore -->$0.369 |
-| Test C |             1000 | m5.2xlarge.elasticsearch (multi AZ) | <!-- prettier-ignore -->$0.655 |
-
-:::info **What this means?**
-
-TODO!!!
-
-Requests per second is a number that helps you calculate how many users you can actually serve. The other part of that calculation is to know how your users behave. How fast they navigate between pages in this case.
-
-As an example say your average visitors stays on your site 5 minutes, and visits around 10 pages. That's 2 pages a minute. With a throughput of 3,613req/sec, you can handle 216,780 pages a minute, or 108,390 visitors in a minute.
-
-:::
+The test is configured by ramping up to the defined number of user threads within 60 second period. After the ramp up we keep a steady state where the maximum amount of user threads are doing requests as fast as the system can handle for a period of 10 minutes.
 
 ### Response times
+
+TODO
 
 ---
 
@@ -108,7 +108,9 @@ Each write request has the following flow:
 
 Client -> CloudFront -> ApiGateway -> Lambda -> DynamoDB -> (async stream) -> Lambda -> Elasticsearch
 
-Webiny writes in Elasticsearch via a DynamoDB stream, which is an asynchronous process. We do this as Elasticsearch can be a performance bottleneck and with this approach we remove it from lowering the overall throughput.
+Webiny writes in Elasticsearch via a DynamoDB stream, which is an asynchronous process. We do this as Elasticsearch can be a performance bottleneck and with this approach we prevent it from lowering the overall throughput.
+
+Although Elasticsearch is not part of the main request, the service can still be overwhelmed if there is a lot of data that needs to be synced from DynamoDB into Elasticsearch in a short period of time.
 
 :::info About DynamoDB stream
 
@@ -124,11 +126,11 @@ An additional thing to mention is that every write request, has 1 DynamoDB write
 
 ## Optimization suggestions
 
-There are 3 key components that control your throughput in the basic setup.
+There are 3 key components that control your throughput and cost.
 
 **1. DynamoDB**
 
-By default DynamoDB is configured with `on demand` capacity. To increase throughput, once you have a good sense of your access patters, we recommend you switch to `provisioned capacity` mode. This mode will be cheaper, if configured correctly, and more performant.
+By default DynamoDB is configured with `on demand` capacity. To lower your cost, once you have a good sense of your access patterns, we recommend you switch to `provisioned capacity` mode. This mode will be cheaper to use if configured correctly.
 
 **2. Lambda concurrency**
 
@@ -146,57 +148,56 @@ Additionally, adjusting the `batchSize` and `maximumBatchingWindowInSeconds` can
 
 ### Total cost
 
-| Test   | CloudFront | ApiGateway | Lambda | DynamoDb | Total |
-| ------ | ---------: | ---------: | -----: | -------: | ----: |
-| Test A |        250 |        100 |    100 |      100 |   100 |
-| Test B |        500 |        100 |    100 |      100 |   100 |
-| Test C |       1000 |        100 |    100 |      100 |   100 |
+| Test   |                      CloudFront |                      ApiGateway |                        Lambda |                      DynamoDB |                   Elasticsearch |                         Total |
+| ------ | ------------------------------: | ------------------------------: | ----------------------------: | ----------------------------: | ------------------------------: | ----------------------------: |
+| Test A | <!-- prettier-ignore -->$0.0773 | <!-- prettier-ignore -->$0.0773 | <!-- prettier-ignore -->$0.26 | <!-- prettier-ignore -->$0.58 | <!-- prettier-ignore -->$0.0095 | <!-- prettier-ignore -->$0.99 |
+| Test B |                             500 |                             100 |                           100 |                           100 |                             100 | <!-- prettier-ignore -->$0.99 |
+| Test C |                            1000 |                             100 |                           100 |                           100 |                             100 |                           100 |
 
-:::caution
+:::info
 
-We only included the costs of the serverless components. The cost of the Elasticsearch service is not based on consumption, instead it's measure per hour of usage. Since all tests completed within 10 minutes and 25 seconds the cost of Elasticsearch is minimal.
-
-That being said, on a monthly basis, non-serverless infrastructure pieces can cost 60-80% more than serverless ones.
+The cost of serverless components has been calculated based on their usage. The cost of Elasticsearch has been calculated for a 15min period, based on the hourly rate.
 
 :::
 
 ### CloudFront
 
-| Test   | Hits |                        Traffic (GB) |                               Cost |
-| ------ | ---: | ----------------------------------: | ---------------------------------: |
-| Test A |  250 |  t3.small.elasticsearch (single AZ) | t3.small.elasticsearch (single AZ) |
-| Test B |  500 |  m4.xlarge.elasticsearch (multi AZ) | t3.small.elasticsearch (single AZ) |
-| Test C | 1000 | m5.2xlarge.elasticsearch (multi AZ) | t3.small.elasticsearch (single AZ) |
+| Test   |  Hits | Traffic (GB) |                            Cost |
+| ------ | ----: | -----------: | ------------------------------: |
+| Test A | 77.3k |         0.09 | <!-- prettier-ignore -->$0.0773 |
+| Test B |   500 |         0000 |                            0000 |
+| Test C |  1000 |         0000 |                            0000 |
 
 ### API Gateway
 
-| Test   | Hits |                               Cost |
-| ------ | ---: | ---------------------------------: |
-| Test A |  250 | t3.small.elasticsearch (single AZ) |
-| Test B |  500 | t3.small.elasticsearch (single AZ) |
-| Test C | 1000 | t3.small.elasticsearch (single AZ) |
+| Test   |  Hits |                            Cost |
+| ------ | ----: | ------------------------------: |
+| Test A | 77.3k | <!-- prettier-ignore -->$0.0773 |
+| Test B |   000 |                             000 |
+| Test C |   000 |                             000 |
 
 ### Lambda
 
-| Test   | Requests |                       Duration (ms) |                               Cost |
-| ------ | -------: | ----------------------------------: | ---------------------------------: |
-| Test A |      250 |  t3.small.elasticsearch (single AZ) | t3.small.elasticsearch (single AZ) |
-| Test B |      500 |  m4.xlarge.elasticsearch (multi AZ) | t3.small.elasticsearch (single AZ) |
-| Test C |     1000 | m5.2xlarge.elasticsearch (multi AZ) | t3.small.elasticsearch (single AZ) |
+| Test   | Requests | Avg Duration (ms) |                          Cost |
+| ------ | -------: | ----------------: | ----------------------------: |
+| Test A |    80.2k |               371 | <!-- prettier-ignore -->$0.26 |
+| Test B |      000 |               000 |  <!-- prettier-ignore -->$0.0 |
+| Test C |      000 |               000 |  <!-- prettier-ignore -->$0.0 |
 
 :::info
 
 Lambda costs also include the cost that's occurred by the DynamoDB stream.
+Webiny uses Lambda functions with 512MB of memory.
 
 :::
 
-### DynamoDb
+### DynamoDB
 
-| Test   | Read ops |                           Write ops |                               Cost |
-| ------ | -------: | ----------------------------------: | ---------------------------------: |
-| Test A |      250 |  t3.small.elasticsearch (single AZ) | t3.small.elasticsearch (single AZ) |
-| Test B |      500 |  m4.xlarge.elasticsearch (multi AZ) | t3.small.elasticsearch (single AZ) |
-| Test C |     1000 | m5.2xlarge.elasticsearch (multi AZ) | t3.small.elasticsearch (single AZ) |
+| Test   | Read ops | Write ops |                          Cost |
+| ------ | -------: | --------: | ----------------------------: |
+| Test A |     163k |      232k | <!-- prettier-ignore -->$0.58 |
+| Test B |      000 |       000 |                           000 |
+| Test C |      000 |       000 |                           000 |
 
 ---
 

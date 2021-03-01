@@ -13,6 +13,24 @@ description: Webiny Headless CMS performance benchmark.
 
 :::
 
+## Results
+
+| Test   | Records in database | Records fetched | Avg response time (ms) | Error rate (%) | Throughput (req/sec) |
+| ------ | ------------------: | --------------: | ---------------------: | -------------: | -------------------: |
+| Test A |              77,197 |         103,489 |                 304.32 |          1.65% |               156.74 |
+| Test B |                 000 |             000 |                    000 |            000 |                  000 |
+| Test C |                 000 |             000 |                    000 |            000 |                  000 |
+
+:::info **What this means?**
+
+TODO!!!
+
+Requests per second is a number that helps you calculate how many users you can actually serve. The other part of that calculation is to know how your users behave. How fast they navigate between pages in this case.
+
+As an example say your average visitors stays on your site 5 minutes, and visits around 10 pages. That's 2 pages a minute. With a throughput of 3,613req/sec, you can handle 216,780 pages a minute, or 108,390 visitors in a minute.
+
+:::
+
 ## Benchmark overview
 
 In this benchmark we are doing a GraphQL query to the Headless CMS Preview API. The query is requesting an "Order" record by providing the `OrderID` attribute. Note that `OrderID` is a random attribute and not the built in `id` attribute which is the primary key in the database. We wanted to test filtering on a sample attribute.
@@ -24,6 +42,18 @@ Here is the full query that is being issued:
   listOrders(where:{orderId: ${OrderID}}){
     data{
       id
+      orderDate
+      totalPrice
+      country{
+        name
+        region{
+          id
+          name
+        }
+      }
+      itemType{
+        name
+      }
     }
   }
 }
@@ -31,23 +61,15 @@ Here is the full query that is being issued:
 
 The `OrderID` variable is replaced with a random value on each request.
 
-> For scalability purposes, the queries are done on a database with 1 million records. In the test security is enabled, where the user's token is verified on each request.
+From the query you can see we are requesting the top-level record, but also 2 referenced attributes (`country` & `itemType`) on the 2nd level and also a 3rd level nested attribute (`region`). This query we believe is representative to what you would use in production scenarios.
 
-### Load structure
+### Test plan
 
-The test is configured by ramping up 500 user threads within 25 second period, that's 20 users every second. After 25 seconds we keep a steady state of 500 doing requests as fast as the system can handle for a period of 4 minutes and 40 seconds. Total test duration is 5 minutes.
-
-## Results
-
-### Summary
-
-- **Total requests generated:** 221,935
-- **Average response time:** 515.27 ms (0.5s)
-- **Throughput:** 738req/sec
-
-**What this means?**
+This test is following the same plan and load structure as the [Headless CMS write operation benchmark](/docs/webiny-overview/performance-benchmark/headless-cms-write-benchmark#test-plan).
 
 ### Response times
+
+TODO
 
 ---
 
@@ -63,15 +85,82 @@ While the read operation looks like so:
 
 Client -> CloudFront -> API Gateway -> Lambda -> Elasticsearch
 
+:::caution
+
+There is still a DynamoDB request in the read, but it's only used to retrieve and validate the user's access token.
+
+:::
+
 In the write operation we don't talk to Elasticsearch synchronously, rather over an async stream. This means that Elasticsearch doesn't slow down the main request.
 
 In the read operation there is no DynamoDB, the read operations go and talk directly to Elasticsearch. The reason for this is that DynamoDB, although a very powerful and scalable database is very feature-limited when it comes to filtering, sorting and searching.
 
 This usually is not a problem when you know your access patters as you can model your data accordingly. However with a headless CMS you cannot predict what models the users will build and how will they access their data. Because of that we couldn't rely on DynamoDB as the primary database for the read operations.
 
-Also, in our test we're using the default Webiny installation which comes with the smallest possible Elasticsearch instance, `t3.small.elasticsearch`. Scaling this instance will improve your throughput. Here is the same test done with different Elasticsearch instance sizes:
+To increase your throughput for the read operations you would need to scale your Elasticsearch cluster accordingly.
 
-xxxxtodoxxx
+---
+
+## Cost
+
+### Total cost
+
+| Test   |                     CloudFront |                     ApiGateway |                        Lambda |                      DynamoDB |                   Elasticsearch |                         Total |
+| ------ | -----------------------------: | -----------------------------: | ----------------------------: | ----------------------------: | ------------------------------: | ----------------------------: |
+| Test A | <!-- prettier-ignore -->$0.103 | <!-- prettier-ignore -->$0.103 | <!-- prettier-ignore -->$0.26 | <!-- prettier-ignore -->$0.65 | <!-- prettier-ignore -->$0.0095 | <!-- prettier-ignore -->$1.12 |
+| Test B |                            500 |                            100 |                           100 |                           100 |                             100 | <!-- prettier-ignore -->$0.99 |
+| Test C |                           1000 |                            100 |                           100 |                           100 |                             100 |                           100 |
+
+:::info
+
+The cost of serverless components has been calculated based on their usage. The cost of Elasticsearch has been calculated for a 15min period, based on the hourly rate.
+
+:::
+
+### CloudFront
+
+| Test   | Hits | Traffic (GB) |                           Cost |
+| ------ | ---: | -----------: | -----------------------------: |
+| Test A | 103k |         0.06 | <!-- prettier-ignore -->$0.103 |
+| Test B |  500 |         0000 |                           0000 |
+| Test C | 1000 |         0000 |                           0000 |
+
+### API Gateway
+
+| Test   | Hits |                           Cost |
+| ------ | ---: | -----------------------------: |
+| Test A | 103k | <!-- prettier-ignore -->$0.103 |
+| Test B |  000 |                            000 |
+| Test C |  000 |                            000 |
+
+### Lambda
+
+| Test   | Requests | Avg Duration (ms) |                          Cost |
+| ------ | -------: | ----------------: | ----------------------------: |
+| Test A |     101k |               278 | <!-- prettier-ignore -->$0.26 |
+| Test B |      000 |               000 |  <!-- prettier-ignore -->$0.0 |
+| Test C |      000 |               000 |  <!-- prettier-ignore -->$0.0 |
+
+:::info
+
+Lambda costs also include the cost that's occurred by the DynamoDB stream.
+Webiny uses Lambda functions with 512MB of memory.
+
+:::
+
+### DynamoDB
+
+| Test   | Read ops | Write ops |                          Cost |
+| ------ | -------: | --------: | ----------------------------: |
+| Test A |     317k |         0 | <!-- prettier-ignore -->$0.65 |
+| Test B |      000 |       000 |                           000 |
+| Test C |      000 |       000 |                           000 |
+
+:::caution
+
+DynamoDB is only used to retrieve and validate the user's access token.
+
+:::
 
 ---
 
