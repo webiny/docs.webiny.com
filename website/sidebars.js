@@ -29,7 +29,7 @@ module.exports = {
                         "how-to-guides/deployment/configure-aws-credentials"
                     ]
                 },
-                {
+                /*{
                     type: "category",
                     label: "CI/CD",
                     items: [
@@ -39,7 +39,7 @@ module.exports = {
                         "how-to-guides/ci-cd/environments",
                         "how-to-guides/ci-cd/version-control"
                     ]
-                },
+                },*/
                 {
                     type: "category",
                     label: "Headless CMS",
