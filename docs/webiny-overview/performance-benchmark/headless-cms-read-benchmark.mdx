@@ -15,21 +15,35 @@ description: Webiny Headless CMS performance benchmark.
 
 ## Results
 
-| Test   | Records in database | Records fetched | Avg response time (ms) | Error rate (%) | Throughput (req/sec) |
-| ------ | ------------------: | --------------: | ---------------------: | -------------: | -------------------: |
-| Test A |              77,197 |         103,489 |                 304.32 |          1.65% |               156.74 |
-| Test B |                 000 |             000 |                    000 |            000 |                  000 |
-| Test C |                 000 |             000 |                    000 |            000 |                  000 |
+| Test   | Records in database | Records requested | Avg. response time (ms) | p95 response time (ms) | Error rate (%) | Throughput (req/sec) |
+| ------ | ------------------: | ----------------: | ----------------------: | ---------------------: | -------------: | -------------------: |
+| Test A |              77,197 |           103,489 |                  304.32 |                 403.00 |          1.65% |               156.74 |
+| Test B |             759,679 |           332,303 |                  948.87 |                1871.00 |          0.28% |               486.96 |
+| Test C |           1,506,112 |         1,402,424 |                  449.17 |                 587.00 |          0.01% |             2,123.35 |
+| Test D |           3,319,812 |         1,718,146 |                  838.01 |                1035.00 |          1.23% |             2,043.43 |
+| Test E |           3,343,666 |         2,964,663 |                  484.37 |                1355.00 |          0.01% |             3,510.60 |
 
-:::info **What this means?**
+### What does this mean?
 
-TODO!!!
+Requests per second is a number that helps you calculate how many users you can actually serve. The other part of that calculation is to know how your users behave. How many calls to the read API they are doing in a set time period.
 
-Requests per second is a number that helps you calculate how many users you can actually serve. The other part of that calculation is to know how your users behave. How fast they navigate between pages in this case.
+As an example say your average visitors stays on your site 5 minutes, and does around 10 calls to the read API. Based on the throughput (req/sec) and this user behavior you can exact the following estimated values for how many concurrent users you can serve within that period:
 
-As an example say your average visitors stays on your site 5 minutes, and visits around 10 pages. That's 2 pages a minute. With a throughput of 3,613req/sec, you can handle 216,780 pages a minute, or 108,390 visitors in a minute.
+| Test   | Throughput (req/sec) | Concurrency |
+| ------ | -------------------: | ----------: |
+| Test A |               156.74 |       4,702 |
+| Test B |               486.96 |      14,608 |
+| Test C |             2,123.35 |      63,700 |
+| Test D |             2,043.43 |      61,302 |
+| Test E |             3,510.60 |     105,318 |
 
-:::
+**Formula**: (Throughput\*60sec\*5min)/10 calls per user = total number of concurrent users in a 5 minute period
+
+**Note:** This is the formula for ideal conditions where user requests have an ideal spread of time between requests.
+
+### What is the error rate?
+
+It's very hard to correctly estimate what is the exact number of req/sec a certain Elasticsearch instance can take. In our tests as long as the error rate was below 2% we marked the test as successful as it was giving us a fair estimate of how much load we can send to the API. Of course in production cases, if you're constantly seeing errors, you would upgrade your instance.
 
 ## Benchmark overview
 
@@ -59,7 +73,7 @@ Here is the full query that is being issued:
 }
 ```
 
-The `OrderID` variable is replaced with a random value on each request.
+The `OrderID` variable is replaced on each request with a random value for which we know a record exists. Inside the test we provided a sample set of 100.000 random values and also we are not configuring any cache settings in the system.
 
 From the query you can see we are requesting the top-level record, but also 2 referenced attributes (`country` & `itemType`) on the 2nd level and also a 3rd level nested attribute (`region`). This query we believe is representative to what you would use in production scenarios.
 
@@ -69,11 +83,53 @@ This test is following the same plan and load structure as the [Headless CMS wri
 
 ### Response times
 
-TODO
+### Test D
+
+<img
+  src={require("./assets/hc-read-api/response-time-d.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Response time"
+/>
+
+The response time was mostly consistent, with the exception around the 14:21 mark. At that point the response times spiked for a few seconds but then leveled off to the previous performance and stayed stable for next 5 minutes, until the end of the test.
+
+### Test E
+
+<img
+  src={require("./assets/hc-read-api/response-time-e.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Response time"
+/>
+
+### Throughput
+
+### Test D
+
+<img
+  src={require("./assets/hc-read-api/throughput-d.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Throughput"
+/>
+
+### Test E
+
+<img
+  src={require("./assets/hc-read-api/throughput-e.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Throughput"
+/>
+
+In line to what we see in the response times, we see a drop in the throughput around the same time.
+
+After investigating the CloudWatch metrics, we couldn't find anything that would point to the fact that the drop in performance was to the AWS services. The response times on the CloudFront, API Gateway and Lambda functions haven't changed. The only explanation we have is that it was a limit we hit either on the network or CPU on the load test machine.
 
 ---
 
-## Why is read slower than write?
+## Why is read sometimes slower than write?
 
 As you probably noticed, the read operation is actually slower than the write operation, which might seem odd as write is the more operationally costly one.
 
@@ -105,11 +161,13 @@ To increase your throughput for the read operations you would need to scale your
 
 ### Total cost
 
-| Test   |                     CloudFront |                     ApiGateway |                        Lambda |                      DynamoDB |                   Elasticsearch |                         Total |
-| ------ | -----------------------------: | -----------------------------: | ----------------------------: | ----------------------------: | ------------------------------: | ----------------------------: |
-| Test A | <!-- prettier-ignore -->$0.103 | <!-- prettier-ignore -->$0.103 | <!-- prettier-ignore -->$0.26 | <!-- prettier-ignore -->$0.65 | <!-- prettier-ignore -->$0.0095 | <!-- prettier-ignore -->$1.12 |
-| Test B |                            500 |                            100 |                           100 |                           100 |                             100 | <!-- prettier-ignore -->$0.99 |
-| Test C |                           1000 |                            100 |                           100 |                           100 |                             100 |                           100 |
+| Test   |                    CloudFront |                    ApiGateway |                         Lambda |                      DynamoDB |                 Elasticsearch |                          Total |
+| ------ | ----------------------------: | ----------------------------: | -----------------------------: | ----------------------------: | ----------------------------: | -----------------------------: |
+| Test A | <!-- prettier-ignore -->$0.10 | <!-- prettier-ignore -->$0.10 |  <!-- prettier-ignore -->$0.26 | <!-- prettier-ignore -->$0.33 | <!-- prettier-ignore -->$0.01 |  <!-- prettier-ignore -->$0.80 |
+| Test B | <!-- prettier-ignore -->$0.35 | <!-- prettier-ignore -->$0.33 |  <!-- prettier-ignore -->$2.60 | <!-- prettier-ignore -->$0.54 | <!-- prettier-ignore -->$0.08 |  <!-- prettier-ignore -->$3.90 |
+| Test C | <!-- prettier-ignore -->$1.47 | <!-- prettier-ignore -->$1.40 |  <!-- prettier-ignore -->$5.17 | <!-- prettier-ignore -->$1.40 | <!-- prettier-ignore -->$0.33 |  <!-- prettier-ignore -->$9.77 |
+| Test D | <!-- prettier-ignore -->$1.80 | <!-- prettier-ignore -->$1.72 | <!-- prettier-ignore -->$11.90 | <!-- prettier-ignore -->$1.93 | <!-- prettier-ignore -->$0.92 | <!-- prettier-ignore -->$27.50 |
+| Test E | <!-- prettier-ignore -->$3.11 | <!-- prettier-ignore -->$2.96 | <!-- prettier-ignore -->$11.77 | <!-- prettier-ignore -->$3.57 | <!-- prettier-ignore -->$2.68 | <!-- prettier-ignore -->$24.09 |
 
 :::info
 
@@ -117,29 +175,41 @@ The cost of serverless components has been calculated based on their usage. The 
 
 :::
 
+:::info
+
+Notice how the test E is cheaper than test D, while E handled almost 3M requests during the test, versus test E that handled 1.72M. The only difference was in the Elasticsearch instance.
+
+:::
+
 ### CloudFront
 
-| Test   | Hits | Traffic (GB) |                           Cost |
-| ------ | ---: | -----------: | -----------------------------: |
-| Test A | 103k |         0.06 | <!-- prettier-ignore -->$0.103 |
-| Test B |  500 |         0000 |                           0000 |
-| Test C | 1000 |         0000 |                           0000 |
+| Test   |  Hits | Traffic (GB) |                          Cost |
+| ------ | ----: | -----------: | ----------------------------: |
+| Test A |  103k |         0.06 | <!-- prettier-ignore -->$0.10 |
+| Test B |  332k |         0.20 | <!-- prettier-ignore -->$0.35 |
+| Test C |  1.4M |         0.81 | <!-- prettier-ignore -->$1.47 |
+| Test D | 1.72M |            1 | <!-- prettier-ignore -->$1.80 |
+| Test E | 2.96M |         1.74 | <!-- prettier-ignore -->$3.11 |
 
 ### API Gateway
 
-| Test   | Hits |                           Cost |
-| ------ | ---: | -----------------------------: |
-| Test A | 103k | <!-- prettier-ignore -->$0.103 |
-| Test B |  000 |                            000 |
-| Test C |  000 |                            000 |
+| Test   |  Hits |                          Cost |
+| ------ | ----: | ----------------------------: |
+| Test A |  103k | <!-- prettier-ignore -->$0.10 |
+| Test B |  332k | <!-- prettier-ignore -->$0.33 |
+| Test C |  1.4M | <!-- prettier-ignore -->$1.40 |
+| Test D | 1.72M | <!-- prettier-ignore -->$1.72 |
+| Test D | 2.96M | <!-- prettier-ignore -->$2.96 |
 
 ### Lambda
 
-| Test   | Requests | Avg Duration (ms) |                          Cost |
-| ------ | -------: | ----------------: | ----------------------------: |
-| Test A |     101k |               278 | <!-- prettier-ignore -->$0.26 |
-| Test B |      000 |               000 |  <!-- prettier-ignore -->$0.0 |
-| Test C |      000 |               000 |  <!-- prettier-ignore -->$0.0 |
+| Test   | Requests | Avg. Duration (ms) |                           Cost |
+| ------ | -------: | -----------------: | -----------------------------: |
+| Test A |     103k |                278 |  <!-- prettier-ignore -->$0.26 |
+| Test B |     332k |                916 |  <!-- prettier-ignore -->$2.60 |
+| Test C |     1.4M |                419 |  <!-- prettier-ignore -->$5.17 |
+| Test D |    1.72M |                806 | <!-- prettier-ignore -->$11.90 |
+| Test E |    2.96M |                453 | <!-- prettier-ignore -->$11.77 |
 
 :::info
 
@@ -148,17 +218,27 @@ Webiny uses Lambda functions with 512MB of memory.
 
 :::
 
+:::info
+
+Notice the difference in lambda costs between tests C and D, versus the number of requests. This shows that you can technically save some costs by using a more expensive Elasticsearch instance, as it will improve the performance of your lambdas. Same thing is even more obvious between tests D and E.
+
+:::
+
 ### DynamoDB
 
 | Test   | Read ops | Write ops |                          Cost |
 | ------ | -------: | --------: | ----------------------------: |
-| Test A |     317k |         0 | <!-- prettier-ignore -->$0.65 |
-| Test B |      000 |       000 |                           000 |
-| Test C |      000 |       000 |                           000 |
+| Test A |     317k |         0 | <!-- prettier-ignore -->$0.33 |
+| Test B |    1.16M |         0 | <!-- prettier-ignore -->$0.54 |
+| Test C |    5.61M |         0 | <!-- prettier-ignore -->$1.40 |
+| Test D |     7.7M |         0 | <!-- prettier-ignore -->$1.93 |
+| Test E |    13.3M |         0 | <!-- prettier-ignore -->$3.57 |
 
-:::caution
+:::info
 
 DynamoDB is only used to retrieve and validate the user's access token.
+
+The cost is calculated by estimating the database size to 1GB.
 
 :::
 

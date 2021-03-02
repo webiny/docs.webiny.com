@@ -15,21 +15,31 @@ description: Webiny Headless CMS performance benchmark.
 
 ## Results
 
-| Test   | Records inserted | Avg. response time (ms) | Throughput (req/sec) |
-| ------ | ---------------: | ----------------------: | -------------------: |
-| Test A |           77,197 |                  408.05 |               116.88 |
-| Test B |              500 |                     000 |                  000 |
-| Test C |             1000 |                     000 |                  000 |
+| Test   | Records inserted | Avg. response time (ms) | p95 response time (ms) | Throughput (req/sec) |
+| ------ | ---------------: | ----------------------: | ---------------------: | -------------------: |
+| Test A |           77,197 |                  408.05 |                 619.95 |               116.88 |
+| Test B |          759,679 |                  414.64 |                 662.00 |             1,149.83 |
+| Test C |        1,506,112 |                  418.21 |                 656.00 |             2,279.87 |
+| Test D |        3,319,812 |                  432.45 |                 652.00 |             3,949.16 |
+| Test E |        3,343,666 |                  429.27 |                 661.00 |             3,977.34 |
 
-:::info **What this means?**
+### What does this mean?
 
-TODO!!!
+Requests per second is a number that helps you calculate how many users you can actually serve. The other part of that calculation is to know how your users behave. How many calls to the read API they are doing in a set time period.
 
-Requests per second is a number that helps you calculate how many users you can actually serve. The other part of that calculation is to know how your users behave. How fast they navigate between pages in this case.
+As an example say your average visitors stays on your site 5 minutes, and does around 10 calls to the write API. Based on the throughput (req/sec) and this user behavior you can exact the following estimated values for how many concurrent users you can serve within that period:
 
-As an example say your average visitors stays on your site 5 minutes, and visits around 10 pages. That's 2 pages a minute. With a throughput of 3,613req/sec, you can handle 216,780 pages a minute, or 108,390 visitors in a minute.
+| Test   | Throughput (req/sec) | Concurrency |
+| ------ | -------------------: | ----------: |
+| Test A |               116.88 |       3,506 |
+| Test B |             1,149.83 |      34,495 |
+| Test C |             2,279.87 |      68,396 |
+| Test D |             3,949.16 |     118,474 |
+| Test D |             3,977.34 |     119,320 |
 
-:::
+**Formula**: (Throughput\*60sec\*5min)/10 calls per user = total number of concurrent users in a 5 minute period
+
+**Note:** This is the formula for ideal conditions where user requests have an ideal spread of time between requests.
 
 ## Benchmark overview
 
@@ -84,21 +94,68 @@ You can view the full content model structure and relations between different mo
 
 ### Test plan
 
-We performed 3 variations of this test. The reason is that Webiny uses Elasticsearch, which is the only non-serverless infrastructure piece that's part of the architecture. Being non-serverless means we need to manually scale it. So we decided to run 3 different test variations. In each of variations we changed the load amount and the instance type.
+We performed 4 variations of this test. The reason is that Webiny uses Elasticsearch, which is the only non-serverless infrastructure piece that's part of the architecture. Being non-serverless means we need to manually scale it. So we decided to run 4 different test variations. In each of variations we changed the load amount and the instance type.
 
-| Test   | Number of users |              Instance               |                 Price per hour |
-| ------ | :-------------: | :---------------------------------: | -----------------------------: |
-| Test A |       50        | t3.small.elasticsearch (single AZ)  | <!-- prettier-ignore -->$0.038 |
-| Test B |       500       | m4.xlarge.elasticsearch (multi AZ)  | <!-- prettier-ignore -->$0.369 |
-| Test C |      1000       | m5.2xlarge.elasticsearch (multi AZ) | <!-- prettier-ignore -->$0.655 |
+| Test   | Number of users | Ramp up time | Instance                            |                    Price per hour |
+| ------ | --------------: | :----------: | :---------------------------------- | --------------------------------: |
+| Test A |              50 |    60 sec    | t3.small.elasticsearch (single AZ)  | <!-- prettier-ignore -->1x $0.038 |
+| Test B |             500 |    60 sec    | m5.large.elasticsearch (2 zones)    | <!-- prettier-ignore -->2x $0.164 |
+| Test C |            1000 |    60 sec    | m5.2xlarge.elasticsearch (2 zones)  | <!-- prettier-ignore -->2x $0.655 |
+| Test D |            2000 |    5 min     | r4.4xlarge.elasticsearch (2 zones)  | <!-- prettier-ignore -->2x $1.841 |
+| Test E |            2000 |    5 min     | c5.18xlarge.elasticsearch (2 zones) | <!-- prettier-ignore -->2x $5.363 |
 
 ### Load structure
 
-The test is configured by ramping up to the defined number of user threads within 60 second period. After the ramp up we keep a steady state where the maximum amount of user threads are doing requests as fast as the system can handle for a period of 10 minutes.
+The test is configured by ramping up to the defined number of user threads within the defined period. After the ramp up we keep a steady state where the maximum amount of user threads are doing requests as fast as the system can handle for a period of 10 minutes. The reason the ramp up time differs between the first 3 tests and the last 2 is that `eu-west-2` region as a burst limit of 500 concurrent lambda executions per 1 minute. Meaning to achieve 2500 user in the stead state, we need to ramp up for 5 minutes. For more details on how the burst limit works, visit this [AWS resource page](https://docs.aws.amazon.com/lambda/latest/dg/invocation-scaling.html).
+
+Also, for test D and E, we had to increase the lambda concurrency to 2500 by filing an AWS support ticket. Webiny can go above that number, but for that the AWS team needs to additionally raise the concurrency limit.
+Finally to mention, the Elasticsearch instance in test D and E can take higher load than what our current lambda concurrency allowed for. (applies only to the write API)
 
 ### Response times
 
-TODO
+### Test D
+
+<img
+  src={require("./assets/hc-write-api/response-time-d.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Response time"
+/>
+
+The response time was mostly consistent, with the exception around the 14:21 mark. At that point the response times spiked for a few seconds but then leveled off to the previous performance and stayed stable for next 5 minutes, until the end of the test.
+
+### Test E
+
+<img
+  src={require("./assets/hc-write-api/response-time-e.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Response time"
+/>
+
+### Throughput
+
+### Test D
+
+<img
+  src={require("./assets/hc-write-api/throughput-d.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Throughput"
+/>
+
+### Test E
+
+<img
+  src={require("./assets/hc-write-api/throughput-e.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Throughput"
+/>
+
+In line to what we see in the response times, we see a drop in the throughput around the same time.
+
+After investigating the CloudWatch metrics, we couldn't find anything that would point to the fact that the drop in performance was to the AWS services. The response times on the CloudFront, API Gateway and Lambda functions haven't changed. The only explanation we have is that it was a limit we hit either on the network or CPU on the load test machine.
 
 ---
 
@@ -136,6 +193,8 @@ By default DynamoDB is configured with `on demand` capacity. To lower your cost,
 
 By default your AWS account will have a soft limit of 1000 lambda concurrent executions. We recommend you increase this limit by filing a support request with AWS.
 
+It's also important to be aware of the burst capacity limits, for more info visit this [AWS resource page](https://docs.aws.amazon.com/lambda/latest/dg/invocation-scaling.html).
+
 **3. Elasticsearch service**
 
 This is the only service which is not fully serverless and needs to be manually scaled. The above numbers should help you determine how to size accordingly.
@@ -148,11 +207,13 @@ Additionally, adjusting the `batchSize` and `maximumBatchingWindowInSeconds` can
 
 ### Total cost
 
-| Test   |                      CloudFront |                      ApiGateway |                        Lambda |                      DynamoDB |                   Elasticsearch |                         Total |
-| ------ | ------------------------------: | ------------------------------: | ----------------------------: | ----------------------------: | ------------------------------: | ----------------------------: |
-| Test A | <!-- prettier-ignore -->$0.0773 | <!-- prettier-ignore -->$0.0773 | <!-- prettier-ignore -->$0.26 | <!-- prettier-ignore -->$0.58 | <!-- prettier-ignore -->$0.0095 | <!-- prettier-ignore -->$0.99 |
-| Test B |                             500 |                             100 |                           100 |                           100 |                             100 | <!-- prettier-ignore -->$0.99 |
-| Test C |                            1000 |                             100 |                           100 |                           100 |                             100 |                           100 |
+| Test   |                    CloudFront |                    ApiGateway |                         Lambda |                       DynamoDB |                 Elasticsearch |                          Total |
+| ------ | ----------------------------: | ----------------------------: | -----------------------------: | -----------------------------: | ----------------------------: | -----------------------------: |
+| Test A | <!-- prettier-ignore -->$0.08 | <!-- prettier-ignore -->$0.08 |  <!-- prettier-ignore -->$0.26 |  <!-- prettier-ignore -->$0.58 | <!-- prettier-ignore -->$0.01 |  <!-- prettier-ignore -->$1.01 |
+| Test B | <!-- prettier-ignore -->$0.83 | <!-- prettier-ignore -->$0.76 |  <!-- prettier-ignore -->$2.58 |  <!-- prettier-ignore -->$3.48 | <!-- prettier-ignore -->$0.08 |  <!-- prettier-ignore -->$7.73 |
+| Test C | <!-- prettier-ignore -->$1.65 | <!-- prettier-ignore -->$1.51 |  <!-- prettier-ignore -->$5.20 |  <!-- prettier-ignore -->$6.56 | <!-- prettier-ignore -->$0.33 | <!-- prettier-ignore -->$15.25 |
+| Test D | <!-- prettier-ignore -->$3.64 | <!-- prettier-ignore -->$3.32 | <!-- prettier-ignore -->$11.79 | <!-- prettier-ignore -->$14.85 | <!-- prettier-ignore -->$0.92 | <!-- prettier-ignore -->$34.52 |
+| Test E | <!-- prettier-ignore -->$3.75 | <!-- prettier-ignore -->$3.34 | <!-- prettier-ignore -->$11.78 | <!-- prettier-ignore -->$13.24 | <!-- prettier-ignore -->$2.68 | <!-- prettier-ignore -->$34.79 |
 
 :::info
 
@@ -162,27 +223,33 @@ The cost of serverless components has been calculated based on their usage. The 
 
 ### CloudFront
 
-| Test   |  Hits | Traffic (GB) |                            Cost |
-| ------ | ----: | -----------: | ------------------------------: |
-| Test A | 77.3k |         0.09 | <!-- prettier-ignore -->$0.0773 |
-| Test B |   500 |         0000 |                            0000 |
-| Test C |  1000 |         0000 |                            0000 |
+| Test   |  Hits | Traffic (GB) |                          Cost |
+| ------ | ----: | -----------: | ----------------------------: |
+| Test A | 77.3k |         0.09 | <!-- prettier-ignore -->$0.08 |
+| Test B |  760k |         0.85 | <!-- prettier-ignore -->$0.83 |
+| Test C | 1.51M |         1.69 | <!-- prettier-ignore -->$1.65 |
+| Test D | 3.32M |         3.70 | <!-- prettier-ignore -->$3.64 |
+| Test E | 3.34M |         3.75 | <!-- prettier-ignore -->$3.66 |
 
 ### API Gateway
 
-| Test   |  Hits |                            Cost |
-| ------ | ----: | ------------------------------: |
-| Test A | 77.3k | <!-- prettier-ignore -->$0.0773 |
-| Test B |   000 |                             000 |
-| Test C |   000 |                             000 |
+| Test   |  Hits |                          Cost |
+| ------ | ----: | ----------------------------: |
+| Test A | 77.3k | <!-- prettier-ignore -->$0.08 |
+| Test B |  760k | <!-- prettier-ignore -->$0.76 |
+| Test C | 1.51M | <!-- prettier-ignore -->$1.51 |
+| Test C | 3.32M | <!-- prettier-ignore -->$3.32 |
+| Test C | 3.34M | <!-- prettier-ignore -->$3.34 |
 
 ### Lambda
 
-| Test   | Requests | Avg Duration (ms) |                          Cost |
-| ------ | -------: | ----------------: | ----------------------------: |
-| Test A |    80.2k |               371 | <!-- prettier-ignore -->$0.26 |
-| Test B |      000 |               000 |  <!-- prettier-ignore -->$0.0 |
-| Test C |      000 |               000 |  <!-- prettier-ignore -->$0.0 |
+| Test   | Requests | Avg. Duration (ms) |                           Cost |
+| ------ | -------: | -----------------: | -----------------------------: |
+| Test A |    80.2k |                371 |  <!-- prettier-ignore -->$0.26 |
+| Test B |     762k |                382 |  <!-- prettier-ignore -->$2.58 |
+| Test C |    1.51M |                389 |  <!-- prettier-ignore -->$5.20 |
+| Test D |    3.32M |                402 | <!-- prettier-ignore -->$11.79 |
+| Test E |    3.34M |                399 | <!-- prettier-ignore -->$11.78 |
 
 :::info
 
@@ -191,13 +258,27 @@ Webiny uses Lambda functions with 512MB of memory.
 
 :::
 
+:::info
+
+Notice how test E is cheaper by 1 cent from test D, it's only 3ms difference in the execution time.
+
+:::
+
 ### DynamoDB
 
-| Test   | Read ops | Write ops |                          Cost |
-| ------ | -------: | --------: | ----------------------------: |
-| Test A |     163k |      232k | <!-- prettier-ignore -->$0.58 |
-| Test B |      000 |       000 |                           000 |
-| Test C |      000 |       000 |                           000 |
+| Test   | Read ops | Write ops |                           Cost |
+| ------ | -------: | --------: | -----------------------------: |
+| Test A |     163k |      232k |  <!-- prettier-ignore -->$0.58 |
+| Test B |    1.52M |     2.28M |  <!-- prettier-ignore -->$3.48 |
+| Test C |    3.39M |     4.37M |  <!-- prettier-ignore -->$6.56 |
+| Test D |    9.28M |     9.82M | <!-- prettier-ignore -->$14.85 |
+| Test E |    7.44M |     8.90M | <!-- prettier-ignore -->$13.24 |
+
+:::info
+
+Notice how test E is cheaper than test D. This is because we were able to fit a bit more records inside the DynamoDB batch window so the stream had less operations to execute.
+
+:::
 
 ---
 
