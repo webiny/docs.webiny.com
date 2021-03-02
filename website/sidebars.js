@@ -10,6 +10,11 @@ module.exports = {
                     items: [
                         "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin"
                     ]
+                },
+                {
+                    type: "category",
+                    label: "Webiny CLI",
+                    items: ["tutorials/webiny-cli/adding-custom-commands"]
                 }
             ],
             "How-to Guides": [
@@ -43,10 +48,7 @@ module.exports = {
                 {
                     type: "category",
                     label: "Webiny CLI",
-                    items: [
-                        "how-to-guides/webiny-cli/working-with-workspaces",
-                        "how-to-guides/webiny-cli/adding-custom-commands"
-                    ]
+                    items: ["how-to-guides/webiny-cli/working-with-workspaces"]
                 },
                 "how-to-guides/upgrade-webiny"
             ],
