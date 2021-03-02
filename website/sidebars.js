@@ -13,6 +13,11 @@ module.exports = {
                 },
                 {
                     type: "category",
+                    label: "Page Builder",
+                    items: ["tutorials/page-builder/create-a-new-page-builder-element"]
+                },
+                {
+                    type: "category",
                     label: "Webiny CLI",
                     items: ["tutorials/webiny-cli/adding-custom-commands"]
                 }
@@ -118,10 +123,17 @@ module.exports = {
                 "key-topics/tools-libraries",
                 "key-topics/ci-cd",
                 "key-topics/webiny-cli"
+            ],
+            References: [
+                {
+                    type: "category",
+                    label: "Page Builder",
+                    items: ["references/page-builder/plugins"]
+                }
             ]
         },
         {
-            Contributing: ["contributing/documentation"]
+            Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         "webiny-telemetry"
     ]
