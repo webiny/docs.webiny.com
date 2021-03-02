@@ -10,6 +10,11 @@ module.exports = {
                     items: [
                         "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin"
                     ]
+                },
+                {
+                    type: "category",
+                    label: "Page Builder",
+                    items: ["tutorials/page-builder/create-a-new-page-builder-element"]
                 }
             ],
             "How-to guides": [
@@ -88,6 +93,13 @@ module.exports = {
                             ]
                         }
                     ]
+                }
+            ],
+            References: [
+                {
+                    type: "category",
+                    label: "Page Builder",
+                    items: ["references/page-builder/plugins"]
                 }
             ]
         },
