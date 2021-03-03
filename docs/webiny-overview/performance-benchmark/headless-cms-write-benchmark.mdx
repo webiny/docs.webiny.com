@@ -15,6 +15,10 @@ description: Webiny Headless CMS performance benchmark.
 
 ## Results
 
+import SummarySvg from "./assets/hc-write-api/summary.svg";
+
+<SummarySvg className="full-width" />
+
 | Test   | Records inserted | Avg. response time (ms) | p95 response time (ms) | Throughput (req/sec) |
 | ------ | ---------------: | ----------------------: | ---------------------: | -------------------: |
 | Test A |           77,197 |                  408.05 |                 619.95 |               116.88 |
@@ -40,6 +44,8 @@ As an example say your average visitors stays on your site 5 minutes, and does a
 **Formula**: (Throughput\*60sec\*5min)/10 calls per user = total number of concurrent users in a 5 minute period.
 
 **Note:** This is the formula for ideal conditions where user requests have an ideal spread of time between requests.
+
+---
 
 ## Benchmark overview
 
@@ -111,54 +117,6 @@ The test is configured by ramping up to the defined number of user threads withi
 Also, for test D and E, we had to increase the lambda concurrency to 2500 by filing an AWS support ticket. Webiny can go above that number, but for that the AWS team needs to additionally raise the concurrency limit.
 Finally to mention, the Elasticsearch instance in test D and E can take higher load than what our current lambda concurrency allowed for. (applies only to the write API)
 
-### Response times
-
-### Test D
-
-<img
-  src={require("./assets/hc-write-api/response-time-d.png").default}
-  className="no-shadow"
-  style={{ marginBottom: 20 }}
-  alt="Headless CMS benchmark - Response time"
-/>
-
-The response time was mostly consistent, with the exception around the 14:21 mark. At that point the response times spiked for a few seconds but then leveled off to the previous performance and stayed stable for next 5 minutes, until the end of the test.
-
-### Test E
-
-<img
-  src={require("./assets/hc-write-api/response-time-e.png").default}
-  className="no-shadow"
-  style={{ marginBottom: 20 }}
-  alt="Headless CMS benchmark - Response time"
-/>
-
-### Throughput
-
-### Test D
-
-<img
-  src={require("./assets/hc-write-api/throughput-d.png").default}
-  className="no-shadow"
-  style={{ marginBottom: 20 }}
-  alt="Headless CMS benchmark - Throughput"
-/>
-
-### Test E
-
-<img
-  src={require("./assets/hc-write-api/throughput-e.png").default}
-  className="no-shadow"
-  style={{ marginBottom: 20 }}
-  alt="Headless CMS benchmark - Throughput"
-/>
-
-In line to what we see in the response times, we see a drop in the throughput around the same time.
-
-After investigating the CloudWatch metrics, we couldn't find anything that would point to the fact that the drop in performance was to the AWS services. The response times on the CloudFront, API Gateway and Lambda functions haven't changed. The only explanation we have is that it was a limit we hit either on the network or CPU on the load test machine.
-
----
-
 ### Request flow
 
 Each write request has the following flow:
@@ -178,6 +136,62 @@ For additional info, check out the official [AWS guide](https://docs.aws.amazon.
 :::
 
 Additional thing to mention is that every write request has 1 DynamoDB write in general as we tend to do bulk writes, but there is also at least 1 read operation that happens as well. That read operation is issued by the Webiny security module to verify if the current user, or token, has the right to perform this action.
+
+---
+
+## Report
+
+:::info
+
+We only extracted the charts for the last 2 tests as most charts showed the same behavior. In case you want to see the full report with all the charts for all the tests, [click here](https://github.com/webiny/benchmark/tree/main/benchmarks/results/hc-write-data).
+
+:::
+
+### Response times
+
+#### Test D
+
+<img
+  src={require("./assets/hc-write-api/response-time-d.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Response time"
+/>
+
+The response time was mostly consistent, with the exception around the 14:21 mark. At that point the response times spiked for a few seconds but then leveled off to the previous performance and stayed stable for next 5 minutes, until the end of the test.
+
+#### Test E
+
+<img
+  src={require("./assets/hc-write-api/response-time-e.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Response time"
+/>
+
+### Throughput
+
+#### Test D
+
+<img
+  src={require("./assets/hc-write-api/throughput-d.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Throughput"
+/>
+
+#### Test E
+
+<img
+  src={require("./assets/hc-write-api/throughput-e.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Headless CMS benchmark - Throughput"
+/>
+
+In line to what we see in the response times, we see a drop in the throughput around the same time.
+
+After investigating the CloudWatch metrics, we couldn't find anything that would point to the fact that the drop in performance was to the AWS services. The response times on the CloudFront, API Gateway and Lambda functions haven't changed. The only explanation we have is that it was a limit we hit either on the network or CPU on the load test machine.
 
 ---
 
@@ -220,6 +234,20 @@ Additionally, adjusting the `batchSize` and `maximumBatchingWindowInSeconds` can
 The cost of serverless components has been calculated based on their usage. The cost of Elasticsearch has been calculated for a 15min period, based on the hourly rate.
 
 :::
+
+### Cost per request
+
+import CostPerRequestSvg from "./assets/hc-write-api/cost-per-request.svg";
+
+<CostPerRequestSvg className="full-width" />
+
+| Test   |      Hits |                     Total cost |                     Cost per request |
+| ------ | --------: | -----------------------------: | -----------------------------------: |
+| Test A |    77,197 |  <!-- prettier-ignore -->$1.01 | <!-- prettier-ignore -->$0.000013083 |
+| Test B |   759,679 |  <!-- prettier-ignore -->$7.73 | <!-- prettier-ignore -->$0.000010175 |
+| Test C | 1,506,112 | <!-- prettier-ignore -->$15.25 | <!-- prettier-ignore -->$0.000010125 |
+| Test D | 3,319,812 | <!-- prettier-ignore -->$34.52 | <!-- prettier-ignore -->$0.000010398 |
+| Test E | 3,343,666 | <!-- prettier-ignore -->$34.79 | <!-- prettier-ignore -->$0.000010405 |
 
 ### CloudFront
 
