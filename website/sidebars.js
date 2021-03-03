@@ -2,6 +2,18 @@ module.exports = {
     docs: [
         "introduction",
         {
+            "Webiny overview": [
+                {
+                    type: "category",
+                    label: "Performance benchmark",
+                    items: [
+                        "webiny-overview/performance-benchmark/introduction",
+                        "webiny-overview/performance-benchmark/headless-cms-write-benchmark",
+                        "webiny-overview/performance-benchmark/headless-cms-read-benchmark",
+                        "webiny-overview/performance-benchmark/pb-deliver-a-page"
+                    ]
+                }
+            ],
             Tutorials: [
                 "tutorials/install-webiny",
                 {
