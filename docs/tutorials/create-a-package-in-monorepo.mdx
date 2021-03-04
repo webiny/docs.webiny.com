@@ -1,0 +1,350 @@
+---
+id: create-a-package-in-monorepo
+title: How to Create a Package in Monorepo
+sidebar_label: Create a Package in Monorepo
+keywords: ["package", "workspaces", "monorepo", "organization of files"]
+description: Learn how to share code by create a package in monorepo
+---
+
+:::tip What You’ll Learn
+- how to create a package in monorepo
+- how to organize files in monorepo
+:::
+
+## Overview
+We often need to share some code between multiple apps.
+Doing so in a large project can be sometimes a chore. Fortunately every Webiny project is organized as a [monorepo](/docs/key-topics/project-organization/monorepo-organization).
+Our goal for this tutorial is to learn how we can organize and share code between multiple packages in a Webiny project.
+Let's get started.
+
+## What We'll Build
+In this example, we're using `React` code as the example code that we need to share between multiple apps.
+But, similar principles can be used to create a package for contain `api` code.
+
+The file structure of the example package used in this tutorial looks as shown below:
+
+```
+// Some files are omitted for sake of brevity.
+
+├── api
+├── apps
+│   ├── admin
+│   ├── theme
+│   └── website
+├── package.json
+├── packages
+|   |   // This is our new package
+│   └── gretting
+│       ├── src
+│       │   ├── assets
+│       │   └── index.tsx
+│       ├── .babelrc.js
+│       ├── README.md
+│       ├── package.json
+│       ├── tsconfig.build.json
+│       └── tsconfig.json
+└── yarn.lock
+```
+:::note
+The content of the `src` folder is not relevant here.
+All that we need to know is that it is a `React` project and the configuration file such as `.babelrc.js` is written accordingly.
+:::
+
+## Prerequisites
+
+1. **A Webiny Project**
+
+This tutorial assumes you have already created a new Webiny project to work on.
+We recommend reading our [install Webiny](/docs/tutorials/install-webiny) tutorial which show you how to do it.
+
+## Create a Package
+In this step, we create a new React project and add it to the list of packages inside the root workspace.
+
+One question you may ask is: **What is workspace list?**
+
+In every Webiny project, the list of all workspaces can be found in the package.json file, located in your project root, for example:
+
+```
+(...)
+"workspaces": {
+    "packages": [
+        "packages/*",
+        "apps/admin/code",
+        "apps/website/code",
+        "apps/theme",
+        "api/code/fileManager/*",
+        "api/code/graphql",
+        "api/code/getTime",
+        "api/code/headlessCMS",
+        "api/code/pageBuilder/*",
+        "api/code/prerenderingService/render",
+        "api/code/prerenderingService/flush",
+        "api/code/prerenderingService/queue/*"
+    ]
+},
+(...)
+```
+
+First, let’s create a folder called `packages` where we will add the example `React` package.
+
+Now let's create our `React` package where we add the required code.
+
+:::info
+Packages are just regular NPM packages, or in other words, folders with its own package.json
+:::
+
+Let's create a folder called `greeting` inside `packages` and add a `package.json` file in that folder.
+You can add it manually or use this command:
+
+```
+yarn init
+```
+
+<!-- vale off -->
+
+<img
+  src={require("./assets/how-to-create-a-package/yarn-init.png").default}
+  style={{ marginBottom: 20 }}
+  alt="yarn init"
+/>
+
+<!-- vale on -->
+
+Depending upon your inputs the generated `package.json` file will look similar as shown below:
+
+```json
+{
+  "name": "@examples/greeting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "license": "MIT"
+}
+```
+
+Now create a `src` folder inside `greeting` folder and create `index.tsx` file inside it.
+Then add the following code inside it:
+
+```tsx title="packages/greeting/src/index.tsx"
+import React from "react";
+
+const WelcomeMessage = () => {
+  return <h1>Welcome to Webiny</h1>
+}
+
+export default WelcomeMessage;
+```
+
+In order to build our package, we need to add the following configuration files:
+- `.babelrc.js`
+- `tsconfig.json`
+- `tsconfig.build.json`
+
+Let's create them one by one.
+
+### `.babelrc.js`
+First up, the `.babelrc.js` file which is a configuration file for a tool called [babel](https://babeljs.io/).
+:::info
+Babel is a JavaScript compiler. We need it here because:
+- we're writing the `React` code in `JSX` syntax which need to be converted in `JS`
+- we're also using latest JavaScript features and syntax which are not supported in all browsers therefore need to be converted
+:::
+
+In the `.babelrc.js` we import the `.babel.react` configuration file defined in the project root.
+
+```js title="packages/greeting/.babelrc.js"
+module.exports = require("../../.babel.react");
+```
+
+:::info
+Every Webiny project comes with a `.babel.react.js` and `.babel.node.js`.
+You don't need to know all the configurations.
+But, if you're interested feel free to dig through the [code](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/.babel.react.js).
+:::
+
+### `tsconfig.json`
+Every Webiny project prioritizes [TypeScript](https://www.typescriptlang.org/) and the `tsconfig` file corresponds to the configuration of the TypeScript compiler (tsc).
+
+Let's take a look at the content of this file:
+```json title="packages/greeting/tsconfig.json"
+{
+  "extends": "../../tsconfig"
+}
+```
+
+Like the previous file, we're also importing the configuration defined in the [project root](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/tsconfig.json) here.
+
+:::info
+The `tsconfig.json` file specifies the root files and the compiler options required to compile the project.
+[Learn more](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html#:~:text=a%20tsconfig.json-,Overview,required%20to%20compile%20the%20project.)
+:::
+
+### `package.json`
+Now let's take a look at the `package.json` file.
+First, we need to add the `devDependencies` as shown below:
+
+```json title="packages/greeting/package.json"
+{
+  (...)
+   "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-typescript": "^7.8.3",
+    "@svgr/webpack": "^4.3.2",
+    "babel-plugin-named-asset-import": "^1.0.0-next.3e165448",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.1.3"
+  },
+  (...)
+}
+```
+
+Then add the `react` and `react-dom` to `dependencies` as shown below:
+```json title="packages/greeting/package.json"
+{
+  (...)
+  "dependencies": {
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0"
+  },
+   "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-typescript": "^7.8.3",
+    "@svgr/webpack": "^4.3.2",
+    "babel-plugin-named-asset-import": "^1.0.0-next.3e165448",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.1.3"
+  },
+  (...)
+}
+```
+
+After that, we add the following scripts inside the `package.json` file:
+- `build`
+- `watch`
+- `postbuild`
+
+```json title="packages/greeting/package.json"
+{
+  (...)
+  "dependencies": {
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0"
+  },
+   "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-typescript": "^7.8.3",
+    "@svgr/webpack": "^4.3.2",
+    "babel-plugin-named-asset-import": "^1.0.0-next.3e165448",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.1.3"
+  },
+   "scripts": {
+    "build": "rimraf ./dist '*.tsbuildinfo' && babel src -d dist --source-maps --copy-files --extensions \".ts,.tsx\" && yarn postbuild",
+    "watch": "babel src -d dist --source-maps --copy-files --extensions \".ts,.tsx\" --watch",
+    "postbuild": "cp package.json LICENSE README.md dist/ && tsc -p tsconfig.build.json"
+  }
+  (...)
+}
+```
+
+And finally, we add `publishConfig` which is a set of configuration values that is be used at publish-time.
+
+ ```json title="packages/greeting/package.json"
+{
+  (...)
+  "dependencies": {
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0"
+  },
+   "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/preset-typescript": "^7.8.3",
+    "@svgr/webpack": "^4.3.2",
+    "babel-plugin-named-asset-import": "^1.0.0-next.3e165448",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.1.3"
+  },
+    "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+   "scripts": {
+    "build": "rimraf ./dist '*.tsbuildinfo' && babel src -d dist --source-maps --copy-files --extensions \".ts,.tsx\" && yarn postbuild",
+    "watch": "babel src -d dist --source-maps --copy-files --extensions \".ts,.tsx\" --watch",
+    "postbuild": "cp package.json LICENSE README.md dist/ && tsc -p tsconfig.build.json"
+  }
+}
+```
+
+:::info
+Learn more about [`publishConig`](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#publishconfig).
+:::
+
+
+### `README.md` (optional)
+A README is a text file that introduces and explains a project.
+It contains information that is commonly required to understand what the project is about.
+
+
+## Using Package in the Admin App
+
+### Build package
+Now that we've created out package. Now it's time to use it in the admin app located at `apps/admin/code`.
+But, before that we need to `build` it. "And how do we do that?" you may ask:
+Remember adding the `build` command under `scripts` key in `package.json` file of the package.
+Now it's time we use it. We can simply `cd` into the package folder that is `packages/gretting` and run:
+
+```
+yarn build
+```
+And it will work just fine. But, as you project grow and you add more packages. It becomes a chore to run the same command across multiple packages.
+
+Webiny CLI provides the workspaces run (or ws run for short) command that enables you to run a single command across multiple workspaces at once.
+The common use case where this might be needed is local development, where you want to watch for code changes on multiple packages, and rebuild them accordingly.
+
+:::info
+We recommend reading the [Working With Workspaces](http://docs.webiny.com/docs/how-to-guides/webiny-cli/working-with-workspaces)
+article to learn more about workspaces.
+:::
+
+For example, in order to establish a watch session across multiple packages, located in a specific folder, you can run the following command:
+
+```
+yarn webiny ws run watch --folder packages
+```
+
+On the other hand, if you wanted to build all of the packages, again, located in a specific folder, you can run:
+```
+yarn webiny ws run build --folder packages
+```
+
+
+### Install the Package
+Now that we've built the package. It's time to install and link the package.
+Run the following command:
+```
+yarn install
+```
+
+Using [`postinstall`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/package.json#L64) hook we run [`link-workspaces`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/scripts/linkWorkspaces.js) script.
+
+### Using it in the Admin App
+
+After the package in installed and linked.
+We can simply import it as a regular npm package.
+
+```ts
+import WelcomeMessage from "@examples/greeting";
+```

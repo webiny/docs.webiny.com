@@ -20,7 +20,8 @@ module.exports = {
                     type: "category",
                     label: "Webiny CLI",
                     items: ["tutorials/webiny-cli/adding-custom-commands"]
-                }
+                },
+                "tutorials/create-a-package-in-monorepo"
             ],
             "How-to Guides": [
                 {
