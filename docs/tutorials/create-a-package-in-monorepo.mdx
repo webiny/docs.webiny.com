@@ -3,7 +3,7 @@ id: create-a-package-in-monorepo
 title: How to Create a Package in Monorepo
 sidebar_label: Create a Package in Monorepo
 keywords: ["package", "workspaces", "monorepo", "organization of files"]
-description: Learn how to share code by create a package in monorepo
+description: Learn how to share code by creating a package in monorepo
 ---
 
 :::tip What You’ll Learn
@@ -12,17 +12,16 @@ description: Learn how to share code by create a package in monorepo
 :::
 
 ## Overview
-We often need to share some code between multiple apps.
-Doing so in a large project can be sometimes a chore. Fortunately every Webiny project is organized as a [monorepo](/docs/key-topics/project-organization/monorepo-organization).
-Our goal for this tutorial is to learn how we can organize and share code between multiple packages in a Webiny project.
+We often need to share code between multiple apps.
+Doing so in a large project can be a chore. Fortunately every Webiny project is organized as a [monorepo](/docs/key-topics/project-organization/monorepo-organization).
+In this tutorial you will learn how to organize and share code between multiple packages in a monorepo.
 Let's get started.
 
 ## What We'll Build
-In this example, we're using `React` code as the example code that we need to share between multiple apps.
-But, similar principles can be used to create a package for contain `api` code.
+In this tutorial, we're using `React` code as the example code that we need to share between multiple apps.
+But, you can create a package for `api` as well using similar principles.
 
-The file structure of the example package used in this tutorial looks as shown below:
-
+Here is the file structure of the example package:
 ```
 // Some files are omitted for sake of brevity.
 
@@ -36,7 +35,6 @@ The file structure of the example package used in this tutorial looks as shown b
 |   |   // This is our new package
 │   └── gretting
 │       ├── src
-│       │   ├── assets
 │       │   └── index.tsx
 │       ├── .babelrc.js
 │       ├── README.md
@@ -58,11 +56,15 @@ This tutorial assumes you have already created a new Webiny project to work on.
 We recommend reading our [install Webiny](/docs/tutorials/install-webiny) tutorial which show you how to do it.
 
 ## Create a Package
-In this step, we create a new React project and add it to the list of packages inside the root workspace.
+In this step, we create a new React project and add it to the workspaces list.
 
-One question you may ask is: **What is workspace list?**
+:::info
+Learn more about [workspaces](https://yarnpkg.com/features/workspaces)
+:::
 
-In every Webiny project, the list of all workspaces can be found in the package.json file, located in your project root, for example:
+One question you may ask is: **Where is this workspaces list is located?**
+
+The list of all workspaces can be found in the package.json file, located in your project root, for example:
 
 ```
 (...)
@@ -85,16 +87,19 @@ In every Webiny project, the list of all workspaces can be found in the package.
 (...)
 ```
 
-First, let’s create a folder called `packages` where we will add the example `React` package.
+As you can see from above-mentioned example, a package can be at root level for example, `my-package` or grouped in a folder for example `packages`.
+In this tutorial we use the later.
 
-Now let's create our `React` package where we add the required code.
+Enough with the theory, let’s dig in.
+
+First, create a folder called `packages` where we add our custom package.
 
 :::info
 Packages are just regular NPM packages, or in other words, folders with its own package.json
 :::
 
-Let's create a folder called `greeting` inside `packages` and add a `package.json` file in that folder.
-You can add it manually or use this command:
+Let's create a folder called `greeting` inside `packages`. Now you need to create a `package.json` file in that folder.
+You can add it manually or use the following command:
 
 ```
 yarn init
@@ -110,7 +115,7 @@ yarn init
 
 <!-- vale on -->
 
-Depending upon your inputs the generated `package.json` file will look similar as shown below:
+Depending upon your inputs the generated `package.json` file's content may look different from what is shown below:
 
 ```json
 {
@@ -122,8 +127,11 @@ Depending upon your inputs the generated `package.json` file will look similar a
 }
 ```
 
-Now create a `src` folder inside `greeting` folder and create `index.tsx` file inside it.
-Then add the following code inside it:
+:::note
+The name property defined in the package's `package.json` will be used to later import it.   
+:::
+
+Next create a `src` folder inside `packages/greeting` and then add `index.tsx` file inside it with the following code:
 
 ```tsx title="packages/greeting/src/index.tsx"
 import React from "react";
@@ -135,53 +143,24 @@ const WelcomeMessage = () => {
 export default WelcomeMessage;
 ```
 
+:::note
+Here we're creating a very simple component. But, you can write whatever logic you need for your project. 
+:::
+
+Now that we've have our desired code in place. We can move to the next step which is adding the required configuration files.
+Let's see.
+
 In order to build our package, we need to add the following configuration files:
+- `package.json`
 - `.babelrc.js`
 - `tsconfig.json`
 - `tsconfig.build.json`
 
 Let's create them one by one.
 
-### `.babelrc.js`
-First up, the `.babelrc.js` file which is a configuration file for a tool called [babel](https://babeljs.io/).
-:::info
-Babel is a JavaScript compiler. We need it here because:
-- we're writing the `React` code in `JSX` syntax which need to be converted in `JS`
-- we're also using latest JavaScript features and syntax which are not supported in all browsers therefore need to be converted
-:::
-
-In the `.babelrc.js` we import the `.babel.react` configuration file defined in the project root.
-
-```js title="packages/greeting/.babelrc.js"
-module.exports = require("../../.babel.react");
-```
-
-:::info
-Every Webiny project comes with a `.babel.react.js` and `.babel.node.js`.
-You don't need to know all the configurations.
-But, if you're interested feel free to dig through the [code](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/.babel.react.js).
-:::
-
-### `tsconfig.json`
-Every Webiny project prioritizes [TypeScript](https://www.typescriptlang.org/) and the `tsconfig` file corresponds to the configuration of the TypeScript compiler (tsc).
-
-Let's take a look at the content of this file:
-```json title="packages/greeting/tsconfig.json"
-{
-  "extends": "../../tsconfig"
-}
-```
-
-Like the previous file, we're also importing the configuration defined in the [project root](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/tsconfig.json) here.
-
-:::info
-The `tsconfig.json` file specifies the root files and the compiler options required to compile the project.
-[Learn more](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html#:~:text=a%20tsconfig.json-,Overview,required%20to%20compile%20the%20project.)
-:::
-
 ### `package.json`
-Now let's take a look at the `package.json` file.
-First, we need to add the `devDependencies` as shown below:
+Let's start with the `package.json` file.
+First, we need to add the following `devDependencies`:
 
 ```json title="packages/greeting/package.json"
 {
@@ -201,7 +180,8 @@ First, we need to add the `devDependencies` as shown below:
 }
 ```
 
-Then add the `react` and `react-dom` to `dependencies` as shown below:
+Then add `react` and `react-dom` to `dependencies` as shown below:
+
 ```json title="packages/greeting/package.json"
 {
   (...)
@@ -293,23 +273,71 @@ Learn more about [`publishConig`](https://docs.npmjs.com/cli/v7/configuring-npm/
 :::
 
 
+### `.babelrc.js`
+Now let's take a look at the `.babelrc.js` file which is a configuration file for a tool called [babel](https://babeljs.io/).
+
+:::info
+Babel is a JavaScript compiler. We need it because:
+- we're writing the `React` code in `JSX` syntax which need to be converted in `JS`
+- we're also using latest JavaScript features and syntax which are not supported in all browsers therefore need to be converted
+:::
+
+In the `.babelrc.js` we just export the `.babel.react` configuration file which is defined in the project root.
+
+```js title="packages/greeting/.babelrc.js"
+module.exports = require("../../.babel.react");
+```
+
+:::info
+Every Webiny project comes with a `.babel.react.js` and `.babel.node.js`.
+You don't need to know all the configurations.
+But, if you're interested feel free to check the full configuration [file](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/.babel.react.js).
+:::
+
+### `tsconfig.json`
+Every Webiny project prioritizes [TypeScript](https://www.typescriptlang.org/).
+But it also needs to be complied and the `tsconfig` file corresponds to the configuration of the TypeScript compiler (tsc).
+
+Let's take a look at the content of this file:
+
+```json title="packages/greeting/tsconfig.json"
+{
+  "extends": "../../tsconfig"
+}
+```
+
+Like the previous file, we're just using the configuration defined in the [project root](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/tsconfig.json) here.
+
+:::info
+The `tsconfig.json` file specifies the root files and the compiler options required to compile the project.
+[Learn more](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html#:~:text=a%20tsconfig.json-,Overview,required%20to%20compile%20the%20project.)
+:::
+
+
+
 ### `README.md` (optional)
 A README is a text file that introduces and explains a project.
 It contains information that is commonly required to understand what the project is about.
 
 
-## Using Package in the Admin App
+## Preparing the Package for Usage
+Now that we've created our package and added the required configuration files. It's time to use it.
+In order to do that we need to follow the following steps:
+- build the package
+- link the package
 
-### Build package
-Now that we've created out package. Now it's time to use it in the admin app located at `apps/admin/code`.
-But, before that we need to `build` it. "And how do we do that?" you may ask:
-Remember adding the `build` command under `scripts` key in `package.json` file of the package.
+### Build the Package
+In order to use the package we need to `build` it first.
+
+**"And how do we do that?"** you may ask:
+
+Remember we added the `build` command under `scripts` key inside `package.json` file of the package.
 Now it's time we use it. We can simply `cd` into the package folder that is `packages/gretting` and run:
 
 ```
 yarn build
 ```
-And it will work just fine. But, as you project grow and you add more packages. It becomes a chore to run the same command across multiple packages.
+And it will work just fine. But, as your project grow and you add more packages. It becomes a chore to run the same command across multiple packages.
 
 Webiny CLI provides the workspaces run (or ws run for short) command that enables you to run a single command across multiple workspaces at once.
 The common use case where this might be needed is local development, where you want to watch for code changes on multiple packages, and rebuild them accordingly.
@@ -318,6 +346,8 @@ The common use case where this might be needed is local development, where you w
 We recommend reading the [Working With Workspaces](http://docs.webiny.com/docs/how-to-guides/webiny-cli/working-with-workspaces)
 article to learn more about workspaces.
 :::
+
+We can use it for building the package and/or running a watch session while developing the code (so that the latest changes gets rebuild).
 
 For example, in order to establish a watch session across multiple packages, located in a specific folder, you can run the following command:
 
@@ -330,6 +360,10 @@ On the other hand, if you wanted to build all of the packages, again, located in
 yarn webiny ws run build --folder packages
 ```
 
+:::note
+The `ws run` command execute the command in question for every workspace present in the folder.
+In our case, `packages/greeting`.
+:::
 
 ### Install the Package
 Now that we've built the package. It's time to install and link the package.
@@ -337,14 +371,23 @@ Run the following command:
 ```
 yarn install
 ```
+By simply executing the above-mentioned command. The package is installed and linked via workspaces.
+Because using [`postinstall`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/package.json#L64) hook we also run [`link-workspaces`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/scripts/linkWorkspaces.js) script.
 
-Using [`postinstall`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/package.json#L64) hook we run [`link-workspaces`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/scripts/linkWorkspaces.js) script.
+### Using the Package in Apps
 
-### Using it in the Admin App
-
-After the package in installed and linked.
-We can simply import it as a regular npm package.
+After completing all these steps you can now simply import and use it as a regular npm package.
 
 ```ts
 import WelcomeMessage from "@examples/greeting";
 ```
+
+## Conclusion
+
+Congratulations!! 🎉🥳
+
+You've successfully created a custom package in monorepo.
+Monorepo organization makes it possible to structure different logical pieces of your project as multiple packages.
+
+You can also checkout a similar code example in our [repo](https://github.com/webiny/webiny-examples/tree/master/iframe-page-element).
+If you have further questions, feel free to [ask](https://www.webiny.com/slack) for additional help.
