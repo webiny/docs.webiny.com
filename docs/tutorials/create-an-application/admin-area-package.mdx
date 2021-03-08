@@ -8,92 +8,50 @@ description: Quickly create and deploy Admin area package.
 
 :::tip WHAT YOU’LL LEARN
 - what are scaffolds
-- how to quickly create a functional app with both UI and API
+- how to quickly create a functional app Admin area app
 :::
 
+
+## Prerequisites
+Before you start this tutorial, make sure that you have Webiny installed and to read our [Intro](./create-an-application-intro) and [API Package](./api-package) tutorials.
+
 ## Overview
-UI and API scaffolds are our boilerplate code that works out of the box without you needing to actually write any code.
-We will go through the process of generating the code for both UI and API packages.
+The UI scaffold is our boilerplate code that works out of the box without you needing to actually write any code.
+In this article we will go through the process of generating the code.
 
-The command you will need is `yarn webiny scaffold`. Of course, you run it from the root of your project.
+The command you will need is `yarn webiny scaffold`.
 
-For you to be able to import the package into the API or Admin app it must be linked to the `node_modules`.
-It is done automatically by our [linkWorkspaces](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/scripts/linkWorkspaces.js) script which is called by `yarn postinstall`.
+In our example we will use `CarManufacturer` as our reference.
 
-If you are generating packages in a directory that is not `packages`, you must add that directory in the `whitelist` array.
 
-In our examples we will use `CarManufacturer` as our reference.
-
-## API Package Scaffold
-
+## Admin Area Package Scaffold
 ### Running the Scaffold
-Run the scaffold command and follow the questions. Here is a detailed explanation of the questions:
+Run the scaffold command and follow the questions. Let's go through all the questions in detail:
 ##### 1. Enter the name of the initial data model
-Name of the API model. The GraphQL queries, mutations and responses will use this name in singular and plural form.
+Name of the Admin area data model. The GraphQL queries, mutations, responses, variable names in the code and files will use this value in singular and plural, kebab-case, camel-case or some other form.
 
 The name value is used to create both the defaults for the package location and the package name.
 
-The initial data model has 3 fields (`title`, `description` and `isNice`) to show you how to build your data model.
+The initial data model has 3 fields (`title`, `description` and `isNice`) to show you how to structure your data model.
 
 Validation of the data model name allows only a-z and A-Z.
 You can name your model all lowercase or all uppercase. It is up to you - but try to keep it in pascal-case.
 
 ##### 2. Enter the package location
-A full location of the package from the root of the project. A data model name given in the previous question is used to create the default package location.
+A full location of the package from the root of the project. A data model name value given in the previous question is used to create the default package location.
 
-By default, we think it is best to organize your packages in `packages` directory, but you can change that to whatever you want.
+We think it is best to organize your packages in `packages` directory, so by default it is set into that directory, but you can change it to whatever you want.
 
-The default value is `packages/car-manufacturers/api`. Notice that the data model name `CarManufacturer` is in plural and kebab-cased.
+The default value is `packages/car-manufacturers/admin-app`. Notice that the data model name `CarManufacturer` is in plural and kebab-cased.
 
 Validation of the package location checks only if the given directory already exists.
 
 ##### 3. Enter the package name
-The package name that you reference to in the code. As in the location step, the data model name is used to create the default package name.
+The package name that you reference to in the code. As in the location step, the data model name value is used to create the default package name.
 
-The default value is `@car-manufacturers/api`.
+The default value is `@car-manufacturers/admin-app` as we like scoping packages. You can set it to what ever you want, providing it is passing the validation.
 
 Validation of the package name is done via the `validate-npm-package-name` package.
-
-
-### The Code
-Generated code contains:
-1. `src/index.ts` with `GraphQLSchemaPlugin` plugin type which defines the GraphQL schema and resolvers.
-2. `src/configuration.ts` with the configuration for DynamoDB table, Elasticsearch DynamoDB stream table and Elasticsearch index.
-3. `src/es.ts` with helpers to build the Elasticsearch query out of the GraphQL query arguments.
-4. `src/types.ts` with interfaces for resolvers, application context, arguments.
-5. `__tests__/useGqlHandler.ts` with the setup of the test runners.
-6. `__tests__/graphql/carManufacturers.ts` with GraphQL queries and mutations to be run.
-7. `__tests__/crud.test.ts` with the tests for the resolvers.
-
-### Elasticsearch
-If you want to use the Elasticsearch functionality that is provided with the generated code you must run install mutation described in the information after the code was generated.
-
-### Testing
-You can run tests locally with command `ELASTICSEARCH_PORT=9200 LOCAL_ELASTICSEARCH=true yarn test packages/car-manufacturers/api`.
-You must have local Elasticsearch started for this to work. Port can be something other than **9200**.
-
-Generated tests cover CRUD operations and sorting by `createdOn` and `title` fields.
-
-### Using the Generated Code in Your Project
-In the main GraphQL file you need to import your package and include it in the existing handler.
-```typescript title="api/code/graphql/src/index.ts"
-// at the top of the file
-import carManufacturerPlugin from "@car-manufacturers/api";
-
-// somewhere after headlessCmsPlugins() in the end of the createHandler() function
-carManufacturerPlugin()
-```
-### Deploy the API
-Use the command to deploy the API:
-```
-yarn webiny deploy api --env YOUR_ENVIRONMENT
-```
-
-Now that you have a functioning API, let's move onto the UI side.
-
-## Admin Area Package Scaffold
-### Running the Scaffold
-Run the scaffold command and follow the questions. The questions are as the ones in the API package scaffold, functionality behind them as well.
 
 ### The Code
 Generated code contains:
@@ -116,11 +74,118 @@ import carManufacturerPlugin from "@car-manufacturers/admin-app";
 carManufacturerPlugin()
 ```
 
+## Changing the Form
+Let's say you want to add a new field named `country` to identify where is the Car manufacturer located.
+
+You would add a new Cell component with Bind and Input components to the existing form, something like this:
+```tsx title="packages/car-manufacturers/admin-app/src/views/CarManufacturerForm.tsx"
+<Cell span={12}>
+    <Bind name="country">
+        <Input label={"Country"} />
+    </Bind>
+</Cell>
+```
+
+You need to change GraphQL as well, for example we will add it into mutation for creating the entry:
+
+```typescript title="packages/car-manufacturers/admin-app/src/views/graphql.ts"
+export const CREATE_CAR_MANUFACTURER = gql`
+    mutation CreateCarManufacturer($data: CarManufacturerCreateInput!) {
+        carManufacturers {
+            createCarManufacturer(data: $data) {
+                data {
+                    id
+                    title
+                    description
+                    isNice
+					# add new field here
+					country
+					#
+                    createdOn
+                    savedOn
+                    createdBy {
+                        id
+                        displayName
+                        type
+                    }
+                }
+                error {
+                    code
+                    message
+                    data
+                }
+            }
+        }
+    }
+`;
+```
+
+You need to make changes in other mutations and queries as well.
+
+## Changing the List
+
+After you have the `country` field, you want to be able to sort by it. You would add it to the sorters in the data list component:
+```tsx title="packages/car-manufacturers/admin-app/src/views/CarManufacturersDataList.tsx"
+const sorters = [
+    {
+        label: "Newest to oldest",
+        value: "createdOn_DESC"
+    },
+    {
+        label: "Oldest to newest",
+        value: "createdOn_ASC"
+    },
+    {
+        label: "Tile A-Z",
+        value: "title_ASC"
+    },
+    {
+        label: "Title Z-A",
+        value: "title_DESC"
+    },
+    // add sorters here
+    {
+        label: "Country A-Z",
+        value: "country_ASC"
+    },
+    {
+        label: "Country Z-A",
+        value: "country_DESC"
+    }
+];
+```
+
+## Adding the Menu
+
+If you want to add some new menu in the Admin area, check out the `packages/car-manufacturers/admin-app/src/menus.tsx` file.
+You can make a copy of that file, name it `myMenu.tsx` and import it into the `packages/car-manufacturers/admin-app/src/index.ts`.
+
+## Adding the Route
+
+If you want your created menu to load some route, check out the `packages/car-manufacturers/admin-app/src/routes.tsx` file.
+Also, you can copy that file and change what you require. Remember to import it into the `index.ts` file.
+
+## Building the Code
+When you make changes to the code, make sure you run `yarn webiny ws run build --folder=packages/car-manufacturers/admin-app` to actually compile your code for the deployment.
+
+You can even have a watcher running for your code with `yarn webiny ws run watch --folder=packages/car-manufacturers/admin-app`.
+
+Of course, the `folder` value is your package location.
+
+### Run locally
+Unlike the API, you can run the UI locally:
+1. `cd apps/admin/code`
+2. `yarn start --env=YOUR_ENVIRONMENT`
+
+This will start the local build of the Admin app. Also, it will automatically rebuild and refresh when it detects changes in the code.
+
+
 ### Deploy the Admin App
 Use the command to deploy the admin app:
 ```
 yarn webiny deploy apps/admin --env YOUR_ENVIRONMENT
 ```
 
-And now you have the functional UI in the admin area to create, update, delete, and list the CarManufacturers.
+## Next Step...
+Now you have the functional UI in the admin area to create, update, delete, and list the CarManufacturers.
 
