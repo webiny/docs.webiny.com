@@ -40,14 +40,14 @@ Full location of the package - from the root of the project. A data model name g
 
 By default, we think it is best to organize your packages in `packages` directory, but you can change that to what ever you want.
 
-Default value is `packages/carManufacturers/api`. Notice that data model name `CarManufacturer` is in plural and camel-cased.
+Default value is `packages/car-manufacturers/api`. Notice that data model name `CarManufacturer` is in plural and kebab-cased.
 
 Validation of the package location checks only if the given directory already exists.
 
 ##### 3. Enter the package name
 The package name that you will reference to in the code. As in the location step, data model name is used to create the default package name.
 
-Default value is `@carManufacturers/api`.
+Default value is `@car-manufacturers/api`.
 
 Validation of the package name is done via the `validate-npm-package-name` package.
 
@@ -59,27 +59,65 @@ Generated code contains:
 3. `src/es.ts` with helpers to build the Elasticsearch query out of the GraphQL query arguments.
 4. `src/types.ts` with interfaces for resolvers, application context, arguments, etc...
 5. `__tests__/useGqlHandler.ts` with the setup of the test runners.
-6. `__tests__/graphql/carManufacturers.ts` with GraphQL queries and mutations to be ran.
+6. `__tests__/graphql/carManufacturers.ts` with GraphQL queries and mutations to be run.
 7. `__tests__/crud.test.ts` with the tests for the resolvers.
 
 ### Elasticsearch
 If you want to use the Elasticsearch functionality that is provided with the generated code you must run install mutation described in the information after the code was generated.
 
 ### Testing
-You can run tests locally with command `ELASTICSEARCH_PORT=9200 LOCAL_ELASTICSEARCH=true yarn test packages/carManufacturers/api`.
+You can run tests locally with command `ELASTICSEARCH_PORT=9200 LOCAL_ELASTICSEARCH=true yarn test packages/car-manufacturers/api`.
 You need to have local Elasticsearch started for this to work and port can be something other than **9200**.
 
 Generated tests cover CRUD operations and sorting by `createdOn` and `title` fields.
 
+### Using the generated code in your project
+In the main GraphQL file you need to import your package and include it in the existing handler.
+```ts title="api/code/graphql/src/index.ts"
+// at the top of the file
+import carManufacturerPlugin from "@car-manufacturers/api";
 
+// somewhere after headlessCmsPlugins() in the end of the createHandler() function
+carManufacturerPlugin()
+```
+### Deploy the API
+Use the command to deploy the API:
+```
+yarn webiny deploy api --env YOUR_ENVIRONMENT
+```
 
+Now that you have functioning API, let's move onto the UI side.
 
+## Admin area package scaffold
+### Running the scaffold
+Run the scaffold command and go follow the questions. The questions are as the ones in the API package scaffold, functionality behind them as well.
 
-- Create an application
-  - Intro (what you'll build)
-  - Register app route and menu
-  - Create a new GraphQL resolver
-  - Create a list and input form
-  - Test your application
-  - Deploy your application
-  - Debug your application
+### The code
+Generated code contains:
+1. `src/views/graphql.ts` with GraphQL queries and mutations for the data model.
+2. `src/views/CarManufacturers.tsx` with a React component that renders both list view and the form.
+3. `src/views/CarManufacturersDataList.tsx` with a React component that lists existing data models via the GraphQL queries.
+4. `src/views/CarManufacturerForm.tsx` which utilizes our `@webiny/form` package to display and populate the form.
+5. `src/rotues.tsx` with `RoutePlugin` definition to add the route in the admin area.
+6. `src/menus.tsx` with `AdminMenuPlugin` definition to display the menu in the admin area.
+7. `src/types.ts` with interfaces for entry items and data list props.
+8. `src/index.ts` with exports of the plugins to be used in the admin app.
+
+### Using the generated code in your project
+In the main admin app file you need to import your package and include it in the plugin registration array.
+```ts title="apps/admin/code/src/plugins/index.ts"
+// at the top of the file
+import carManufacturerPlugin from "@car-manufacturers/admin-app";
+
+// in the end of the registration array
+carManufacturerPlugin()
+```
+
+### Deploy the admin app
+Use the command to deploy the admin app:
+```
+yarn webiny deploy apps/admin --env YOUR_ENVIRONMENT
+```
+
+And now you have the functioning UI in the admin area to create, update, delete and list the CarManufacturers.
+
