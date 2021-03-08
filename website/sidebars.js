@@ -16,6 +16,7 @@ module.exports = {
             ],
             Tutorials: [
                 "tutorials/install-webiny",
+                "tutorials/create-an-application",
                 {
                     type: "category",
                     label: "Headless CMS",
