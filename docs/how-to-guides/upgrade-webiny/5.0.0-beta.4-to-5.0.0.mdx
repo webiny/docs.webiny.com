@@ -6,6 +6,10 @@ keywords: ["webiny", "version", "upgrade"]
 description: Learn how to upgrade Webiny from 5.0.0-beta.4 to 5.0.0.
 ---
 
+import dynamoToElasticImage from "../assets/upgrading-webiny/5.0.0-beta.4-to-5.0.0/dynamoToElastic.png";
+import pulumiImage from "../assets/upgrading-webiny/5.0.0-beta.4-to-5.0.0/pulumi.png";
+import CenteredImage from "../../mdxComponents/centeredImage";
+
 :::tip What you’ll learn
 
 - how to upgrade Webiny from 5.0.0-beta.4 to 5.0.0
@@ -20,7 +24,7 @@ This guide contains many manual steps. If the circumstances allow it, we recomme
 
 :::
 
-If you still want to upgrade your project manually, follow these steps below in the exact order.
+If you still want to upgrade your project manually, follow the steps below in the exact order.
 
 :::tip File paths
 All file paths in the instructions below are considered to start in your project root directory.
@@ -53,6 +57,7 @@ Now we need to apply some changes to the project itself:
 ```json
 {
   "dependencies": {
+    // ...
     "@webiny/cli-plugin-scaffold": "5.0.0",
     "@webiny/cli-plugin-scaffold-graphql-service": "5.0.0",
     "@webiny/cli-plugin-scaffold-admin-app-module": "5.0.0"
@@ -63,25 +68,33 @@ Now we need to apply some changes to the project itself:
     "react-dom": "16.14.0"
   },
   "workspaces": {
-    "packages": ["api/code/dynamoToElastic"]
+    "packages": [
+      // ...
+      "api/code/dynamoToElastic"
+    ]
   }
 }
 ```
 
-- add `"@webiny/cli": "5.0.0"` to `package.json` dependencies in the following files:
+- add `"@webiny/cli": "5.0.0"` to `dependencies` in the following files:
 
   - `apps/admin/code/package.json`
   - `apps/website/code/package.json`
 
 - edit`apps/theme/package.json` and remove the `publishConfig` section completely.
 
-- download [dynamoToElastic.zip](../assets/upgrading-webiny/5.0.0-beta.4-to-5.0.0/dynamoToElastic.zip), unzip it, and put into your `api/code/dynamoToElastic` (this is a new folder in 5.0.0).
+- download [dynamoToElastic.zip](../assets/upgrading-webiny/5.0.0-beta.4-to-5.0.0/dynamoToElastic.zip), unzip it, and put into `api/code/dynamoToElastic`. You may need to create this folder yourself, depending on how you extracted the archive. The end result should look like this:
+
+<CenteredImage alt="dynamoToElastic folder after upgrade" src={dynamoToElasticImage} />
 
 :::danger Be careful!
 In the next step, don't mistake `pulumi` for your `.pulumi` folder! We want to replace the infrastructure definitions, but keep the state files.
 :::
 
 - download [pulumi.zip](../assets/upgrading-webiny/5.0.0-beta.4-to-5.0.0/pulumi.zip), unzip it, and completely replace your existing `api/pulumi` folder with the one in the archive (don't worry, your existing infrastructure will be intact).
+  The end result should look like this:
+
+<CenteredImage alt="pulumi folder after upgrade" src={pulumiImage} />
 
 - edit `api/code/graphql/src/index.ts` and replace the contents of it with the following:
 
@@ -148,8 +161,8 @@ export const handler = createHandler(
 
 ```js
 require("@webiny/cli-plugin-scaffold").default(),
-require("@webiny/cli-plugin-scaffold-graphql-service").default(),
-require("@webiny/cli-plugin-scaffold-admin-app-module").default()
+  require("@webiny/cli-plugin-scaffold-graphql-service").default(),
+  require("@webiny/cli-plugin-scaffold-admin-app-module").default();
 ```
 
 - run the following command to remove all `node_modules` from your project:
@@ -174,7 +187,7 @@ If you plan to develop your own packages, and run Jest tests, you'll want to app
 
 - edit `.env` and add `DEBUG=true` to enable log streaming to your browser and add extra debug logs to CloudWatch
 
-- edit `jest.config.js` and replace the entire file content with the following:
+- edit `jest.config.js` and replace the entire file contents with the following:
 
 ```js
 const fs = require("fs");
