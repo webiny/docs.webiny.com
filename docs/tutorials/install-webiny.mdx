@@ -8,6 +8,7 @@ description: Learn how to create a new Webiny project and deploy it into your AW
 
 import Theme from "../mdxComponents/theme";
 import { Box, Button, Grid, Link } from "theme-ui";
+import { isWindows } from "react-device-detect";
 
 :::tip WHAT YOU’LL LEARN
 - how to create a brand new Webiny project
@@ -20,50 +21,44 @@ import { Box, Button, Grid, Link } from "theme-ui";
 
 Before proceeding, make sure you have the following:
 
-#### Node.js >= 12.0.0
+#### Node.js > 12
 
-- If you don't have Node.js installed, the easiest way to install it is by [downloading the official binary](https://nodejs.org/en/).
+- any version equal or greater than **12**
+- If you don't have Node.js installed, the easiest way to install it is by [downloading the official binary](https://nodejs.org/en/)
 
-#### yarn < 2.0
+#### yarn ^1.22.0 || ^2
 
-- Follow the [official instructions](https://yarnpkg.com/en/docs/install).
-- Alternatively, run the `npm install yarn -g` command
+- Webiny works with both yarn versions [1 (classic)](https://yarnpkg.com/en/docs/install) and [2 (berry)](https://yarnpkg.com/)
+- for version 1 - **1.22.0** or later is required
+- for version 2 - **2.0.0** or later is required
 
-#### AWS account and configured credentials
+#### AWS account and user credentials
 
-- With the mentioned software, you also must have a valid AWS Account and user credentials set up on your system. Please [follow this guide](/docs/how-to-guides/deployment/configure-aws-credentials) if you need assistance in that regard.
+- in order to deploy Webiny, you must have a valid [AWS account and user credentials](/docs/how-to-guides/deployment/configure-aws-credentials) set up on your system
+
+<>
+{isWindows &&
+<div className="admonition admonition-caution alert alert--warning">
+    <h5>Windows users - terminal</h5>
+    For Windows users, we recommend using the <a href="https://github.com/microsoft/terminal">Windows Terminal</a> as a host for your favorite terminal, simply because it provides the best interactive experience.
+</div>}
+</>
 
 ---
 
-## Project setup
+## Project Setup
 
 Once you have all the prerequisites in place, we recommend creating a new Webiny project using `create-webiny-project` - a tool that sets everything up automatically for you. So, in your terminal of choice, run the following command:
 
 ```
-npx create-webiny-project@beta my-new-project --tag beta
+npx create-webiny-project my-new-project
 ```
 
 From there, follow the on-screen setup instructions, which includes answering a couple of project-related questions, and doing your first deployment.
 
-### VPC or no-VPC - what should you choose?
+## First Deployment
 
-During the setup, one of the questions that shows up is should your new project be deployed in a [Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/) or not. The answer to that question depends on your needs.
-
-If you're deploying this for development purposes, or you're working on a project prototype, it's reasonable to use a non-VPC deployment. This is because all of the cloud resources that are needed for this setup are [free-tier](https://aws.amazon.com/free/) eligible. And, having a bit less secure system probably doesn't impose a problem at this point in time.
-
-On the other hand, if we're talking about production deployment, then deploying resources inside of a VPC is recommended. Although this does incur a cost, it significantly improves your project's security posture.
-
-:::info Still not sure?
-If you're still not sure what to choose, go for the no-VPC setup. If needed, you can still do the switch down the road.
-:::
-
-:::info Cloud Infrastructure
-Learn what gets deployed into the cloud (your AWS account) and how it all works in the [Cloud Infrastructure](/docs/key-topics/cloud-infrastructure/introduction) key topics section.
-:::
-
-## First deployment
-
-Once your new project has been created, it's time to deploy it to your AWS account.
+Once your new project has been created, it's time to deploy it into your AWS account.
 
 To do that, in your terminal, navigate to your project folder, and run the following command:
 
@@ -71,21 +66,39 @@ To do that, in your terminal, navigate to your project folder, and run the follo
 yarn webiny deploy
 ```
 
-This builds all the code and deploys it to your AWS account, along with the necessary cloud infrastructure resources.
+By executing this command, all of the project applications will first get built, and, along with needed cloud infrastructure resources, deployed into your AWS account.
+
+:::info Project Applications
+Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/key-topics/project-organization/project-applications-and-packages) key topic.
+:::
+
+:::tip Cloud Infrastructure
+Learn what gets deployed into your AWS account and how it all works in the [Cloud Infrastructure](/docs/key-topics/cloud-infrastructure/introduction) key topics section.
+:::
 
 Note that the first deployment can take up to 20 minutes! So, even though it might look nothing is happening in the terminal, please be patient and let the process finish. If something went wrong, an error will be shown.
 
-:::info What is deployed into my AWS account?
-To learn more about the cloud architecture and the resources that are deployed into your AWS account, click here.
-:::
-
 Finally, once the deployment has been done, you are presented with the URL over which you can access your Admin Area, and finish the installation.
 
-:::tip Misplaced Admin area URL?
+![Admin Area - Installation Wizard](./install-webiny/installation-wizard.png)
+
+:::info Misplaced Admin area URL?
 Running the `yarn webiny info` command in your Webiny project folder will give you all of the relevant project URLs.
 :::
 
+:::caution Telemetry
+Please note that, by default, Webiny collects anonymous usage information, which is exclusively used for improving the product and understanding usage patterns. Please take a look at our [Telemetry](https://www.webiny.com/telemetry/) page for more information on this subject.
+
+If, at any point in time, you wish to disable this behaviour, you can do it with the [Webiny CLI](/docs/key-topics/webiny-cli), by running the following command: `yarn webiny disable-tracking`.
+:::
+
 ## Troubleshooting
+
+#### Deploying my project takes a long time to finish.
+
+We're aware of this fact, and this is mainly because of the [Amazon ElasticSearch Service](https://aws.amazon.com/elasticsearch-service/). While other cloud infrastructure resources get deployed reasonably fast, this service can take anywhere from 15 to 30 minutes to become ready.
+
+Unfortunately, this is a well-known issue for quite some time, and until the present, there haven't been any positive improvements.
 
 #### The AWS Access Key Id needs a subscription for the service
 
@@ -112,3 +125,7 @@ export GODEBUG=asyncpreemptoff=1
 ```
 
 Please try executing the command in your terminal, and run the deployment again. If this does not help, feel free to [ask](https://www.webiny.com/slack) for additional help.
+
+#### Pulumi is throwing a `syscall.loadsystemlibrary` exception
+There could be various reasons why this error was thrown. But, if deploying from a Windows machine, we've seen that it could be
+caused by an anti-virus software that you might have installed on your machine. Our suggestion is to try to temporary disable it and see if that produces any positive outcome.
