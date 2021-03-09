@@ -1,0 +1,214 @@
+---
+id: 5.0.0-beta.4-to-5.0.0
+title: 5.0.0-beta.4 to 5.0.0
+sidebar_label: 5.0.0-beta.4 to 5.0.0
+keywords: ["webiny", "version", "upgrade"]
+description: Learn how to upgrade Webiny from 5.0.0-beta.4 to 5.0.0.
+---
+
+:::tip What you’ll learn
+
+- how to upgrade Webiny from 5.0.0-beta.4 to 5.0.0
+
+:::
+
+## How to upgrade
+
+:::danger IMPORTANT
+
+This guide contains many manual steps. If the circumstances allow it, we recommend you create a new Webiny 5.0.0 project from scratch.
+
+:::
+
+If you still want to upgrade your project manually, follow these steps below in the exact order.
+
+:::tip File paths
+All file paths in the instructions below are considered to start in your project root directory.
+:::
+
+### Upgrade yarn
+Webiny now works with [yarn 2](https://yarnpkg.com/) exclusively. It's a big improvement over yarn 1.x in both speed and reliability when it comes to package upgrades.
+
+- run the following command in the root of your Webiny project:
+
+```bash
+yarn set version berry
+```
+
+- edit `.yarnrc.yml` and add `nodeLinker: node-modules` config option.
+
+- run the following to migrate the `yarn.lock` file:
+
+```bash
+yarn install
+```
+
+### Upgrade project files
+
+Now we need to apply some changes to the project itself:
+
+- edit `package.json` and add the following `resolutions`, `workspaces` and `dependencies` (keep the existing values, and add the new ones in):
+
+```json
+{
+  "dependencies": {
+    "@webiny/cli-plugin-scaffold": "5.0.0",
+    "@webiny/cli-plugin-scaffold-graphql-service": "5.0.0",
+    "@webiny/cli-plugin-scaffold-admin-app-module": "5.0.0"
+  },
+  "resolutions": {
+    "@types/react": "16.14.4",
+    "react": "16.14.0",
+    "react-dom": "16.14.0"
+  },
+  "workspaces": {
+    "packages": ["api/code/dynamoToElastic"]
+  }
+}
+```
+
+- add `"@webiny/cli": "5.0.0"` to `package.json` dependencies in the following files:
+
+  - `apps/admin/code/package.json`
+  - `apps/website/code/package.json`
+
+- edit`apps/theme/package.json` and remove the `publishConfig` section completely.
+
+- download [dynamoToElastic.zip](../assets/upgrading-webiny/5.0.0-beta.4-to-5.0.0/dynamoToElastic.zip), unzip it, and put into your `api/code/dynamoToElastic` (this is a new folder in 5.0.0).
+
+:::danger Be careful!
+In the next step, don't mistake `pulumi` for your `.pulumi` folder! We want to replace the infrastructure definitions, but keep the state files.
+:::
+
+- download [pulumi.zip](../assets/upgrading-webiny/5.0.0-beta.4-to-5.0.0/pulumi.zip), unzip it, and completely replace your existing `api/pulumi` folder with the one in the archive (don't worry, your existing infrastructure will be intact).
+
+- edit `api/code/graphql/src/index.ts` and replace the contents of it with the following:
+
+```typescript
+import { DocumentClient } from "aws-sdk/clients/dynamodb";
+import { createHandler } from "@webiny/handler-aws";
+import graphqlPlugins from "@webiny/handler-graphql";
+import i18nPlugins from "@webiny/api-i18n/graphql";
+import i18nContentPlugins from "@webiny/api-i18n-content/plugins";
+import pageBuilderPlugins from "@webiny/api-page-builder/graphql";
+import dbPlugins from "@webiny/handler-db";
+import { DynamoDbDriver } from "@webiny/db-dynamodb";
+import elasticSearch from "@webiny/api-plugin-elastic-search-client";
+import fileManagerPlugins from "@webiny/api-file-manager/plugins";
+import prerenderingServicePlugins from "@webiny/api-prerendering-service/client";
+
+// File storage S3 plugin for API file manager.
+import fileManagerS3 from "@webiny/api-file-manager-s3";
+import formBuilderPlugins from "@webiny/api-form-builder/plugins";
+import securityPlugins from "./security";
+import headlessCmsPlugins from "@webiny/api-headless-cms/plugins";
+
+export const handler = createHandler(
+  graphqlPlugins({ debug: process.env.DEBUG }),
+  elasticSearch({ endpoint: `https://${process.env.ELASTIC_SEARCH_ENDPOINT}` }),
+  dbPlugins({
+    table: process.env.DB_TABLE,
+    driver: new DynamoDbDriver({
+      documentClient: new DocumentClient({
+        convertEmptyValues: true,
+        region: process.env.AWS_REGION
+      })
+    })
+  }),
+  securityPlugins(),
+  i18nPlugins(),
+  i18nContentPlugins(),
+  fileManagerPlugins(),
+  // Add File storage S3 plugin for API file manager.
+  fileManagerS3(),
+  prerenderingServicePlugins({
+    handlers: {
+      render: process.env.PRERENDERING_RENDER_HANDLER,
+      flush: process.env.PRERENDERING_FLUSH_HANDLER,
+      queue: {
+        add: process.env.PRERENDERING_QUEUE_ADD_HANDLER,
+        process: process.env.PRERENDERING_QUEUE_PROCESS_HANDLER
+      }
+    }
+  }),
+  pageBuilderPlugins(),
+  formBuilderPlugins(),
+  headlessCmsPlugins()
+);
+```
+
+- edit the following files and remove the `backend` section:
+
+  - `api/Pulumi.yaml`
+  - `apps/admin/Pulumi.yaml`
+  - `apps/website/Pulumi.yaml`
+
+- edit `webiny.root.js` and add the following to the `plugins` array (these are the new scaffolding plugins :tada:):
+
+```js
+require("@webiny/cli-plugin-scaffold").default(),
+  require("@webiny/cli-plugin-scaffold-graphql-service").default(),
+  require("@webiny/cli-plugin-scaffold-admin-app-module").default();
+```
+
+- run the following command to remove all `node_modules` from your project:
+
+```bash
+npx rimraf **/node_modules
+```
+
+- upgrade Webiny packages to `5.0.0` by running:
+
+```bash
+yarn up "@webiny/*@5.0.0"
+```
+
+---
+
+**Congratulations!** :tada: This is all you need to do with your project files. Now you can [deploy your project](/docs/how-to-guides/deployment/deploy-your-project), open your `admin` app and go through the upgrade wizard which will migrate your data and Elasticsearch indexes.
+
+### Optional steps
+
+If you plan to develop your own packages, and run Jest tests, you'll want to apply these changes as well:
+
+- edit `.env` and add `DEBUG=true` to enable log streaming to your browser and add extra debug logs to CloudWatch
+
+- edit `jest.config.js` and replace the entire file content with the following:
+
+```js
+const fs = require("fs");
+const path = require("path");
+const { allWorkspaces } = require("@webiny/project-utils/workspaces");
+const { version } = require("@webiny/cli/package.json");
+
+process.env.DB_TABLE_ELASTICSEARCH = "ElasticSearchStream";
+process.env.WEBINY_VERSION = version;
+
+const projects = allWorkspaces()
+  .map(pkg => {
+    if (!fs.existsSync(path.join(pkg, "jest.config.js"))) {
+      return null;
+    }
+    return pkg.replace(process.cwd() + "/", "");
+  })
+  .filter(Boolean);
+
+module.exports = {
+  projects,
+  modulePathIgnorePatterns: ["dist"]
+};
+```
+
+- create a `jest-es-config.js` file and put this inside:
+
+```js
+module.exports = () => {
+  return {
+    esVersion: "7.6.0",
+    clusterName: "test-cluster",
+    nodeName: "test-node",
+    port: 9200,
+    indexes: []
+  };
+};
+```
