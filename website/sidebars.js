@@ -5,7 +5,7 @@ module.exports = {
             "Webiny Overview": [
                 {
                     type: "category",
-                    label: "Performance benchmark",
+                    label: "Performance Benchmark",
                     items: [
                         "webiny-overview/performance-benchmark/introduction",
                         "webiny-overview/performance-benchmark/headless-cms-write-benchmark",
