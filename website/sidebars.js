@@ -2,7 +2,8 @@ module.exports = {
     docs: [
         "introduction",
         {
-            "Webiny Overview": [
+            "Webiny overview": [
+                "webiny-overview/intro",
                 {
                     type: "category",
                     label: "Performance Benchmark",
@@ -11,6 +12,23 @@ module.exports = {
                         "webiny-overview/performance-benchmark/headless-cms-write-benchmark",
                         "webiny-overview/performance-benchmark/headless-cms-read-benchmark",
                         "webiny-overview/performance-benchmark/pb-deliver-a-page"
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "Serverless CMS",
+                    items: [
+                        {
+                            type: "category",
+                            label: "Apps",
+                            items: [
+                                "webiny-overview/serverless-cms/apps/intro",
+                                "webiny-overview/serverless-cms/apps/headless-cms",
+                                "webiny-overview/serverless-cms/apps/page-builder",
+                                "webiny-overview/serverless-cms/apps/form-builder",
+                                "webiny-overview/serverless-cms/apps/file-manager"
+                            ]
+                        }
                     ]
                 }
             ],
