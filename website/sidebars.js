@@ -67,7 +67,11 @@ module.exports = {
                     label: "Webiny CLI",
                     items: ["how-to-guides/webiny-cli/working-with-workspaces"]
                 },
-                "how-to-guides/upgrade-webiny"
+                {
+                    type: "category",
+                    label: "Upgrade Webiny",
+                    items: ["how-to-guides/upgrade-webiny/overview", "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"]
+                }
             ],
             "Key Topics": [
                 {
