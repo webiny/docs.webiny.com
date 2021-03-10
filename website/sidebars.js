@@ -2,7 +2,8 @@ module.exports = {
     docs: [
         "introduction",
         {
-            "Webiny Overview": [
+            "Webiny overview": [
+                "webiny-overview/intro",
                 {
                     type: "category",
                     label: "Performance Benchmark",
@@ -12,10 +13,36 @@ module.exports = {
                         "webiny-overview/performance-benchmark/headless-cms-read-benchmark",
                         "webiny-overview/performance-benchmark/pb-deliver-a-page"
                     ]
+                },
+                {
+                    type: "category",
+                    label: "Serverless CMS",
+                    items: [
+                        {
+                            type: "category",
+                            label: "Apps",
+                            items: [
+                                "webiny-overview/serverless-cms/apps/intro",
+                                "webiny-overview/serverless-cms/apps/headless-cms",
+                                "webiny-overview/serverless-cms/apps/page-builder",
+                                "webiny-overview/serverless-cms/apps/form-builder",
+                                "webiny-overview/serverless-cms/apps/file-manager"
+                            ]
+                        }
+                    ]
                 }
             ],
             Tutorials: [
                 "tutorials/install-webiny",
+                {
+                    type: "category",
+                    label: "Create An Application",
+                    items: [
+                        "tutorials/create-an-application/introduction",
+                        "tutorials/create-an-application/api-package",
+                        "tutorials/create-an-application/admin-area-package"
+                    ]
+                },
                 {
                     type: "category",
                     label: "Headless CMS",
@@ -67,7 +94,11 @@ module.exports = {
                     label: "Webiny CLI",
                     items: ["how-to-guides/webiny-cli/working-with-workspaces"]
                 },
-                "how-to-guides/upgrade-webiny"
+                {
+                    type: "category",
+                    label: "Upgrade Webiny",
+                    items: ["how-to-guides/upgrade-webiny/overview", "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"]
+                }
             ],
             "Key Topics": [
                 {
