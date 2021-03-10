@@ -73,8 +73,8 @@ module.exports = {
                             type: "category",
                             label: "AWS",
                             items: [
-                                "how-to-guides/deployment/aws-credentials/configure-aws-credentials",
-                                "how-to-guides/deployment/aws-credentials/use-aws-profiles",
+                                "how-to-guides/deployment/aws/configure-aws-credentials",
+                                "how-to-guides/deployment/aws/use-aws-profiles",
                             ]
                         },
 
