@@ -2,7 +2,7 @@ module.exports = {
     docs: [
         "introduction",
         {
-            "Webiny overview": [
+            "Webiny Overview": [
                 "webiny-overview/intro",
                 {
                     type: "category",
