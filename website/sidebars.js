@@ -69,8 +69,15 @@ module.exports = {
                         "how-to-guides/deployment/deploy-your-project",
                         "how-to-guides/deployment/destroy-cloud-infrastructure",
                         "how-to-guides/deployment/preview-deployments",
-                        /*"how-to-guides/deployment/aws-regions-profiles",*/
-                        "how-to-guides/deployment/configure-aws-credentials"
+                        {
+                            type: "category",
+                            label: "AWS",
+                            items: [
+                                "how-to-guides/deployment/aws-credentials/credentials",
+                                "how-to-guides/deployment/aws-credentials/profiles",
+                            ]
+                        },
+
                     ]
                 },
                 /*{
