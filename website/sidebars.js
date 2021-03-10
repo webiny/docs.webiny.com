@@ -36,6 +36,15 @@ module.exports = {
                 "tutorials/install-webiny",
                 {
                     type: "category",
+                    label: "Create An Application",
+                    items: [
+                        "tutorials/create-an-application/introduction",
+                        "tutorials/create-an-application/api-package",
+                        "tutorials/create-an-application/admin-area-package"
+                    ]
+                },
+                {
+                    type: "category",
                     label: "Headless CMS",
                     items: [
                         "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin"
