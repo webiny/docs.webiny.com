@@ -18,7 +18,28 @@ import CenteredImage from "../../mdxComponents/centeredImage";
 
 ## How to Upgrade
 
-:::danger IMPORTANT
+:::danger
+
+When deploying to production environments, in order to prevent data loss, make sure to **backup data stored in your [ElasticSearch](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html) and [DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Backups.html) databases**!
+
+This is mainly because of the changes introduced by the `pulumi.zip` file, mentioned below. Once you paste the code into your project, the first production environment deployment will:
+
+- deploy a custom Virtual Private Network (VPC)
+- deploy your ElasticSearch cluster into multiple availability zones (AZs)
+
+If you want to continue deploying the same infrastructure you already had in place for the production environment, make sure to comment out or remove the following `if` statement:
+
+```ts title="api/pulumi/index.ts:10"
+if (process.env.WEBINY_ENV === "prod") {
+    // Import "prod" resources config and initialize resources.
+    return await import("./prod").then(module => module.default());
+}
+```
+
+In any case, if you have any additional questions or concerns, please don't hesitate to send us a message via our [community Slack channel](https://www.webiny.com/slack).
+:::
+
+:::caution
 
 This guide contains many manual steps. If the circumstances allow it, we recommend you create a new Webiny 5.0.0 project from scratch.
 
@@ -161,8 +182,8 @@ export const handler = createHandler(
 
 ```js
 require("@webiny/cli-plugin-scaffold").default(),
-  require("@webiny/cli-plugin-scaffold-graphql-service").default(),
-  require("@webiny/cli-plugin-scaffold-admin-app-module").default();
+require("@webiny/cli-plugin-scaffold-graphql-service").default(),
+require("@webiny/cli-plugin-scaffold-admin-app-module").default();
 ```
 
 - run the following command to remove all `node_modules` from your project:
