@@ -4,9 +4,9 @@
 
 ## Relevant Links
 <!--- If possible, please include the URLs of the newly added or edited pages (wait for the Netlify preview to be deployed and then paste the links). -->
-- [Link 1](#)
-- [Link 2](#)
-- [Link 3](#)
+- [A change on X page](#)
+- [Update list of libraries](#)
+- [A new diagram with updated resources](#)
 
 ## Checklist
 - [ ] I added page metadata (description, keywords)
