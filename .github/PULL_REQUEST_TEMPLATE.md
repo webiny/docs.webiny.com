@@ -1,6 +1,12 @@
 ## Short Description
-<!--- Shortly describe what this PR introduces. If possible, please include the URLs of the newly added or edited pages (wait for the Netlify preview to be deployed and then paste the links). -->
+<!--- Shortly describe what this PR introduces. -->
 <!--- For help on writing docs, visit https://docs.webiny.com/docs/contributing/documentation -->
+
+## Relevant Links
+<!--- If possible, please include the URLs of the newly added or edited pages (wait for the Netlify preview to be deployed and then paste the links). -->
+- [Link 1](#)
+- [Link 2](#)
+- [Link 3](#)
 
 ## Checklist
 - [ ] I added page metadata (description, keywords)
