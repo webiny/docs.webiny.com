@@ -73,17 +73,17 @@ module.exports = {
                         "how-to-guides/deployment/configure-aws-credentials"
                     ]
                 },
-                /*{
+                {
                     type: "category",
-                    label: "CI/CD",
+                    label: "Development Workflows",
                     items: [
                         "how-to-guides/ci-cd/introduction",
+                        "how-to-guides/ci-cd/developing-serverless-applications",
                         "how-to-guides/ci-cd/ci-cd",
-                        "how-to-guides/ci-cd/development",
                         "how-to-guides/ci-cd/environments",
                         "how-to-guides/ci-cd/version-control"
                     ]
-                },*/
+                },
                 {
                     type: "category",
                     label: "Headless CMS",
@@ -97,7 +97,10 @@ module.exports = {
                 {
                     type: "category",
                     label: "Upgrade Webiny",
-                    items: ["how-to-guides/upgrade-webiny/overview", "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"]
+                    items: [
+                        "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"
+                    ]
                 }
             ],
             "Key Topics": [
