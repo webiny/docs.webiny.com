@@ -30,7 +30,8 @@ module.exports = {
                             ]
                         }
                     ]
-                }
+                },
+                "webiny-overview/security"
             ],
             Tutorials: [
                 "tutorials/install-webiny",
