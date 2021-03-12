@@ -124,6 +124,19 @@ module.exports = {
                 },
                 {
                     type: "category",
+                    label: "Webiny Applications",
+                    items: [
+                        {
+                            type: "category",
+                            label: "Headless CMS",
+                            items: [
+                                "key-topics/webiny-applications/headless-cms/graphql-api"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    type: "category",
                     label: "Deployment",
                     items: [
                         "key-topics/deployment/introduction",
