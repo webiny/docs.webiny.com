@@ -74,10 +74,9 @@ module.exports = {
                             label: "AWS",
                             items: [
                                 "how-to-guides/deployment/aws/configure-aws-credentials",
-                                "how-to-guides/deployment/aws/use-aws-profiles",
+                                "how-to-guides/deployment/aws/use-aws-profiles"
                             ]
-                        },
-
+                        }
                     ]
                 },
                 /*{
@@ -104,7 +103,11 @@ module.exports = {
                 {
                     type: "category",
                     label: "Upgrade Webiny",
-                    items: ["how-to-guides/upgrade-webiny/overview", "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"]
+                    items: [
+                        "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0",
+                        "how-to-guides/upgrade-webiny/5.0.0-to-5.0.1"
+                    ]
                 }
             ],
             "Key Topics": [

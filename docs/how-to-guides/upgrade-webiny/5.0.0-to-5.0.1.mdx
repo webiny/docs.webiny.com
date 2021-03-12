@@ -1,0 +1,104 @@
+---
+id: 5.0.0-to-5.0.1
+title: 5.0.0 to 5.0.1
+sidebar_label: 5.0.0 to 5.0.1
+keywords: ["webiny", "version", "upgrade"]
+description: Learn how to upgrade Webiny from 5.0.0-beta.4 to 5.0.0.
+---
+
+import CenteredImage from "../../mdxComponents/centeredImage";
+
+:::tip What you’ll learn
+
+- how to upgrade Webiny from 5.0.0 to 5.0.1
+
+:::
+
+:::danger
+
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny/overview#-precaution-measures) section.
+:::
+
+## Update Pulumi Infrastructure Code
+
+### Add missing private subnet for the ElasticSearch cluster
+
+The following change applies only for your production setup of the **API** project application's cloud infrastructure.
+
+Open your [`api/pulumi/prod/elasticSearch.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts) file, and on [line 26](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L26), add the `vpc.subnets.private[1].id` subnet to the `subnetIds` array:
+
+```ts title="api/pulumi/prod/elasticSearch.ts" {14}
+this.domain = new aws.elasticsearch.Domain(
+  domainName,
+  {
+    elasticsearchVersion: "7.7",
+    clusterConfig: {
+      instanceType: "t3.medium.elasticsearch",
+      instanceCount: 2,
+      zoneAwarenessEnabled: true,
+      zoneAwarenessConfig: {
+        availabilityZoneCount: 2
+      }
+    },
+    vpcOptions: {
+      subnetIds: [vpc.subnets.private[0].id, vpc.subnets.private[1].id],
+      securityGroupIds: [vpc.vpc.defaultSecurityGroupId]
+    },
+    ebsOptions: {
+      ebsEnabled: true,
+      volumeSize: 10,
+      volumeType: "gp2"
+    },
+    advancedOptions: {
+      "rest.action.multi.allow_explicit_index": "true"
+    },
+    snapshotOptions: {
+      automatedSnapshotStartHour: 23
+    }
+  }
+);
+```
+
+### Optionally, mark mission-critical resources as protected
+
+In order to prevent accidental deletions of mission critical cloud infrastructure resources, the Pulumi framework allows us to mark a resource as protected, via the `protect` property.
+
+:::info
+Learn more about the `protect` property in the [official Pulumi documentation](https://www.pulumi.com/docs/intro/concepts/resources/#protect).
+:::
+
+For the [`prod`](https://github.com/webiny/webiny-js/tree/next/packages/cwp-template-aws/template/api/pulumi/prod) setup of your **API** project application's cloud infrastructure, projects created with Webiny version `5.0.1` and higher, will have the following cloud infrastructure resources marked as protected:
+
+- [Default](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/dynamoDb.ts#L27) and [ElasticSearch DynamoDB](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L84) tables
+- [ElasticSearch cluster](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L84)
+- [File Manager's S3 Bucket](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/fileManager.ts#L35)
+
+For projects created before Webiny version `5.0.1`, these need to be added manually.
+
+To do that, start by adding the `protectedEnvironment` variable, and passing its value to `DynamoDB`, `Cognito`, `ElasticSearch`, and `FileManager` classes, in your [`api/pulumi/prod/index.ts:12`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/index.ts#L12-L24) file:
+
+```ts title="api/pulumi/prod/index.ts:12"
+/**
+ * We protect mission critical cloud infrastructure resource against accidental deletion. We do this
+ * only for the "prod" environment, but, if needed, feel free to additional environments.
+ * @see https://www.pulumi.com/docs/intro/concepts/resources/#protect
+ */
+const protectedEnvironment = process.env.WEBINY_ENV === "prod";
+
+export default () => {
+    const dynamoDb = new DynamoDB({ protectedEnvironment });
+    const cognito = new Cognito({ protectedEnvironment });
+
+    const elasticSearch = new ElasticSearch({ protectedEnvironment });
+    const fileManager = new FileManager({ protectedEnvironment });
+```
+
+Once you have that in place, make sure to pass the value of `protectedEnvironment` to relevant cloud infrastructure resources:
+
+1. [default DynamoDB table](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/dynamoDb.ts#L27)
+2. ElasticSearch - [domain](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L41), [domain policy](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L62), and [special ElasticSearch-related DynamoDB table](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L84)
+3. File Manager's [S3 bucket](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/fileManager.ts#L35)
+
+:::info
+For more information and code changes, you can check the relevant [pull-request](https://github.com/webiny/webiny-js/pull/1500).
+:::
