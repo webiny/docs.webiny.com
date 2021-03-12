@@ -14,7 +14,7 @@ description: Learn how to share code by creating a package in monorepo
 ## Overview
 We often need to share code between multiple packages in our project.
 :::info
-Every Webiny project consists of packages and project applications, you can learn more about them in our [key topics](/docs/key-topics/project-organization/project-applications-and-packages).
+Every Webiny project consists of packages and project applications, you can learn more about them in our [key topics](/docs/key-topics/project-organization/project-applications-and-packages) section.
 :::
 Every Webiny project is organized as a [monorepo](/docs/key-topics/project-organization/monorepo-organization).
 In this tutorial, you will learn how to organize and share code between multiple packages in a monorepo.
@@ -63,9 +63,9 @@ Learn more about [workspaces](https://yarnpkg.com/features/workspaces) here.
 :::
 
 ### The Workspaces List
-Before we continue, let's quickly cover the workspaces list, located in the `package.json` file in your project root.
+Before we continue, let's quickly cover the workspaces list, located in the `package.json` file in the project root.
 
-The content of the package looks as shown below: 
+The content of the package looks as shown below:
 
 ```
 (...)
@@ -143,16 +143,23 @@ The `name` property defined in the package's `package.json` will be used to late
 
 Now that we've initialized a new package, let's start by adding a couple of files.
 
-```
+```json
 ├── packages
 |   |   // This is our new package
 │   └── gretting
+│       │ // All the source code for the React component will be in this folder.
 │       ├── src
 │       │   └── index.tsx
+│       ├── // A configuration file for babel. More on that later
 │       ├── .babelrc.js
+│       ├── // A text file about package
 │       ├── README.md
+│       ├── // This file is used to give information to npm;
+│       ├── // that allows it to identify the package as well as handle the package's dependencies
 │       ├── package.json
+│       ├── // A configuration file of the TypeScript compiler (tsc)
 │       ├── tsconfig.build.json
+│       └── // A configuration file of the TypeScript compiler (tsc)
 │       └── tsconfig.json
 └── yarn.lock
 
@@ -178,36 +185,17 @@ Here we're creating a very simple React component. But, you can write whatever l
 Now that we have our desired code in place. We can move to the next step which is adding the required configuration files.
 
 To build our package, we need to add the following configuration files:
-- `package.json`
-- `.babelrc.js`
-- `tsconfig.json`
-- `tsconfig.build.json`
+- [`package.json`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/package.json): This file is used to give information to [npm](http://npmjs.com/) that allows it to identify the package as well as handle the package's dependencies.
+- [`.babelrc.js`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/.babelrc.js): A configuration file for babel.
+- [`tsconfig.json`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/tsconfig.json):  A configuration file of the TypeScript compiler (tsc).
+- [`tsconfig.build.json`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/tsconfig.build.json)  A configuration file of the TypeScript compiler (tsc).
 
 Let's create them one by one.
 
 ### `package.json`
 Let's start with the `package.json` file.
-First, we need to add the following `devDependencies`:
 
-```json title="packages/greeting/package.json"
-{
-  (...)
-   "devDependencies": {
-    "@babel/cli": "^7.5.5",
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "@babel/preset-react": "^7.0.0",
-    "@babel/preset-typescript": "^7.8.3",
-    "@svgr/webpack": "^4.3.2",
-    "babel-plugin-named-asset-import": "^1.0.0-next.3e165448",
-    "rimraf": "^3.0.2",
-    "typescript": "^4.1.3"
-  },
-  (...)
-}
-```
-
-Then add `react` and `react-dom` to `dependencies` as shown below:
+First, we need to add the following `devDependencies` and `dependencies` as shown below:
 
 ```json title="packages/greeting/package.json"
 {
@@ -231,10 +219,35 @@ Then add `react` and `react-dom` to `dependencies` as shown below:
 }
 ```
 
+Let's quickly discuss all of them:
+
+#### `dependencies`
+- [`react`](https://www.npmjs.com/package/react): React is a JavaScript library for creating user interfaces..
+- [`react-dom`](https://www.npmjs.com/package/react-dom): Serves as the entry point to the DOM and server renderers for React.
+
+#### `devDependencies`
+- [`@babel/cli`](https://www.npmjs.com/package/@babel/cli): Babel command line.
+- [`@babel/core`](https://www.npmjs.com/package/@babel/core): Babel compiler core.
+- [`@babel/preset-env`](https://www.npmjs.com/package/@babel/preset-env): Babel preset for each environment.
+- [`@babel/preset-react`](https://www.npmjs.com/package/@babel/preset-react): Babel preset for all React plugins.
+- [`@babel/preset-typescript`](https://www.npmjs.com/package/@babel/preset-typescript): Babel preset for TypeScript.
+- [`@svgr/webpack`](https://www.npmjs.com/package/@svgr/webpack): [Webpack](https://webpack.js.org/) loader for SVGR.
+- [`babel-plugin-named-asset-import`](https://www.npmjs.com/package/babel-plugin-named-asset-import): Babel plugin for import named exports from non JS/CSS assets.
+- [`rimraf`](https://www.npmjs.com/package/rimraf): A deep deletion module for Node.js (like `rm -rf`).
+- [`typescript`](https://www.npmjs.com/package/typescript): [TypeScript](https://www.typescriptlang.org/) is a language for application-scale JavaScript.
+
 After that, we add the following scripts inside the `package.json` file:
-- `build`
-- `watch`
-- `postbuild`
+
+#### `scripts`
+- [`build`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/package.json#L37):
+it removes the content of `dist` folder and compile the source code via `babel` and run the `postbuild` command.
+- [`watch`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/package.json#L38):
+it run the `babel` compiler in `watch` mode, which means the latest changes will compile automatically as source file content changes.
+- [`postbuild`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/package.json#L39):
+as name suggest, it runs after the completion of the `build` command.
+We use it to copy the meta files like `package.json`, `README.md` into `dist` folder and compile typescript code.
+
+After adding `script` the `package.json` file look as shown below:
 
 ```json title="packages/greeting/package.json"
 {
@@ -350,18 +363,18 @@ It contains information that is commonly required to understand what the project
 
 
 ## Preparing the Package for Usage
-Now that we've created our package and added the required configuration files. It's time to use it.
+Now that we've created our package and added the required configuration files, it is time to use it.
 To do that we need to follow the following steps:
-- build the package
-- link the package
+- `build` the package
+- `link` the package
 
 ### Build the Package
 To use the package we need to `build` it first.
 
-**"And how do we do that?"** you may ask:
+**"And how do we do that?"** you may ask, remember we added the `build` command under the `scripts` key inside the `package.json` file of the package.
+Now it's time we use it.
 
-Remember we added the `build` command under the `scripts` key inside the `package.json` file of the package.
-Now it's time we use it. We can simply `cd` into the package folder that is `packages/greeting` and run:
+We can simply `cd` into the package folder that is `packages/greeting` and run:
 
 ```
 yarn build
@@ -372,8 +385,7 @@ Webiny CLI provides the workspaces run (or ws run for short) command that enable
 The common use case where this might be needed is local development, where you want to watch for code changes on multiple packages, and rebuild them accordingly.
 
 :::info
-We recommend reading the [Working With Workspaces](http://docs.webiny.com/docs/how-to-guides/webiny-cli/working-with-workspaces)
-article to learn more about workspaces.
+We recommend reading the [Working With Workspaces](http://docs.webiny.com/docs/how-to-guides/webiny-cli/working-with-workspaces) article to learn more about workspaces.
 :::
 
 We can use it for building the package and/or running a watch session while developing the code (so that the latest changes get rebuild).
