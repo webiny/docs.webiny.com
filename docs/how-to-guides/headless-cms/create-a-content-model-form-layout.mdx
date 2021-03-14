@@ -9,6 +9,11 @@ description: How to create a custom form layout for content model data entry.
 import CenteredImage from "../../mdxComponents/centeredImage";
 import defaultLayout from "../assets/headless-cms/create-a-content-model-form-layout/defaultLayout.png";
 import customLayout from "../assets/headless-cms/create-a-content-model-form-layout/customLayout.png";
+import customElements from "../assets/headless-cms/create-a-content-model-form-layout/customElements.png";
+
+:::info Can I use this?
+This feature is available since **v5.1.0**.
+:::
 
 :::tip What you'll learn
 
@@ -30,6 +35,7 @@ There's only one plugin you need to implement to create a custom form layout: [C
 Plugins of this type require a `modelId` (to match the model in your Headless CMS), and a `render` function which returns a React element which will be rendered instead of the default grid based layout.
 
 ## Simple Layout
+
 ```tsx title="pizzaLayout.tsx"
 import React from "react";
 import { CmsContentFormRendererPlugin } from "@webiny/app-headless-cms/types";
@@ -117,39 +123,42 @@ You can see the `Recipe` tab is hidden. That's because we don't have the necessa
 
 Using form data you can also render other UI elements, or even show/hide fields depending on the value of some other field:
 
-```tsx {7,26-27} title="pizzaLayout.tsx"
+```tsx {3,8,13,18-27} title="pizzaLayout.tsx"
 import React from "react";
 import { CmsContentFormRendererPlugin } from "@webiny/app-headless-cms/types";
+import { Alert } from "@webiny/ui/Alert";
 import { Grid, Cell } from "@webiny/ui/Grid";
 import { Tabs, Tab } from "@webiny/ui/Tabs";
 import { useSecurity } from "@webiny/app-security";
 
 const PizzaLayout = ({ fields, data }) => {
-  // Access security identity.
   const { identity } = useSecurity();
-
-  // Get the necessary permission.
   const bakeryPermission = identity.getPermission("bakery");
+  const canEditRecipe = true; //bakeryPermission && bakeryPermission.canEditRecipe === true;
 
-  // Check if the user has the permission to edit a recipe.
-  const canEditRecipe = bakeryPermission && bakeryPermission.canEditRecipe === true;
+  const priceTooLow = data.price < 20 && data.numberOfIngredients > 6;
 
   return (
     <Tabs>
       <Tab label="General">
+        {priceTooLow && (
+          <Grid>
+            <Cell span={12}>
+              <Alert type={"warning"} title={"Please double-check your input"}>
+                The price of <strong>{data.price}</strong> seems too low for a pizza with over{" "}
+                <strong>7</strong> ingredients.
+              </Alert>
+            </Cell>
+          </Grid>
+        )}
         <Grid>
           <Cell span={12}>{fields.name}</Cell>
         </Grid>
         <Grid>
-          <Cell span={6}>
-            {fields.price}
-            <br />
-            {data.price < 20 ? "The price seems too low." : null}
-          </Cell>
+          <Cell span={6}>{fields.price}</Cell>
           <Cell span={6}>{fields.numberOfIngredients}</Cell>
         </Grid>
       </Tab>
-      {/* Hide the Recipe tab if the user doesn't have the required permission. */}
       {canEditRecipe && (
         <Tab label="Recipe">
           <Grid>
@@ -174,3 +183,7 @@ export default (): CmsContentFormRendererPlugin => ({
   }
 });
 ```
+
+Using this approach, you can add a nice touch to your UI and guide the content editor with additional logic, validate the input, and add other helpful elements which would otherwise be really difficult to define on the content model itself:
+
+<CenteredImage src={customElements} alt={"Custom UI elements"} />
