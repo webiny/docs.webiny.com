@@ -112,45 +112,47 @@ For more information and code changes, you can check the relevant [pull-request]
 
 If you're developing your custom packages, you'll soon run into ugly import paths like `../../../../../types`, etc. To mitigate this, make the following changes in your project:
 
-- replace your `.babel.node.js` with the config below:
+#### Update `.babel.node.js`
 
-```js title=".babel.node.js" {1,20-28}
-module.exports = ({ path }) => {
-  return {
-    presets: [
-      [
-        "@babel/preset-env",
-        {
-          targets: {
-            node: "12"
-          }
+Replace the entire file with the following code, or only copy/paste the highlighted lines:
+
+```js title=".babel.node.js" {1,19-27,29}
+module.exports = ({ path }) => ({
+  presets: [
+    [
+      "@babel/preset-env",
+      {
+        targets: {
+          node: "12"
         }
-      ],
-      "@babel/preset-typescript"
+      }
     ],
-    plugins: [
-      ["@babel/plugin-proposal-class-properties"],
-      ["@babel/plugin-proposal-object-rest-spread", { useBuiltIns: true }],
-      ["@babel/plugin-transform-runtime", { useESModules: false }],
-      ["babel-plugin-dynamic-import-node"],
-      ["babel-plugin-lodash"],
-      [
-        "babel-plugin-module-resolver",
-        {
-          cwd: path,
-          alias: {
-            "~": "./src"
-          }
+    "@babel/preset-typescript"
+  ],
+  plugins: [
+    ["@babel/plugin-proposal-class-properties"],
+    ["@babel/plugin-proposal-object-rest-spread", { useBuiltIns: true }],
+    ["@babel/plugin-transform-runtime", { useESModules: false }],
+    ["babel-plugin-dynamic-import-node"],
+    ["babel-plugin-lodash"],
+    [
+      "babel-plugin-module-resolver",
+      {
+        cwd: path,
+        alias: {
+          "~": "./src"
         }
-      ]
+      }
     ]
-  };
-};
+  ]
+});
 ```
 
-- replace your `.babel.react.js` with the config below:
+#### Update `.babel.react.js`
 
-```js title=".babel.react.js" {1,56-64}
+Replace the entire file with the following code, or only copy/paste the highlighted lines:
+
+```js title=".babel.react.js" {1,56-64,66}
 module.exports = ({ path }) => ({
   presets: [
     [
@@ -219,7 +221,9 @@ module.exports = ({ path }) => ({
 });
 ```
 
-- add a `moduleNameMapper` config parameter to `jest.config.base.js`:
+#### Update `jest.config.base.js`:
+
+Add a `moduleNameMapper` parameter to the existing config:
 
 ```js title="jest.config.base.js" {14-16}
 // ... imports
@@ -251,6 +255,7 @@ module.exports = ({ path }, presets = []) => {
 };
 ```
 
+#### Update TS and Babel configs in existing packages (if any)
 In case you already have custom packages, you will also need to update their `tsconfig.build.json` and `tsconfig.json` files, by adding the following parameters to them:
 
 ```json
@@ -273,6 +278,7 @@ module.exports = require("../../.babel.node")({ path: __dirname });
 // For React packages:
 module.exports = require("../../.babel.react")({ path: __dirname });
 ```
+
 ---
 
 Now you can use `~` to have nice, clean import paths in your packages, and Jest tests. `~` will always point to your packages' `src` folder.
