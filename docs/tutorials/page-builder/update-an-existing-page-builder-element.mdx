@@ -1,0 +1,235 @@
+---
+id: update-an-existing-page-builder-element
+title: How to Update an Existing Page Builder Element
+sidebar_label: Update an Existing Element
+keywords: ["plugin", "Page builder", "Webiny"]
+description: How to Update an Existing Page Builder Element
+---
+
+<!-- Always include this section on top of the page. -->
+
+:::tip What You’ll Learn
+
+- how to update an existing Page Builder element
+- how to add settings to an existing element
+:::
+
+<!-- Include this when needed (e.g. when explaining a feature that was introduced in a specific Webiny version) -->
+
+:::info Can I Use This?
+This feature is available since Webiny **v5.1.0**.
+:::
+
+## Overview
+
+All Page Builder elements are plugins which means we can easily modify them or even add new ones.
+Let's see how we can add two predefined settings that is padding and width in the button element.
+
+## Plugin Type
+
+There's only one plugin you need to modify to update an element: [`PbEditorPageElementPlugin`](/docs/references/page-builder/plugins#pb-editor-page-element).
+Plugins of this type require a create function (to create an element data structure), and a render function that returns a React element that will be rendered in the editor.
+
+All element plugins are registered as factory so you can pass the following options to them:
+
+```ts title="@webiny/app-page-builder/types"
+type PbEditorElementPluginArgs = {
+  // A function to create an element data structure.
+  create?: (defaultValue) => Record<string, any>;
+  // Array of element settings plugin names.
+  settings?: (defaultValue) => Array<string | Array<string | any>>;
+  // A function that return the toolbar properties of the element plugin.
+  toolbar?: (defaultValue) => Record<string, any>;
+  elementType?: string;
+};
+```
+
+## Add Settings in an Element
+
+Please head over to `apps/admin/code/src/plugins/pageBuilder.ts` where all the plugins related to the Page Builder app are located.
+
+As you can see there are two core sets of plugins:
+
+1. Editor plugins: needed for Page Builder editor
+2. Render plugins: needed for Page Builder page preview and to render the actual page in the Website app
+
+For this tutorial, we only need to update the editor plugin.
+
+By default the button element settings look as shown below:
+
+<!-- vale off -->
+
+<img
+  src={require("../assets/page-builder/default-button-settings.png").default}
+  style={{ marginBottom: 20 }}
+  alt="default button element settings in editor sidebar"
+/>
+
+<!-- vale on -->
+
+### Add Settings
+Now we're going to add the padding and width settings to the button element.
+Let us make the following change:
+
+```ts title="apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts:92"
+// Some code is removed for the sake of brevity.
+
+button({
+  settings: defaultValue => [
+    ...defaultValue,
+    "pb-editor-page-element-style-settings-padding",
+    "pb-editor-page-element-style-settings-width"
+  ]
+})
+
+//
+// Other element plugins.
+//
+```
+After saving these changes. The button element settings now have padding and width settings as shown below:
+
+<!-- vale off -->
+
+<img
+  src={require("../assets/page-builder/updated-button-settings.png").default}
+  style={{ marginBottom: 20 }}
+  alt="updated button element settings in editor sidebar"
+/>
+
+<!-- vale on -->
+
+Hurray!! 🥳
+
+The `padding` and `width` settings are now available to the button element. And, We're done here...
+
+Not really! If you try changing these settings in the editor no visible change will happen to the button element as shown below:
+
+<!-- vale off -->
+
+<img
+  src={require("../assets/page-builder/no-change-button-settings.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="updated button element settings in editor sidebar"
+/>
+
+<!-- vale on -->
+
+This is because the button element has specific styles applied to it in the theme ([`SCSS`](https://github.com/webiny/webiny-js/blob/next/apps/theme/pageBuilder/styles/elements/button.scss#L50) file)
+which overrides the styles applied by these settings via the editor.
+
+### Update Stylesheet
+
+To fix this, we need to update the button element style within the theme
+so that it takes those settings applied via the editor.
+
+Edit the `.webiny-pb-page-element-button` class inside `apps/theme/pageBuilder/styles/elements/button.scss`
+and make the following changes:
+- remove `padding` property
+- update `width` property
+
+```scss title="apps/theme/pageBuilder/styles/elements/button.scss"
+// Some code is removed for the sake of brevity.
+
+.webiny-pb-page-element-button {
+  // For the "width" settings in editor sidebar to work
+  // The element needs to have "width: 100%"
+  width: 100%;
+}
+
+//
+// More style definition.
+//
+```
+
+After saving these changes the previously applied changes will show in the editor.
+
+<!-- vale off -->
+
+<img
+  src={require("../assets/page-builder/change-button-settings.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="change button element settings in editor sidebar"
+/>
+
+<!-- vale on -->
+
+All seems to works well, right? Let's see:
+
+Now that we have removed the `padding` property from the button element (`SCSS` file),
+a new button dropped into the page doesn't look good with the default settings as shown below:
+
+<!-- vale off -->
+
+<img
+  src={require("../assets/page-builder/default-settings-for-a-new-button.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="default settings for a new button in editor"
+/>
+
+<!-- vale on -->
+
+We can easily fix this by adding the default values for both `padding` and `width` properties.
+
+Here is how to do it:
+
+```ts {9-33} title="apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts"
+// Some code is removed for the sake of brevity.
+
+button({
+  settings: defaultValue => [
+      ...defaultValue,
+      "pb-editor-page-element-style-settings-padding",
+      "pb-editor-page-element-style-settings-width"
+  ],
+  create: defaultValue => {
+      const elementData = { ...defaultValue };
+
+      // Set default value for the padding property
+      set(
+          elementData,
+          "data.settings.padding",
+          createInitialPerDeviceSettingValue(
+              { advanced: true, top: "12px", right: "16px", bottom: "12px", left: "16px" },
+              DisplayMode.DESKTOP
+          )
+      );
+
+      // Set default value for the width property
+      set(
+          elementData,
+          "data.settings.width",
+          createInitialPerDeviceSettingValue(
+              { value: "150px" },
+              DisplayMode.DESKTOP
+          )
+      );
+
+      return elementData;
+  }
+})
+
+//
+// Other element plugins.
+//
+```
+
+:::info
+The `create` function defines the initial value for element `settings` and `data` property which can hold any data you might need.
+:::
+
+After saving these changes, if you try dropping a new button element to the page it looks much better thanks to the default `padding` and `width` as shown below:
+
+<!-- vale off -->
+
+<img
+  src={require("../assets/page-builder/width-default-settings-value-for-button.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="with default settings value for a new button in editor"
+/>
+
+<!-- vale on -->
+
+:::note
+Here we've used the `create` function for setting the default value for `padding` and `width` properties.
+However, using similar principle you can do whatever logic you need.
+:::

@@ -53,7 +53,10 @@ module.exports = {
                 {
                     type: "category",
                     label: "Page Builder",
-                    items: ["tutorials/page-builder/create-a-new-page-builder-element"]
+                    items: [
+                        "tutorials/page-builder/create-a-new-page-builder-element",
+                        "tutorials/page-builder/update-an-existing-page-builder-element"
+                    ]
                 },
                 {
                     type: "category",
@@ -129,9 +132,7 @@ module.exports = {
                         {
                             type: "category",
                             label: "Headless CMS",
-                            items: [
-                                "key-topics/webiny-applications/headless-cms/graphql-api"
-                            ]
+                            items: ["key-topics/webiny-applications/headless-cms/graphql-api"]
                         }
                     ]
                 },
