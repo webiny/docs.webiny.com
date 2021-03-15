@@ -112,42 +112,111 @@ For more information and code changes, you can check the relevant [pull-request]
 
 If you're developing your custom packages, you'll soon run into ugly import paths like `../../../../../types`, etc. To mitigate this, make the following changes in your project:
 
-- add `babel-plugin-module-resolver` plugin to `.babel.node.js`:
+- replace your `.babel.node.js` with the config below:
 
-```js title=".babel.node.js" {5-12}
-module.exports = {
-  // ... existing presets
-  plugins: [
-    // ... existing plugins
-    [
-      "babel-plugin-module-resolver",
-      {
-        alias: {
-          "~": "./src"
+```js title=".babel.node.js" {1,20-28}
+module.exports = ({ path }) => {
+  return {
+    presets: [
+      [
+        "@babel/preset-env",
+        {
+          targets: {
+            node: "12"
+          }
         }
-      }
+      ],
+      "@babel/preset-typescript"
+    ],
+    plugins: [
+      ["@babel/plugin-proposal-class-properties"],
+      ["@babel/plugin-proposal-object-rest-spread", { useBuiltIns: true }],
+      ["@babel/plugin-transform-runtime", { useESModules: false }],
+      ["babel-plugin-dynamic-import-node"],
+      ["babel-plugin-lodash"],
+      [
+        "babel-plugin-module-resolver",
+        {
+          cwd: path,
+          alias: {
+            "~": "./src"
+          }
+        }
+      ]
     ]
-  ]
+  };
 };
 ```
 
-- add `babel-plugin-module-resolver` plugin to `.babel.react.js`:
+- replace your `.babel.react.js` with the config below:
 
-```js title=".babel.react.js" {5-12}
-module.exports = {
-  // ...existing presets
+```js title=".babel.react.js" {1,56-64}
+module.exports = ({ path }) => ({
+  presets: [
+    [
+      "@babel/preset-env",
+      {
+        targets: {
+          browsers: ["last 2 versions", "safari >= 7"]
+        },
+        // Allow importing core-js in entrypoint and use browserlist to select polyfills
+        useBuiltIns: "entry",
+        // Set the corejs version we are using to avoid warnings in console
+        // This will need to change once we upgrade to corejs@3
+        corejs: 3,
+        // Do not transform modules to CJS
+        modules: false,
+        // Exclude transforms that make all code slower
+        exclude: ["transform-typeof-symbol"]
+      }
+    ],
+    ["@babel/preset-react", { useBuiltIns: true }],
+    ["@babel/preset-typescript", { isTSX: true, allExtensions: true }]
+  ],
   plugins: [
-    // ... existing plugins
+    "babel-plugin-macros",
+    "babel-plugin-lodash",
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-throw-expressions",
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        corejs: false,
+        version: require("@babel/runtime/package.json").version,
+        regenerator: true,
+        useESModules: false
+      }
+    ],
+    "@babel/plugin-proposal-optional-chaining",
+    "@babel/plugin-proposal-nullish-coalescing-operator",
+    ["babel-plugin-emotion", { autoLabel: true }],
+    [
+      "@babel/plugin-proposal-object-rest-spread",
+      {
+        useBuiltIns: true
+      }
+    ],
+    [
+      "babel-plugin-named-asset-import",
+      {
+        loaderMap: {
+          svg: {
+            ReactComponent: "@svgr/webpack![path]"
+          }
+        }
+      }
+    ],
     [
       "babel-plugin-module-resolver",
       {
+        cwd: path,
         alias: {
           "~": "./src"
         }
       }
     ]
   ]
-};
+});
 ```
 
 - add a `moduleNameMapper` config parameter to `jest.config.base.js`:
@@ -195,4 +264,15 @@ In case you already have custom packages, you will also need to update their `ts
 }
 ```
 
-Now you can use `~` to have nice, clean import paths in your packages, and Jest tests. `~` will always point to your packages' `src` folder. 
+Also update the corresponding `.babelrc.js` files in your custom packages, as we now use the base babel config as a factory. We need to pass the `path` parameter as some babel plugins need to know the exact root of the package.
+
+```js title=".babelrc.js"
+// For node packages:
+module.exports = require("../../.babel.node")({ path: __dirname });
+
+// For React packages:
+module.exports = require("../../.babel.react")({ path: __dirname });
+```
+---
+
+Now you can use `~` to have nice, clean import paths in your packages, and Jest tests. `~` will always point to your packages' `src` folder.
