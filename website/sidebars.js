@@ -74,10 +74,9 @@ module.exports = {
                             label: "AWS",
                             items: [
                                 "how-to-guides/deployment/aws/configure-aws-credentials",
-                                "how-to-guides/deployment/aws/use-aws-profiles",
+                                "how-to-guides/deployment/aws/use-aws-profiles"
                             ]
-                        },
-
+                        }
                     ]
                 },
                 /*{
@@ -94,7 +93,10 @@ module.exports = {
                 {
                     type: "category",
                     label: "Headless CMS",
-                    items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"]
+                    items: [
+                        "how-to-guides/headless-cms/using-graphql-api",
+                        "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"
+                    ]
                 },
                 {
                     type: "category",
@@ -104,7 +106,10 @@ module.exports = {
                 {
                     type: "category",
                     label: "Upgrade Webiny",
-                    items: ["how-to-guides/upgrade-webiny/overview", "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"]
+                    items: [
+                        "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"
+                    ]
                 }
             ],
             "Key Topics": [
@@ -115,6 +120,19 @@ module.exports = {
                         "key-topics/project-organization/project-applications-and-packages",
                         "key-topics/project-organization/project-applications",
                         "key-topics/project-organization/monorepo-organization"
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "Webiny Applications",
+                    items: [
+                        {
+                            type: "category",
+                            label: "Headless CMS",
+                            items: [
+                                "key-topics/webiny-applications/headless-cms/graphql-api"
+                            ]
+                        }
                     ]
                 },
                 {
