@@ -191,8 +191,8 @@ Now that we have our desired code in place. We can move to the next step which i
 To build our package, we need to add the following configuration files:
 - [`package.json`](#packagejson)
 - [`.babelrc.js`](#babelrcjs)
+- [`tsconfig.build.json`](#tsconfigbuildjson)
 - [`tsconfig.json`](#tsconfigjson)
-- `tsconfig.build.json`
 
 Let's create them one by one.
 
@@ -261,11 +261,11 @@ The ["scripts"](https://docs.npmjs.com/cli/v7/using-npm/scripts) property of you
 and their preset life cycle events as well as arbitrary scripts.
 
 In our case we need the following:
-- [`build`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/package.json#L37):
+- [`build`](https://github.com/webiny/webiny-examples/blob/master/create-package-in-monorepo/packages/iFrameElement/package.json#L37):
 it removes the content of the `dist` folder and compiles the source code via `babel` and runs the `postbuild` command.
-- [`watch`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/package.json#L38):
+- [`watch`](https://github.com/webiny/webiny-examples/blob/master/create-package-in-monorepo/packages/iFrameElement/package.json#L38):
 it runs the `babel` compiler in `watch` mode, which means the latest changes will compile automatically as source file content changes.
-- [`postbuild`](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/packages/iFrameElement/package.json#L39):
+- [`postbuild`](https://github.com/webiny/webiny-examples/blob/master/create-package-in-monorepo/packages/iFrameElement/package.json#L39):
 as the name suggests, it runs after the completion of the `build` command.
 We use it to copy the meta files like `package.json`, `README.md` into the `dist` folder and compile typescript code.
 
@@ -363,16 +363,41 @@ module.exports = require("../../.babel.react");
 :::info
 Every Webiny project comes with a `.babel.react.js` and `.babel.node.js`.
 You don't need to know all the configurations.
-But, if you're interested feel free to check the full configuration [file](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/.babel.react.js).
+But, if you're interested feel free to check the full configuration [file](https://github.com/webiny/webiny-examples/blob/master/create-package-in-monorepo/.babel.react.js).
 :::
 
-### `tsconfig.json`
+
+### `tsconfig.build.json`
 Every Webiny project prioritizes [TypeScript](https://www.typescriptlang.org/).
-But it also needs to be compiled and the `tsconfig.json` file corresponds to the configuration of the TypeScript compiler (tsc).
+
+And it needs to be compiled and the `tsconfig.build.json` file corresponds to the configuration file of the TypeScript compiler (tsc) used when package is being built.
 
 :::info
 Webiny uses TypeScript (v4). Only in a few cases, like for example configuration files, you will encounter pure JavaScript.
 :::
+
+Let's take a look at the content of this file:
+
+```json title="packages/greeting/tsconfig.build.json"
+{
+  "extends": "../../tsconfig.build.json",
+  "include": ["./src"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "declarationDir": "./dist"
+  }
+}
+```
+
+:::info
+The `tsconfig.build.json` file specifies the root files and the compiler options required to compile the project.
+Please check out the official docs to [learn more](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html#:~:text=a%20tsconfig.json-,Overview,required%20to%20compile%20the%20project.) about it.
+:::
+
+### `tsconfig.json`
+This is a configuration file for Typescript compiler used by your IDE.
 
 Let's take a look at the content of this file:
 
@@ -382,14 +407,8 @@ Let's take a look at the content of this file:
 }
 ```
 
-Like the previous file, we're just using the configuration defined in the [project root](https://github.com/webiny/webiny-examples/blob/master/iframe-page-element/tsconfig.json) here.
-
-:::info
-The `tsconfig.json` file specifies the root files and the compiler options required to compile the project.
-Please check out the official docs to [learn more](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html#:~:text=a%20tsconfig.json-,Overview,required%20to%20compile%20the%20project.) about it.
-:::
-
-
+Like the previous file, we're just using the configuration defined in the
+[project root](https://github.com/webiny/webiny-examples/blob/master/create-package-in-monorepo/tsconfig.json) here.
 
 ### `README.md` (optional)
 A README is a text file that introduces and explains a project.
@@ -431,7 +450,7 @@ Webiny CLI provides the `workspaces run` (or `ws run` for short) command that en
 The common use case where this might be needed is local development, where you want to watch for code changes on multiple packages, and rebuild them accordingly.
 
 :::info
-We recommend reading the [Working With Workspaces](http://docs.webiny.com/docs/how-to-guides/webiny-cli/working-with-workspaces) article to learn more about workspaces.
+We recommend reading the [Working With Workspaces](/docs/how-to-guides/webiny-cli/working-with-workspaces) article to learn more about workspaces.
 :::
 
 For example, to establish a watch session across multiple packages, located in a specific folder, you can run the following command:
