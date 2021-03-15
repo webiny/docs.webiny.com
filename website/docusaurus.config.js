@@ -5,7 +5,7 @@ const siteConfig = {
     title: "Webiny Documentation", // Title for your website.
     tagline: "Serverless CMS",
     url: "https://www.webiny.com", // Your website URL
-    baseUrl: "/", // Base URL for your project */
+    baseUrl: "/docusaurus/", // Base URL for your project */
     projectName: "webiny-js",
     organizationName: "webiny",
     favicon: "img/favicon.ico",
