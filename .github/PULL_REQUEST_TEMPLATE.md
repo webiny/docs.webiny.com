@@ -10,10 +10,11 @@
 
 ## Checklist
 - [ ] I added page metadata (description, keywords)
+- [ ] I've added "Can I Use This?" section (if needed, e.g. if documenting a new feature)
 - [ ] I added `What You'll Learn` at the top of the page and every item in the list starts with a lower case letter
 - [ ] I used title case for titles and subtitles (in the main menu and in the page content)
 - [ ] I checked for typos and grammar mistakes
-- [ ] I added descriptions for inserted images (if any)
+- [ ] I added `alt` / `title` attributes for inserted images (if any)
 
 <!--- Resources:
 - new document template: https://docs.webiny.com/docs/contributing/documentation#template-for-new-docs
