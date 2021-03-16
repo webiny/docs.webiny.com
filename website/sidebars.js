@@ -94,9 +94,9 @@ module.exports = {
                     type: "category",
                     label: "Headless CMS",
                     items: [
-                        "how-to-guides/headless-cms/using-graphql-api",
-                        "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"
-                    ]
+                        "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin",
+                        "how-to-guides/headless-cms/create-a-content-model-form-layout",
+                        "how-to-guides/headless-cms/using-graphql-api"                    ]
                 },
                 {
                     type: "category",
@@ -193,6 +193,11 @@ module.exports = {
                 "key-topics/webiny-cli"
             ],
             References: [
+                {
+                    type: "category",
+                    label: "Headless CMS",
+                    items: ["references/headless-cms/plugins"]
+                },
                 {
                     type: "category",
                     label: "Page Builder",
