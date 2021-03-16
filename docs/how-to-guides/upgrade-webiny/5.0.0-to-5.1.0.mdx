@@ -1,0 +1,308 @@
+---
+id: 5.0.0-to-5.1.0
+title: 5.0.0 to 5.1.0
+sidebar_label: 5.0.0 to 5.1.0
+keywords: ["webiny", "version", "upgrade", "5.0.0", "5.1.0"]
+description: Learn how to upgrade Webiny from 5.0.0 to 5.1.0.
+---
+
+import CenteredImage from "../../mdxComponents/centeredImage";
+
+:::tip What you’ll learn
+
+- how to upgrade Webiny from 5.0.0 to 5.1.0
+
+:::
+
+:::danger
+
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny/overview#-precaution-measures) section.
+:::
+
+## Update Pulumi Infrastructure Code
+
+The following changes apply only to the **production** setup of the **API** project application's cloud infrastructure.
+
+:::info
+
+Note that the cloud infrastructure, defined within the **API** project application, is defined as two different setups - **development** and **production**.
+
+Read more about it in our [Cloud Infrastructure](/docs/key-topics/cloud-infrastructure/api/introduction#different-cloud-infrastructure-setups) key topic.
+
+:::
+
+### Add Missing Private Subnet for the ElasticSearch Cluster
+
+Open your [`api/pulumi/prod/elasticSearch.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts) file, and on [line 26](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L26), add the `vpc.subnets.private[1].id` subnet to the `subnetIds` array:
+
+```ts title="api/pulumi/prod/elasticSearch.ts" {12}
+this.domain = new aws.elasticsearch.Domain(domainName, {
+  elasticsearchVersion: "7.7",
+  clusterConfig: {
+    instanceType: "t3.medium.elasticsearch",
+    instanceCount: 2,
+    zoneAwarenessEnabled: true,
+    zoneAwarenessConfig: {
+      availabilityZoneCount: 2
+    }
+  },
+  vpcOptions: {
+    subnetIds: [vpc.subnets.private[0].id, vpc.subnets.private[1].id],
+    securityGroupIds: [vpc.vpc.defaultSecurityGroupId]
+  },
+  ebsOptions: {
+    ebsEnabled: true,
+    volumeSize: 10,
+    volumeType: "gp2"
+  },
+  advancedOptions: {
+    "rest.action.multi.allow_explicit_index": "true"
+  },
+  snapshotOptions: {
+    automatedSnapshotStartHour: 23
+  }
+});
+```
+
+### Optionally, Mark Mission Critical Resources as Protected
+
+In order to prevent accidental deletions of mission critical cloud infrastructure resources, the Pulumi framework allows us to mark a resource as protected, via the `protect` property.
+
+:::info
+Learn more about the `protect` property in the [official Pulumi documentation](https://www.pulumi.com/docs/intro/concepts/resources/#protect).
+:::
+
+For the [`prod`](https://github.com/webiny/webiny-js/tree/next/packages/cwp-template-aws/template/api/pulumi/prod) setup of your **API** project application's cloud infrastructure, projects created with Webiny version `5.1.0` and higher, will have the following cloud infrastructure resources marked as protected:
+
+- [Default](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/dynamoDb.ts#L27) and [ElasticSearch DynamoDB](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L84) tables
+- [ElasticSearch cluster](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L84)
+- [File Manager's S3 Bucket](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/fileManager.ts#L35)
+
+For projects created before Webiny version `5.1.0`, these need to be added manually.
+
+To do that, start by adding the `protectedEnvironment` variable, and passing its value to `DynamoDB`, `Cognito`, `ElasticSearch`, and `FileManager` classes, in your [`api/pulumi/prod/index.ts:12`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/index.ts#L12-L24) file:
+
+```ts title="api/pulumi/prod/index.ts:12"
+/**
+ * We protect mission critical cloud infrastructure resource against accidental deletion. We do this
+ * only for the "prod" environment, but, if needed, feel free to additional environments.
+ * @see https://www.pulumi.com/docs/intro/concepts/resources/#protect
+ */
+const protectedEnvironment = process.env.WEBINY_ENV === "prod";
+
+export default () => {
+    const dynamoDb = new DynamoDB({ protectedEnvironment });
+    const cognito = new Cognito({ protectedEnvironment });
+
+    const elasticSearch = new ElasticSearch({ protectedEnvironment });
+    const fileManager = new FileManager({ protectedEnvironment });
+```
+
+Once you have that in place, make sure to pass the value of `protectedEnvironment` to relevant cloud infrastructure resources:
+
+1. [default DynamoDB table](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/dynamoDb.ts#L27)
+2. ElasticSearch - [domain](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L41), [domain policy](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L62), and [special ElasticSearch-related DynamoDB table](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/elasticSearch.ts#L84)
+3. File Manager's [S3 bucket](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/fileManager.ts#L35)
+
+:::info
+For more information and code changes, you can check the relevant [pull-request](https://github.com/webiny/webiny-js/pull/1500).
+:::
+
+## Update Page Builder Plugins
+
+We've upgraded all element plugins to support customization via factory parameters. It now also allows you to create multiple variations of the same element, with different settings.
+
+One of the plugins was not a factory in the previous version of Webiny, and we need to change the usage of that particular plugin in your project. Simply open the file below, and add `()` to execute the `grid` plugin factory:
+
+```ts title="apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts" {8}
+// ... imports
+
+export default [
+  contentBackground,
+  blockEditing,
+  // Elements
+  document(),
+  grid(),
+  block(),
+  gridBlock,
+  cell(),
+  heading()
+  // ... existing plugins
+];
+```
+
+## Update build configs
+
+If you're developing your custom packages, you'll soon run into ugly import paths like `../../../../../types`, etc. To avoid this, make the following changes in your project:
+
+#### Update `.babel.node.js`
+
+Replace the entire file with the following code, or only copy/paste the highlighted lines:
+
+```js title=".babel.node.js" {1,19-27,29}
+module.exports = ({ path }) => ({
+  presets: [
+    [
+      "@babel/preset-env",
+      {
+        targets: {
+          node: "12"
+        }
+      }
+    ],
+    "@babel/preset-typescript"
+  ],
+  plugins: [
+    ["@babel/plugin-proposal-class-properties"],
+    ["@babel/plugin-proposal-object-rest-spread", { useBuiltIns: true }],
+    ["@babel/plugin-transform-runtime", { useESModules: false }],
+    ["babel-plugin-dynamic-import-node"],
+    ["babel-plugin-lodash"],
+    [
+      "babel-plugin-module-resolver",
+      {
+        cwd: path,
+        alias: {
+          "~": "./src"
+        }
+      }
+    ]
+  ]
+});
+```
+
+#### Update `.babel.react.js`
+
+Replace the entire file with the following code, or only copy/paste the highlighted lines:
+
+```js title=".babel.react.js" {1,56-64,66}
+module.exports = ({ path }) => ({
+  presets: [
+    [
+      "@babel/preset-env",
+      {
+        targets: {
+          browsers: ["last 2 versions", "safari >= 7"]
+        },
+        // Allow importing core-js in entrypoint and use browserlist to select polyfills
+        useBuiltIns: "entry",
+        // Set the corejs version we are using to avoid warnings in console
+        // This will need to change once we upgrade to corejs@3
+        corejs: 3,
+        // Do not transform modules to CJS
+        modules: false,
+        // Exclude transforms that make all code slower
+        exclude: ["transform-typeof-symbol"]
+      }
+    ],
+    ["@babel/preset-react", { useBuiltIns: true }],
+    ["@babel/preset-typescript", { isTSX: true, allExtensions: true }]
+  ],
+  plugins: [
+    "babel-plugin-macros",
+    "babel-plugin-lodash",
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-throw-expressions",
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        corejs: false,
+        version: require("@babel/runtime/package.json").version,
+        regenerator: true,
+        useESModules: false
+      }
+    ],
+    "@babel/plugin-proposal-optional-chaining",
+    "@babel/plugin-proposal-nullish-coalescing-operator",
+    ["babel-plugin-emotion", { autoLabel: true }],
+    [
+      "@babel/plugin-proposal-object-rest-spread",
+      {
+        useBuiltIns: true
+      }
+    ],
+    [
+      "babel-plugin-named-asset-import",
+      {
+        loaderMap: {
+          svg: {
+            ReactComponent: "@svgr/webpack![path]"
+          }
+        }
+      }
+    ],
+    [
+      "babel-plugin-module-resolver",
+      {
+        cwd: path,
+        alias: {
+          "~": "./src"
+        }
+      }
+    ]
+  ]
+});
+```
+
+#### Update `jest.config.base.js`:
+
+Add a `moduleNameMapper` parameter to the existing config:
+
+```js title="jest.config.base.js" {14-16}
+// ... imports
+module.exports = ({ path }, presets = []) => {
+  const name = basename(path);
+  return merge.recursive({}, tsPreset, ...presets, {
+    name: name,
+    displayName: name,
+    modulePaths: [`${path}/src`],
+    testMatch: [`${path}/__tests__/**/*.test.[jt]s?(x)`],
+    transform: {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    },
+    moduleDirectories: ["node_modules"],
+    moduleFileExtensions: ["ts", "js", "tsx"],
+    moduleNameMapper: {
+      "~/(.*)": `${path}/src/$1`
+    },
+    modulePathIgnorePatterns: [],
+    globals: {
+      WEBINY_VERSION: version,
+      "ts-jest": {
+        isolatedModules: true,
+        babelConfig: `${path}/.babelrc.js`,
+        diagnostics: false
+      }
+    }
+  });
+};
+```
+
+#### Update TS and Babel configs in existing packages (if any)
+
+In case you already have custom packages, you will also need to update their `tsconfig.build.json` and `tsconfig.json` files, by adding the following parameters to them:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./src/*"]
+    }
+  }
+}
+```
+
+Also update the corresponding `.babelrc.js` files in your custom packages, as we now use the base babel config as a factory. We need to pass the `path` parameter as some babel plugins need to know the exact root of the package.
+
+```js title=".babelrc.js"
+// For node packages:
+module.exports = require("../../.babel.node")({ path: __dirname });
+
+// For React packages:
+module.exports = require("../../.babel.react")({ path: __dirname });
+```
+
+---
+
+Now you can use `~` to have nice, clean import paths in your packages, and Jest tests. `~` will always point to your packages' `src` folder.
