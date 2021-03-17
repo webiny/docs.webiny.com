@@ -19,32 +19,36 @@ In order to bring your project into existence, you need to deploy your applicati
 By default, for everything deployment-related, Webiny relies on Pulumi, a modern infrastructure as code (IaC) framework, which, essentially, enables us to define needed cloud infrastructure via code, and ultimately, deploy it into one or more separate environments.
 
 :::info
-Read more about Pulumi, environments, and other concepts in our [Deployment](/docs/key-topics/deployment/introduction) key topics section.
+Read more about Pulumi, environments, and other deployment-related concepts in our [Deployment](/docs/key-topics/deployment/introduction) key topics section.
 :::
 
-One of the fundamental concept of almost all IaC frameworks are cloud infrastructure state files. Every framework handles them differently, but in all cases, state files describe the state of your cloud infrastructure. Things like which cloud infrastructure resources are currently deployed, which configuration params were used upon deploying them, and more, are just some of the information the state files contain.
+One of the fundamental concepts of any IaC framework are cloud infrastructure state files. Every framework handles them differently, but in all cases, state files represent the state of all deployed cloud infrastructure resources. Things like which resources are currently deployed, which configuration params were used upon deploying them, and more, are just some of the information the state files contain.
 
-It's important to know that state files must not be lost or deleted, because otherwise, the connection between our IaC framework (Pulumi) and the actual cloud infrastructure resources would be lost. Meaning, we would lost the ability to update existing cloud infrastructure resources or even delete them (using the IaC framework).
+It's important to know that state files must not be lost or deleted, because otherwise, the connection between our IaC framework and the actual cloud infrastructure resources would also be lost. Meaning, we would loose the ability to update existing cloud infrastructure resources or even delete them (using the IaC framework).
 
-:::info
-In case of the latter, if we wanted to delete all of the previously deployed resources, we would have to do it manually, via the cloud provider's user interface or using a CLI.
+:::caution
+If it happens that we've lost our state files and we wanted to delete all of the deployed cloud infrastructure resources, we would have to do it manually, via the cloud provider's user interface or using a CLI.
 :::
 
 ## Managing Cloud Infrastructure State Files
 
-Because of the fact that our cloud infrastructure state files must be preserved at all cost, we are often talking about **cloud infrastructure state management**, or, in context of IaC frameworks and cloud infrastructure deployments, just **state management**.
+Because of the fact that our cloud infrastructure state files must be preserved, we are often talking about **cloud infrastructure state management**, or, in context of IaC frameworks and cloud infrastructure deployments, just **state management**.
 
-The Pulumi framework offers a couple of convenient solutions, called [backends](https://www.pulumi.com/docs/intro/concepts/state/#state-and-backends), that solve the management overhead for us. In the following section, we briefly cover the most often used backends, and after that, the best practices around how to utilize them.
+Fortunately, out of the box, Pulumi already offers a solution that solves the state management overhead for us. Using different [backends](/docs/key-topics/deployment/iac-with-pulumi#different-backends), we are able to store our state files in different places, in a secure and reliable way.
+
+## Commonly Used Backends
+The following are three backends that are commonly used with Webiny projects.
 
 ### Local File System
 
-This is the default way of storing state files. After you deploy your Webiny project for the first time, you can notice the `.pulumi` files being generated inside of your `api`, `apps/admin`, and `apps/website` project applications folders.
+This is the default backend, with which, all of the state files are stored within your Webiny project, inside of `.pulumi` folders. Note that there can be multiple `.pulumi` folders, because, usually, every project application in a Webiny project deploys its own set of cloud infrastructure resources, thus, has to maintain its own state files.
 
 :::info Project Applications
 Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/key-topics/project-organization/project-applications-and-packages) key topic.
 :::
 
-The following directory tree shows how the `.pulumi` folders are generated in your Webiny project:
+The following directory tree shows three `.pulumi` folders, each residing in its respective project application folder (`api/.pulumi`, `apps/admin/.pulumi`, `apps/website/.pulumi`):
+
 ```
 .
 ├── api
@@ -80,4 +84,39 @@ The following directory tree shows how the `.pulumi` folders are generated in yo
 └── (...)
 ```
 
-### Pulumi backends
+This backend can be a solid choice for local development purposes, where you typically don't need to share the state files with other team members and are only relevant to you. Because of this, in every new Webiny project, by default, the `.pulumi` folders aren't checked into your version control.
+
+### Amazon S3
+
+With this backend option, we can store our cloud infrastructure state files in a remote [Amazon S3](https://aws.amazon.com/s3/) bucket.
+
+This is useful when deploying our project into long-lived shared environments, like `staging` or even `prod` (production). Environments like these can certainly be considered as sensitive, so, it is critical that we have a single source of truth of our cloud infrastructure state and also, that the state files are stored in a reliable and secure way. We definitely want to avoid having multiple versions of our production cloud infrastructure state, or have our state files publicly exposed.
+
+:::info
+Learn more about different types of environments in the [Environments](/docs/how-to-guides/ci-cd/environments) guide.
+:::
+
+### Pulumi Service
+
+You can certainly use the Amazon S3 for storing cloud infrastructure state files, but if you need more, you can also explore the [Pulumi Service](https://www.pulumi.com/docs/intro/concepts/state/#deciding-on-a-backend).
+
+It is a service that not only gives you the ability to store your cloud infrastructure state files in an easy, secure, and reliable way, but also offers a couple of other interesting features, like concurrent state locking to prevent corrupting your infrastructure state in a team environment, full deployment history for auditing and rollback purposes, encrypted state in transit and at rest, [and more](https://www.pulumi.com/docs/intro/concepts/state/#deciding-on-a-backend).
+
+Of course, it does come with a price, so make sure to check their official [pricing page](https://www.pulumi.com/pricing/) before making a decision on which backend you're about to use.
+
+## FAQ
+
+#### I switched to another machine. How can I continue working with the same cloud infrastructure I previously deployed?
+
+If you've deployed cloud infrastructure resources using the local file system backend, meaning state files are located within your Webiny project, then you'll need to copy the state files over to your new machine. Additionally,
+
+#### Should I use different S3 buckets for different shared long-lived environments?
+If you want to use the same bucket, you can do that. Just make sure every environment uses its own folder in it, because otherwise, different environments would end up using incorrect state files.
+
+Note that, when talking about different shared long-lived environments, like `staging` or `prod`, you should also consider using completely separate AWS accounts.
+
+#### How can I check in `.pulumi` folders into VCS?
+
+In your project root, open your `.gitignore` file and simply remove `.pulumi` from the list of ignored files and folders. Commit the change and from that point on, you should be able to check in all of your `.pulumi` folders.
+
+<!-- #### Should I have my Pulumi.yaml files in git or n ot? -->

@@ -78,9 +78,9 @@ module.exports = {
                     label: "Development Workflows",
                     items: [
                         "how-to-guides/ci-cd/introduction",
-                        "how-to-guides/ci-cd/developing-serverless-applications",
+                        // "how-to-guides/ci-cd/developing-serverless-applications",
                         "how-to-guides/ci-cd/cloud-infrastructure-state-files",
-                        "how-to-guides/ci-cd/ci-cd",
+                        // "how-to-guides/ci-cd/ci-cd",
                         "how-to-guides/ci-cd/environments",
                         "how-to-guides/ci-cd/version-control"
                     ]
