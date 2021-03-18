@@ -26,7 +26,7 @@ const siteConfig = {
             }
         ]
     ],
-    scripts: ["/static/js/webiny.js"],
+    scripts: [],
     themeConfig: {
         algolia: {
             apiKey: "dd52f562d0728dab8423289926b5d055",
