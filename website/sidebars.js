@@ -62,7 +62,8 @@ module.exports = {
                     type: "category",
                     label: "Webiny CLI",
                     items: ["tutorials/webiny-cli/adding-custom-commands"]
-                }
+                },
+                "tutorials/create-a-package-in-webiny-project"
             ],
             "How-to Guides": [
                 {
