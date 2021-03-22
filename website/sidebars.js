@@ -30,7 +30,8 @@ module.exports = {
                             ]
                         }
                     ]
-                }
+                },
+                "webiny-overview/security"
             ],
             Tutorials: [
                 "tutorials/install-webiny",
@@ -53,13 +54,17 @@ module.exports = {
                 {
                     type: "category",
                     label: "Page Builder",
-                    items: ["tutorials/page-builder/create-a-new-page-builder-element"]
+                    items: [
+                        "tutorials/page-builder/create-a-new-page-builder-element",
+                        "tutorials/page-builder/customize-an-existing-page-builder-element"
+                    ]
                 },
                 {
                     type: "category",
                     label: "Webiny CLI",
                     items: ["tutorials/webiny-cli/adding-custom-commands"]
-                }
+                },
+                "tutorials/create-a-package-in-webiny-project"
             ],
             "How-to Guides": [
                 {
@@ -69,8 +74,14 @@ module.exports = {
                         "how-to-guides/deployment/deploy-your-project",
                         "how-to-guides/deployment/destroy-cloud-infrastructure",
                         "how-to-guides/deployment/preview-deployments",
-                        /*"how-to-guides/deployment/aws-regions-profiles",*/
-                        "how-to-guides/deployment/configure-aws-credentials"
+                        {
+                            type: "category",
+                            label: "AWS",
+                            items: [
+                                "how-to-guides/deployment/aws/configure-aws-credentials",
+                                "how-to-guides/deployment/aws/use-aws-profiles"
+                            ]
+                        }
                     ]
                 },
                 {
@@ -89,7 +100,10 @@ module.exports = {
                 {
                     type: "category",
                     label: "Headless CMS",
-                    items: ["how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin"]
+                    items: [
+                        "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin",
+                        "how-to-guides/headless-cms/create-a-content-model-form-layout",
+                        "how-to-guides/headless-cms/using-graphql-api"                    ]
                 },
                 {
                     type: "category",
@@ -101,9 +115,10 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.0.0-to-5.1.0",
                         "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"
                     ]
-                },
+                }
             ],
             "Key Topics": [
                 {
@@ -113,6 +128,17 @@ module.exports = {
                         "key-topics/project-organization/project-applications-and-packages",
                         "key-topics/project-organization/project-applications",
                         "key-topics/project-organization/monorepo-organization"
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "Webiny Applications",
+                    items: [
+                        {
+                            type: "category",
+                            label: "Headless CMS",
+                            items: ["key-topics/webiny-applications/headless-cms/graphql-api"]
+                        }
                     ]
                 },
                 {
@@ -173,6 +199,11 @@ module.exports = {
                 "key-topics/webiny-cli"
             ],
             References: [
+                {
+                    type: "category",
+                    label: "Headless CMS",
+                    items: ["references/headless-cms/plugins"]
+                },
                 {
                     type: "category",
                     label: "Page Builder",
