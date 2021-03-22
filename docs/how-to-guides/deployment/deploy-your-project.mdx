@@ -112,3 +112,43 @@ The following are some of the reasons why you might be receiving this error:
 4. if you created a brand new AWS account, it wasn't yet processed on the AWS side
 
 The account signup and verification process can be completed via https://portal.aws.amazon.com/billing/signup?type=resubscribe#/resubscribed.
+
+#### The current deployment has x resource(s) with pending operations:
+
+When deploying your project applications, you might have received an error similar to the following:
+
+> error: the current deployment has 1 resource(s) with pending operations:
+>
+> \* urn:pulumi:dev::website::aws:s3/bucket:Bucket$aws:s3/bucketObject:BucketObject::go.js, interrupted while creating
+>
+> These resources are in an unknown state because the Pulumi CLI was interrupted while
+> waiting for changes to these resources to complete. You should confirm whether or not the
+> operations listed completed successfully by checking the state of the appropriate provider.
+> For example, if you are using AWS, you can confirm using the AWS Console.
+>
+> Once you have confirmed the status of the interrupted operations, you can repair your stack
+> using 'pulumi stack export' to export your stack to a file. For each operation that succeeded,
+> remove that operation from the "pending_operations" section of the file. Once this is complete,
+> use 'pulumi stack import' to import the repaired stack.
+
+This error can occur if one of the previous deployments of your [project application](/docs/key-topics/project-organization/project-applications-and-packages) has been [interrupted](/docs/how-to-guides/deployment/deploy-your-project#one-of-the-previous-deployments-has-been-interrupted), or another deployment is [currently in progress](/docs/how-to-guides/deployment/deploy-your-project#another-deployment-currently-in-progress).
+
+##### One of the Previous Deployments Has Been Interrupted
+In case of the former, you'll need to open your Pulumi state files, and find all of the resources whose deployment status is in `pending_operations` state. If we're talking about local development environment, those files are located in your `.pulumi` files and can be manually edited. Otherwise, you'll need to use the mentioned [`pulumi stack export`](https://www.pulumi.com/docs/reference/cli/pulumi_stack_export/) and [`pulumi stack import`](https://www.pulumi.com/docs/reference/cli/pulumi_import/) commands.
+
+If you didn't install the Pulumi CLI manually by yourself, which is usually the case for most Webiny users, you can execute the above commands via the [Webiny CLI](/docs/key-topics/webiny-cli), for example:
+
+```bash
+# Export state files for "apps/website" project application ("dev" environment).
+yarn webiny pulumi apps/website --env dev -- stack export
+
+# Export state files for the "api" project application ("prod" environment).
+yarn webiny pulumi api --env prod -- stack export
+```
+
+:::info
+Learn more about cloud infrastructure state files in the [Cloud Infrastructure State Files](#) development workflows guide.
+:::
+
+##### Another Deployment Currently in Progress
+In case of the latter, in which an active deployment currently exists, then you'll just need to wait for the first one to finish, and redeploy your project application. Although not that often, this is more possible to happen in your CI/CD workflows.
