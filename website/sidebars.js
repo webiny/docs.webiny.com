@@ -85,6 +85,7 @@ module.exports = {
                         "how-to-guides/ci-cd/version-control"
                     ]
                 },
+                "how-to-guides/environment-variables",
                 {
                     type: "category",
                     label: "Headless CMS",
@@ -102,7 +103,7 @@ module.exports = {
                         "how-to-guides/upgrade-webiny/overview",
                         "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"
                     ]
-                }
+                },
             ],
             "Key Topics": [
                 {
