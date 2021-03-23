@@ -89,7 +89,7 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/environment-variables",
+                        "how-to-guides/development/environment-variables",
                        /* {
                             type: "category",
                             label: "Workflows",
