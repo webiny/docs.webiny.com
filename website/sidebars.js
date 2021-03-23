@@ -85,7 +85,7 @@ module.exports = {
                         }
                     ]
                 },
-                {
+                /*{
                     type: "category",
                     label: "Development Workflows",
                     items: [
@@ -96,7 +96,7 @@ module.exports = {
                         "how-to-guides/ci-cd/environments",
                         "how-to-guides/ci-cd/version-control"
                     ]
-                },
+                },*/
                 "how-to-guides/environment-variables",
                 {
                     type: "category",
