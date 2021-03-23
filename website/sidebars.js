@@ -85,26 +85,33 @@ module.exports = {
                         }
                     ]
                 },
-                /*{
+                {
                     type: "category",
-                    label: "Development Workflows",
+                    label: "Development",
                     items: [
-                        "how-to-guides/ci-cd/introduction",
-                        // "how-to-guides/ci-cd/developing-serverless-applications",
-                        "how-to-guides/ci-cd/cloud-infrastructure-state-files",
-                        // "how-to-guides/ci-cd/ci-cd",
-                        "how-to-guides/ci-cd/environments",
-                        "how-to-guides/ci-cd/version-control"
+                        "how-to-guides/environment-variables",
+                       /* {
+                            type: "category",
+                            label: "Workflows",
+                            items: [
+                                "how-to-guides/ci-cd/introduction",
+                                // "how-to-guides/ci-cd/developing-serverless-applications",
+                                "how-to-guides/ci-cd/cloud-infrastructure-state-files",
+                                // "how-to-guides/ci-cd/ci-cd",
+                                "how-to-guides/ci-cd/environments",
+                                "how-to-guides/ci-cd/version-control"
+                            ]
+                        }*/
                     ]
-                },*/
-                "how-to-guides/environment-variables",
+                },
                 {
                     type: "category",
                     label: "Headless CMS",
                     items: [
                         "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin",
                         "how-to-guides/headless-cms/create-a-content-model-form-layout",
-                        "how-to-guides/headless-cms/using-graphql-api"                    ]
+                        "how-to-guides/headless-cms/using-graphql-api"
+                    ]
                 },
                 {
                     type: "category",
