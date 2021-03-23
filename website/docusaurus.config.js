@@ -52,13 +52,13 @@ const siteConfig = {
             title: "Webiny Docs",
             hideOnScroll: true,
             logo: {
-                alt: "Webiny Serverless CMS Logo",
+                alt: "Webiny Docs",
                 src: "img/white-square-icon.svg",
                 href: "/docs/webiny/introduction"
             },
             items: [
                 {
-                    href: "https://www.webiny.com/",
+                    href: "/",
                     label: "Webiny Home",
                     position: "right"
                 },
