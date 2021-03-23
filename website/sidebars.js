@@ -90,7 +90,7 @@ module.exports = {
                     label: "Development",
                     items: [
                         "how-to-guides/development/environment-variables",
-                       /* {
+                        {
                             type: "category",
                             label: "Workflows",
                             items: [
@@ -101,7 +101,7 @@ module.exports = {
                                 "how-to-guides/ci-cd/environments",
                                 "how-to-guides/ci-cd/version-control"
                             ]
-                        }*/
+                        }
                     ]
                 },
                 {
