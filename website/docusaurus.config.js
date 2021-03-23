@@ -1,7 +1,20 @@
 const path = require("path");
 
 const siteConfig = {
-    plugins: [path.resolve(__dirname, "plugins/wts")],
+    plugins: [
+        [
+            "@docusaurus/plugin-client-redirects",
+            {
+                redirects: [
+                    {
+                        to: "/docs/webiny/introduction",
+                        from: "/docs"
+                    }
+                ]
+            }
+        ],
+        path.resolve(__dirname, "plugins/wts")
+    ],
     title: "Webiny Documentation", // Title for your website.
     tagline: "Serverless CMS",
     url: "https://www.webiny.com", // Your website URL
