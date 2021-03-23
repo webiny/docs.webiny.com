@@ -19,7 +19,9 @@ In this guide, we cover a couple of different scenarios in which you might need 
 
 ## Backend vs. Frontend Development
 
-Webiny is a full-stack solution, meaning, out of the box, developers are able to create both backend and frontend applications. But, before we continue, have in mind that these are two different types of applications, for which different development practices and technologies apply.
+Webiny is a full-stack solution, which means that developers are able to create both backend and frontend applications, within a single Webiny project.
+
+But, before we continue, have in mind that these are two different types of applications, for which different development practices and technologies apply.
 
 One of the more obvious differences is how we develop them. While frontend application development can be completely done locally, backend application development often involves deploying your code changes to the cloud and then testing them out.
 
@@ -31,15 +33,19 @@ As mentioned, backend development often involves deploying our code changes into
 
 We can use environment variables upon deploying our project applications and underlying cloud infrastructure resources. For example, we might want to pass a specific value to one or more AWS Lambda functions, a specific configuration param to a cloud infrastructure resource, AWS credentials, and more.
 
-:::info
+:::info Project Applications
+Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/key-topics/project-organization/project-applications-and-packages) key topic.
+:::
+
+:::info Deploy Your Project
 Check out the [Deploy Your Project](/docs/how-to-guides/deployment/deploy-your-project) guide to learn more about the [`deploy`](/docs/how-to-guides/deployment/deploy-your-project#the-deploy-command) command and how to deploy your entire Webiny project. Also, if you'd like to learn more about the deployment process in general, you can also visit our [Deployment](/docs/key-topics/deployment/introduction) key topics section.
 :::
 
 ### Webiny Environment Variables
 
-Note that, upon executing any `webiny` command, the [Webiny CLI](/docs/key-topics/webiny-cli) automatically injects the following two environment variables into the running process:
+Note that, upon executing deployment-related commands, the [Webiny CLI](/docs/key-topics/webiny-cli) automatically injects the following two environment variables into the running process:
 
-- `WEBINY_ENV` - https://create-react-app.dev/docs/adding-custom-environment-variables/ironment that was passed via the `--env` argument
+- `WEBINY_ENV` - environment that was passed via the `--env` argument
 - `WEBINY_PROJECT_NAME` - the project name, set in your `webiny.root.js` file (`projectRoot`)
 
 For example, the `WEBINY_ENV` environment variable is already utilized in the **API** project application, to determine which stack to deploy, [development or production](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/index.ts#L10) one:
@@ -72,7 +78,7 @@ With the shown default environment variables, we can, naturally, add our own.
 
 There are a couple of ways to do it, but, for development purposes, the recommended way to do it would be via the `.env` file, located in your project root.
 
-When you set up a brand new Webiny project, the contents of this file might look similar to the following:
+When you set up a brand new Webiny project, the content of the file might look similar to the following:
 
 ```bash title=".env" {8}
 # The region into which your project will be deployed.
@@ -85,7 +91,9 @@ PULUMI_SECRETS_PROVIDER=passphrase
 MY_CUSTOM_ENV_VARIABLE=some-random-value
 ```
 
-From there, we can easily add additional environment variables, like we did with the `MY_CUSTOM_ENV_VARIABLE`. Once set, we can pass them to cloud infrastructure resources that we might have, for example, a Lambda function. If we wanted to add an environment variable to the existing `graphql` Lambda function, deployed within the default **API** project application, we could do that by setting it directly via its `environment.variables` property:
+From there, we can easily add additional environment variables, like we did with the `MY_CUSTOM_ENV_VARIABLE`. Once set, we can pass them to cloud infrastructure resources that we might have, for example, a Lambda function.
+
+If we wanted to add an environment variable to the existing `graphql` Lambda function, deployed within the default **API** project application, we could do that by setting it directly via its `environment.variables` property:
 
 ```ts title="api/pulumi/dev/graphql.ts:45" {17-18}
 (...)
@@ -105,7 +113,7 @@ this.functions = {
                 ...env,
                 AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
                 MY_HARDCODED_ENV_VARIABLE: "my-hardcoded-value",
-                MY_PROCESS_ENV_VARIABLE: process.env.MY_PROCESS_ENV_VARIABLE
+                MY_CUSTOM_ENV_VARIABLE: process.env.MY_CUSTOM_ENV_VARIABLE
             }
         },
         vpcConfig: {
@@ -117,10 +125,6 @@ this.functions = {
 
 (...)
 ```
-
-:::info Project Applications
-Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/key-topics/project-organization/project-applications-and-packages) key topic.
-:::
 
 :::info Cloud Infrastructure
 Read more about the cloud infrastructure resources that get deployed into your AWS account in our [Cloud Infrastructure](/docs/key-topics/cloud-infrastructure/introduction) key topics section.
@@ -155,23 +159,84 @@ Make sure to read the relevant documentation for best practices around how to pr
 Adding environment variables to your frontend (React) applications is also possible, but it is a bit different than what we've seen in the first part of this guide. There are two main differences we need to consider.
 
 #### Environment Variables Embedded In Application Code
-While in the context of backend applications, the environment variables represent values that actually exist in the running Node.js process, for frontend applications, the values are embedded in the application code during the build time.
+While in the context of backend applications, the environment variables represent values that actually exist in the running Node.js process (accessed via `process.env` object), for frontend applications, the values are embedded in the application code during the build time.
 
 #### Local Development - No Deployment Needed
-Developing serverless backend applications usually entails redeploying your application code, in order to see that changes that were made. With frontend development, that is not the case, and adding an environment variable on our machine will usually result in our web development server refreshing the application.
+Developing (serverless) backend applications usually entails redeploying your application code, in order to see and test changes that were made. With frontend development, that is not the case, and adding an environment variable locally will usually result in our web development server refreshing the application.
 
 :::info
 By default, Webiny relies on [Create React App](https://create-react-app.dev), a modern zero-configuration frontend application development tool. To learn more how environment variables work there, please read their [Adding Custom Environment Variables](https://create-react-app.dev/docs/adding-custom-environment-variables) article.
 :::
 
+:::info
+By default, every Webiny projects contains two frontend project applications, **Admin Area** and **Website**, located in `apps/admin` and `apps/website` folders, respectively.
+:::
 
+### Custom Environment Variables
+
+For frontend applications, environment variables need to be handled in their respective `start` and `build` commands. In a Webiny project, these can be found in the `webiny.config.js` file, which is the essential configuration file of every package that a project application may hold.
+
+:::info Project Applications
+Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/key-topics/project-organization/project-applications-and-packages) key topic.
+:::
+
+The following code shows the `webiny.config.js` file of the `website` package, which is the one and only package of the **Website** project application:
+
+```js title="apps/website/code/webiny.config.js" {11,15,26,30}
+(...)
+
+module.exports = {
+    commands: {
+        async start(options, context) {
+            invariant(options.env, NO_ENV_MESSAGE);
+
+            const output = await getStackOutput("api", options.env, MAP);
+            invariant(output, NO_API_MESSAGE(options.env));
+
+            Object.assign(process.env, output);
+
+            // Add additional environment variables by directly
+            // assigning them into the "process.env" object.
+            process.env.MY_CUSTOM_ENV_VARIABLE = 'some-random-value';
+
+            // Start local development
+            await startApp(options, context);
+        },
+        async build(options, context) {
+            invariant(options.env, NO_ENV_MESSAGE);
+
+            const output = await getStackOutput("api", options.env, MAP);
+            invariant(output, NO_API_MESSAGE(options.env));
+
+            Object.assign(process.env, output);
+
+            // Add additional environment variables by directly
+            // assigning them into the "process.env" object.
+            process.env.MY_CUSTOM_ENV_VARIABLE = 'some-random-value';
+
+            // Bundle app for deployment
+            await buildApp(options, context);
+        }
+    }
+};
+```
+
+In the shown code, we are directly assigning our environment variables to the [`process.env`](https://nodejs.org/api/process.html#process_process_env) object, using `Object.assign` and basic [assignment operator (=)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment).
+
+Note that this will work, but, in case you need a bit more robust solution, you can also require, for example, the [`dotenv`](https://www.npmjs.com/package/dotenv) library, and have it load environment variables from `.env` files. Please consult the library's documentation for more information on how to use it.
+
+#### Other Methods
+
+Like we've seen in the backend development section, you can also assign environment variables using your terminal of choice, upon running the mentioned `watch` and `build` commands.
+
+In CI/CD workflows, again, you're encouraged to adapt built-in methods for working with environment variables, that are offered by your CI/CD provider.
 
 ## FAQ
 
-#### Can you provide any details on how the `.env` file is loaded?
+#### Can you provide any details on how the root `.env` file is loaded?
 
-Behind the scenes, the Webiny CLI uses the [`dotenv`](https://www.npmjs.com/package/dotenv) library in order to load the shown `.env` file. Note that the values that are defined in the `.env` file will not get assigned as environment variables if they were already assigned in the running process (e.g. via terminal, or as a secret in your CI/CD workflow). This is the default behaviour of the `dotenv` library.
+Behind the scenes, [Webiny CLI](/docs/key-topics/webiny-cli) uses the [`dotenv`](https://www.npmjs.com/package/dotenv) library in order to load the shown `.env` file. Note that the values that are defined in the `.env` file will not get assigned as environment variables if they were already assigned in the running process (e.g. via terminal, or as a secret in your CI/CD workflow). This is the default behaviour of the `dotenv` library.
 
-#### Are there any other commands that load the `.env` file?
+#### What are the commands that will load the root `.env` file?
 
-The following commands load the `.env` file: [`deploy`](/docs/how-to-guides/deployment/deploy-your-project#the-deploy-command), [`destroy`](/docs/how-to-guides/deployment/destroy-cloud-infrastructure#the-destroy-command), and `pulumi`.
+The following commands load the `.env` file: [`deploy`](/docs/how-to-guides/deployment/deploy-your-project#the-deploy-command), [`destroy`](/docs/how-to-guides/deployment/destroy-cloud-infrastructure#the-destroy-command), and [`pulumi`](/docs/how-to-guides/deployment/execute-pulumi-commands).
