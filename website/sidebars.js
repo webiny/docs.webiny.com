@@ -74,6 +74,7 @@ module.exports = {
                         "how-to-guides/deployment/deploy-your-project",
                         "how-to-guides/deployment/destroy-cloud-infrastructure",
                         "how-to-guides/deployment/preview-deployments",
+                        "how-to-guides/deployment/execute-pulumi-commands",
                         {
                             type: "category",
                             label: "AWS",
@@ -84,24 +85,33 @@ module.exports = {
                         }
                     ]
                 },
-                /*{
+                {
                     type: "category",
-                    label: "CI/CD",
+                    label: "Development",
                     items: [
-                        "how-to-guides/ci-cd/introduction",
-                        "how-to-guides/ci-cd/ci-cd",
-                        "how-to-guides/ci-cd/development",
-                        "how-to-guides/ci-cd/environments",
-                        "how-to-guides/ci-cd/version-control"
+                        "how-to-guides/development/environment-variables",
+                       /* {
+                            type: "category",
+                            label: "Workflows",
+                            items: [
+                                "how-to-guides/ci-cd/introduction",
+                                // "how-to-guides/ci-cd/developing-serverless-applications",
+                                "how-to-guides/ci-cd/cloud-infrastructure-state-files",
+                                // "how-to-guides/ci-cd/ci-cd",
+                                "how-to-guides/ci-cd/environments",
+                                "how-to-guides/ci-cd/version-control"
+                            ]
+                        }*/
                     ]
-                },*/
+                },
                 {
                     type: "category",
                     label: "Headless CMS",
                     items: [
                         "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin",
                         "how-to-guides/headless-cms/create-a-content-model-form-layout",
-                        "how-to-guides/headless-cms/using-graphql-api"                    ]
+                        "how-to-guides/headless-cms/using-graphql-api"
+                    ]
                 },
                 {
                     type: "category",
