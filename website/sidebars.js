@@ -89,8 +89,8 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/development/environment-variables",
-                       /* {
+                        "how-to-guides/development/environment-variables"
+                        /* {
                             type: "category",
                             label: "Workflows",
                             items: [
@@ -200,6 +200,14 @@ module.exports = {
                                 "key-topics/cloud-infrastructure/website/serving-pages"
                             ]
                         }
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "Theme",
+                    items: [
+                        "key-topics/theme/introduction",
+                        "key-topics/theme/decoding-page-builder-theme"
                     ]
                 },
                 "key-topics/tools-libraries",

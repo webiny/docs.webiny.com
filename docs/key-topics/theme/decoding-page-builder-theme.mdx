@@ -1,0 +1,82 @@
+---
+id: decoding-page-builder-theme
+title: Decoding Page Builder Theme
+sidebar_label: Decoding Page Builder Theme
+keywords: ["Page Builder", "theme", "style", "plugins"]
+description: Decoding Page Builder Theme
+---
+
+<!-- Always include this section on top of the page. -->
+:::tip What You’ll Learn
+- what is Page Builder theme contains
+- what plugins are used in Page Builder theme
+:::
+
+## Overview
+This section covers the main configuration file for the Page Builder theme and all the plugins with which it is consist of.
+
+## Configuration File
+The main configuration file for the Page Builder theme is located at: [`apps/theme/pageBuilder/index.ts`](https://github.com/webiny/webiny-js/blob/next/apps/theme/pageBuilder/index.ts).
+This file exports a list of Page Builder theme plugins, and that's what you later import in your `website` app and then register as a plugin.
+
+The configuration file is structured in several sections like so:
+
+```ts
+[
+    // main theme plugin containing the theme definition
+    {
+        name: "pb-theme-default"            // name of your theme
+        type: `pb-theme`                    // plugin type
+        theme: {}                           // theme definition
+    } as PbThemePlugin,
+
+    // register a layout ... you can register multiple layouts inside a single theme
+    {
+        name: "pb-page-layout-static"       // name of the page layout
+        type: "pb-page-layout",             // plugin type
+        layout: {}                          // layout definition
+    } as PbPageLayoutPlugin,
+    // register a default error page ... you can register your.
+    {
+        name: "pb-default-page-error",      // name of the default page
+        type: "pb-default-page",            // plugin type
+        component: DefaultErrorPage         // component definition
+    } as PbDefaultPagePlugin,
+    // register a default error page ... you can register your.
+    {
+        name: "pb-default-page-not-found",  // name of the default page
+        type: "pb-default-page",            // plugin type
+        component: DefaultNotFoundPage      // component definition
+    } as PbDefaultPagePlugin
+]
+```
+We are exporting all the plugins needed to make the Page Builder theme.
+Here is a short description for each:
+- a plugin that holds a theme definition
+- a plugin for a layout to render static pages
+- a plugin for default error page
+- a plugin for default not found (404) page
+
+The reason why we don't "lump" all these elements into a single plugin is because this way you can overwrite just a specific piece of a particular theme with your own plugin, without the need to copy or replace the whole theme.
+
+For example, if you wanted to replace the default error page with your custom component, you could to this:
+
+```ts title="apps/website/code/src/plugins/index.ts"
+import { plugins } from "@webiny/plugins";
+// Some code is removed for the sake of brevity.
+import theme from "theme";
+// Register all plugins
+plugins.register([
+  imageComponent(),
+  pageBuilder,
+  formBuilder,
+  theme(),
+  // Your custom error page plugin
+  {
+    name: "pb-default-page-error",
+    type: "pb-default-page",
+    component: MyCustomErrorPage
+  } as PbDefaultPagePlugin
+]);
+
+```
