@@ -33,7 +33,7 @@ If you want to learn more about the main GraphQL API and how it works on the clo
 
 ## Security Permissions
 
-### What Are Security Permissions?
+It all starts with security permissions.
 
 On a code level, security permissions are plain JavaScript objects, which allow us to perform identity [authorization](https://en.wikipedia.org/wiki/Authorization). In other words, these objects contain information that tells us which resources an identity (for example, a logged-in user) can access, and which it cannot.
 
@@ -56,21 +56,51 @@ A simple security permission object might look something like the following:
 }
 ```
 
-### Defining Custom Security Permissions
-
 With Webiny's built-in Security application, every identity (for example, a logged in user) belongs to **exactly one** security group. But, note that a single security group can have multiple security permissions objects assigned to it.
 
 This can be seen when creating a new security group via the Security > Groups module in the Admin Area, where you get to specify permissions for every installed Webiny application:
 
 <CenteredImage alt="Only a Single Security Group Allowed" src={securityGroupsPermissions} />
 
-Internally, making changes in one or more of these sections will result in one or more permission objects to be defined. And, once we submit the form, all of the different permission objects that were created in the process, are sent to the GraphQL API and stored in the database (along with other general security group information).
+Internally, making changes in one or more of these sections will result in one or more permission objects to be defined. And, once we submit the form, all of the different permission objects that were created in the process, are sent to the GraphQL API and stored in the database (along with other general security group information - name, slug, and description).
 
-Ultimately, whenever an identity issues a GraphQL request, via a couple of built-in utilities, you can retrieve its security group and all of the permissions it contains. With that data, you can then determine whether a user has access to a particular resource, or not.
+Ultimately, whenever an identity issues a GraphQL request, via a couple of built-in utilities, we can retrieve its security group and all of the permissions it contains. With that data, we can then determine whether a user has access to a particular API resource or a section in the UI.
+
+## Defining Custom Security Permissions
+
+Custom security permissions can be added in two ways.
+
+#### 1. Add new permissions via the security group form
+By simply adding a new section of permissions in the security group form that we've seen above, we can allow system administrators to manually toggle access for a specific feature for all identities with a particular security group.
+
+Adding a new section can be done by simply registering a new `admin-app-permissions-renderer` plugin, which we'll see in the following text.
+
+#### 2. Programmatically
+Still work in progress.
+<!-- If your custom permissions are not too complicated and dynamic, and you don't need the option to toggle them manually, then in some cases, you can also -->
+
+As mentioned, adding a new section in the security group form can be done via the `admin-app-permissions-renderer` plugin. Consider the following examples (ordered from simplest to more complext):
+
+https://github.com/webiny/webiny-js/tree/next/packages/app-i18n/src/admin/plugins/permissionRenderer
+https://github.com/webiny/webiny-js/tree/next/packages/app-file-manager/src/admin/plugins/permissionRenderer
+https://github.com/webiny/webiny-js/tree/next/packages/app-page-builder/src/admin/plugins/permissionRenderer
 
 ## Securing GraphQL API Resolvers
 
+https://github.com/webiny/webiny-js/blob/next/packages/api-i18n/src/graphql/graphql/locales.ts
+
+Not a rule, but we found this approach to work better (checks done in "crud" files, not in GQL resolvers):
+https://github.com/webiny/webiny-js/blob/next/packages/api-file-manager/src/plugins/crud/files.crud.ts#L70
+https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/crud/menus.crud.ts#L44
+
+(`rwd` stands for read,write,delete)
+
 ## Securing Admin Area Module
+Showing a menu depending on a permission:
+https://github.com/webiny/webiny-js/blob/next/packages/app-i18n/src/admin/plugins/menus.tsx#L13
+
+Showing a button depending on a permission:
+https://github.com/webiny/webiny-js/blob/next/packages/app-page-builder/src/admin/views/Menus/Menus.tsx#L13
 
 ## FAQ
 
