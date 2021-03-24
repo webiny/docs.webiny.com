@@ -207,7 +207,15 @@ module.exports = {
                     label: "Theme",
                     items: [
                         "key-topics/theme/introduction",
-                        "key-topics/theme/decoding-page-builder-theme"
+                        {
+                            type: "category",
+                            label: "Decoding Page Builder Theme",
+                            items: [
+                                "key-topics/theme/decoding-page-builder-theme/introduction",
+                                "key-topics/theme/decoding-page-builder-theme/colors",
+                                "key-topics/theme/decoding-page-builder-theme/elements"
+                            ]
+                        }
                     ]
                 },
                 "key-topics/tools-libraries",
