@@ -41,7 +41,8 @@ module.exports = {
                     items: [
                         "tutorials/create-an-application/introduction",
                         "tutorials/create-an-application/api-package",
-                        "tutorials/create-an-application/admin-area-package"
+                        "tutorials/create-an-application/admin-area-package",
+                        "tutorials/create-an-application/securing-your-application"
                     ]
                 },
                 {

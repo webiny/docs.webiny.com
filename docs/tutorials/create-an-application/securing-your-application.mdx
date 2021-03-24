@@ -1,0 +1,79 @@
+---
+id: securing-your-application
+title: Securing Your Application
+sidebar_label: Securing Your Application
+keywords: ["webiny", "application", "security"]
+description: Learn how you can secure your applications.
+---
+
+import CenteredImage from "../../mdxComponents/centeredImage";
+import securityGroupsSelection from "./securing-your-application/security-groups-selection.png";
+import securityGroupsPermissions from "./securing-your-application/security-groups-permissions.png";
+
+:::tip What you'll learn
+
+- how to secure your application
+- what are security permission objects
+:::
+
+## Overview
+
+In previous two sections, we've seen how we can quickly expand the GraphQL schema of the main GraphQL API, and also how we can add new modules in the **Admin Area** application. All with a couple of built-in scaffolding tools.
+
+In this tutorial, we expand our application by adding a layer of security around it. With it, we want to achieve the following:
+
+1. prevent users from executing GraphQL API queries and mutations, if they don't have the necessary security permissions
+2. prevent users from accessing modules we've added into the Admin Area application, if the user doesn't have the necessary security permissions)
+
+Note that in order to implement both behaviours, we are relying on **security permissions**, which is the first step of implementing a security layer for your application, and is the first topic we cover in this tutorial.
+
+:::info
+If you want to learn more about the main GraphQL API and how it works on the cloud infrastructure level, check out the [GraphQL Requests](/docs/key-topics/cloud-infrastructure/api/graphql-requests) page of the [Cloud Infrastructure - API](/docs/key-topics/cloud-infrastructure/api/introduction) key topics section.
+:::
+
+## Security Permissions
+
+### What Are Security Permissions?
+
+On a code level, security permissions are plain JavaScript objects, which allow us to perform identity [authorization](https://en.wikipedia.org/wiki/Authorization). In other words, these objects contain information that tells us which resources an identity (for example, a logged-in user) can access, and which it cannot.
+
+"Can this user access this GraphQL query?", "Can this user edit this particular piece of data?", or "Can this user view this particular piece of user interface?, are just some of the questions that security permission objects can answer for us.
+
+Except for the required `name` property, these objects don't follow any strict structure, which means that while we're developing our custom application, we can structure them in any way that fits our needs and business logic.
+
+A simple security permission object might look something like the following:
+
+```js
+{
+    name: "my.custom.permission.object",
+    canRead: true,
+    canWrite: true,
+    hasAccessToSomethingGreat: "maybe",
+    canAccessUntil: "2025-06-01",
+    somethingNested: {
+        someRule: "here"
+    }
+}
+```
+
+### Defining Custom Security Permissions
+
+With Webiny's built-in Security application, every identity (for example, a logged in user) belongs to **exactly one** security group. But, note that a single security group can have multiple security permissions objects assigned to it.
+
+This can be seen when creating a new security group via the Security > Groups module in the Admin Area, where you get to specify permissions for every installed Webiny application:
+
+<CenteredImage alt="Only a Single Security Group Allowed" src={securityGroupsPermissions} />
+
+Internally, making changes in one or more of these sections will result in one or more permission objects to be defined. And, once we submit the form, all of the different permission objects that were created in the process, are sent to the GraphQL API and stored in the database (along with other general security group information).
+
+Ultimately, whenever an identity issues a GraphQL request, via a couple of built-in utilities, you can retrieve its security group and all of the permissions it contains. With that data, you can then determine whether a user has access to a particular resource, or not.
+
+## Securing GraphQL API Resolvers
+
+## Securing Admin Area Module
+
+## FAQ
+
+#### Can I assign multiple security groups to a single identity (user)?
+
+No, you can't. Every identity can be part of exactly one security group. If you are in a situation where you need to assign multiple security groups to an identity, you'll need to create a new security group, that consist of all permissions that are assigned to the initial two.
