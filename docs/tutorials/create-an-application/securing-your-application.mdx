@@ -36,7 +36,7 @@ If you want to learn more about the main GraphQL API and how it works on the clo
 
 > It all starts with security permissions.
 
-On a code level, security permissions are plain JavaScript objects, which allow us to perform identity [authorization](https://en.wikipedia.org/wiki/Authorization). In other words, these objects contain information that tells us which resources an identity (for example, a logged-in user) can access, and which it cannot.
+On the code level, security permissions are just plain JavaScript objects, which allow us to perform identity [authorization](https://en.wikipedia.org/wiki/Authorization). In other words, these objects contain information that tells us which resources an identity (for example, a logged-in user) can access, and which it cannot.
 
 "Can this user access this GraphQL query?", "Can this user edit this particular piece of data?", or "Can this user view this particular piece of user interface?, are just some of the questions that security permission objects can answer for us.
 
@@ -46,6 +46,7 @@ A simple security permission object might look something like the following:
 
 ```js
 {
+    // "name" property is required, the rest are optional.
     name: "my.custom.permission.object",
     canRead: true,
     canWrite: true,
@@ -57,9 +58,13 @@ A simple security permission object might look something like the following:
 }
 ```
 
-Furthermore, security permissions are assigned to identities via security groups. With Webiny's built-in Security application, every identity (for example, a logged in user) belongs to **exactly one** security group. But, note that a single security group can have multiple security permissions objects assigned to it, allowing or preventing access across multiple Webiny and custom applications.
+## Assigning Security Permissions to Identities
 
-This can be seen while creating a new security group via the Security > Groups module in the Admin Area, where you get to specify permissions for every installed Webiny application:
+Usually, security permissions are assigned to identities via security groups.
+
+Within Webiny's built-in Security application, every identity (for example, a logged in user) belongs to **exactly one** security group. But, note that a single security group can have multiple security permissions objects assigned to it, allowing or preventing access across multiple Webiny and your custom applications.
+
+This can be seen while creating a new security group via the security groups module in the Admin Area where you get to specify permissions for every installed Webiny application:
 
 <CenteredImage alt="Only a Single Security Group Allowed" src={securityGroupsPermissions} />
 
@@ -174,7 +179,9 @@ export default {
 } as AdminAppPermissionRendererPlugin;
 ```
 
-Once you've added the above shown code, make sure that the plugin is actually registered within the Admin Area React application. If you've been following the previous two tutorials, then, you can simply import it via the `packages/car-manufacturers/admin-app/src/index.ts` file:
+Feel free to copy and paste the shown code into your project and use it as a starting point. After you do that, just make sure that the plugin is actually registered within the Admin Area React application (`apps/admin/code/src/plugins/index.ts`), otherwise no change will appear in your browser.
+
+If you've been following the previous two tutorials, then you can simply import it via the `packages/car-manufacturers/admin-app/src/index.ts` file:
 
 ```ts title="packages/car-manufacturers/admin-app/src/index.ts" {4,6}
 import { Plugin } from "@webiny/plugins/types";
@@ -185,19 +192,13 @@ import permissions from "./permissions";
 export default (): Plugin[] => [menus(), routes(), permissions];
 ```
 
-So, with this permissions section, we added the ability for system administrators to define whether an identity, that belongs to currently viewed security group, can perform read, write, and delete actions on the car manufacturers data, and also whether it has access to an imaginary "special feature".
+By completing this step, we added the ability for system administrators to define whether an identity, that belongs to currently viewed security group, can perform read, write, and delete actions on the car manufacturers data, and also whether it has access to an imaginary special feature.
 
-Note that by completing this step, nothing will actually happen for identities that have or don't have these permissions in their security group. We still need to implement the actual logic, both on the API and Admin Area side, which we cover in the following sections.
+But note that, nothing will actually happen for identities that have or don't have these permissions in their security group. We still need to implement the actual logic, both on the API and Admin Area side, which we cover in the following sections.
 
 ## Securing GraphQL API Resolvers
 
-https://github.com/webiny/webiny-js/blob/next/packages/api-i18n/src/graphql/graphql/locales.ts
-
-Not a rule, but we found this approach to work better (checks done in "crud" files, not in GQL resolvers):
-https://github.com/webiny/webiny-js/blob/next/packages/api-file-manager/src/plugins/crud/files.crud.ts#L70
-https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/crud/menus.crud.ts#L44
-
-(`rwd` stands for read,write,delete)
+Securing your G
 
 ## Securing Admin Area Module
 Showing a menu depending on a permission:
