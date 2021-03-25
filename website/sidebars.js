@@ -213,7 +213,8 @@ module.exports = {
                             items: [
                                 "key-topics/theme/decoding-page-builder-theme/introduction",
                                 "key-topics/theme/decoding-page-builder-theme/colors",
-                                "key-topics/theme/decoding-page-builder-theme/elements"
+                                "key-topics/theme/decoding-page-builder-theme/elements",
+                                "key-topics/theme/decoding-page-builder-theme/layouts"
                             ]
                         }
                     ]
