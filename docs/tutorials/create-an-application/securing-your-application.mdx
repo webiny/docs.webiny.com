@@ -10,11 +10,14 @@ import CenteredImage from "../../mdxComponents/centeredImage";
 import securityGroupsSelection from "./securing-your-application/security-groups-selection.png";
 import securityGroupsPermissions from "./securing-your-application/security-groups-permissions.png";
 import addedSecurityPermissionsGroup from "./securing-your-application/added-security-permissions-group.png";
+import unprotectedQuery from "./securing-your-application/unprotected-query.png";
+import unprotectedMutation from "./securing-your-application/unprotected-mutation.png";
 
 :::tip What you'll learn
-
-- how to secure your application
-- what are security permission objects
+- what are security permissions and, on the code level, security permissions objects
+- how to secure your application:
+    - prevent unauthorized users from performing sensitive GraphQL API queries and mutations
+    - prevent unauthorized users from seeing user-interface sections
 :::
 
 ## Overview
@@ -198,14 +201,97 @@ But note that, nothing will actually happen for identities that have or don't ha
 
 ## Securing GraphQL API Resolvers
 
-Securing your G
+OVO DOLJE
+```
+yarn webiny ws run watch --folder packages/car-manufacturers
+```
+
+At the moment, the `CarManufacturer` queries and mutations, that we added to our main GraphQL API in the [API Package tutorial](/docs/tutorials/create-an-application/api-package), are publicly exposed.
+
+For example, if were to perform a simple `listCarManufacturers` GraphQL query, we would receive a list of all car manufacturers:
+
+<CenteredImage alt="Added Security Permissions Group" src={unprotectedQuery} />
+
+Even worse, anybody can create new car manufacturers, with the `createCarManufacturer` GraphQL mutation, like so:
+
+<CenteredImage alt="Added Security Permissions Group" src={unprotectedMutation} />
+
+In most cases, this is not the desirable behaviour, and you'll certainly want to have control over who can perform these GraphQL operations, and who cannot.
+
+In order to secure these, we have to revisit the GraphQL resolver functions that were generated for us via the **GraphQL API package** scaffold.
+
+:::info
+Learn more about GraphQL resolver functions in the official GraphQL [documentation article](https://graphql.org/learn/execution/).
+:::
+
+All of the GraphQL resolver functions are located in the `packages/car-manufacturers/api/src/resolvers/` folder:
+
+```bash title="packages/car-manufacturers/api/"
+.
+├── __tests__
+├── dist
+├── node_modules
+└── src
+    └── resolvers
+        ├── createCarManufacturer.ts
+        ├── deleteCarManufacturer.ts
+        ├── getCarManufacturer.ts
+        ├── index.ts
+        ├── install.ts
+        ├── isInstalled.ts
+        ├── listCarManufacturers.ts
+        ├── uninstall.ts
+        └── updateCarManufacturer.ts
+```
+
+As an example, we can open the simplest resolver, which is the `getCarManufacturer.ts`, and add the following lines of code:
+
+```ts title="packages/car-manufacturers/api/src/resolvers/getCarManufacturer.ts"
+import { Response, NotFoundResponse } from "@webiny/handler-graphql";
+import { utils } from "../utils";
+import { ApplicationContext, GetCarManufacturerArgs, ResolverResponse, CarManufacturer } from "../types";
+
+const getCarManufacturer = async (
+    _,
+    args: GetCarManufacturerArgs,
+    context: ApplicationContext
+): Promise<ResolverResponse<CarManufacturer>> => {
+    const { db } = context;
+    const { id } = args;
+    /**
+     * Primary key is always constructed out of the id and a fixed CarManufacturer configuration.
+     */
+    const primaryKey = utils.createPk(context, id);
+    /**
+     * Fetch the CarManufacturer record from the DynamoDB.
+     * Response is a tuple of records (always an array) and plain object containing some query and response information.
+     */
+    const response = await db.read<CarManufacturer>({
+        ...utils.db(context),
+        query: {
+            PK: primaryKey,
+            SK: id
+        },
+        limit: 1
+    });
+    const [items] = response;
+    const [item] = items;
+    /**
+     * Fail with NotFoundResponse if no item.
+     */
+    if (!item) {
+        return new NotFoundResponse(`CarManufacturer with id "${id}" not found.`);
+    }
+
+    return new Response(item);
+};
+
+export default getCarManufacturer;
+```
 
 ## Securing Admin Area Module
-Showing a menu depending on a permission:
-https://github.com/webiny/webiny-js/blob/next/packages/app-i18n/src/admin/plugins/menus.tsx#L13
 
-Showing a button depending on a permission:
-https://github.com/webiny/webiny-js/blob/next/packages/app-page-builder/src/admin/views/Menus/Menus.tsx#L13
+Let's finish by adding authorization checks in the actual user interface.
 
 ## FAQ
 
