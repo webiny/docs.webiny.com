@@ -209,12 +209,12 @@ module.exports = {
                         "key-topics/theme/introduction",
                         {
                             type: "category",
-                            label: "Decoding Page Builder Theme",
+                            label: "Page Builder",
                             items: [
-                                "key-topics/theme/decoding-page-builder-theme/introduction",
-                                "key-topics/theme/decoding-page-builder-theme/colors",
-                                "key-topics/theme/decoding-page-builder-theme/elements",
-                                "key-topics/theme/decoding-page-builder-theme/layouts"
+                                "key-topics/theme/page-builder/introduction",
+                                "key-topics/theme/page-builder/colors",
+                                "key-topics/theme/page-builder/elements",
+                                "key-topics/theme/page-builder/layouts"
                             ]
                         },
                         {
