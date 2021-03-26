@@ -216,6 +216,14 @@ module.exports = {
                                 "key-topics/theme/decoding-page-builder-theme/elements",
                                 "key-topics/theme/decoding-page-builder-theme/layouts"
                             ]
+                        },
+                        {
+                            type: "category",
+                            label: "Form Builder",
+                            items: [
+                                "key-topics/theme/form-builder/introduction",
+                                "key-topics/theme/form-builder/layouts"
+                            ]
                         }
                     ]
                 },
@@ -233,6 +241,11 @@ module.exports = {
                     type: "category",
                     label: "Page Builder",
                     items: ["references/page-builder/plugins"]
+                },
+                {
+                    type: "category",
+                    label: "Form Builder",
+                    items: ["references/form-builder/plugins"]
                 }
             ]
         },
