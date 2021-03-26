@@ -223,7 +223,7 @@ module.exports = {
             Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         {
-            "Change Log": ["change-log/5.3.0"]
+            "Changelog": ["changelog/5.3.0"]
         },
         "webiny-telemetry"
     ]
