@@ -52,13 +52,8 @@ You should then see the following screen, and the "Layout" field at the bottom o
 Please note that a single form layout can be used on any number of forms, but every single form can use only one layout.
 :::
 
-
-## Add a New Form Layout
-
-You can add a new form layout in the Form Builder app in these two simple steps:
-1. create a React component which contains all the logic related to the layout
-2. then, register it as a [`form-layout`](/docs/references/form-builder/plugins) plugin
-
+## Anatomy of Form Layout
+Let's take a closer look at the structure of a form layout and its component.
 
 ### Plugin
 
@@ -121,3 +116,109 @@ If needed, feel free to edit the file to your liking, or just create a copy and,
 | `TermsOfService`   | `TermsOfServiceComponentType`                       | A component that shows terms of service message (only if enabled via [form settings](/docs/webiny-apps/form-builder/form-settings).                                                    |
 | `submit`           | `(data: Object) => Promise<FormSubmitResponseType>` | Call this callback to submit the form.                                                                                                                                                 |
 | `formData`         | `FormDataType`                                      | Contains data about the form, e.g. form name, layout, settings, and so on.                                                                                                             |
+
+## Add a New Form Layout
+
+You can add a new form layout in the Form Builder app in these two simple steps:
+1. create a React component which contains all the logic related to the layout
+2. then, register it as a [`form-layout`](/docs/references/form-builder/plugins) plugin
+
+### Create Layout Component
+
+Let's start with creating a React component for our form layout.
+First copy over the content of the `DefaultFormLayout` component and make the following changes:
+
+```ts title="apps/theme/formBuilder/layout/SimpleFormLayout.tsx"
+import { ReactComponent as OnlineIcon } from "./images/online-bro.svg";
+import { css } from "emotion";
+// Some code is removed for the sake of brevity
+const artClass = css(`
+  display: flex;
+  justify-content: center;
+  svg {
+    width: 200px;
+  }
+`);
+const containerClass = css(`background-color: #cadaf6; padding: 8px 16px`);
+//..
+const SimpleFormLayout: FormLayoutComponent = ({
+  getFields,
+  getDefaultValues,
+  submit,
+  formData,
+  ReCaptcha,
+  TermsOfService
+}) => {
+
+  return (
+    <div className={containerClass + " webiny-fb-form-layout-simple"}>
+      {/* A simple Image */}
+      <div className={artClass}>
+          <OnlineIcon />
+      </div>
+      {/* "onSubmit" callback gets triggered once all of the fields are valid. */}
+      {/* We also pass the default values for all fields via the getDefaultValues callback. */}
+      <Form onSubmit={submitForm} data={getDefaultValues()}>
+          {/* ... */}
+      </Form>
+    </div>
+  );
+};
+
+export default SimpleFormLayout;
+```
+Also make the following style changes to make our layout stand apart:
+
+```scss title="apps/theme/formBuilder/styles/theme.scss"
+//..
+.webiny-fb-form-layout-simple .webiny-fb-form {
+  background-color: #cadaf6;
+
+  .webiny-fb-form-field {
+    background-color: #cadaf6;
+  }
+}
+```
+
+### Register the New Form Layout
+Now that you have your newly created React component in place,
+let's register a new [`form layout`](/docs/references/form-builder/plugins#form-layout) plugin:
+
+```ts {2,14-22} title="apps/theme/formBuilder/index.ts"
+import DefaultFormLayout from "./layouts/DefaultFormLayout";
+import SimpleFormLayout from "./layouts/SimpleFormLayout";
+
+export default [
+  {
+    name: "form-layout-default",
+    type: "form-layout",
+    layout: {
+      name: "default",
+      title: "Default layout",
+      component: DefaultFormLayout
+    }
+  },
+  {
+    name: "form-layout-simple",
+    type: "form-layout",
+    layout: {
+      name: "simple",
+      title: "Simple layout",
+      component: SimpleFormLayout
+    }
+  }
+];
+
+```
+
+After making these changes head over to the Form Builder app and try using your newly added form layout.
+
+<!-- vale off -->
+
+<img
+  src={require("./images/webiny-theme-form-layout.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="Webiny form builder preview"
+/>
+
+<!-- vale on -->
