@@ -89,8 +89,8 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/development/environment-variables",
-                       /* {
+                        "how-to-guides/development/environment-variables"
+                        /* {
                             type: "category",
                             label: "Workflows",
                             items: [
@@ -204,7 +204,16 @@ module.exports = {
                 },
                 "key-topics/tools-libraries",
                 "key-topics/ci-cd",
-                "key-topics/webiny-cli"
+                "key-topics/webiny-cli",
+                {
+                    type: "category",
+                    label: "Scaffolding",
+                    items: [
+                        "key-topics/scaffolds/graphql-api",
+                        "key-topics/scaffolds/admin-area-module",
+                        "key-topics/scaffolds/react-component"
+                    ]
+                }
             ],
             References: [
                 {
@@ -223,7 +232,7 @@ module.exports = {
             Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         {
-            "Changelog": ["changelog/5.3.0"]
+            Changelog: ["changelog/5.3.0"]
         },
         "webiny-telemetry"
     ]
