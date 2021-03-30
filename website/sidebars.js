@@ -89,8 +89,8 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/development/environment-variables",
-                       /* {
+                        "how-to-guides/development/environment-variables"
+                        /* {
                             type: "category",
                             label: "Workflows",
                             items: [
@@ -223,7 +223,7 @@ module.exports = {
             Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         {
-            "Changelog": ["changelog/5.3.0"]
+            Changelog: ["changelog/5.3.0", "changelog/5.4.0"]
         },
         "webiny-telemetry"
     ]
