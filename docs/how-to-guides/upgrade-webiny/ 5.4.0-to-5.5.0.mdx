@@ -50,13 +50,13 @@ In your [`api/pulumi/prod/index.ts`](https://github.com/webiny/webiny-js/blob/ne
 };
 ```
 
-This will expose the ARNs of Lambda functions that are part of the Prerendering Service, enabling us to execute them upon deploying the **Website** project application.
+This will expose the [ARNs](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) of Lambda functions that are part of the Prerendering Service, enabling us to execute them upon deploying the **Website** project application (happen automatically).
 
 ### 2. Adjust Cloud Infrastructure Settings (Website Project Application)
 
 #### Adjust Delivery CloudFront Distribution's `pathPattern` Property
 
-Open your [`apps/website/pulumi/delivery.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/apps/website/pulumi/delivery.ts#L53) and replace the `pathPattern: "/static/*"` with `pathPattern: "/static-*",`:
+Open your [`apps/website/pulumi/delivery.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/apps/website/pulumi/delivery.ts#L53) and replace the `pathPattern: "/static/*"` with `pathPattern: "/static-*"`:
 
 ```ts title="apps/website/pulumi/delivery.ts" {14}
 (...)
@@ -84,7 +84,17 @@ Open your [`apps/website/pulumi/delivery.ts`](https://github.com/webiny/webiny-j
 (...)
 ```
 
-This change is here because your Website's React application will generate all static assets in the `static-{RANDOM_ID}` folder, mainly for better caching purposes.
+This change is here because, from this release, upon generating a production builds of React applications in your Webiny project, all static assets (JS, CSS, images) will be generated in the `static-{RANDOM_ID}` folder (previously `static`). This is mainly for better caching purposes.
+
+:::info
+As it was always the case, upon deploying **Website** and **Admin Area** project applications, all previously uploaded React production build files are removed. So, once the deployment is complete, in your Amazon S3 buckets, expect to have the `static` folder removed, and a new `static-{RANDOM_ID}` to be created.
+:::
+
+:::info
+Due to website prerendering improvements that the 5.4.0 release brings, in the Amazon S3 bucket that's deployed as part of the **Website** project application, expect to have multiple `static-{RANDOM_ID}` folders - one for each deploy. If you're deploying frequently and you end up having a lot of folders, you might want to schedule a cleanup task, that will delete folders that are no longer in use.
+
+Check out the [Cloud Infrastructure](/docs/key-topics/cloud-infrastructure/website/prerendering-pages) key topics section to learn more about all of the resources included in the process.
+:::
 
 #### Remove Static Assets Upload and Set `min`, `default`, and `max` TTLs to Zero
 
