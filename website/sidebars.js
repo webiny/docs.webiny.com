@@ -203,6 +203,7 @@ module.exports = {
                     ]
                 },
                 "key-topics/tools-libraries",
+                "key-topics/multi-tenancy",
                 "key-topics/ci-cd",
                 "key-topics/webiny-cli"
             ],
