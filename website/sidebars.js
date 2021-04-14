@@ -146,6 +146,31 @@ module.exports = {
                             type: "category",
                             label: "Headless CMS",
                             items: ["key-topics/webiny-applications/headless-cms/graphql-api"]
+                        },
+                        {
+                            type: "category",
+                            label: "Themes",
+                            items: [
+                                "key-topics/webiny-applications/themes/introduction",
+                                {
+                                    type: "category",
+                                    label: "Page Builder",
+                                    items: [
+                                        "key-topics/webiny-applications/themes/page-builder/introduction",
+                                        "key-topics/webiny-applications/themes/page-builder/colors",
+                                        "key-topics/webiny-applications/themes/page-builder/elements",
+                                        "key-topics/webiny-applications/themes/page-builder/layouts"
+                                    ]
+                                },
+                                {
+                                    type: "category",
+                                    label: "Form Builder",
+                                    items: [
+                                        "key-topics/webiny-applications/themes/form-builder/introduction",
+                                        "key-topics/webiny-applications/themes/form-builder/layouts"
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 },
@@ -198,31 +223,6 @@ module.exports = {
                                 "key-topics/cloud-infrastructure/website/overview",
                                 "key-topics/cloud-infrastructure/website/prerendering-pages",
                                 "key-topics/cloud-infrastructure/website/serving-pages"
-                            ]
-                        }
-                    ]
-                },
-                {
-                    type: "category",
-                    label: "Theme",
-                    items: [
-                        "key-topics/theme/introduction",
-                        {
-                            type: "category",
-                            label: "Page Builder",
-                            items: [
-                                "key-topics/theme/page-builder/introduction",
-                                "key-topics/theme/page-builder/colors",
-                                "key-topics/theme/page-builder/elements",
-                                "key-topics/theme/page-builder/layouts"
-                            ]
-                        },
-                        {
-                            type: "category",
-                            label: "Form Builder",
-                            items: [
-                                "key-topics/theme/form-builder/introduction",
-                                "key-topics/theme/form-builder/layouts"
                             ]
                         }
                     ]
