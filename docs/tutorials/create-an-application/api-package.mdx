@@ -191,14 +191,172 @@ query ListCarManufacturerQuery {
 	}
 }
 ```
-## Adding Additional Schema to the Code
-When you want to extend the GraphQL schema you should add it to the `typeDefs` property of the `GraphQLSchemaPlugin` in `packages/car-manufacturers/api/src/index.ts` file.
+## Adding Additional Fields to the Code
 
-## Adding Additional Resolvers to the Code
-When you add some additional schema, you also must add the resolver for it.
-You should add it to the `resolvers` property of the `GraphQLSchemaPlugin` in `packages/car-manufacturers/api/src/index.ts` file.
+### The GraphQL
+For example, if you want to add a text field named `body`, you would need to add it into the `CarManufacturer` type, `CarManufacturerCreateInput` and `CarManufacturerUpdateInput` inputs and, if you want to filter by it, you need to add it into the input definition `CarManufacturerListWhereInput` to make it available via the GraphQL.
+```graphql title="packages/car-manufacturers/api/src/graphql.ts"
+# carManufacturer definition
+type CarManufacturer {
+    id: ID!
+    createdOn: DateTime!
+    savedOn: DateTime!
+    createdBy: CarManufacturerCreatedByResponse!
+    title: String!
+    description: String
+    isNice: Boolean!
+	# new field
+	body: String
+}
+# input definition when creating the carManufacturer
+input CarManufacturerCreateInput {
+    title: String!
+    description: String
+    isNice: Boolean
+	# new field - not required
+	body: String
+}
+# input definition when updating the carManufacturer
+input CarManufacturerUpdateInput {
+    title: String
+    description: String
+    isNice: Boolean
+	# new field - not required
+	body: String
+}
+# possible where filters when listing carManufacturers
+input CarManufacturerListWhereInput {
+    # system fields
+    id: String
+    id_in: [String!]
+    id_not: String
+    id_not_in: [String!]
+    savedOn_gt: DateTime
+    savedOn_lt: DateTime
+    createdOn_gt: DateTime
+    createdOn_lt: DateTime
 
-Be aware that the resolver should be under the `CarManufacturerQuery` or `CarManufacturerMutation` properties, if you added schema into those.
+    # custom fields
+    title_contains: String
+    title_not_contains: String
+    isNice: Boolean
+	# new field filtering
+	body_contains: String
+}
+```
+### The Types
+You need to add it into the `types.ts` interfaces `CarManufacturer`, `CreateCarManufacturerArgs` and `UpdateCarManufacturerArgs` to make it available in the Typescript. Also, remember to add the filtering types into the `ListCarManufacturersWhere` interface.
+
+```typescript title="packages/car-manufacturers/api/src/types.ts"
+/**
+ * Definition for the CarManufacturer model in the code.
+ */
+export interface CarManufacturer {
+    // system fields
+    id: string;
+    createdOn: string;
+    savedOn: string;
+    createdBy: Identity;
+    savedBy: Identity;
+    // user defined values
+    title: string;
+    description?: string;
+    isNice: boolean;
+	// new field
+    body?: string;
+}
+
+/**
+ * Mutation arguments definition for the creation of the CarManufacturer.
+ */
+export interface CreateCarManufacturerArgs {
+    data: {
+        title: string;
+        description?: string;
+        isNice?: boolean;
+        // new field - which is not required
+        body?: string;
+    };
+}
+/**
+ * Mutation arguments definition for the update of the CarManufacturer.
+ */
+export interface UpdateCarManufacturerArgs {
+    id: string;
+    data: {
+        title: string;
+        description?: string;
+        isNice: boolean;
+		// new field - which is not required
+        body?: string;
+    };
+}
+/**
+ * Where definition when fetching a list of CarManufacturers.
+ */
+export interface ListCarManufacturersWhere {
+    // system fields
+    id?: string;
+    id_in?: string[];
+    id_not?: string;
+    id_not_in?: string[];
+    savedOn_gt?: Date;
+    savedOn_lt?: Date;
+    createdOn_gt?: Date;
+    createdOn_lt?: Date;
+    // custom fields fields
+    title_contains?: string;
+    title_not_contains?: string;
+    isNice?: boolean;
+	// new field filtering
+	body_contains?: string;
+}
+```
+
+### The Create and the Update
+To save the value of that field you need to add it into the `createCarManufacturer.ts`.
+
+```typescript title="packages/car-manufacturers/api/src/resolvers/createCarManufacturer.ts"
+/**
+ * Build the Target data model to be inserted into the database.
+ */
+const model: Target = {
+    id: mdbid(),
+    createdBy: security.getIdentity(),
+    savedBy: security.getIdentity(),
+    /**
+     * We need to transform the Date object to iso string since DynamoDB insert will not do it automatically.
+     */
+    createdOn: new Date().toISOString(),
+    savedOn: new Date().toISOString(),
+    /**
+     * Custom user defined fields.
+     */
+    title: data.title,
+    description: data.description,
+    isNice: data.isNice === undefined ? false : data.isNice,
+	// add new field
+    body: data.body,
+};
+```
+You do not need to add anything to update the field if you haven't changed the default code in the `updateCarManufacturer.ts`. If you changed the code, update it accordingly.
+
+### The Filtering
+For filtering to work, if you added it into the `CarManufacturerListWhereInput`, you must add it into the `createElasticsearchQuery` in the `packages/car-manufacturers/api/src/es.ts`.
+Here is a `body_contains` filter example:
+```typescript title="packages/car-manufacturers/api/src/es.ts"
+// somewhere in the end of the method add
+if (where.body_contains) {
+    query.must.push({
+        query_string: {
+            allow_leading_wildcard: true,
+            fields: "body",
+            query: `*${where.body_contains}*`
+        }
+    });
+}
+```
+If you added some other filters, you must add them into this function or filtering will not work.
 
 ## Building the Code
 When you make changes to the code, make sure you run `yarn webiny ws run build --folder=packages/car-manufacturers/api` to actually compile your code for the deployment.
