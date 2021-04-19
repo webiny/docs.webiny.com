@@ -1,0 +1,199 @@
+---
+id: elements
+title: Page Builder Theme - Elements
+sidebar_label: Elements
+keywords: ["Page Builder", "theme", "style", "elements"]
+description: Page Builder Theme - Elements
+---
+
+<!-- Always include this section on top of the page. -->
+
+:::tip What You’ll Learn
+- how elements are used in Page Builder theme
+- how to update elements in Page Builder theme
+:::
+
+## Overview
+
+Another way Webiny Page Builder ensures that visual styles follow your design system is by having certain style presets for some of the elements like the Button element as shown below:
+
+<!-- vale off -->
+
+<img
+  src={require("./images/webiny-theme-elements.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="Webiny theme elements"
+/>
+
+<!-- vale on -->
+
+## Elements Definition
+
+Elements are defined in the `elements` section of the [`pb-theme`](/docs/references/page-builder/plugins#pb-theme) plugin.
+It defines certain attributes for Page Builder elements that you can insert into your page content.
+For example:
+
+```ts title="apps/theme/pageBuilder/index.ts"
+(...)
+
+{
+  elements: {
+    button: {
+      types: [
+        { className: "", label: "Default" },
+        { className: "primary", label: "Primary" },
+        { className: "secondary", label: "Secondary" },
+        { className: "outline-primary", label: "Outline Primary" },
+        { className: "outline-secondary", label: "Outline Secondary" },
+        { className: "simple", label: "Simple" }
+      ]
+    },
+    heading: {
+      types: [{ className: "webiny-pb-typography-heading", label: "Default" }]
+    },
+    paragraph: {
+      types: [
+        { className: "webiny-pb-typography-body", label: "Body" },
+        { className: "webiny-pb-typography-description", label: "Description" }
+      ]
+    },
+    list: {
+      types: [
+        { className: "", label: "Default" },
+        { className: "webiny-pb-typography-list--primary", label: "Primary" },
+        { className: "webiny-pb-typography-list--secondary", label: "Secondary" }
+      ]
+    },
+    quote: {
+      types: [{ className: "webiny-pb-typography-quote", label: "Default" }]
+    }
+  }
+}
+
+(...)
+```
+
+Currently, only the following elements support this, for example:
+- `button`
+- `heading`
+- `paragraph`
+- `list`
+- `quote`
+
+But the point is that if you create a custom component for Page Builder, you can reference the same mechanism and add this functionality to your custom elements.
+
+The definition takes two keys:
+
+- `className`: Name of the CSS class that gets appended to that element.
+- `label`: This is what's shown in the dropdown when a user is selecting a style.
+
+<!-- vale off -->
+
+<img
+  src={require("./images/webiny-theme-elements.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="Webiny theme elements"
+/>
+
+<!-- vale on -->
+
+### Button Element
+
+In the case of the `button` element, the `types` attribute contains available button types.
+Each type references a specific class name that gets added to the button component when that type is selected.
+
+:::note
+By default, Webiny uses [BEM naming](http://getbem.com/introduction/).
+The default button class is `webiny-pb-element-button`, so when the user selects the `primary` button type,
+it adds a modifier of `primary` to the base class, meaning the resulting class name becomes `webiny-pb-element-button--primary`.
+:::
+
+## Extend Button Element Types
+We achieve this in two steps:
+1. Add a new item in button types
+2. Add styles corresponding to that type
+
+### Add New Item in Button Types
+Make the following change in [`apps/theme/pageBuilder/index.ts`](https://github.com/webiny/webiny-js/blob/next/apps/theme/pageBuilder/index.ts#L21) file:
+
+```ts {11} title="apps/theme/pageBuilder/index.ts"
+(...)
+
+  elements: {
+    button: {
+        types: [
+            { className: "", label: "Default" },
+            { className: "primary", label: "Primary" },
+            { className: "secondary", label: "Secondary" },
+            { className: "outline-primary", label: "Outline Primary" },
+            { className: "outline-secondary", label: "Outline Secondary" },
+            { className: "simple", label: "Simple" },
+            { className: "playful", label: "Playful" }
+        ]
+    },
+    // More elements
+
+(...)
+```
+
+### Add Styles
+Make the following changes in [`apps/theme/pageBuilder/styles/elements/button.scss`](https://github.com/webiny/webiny-js/blob/next/apps/theme/pageBuilder/styles/elements/button.scss#L39) file:
+
+```scss title="apps/theme/pageBuilder/styles/elements/button.scss"
+// Some code is removed for the sake of brevity.
+(...)
+// Style definitation for "Playful" button type
+@mixin button-playful {
+  display:inline-block;
+  padding:0.7em 1.4em;
+  border-radius:0.15em;
+  box-sizing: border-box;
+  text-decoration:none;
+  text-transform:uppercase;
+  font-weight:400;
+  color:#FFFFFF;
+  background-color:#3369ff;
+  box-shadow:inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17);
+  text-align:center;
+  position:relative;
+  &.active {
+    top:0.1em;
+  }
+}
+//..
+.webiny-pb-page-element-button {
+ // Use new style definition
+  &--playful {
+    @include button-playful();
+  }
+  // more style definitions
+}
+.webiny-pb-media-query--tablet
+.webiny-pb-page-element-button {
+  // Use new style definition
+  &--playful {
+    @include button-playful();
+  }
+}
+.webiny-pb-media-query--mobile-landscape
+.webiny-pb-page-element-button,
+.webiny-pb-media-query--mobile-portrait
+.webiny-pb-page-element-button {
+  // Use new style definition
+  &--playful {
+    @include button-playful();
+  }
+}
+
+(...)
+```
+With these changes in place, the `button` element gets a new type available to use in the Page Builder editor as shown below:
+<!-- vale off -->
+
+<img
+  src={require("./images/webiny-theme-new-button-type.gif").default}
+  style={{ marginBottom: 20 }}
+  alt="Webiny theme new button element type"
+/>
+
+<!-- vale on -->

@@ -147,6 +147,31 @@ module.exports = {
                             type: "category",
                             label: "Headless CMS",
                             items: ["key-topics/webiny-applications/headless-cms/graphql-api"]
+                        },
+                        {
+                            type: "category",
+                            label: "Themes",
+                            items: [
+                                "key-topics/webiny-applications/themes/introduction",
+                                {
+                                    type: "category",
+                                    label: "Page Builder",
+                                    items: [
+                                        "key-topics/webiny-applications/themes/page-builder/introduction",
+                                        "key-topics/webiny-applications/themes/page-builder/colors",
+                                        "key-topics/webiny-applications/themes/page-builder/elements",
+                                        "key-topics/webiny-applications/themes/page-builder/layouts"
+                                    ]
+                                },
+                                {
+                                    type: "category",
+                                    label: "Form Builder",
+                                    items: [
+                                        "key-topics/webiny-applications/themes/form-builder/introduction",
+                                        "key-topics/webiny-applications/themes/form-builder/layouts"
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 },
@@ -217,6 +242,11 @@ module.exports = {
                     type: "category",
                     label: "Page Builder",
                     items: ["references/page-builder/plugins"]
+                },
+                {
+                    type: "category",
+                    label: "Form Builder",
+                    items: ["references/form-builder/plugins"]
                 }
             ]
         },
