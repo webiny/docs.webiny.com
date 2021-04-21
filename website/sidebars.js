@@ -89,7 +89,8 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/development/environment-variables"
+                        "how-to-guides/development/use-watch-command",
+                        "how-to-guides/development/environment-variables",
                         /* {
                             type: "category",
                             label: "Workflows",
@@ -117,7 +118,6 @@ module.exports = {
                     type: "category",
                     label: "Webiny CLI",
                     items: [
-                        "how-to-guides/webiny-cli/use-watch-command",
                         "how-to-guides/webiny-cli/working-with-workspaces"
                     ]
                 },
