@@ -117,15 +117,14 @@ module.exports = {
                 {
                     type: "category",
                     label: "Webiny CLI",
-                    items: [
-                        "how-to-guides/webiny-cli/working-with-workspaces"
-                    ]
+                    items: ["how-to-guides/webiny-cli/working-with-workspaces"]
                 },
                 {
                     type: "category",
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
                         "how-to-guides/upgrade-webiny/5.0.0-to-5.1.0",
                         "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"
                     ]
@@ -149,6 +148,31 @@ module.exports = {
                             type: "category",
                             label: "Headless CMS",
                             items: ["key-topics/webiny-applications/headless-cms/graphql-api"]
+                        },
+                        {
+                            type: "category",
+                            label: "Themes",
+                            items: [
+                                "key-topics/webiny-applications/themes/introduction",
+                                {
+                                    type: "category",
+                                    label: "Page Builder",
+                                    items: [
+                                        "key-topics/webiny-applications/themes/page-builder/introduction",
+                                        "key-topics/webiny-applications/themes/page-builder/colors",
+                                        "key-topics/webiny-applications/themes/page-builder/elements",
+                                        "key-topics/webiny-applications/themes/page-builder/layouts"
+                                    ]
+                                },
+                                {
+                                    type: "category",
+                                    label: "Form Builder",
+                                    items: [
+                                        "key-topics/webiny-applications/themes/form-builder/introduction",
+                                        "key-topics/webiny-applications/themes/form-builder/layouts"
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 },
@@ -219,6 +243,11 @@ module.exports = {
                     type: "category",
                     label: "Page Builder",
                     items: ["references/page-builder/plugins"]
+                },
+                {
+                    type: "category",
+                    label: "Form Builder",
+                    items: ["references/form-builder/plugins"]
                 }
             ]
         },
@@ -226,7 +255,7 @@ module.exports = {
             Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         {
-            Changelog: ["changelog/5.3.0"]
+            Changelog: ["changelog/5.4.0", "changelog/5.3.0"]
         },
         "webiny-telemetry"
     ]
