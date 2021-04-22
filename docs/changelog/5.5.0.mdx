@@ -29,7 +29,7 @@ The brand new `webiny watch` command brings local development experience to a wh
 
 #### How We Currently Do It
 
-Let’s say you wanted to expand the default GraphQL API, that’s deployed as part of the [API](/docs/key-topics/cloud-infrastructure/api/introduction) project application. At the moment, in order to do that, you’d have make the following steps:
+Let’s say you wanted to expand the default GraphQL API, that’s deployed as part of the [API](/docs/key-topics/cloud-infrastructure/api/introduction) project application. At the moment, in order to do that, you’d have to do the following:
 
 - start a watch session on relevant packages using the [`webiny workspaces run`](/docs/how-to-guides/webiny-cli/working-with-workspaces) command
 - make your code changes
@@ -39,8 +39,8 @@ Let’s say you wanted to expand the default GraphQL API, that’s deployed as p
 This is not ideal for a couple of reasons:
 
 - you're required to manually execute the `webiny deploy` command all the time
-- the `webiny deploy` command always builds all of the project application's packages at the beginning, which can be really slow
-- apart from running the `webiny deploy`, you also need to separately run the mentioned `webiny workspaces run` command, in order to establish watch session on packages you're working on
+- the `webiny deploy` command always builds _all of the project application's packages_, which can be really slow
+- apart from running the `webiny deploy`, you also need to separately run the `webiny workspaces run` command we mentioned before, in order to establish watch session on packages you're working on
 
 #### The New Way
 
@@ -50,11 +50,11 @@ From now on, you'll be able to just run the `yarn webiny watch api --env {your-e
 
 #### Logs
 
-And there's actually more! By simply appending the `--logs` argument to the `webiny watch` command, you also gain the ability to stream all logs from your application code (Lambda functions), directly to your terminal:
+And there's more! By simply appending the `--logs` argument to the `webiny watch` command, you also gain the ability to stream all logs from your application code (Lambda functions), directly to your terminal:
 
 <CenteredImage alt="Webiny CLI - Streaming Logs To Your Terminal" src={watchCommandLogs} />
 
-This basically means no more digging through [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) logs while developing or debugging your backend application code.
+This basically means **no more digging** through [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) logs while developing or debugging your backend application code.
 
 #### Learn More
 
@@ -76,14 +76,12 @@ yarn webiny ws tree --help
 
 ### CMS Permissions - [(#1562)](https://github.com/webiny/webiny-js/pull/1562)
 
-This release introduces an upgrade in CMS permissions. It includes small changes in permission selector UI and permission structure.
-It aims to improve defining fine-grained permissions and making them easy to grasp.
+This release introduces an upgrade to CMS permissions. It includes changes in permission editor UI and permission data structure. The goal is to improve the process of defining fine-grained permissions and make them easier to grasp.
 
-Now you can define access to specific content model groups and based on that the list of available content models gets updated.
-
-All the existing CMS permissions defined in security groups and API keys get migrated to the new structure via the update widget.
+Now you have to define access to specific content model groups first, and based on that, the list of available content models gets updated. The navigation in the Admin Area is also improved by introducing this configuration flow.
 
 <CenteredImage alt="Headless CMS - permission selector UI" src={headlessCmsPermissionUI1} />
+
 <CenteredImage
   alt="Headless CMS - permission selector UI"
   src={headlessCmsPermissionUI2}
@@ -91,8 +89,12 @@ All the existing CMS permissions defined in security groups and API keys get mig
 />
 
 :::caution
-We recommend verifying the CMS permission after the update just to double-check that they reflect exactly what is expected.
+We recommend verifying your CMS permissions after the upgrade, to make sure they reflect exactly what is expected.
 :::
+
+### Rich Text Content Renderer
+
+Up until now, you had to manually render rich text content that comes from the Headless CMS. To make it a lot easier for you, we've finally introduced a dedicated component to do the heavy lifting. For details, see the [how-to guide on rendering the rich text content](/docs/how-to-guides/headless-cms/rendering-rich-text/).
 
 ## Other
 
@@ -114,7 +116,7 @@ apps/admin/.pulumi
 apps/website/.pulumi
 ```
 
-Because of the fact that these files change on every deploy and that interferes with the new `webiny watch` command, we've been forced to move these folders outside of project application folders. So, all of your locally stored cloud infrastructure state files are now located in your project root, inside of the new `.pulumi` folder:
+Because these files change on every deploy, and that interferes with the new `webiny watch` command, we've been forced to move these folders outside of project application folders. So, all of your locally stored cloud infrastructure state files are now located in your project root, inside the new `.pulumi` folder:
 
 ```bash
 .pulumi/api/.pulumi
@@ -156,10 +158,10 @@ The **Admin Area** and **Website** React applications also received a `watch` sc
 
 #### 6. Custom Packages - New `build` and `watch` Scripts
 
-Every custom-made package in your project now uses new `build` and `watch` scripts, located in its `package.json` file.
+Every custom package in your project now uses the new `build` and `watch` scripts, located in its `package.json` file.
 
 :::info
-Custom-made packages are, for example, packages created with the `webiny scaffold` command.
+Custom packages are, for example, packages created with the `webiny scaffold` command.
 :::
 
 The new `scripts` section should look like the following:
@@ -173,7 +175,7 @@ The new `scripts` section should look like the following:
 (...)
 ```
 
-In order for these to work, the `@webiny/cli` and `@webiny/project-utils` were added as development dependencies within the `devDependencies` property. And finally, the `webiny.config.js` file was created, which defines the actual `build` and `watch` commands.
+In order for these to work, the `@webiny/cli` and `@webiny/project-utils` were added as development dependencies within the `devDependencies` property. Finally, the `webiny.config.js` file was created, which defines the actual `build` and `watch` commands.
 
 :::info
 Check this [example package](https://github.com/webiny/webiny-js/blob/watch/packages/cli-plugin-scaffold-graphql-service/template) to see updated [`package.json`](https://github.com/webiny/webiny-js/blob/watch/packages/cli-plugin-scaffold-graphql-service/template/package.json) and [`webiny.config.js`](https://github.com/webiny/webiny-js/blob/watch/packages/cli-plugin-scaffold-graphql-service/template/webiny.config.js) files.
