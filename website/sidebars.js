@@ -89,7 +89,8 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/development/environment-variables"
+                        "how-to-guides/development/use-watch-command",
+                        "how-to-guides/development/environment-variables",
                         /* {
                             type: "category",
                             label: "Workflows",
