@@ -12,6 +12,10 @@ import securityGroupsPermissions from "./securing-your-application/security-grou
 import addedSecurityPermissionsGroup from "./securing-your-application/added-security-permissions-group.png";
 import unprotectedQuery from "./securing-your-application/unprotected-query.png";
 import unprotectedMutation from "./securing-your-application/unprotected-mutation.png";
+import graphqlAuthError from "./securing-your-application/query-auth-error.png";
+import createTestUser from "./securing-your-application/create-test-user.png";
+import newSecurityGroup from "./securing-your-application/new-security-group.png";
+import contentLocaleSection from "./securing-your-application/content-locale-section.png";
 
 :::tip What you'll learn
 - what are security permissions and, on the code level, security permissions objects
@@ -65,17 +69,21 @@ A simple security permission object might look something like the following:
 
 Usually, security permissions are assigned to identities via security groups.
 
+:::info
+NOTE OVO JE SAMO Admin. Vidi jos gdje staviti ovo, ne mora biti tu.
+:::
+
 Within Webiny's built-in Security application, every identity (for example, a logged in user) belongs to **exactly one** security group. But, note that a single security group can have multiple security permissions objects assigned to it, allowing or preventing access across multiple Webiny and your custom applications.
 
-This can be seen while creating a new security group via the security groups module in the Admin Area where you get to specify permissions for every installed Webiny application:
+This can be seen while creating a new security group via the security groups module in the Admin Area, where you get to specify permissions for every installed Webiny application:
 
 <CenteredImage alt="Only a Single Security Group Allowed" src={securityGroupsPermissions} />
 
-Internally, making changes in one or more of these sections will result in one or more permission objects to be created. And, once we submit the form, all of the different permission objects that were created in the process, are sent to the GraphQL API and stored in the database (along with other general security group information - name, slug, and description).
+Internally, making changes in one or more of these sections will result in one or more permission objects to be created. So, once we submit the form, all of the different permission objects that were created in the process, are sent to the GraphQL API and stored in the database (along with other general security group information - name, slug, and description).
 
-Ultimately, no matter if we're performing authorization on the API side or in the UI, via a couple of built-in utilities, we can retrieve identity's security group and all of the permissions it contains. With that data, we can then determine whether a user has access to a particular API resource or a section in the UI.
+Ultimately, no matter if we're performing authorization on the API side or in the UI, via a couple of built-in Security application's utilities, we can retrieve identity's security group and all of the permissions it contains. With that data, we can then determine whether a user has access to a particular API resource or a section in the UI.
 
-## Defining Custom Security Permissions
+## Creating Custom Security Permissions
 
 By adding a new permissions section in the security group form that we've seen above, we can allow system administrators to manually toggle access for our own custom features, for all identities that are linked with the particular security group.
 
@@ -195,16 +203,26 @@ import permissions from "./permissions";
 export default (): Plugin[] => [menus(), routes(), permissions];
 ```
 
-By completing this step, we added the ability for system administrators to define whether an identity, that belongs to currently viewed security group, can perform read, write, and delete actions on the car manufacturers data, and also whether it has access to an imaginary special feature.
+By completing this step, we've added the new **Car Manufacturers** permissions section in the security group form. In other words, system administrators can now create new or extend existing security groups, and give access to our new Car Manufacturers module. For example, one security group can allow only reading car manufacturers data, while the other one may allow all three primary actions - read, write, and delete, and even allow access to the imaginary special feature.
 
-But note that, nothing will actually happen for identities that have or don't have these permissions in their security group. We still need to implement the actual logic, both on the API and Admin Area side, which we cover in the following sections.
+But note that, nothing will actually happen for identities that have or don't have these newly added permissions in their security group. We still need to implement the actual authorization logic, both on the GraphQL API and Admin Area side, which we cover in the following sections.
+
+Before we continue, now that we have the new security permissions section, let's create the new **Car Manufacturers** security group, that enables full access to our new Car Manufacturers module. We'll need this security group in order to perform some testing down the road.
+
+<CenteredImage alt="New Car Manufacturers Security Group" src={newSecurityGroup} />
+
+### Content Locales
+
+While creating the new Car Manufacturers security group, you might have noticed you immediately get to define access on a locale level.
+
+<CenteredImage alt="asd" src={contentLocaleSection} />
+
 
 ## Securing GraphQL API Resolvers
 
-OVO DOLJE
-```
-yarn webiny ws run watch --folder packages/car-manufacturers
-```
+:::tip
+yarn webiny watch negdje ubaciti
+:::
 
 At the moment, the `CarManufacturer` queries and mutations, that we added to our main GraphQL API in the [API Package tutorial](/docs/tutorials/create-an-application/api-package), are publicly exposed.
 
@@ -246,26 +264,47 @@ All of the GraphQL resolver functions are located in the `packages/car-manufactu
 
 As an example, we can open the simplest resolver, which is the `getCarManufacturer.ts`, and add the following lines of code:
 
-```ts title="packages/car-manufacturers/api/src/resolvers/getCarManufacturer.ts"
+```ts title="packages/car-manufacturers/api/src/resolvers/getCarManufacturer.ts" {17-34}
 import { Response, NotFoundResponse } from "@webiny/handler-graphql";
+import { NotAuthorizedResponse } from "@webiny/api-security";
+
 import { utils } from "../utils";
-import { ApplicationContext, GetCarManufacturerArgs, ResolverResponse, CarManufacturer } from "../types";
+import {
+    ApplicationContext,
+    GetCarManufacturerArgs,
+    ResolverResponse,
+    CarManufacturer
+} from "../types";
 
 const getCarManufacturer = async (
     _,
     args: GetCarManufacturerArgs,
     context: ApplicationContext
 ): Promise<ResolverResponse<CarManufacturer>> => {
+    // We get the "car-manufacturers" permission from current identity (logged in user).
+    const permission = await context.security.getPermission("car-manufacturers");
+    if (!permission) {
+        return new NotAuthorizedResponse();
+    }
+
+    // Note that the received permission object can also be `{ name: "*" }`. If so, that
+    // means we are dealing with the super admin, who has unlimited access.
+    let hasAccess = permission.name === "*";
+    if (!hasAccess) {
+        // If not super admin, let's check if we have the "r" in the `rwd` property.
+        hasAccess = permission.name === "car-manufacturers" && permission.rwd.includes("r");
+    }
+
+    // Finally, if current identity doesn't have access, we immediately exit.
+    if (!hasAccess) {
+        return new NotAuthorizedResponse();
+    }
+
     const { db } = context;
     const { id } = args;
-    /**
-     * Primary key is always constructed out of the id and a fixed CarManufacturer configuration.
-     */
+
     const primaryKey = utils.createPk(context, id);
-    /**
-     * Fetch the CarManufacturer record from the DynamoDB.
-     * Response is a tuple of records (always an array) and plain object containing some query and response information.
-     */
+
     const response = await db.read<CarManufacturer>({
         ...utils.db(context),
         query: {
@@ -274,11 +313,10 @@ const getCarManufacturer = async (
         },
         limit: 1
     });
+
     const [items] = response;
     const [item] = items;
-    /**
-     * Fail with NotFoundResponse if no item.
-     */
+
     if (!item) {
         return new NotFoundResponse(`CarManufacturer with id "${id}" not found.`);
     }
@@ -289,9 +327,48 @@ const getCarManufacturer = async (
 export default getCarManufacturer;
 ```
 
+To see this new piece of authorization logic in action, we can use a GraphQL client, for example the [GraphQL Playground](https://github.com/graphql/graphql-playground), point it to our GraphQL API's URL, and try executing the following query:
+
+```graphql
+{
+  carManufacturers {
+    # Replace the `id` with the value that exists in your system.
+    getCarManufacturer (id: "6082ad846c073d0009ff0067") {
+      data {
+        id
+        title
+        isNice
+      }
+      error {
+        message
+        code
+        data
+      }
+    }
+  }
+}
+```
+
+:::tip Misplaced GraphQL API URL?
+Running the `yarn webiny info` command in your Webiny project folder will give you all of the relevant project URLs, including the URL of your GraphQL API.
+:::
+
+Without including the appropriate `Authorization` request header, we should receive the following error response:
+
+<CenteredImage alt="GraphQL Authorization Error" src={graphqlAuthError} />
+
+If you received the `SECURITY_NOT_AUTHORIZED` error, that means authorization was successful.
+
+On the other hand, if a valid `Authorization` request header is included, or in other words, the current identity actually has access to the car manufacturers module, the data should correctly be returned.
+
+To do that, we can simply create a new user via the Security / Users section, and either give it the Full Access security group, or the newly created
+
+<CenteredImage alt="Create a Test User" src={createTestUser} />
+
 ## Securing Admin Area Module
 
-Let's finish by adding authorization checks in the actual user interface.
+Let's wrap up this tutorial by adding authorization checks in the actual user interface. What we want to achieve is having a piece of UI hide if the currently logged-in user doesn't have access to it (doesn't have necessary security permissions).
+
 
 ## FAQ
 
