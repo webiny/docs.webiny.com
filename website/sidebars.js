@@ -89,7 +89,8 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/development/environment-variables"
+                        "how-to-guides/development/use-watch-command",
+                        "how-to-guides/development/environment-variables",
                         /* {
                             type: "category",
                             label: "Workflows",
@@ -110,7 +111,8 @@ module.exports = {
                     items: [
                         "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin",
                         "how-to-guides/headless-cms/create-a-content-model-form-layout",
-                        "how-to-guides/headless-cms/using-graphql-api"
+                        "how-to-guides/headless-cms/using-graphql-api",
+                        "how-to-guides/headless-cms/rendering-rich-text"
                     ]
                 },
                 {
@@ -123,6 +125,7 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
                         "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
                         "how-to-guides/upgrade-webiny/5.0.0-to-5.1.0",
                         "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"
@@ -254,7 +257,7 @@ module.exports = {
             Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         {
-            Changelog: ["changelog/5.4.0", "changelog/5.3.0"]
+            Changelog: ["changelog/5.5.0", "changelog/5.4.0", "changelog/5.3.0"]
         },
         "webiny-telemetry"
     ]
