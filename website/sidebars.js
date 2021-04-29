@@ -42,7 +42,15 @@ module.exports = {
                         "tutorials/create-an-application/introduction",
                         "tutorials/create-an-application/api-package",
                         "tutorials/create-an-application/admin-area-package",
-                        "tutorials/create-an-application/securing-your-application"
+                        {
+                            type: "category",
+                            label: "Securing Your Application",
+                            items: [
+                                "tutorials/create-an-application/security/introduction",
+                                "tutorials/create-an-application/security/graphql-api",
+                                "tutorials/create-an-application/security/admin-area"
+                            ]
+                        }
                     ]
                 },
                 {
@@ -90,8 +98,8 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/development/environment-variables",
-                       /* {
+                        "how-to-guides/development/environment-variables"
+                        /* {
                             type: "category",
                             label: "Workflows",
                             items: [
