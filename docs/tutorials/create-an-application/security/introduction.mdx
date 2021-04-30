@@ -22,31 +22,30 @@ import carManufacturersMenuItemHidden from "./assets/car-manufacturers-menu-item
 import routeNotAuthorized from "./assets/route-not-authorized.png";
 import hidingNewButton from "./assets/hiding-new-button.png";
 import hidingNewButtonHidden from "./assets/hiding-new-button-hidden.png";
+import securityGroupsModule from "./assets/security-groups-module.png";
 
 :::tip What you'll learn
 - what are security permissions and, on the code level, security permissions objects
-- how to secure your application:
-    - prevent unauthorized users from performing sensitive GraphQL API queries and mutations
-    - prevent unauthorized users from seeing user-interface sections
+- how to add a new permissions section to the Webiny Security application's security group form
 :::
 
 ## Overview
 
-In previous two sections, we've seen how we can quickly expand the GraphQL schema of the main GraphQL API, and also how we can add new modules in the **Admin Area** application. All with a couple of built-in scaffolding utilities.
+In previous two sections, we've seen how we can quickly expand the GraphQL schema of the main GraphQL API, and also how we can add new modules in the Webiny Admin Area application. All with a couple of built-in scaffolding utilities.
 
 In this tutorial, we expand our application by adding a layer of security around it. With it, we want to achieve the following:
 
 1. prevent users from executing GraphQL API queries and mutations, if they don't have the necessary security permissions
-2. prevent users from accessing modules we've added into the Admin Area application, if the user doesn't have the necessary security permissions
+2. prevent users from accessing modules we've added into the Webiny Admin Area application, if the user doesn't have the necessary security permissions
 
-Note that in order to implement both behaviours, we are relying on **security permissions**, which is the first step of implementing a security layer for our application, and is the first topic we cover in this tutorial.
+Note that in order to implement both behaviours, we are relying on **security permissions**, which is the first step of implementing a security layer for our application, and is the first topic we cover in this introduction section.
 
 :::info
 If you want to learn more about the main GraphQL API and how it works on the cloud infrastructure level, check out the [GraphQL Requests](/docs/key-topics/cloud-infrastructure/api/graphql-requests) page of the [Cloud Infrastructure - API](/docs/key-topics/cloud-infrastructure/api/introduction) key topics section.
 :::
 
-:::warning
-Full Code example link
+:::info
+The code that we will cover in this tutorial can also be found in our [GitHub examples repository](https://github.com/webiny/webiny-examples/tree/master/extend-admin-area/security).
 :::
 
 ## Security Permissions
@@ -77,25 +76,21 @@ A simple security permission object might look something like the following:
 
 ## Assigning Security Permissions to Identities
 
-Usually, security permissions are assigned to identities via security groups.
+Within Webiny Admin Area application's security model, security permissions are assigned to identities via security groups.
 
-:::warning samo admin
-NOTE OVO JE SAMO Admin. Vidi jos gdje staviti ovo, ne mora biti tu.
-:::
+Every identity (for example, a logged in user) belongs to **exactly one** security group. But, note that a single security group can have multiple security permissions objects assigned to it, allowing or preventing access across multiple Webiny and your custom applications.
 
-Within Webiny's built-in Security application, every identity (for example, a logged in user) belongs to **exactly one** security group. But, note that a single security group can have multiple security permissions objects assigned to it, allowing or preventing access across multiple Webiny and your custom applications.
+This can be seen while creating a new security group via the security groups module.
 
-This can be seen while creating a new security group via the security groups module in the Admin Area, where you get to specify permissions for every installed Webiny application:
+<CenteredImage alt="Security Groups Module" src={securityGroupsModule} />
+
+By default, we get to specify permissions for every installed Webiny application:
 
 <CenteredImage alt="Only a Single Security Group Allowed" src={securityGroupsPermissions} />
 
-Internally, making changes in one or more of these sections will result in one or more permission objects to be created. So, once we submit the form, all of the different permission objects that were created in the process, are sent to the GraphQL API and stored in the database (along with other general security group information - name, slug, and description).
+Making changes in one or more of these sections will, internally, result in one or more permission objects to be created. And, once we submit the form, all of the different permission objects that were created in the process, are sent to the GraphQL API and stored in the database (along with other general security group information - name, slug, and description).
 
-:::warning identity-ji
-dodati ovdje da kada kreiramo security group, onda radimo assign grupe na identity-je
-:::
-
-Ultimately, no matter if we're performing authorization on the API side or in the UI, via a couple of built-in Security application's utilities, we can retrieve identity's security group and all of the permissions it contains. With that data, we can then determine whether a user has access to a particular API resource or a section in the UI.
+Ultimately, no matter if we're performing authorization on the API side or in the UI, via a couple of built-in code utilities, we can retrieve identity's security group and all of the permissions it contains. With that data, we can then determine whether a user has access to a particular API resource or a section in the UI (more on this in the following sections).
 
 ## Creating Custom Security Permissions
 
@@ -229,11 +224,11 @@ Note that, at this point, nothing will actually happen for identities that have 
 
 While creating the new Car Manufacturers security group, you might have noticed you immediately get to define access on a locale level.
 
-<CenteredImage alt="asd" src={contentLocaleSection} />
+<CenteredImage alt="Define Access on a Locale Level" src={contentLocaleSection} />
 
-:::warning
-dovrsiti temu ovdje
-:::
+This is because, out of the box, Webiny is a multi-locale system, and as such, it gives you the ability to specify which locales an identity can access. Note that you cannot specify different permissions for different locales. All of the permissions you specify in one or more permission sections will be applied to all allowed locales.
+
+For now, know that we will need to take this into account while performing the authorization checks in the following section. Also, for purposes of this tutorial, we can select **All Locales**, to allow access across all locales.
 
 ## FAQ
 
