@@ -7,21 +7,11 @@ description: Learn how you can secure your GraphQL API.
 ---
 
 import CenteredImage from "../../../mdxComponents/centeredImage";
-import securityGroupsSelection from "./assets/security-groups-selection.png";
-import securityGroupsPermissions from "./assets/security-groups-permissions.png";
-import addedSecurityPermissionsGroup from "./assets/added-security-permissions-group.png";
 import unprotectedQuery from "./assets/unprotected-query.png";
 import unprotectedMutation from "./assets/unprotected-mutation.png";
 import graphqlAuthError from "./assets/query-auth-error.png";
 import graphqlAuthSuccess from "./assets/query-auth-success.png";
 import createTestUser from "./assets/create-test-user.png";
-import newSecurityGroup from "./assets/new-security-group.png";
-import contentLocaleSection from "./assets/content-locale-section.png";
-import carManufacturersMenuItem from "./assets/car-manufacturers-menu-item.png";
-import carManufacturersMenuItemHidden from "./assets/car-manufacturers-menu-item-hidden.png";
-import routeNotAuthorized from "./assets/route-not-authorized.png";
-import hidingNewButton from "./assets/hiding-new-button.png";
-import hidingNewButtonHidden from "./assets/hiding-new-button-hidden.png";
 
 :::tip What you'll learn
 - prevent unauthorized users from performing sensitive GraphQL API queries and mutations
@@ -37,11 +27,11 @@ At the moment, the `carManufacturers` queries and mutations, that we added to ou
 
 For example, if were to perform a simple `listCarManufacturers` GraphQL query, we would receive a list of all car manufacturers:
 
-<CenteredImage alt="Added Security Permissions Group" src={unprotectedQuery} />
+<CenteredImage alt="Exposed GraphQL Queries" src={unprotectedQuery} />
 
 Even more important, anybody can create new car manufacturers, with the `createCarManufacturer` GraphQL mutation:
 
-<CenteredImage alt="Added Security Permissions Group" src={unprotectedMutation} />
+<CenteredImage alt="Exposed GraphQL Mutations" src={unprotectedMutation} />
 
 In most cases, this is not the desirable behaviour, and you'll certainly want to have control over who can perform these GraphQL operations, and who cannot.
 
@@ -75,7 +65,7 @@ All of the GraphQL resolver functions are located in the `packages/car-manufactu
 
 For purposes of this tutorial, we can open the simplest resolver, which is the `getCarManufacturer.ts`, and add the following lines of code:
 
-```ts title="packages/car-manufacturers/api/src/resolvers/getCarManufacturer.ts" {2,4-5,13,14,22-51}
+```ts title="packages/car-manufacturers/api/src/resolvers/getCarManufacturer.ts" {2,4-5,13,14,22-54}
 import { Response, NotFoundResponse } from "@webiny/handler-graphql";
 import { NotAuthorizedResponse } from "@webiny/api-security";
 
@@ -98,8 +88,11 @@ const getCarManufacturer = async (
     context: ApplicationContext
 ): Promise<ResolverResponse<CarManufacturer>> => {
     // First, check if the current identity can perform the "getCarManufacturer" query,
-    // within the detected locale. An error will be thrown if access is not allowed.
-    await context.i18nContent.checkI18NContentPermission();
+    // within the detected locale. An error is thrown if access is not allowed.
+    const hasLocaleAccess = await context.i18nContent.hasI18NContentPermission();
+    if (!hasLocaleAccess) {
+        return new NotAuthorizedResponse();
+    }
 
     // Next, check if the current identity possesses the "car-manufacturers" permission.
     // Note that, if the identity has full access, "FullAccessPermission" permission
