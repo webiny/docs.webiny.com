@@ -24,6 +24,7 @@ import hidingNewButton from "./assets/hiding-new-button.png";
 import hidingNewButtonHidden from "./assets/hiding-new-button-hidden.png";
 
 :::tip What you'll learn
+
 - how to prevent unauthorized users from seeing user-interface sections in Webiny Admin Area
 :::
 
@@ -52,7 +53,7 @@ Note that when we say "has access", specifically in this case, we're going to ch
 
 The code for these menu items is located in the scaffolded [`packages/car-manufacturers/admin-app/src/menus.tsx`](https://github.com/webiny/webiny-examples/blob/master/extend-admin-area/security/packages/car-manufacturers/admin-app/src/menus.tsx) file. So, in there, we can add the following code:
 
-```tsx title="packages/car-manufacturers/admin-app/src/menus.tsx" {4,6,7,9,10,16-41}
+```tsx title="packages/car-manufacturers/admin-app/src/menus.tsx" {4,6,7,9,10,16-39}
 import React from "react";
 import { AdminMenuPlugin } from "@webiny/app-admin/types";
 import { ReactComponent as Icon } from "./assets/directions_car-24px.svg";
@@ -179,7 +180,9 @@ And that's how you secure your routes. Note that we've only checking if the logg
 
 ## React Components
 
-Let's see how we can prevent rendering of React components, in case the logged in user is not authorized to see them. For example, let's hide the New Car Manufacturer button, for users that aren't allowed to create or update existing car manufacturers (in our `car-manufacturers` permission object, this is determined via the `rwd` property).
+Let's see how we can prevent rendering of React components, in case the logged in user is not authorized to see them.
+
+For example, let's hide the New Car Manufacturer button, for users that aren't allowed to create new or update existing car manufacturers. This is determined via the `rwd` property in our `car-manufacturers` security permission object (letter `w` must be present in the string).
 
 <CenteredImage alt='Hiding the "New Car Manufacturer Button"' src={hidingNewButton} />
 
@@ -281,7 +284,7 @@ export default CarManufacturersDataList;
 In order to conditionally render the New Car Manufacturer button, we are using the [`SecureView`](https://github.com/webiny/webiny-js/blob/next/packages/app-security/src/components/SecureView.tsx) React component, imported from the [`@webiny/app-security`](https://github.com/webiny/webiny-js/tree/next/packages/app-security) package.
 :::
 
-And again, with this newly added code in place, we should no longer see the New Car Manufacturer button if the user doesn't posses the **write** permission.
+Once again, with this newly added code in place, we should no longer see the New Car Manufacturer button if the logged in user isn't allowed to create new or update existing car manufacturers (letter `w` must be present in the `rwd` property of our `car-manufacturers` security permission object).
 
 <CenteredImage
   alt='Hiding the "New Car Manufacturer Button" (Hidden)'
@@ -290,13 +293,15 @@ And again, with this newly added code in place, we should no longer see the New 
 
 And that's how we can use the `SecureView` React component to conditionally render a React component.
 
+Note that, instead of the `SecureView` React component, we could've also easily used the previously shown `useSecurity` React hook. The component is used here mainly mainly for demonstration purposes and to raise awareness of its existence.
+
 ## Final Notes
 
 We've covered all of the possible ways you can perform authorization checks, while developing new Webiny Admin Area modules:
 
-- the `useSecurity` React hook
-- the `SecureRoute` React component
-- the `SecureView` React component
+- `useSecurity` React hook
+- `SecureRoute` React component
+- `SecureView` React component
 
 It's useful to know that that these utilities can be used outside of the Webiny Admin Area as well, like for example in a custom React application.
 
@@ -304,10 +309,12 @@ It's useful to know that that these utilities can be used outside of the Webiny 
 To learn more about how to use these in a custom React application, please check out the dedicated article (coming soon).
 :::
 
-Finally, note that there are still a couple of places in which we would want to perform authorization checks. Also, in the same way as in the previous [GraphQL API section](/docs/tutorials/create-an-application/security/graphql-api), in case you start seeing yourself copying some of the authorization related code, it's certainly recommended that you extract it into one or more separate utility functions. This way we're not repeating our selves (DRY and our code will be more maintainable and less error-prone.
+Furthermore, note that there are still places in the user interface, where we'd most probably want to perform authorization checks, using one of the shown utilities. For example, in the car manufacturers list, we certainly don't want to show the delete entry icon, if the user isn't allowed to perform the delete operation. Make sure to check the [full code example](https://github.com/webiny/webiny-examples/tree/master/extend-admin-area/security/packages/car-manufacturers/admin-app) to see how the rest of the authorization checks were implemented.
+
+Finally, like in the previous [GraphQL API section](/docs/tutorials/create-an-application/security/graphql-api), in case you start seeing yourself copying some of the authorization related code, it's certainly recommended that you extract it into one or more separate utility functions. This way we're not repeating our selves ([DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself)) and our code will be more maintainable and less error-prone.
 
 ## FAQ
 
-#### Can I assign multiple security groups to a single identity (user)?
+#### In the last part, could I use the `useSecurity` React hook instead of the `SecureView` React component?
 
-No, you can't. Every identity can be part of exactly one security group. If you are in a situation where you need to assign multiple security groups to an identity, you'll need to create a new security group, that consist of all permissions that are assigned to the initial two.
+Yes, you could certainly do that. In the last section of this tutorial, we used the `SecureView` component mainly for demonstration purposes and to raise awareness of its existence.
