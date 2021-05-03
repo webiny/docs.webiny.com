@@ -99,7 +99,7 @@ module.exports = {
                     label: "Development",
                     items: [
                         "how-to-guides/development/use-watch-command",
-                        "how-to-guides/development/environment-variables",
+                        "how-to-guides/development/environment-variables"
                         /* {
                             type: "category",
                             label: "Workflows",
@@ -116,6 +116,11 @@ module.exports = {
                 },
                 {
                     type: "category",
+                    label: "Admin Area",
+                    items: ["how-to-guides/admin-area/api-playground"]
+                },
+                {
+                    type: "category",
                     label: "Headless CMS",
                     items: [
                         "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin",
@@ -124,6 +129,7 @@ module.exports = {
                         "how-to-guides/headless-cms/rendering-rich-text"
                     ]
                 },
+
                 {
                     type: "category",
                     label: "Webiny CLI",
