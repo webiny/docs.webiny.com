@@ -58,7 +58,7 @@ const siteConfig = {
             },
             items: [
                 {
-                    href: "/",
+                    href: "https://www.webiny.com/",
                     label: "Webiny Home",
                     position: "right"
                 },
