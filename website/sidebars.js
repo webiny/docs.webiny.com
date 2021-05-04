@@ -90,7 +90,7 @@ module.exports = {
                     label: "Development",
                     items: [
                         "how-to-guides/development/use-watch-command",
-                        "how-to-guides/development/environment-variables",
+                        "how-to-guides/development/environment-variables"
                         /* {
                             type: "category",
                             label: "Workflows",
@@ -115,6 +115,7 @@ module.exports = {
                         "how-to-guides/headless-cms/rendering-rich-text"
                     ]
                 },
+                "how-to-guides/integrate-tailwindcss",
                 {
                     type: "category",
                     label: "Webiny CLI",
