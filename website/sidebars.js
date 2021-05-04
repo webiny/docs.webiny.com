@@ -37,7 +37,7 @@ module.exports = {
                 "tutorials/install-webiny",
                 {
                     type: "category",
-                    label: "Create An Application",
+                    label: "Create an Application",
                     items: [
                         "tutorials/create-an-application/introduction",
                         "tutorials/create-an-application/api-package",
