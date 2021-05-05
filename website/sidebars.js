@@ -89,19 +89,30 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/development/environment-variables",
+                        {
+                            type: "category",
+                            label: "Backend Applications",
+                            items: [
+                                "how-to-guides/development/serverless-applications/introduction"
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "Frontend Applications",
+                            items: ["how-to-guides/development/frontend-applications/introduction"]
+                        },
                         {
                             type: "category",
                             label: "Workflows",
                             items: [
                                 "how-to-guides/development/workflows/introduction",
-                                "how-to-guides/development/workflows/developing-serverless-applications",
+                                "how-to-guides/development/workflows/environments",
+                                "how-to-guides/development/workflows/version-control",
                                 "how-to-guides/development/workflows/cloud-infrastructure-state-files",
                                 "how-to-guides/development/workflows/ci-cd",
-                                "how-to-guides/development/workflows/environments",
-                                "how-to-guides/development/workflows/version-control"
                             ]
-                        }
+                        },
+                        "how-to-guides/development/environment-variables"
                     ]
                 },
                 {
