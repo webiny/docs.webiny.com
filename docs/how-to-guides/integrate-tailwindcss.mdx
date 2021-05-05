@@ -8,12 +8,12 @@ description: Learn how to integrate tailwindcss in your Webiny project.
 
 :::tip What you'll learn
 
-- how to install Tailwind CSS in your Webiny project
+- how to integrate Tailwind CSS in your Webiny project
 :::
 
 ## Overview
 
-[Tailwindcss](https://tailwindcss.com/) is a popular utility-first CSS framework.
+[Tailwind CSS](https://tailwindcss.com/) is a popular utility-first CSS framework.
 One of the most frequently asked question is **how to add tailwindcss in Webiny project?** in this guide we'll answer exactly that.
 So without further ado let's start.
 
@@ -41,14 +41,16 @@ Webiny currently uses [Webpack 4](https://v4.webpack.js.org/) which doesn't supp
 
 ### Add Tailwindcss to Webpack Configuration
 
-We need to add the `tailwindcss` to the `postcss` plugins inside the webpack configuration. Let's see how:
+We need to add the `tailwindcss` to the `postcss` plugins inside the webpack configuration of the application.
+Let's see how to do that. In this guide, we integrate `tailwindcss` to the **Website** `(apps/website)` application.
+But, you can use the same approach for other Webiny applications or a custom application for that matter. 
 
 Every Webiny application has a `webiny.config.js` file which exports the commands for processing the application.
 In case of **Website**`(apps/website)` it contains following commands:
-- start to start the app
-- build to build the app
+- `start` to start the application
+- `build` to build the application
 
-Let's take a look at:
+Let's take a brief look at the file content:
 
 ```js title="apps/website/code/webiny.config.js"
 const { startApp, buildApp } = require("@webiny/project-utils");
@@ -69,9 +71,14 @@ module.exports = {
     }
 };
 ```
-<!-- TODO: Add a bit more detial about why we need to change it in to places. -->
-<!-- TODO: Also explain what is the webpack in options. -->
-Both `startApp` and `buildApp` functions `options` argument contains the webpack configuration which we will update to support tailwindcss.
+As you can see in the above file, we exports an object with `commands.start` and `commands.build` functions.
+
+We use `startApp` and `buildApp` helper functions that we imported from `"@webiny/project-utils"` in `commands.start` and `commands.build` respectively.
+
+Both, `startApp` and `buildApp` function, takes two arguments: `options` and `context`. 
+
+You can pass a function named `webpack` to this `options` object. It receives `config` as the single argument and should return the new config for webpack.
+We will make use of this function to add `tailwindcss` support in our webpack configuration.
 
 Let's see how:
 ```js title="apps/website/code/webiny.config.js {10-15,23-28}"
@@ -111,7 +118,14 @@ module.exports = {
 ```
 
 As you can see from the code example above. We use `options.webpack` to apply tailwindcss to webpack in both `startApp` and `buildApp`.
-Now, let's take a look at what does `applyTailwindToWebpack` do?
+
+:::info
+We made this change in both `startApp` and `buildApp` so that we can use `tailwindcss` in both local development and deployed application.
+:::
+
+The actual code responsible for making the required modifications to the webpack configuration is inside the `applyTailwindToWebpack` file.
+
+Let's take a look at the content of `applyTailwindToWebpack` file:
 
 ```js title="apps/website/code/applyTailwindToWebpack.js"
 const tailwindcss = require("tailwindcss");
@@ -135,13 +149,14 @@ module.exports = config => {
 };
 ```
 
-Here we `exports` a helper function to modify webpack configuration. It takes `config` as an argument and returns it after making some modifications to it.
+Here we `exports` a helper function that modify webpack configuration.
+It takes `config` as the single argument and returns the new configuration after making some modifications to it.
 
-Inside that function we use `traverseLoaders` helper function that we imported from `"@webiny/project-utils"` package.
-It traverse all the loaders defined in `modules.rules` property of the webpack configuration. And then for loaders that include `"postcss-loader"` we push `tailwindcss` to its plugins.
-Phew!.
+Inside that function we use `traverseLoaders` helper function that we `require` from `"@webiny/project-utils"` package.
+It traverse all the loaders defined in `modules.rules` property of the webpack configuration.
+And then for every loader that include `"postcss-loader"` we add `tailwindcss` as PostCSS plugin.
 
-Now that we have add `tailwindcss` to webpack config. Let's move on the next step.
+Now that we have add `tailwindcss` to webpack configuration. Let's move on the next step.
 
 ### Create Your Tailwindcss Configuration File
 Next, generate your `tailwind.config.js` file. From the root of your project run the following command:
@@ -152,7 +167,7 @@ tailwindcss init
 
 :::note
 We have created the `tailwind.config.js` file in the root of Webiny project because this way we can share it across all Webiny applications,
-for example, `(app/admin)` and `(apps/website)`.
+for example, `(apps/admin)` and `(apps/website)`.
 :::
 
 This creates a minimal `tailwind.config.js` file at the root of your project:
@@ -175,15 +190,18 @@ module.exports = {
 Learn more about configuring Tailwind in the [configuration documentation](https://tailwindcss.com/docs/configuration).
 :::
 
-Now we use this root level configuration in the **Website** `(apps/website)` application as shown below:
+Now that we have this global configuration, let's use it in the **Website** `(apps/website)` application as shown below:
 
 ```js title="apps/website/code/tailwind.config.js"
 // Import config from the project root
 module.exports = require("../../../tailwind.config");
 ```
 
-### Include Tailwind in Your CSS
-Open the `apps/theme/styles.scss` file that contains all theme styles and use the `@tailwind` directive to include Tailwind's `base`, `components`, and `utilities` styles:
+### Include Tailwind in Your SCSS
+Now it's time to include the tailwind directives in your styles.
+As most of the styles for Webiny applications are present in `(apps/theme)`, we will include tailwind there.
+
+Open the `apps/theme/styles.scss` file that exports all theme styles and use the `@tailwind` directive to include Tailwind's `base`, `components`, and `utilities` styles as show below:
 
 ```scss title="apps/theme/styles.scss"
 @tailwind base;
@@ -195,8 +213,7 @@ Open the `apps/theme/styles.scss` file that contains all theme styles and use th
 Tailwind will swap these directives out at build-time with all of the styles it generates based on your configured design system.
 
 
-
-You're finished! Now when you start your **Website** `(apps/website)` application locally by running
+That's all! Now when you start your **Website** `(apps/website)` application locally by running
 
 ```
 yarn start --env=local
