@@ -208,7 +208,8 @@ module.exports = {
                     type: "category",
                     label: "Security Framework",
                     items: [
-                        "key-topics/security-framework/introduction"
+                        "key-topics/security-framework/introduction",
+                        "key-topics/security-framework/api-security",
                     ]
                 },
                 "key-topics/ci-cd",

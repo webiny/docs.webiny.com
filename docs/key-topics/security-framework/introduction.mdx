@@ -23,12 +23,30 @@ Authentication is a process of verifying the provided credentials and retrieving
 
 ## What's an Identity?
 
-An identity is a _verified_ piece of information that tells us _who_ is using the system (be it API or React app). Identity must be determined during the `authentication` phase. If no identity is determined, the system uses
-the `anonymous` identity.
+An identity is a _verified_ piece of information that tells us _who_ is using the system (be it API or React app). Identity must be determined during the `authentication` phase.
 
 It is OK _not_ to have an identity. Not every interaction with the system requires authorization; and since
 authorization is performed based on the identity (we assign permissions to an identity), it just means that there
 are scenarios when having identity is not necessary.
+
+We use the following TS type to construct an identity instance when authentication is successful:
+
+```ts
+type SecurityIdentity = {
+  id: string;
+  type: string;
+  displayName: string;
+  [key: string]: any;
+};
+```
+
+The main piece of information is `id`. This can be an email, actual ID from your IdP, username, anything that makes that identity unique.
+
+`type` tells us what type of identity it is. This can help you distinguish between identities from different user pools, or tell you if the identity is an API key. It also helps you match the identity with your authorization logic. It's just a string that means something to you as a developer.
+
+`displayName` is used when we need to store a human-readable string to be displayed later.
+
+All the other properties are up to you, but the 3 properties specified above are mandatory.
 
 :::info Identity vs. User
 
@@ -56,7 +74,7 @@ contains a _name_, and additional optional properties that are relevant to the b
 during `authorization`.
 
 ```ts
-interface Permission {
+interface SecurityPermission {
   name: string;
   [key: string]: any;
 }

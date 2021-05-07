@@ -6,30 +6,98 @@ keywords: ["security", "authentication", "authorization", "permissions", "api"]
 description: Learn how security works in Webiny API.
 ---
 
+import CenteredImage from "@components/CenteredImage";
+import requestLifecycleImage from "../assets/security-framework/request-lifecycle.png";
+
 :::tip What you'll learn
-- how security framework is structured and connected to Webiny
-- what are permissions and how authorization works
+
+- how security hooks into API request lifecycle
+- what hooks and plugins security framework provides
+
 :::
 
-The security framework is a thin application layer that allows you to handle _authentication_ and _authorization_ using plugins. It is present on both API side, and React side of Webiny apps. Security in Webiny revolves around permissions. Webiny apps, as well as your custom apps, request permissions from the security layer when the code reaches certain points in your business logic and needs to check if current identity is authorized (has permission) to execute certain operations.
+Security framework itself, just as any other Webiny application, is a collection of plugins. When these plugins are registered, security framework hooks into some request lifecycle hooks. By doing so, it adds new tools and introduces new hooks to allow developers write plugins for them.
 
-## What's an Identity?
+## Hooking Into Request Lifecycle
 
-An identity is a **verified** piece of information that tells us **who** is using the system (be it API or React app)
-. Identity must be determined during the `authentication` phase. If no identity is determined, the system uses 
-the `anonymous` identity. 
+To visualize the process of authentication and authorization, and better understand _when_ things are being executed, let's analyze the following diagram:
 
-It is OK _not_ to have an identity. Not every interaction with the system requires authorization; and since 
-authorization is performed based on the identity (we assign permissions to an identity), it just means that there 
-are scenarios when having identity is not necessary.
+<CenteredImage
+  src={requestLifecycleImage}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Request Lifecycle with Security"
+/>
 
-## What's a Permission?
+:::note
 
-A permission tells the system what the `identity` can or cannot do. In case of Webiny, it's a simple object that 
-contains a _name_, and additional optional properties that are relevant to the business logic. Permissions are used 
-during `authorization`. During request processing, a system can execute authorization many times. Different parts of 
-the system will require different permissions.
+The actual request lifecycle is not the topic of this article, and we only touch on the very basic parts of it here.
 
+:::
 
-In the following articles we dive deeper into the API and React side of things and see how these two environments 
-are similar but also slightly different at the same time.
+The lifecycle of a request begins by invoking a Lambda function (`1`). Once invoked, function handler runs a series of hooks (`2`).
+
+### `context` Hook
+
+A new `context` object is created for every function invocation, and at this point the `context` hook is processed to allow plugins extend the `context` object, which is accessible across the system and serves as a central registry for data, utilities, etc.
+
+This is one of the hooks the security framework uses, to create a `context.security` object. All the existing Webiny apps depend on it, to interact with security (access identity, get permissions, etc.).
+
+Once the `context` hook has finished executing, Webiny executes the `before-handler` hook.
+
+### `before-handler` Hook
+
+The purpose of this hook is to allow developers execute arbitrary logic after the `context` object is fully built, but before request payload parsing begins. This is particularly useful for our security framework, which, at this point, executes _authentication_.
+
+Authentication within the security framework is also implemented as a hook (`3`), called `security-authentication`. It doesn't contain any default authentication logic; it just sits there, and executes the available `security-authentication` plugins on every request. The developer is responsible for registering authentication plugins to actually perform authentication.
+
+The authentication plugin interface looks like this:
+
+```ts
+interface SecurityAuthenticationPlugin extends Plugin {
+  type: "security-authentication";
+  authenticate(context: Context): Promise<null | SecurityIdentity>;
+}
+```
+
+When an authentication plugin determines an identity, it returns and [instance of identity](/docs/key-topics/security-framework/introduction#whats-an-identity) as a result of authentication.
+
+### `handler` Hook
+
+After `before-handler` hook, the system continues with request processing by executing the `handler` hook. This hook passes the `context` object to every `handler` plugin until one of them returns a response.
+
+How the request is being parsed, is irrelevant. It can be a GraphQL handler (`4`), a regular REST API handler, or something completely different. There can be one, or many handlers (like in a traditional `express` application with multiple middleware instances).
+
+The important part is that some time during code execution (`4`), some part of your business logic will need to check for certain permissions. At that point, you will use
+
+```ts
+const permission = await context.security.getPermission("my-permission");
+```
+
+to ask the security framework for a particular permission. Internally, this will process another hook called `security-authorization` (`3`). This hook will process all `security-authorization` plugins until one of them returns an array of [permissions](/docs/key-topics/security-framework/introduction#whats-a-permission) for current identity (because an identity can have many permissions associated with it).
+
+Within that array, the security framework will try to find the permission you requested, and return it to you. Then you can perform your business logic checks and continue with code execution or throw an authorization error.
+
+Same as with authentication plugins, the developer is responsible for registering authorization plugins in his project. If no plugins exist, it will effectively mean that the identity has no permissions and won't be able to perform any operations that require authorization.
+
+The authorization plugin interface looks like this:
+
+```ts
+interface SecurityAuthorizationPlugin extends Plugin {
+    type: "security-authorization";
+    getPermissions(context: SecurityContext): Promise<SecurityPermission[]>;
+}
+```
+
+---
+
+If everything goes well, and your identity has the permissions to execute the requested operation, the request will be converted into a response in the `handler` hook and function invocation will end by sending the response (`5`) to the client who originally invoked the function.
+
+## FAQ
+
+### Where and how do I store permissions?
+Since authorization plugins are asynchronous, you can store your permissions anywhere, even on remote services. You can also generate permissions dynamically based on some identity information. As long as you can provide an array of [permissions](/docs/key-topics/security-framework/introduction#whats-a-permission) back to the security framework, everything will work smoothly.
+
+### Can I use the default user management implementation for my custom apps?
+Usually, we recommend managing your app's users separately from the default admin users. Every project is different, has different requirements (like signup, email confirmations, etc.), and it's faster and easier for you to create a custom user management module for your specific needs.
+
