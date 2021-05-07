@@ -113,10 +113,10 @@ module.exports = {
                             type: "category",
                             label: "Headless CMS",
                             items: [
-                                "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin",
-                                "how-to-guides/headless-cms/create-a-content-model-form-layout",
-                                "how-to-guides/headless-cms/using-graphql-api",
-                                "how-to-guides/headless-cms/rendering-rich-text"
+                                "how-to-guides/webiny-applications/headless-cms/create-a-webiny-headless-cms-field-plugin",
+                                "how-to-guides/webiny-applications/headless-cms/create-a-content-model-form-layout",
+                                "how-to-guides/webiny-applications/headless-cms/using-graphql-api",
+                                "how-to-guides/webiny-applications/headless-cms/rendering-rich-text"
                             ]
                         },
                         {
