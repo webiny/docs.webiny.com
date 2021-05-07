@@ -7,16 +7,15 @@ description: Learn what are cloud infrastructure state files and how to properly
 ---
 
 :::tip What you'll learn
-
 - what are cloud infrastructure state files
 - how to properly store cloud infrastructure state files
 :::
 
 ## Cloud Infrastructure State Files
 
-In order to bring your project into existence, you need to deploy your application code, along with the necessary cloud infrastructure, into a cloud provider of your choice, for example [AWS](https://aws.amazon.com/).
+In order to bring your project into existence, you need to deploy your application code, along with the necessary cloud infrastructure, into a cloud provider of your choice (for example [AWS](https://aws.amazon.com/)).
 
-By default, for everything deployment-related, Webiny relies on Pulumi, a modern infrastructure as code (IaC) framework, which, essentially, enables us to define needed cloud infrastructure via code, and ultimately, deploy it into one or more separate environments.
+By default, for everything deployment-related, Webiny relies on Pulumi, a modern infrastructure as code (IaC) framework. Essentially, the framework enables us to define needed cloud infrastructure via code, and ultimately, deploy it into one or more separate environments.
 
 :::info
 Read more about Pulumi, environments, and other deployment-related concepts in our [Deployment](/docs/key-topics/deployment/introduction) key topics section.
@@ -36,57 +35,45 @@ Because of the fact that our cloud infrastructure state files must be preserved,
 
 Fortunately, out of the box, Pulumi already offers a solution that solves the state management overhead for us. Using different [backends](/docs/key-topics/deployment/iac-with-pulumi#different-backends), we are able to store our state files in different places, in a secure and reliable way.
 
-## Commonly Used Backends
+### Commonly Used Backends
+
 The following are three backends that are commonly used with Webiny projects.
 
-### Local File System
+#### Local File System
 
-This is the default backend, with which, all of the state files are stored within your Webiny project, inside of `.pulumi` folders. Note that there can be multiple `.pulumi` folders, because, usually, every project application in a Webiny project deploys its own set of cloud infrastructure resources, thus, has to maintain its own state files.
+This is the default backend, with which, all of the state files are stored within your Webiny project, inside of a single `.pulumi` folder, located in your project root. Note that this folder contains cloud infrastructure state files for all project applications you might have in your Webiny project.
 
 :::info Project Applications
 Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/key-topics/project-organization/project-applications-and-packages) key topic.
 :::
 
-The following directory tree shows three `.pulumi` folders, each residing in its respective project application folder (`api/.pulumi`, `apps/admin/.pulumi`, `apps/website/.pulumi`):
+The following directory tree shows the `.pulumi` folder which is being utilized by all three default project applications (`api/.pulumi`, `apps/admin/.pulumi`, `apps/website/.pulumi`):
 
-```
+```text title=".pulumi (folder located in your project root)"
 .
 ├── api
 │   ├── .pulumi
 │   │   ├── backups
 │   │   ├── history
 │   │   └── stacks
-│   ├── pulumi
-│   ├── Pulumi.yaml
-│   ├── Pulumi.dev.yaml
-│   └── index.ts
 ├── apps
 │   ├── admin
 │   │   ├── .pulumi
 │   │   │   ├── backups
 │   │   │   ├── history
 │   │   │   └── stacks
-│   │   ├── pulumi
-│   │   ├── Pulumi.yaml
-│   │   ├── Pulumi.dev.yaml
-│   │   └── index.ts
 │   └── website
 │       ├── .pulumi
 │       │   ├── backups
 │       │   ├── history
 │       │   └── stacks
-│       ├── pulumi
-│       ├── pulumi
-│       ├── Pulumi.dev.yaml
-│       ├── Pulumi.yaml
-│       └── index.ts
 │  
 └── (...)
 ```
 
 This backend can be a solid choice for local development purposes, where you typically don't need to share the state files with other team members and are only relevant to you. Because of this, in every new Webiny project, by default, the `.pulumi` folders aren't checked into your version control.
 
-### Amazon S3
+#### Amazon S3
 
 With this backend option, we can store our cloud infrastructure state files in a remote [Amazon S3](https://aws.amazon.com/s3/) bucket.
 
@@ -96,35 +83,75 @@ This is useful when deploying our project into long-lived shared environments, l
 Learn more about different types of environments in the [Environments](/docs/how-to-guides/development/workflows/environments) guide.
 :::
 
-### Pulumi Service
+#### Pulumi Service
 
 You can certainly use the Amazon S3 for storing cloud infrastructure state files, but if you need more, you can also explore the [Pulumi Service](https://www.pulumi.com/docs/intro/concepts/state/#deciding-on-a-backend).
 
-It is a service that not only gives you the ability to store your cloud infrastructure state files in an easy, secure, and reliable way, but also offers a couple of other interesting features, like concurrent state locking to prevent corrupting your infrastructure state in a team environment, full deployment history for auditing and rollback purposes, encrypted state in transit and at rest, [and more](https://www.pulumi.com/docs/intro/concepts/state/#deciding-on-a-backend).
+It is a service that not only gives you the ability to store your cloud infrastructure state files in an easy, secure, and reliable way, but also offers a couple of other interesting features, like:
+
+- concurrent state locking to prevent corrupting your infrastructure state in a team environment
+- full deployment history for auditing and rollback purposes
+- encrypted state in transit and at rest
+- [and more](https://www.pulumi.com/docs/intro/concepts/state/#deciding-on-a-backend)
 
 Of course, it does come with a price, so make sure to check their official [pricing page](https://www.pulumi.com/pricing/) before making a decision on which backend you're about to use.
 
 ## Using Different Backends
 
-As mentioned, by default, Webiny will instruct the Pulumi framework to use the [local file system](/docs/how-to-guides/development/workflows/cloud-infrastructure-state-files#local-file-system) as the backend. But, you can easily instruct it to use a different one, using the `PULUMI_LOGIN` environment variable. For example, if we wanted to use Amazon S3 or the mentioned Pulumi Service as our backend, we could set those like so:
+As mentioned, Webiny will instruct the Pulumi framework to use the [local file system](/docs/how-to-guides/development/workflows/cloud-infrastructure-state-files#local-file-system) as the default backend. But, you can easily instruct it to use a different one, using the `WEBINY_PULUMI_BACKEND` environment variable, which needs to be assigned upon running the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command.
+
+For example, if we wanted to use Amazon S3 as our backend of choice, we could run:
 
 ```bash
-# Use "my-s3-bucket" bucket.
-PULUMI_LOGIN=s3://my-s3-bucket/some-folder-maybe
+# Deploying a complete Webiny project.
+WEBINY_PULUMI_BACKEND=s3://my-s3-bucket/some-folder-maybe yarn webiny deploy --env staging
+```
 
-# Or, use Pulumi Service, by providing an API key:
-PULUMI_LOGIN=my_secret_api_key_xyz
+On the other hand, if we wanted to use the Pulumi Service, we could run:
+
+```bash
+# Deploying a single project application.
+WEBINY_PULUMI_BACKEND=my_secret_api_key_xyz
 ```
 
 :::info
-Environment variables can be assigned in a couple of ways. Check out the [Environment variables](/docs/how-to-guides/development/environment-variables) guide to learn more.
+Environment variables can be assigned in a couple of different ways. Check out the [Environment Variables](/docs/how-to-guides/development/environment-variables) guide to learn more.
 :::
 
+### What To Use
+
+#### Development / Short-lived Environments
+
+For development purposes, we recommend using the default [local file system](/docs/how-to-guides/development/workflows/cloud-infrastructure-state-files#local-file-system) as your backend of choice. This is simply because the cloud infrastructure you deploy will most probably only be used by you, and the state files the deployment process produces don't need to be shared with other developers.
+
+That being said, there might still be cases in which you'll want to share the cloud infrastructure state files with your team members or maybe you'll just want to continue developing on a different machine.
+
+In that case, you can use one of the following approaches.
+
+:::caution
+Sharing the cloud infrastructure state files with other team members implies that they're using the same cloud (AWS) account as you, which in general is not something we'd recommend. Ideally, developer should have their own cloud account for development purposes.
+
+For easier account management, you can checkout the [AWS Organizations](https://aws.amazon.com/organizations/) service which makes it easier to manage multiple AWS accounts within your organization.
+:::
+
+##### Copy and Paste The `.pulumi` Folder
+
+Simply copy and paste your `.pulumi` folder to the other machine. Once you've done that, also note that all of the extra configuration arguments, that were passed to Pulumi via environment variables, should also be copied. Usually, here we're referring to values that were specified in your root `.env` file, where by default, the `PULUMI_SECRETS_PROVIDER` and `PULUMI_CONFIG_PASSPHRASE` values are set.
+
+This is the recommended approach when you're not sharing your state files with other team members and when you're basically only transferring them to other machines you might also be working on.
+
+Although you could technically still use this approach with other team members, there are a couple of problems that arise here:
+ - When cloud infrastructure starts to change from one of your team member's machine, the state files on other machines become outdated. Down the road, this can cause deployment errors.
+
+If you're planning to share state files with other team members, then it's recommended that you use one of the next approach.
+
+##### Use a Remote Storage
+
+If you need to share your development environments' cloud infrastructure state files with multiple team members, we recommend you that using a central remote storage.
+
+#### CI/CD / Long-lived Environments
+
 ## FAQ
-
-#### I switched to another machine. How can I continue working with the same cloud infrastructure I previously deployed?
-
-If you've deployed cloud infrastructure resources using the local file system backend, meaning state files are located within your Webiny project, then you'll need to copy the state files over to your new machine. Additionally,
 
 #### Should I use different S3 buckets for different shared long-lived environments?
 If you want to use the same bucket, you can do that. Just make sure every environment uses its own folder in it, because otherwise, different environments would end up using incorrect state files.
@@ -142,6 +169,6 @@ No matter which Pulumi backend you end up choosing, if two or more Pulumi deploy
 ```bash
 error: the current deployment has 1 resource(s) with pending operations:
   * urn:pulumi:dev::website::aws:cloudfront/distribution:Distribution::delivery, interrupted while updating
-```
+````
 
 <!-- #### Should I have my Pulumi.yaml files in git or n ot? -->
