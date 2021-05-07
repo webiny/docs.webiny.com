@@ -7,8 +7,10 @@ description: Learn what are cloud infrastructure state files and how to properly
 ---
 
 :::tip What you'll learn
+
 - what are cloud infrastructure state files
 - how to properly store cloud infrastructure state files
+
 :::
 
 ## Cloud Infrastructure State Files
@@ -122,45 +124,41 @@ Environment variables can be assigned in a couple of different ways. Check out t
 
 #### Development / Short-lived Environments
 
-For development purposes, we recommend using the default [local file system](/docs/how-to-guides/development/workflows/cloud-infrastructure-state-files#local-file-system) as your backend of choice. This is simply because the cloud infrastructure you deploy will most probably only be used by you, and the state files the deployment process produces don't need to be shared with other developers.
+For development purposes, we recommend using the default [local file system](/docs/how-to-guides/development/workflows/cloud-infrastructure-state-files#local-file-system) as your backend of choice. This is simply because the cloud infrastructure you deploy will most probably only be used by you, and the state files the deployment process produces don't need to be shared with other developers or processes.
 
-That being said, there might still be cases in which you'll want to share the cloud infrastructure state files with your team members or maybe you'll just want to continue developing on a different machine.
+That being said, there might still be cases in which you'll want to share the cloud infrastructure state files, for example with your team members or maybe you just want to continue developing on a different machine.
 
-In that case, you can use one of the following approaches.
+And while both can be achieved, note that sharing the cloud infrastructure state files implies the same cloud (AWS) account is used on every machine on which the files end up. Which means that sharing them with multiple team members requires every member to use the same cloud account and this is something we usually wouldn't recommend. Ideally, developers should have their own cloud account for development purposes.
 
-:::caution
-Sharing the cloud infrastructure state files with other team members implies that they're using the same cloud (AWS) account as you, which in general is not something we'd recommend. Ideally, developer should have their own cloud account for development purposes.
-
-For easier account management, you can checkout the [AWS Organizations](https://aws.amazon.com/organizations/) service which makes it easier to manage multiple AWS accounts within your organization.
+:::tip
+For easier AWS account management, we recommend you checkout the [AWS Organizations](https://aws.amazon.com/organizations/) service which makes it easier to manage multiple AWS accounts within your organization.
 :::
 
-##### Copy and Paste The `.pulumi` Folder
+In case of the latter, where developers just wants to continue working from one of their other machines (using the same cloud account), sharing the cloud infrastructure state files can be achieved in a relatively straightforward way.
 
 Simply copy and paste your `.pulumi` folder to the other machine. Once you've done that, also note that all of the extra configuration arguments, that were passed to Pulumi via environment variables, should also be copied. Usually, here we're referring to values that were specified in your root `.env` file, where by default, the `PULUMI_SECRETS_PROVIDER` and `PULUMI_CONFIG_PASSPHRASE` values are set.
 
-This is the recommended approach when you're not sharing your state files with other team members and when you're basically only transferring them to other machines you might also be working on.
-
-Although you could technically still use this approach with other team members, there are a couple of problems that arise here:
- - When cloud infrastructure starts to change from one of your team member's machine, the state files on other machines become outdated. Down the road, this can cause deployment errors.
-
-If you're planning to share state files with other team members, then it's recommended that you use one of the next approach.
-
-##### Use a Remote Storage
-
-If you need to share your development environments' cloud infrastructure state files with multiple team members, we recommend you that using a central remote storage.
+:::caution
+Keep in mind that if you switched to another machine and later plan to return back to the initial one, you'll need to repeat the explained steps.
+:::
 
 #### CI/CD / Long-lived Environments
+
+For CI/CD purposes, we recommend using one of the remote backend options - [Amazon S3](#amazon-s3) or [Pulumi Service](#pulumi-service).
+
+Note that in case of the former, since we recommend a separate cloud (AWS) account to be used with every long-lived environment, you will end up with a separate Amazon S3 bucket for each environment.
 
 ## FAQ
 
 #### Should I use different S3 buckets for different shared long-lived environments?
-If you want to use the same bucket, you can do that. Just make sure every environment uses its own folder in it, because otherwise, different environments would end up using incorrect state files.
 
-Note that, when talking about different shared long-lived environments, like `staging` or `prod`, you should also consider using completely separate AWS accounts.
+If you're using a separate cloud (AWS) account for every long-lived environment, then the answer is yes and this is the approach we recommend you adapt.
 
-#### How can I check in `.pulumi` folders into VCS?
+#### For development purposes, can I check in the `.pulumi` folder into VCS?
 
-In your project root, open your `.gitignore` file and simply remove `.pulumi` from the list of ignored files and folders. Commit the change and from that point on, you should be able to check in all of your `.pulumi` folders.
+We don't recommend doing it for of a couple reasons, mainly because this can quickly get messy, especially if multiple developers are working on the project.
+
+Still, if you have a strong opinion on this, [let us know](https://www.webiny.com/slack), we'd like to hear your thoughts!
 
 #### What happens if multiple Pulumi deployments are triggered at the same time?
 
@@ -169,6 +167,10 @@ No matter which Pulumi backend you end up choosing, if two or more Pulumi deploy
 ```bash
 error: the current deployment has 1 resource(s) with pending operations:
   * urn:pulumi:dev::website::aws:cloudfront/distribution:Distribution::delivery, interrupted while updating
-````
+```
 
-<!-- #### Should I have my Pulumi.yaml files in git or n ot? -->
+#### How do I pass the `WEBINY_PULUMI_BACKEND` in my CI/CD?
+
+Different CI/CD providers offer different options when it comes to setting environment variables. For example, [GitHub Actions](https://github.com/features/actions) enable this via [repository secrets](https://docs.github.com/en/actions/reference/encrypted-secrets). On the other hand, if using [AWS CodeBuild](https://aws.amazon.com/codebuild/), you can use the [AWS CodePipeline](https://aws.amazon.com/codepipeline/) service.
+
+Make sure to read the relevant documentation for best practices around how to properly set environment variables in your CI/CD provider.
