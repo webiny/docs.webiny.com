@@ -9,7 +9,8 @@ description: Learn what are cloud infrastructure state files and how to properly
 :::tip What you'll learn
 
 - what are cloud infrastructure state files
-- how to properly store cloud infrastructure state files
+- how to properly store cloud infrastructure state files using different Pulumi backends
+- which Pulumi backends in different contexts
 
 :::
 
@@ -23,7 +24,7 @@ By default, for everything deployment-related, Webiny relies on Pulumi, a modern
 Read more about Pulumi, environments, and other deployment-related concepts in our [Deployment](/docs/key-topics/deployment/introduction) key topics section.
 :::
 
-One of the fundamental concepts of any IaC framework are cloud infrastructure state files. Every framework handles them differently, but in all cases, state files represent the state of all deployed cloud infrastructure resources. Things like which resources are currently deployed, which configuration params were used upon deploying them, and more, are just some of the information the state files contain.
+One of the fundamental concepts of any IaC framework are cloud infrastructure state files. Every framework handles them differently, but in all cases, state files represent the state of all deployed cloud infrastructure resources. Things like which resources are currently deployed, which configuration params were used upon deploying them, and more, are just some of the information these state files contain.
 
 It's important to know that state files must not be lost or deleted, because otherwise, the connection between our IaC framework and the actual cloud infrastructure resources would also be lost. Meaning, we would loose the ability to update existing cloud infrastructure resources or even delete them (using the IaC framework).
 
@@ -73,7 +74,7 @@ The following directory tree shows the `.pulumi` folder which is being utilized 
 └── (...)
 ```
 
-This backend can be a solid choice for local development purposes, where you typically don't need to share the state files with other team members and are only relevant to you. Because of this, in every new Webiny project, by default, the `.pulumi` folders aren't checked into your version control.
+This backend can be a solid choice for local development purposes, where you typically don't need to share the state files with other team members and are only relevant to you. Because of this, in every new Webiny project, by default, the `.pulumi` folder isn't checked into your version control.
 
 #### Amazon S3
 
@@ -128,7 +129,7 @@ For development purposes, we recommend using the default [local file system](/do
 
 That being said, there might still be cases in which you'll want to share the cloud infrastructure state files, for example with your team members or maybe you just want to continue developing on a different machine.
 
-And while both can be achieved, note that sharing the cloud infrastructure state files implies the same cloud (AWS) account is used on every machine on which the files end up. Which means that sharing them with multiple team members requires every member to use the same cloud account and this is something we usually wouldn't recommend. Ideally, developers should have their own cloud account for development purposes.
+And while both can be achieved, note that sharing cloud infrastructure state files implies the same cloud (AWS) account is used on every machine on which the files end up. Which means that sharing them with multiple team members requires every member to use the same cloud account and this is something we usually wouldn't recommend. Ideally, developers should have their own cloud account for development purposes.
 
 :::tip
 For easier AWS account management, we recommend you checkout the [AWS Organizations](https://aws.amazon.com/organizations/) service which makes it easier to manage multiple AWS accounts within your organization.
@@ -150,9 +151,19 @@ Note that in case of the former, since we recommend a separate cloud (AWS) accou
 
 ## FAQ
 
-#### Should I use different S3 buckets for different shared long-lived environments?
+#### Should I use different Amazon S3 buckets for different shared long-lived environments?
 
 If you're using a separate cloud (AWS) account for every long-lived environment, then the answer is yes and this is the approach we recommend you adapt.
+
+#### For storing cloud infrastructure state of my long-lived environments in Amazon S3 buckets, must I create these on my own, or does this happen automatically in some way?
+
+If you decide to use Amazon S3 as a way to store your cloud infrastructure state files for your long-lived environments, then be aware that the actual buckets will need to be created manually. At the moment, this is not something Webiny does automatically for you (but we are thinking about it).
+
+The most straightforward way to do it would be to open the [AWS Management Console](https://aws.amazon.com/console/) for every separate AWS account you might have, and simply create the bucket from there.
+
+:::tip
+Remember - we recommend having a separate cloud account for every long-lived environment you might have. Usually this means having three accounts: one for `dev`, one for `staging`, and one for `prod` (production) environment. In case you missed it, check out the [Environments](/docs/how-to-guides/development/workflows/environments) guide to learn more about these.
+:::
 
 #### For development purposes, can I check in the `.pulumi` folder into VCS?
 
