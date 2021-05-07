@@ -1,0 +1,72 @@
+---
+id: introduction
+title: Introduction
+sidebar_label: Introduction
+keywords: ["security", "authentication", "authorization", "permissions"]
+description: Learn how security works in Webiny.
+---
+
+:::tip What you'll learn
+
+- what is a security framework
+- what are the main moving parts of the security framework
+
+:::
+
+The security framework is a thin application layer that allows you to handle _authentication_ and _authorization_ using plugins. It is present on both API side, and React side of Webiny apps. Security in Webiny revolves around permissions.
+
+Webiny apps, as well as your custom apps, request permissions from the security layer when the code reaches certain points in your business logic and needs to check if current identity is authorized (has permission) to execute certain operations.
+
+## What's Authentication?
+
+Authentication is a process of verifying the provided credentials and retrieving `identity` information. Credentials can be a combination of a username and a password, a JWT token, a private key, etc. In the context of Webiny, credentials are a JWT token for the API calls, and a username/password for React apps.
+
+## What's an Identity?
+
+An identity is a _verified_ piece of information that tells us _who_ is using the system (be it API or React app). Identity must be determined during the `authentication` phase. If no identity is determined, the system uses
+the `anonymous` identity.
+
+It is OK _not_ to have an identity. Not every interaction with the system requires authorization; and since
+authorization is performed based on the identity (we assign permissions to an identity), it just means that there
+are scenarios when having identity is not necessary.
+
+:::info Identity vs. User
+
+Keep in mind that `identity` and `user` are not the same thing. A `user` is a superset of `identity`, meaning, it will have a lot more information associated with it. That information is often related to your project's business logic (user profile, payment info, addresses).
+
+`Identity` doesn't need to contain any of that information. It's enough for identity to only have an ID (be it UUID, username, or email). As long as it's verified, that's all the security layer cares about.
+
+:::
+
+:::tip Best practices
+
+Always verify the validity of the JWT using the JSON Web Key (JWK) provided by your Identity Provider. That way you'll be sure that the token was signed by the trusted issuer, and that you can confidently use the information inside.
+
+:::
+
+## What's Authorization?
+
+Authorization is a process of determining if current identity is allowed to perform the requested action. During request processing, a system can execute authorization many times. Different parts of the system will require different `permissions`. Once the security framework provides the requested permission object
+to the code, authorization checks can be performed.
+
+## What's a Permission?
+
+A permission tells the system what the `identity` can or cannot do. In case of Webiny, it's a simple object that
+contains a _name_, and additional optional properties that are relevant to the business logic. Permissions are used
+during `authorization`.
+
+```ts
+interface Permission {
+  name: string;
+  [key: string]: any;
+}
+```
+
+This simple interface is the only requirement for Webiny Security Framework to operate. Where you store permissions, how you load them, and how you assign them to the identity, is _completely up to you_.
+
+---
+
+Webiny provides the basic user management for its Admin Area app. For your custom apps, you'll have to implement your own user management. Using the Security Framework your implementation can be as simple or as complex as you need.
+
+In the following articles we dive deeper into the API and React side of things and see how these two environments
+are similar but also slightly different at the same time.
