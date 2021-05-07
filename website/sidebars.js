@@ -123,23 +123,23 @@ module.exports = {
                             type: "category",
                             label: "Themes",
                             items: [
-                                "key-topics/webiny-applications/themes/introduction",
+                                "how-to-guides/webiny-applications/themes/introduction",
                                 {
                                     type: "category",
                                     label: "Page Builder",
                                     items: [
-                                        "key-topics/webiny-applications/themes/page-builder/introduction",
-                                        "key-topics/webiny-applications/themes/page-builder/colors",
-                                        "key-topics/webiny-applications/themes/page-builder/elements",
-                                        "key-topics/webiny-applications/themes/page-builder/layouts"
+                                        "how-to-guides/webiny-applications/themes/page-builder/introduction",
+                                        "how-to-guides/webiny-applications/themes/page-builder/colors",
+                                        "how-to-guides/webiny-applications/themes/page-builder/elements",
+                                        "how-to-guides/webiny-applications/themes/page-builder/layouts"
                                     ]
                                 },
                                 {
                                     type: "category",
                                     label: "Form Builder",
                                     items: [
-                                        "key-topics/webiny-applications/themes/form-builder/introduction",
-                                        "key-topics/webiny-applications/themes/form-builder/layouts"
+                                        "how-to-guides/webiny-applications/themes/form-builder/introduction",
+                                        "how-to-guides/webiny-applications/themes/form-builder/layouts"
                                     ]
                                 }
                             ]
