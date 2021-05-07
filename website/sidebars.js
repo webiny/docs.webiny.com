@@ -125,6 +125,7 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
                         "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
                         "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
                         "how-to-guides/upgrade-webiny/5.0.0-to-5.1.0",
