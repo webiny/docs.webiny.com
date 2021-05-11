@@ -90,7 +90,14 @@ module.exports = {
                     label: "Development",
                     items: [
                         "how-to-guides/development/use-watch-command",
-                        "how-to-guides/development/environment-variables"
+                        "how-to-guides/development/environment-variables",
+                        {
+                            type: "category",
+                            label: "Integrations",
+                            items: [
+                                "how-to-guides/development/integrations/integrate-tailwindcss",
+                            ]
+                        }
                         /* {
                             type: "category",
                             label: "Workflows",
@@ -146,7 +153,6 @@ module.exports = {
                         }
                     ]
                 },
-                "how-to-guides/integrate-tailwindcss",
                 {
                     type: "category",
                     label: "Webiny CLI",
