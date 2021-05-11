@@ -107,12 +107,43 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "Headless CMS",
+                    label: "Webiny Applications",
                     items: [
-                        "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin",
-                        "how-to-guides/headless-cms/create-a-content-model-form-layout",
-                        "how-to-guides/headless-cms/using-graphql-api",
-                        "how-to-guides/headless-cms/rendering-rich-text"
+                        {
+                            type: "category",
+                            label: "Headless CMS",
+                            items: [
+                                "how-to-guides/webiny-applications/headless-cms/create-a-webiny-headless-cms-field-plugin",
+                                "how-to-guides/webiny-applications/headless-cms/create-a-content-model-form-layout",
+                                "how-to-guides/webiny-applications/headless-cms/using-graphql-api",
+                                "how-to-guides/webiny-applications/headless-cms/rendering-rich-text"
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "Themes",
+                            items: [
+                                "how-to-guides/webiny-applications/themes/introduction",
+                                {
+                                    type: "category",
+                                    label: "Page Builder",
+                                    items: [
+                                        "how-to-guides/webiny-applications/themes/page-builder/introduction",
+                                        "how-to-guides/webiny-applications/themes/page-builder/colors",
+                                        "how-to-guides/webiny-applications/themes/page-builder/elements",
+                                        "how-to-guides/webiny-applications/themes/page-builder/layouts"
+                                    ]
+                                },
+                                {
+                                    type: "category",
+                                    label: "Form Builder",
+                                    items: [
+                                        "how-to-guides/webiny-applications/themes/form-builder/introduction",
+                                        "how-to-guides/webiny-applications/themes/form-builder/layouts"
+                                    ]
+                                }
+                            ]
+                        }
                     ]
                 },
                 "how-to-guides/integrate-tailwindcss",
@@ -151,31 +182,6 @@ module.exports = {
                             type: "category",
                             label: "Headless CMS",
                             items: ["key-topics/webiny-applications/headless-cms/graphql-api"]
-                        },
-                        {
-                            type: "category",
-                            label: "Themes",
-                            items: [
-                                "key-topics/webiny-applications/themes/introduction",
-                                {
-                                    type: "category",
-                                    label: "Page Builder",
-                                    items: [
-                                        "key-topics/webiny-applications/themes/page-builder/introduction",
-                                        "key-topics/webiny-applications/themes/page-builder/colors",
-                                        "key-topics/webiny-applications/themes/page-builder/elements",
-                                        "key-topics/webiny-applications/themes/page-builder/layouts"
-                                    ]
-                                },
-                                {
-                                    type: "category",
-                                    label: "Form Builder",
-                                    items: [
-                                        "key-topics/webiny-applications/themes/form-builder/introduction",
-                                        "key-topics/webiny-applications/themes/form-builder/layouts"
-                                    ]
-                                }
-                            ]
                         }
                     ]
                 },
