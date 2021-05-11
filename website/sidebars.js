@@ -89,15 +89,13 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        "how-to-guides/development/use-watch-command",
-                        "how-to-guides/development/environment-variables",
                         {
                             type: "category",
                             label: "Integrations",
-                            items: [
-                                "how-to-guides/development/integrations/integrate-tailwindcss",
-                            ]
-                        }
+                            items: ["how-to-guides/development/integrations/integrate-tailwindcss"]
+                        },
+                        "how-to-guides/development/use-watch-command",
+                        "how-to-guides/development/environment-variables"
                         /* {
                             type: "category",
                             label: "Workflows",
