@@ -210,6 +210,7 @@ module.exports = {
                     items: [
                         "key-topics/security-framework/introduction",
                         "key-topics/security-framework/api-security",
+                        "key-topics/security-framework/react-security",
                     ]
                 },
                 "key-topics/ci-cd",
