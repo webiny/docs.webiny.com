@@ -1,0 +1,125 @@
+---
+id: rendering-rich-text
+title: Rendering Rich Text Content
+sidebar_label: Rendering Rich Text Content
+keywords: ["headless", "cms", "rich text", "editorjs"]
+description: Learn how to render rich text content from Headless CMS.
+---
+
+:::tip What you'll learn
+
+- how to render rich text content from Headless CMS in React
+:::
+
+## Overview
+
+One of the commonly used field types in our Headless CMS is a _rich text_ field. This field uses https://editorjs.io/ with several additional Webiny plugins. The output data structure of editorjs is an [array of objects](https://editorjs.io/saving-data#output-data-format).
+
+You can render this data as you want by traversing the array and implementing renderers for each block type, but more often than not, you just want to use a predefined React component and move on.
+
+:::info
+To learn how to use Headless CMS GraphQL API, make sure to check out the [Using GraphQL API](/docs/how-to-guides/webiny-applications/headless-cms/using-graphql-api) key topic.
+:::
+
+## Rendering Rich Text Content
+
+To render rich text content created with editorjs in your React app, Webiny provides a package `@webiny/react-rich-text-renderer` with a React component to do just that.
+
+### Installation
+
+In your React app, install the following dependency:
+
+```
+npm install --save @webiny/react-rich-text-renderer
+```
+
+Or if you prefer yarn:
+
+```
+yarn add @webiny/react-rich-text-renderer
+```
+
+### Default Rendering
+
+Fetch your data from Headless CMS, then pass it to the component like this:
+
+```tsx title="myView.tsx"
+import { RichTextRenderer } from "@webiny/react-rich-text-renderer";
+
+// Load content from Headless CMS (here we show what your content might look like).
+const content = [
+  {
+    type: "paragraph",
+    data: {
+      text: "A well written paragraph of text can bring so much joy!",
+      textAlign: "left",
+      className: ""
+    }
+  }
+];
+
+// Mount the component
+<RichTextRenderer data={content} />;
+```
+
+### Adding Custom Renderers
+
+You can override the default renderers or add new renderers for your custom block types like this:
+
+```tsx title="myView.tsx"
+import { RichTextRenderer, RichTextBlockRenderer } from "@webiny/react-rich-text-renderer";
+
+const customRenderers: Record<string, RichTextBlockRenderer> = {
+  // Override the default renderer for "delimiter" block
+  delimiter: () => {
+    return <div className={"my-custom-delimiter"} />;
+  },
+  // Add a renderer for "youtube" block
+  youtube: block => {
+    return <iframe width="560" height="315" src={block.data.url} title={block.data.title} />;
+  }
+};
+
+const content = [
+  // This block will use the default renderer
+  {
+    type: "paragraph",
+    data: {
+      text: "A well written paragraph of text can bring so much joy!",
+      textAlign: "left",
+      className: ""
+    }
+  },
+  // This block will use the custom "delimiter" renderer
+  {
+    type: "delimiter"
+  },
+  // This block will use the new "youtube" renderer
+  {
+    type: "youtube",
+    data: {
+      url: "https://www.youtube.com/embed/gOGJKHXntiU",
+      title: "Webiny Overview"
+    }
+  }
+];
+
+// Mount the component
+<RichTextRenderer data={content} renderers={customRenderers} />;
+```
+
+## Styling the output
+
+Styles for default renderers are included in the package and you can import them into your app like this:
+
+```scss
+@import "~@webiny/react-rich-text-renderer/styles.scss";
+```
+
+If you don't want to use the default styles, skip this import and implement your own styling.
+
+## FAQ
+
+#### I'm not using React. How do I render this using other frameworks?
+
+The rendering implementation is really simple and straightforward. You can find the [full code in our repo](https://github.com/webiny/webiny-js/blob/next/packages/react-rich-text-renderer/src/index.tsx). Using that as a reference, you can quickly put together a renderer in the framework of your choice.
