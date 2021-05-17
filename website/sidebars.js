@@ -244,6 +244,16 @@ module.exports = {
                     ]
                 },
                 "key-topics/tools-libraries",
+                "key-topics/multi-tenancy",
+                {
+                    type: "category",
+                    label: "Security Framework",
+                    items: [
+                        "key-topics/security-framework/introduction",
+                        "key-topics/security-framework/api-security",
+                        "key-topics/security-framework/react-security"
+                    ]
+                },
                 "key-topics/ci-cd",
                 "key-topics/webiny-cli"
             ],

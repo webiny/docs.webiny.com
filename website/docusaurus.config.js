@@ -13,7 +13,8 @@ const siteConfig = {
                 ]
             }
         ],
-        path.resolve(__dirname, "plugins/wts")
+        path.resolve(__dirname, "plugins/wts"),
+        path.resolve(__dirname, "plugins/aliases")
     ],
     title: "Webiny Documentation", // Title for your website.
     tagline: "Serverless CMS",
