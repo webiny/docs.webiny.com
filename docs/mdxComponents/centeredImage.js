@@ -7,6 +7,7 @@ export default props => (
             margin: "20px auto",
             ...(props.style || {})
         }}
+        className={props.className}
         alt={props.alt}
         title={props.title || props.alt}
         src={props.src}
