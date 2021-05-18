@@ -1,18 +1,16 @@
-import { activateTracking } from "wts";
 import ExecutionEnvironment from "@docusaurus/ExecutionEnvironment";
+import { WTS } from "wts/src/web";
 
 export default (function() {
-    activateTracking();
-
     if (!ExecutionEnvironment.canUseDOM) {
         return null;
     }
 
+    const wts = new WTS();
+
     return {
         onRouteUpdate() {
-            if (window.posthog) {
-                window.posthog.capture("$pageview");
-            }
+            wts.identify();
         }
     };
 })();

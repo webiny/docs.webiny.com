@@ -6,7 +6,7 @@ module.exports = function(context, options) {
         name: "wts-docusaurus-plugin",
 
         getClientModules() {
-            return [path.resolve(__dirname, "./wts")];
+            return [path.resolve(__dirname, "./heap")];
         }
     };
 };
