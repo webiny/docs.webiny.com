@@ -15,6 +15,7 @@ const siteConfig = {
         ],
         path.resolve(__dirname, "plugins/wts")
     ],
+    scripts: ["/docusaurus-scripts/heap.js"],
     title: "Webiny Documentation", // Title for your website.
     tagline: "Serverless CMS",
     url: "https://www.webiny.com", // Your website URL
