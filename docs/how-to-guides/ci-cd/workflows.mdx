@@ -1,0 +1,130 @@
+---
+id: workflows
+title: Workflows
+sidebar_label: Workflows
+keywords: ["webiny", "continuous", "integration", "delivery"]
+description: Learn how to establish a CI/CD pipeline for your Webiny project.
+---
+
+:::tip What you'll learn
+
+- how to establish a CI/CD workflow for your Webiny project
+
+:::
+
+## Overview
+
+In this guide, we combine all of the concepts we covered in previous [Environments](/docs/how-to-guides/ci-cd/environments), [Version Control](/docs/how-to-guides/ci-cd/version-control), [Managing Cloud Infrastructure Files](/docs/how-to-guides/ci-cd/cloud-infrastructure-state-files), and [Testing](/docs/how-to-guides/ci-cd/testing) articles, in order to establish a complete CI/CD workflow. In case you missed those, we encourage you to check them out first.
+
+### Long-lived Branches and Environments
+
+The workflow we're about to show will consist of three long-lived Git branches and respective environments into which our Webiny project will be deployed: `dev`, `staging`, and `prod`. As mentioned in previous sections, these are used as follows:
+
+- `dev` - new fixes and features are first merged into this branch and deployed into this environment
+- `staging` - for testing new release candidates in a production-like environment
+- `production` - the system used by real users, must be in a state that is considered stable, as much of the time as possible
+
+:::info
+Typically, every commit pushed into one of these long-lived branches should trigger automatically re-deployment into its respective long-lived environment.
+:::
+
+:::tip
+The `dev` branch is usually what we select as the [default branch](/docs/how-to-guides/ci-cd/version-control#shared-branches) of our project's Git repository.
+:::
+
+### Short-lived Branches and Environments
+
+#### Development
+
+For development and testing purposes, developers are also able to create their own short-lived branches and deploy the project into one or more short-lived and isolated environments. In practice, every new fix or a features starts with these two.
+
+#### Pull Requests (PRs)
+
+If we wanted to make our CI/CD even more robust, upon submitting pull requests (PRs), we could also dynamically create additional short-lived, or sometimes even called *ephemeral*, environments. These enable us to perform automated and even manual tests and ensure that no regressions have been introduced by the changes contained in the submitted PR - before merging the code changes into one of the long-lived branches.
+
+Once a PR is closed, these environments are immediately destroyed.
+
+### Diagram
+
+The following diagrams gives us an overview of the explained organization of Git branches and environments into which our project is deployed:
+
+<!-- vale off -->
+
+<img
+  src={require("./assets/short_long_lived.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Webiny Cloud Infrastructure - Environments"
+/>
+
+<!-- vale on -->
+
+With this overview, let's continue by going step-by-step into how everything works together.
+
+## The Workflow
+
+Typically, teams have something called release cycles.
+:::info
+There are no hard-rules when implementing your own CI/CD workflow. Certainly, there are some best practices, but do note that the workflow we're about to explain can be modified and adjusted to your needs.
+:::
+
+### 1. Initial Branching and Submitting Pull Requests (PRs)
+
+Developers start their development process by creating a new branch from the `dev` long-lived branch. Once they feel that a particular feature or a fix they've been working on is ready, they submit a new pull request (PR), where the target branch is again `dev`.
+
+<!-- vale off -->
+
+<img
+  src={require("./assets/cicd_1_branches_prs.png").default}
+  className="no-shadow"
+  style={{ marginBottom: 20 }}
+  alt="Webiny Cloud Infrastructure - Environments"
+/>
+
+<!-- vale on -->
+
+As mentioned above, when a PR is submitted, we want to run different types of tests against a project that was dynamically deployed into a short-lived test environment.
+
+Typically, in a single release cycle, there will be multiple PRs (from different developers) that will need to be merged into the `dev` branch.
+
+### 2. Merge Changes To `staging` Branch
+
+Once all of the pending PRs have been tested successfully and merged into the `dev` branch, we then merge the `dev` branch into `staging`. At this point, the rest of the team can start manually testing the new release candidate.
+
+If issues are discovered while testing, we create new PRs that fix them. In terms of their target branch, there are two ways we can go about it.
+
+#### Merge Strategies
+
+##### Choosing `staging` As The Target Branch
+
+With this approach, a PR is created against the `staging` branch. And, once the tests are passing, we merge the code changes into it.
+
+Note that this means that we now have code changes that exist in `staging` branch, but not in `dev`. So, at the end of the workflow, it's up to us to merge the `staging` branch back into the `dev`.
+
+##### Choosing `dev` As The Target Branch
+
+Instead of choosing `staging` as the target branch of the PR, we can choose the `dev` branch.
+
+This way we don’t have to merge all of the changes after the release is done back to the `dev` branch, but of course, since the code change was merged into `dev` first, you'll need to again merge the `dev` branch into `staging`
+
+#### The Recommended Strategy
+
+Our recommendation is to use the first [Choosing `staging` As The Target Branch](/docs/how-to-guides/ci-cd/workflows#choosing-staging-as-the-target-branch) strategy. This is simply because it doesn't *block* the `dev` branch from accepting new code changes, that might be part of the next release cycle.
+
+### Step 3
+
+In the staging branch, if all tests are passing and everything is in order, code is merged into the uat branch, and tested again. If new issues are detected, we are taking a step back, and returning to the staging branch procedure (step 2). So, again, we’re creating new PRs against it, merging it, and again, merging everything to uat.
+
+Finally, if everything is in order, the code is merged into the prod branch.
+
+## AWS Accounts
+
+In terms of AWS accounts, the usual practice is for each shared environment and developer to have its own AWS account. For easier management, we recommend checking out [AWS Organisations](https://aws.amazon.com/organizations/):
+
+> AWS Organizations helps you centrally manage and govern your environment as you grow and scale your AWS resources.
+
+As mentioned, the shared environment AWS accounts will mostly be used from your CI/CD pipeline, which we cover in one of the following sections.
+
+## More phases, like dev, uat, etc?
+
+## Testing installation??

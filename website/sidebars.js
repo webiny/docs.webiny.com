@@ -101,18 +101,20 @@ module.exports = {
                             label: "Frontend Applications",
                             items: ["how-to-guides/development/frontend-applications/introduction"]
                         },
-                        {
-                            type: "category",
-                            label: "Workflows",
-                            items: [
-                                "how-to-guides/development/workflows/introduction",
-                                "how-to-guides/development/workflows/environments",
-                                "how-to-guides/development/workflows/version-control",
-                                "how-to-guides/development/workflows/cloud-infrastructure-state-files",
-                                "how-to-guides/development/workflows/ci-cd",
-                            ]
-                        },
                         "how-to-guides/development/environment-variables"
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "CI/CD",
+                    items: [
+                        "how-to-guides/ci-cd/introduction",
+                        "how-to-guides/ci-cd/environments",
+                        "how-to-guides/ci-cd/version-control",
+                        "how-to-guides/ci-cd/cloud-infrastructure-state-files",
+                        "how-to-guides/ci-cd/testing",
+                        "how-to-guides/ci-cd/workflows",
+                        "how-to-guides/ci-cd/use-the-cicd-scaffold"
                     ]
                 },
                 {
