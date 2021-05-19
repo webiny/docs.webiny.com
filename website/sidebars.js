@@ -89,7 +89,7 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
-                        {
+                        /*{
                             type: "category",
                             label: "Backend Applications",
                             items: [
@@ -100,7 +100,7 @@ module.exports = {
                             type: "category",
                             label: "Frontend Applications",
                             items: ["how-to-guides/development/frontend-applications/introduction"]
-                        },
+                        },*/
                         "how-to-guides/development/environment-variables",
                         {
                             type: "category",
