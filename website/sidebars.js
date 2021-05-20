@@ -111,19 +111,6 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "CI/CD",
-                    items: [
-                        "how-to-guides/ci-cd/introduction",
-                        "how-to-guides/ci-cd/environments",
-                        "how-to-guides/ci-cd/version-control",
-                        "how-to-guides/ci-cd/cloud-infrastructure-state-files",
-                        "how-to-guides/ci-cd/testing",
-                        "how-to-guides/ci-cd/workflows",
-                        "how-to-guides/ci-cd/use-the-cicd-scaffold"
-                    ]
-                },
-                {
-                    type: "category",
                     label: "Webiny Applications",
                     items: [
                         {
@@ -168,7 +155,12 @@ module.exports = {
                     label: "Webiny CLI",
                     items: [
                         "how-to-guides/webiny-cli/use-watch-command",
-                        "how-to-guides/webiny-cli/working-with-workspaces"
+                        "how-to-guides/webiny-cli/working-with-workspaces",
+                        {
+                            type: "category",
+                            label: "Scaffolding",
+                            items: ["how-to-guides/webiny-cli/scaffolding/ci-cd"]
+                        },
                     ]
                 },
                 {
@@ -212,6 +204,18 @@ module.exports = {
                         "key-topics/deployment/introduction",
                         "key-topics/deployment/iac-with-pulumi",
                         "key-topics/deployment/environments"
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "CI/CD",
+                    items: [
+                        "key-topics/ci-cd/introduction",
+                        "key-topics/ci-cd/environments",
+                        "key-topics/ci-cd/version-control",
+                        "key-topics/ci-cd/cloud-infrastructure-state-files",
+                        "key-topics/ci-cd/testing",
+                        "key-topics/ci-cd/workflows"
                     ]
                 },
                 /*{
@@ -259,7 +263,6 @@ module.exports = {
                     ]
                 },
                 "key-topics/tools-libraries",
-                "key-topics/multi-tenancy",
                 {
                     type: "category",
                     label: "Security Framework",
@@ -269,7 +272,7 @@ module.exports = {
                         "key-topics/security-framework/react-security"
                     ]
                 },
-                "key-topics/ci-cd",
+                "key-topics/multi-tenancy",
                 "key-topics/webiny-cli"
             ],
             References: [
