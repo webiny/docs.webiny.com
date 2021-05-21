@@ -98,6 +98,11 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
+                        {
+                            type: "category",
+                            label: "Integrations",
+                            items: ["how-to-guides/development/integrations/integrate-tailwindcss"]
+                        },
                         "how-to-guides/development/use-watch-command",
                         "how-to-guides/development/environment-variables"
                         /* {
@@ -116,20 +121,50 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "Admin Area",
-                    items: ["how-to-guides/admin-area/api-playground"]
-                },
-                {
-                    type: "category",
-                    label: "Headless CMS",
+                    label: "Webiny Applications",
                     items: [
-                        "how-to-guides/headless-cms/create-a-webiny-headless-cms-field-plugin",
-                        "how-to-guides/headless-cms/create-a-content-model-form-layout",
-                        "how-to-guides/headless-cms/using-graphql-api",
-                        "how-to-guides/headless-cms/rendering-rich-text"
+                        {
+                            type: "category",
+                            label: "Admin Area",
+                            items: ["how-to-guides/webiny-applications/admin-area/api-playground"]
+                        },
+                        {
+                            type: "category",
+                            label: "Headless CMS",
+                            items: [
+                                "how-to-guides/webiny-applications/headless-cms/create-a-webiny-headless-cms-field-plugin",
+                                "how-to-guides/webiny-applications/headless-cms/create-a-content-model-form-layout",
+                                "how-to-guides/webiny-applications/headless-cms/using-graphql-api",
+                                "how-to-guides/webiny-applications/headless-cms/rendering-rich-text"
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "Themes",
+                            items: [
+                                "how-to-guides/webiny-applications/themes/introduction",
+                                {
+                                    type: "category",
+                                    label: "Page Builder",
+                                    items: [
+                                        "how-to-guides/webiny-applications/themes/page-builder/introduction",
+                                        "how-to-guides/webiny-applications/themes/page-builder/colors",
+                                        "how-to-guides/webiny-applications/themes/page-builder/elements",
+                                        "how-to-guides/webiny-applications/themes/page-builder/layouts"
+                                    ]
+                                },
+                                {
+                                    type: "category",
+                                    label: "Form Builder",
+                                    items: [
+                                        "how-to-guides/webiny-applications/themes/form-builder/introduction",
+                                        "how-to-guides/webiny-applications/themes/form-builder/layouts"
+                                    ]
+                                }
+                            ]
+                        }
                     ]
                 },
-
                 {
                     type: "category",
                     label: "Webiny CLI",
@@ -140,6 +175,7 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
                         "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
                         "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
                         "how-to-guides/upgrade-webiny/5.0.0-to-5.1.0",
@@ -165,31 +201,6 @@ module.exports = {
                             type: "category",
                             label: "Headless CMS",
                             items: ["key-topics/webiny-applications/headless-cms/graphql-api"]
-                        },
-                        {
-                            type: "category",
-                            label: "Themes",
-                            items: [
-                                "key-topics/webiny-applications/themes/introduction",
-                                {
-                                    type: "category",
-                                    label: "Page Builder",
-                                    items: [
-                                        "key-topics/webiny-applications/themes/page-builder/introduction",
-                                        "key-topics/webiny-applications/themes/page-builder/colors",
-                                        "key-topics/webiny-applications/themes/page-builder/elements",
-                                        "key-topics/webiny-applications/themes/page-builder/layouts"
-                                    ]
-                                },
-                                {
-                                    type: "category",
-                                    label: "Form Builder",
-                                    items: [
-                                        "key-topics/webiny-applications/themes/form-builder/introduction",
-                                        "key-topics/webiny-applications/themes/form-builder/layouts"
-                                    ]
-                                }
-                            ]
                         }
                     ]
                 },
@@ -247,6 +258,16 @@ module.exports = {
                     ]
                 },
                 "key-topics/tools-libraries",
+                "key-topics/multi-tenancy",
+                {
+                    type: "category",
+                    label: "Security Framework",
+                    items: [
+                        "key-topics/security-framework/introduction",
+                        "key-topics/security-framework/api-security",
+                        "key-topics/security-framework/react-security"
+                    ]
+                },
                 "key-topics/ci-cd",
                 "key-topics/webiny-cli"
             ],
@@ -272,7 +293,7 @@ module.exports = {
             Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         {
-            Changelog: ["changelog/5.5.0", "changelog/5.4.0", "changelog/5.3.0"]
+            Changelog: ["changelog/5.6.0", "changelog/5.5.0", "changelog/5.4.0", "changelog/5.3.0"]
         },
         "webiny-telemetry"
     ]
