@@ -89,25 +89,24 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
+                        /*{
+                            type: "category",
+                            label: "Backend Applications",
+                            items: [
+                                "how-to-guides/development/serverless-applications/introduction"
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "Frontend Applications",
+                            items: ["how-to-guides/development/frontend-applications/introduction"]
+                        },*/
+                        "how-to-guides/development/environment-variables",
                         {
                             type: "category",
                             label: "Integrations",
                             items: ["how-to-guides/development/integrations/integrate-tailwindcss"]
-                        },
-                        "how-to-guides/development/use-watch-command",
-                        "how-to-guides/development/environment-variables"
-                        /* {
-                            type: "category",
-                            label: "Workflows",
-                            items: [
-                                "how-to-guides/ci-cd/introduction",
-                                // "how-to-guides/ci-cd/developing-serverless-applications",
-                                "how-to-guides/ci-cd/cloud-infrastructure-state-files",
-                                // "how-to-guides/ci-cd/ci-cd",
-                                "how-to-guides/ci-cd/environments",
-                                "how-to-guides/ci-cd/version-control"
-                            ]
-                        }*/
+                        }
                     ]
                 },
                 {
@@ -154,7 +153,15 @@ module.exports = {
                 {
                     type: "category",
                     label: "Webiny CLI",
-                    items: ["how-to-guides/webiny-cli/working-with-workspaces"]
+                    items: [
+                        "how-to-guides/webiny-cli/use-watch-command",
+                        "how-to-guides/webiny-cli/working-with-workspaces",
+                        {
+                            type: "category",
+                            label: "Scaffolding",
+                            items: ["how-to-guides/webiny-cli/scaffolding/ci-cd"]
+                        },
+                    ]
                 },
                 {
                     type: "category",
@@ -197,6 +204,18 @@ module.exports = {
                         "key-topics/deployment/introduction",
                         "key-topics/deployment/iac-with-pulumi",
                         "key-topics/deployment/environments"
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "CI/CD",
+                    items: [
+                        "key-topics/ci-cd/introduction",
+                        "key-topics/ci-cd/environments",
+                        "key-topics/ci-cd/version-control",
+                        "key-topics/ci-cd/cloud-infrastructure-state-files",
+                        "key-topics/ci-cd/testing",
+                        "key-topics/ci-cd/workflows"
                     ]
                 },
                 /*{
@@ -244,7 +263,6 @@ module.exports = {
                     ]
                 },
                 "key-topics/tools-libraries",
-                "key-topics/multi-tenancy",
                 {
                     type: "category",
                     label: "Security Framework",
@@ -254,7 +272,7 @@ module.exports = {
                         "key-topics/security-framework/react-security"
                     ]
                 },
-                "key-topics/ci-cd",
+                "key-topics/multi-tenancy",
                 "key-topics/webiny-cli"
             ],
             References: [
