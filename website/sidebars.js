@@ -168,6 +168,7 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
                         "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
                         "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
                         "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
@@ -297,7 +298,13 @@ module.exports = {
             Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         {
-            Changelog: ["changelog/5.6.0", "changelog/5.5.0", "changelog/5.4.0", "changelog/5.3.0"]
+            Changelog: [
+                "changelog/5.7.0",
+                "changelog/5.6.0",
+                "changelog/5.5.0",
+                "changelog/5.4.0",
+                "changelog/5.3.0"
+            ]
         },
         "webiny-telemetry"
     ]
