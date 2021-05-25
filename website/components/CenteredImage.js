@@ -1,8 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Lightbox from "react-image-lightbox";
+import classNames from "classnames";
 
 export default props => {
     const [isOpen, setState] = useState(false);
+    const openLightbox = useCallback(() => {
+        if (props.lightbox === false) {
+            return;
+        }
+
+        setState(true);
+    }, []);
+
     return (
         <div
             style={{
@@ -11,9 +20,9 @@ export default props => {
             }}
         >
             <img
-                onClick={() => setState(true)}
+                onClick={openLightbox}
                 style={props.style || {}}
-                className={props.className}
+                className={classNames(props.className, { ["no-shadow"]: props.shadow === false })}
                 alt={props.alt}
                 title={props.title || props.alt}
                 src={props.src}
