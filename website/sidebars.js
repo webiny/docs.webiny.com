@@ -37,11 +37,20 @@ module.exports = {
                 "tutorials/install-webiny",
                 {
                     type: "category",
-                    label: "Create An Application",
+                    label: "Create an Application",
                     items: [
                         "tutorials/create-an-application/introduction",
                         "tutorials/create-an-application/api-package",
-                        "tutorials/create-an-application/admin-area-package"
+                        "tutorials/create-an-application/admin-area-package",
+                        {
+                            type: "category",
+                            label: "Securing Your Application",
+                            items: [
+                                "tutorials/create-an-application/security/introduction",
+                                "tutorials/create-an-application/security/graphql-api",
+                                "tutorials/create-an-application/security/admin-area"
+                            ]
+                        }
                     ]
                 },
                 {
@@ -113,6 +122,11 @@ module.exports = {
                     type: "category",
                     label: "Webiny Applications",
                     items: [
+                        {
+                            type: "category",
+                            label: "Admin Area",
+                            items: ["how-to-guides/webiny-applications/admin-area/api-playground"]
+                        },
                         {
                             type: "category",
                             label: "Headless CMS",

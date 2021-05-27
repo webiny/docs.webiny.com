@@ -1,0 +1,348 @@
+---
+id: admin-area
+title: Admin Area
+sidebar_label: Admin Area
+keywords: ["application", "security", admin", "area"]
+description: Learn how you can secure your Webiny Admin Area modules.
+---
+
+import CenteredImage from "../../../mdxComponents/centeredImage";
+import securityGroupsSelection from "./assets/security-groups-selection.png";
+import securityGroupsPermissions from "./assets/security-groups-permissions.png";
+import addedSecurityPermissionsGroup from "./assets/added-security-permissions-group.png";
+import unprotectedQuery from "./assets/unprotected-query.png";
+import unprotectedMutation from "./assets/unprotected-mutation.png";
+import graphqlAuthError from "./assets/query-auth-error.png";
+import graphqlAuthSuccess from "./assets/query-auth-success.png";
+import createTestUser from "./assets/create-test-user.png";
+import newSecurityGroup from "./assets/new-security-group.png";
+import contentLocaleSection from "./assets/content-locale-section.png";
+import carManufacturersMenuItem from "./assets/car-manufacturers-menu-item.png";
+import carManufacturersMenuItemHidden from "./assets/car-manufacturers-menu-item-hidden.png";
+import routeNotAuthorized from "./assets/route-not-authorized.png";
+import hidingNewButton from "./assets/hiding-new-button.png";
+import hidingNewButtonHidden from "./assets/hiding-new-button-hidden.png";
+
+:::tip What you'll learn
+
+- how to prevent unauthorized users from seeing user-interface sections in Webiny Admin Area
+:::
+
+:::info
+Learn more about the Webiny Security Framework in the [Security Framework](/docs/key-topics/security-framework/introduction) key topics section.
+:::
+
+
+## Overview
+
+:::info
+The code that we will cover in this tutorial can also be found in our [GitHub examples repository](https://github.com/webiny/webiny-examples/tree/master/create-an-application/securing-your-application/code/packages/car-manufacturers/admin-app).
+:::
+
+Let's finish this tutorial by adding authorization checks in the actual user interface. What we want to achieve is having a piece of UI hide if the currently logged-in user doesn't have access to it (doesn't have necessary security permissions).
+
+For starters, let's see how we can hide the Car Manufacturers menu items in the main menu, in cases where logged in user doesn't possess the necessary permissions.
+
+## Main Menu Items
+
+By completing the previous [Admin Area Package](/docs/tutorials/create-an-application/admin-area-package) tutorial, in our Webiny Admin Area, we should have the following items in the main menu:
+
+<CenteredImage alt="Main Menu - Car Manufacturers Module" src={carManufacturersMenuItem} />
+
+So, what we want to achieve here is the following:
+
+- if the user is allowed to access the Car Manufacturers module, then make the menu item visible
+- otherwise, if the user isn't allowed to access it, keep the menu item hidden
+
+Note that when we say "has access", specifically in this case, we're going to check if the user can read Car Manufacturer entries.
+
+The code for these menu items is located in the scaffolded [`packages/car-manufacturers/admin-app/src/menus.tsx`](https://github.com/webiny/webiny-examples/tree/master/create-an-application/securing-your-application/code/packages/car-manufacturers/admin-app/src/menus.tsx) file. So, in there, we can add the following code:
+
+```tsx title="packages/car-manufacturers/admin-app/src/menus.tsx" {4-5,7,9,10,12,13,19-44}
+import React from "react";
+import { AdminMenuPlugin } from "@webiny/app-admin/types";
+
+// Note that we've changed the icon (this one is more appropriate).
+import { ReactComponent as Icon } from "./assets/directions_car-24px.svg";
+
+import { useSecurity } from "@webiny/app-security";
+
+// We use this when specifying the return types of the getPermission function call (below).
+import { FullAccessPermission } from "@webiny/app-security/types";
+
+// Creating types for security permissions makes our code less error-prone and more readable.
+import { CarManufacturersPermission } from "./types";
+
+export default (): AdminMenuPlugin => ({
+    type: "admin-menu",
+    name: "admin-menu-car-manufacturers",
+    render({ Menu, Item }) {
+        const { identity } = useSecurity();
+
+        // We get the "car-manufacturers" permission from current identity (logged in user).
+        const permission = identity.getPermission<
+            CarManufacturersPermission | FullAccessPermission
+        >("car-manufacturers");
+
+        if (!permission) {
+            return null;
+        }
+
+        // Note that the received permission object can also be `{ name: "*" }`. If so, that
+        // means we are dealing with the super admin, who has unlimited access.
+        let hasAccess = permission.name === "*";
+        if (!hasAccess) {
+            // If not super admin, let's check if we have the "r" in the `rwd` property.
+            hasAccess =
+                permission.name === "car-manufacturers" &&
+                permission.rwd &&
+                permission.rwd.includes("r");
+        }
+
+        // Finally, if current identity doesn't have access, we immediately exit.
+        if (!hasAccess) {
+            return null;
+        }
+
+        return (
+            <Menu name="menu-car-manufacturers" label={"Car Manufacturers"} icon={<Icon />}>
+                <Item label={"Car Manufacturers"} path={"/car-manufacturers"} />
+            </Menu>
+        );
+    }
+});
+```
+
+:::info
+In order to conditionally render the Car Manufacturers menu items, we are using the [`useSecurity`](https://github.com/webiny/webiny-js/blob/next/packages/app-security/src/hooks/useSecurity.ts) React hook, imported from the [`@webiny/app-security`](https://github.com/webiny/webiny-js/tree/next/packages/app-security) package.
+:::
+
+:::tip
+If you're curious about the `CarManufacturersPermission` type, check its definition in [packages/car-manufacturers/admin-app/src/types.ts:24](https://github.com/webiny/webiny-examples/tree/master/create-an-application/securing-your-application/code/packages/car-manufacturers/admin-app/src/types.ts#L24).
+:::
+
+:::info
+In order to actually compile the code changes we're about to make and see them in browser, we need to run the following Webiny CLI command:
+
+```bash
+yarn webiny watch apps/admin --env dev
+```
+
+To learn more, check out the [Use the Watch Command](/docs/how-to-guides/development/use-watch-command) guide.
+:::
+
+As you may have noticed, we're using the exact same logic and code, that we previously used while trying to secure the `getCarManufacturer` GraphQL resolver function. The only thing that's different is the way we fetch the currently logged in identity's permission. Here, we are using the `useSecurity` React hook in order to first get the identity, and then, via the `getPermission` method, the `car-manufacturers` permission.
+
+In order to manually test this, we can just log in with a user that doesn't belong to the Car Manufacturers security group. In that case, if everything was done correctly, we should not be able to see the Car Manufacturers menu item:
+
+<CenteredImage
+  alt="Main Menu - Car Manufacturers Module (Hidden)"
+  src={carManufacturersMenuItemHidden}
+/>
+
+And while this is much better than what we had earlier, note that the actual route, to which the Car Manufacturers menu item linked, is still accessible. In other words, if a user tried to enter the `/car-manufacturers` URL path (route) into the browser manually, the view would still be shown. This is simply because the route itself isn't secured. So, let's see how we can do that.
+
+## Routes
+
+To prevent unauthorized users from accessing the `/car-manufacturers` URL path (route), let's jump to the [`packages/car-manufacturers/admin-app/src/routes.tsx`](https://github.com/webiny/webiny-examples/tree/master/create-an-application/securing-your-application/code/packages/car-manufacturers/admin-app/src/routes.tsx) file, in which we're going to wrap our all of our child React components with the `SecureRoute` component:
+
+```tsx title="packages/car-manufacturers/admin-app/src/routes.tsx" {7,23-26,35}
+import React, { Suspense, lazy } from "react";
+import Helmet from "react-helmet";
+import { Route } from "@webiny/react-router";
+import { RoutePlugin } from "@webiny/app/types";
+import { CircularProgress } from "@webiny/ui/Progress";
+import { AdminLayout } from "@webiny/app-admin/components/AdminLayout";
+import { SecureRoute } from "@webiny/app-security/components";
+
+const Loader = ({ children, ...props }) => (
+  <Suspense fallback={<CircularProgress />}>{React.cloneElement(children, props)}</Suspense>
+);
+
+const CarManufacturers = lazy(() => import("./views/CarManufacturers"));
+
+export default (): RoutePlugin => ({
+  type: "route",
+  name: "route-admin-car-manufacturers",
+  route: (
+    <Route
+      path={"/car-manufacturers"}
+      exact
+      render={() => (
+        // In order to be able to access this route, the logged in user needs to
+        // have the "car-manufacturers" permission. We don't inspect the extra
+        // properties it may hold, we do that within rendered child components.
+        <SecureRoute permission={"car-manufacturers"}>
+          <AdminLayout>
+            <Helmet>
+              <title>Car Manufacturers</title>
+            </Helmet>
+            <Loader>
+              <CarManufacturers />
+            </Loader>
+          </AdminLayout>
+        </SecureRoute>
+      )}
+    />
+  )
+});
+```
+
+:::info
+In order to conditionally render the `/car-manufacturers` route, we are using the [`SecureRoute`](https://github.com/webiny/webiny-js/blob/next/packages/app-security/src/components/SecureRoute.tsx) React component, imported from the [`@webiny/app-security`](https://github.com/webiny/webiny-js/tree/next/packages/app-security) package.
+:::
+
+So, with this newly added code in place, by entering the mentioned `/car-manufacturers` URL path into the browser, we'd receive the following:
+
+<CenteredImage alt="Cannot Access Route - Not Authorized Message" src={routeNotAuthorized} />
+
+And that's how you secure your routes. Note that we've only checking if the logged in user possesses the `car-manufacturers` permission. And although that's not a very authorization specific check, we can still consider is it as enough, since we can perform more specific checks within the rendered child React components.
+
+## React Components
+
+Let's see how we can prevent rendering of React components, in case the logged in user is not authorized to see them.
+
+For example, let's hide the New Car Manufacturer button, for users that aren't allowed to create new or update existing car manufacturers. This is determined via the `rwd` property in our `car-manufacturers` security permission object (letter `w` must be present in the string).
+
+<CenteredImage alt='Hiding the "New Car Manufacturer Button"' src={hidingNewButton} />
+
+To do that, let's jump to the `CarManufacturersDataList` React component ([`packages/car-manufacturers/admin-app/src/views/CarManufacturersDataList.tsx`](https://github.com/webiny/webiny-examples/tree/master/create-an-application/securing-your-application/code/packages/car-manufacturers/admin-app/src/views/CarManufacturersDataList.tsx)), in which we're going to wrap the `ButtonSecondary` component with the `SecureView` component. The following code shows how we can do that (for brevity, some of the code was excluded):
+
+```tsx title="packages/car-manufacturers/admin-app/src/views/CarManufacturersDataList.tsx" {4-6,10,29-53,63-64}
+import React, { useCallback, useEffect, useMemo } from "react";
+(...)
+
+// We also imported CarManufacturersPermission and FullAccessPermission types.
+import { CarManufacturerItem, DataListChildProps, CarManufacturersPermission } from "../types";
+import { FullAccessPermission } from "@webiny/app-security/types";
+
+(...)
+
+import { SecureView } from "@webiny/app-security/components";
+
+(...)
+
+const CarManufacturersDataList: React.FunctionComponent<Props> = ({
+    sortBy,
+    setSortBy,
+    limit,
+    sorters
+}) => {
+
+    (...)
+
+    return (
+        <DataList
+            loading={loading}
+            title={t`CarManufacturers`}
+            data={data}
+            actions={
+                /* The SecureView component conditionally renders child components
+                (depending on the result of the permissions check we provided) */
+                <SecureView<CarManufacturersPermission | FullAccessPermission>
+                    permission={"car-manufacturers"}
+                >
+                    {({ permission }) => {
+                        if (!permission) {
+                            return null;
+                        }
+
+                        // Note that the received permission object can also be `{ name: "*" }`. If so, that
+                        // means we are dealing with the super admin, who has unlimited access.
+                        let hasAccess = permission.name === "*";
+                        if (!hasAccess) {
+                            // If not super admin, let's check if we have the "w" in the `rwd` property.
+                            hasAccess =
+                                permission.name === "car-manufacturers" &&
+                                permission.rwd &&
+                                permission.rwd.includes("w");
+                        }
+
+                        // Finally, if current identity doesn't have access, we immediately exit.
+                        if (!hasAccess) {
+                            return null;
+                        }
+
+                        return (
+                            <ButtonSecondary
+                                data-testid="new-carManufacturer-button"
+                                onClick={() => history.push("/car-manufacturers/?new=true")}
+                            >
+                                <ButtonIcon icon={<AddIcon />} /> {t`New Car Manufacturer`}
+                            </ButtonSecondary>
+                        );
+                    }}
+                </SecureView>
+            }
+            modalOverlay={sortOverlay}
+            modalOverlayAction={<DataListModalOverlayAction icon={<FilterIcon />} />}
+        >
+            {({ data }: DataListChildProps) => (
+                <ScrollList data-testid="carManufacturer-data-list">
+                    {(data || []).map(item => (
+                        <ListItem key={item.id} selected={item.id === id}>
+                            <ListItemText
+                                onClick={() => history.push(`/carManufacturers?id=${item.id}`)}
+                            >
+                                {item.title}
+                                {item.description && (
+                                    <ListItemTextSecondary>
+                                        {item.description}
+                                    </ListItemTextSecondary>
+                                )}
+                            </ListItemText>
+
+                            <ListItemMeta>
+                                <ListActions>
+                                    <DeleteIcon onClick={() => deleteCarManufacturerItem(item)} />
+                                </ListActions>
+                            </ListItemMeta>
+                        </ListItem>
+                    ))}
+                </ScrollList>
+            )}
+        </DataList>
+    );
+};
+
+export default CarManufacturersDataList;
+```
+
+:::info
+In order to conditionally render the New Car Manufacturer button, we are using the [`SecureView`](https://github.com/webiny/webiny-js/blob/next/packages/app-security/src/components/SecureView.tsx) React component, imported from the [`@webiny/app-security`](https://github.com/webiny/webiny-js/tree/next/packages/app-security) package.
+:::
+
+Once again, with this newly added code in place, we should no longer see the New Car Manufacturer button if the logged in user isn't allowed to create new or update existing car manufacturers (letter `w` must be present in the `rwd` property of our `car-manufacturers` security permission object).
+
+<CenteredImage
+  alt='Hiding the "New Car Manufacturer Button" (Hidden)'
+  src={hidingNewButtonHidden}
+/>
+
+And that's how we can use the `SecureView` React component to conditionally render a React component.
+
+Note that, instead of the `SecureView` React component, we could've also easily used the previously shown `useSecurity` React hook. The component is used here mainly mainly for demonstration purposes and to raise awareness of its existence.
+
+## Final Notes
+
+We've covered all of the possible ways you can perform authorization checks, while developing new Webiny Admin Area modules:
+
+- `useSecurity` React hook
+- `SecureRoute` React component
+- `SecureView` React component
+
+It's useful to know that that these utilities can be used outside of the Webiny Admin Area as well, like for example in a custom React application.
+
+:::info
+To learn more about how to use these in a custom React application, please check out the dedicated article (coming soon).
+:::
+
+Furthermore, note that there are still places in the user interface, where we'd most probably want to perform authorization checks, using one of the shown utilities. For example, in the car manufacturers list, we certainly don't want to show the delete entry icon, if the user isn't allowed to perform the delete operation. Make sure to check the [full code example](https://github.com/webiny/webiny-examples/tree/master/create-an-application/securing-your-application/code/packages/car-manufacturers/admin-app) to see how the rest of the authorization checks were implemented.
+
+Finally, like in the previous [GraphQL API section](/docs/tutorials/create-an-application/security/graphql-api), in case you start seeing yourself copying some of the authorization related code, it's certainly recommended that you extract it into one or more separate utility React hooks or components. This way we're not repeating our selves ([DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself)) and our code will be more maintainable and less error-prone.
+
+## FAQ
+
+#### Should I use the `useSecurity` React hook or the shown React components?
+
+Although all three approaches are valid, we recommend the `useSecurity` React hook as your first choice. Utilize React components in scenarios where the hook is not the most appropriate solution or it simply cannot be used.
