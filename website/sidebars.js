@@ -125,9 +125,13 @@ module.exports = {
                         {
                             type: "category",
                             label: "Admin Area",
+                            items: ["how-to-guides/webiny-applications/admin-area/api-playground"]
+                        },
+                        {
+                            type: "category",
+                            label: "File Manager",
                             items: [
-                                "how-to-guides/webiny-applications/admin-area/api-playground",
-                                "how-to-guides/webiny-applications/admin-area/create-a-file-type-plugin"
+                                "how-to-guides/webiny-applications/file-manager/create-a-file-type-plugin"
                             ]
                         },
                         {
