@@ -56,7 +56,7 @@ Before running the `webiny upgrade` command, we recommend that you commit any ac
 
 ### Additional Manual Upgrade Steps
 
-Once the `webiny upgrade` command has finished, three manual steps remain to be completed, after which, your project should be completely updated.
+Once the `webiny upgrade` command has finished, a couple of manual steps remain to be completed, after which, your project should be completely updated.
 
 You can then proceed by committing the changes to your working branch and trying to [deploy](/docs/how-to-guides/deployment/deploy-your-project) the project to one of the development or pre-production environment.
 
@@ -84,11 +84,21 @@ Open your `/apps/website/code/src/components/Page/index.tsx` file and replace it
 
 #### 3. Optionally, add necessary environment variables to enable newly introduced logs forwarding
 
-The new `webiny watch` command enables you to [stream logs](/docs/changelog/5.5.0#logs) from your application code directly to your terminal. And while all new projects will have this feature automatically enabled, there is one manual step that needs to be done for projects that are making the upgrade to version `5.5.0`.
+The new `webiny watch` command enables you to [stream logs](/docs/changelog/5.5.0#logs) from your application code directly to your terminal. And while all new projects will have this feature automatically enabled, there are a couple of manual steps that needs to be done for projects that are making the upgrade to version `5.5.0`.
 
 In [api/pulumi/dev/index.ts](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/api/pulumi/dev/index.ts), upon instantiating both `Graphql` and `HeadlessCMS` classes, make sure to pass the `WEBINY_LOGS_FORWARD_URL: String(process.env.WEBINY_LOGS_FORWARD_URL)` as an environment variable.
 
+With that, you will also need to add the `@webiny/handler-logs` dependency to [`api-graphql`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/package.json#L27) and [`api-headless-cms`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/headlessCMS/package.json#L21) packages, and register its plugins in respective [index.ts](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/src/index.ts#L25) / [index.ts](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/headlessCMS/src/index.ts#L17) files.
+
 This will enable logs forwarding for your main GraphQL API and HeadlessCMS GraphQL API Lambda functions.
+
+#### 4. Fix the `buildFunction` in the `transform` Lambda Function Handler
+
+We've received several reports of the [`webiny.config.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/fileManager/transform/webiny.config.ts#L1) not importing the correct `buildFunction`. Before doing any deployments, please ensure that the config file imports the correct `buildFunction`:
+
+```tsx
+import { buildFunction } from "@webiny/api-file-manager/handlers/transform/bundle";
+```
 
 ## Upgrade Headless CMS Permissions
 After a successful deployment, open your Admin Area to execute the automated upgrade of Headless CMS permissions. It will update permissions data structure on user groups and API keys.
