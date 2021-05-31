@@ -37,11 +37,20 @@ module.exports = {
                 "tutorials/install-webiny",
                 {
                     type: "category",
-                    label: "Create An Application",
+                    label: "Create an Application",
                     items: [
                         "tutorials/create-an-application/introduction",
                         "tutorials/create-an-application/api-package",
-                        "tutorials/create-an-application/admin-area-package"
+                        "tutorials/create-an-application/admin-area-package",
+                        {
+                            type: "category",
+                            label: "Securing Your Application",
+                            items: [
+                                "tutorials/create-an-application/security/introduction",
+                                "tutorials/create-an-application/security/graphql-api",
+                                "tutorials/create-an-application/security/admin-area"
+                            ]
+                        }
                     ]
                 },
                 {
@@ -115,6 +124,11 @@ module.exports = {
                     items: [
                         {
                             type: "category",
+                            label: "Admin Area",
+                            items: ["how-to-guides/webiny-applications/admin-area/api-playground"]
+                        },
+                        {
+                            type: "category",
                             label: "Headless CMS",
                             items: [
                                 "how-to-guides/webiny-applications/headless-cms/create-a-webiny-headless-cms-field-plugin",
@@ -160,7 +174,7 @@ module.exports = {
                             type: "category",
                             label: "Scaffolding",
                             items: ["how-to-guides/webiny-cli/scaffolding/ci-cd"]
-                        },
+                        }
                     ]
                 },
                 {
@@ -169,6 +183,7 @@ module.exports = {
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
                         "how-to-guides/upgrade-webiny/5.7.0-to-5.8.0",
+                        "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
                         "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
                         "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
                         "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
@@ -298,7 +313,13 @@ module.exports = {
             Contributing: ["contributing/documentation", "contributing/new-page-template"]
         },
         {
-            Changelog: ["changelog/5.6.0", "changelog/5.5.0", "changelog/5.4.0", "changelog/5.3.0"]
+            Changelog: [
+                "changelog/5.7.0",
+                "changelog/5.6.0",
+                "changelog/5.5.0",
+                "changelog/5.4.0",
+                "changelog/5.3.0"
+            ]
         },
         "webiny-telemetry"
     ]
