@@ -174,7 +174,7 @@ module.exports = {
                             type: "category",
                             label: "Scaffolding",
                             items: ["how-to-guides/webiny-cli/scaffolding/ci-cd"]
-                        },
+                        }
                     ]
                 },
                 {
@@ -182,6 +182,7 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.7.0-to-5.8.0",
                         "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
                         "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
                         "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",

@@ -1,0 +1,103 @@
+---
+id: 5.7.0-to-5.8.0
+title: 5.7.0 to 5.8.0
+sidebar_label: 5.7.0 to 5.8.0
+keywords: ["webiny", "version", "upgrade", "5.7.0", "5.8.0"]
+description: Learn how to upgrade Webiny from 5.7.0 to 5.8.0.
+---
+
+:::tip What you’ll learn
+- how to upgrade Webiny from 5.7.0 to 5.8.0
+:::
+
+:::danger
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny/overview#-precaution-measures) section.
+:::
+
+:::info
+Make sure to check out the [5.8.0 changelog]__(/docs/changelog/5.8.0) to get familiar with all the changes  introduced in this release.
+:::
+
+## Upgrade Webiny Packages
+
+The first step is to upgrade all `@webiny/*` packages, which can be done by running the following command in the root of your project:
+
+```bash
+# Execute in your project root.
+yarn up "@webiny/*@5.8.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.8.0`.
+
+## Upgrade Headless CMS
+
+### Add DynamoDB + Elasticsearch plugins
+
+Due to some internal changes in how we store data to the database you must add new plugins to the Headless CMS and GraphQL API lambdas.
+
+First, you need to add new package to the `package.json` file in the `api/code/headlessCMS`, in the `dependencies` section.
+
+```json title="api/code/headlessCMS/package.json"
+"dependencies": {
+	....
+	"@webiny/api-headless-cms-ddb-es": "^5.8.0"
+	....
+}
+```
+
+Then you need import the plugin from the new `@webiny/api-headless-cms-ddb-es` package.
+
+```typescript title="api/code/headlessCMS/src/index.ts"
+// somewhere after the last import
+import headlessCmsDynamoDbElasticsearch from "@webiny/api-headless-cms-ddb-es";
+
+// in the end of the createHandler function
+headlessCmsDynamoDbElasticsearch(),
+```
+
+After that you are done with the Headless CMS, you do the same thing for the`api/code/graphql` `package.json` and `index.ts` file.
+```json title="api/code/graphql/package.json"
+"dependencies": {
+	....
+	"@webiny/api-headless-cms-ddb-es": "^5.8.0"
+	....
+}
+```
+
+Then you import the plugin from the `@webiny/api-headless-cms-ddb-es` package.
+
+```typescript title="api/code/graphql/src/index.ts"
+// somewhere after the last import
+import headlessCmsDynamoDbElasticsearch from "@webiny/api-headless-cms-ddb-es";
+
+// in the end of the createHandler function
+headlessCmsDynamoDbElasticsearch(),
+```
+
+When you are done with import, re-deploy your API code.
+
+```shell
+yarn webiny deploy api --env=YOUR_ENVIRONMENT
+```
+
+### Upgrade in the Admin
+
+When your API code is deployed go to your admin url and there should be an upgrade screen.
+If upgrade screen does not show, try to clear cookies, local storage and log back in.
+
+:::note
+If there is still no upgrade screen, verify that you have done the previous step correctly.
+:::
+
+Clicking on the `Upgrade` button the upgrade API call is triggered and the upgrade starts.
+Depending on the amount of the data you have it might take few seconds to complete.
+
+If you encounter any problems during the upgrade feel free to give us a shout on our [Community Slack #headless-cms](https://webiny-community.slack.com/archives/C0147R8166P) channel.
+
+## Upgrade your custom Elasticsearch plugins
+
+In this version we started using [elastic-ts](https://github.com/jacobwgillespie/elastic-ts) library to have more robust Typescript types for the Elasticsearch queries.
+Due to changing from our own types to this library, there is a change that you must do in your custom Elasticsearch plugins which concern the `query`.
+If you do not have custom plugins, just disregard this part of the upgrade.
+
+Our `ElasticsearchQuery` type had `mustNot` property, but `elastic-ts` `BoolQueryConfig` has `must_not` property. You need to change that property if you had it in your plugins.
