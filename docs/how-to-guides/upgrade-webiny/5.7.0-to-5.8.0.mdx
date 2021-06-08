@@ -18,7 +18,7 @@ Before continuing, make sure to take the necessary precautions, listed in the [O
 Make sure to check out the [5.8.0 changelog](/docs/changelog/5.8.0) to get familiar with all the changes  introduced in this release.
 :::
 
-## Upgrade Webiny Packages
+## 1. Upgrade Webiny Packages
 
 The first step is to upgrade all `@webiny/*` packages, which can be done by running the following command in the root of your project:
 
@@ -29,42 +29,48 @@ yarn up "@webiny/*@5.8.0"
 
 Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.8.0`.
 
-## Upgrade Headless CMS
+## 2. Upgrade API Project Application's Code
 
-### Upgrade the lambda code
-Due to some internal changes in how we store data to the database and Elasticsearch you must run the upgrade command to update HeadlessCMS and GraphQL lambda files.
+Once all of the Webiny packages have been upgraded, continue by running the following upgrade command:
 
-Command to run is:
 ```bash
 # Execute in your project root.
 yarn webiny upgrade 5.8.0
 ```
 
-When you are done with the upgrade, re-deploy your API code.
+The upgrade script will make a couple of changes to your existing **API** project application's code (located within the `api` folder). Once the upgrade command has finished, you can run the [`git status`](https://git-scm.com/docs/git-status) command to see all changes that the command performed.
+
+:::info
+Before running the `webiny upgrade` command, we recommend that you commit any active code changes you might have in your working branch.
+:::
+
+## 3. Deploy Your Project and Finish the Upgrade in the Webiny Admin Area
+
+Finally, proceed by re-deploying the **API** project application:
 
 ```bash
 # Execute in your project root.
-yarn webiny deploy api --env=YOUR_ENVIRONMENT
+yarn webiny deploy api --env {environment}
 ```
 
-### Upgrade in the Admin
+Then, open your existing Admin Area application in your browser, and follow the instructions presented in the upgrade wizard. Note that, depending on the amount of data in the database, the upgrade process might take anywhere from a few seconds to a couple of minutes in order to finish.
 
-When your API code deploys, go to your admin url and there should be an upgrade screen.
-If upgrade screen does not show, try to clear cookies, local storage and log back in.
-
-:::note
-If there is still no upgrade screen, verify that you have done the previous step correctly.
+:::info
+If the upgrade wizard does not show, try clearing cookies, local storage, and logging back in. If the problem persists, verify that the previous steps were performed correctly. Finally, for further assistance, please don't hesitate to post a question in our [Community Slack #help](https://webiny-community.slack.com/archives/C014Y0HGJ0Y) channel.
 :::
 
-Clicking on the `Upgrade` button will start the upgrade script.
-Depending on the amount of the data you have it might take few seconds/minutes to complete.
+:::caution
+As stated in the [Overview](/docs/how-to-guides/upgrade-webiny/overview#pre-production-environments-first) section, we recommend that you first deploy your changes into one of your pre-production environments, like `dev` or `staging`.
+:::
 
-If you encounter any problems during the upgrade feel free to give us a shout on our [Community Slack #help](https://webiny-community.slack.com/archives/C014Y0HGJ0Y) channel.
+## Optional - Upgrade Custom Elasticsearch Plugins
 
-## Upgrade your custom Elasticsearch plugins
+:::info
+The following only apply to users who have created custom Elasticsearch plugins in their code.
+:::
 
-In this version we started using [elastic-ts](https://github.com/jacobwgillespie/elastic-ts) library to have more robust Typescript types for the Elasticsearch queries.
+In this release, we introduced the [elastic-ts](https://github.com/jacobwgillespie/elastic-ts) package, which enables us to have a more robust Typescript support while writing Elasticsearch-related code (for example, performing Elasticsearch queries).
+
 Due to changing from our own types to this library, there is a change that you must do in your custom Elasticsearch plugins which concern the `query`.
-If you do not have custom plugins, just disregard this part of the upgrade.
 
 Our `ElasticsearchQuery` type had `mustNot` property, but `elastic-ts` `BoolQueryConfig` has `must_not` property. You need to change that property if you had it in your plugins.
