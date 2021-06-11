@@ -321,6 +321,7 @@ module.exports = {
         },
         {
             Changelog: [
+                "changelog/5.9.0",
                 "changelog/5.8.0",
                 "changelog/5.7.0",
                 "changelog/5.6.0",
