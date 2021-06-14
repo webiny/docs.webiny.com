@@ -15,8 +15,9 @@ export default props => {
     return (
         <div
             style={{
-                display: "block",
-                margin: "20px auto"
+                display: "flex",
+                justifyContent: "center",
+                margin: "20px 0"
             }}
         >
             <img

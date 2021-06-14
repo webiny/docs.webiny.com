@@ -1,6 +1,7 @@
 import React from "react";
+import Case from "case";
 
-export default ({ prNumber, title, children }) => {
+export default ({ prNumber, title, children, useTitleCase }) => {
     if (!title) {
         return (
             <div>
@@ -20,7 +21,7 @@ export default ({ prNumber, title, children }) => {
     return (
         <div>
             <h3>
-                {title} (
+                {useTitleCase === false ? title : Case.title(title)} (
                 <a href={`https://github.com/webiny/webiny-js/pull/${prNumber}`}>#{prNumber}</a>)
             </h3>
             {children}
