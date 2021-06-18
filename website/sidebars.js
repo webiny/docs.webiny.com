@@ -180,7 +180,12 @@ module.exports = {
                         {
                             type: "category",
                             label: "Scaffolding",
-                            items: ["how-to-guides/webiny-cli/scaffolding/ci-cd"]
+                            items: [
+                                "how-to-guides/webiny-cli/scaffolding/introduction",
+                                "how-to-guides/webiny-cli/scaffolding/extend-admin-area",
+                                "how-to-guides/webiny-cli/scaffolding/extend-graphql-api",
+                                "how-to-guides/webiny-cli/scaffolding/ci-cd"
+                            ]
                         }
                     ]
                 },
