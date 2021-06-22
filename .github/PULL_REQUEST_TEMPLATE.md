@@ -15,6 +15,7 @@
 - [ ] I used title case for titles and subtitles (in the main menu and in the page content)
 - [ ] I checked for typos and grammar mistakes
 - [ ] I added `alt` / `title` attributes for inserted images (if any)
+- [ ] When linking code from GitHub, I did it via a specific tag (and not `next` / `v5` branch) 
 
 <!--- Resources:
 - new document template: https://docs.webiny.com/docs/contributing/documentation#template-for-new-docs
