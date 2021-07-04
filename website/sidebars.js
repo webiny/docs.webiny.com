@@ -40,9 +40,9 @@ module.exports = {
                     label: "Extend Admin Area",
                     items: [
                         "tutorials/extend-admin-area/introduction",
-                        "tutorials/extend-admin-area/scaffolding",
-                        "tutorials/extend-admin-area/entities",
-                        "tutorials/extend-admin-area/testing",
+                        "tutorials/extend-admin-area/getting-started",
+                        "tutorials/extend-admin-area/extending-entities",
+                        // "tutorials/extend-admin-area/testing",
                         {
                             type: "category",
                             label: "Security",
