@@ -37,18 +37,19 @@ module.exports = {
                 "tutorials/install-webiny",
                 {
                     type: "category",
-                    label: "Create an Application",
+                    label: "Extend Admin Area",
                     items: [
-                        "tutorials/create-an-application/introduction",
-                        "tutorials/create-an-application/api-package",
-                        "tutorials/create-an-application/admin-area-package",
+                        "tutorials/extend-admin-area/introduction",
+                        "tutorials/extend-admin-area/scaffolding",
+                        "tutorials/extend-admin-area/entities",
+                        "tutorials/extend-admin-area/testing",
                         {
                             type: "category",
-                            label: "Securing Your Application",
+                            label: "Security",
                             items: [
-                                "tutorials/create-an-application/security/introduction",
-                                "tutorials/create-an-application/security/graphql-api",
-                                "tutorials/create-an-application/security/admin-area"
+                                "tutorials/extend-admin-area/security/introduction",
+                                "tutorials/extend-admin-area/security/graphql-api",
+                                "tutorials/extend-admin-area/security/admin-area"
                             ]
                         }
                     ]

@@ -1,0 +1,276 @@
+---
+id: entities
+title: Entities
+sidebar_label: Entities
+keywords: ["webiny", "scaffold", "boilerplate", "api", "admin"]
+description: Introduction into how to quickly create and deploy API and Admin area applications.
+---
+
+import CenteredImage from "@components/CenteredImage";
+
+:::tip WHAT YOU’LL LEARN
+- how to extend the Admin Area React application
+:::
+
+## Further Development
+
+Initially, the `CarManufacturer` entity that was created in the scaffolding process only contains two fields: `title` and `description`, which, for each car manufacturer entry, we can set via the the CRUD view in our Admin Area React application. So, for example, let's see how we can add the new `isPopular` boolean attribute to the entity, and then, enable logged-in administrators to modify its value, by adding a simple `Switch` form element.
+
+#### GraphQL API
+
+Starting from the GraphQL API side, let's open our [`CarManufacturer`](https://github.com/webiny/webiny-examples/blob/master/blog/webiny-v5.9.0-improved-scaffolds-and-development/api/code/graphql/src/plugins/scaffolds/graphql/carManufacturers/entities/CarManufacturers.ts#L20) entity and simply define the new attribute on it (parts of code removed for brevity):
+
+```ts
+// api/code/graphql/src/plugins/scaffolds/graphql/carManufacturers/entities/CarManufacturers.ts
+
+(...)
+
+export default new Entity<CarManufacturerEntity>({
+    table,
+    name: "CarManufacturers",
+    timestamps: false,
+    attributes: {
+        PK: { partitionKey: true },
+        SK: { sortKey: true },
+        id: { type: "string" },
+        title: { type: "string" },
+        description: { type: "string" },
+        isPopular: { type: "boolean" }, // <== Added a new boolean field.
+        createdOn: { type: "string" },
+        savedOn: { type: "string" },
+        createdBy: { type: "map" },
+        webinyVersion: { type: "string" }
+    }
+});
+```
+
+Notice how we're passing the [`CarManufacturerEntity`](https://github.com/webiny/webiny-examples/blob/master/blog/webiny-v5.9.0-improved-scaffolds-and-development/api/code/graphql/src/plugins/scaffolds/graphql/carManufacturers/types.ts#L6) interface upon instantiating the `Entity` class. Since the interface is essentially listing all attributes that our entity consists of, let's update it as well:
+
+```ts
+// api/code/graphql/src/plugins/scaffolds/graphql/carManufacturers/types.ts
+
+(...)
+
+export interface CarManufacturerEntity {
+    PK: string;
+    SK: string;
+    id: string;
+    title: string;
+    description?: string;
+    isPopular?: boolean; // <== Added a new interface property.
+    createdOn: string;
+    savedOn: string;
+    createdBy: Pick<SecurityIdentity, "id" | "displayName" | "type">;
+    webinyVersion: string;
+}
+
+(...)
+```
+
+Finally, let's update our GraphQL `CarManufacturer`-related types in our schema, located in the [`typeDefs.ts`](https://github.com/webiny/webiny-examples/blob/master/blog/webiny-v5.9.0-improved-scaffolds-and-development/api/code/graphql/src/plugins/scaffolds/graphql/carManufacturers/typeDefs.ts) file:
+
+```ts
+// api/code/graphql/src/plugins/scaffolds/graphql/carManufacturers/typeDefs.ts
+
+export default /* GraphQL */ `
+    type CarManufacturer {
+        id: ID!
+        title: String!
+        description: String
+
+        # Added a new GraphQL type field.
+        isPopular: Boolean
+
+        createdOn: DateTime!
+        savedOn: DateTime!
+        createdBy: CarManufacturerCreatedBy
+    }
+
+    input CarManufacturerCreateInput {
+        title: String!
+        description: String
+
+        # Added a new GraphQL input field.
+        isPopular: Boolean
+    }
+
+    input CarManufacturerUpdateInput {
+        title: String
+        description: String
+
+        # Added a new GraphQL input field.
+        isPopular: Boolean
+    }
+
+    (...)
+`
+```
+
+Note that if you've previously run the two shown [`webiny watch`](https://www.webiny.com/docs/how-to-guides/webiny-cli/use-watch-command/) commands, all of the changes should be automatically redeployed into the cloud as you're making them.
+
+Once we've done all of the above shown changes, we're ready to move on to the Admin Area React application.
+
+#### Admin Area React Application
+
+In the [`CarManufacturersForm`](https://github.com/webiny/webiny-examples/blob/master/blog/webiny-v5.9.0-improved-scaffolds-and-development/apps/admin/code/src/plugins/scaffolds/admin/carManufacturers/views/CarManufacturersForm.tsx#L54) form, let's add a new [`Switch`](#) form element, which will enable logged-in users to mark a particular car manufacturer as popular or not popular (parts of code removed for brevity):
+
+```tsx
+// apps/admin/code/src/plugins/scaffolds/admin/carManufacturers/views/CarManufacturersForm.tsx
+
+(...)
+
+// We've imported the Switch component from the `@webiny/ui` package.
+import { Switch } from "@webiny/ui/Switch";
+
+(...)
+
+return (
+    <Form data={carManufacturer} onSubmit={onSubmit}>
+        {({ data, form, Bind }) => (
+            <SimpleForm>
+                {loading && <CircularProgress />}
+                <SimpleFormHeader title={data.title || "New Car Manufacturer"} />
+                <SimpleFormContent>
+                    <Grid>
+                        (...)
+
+                        {/* New Switch form element added here. */}
+                        <Cell span={12}>
+                            <Bind
+                                name="isPopular"
+                            >
+                                <Switch
+                                    label={"Popular Car Manufacturer"}
+                                    description={"Is this car manufacturer popular?"}
+                                />
+                            </Bind>
+                        </Cell>
+                    </Grid>
+                </SimpleFormContent>
+                <SimpleFormFooter>
+                    <ButtonDefault onClick={cancelEditing}>Cancel</ButtonDefault>
+                    <ButtonPrimary onClick={form.submit}>Save Car Manufacturer</ButtonPrimary>
+                </SimpleFormFooter>
+            </SimpleForm>
+        )}
+    </Form>
+);
+```
+
+Once we've updated the form, it should look like the following:
+
+new-form-element-slike
+
+But, we're not there yet. There are still two steps that we need to do in order to make this complete.
+
+First, we'll need to add the `isPopular` field in all relevant GraphQL query and mutation operations, in the `graphql.ts` file. This will ensure that we're both sending and receiving the `isPopulate` value while interacting with the GraphQL API.
+
+Finally, in the `useCarManufacturersForm` React hook, we'll just need to include the value of the `isPopular` form data property in the `variables` argument upon executing the [`CREATE_CAR_MANUFACTURER`](#) and [`UPDATE_CAR_MANUFACTURER`](#) mutations.
+
+With all of the changes in place, we should be good to go and be able to set any car manufacturer as popular or not popular.
+
+Which completes this demo and if you made it this far, congratulations! 🥇
+
+### Additional Notes
+
+#### Use the Provided Libraries (or Import Your Own)
+
+On the GraphQL API side, you might have noticed we're using [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox), which is a neat little library that makes interaction with DynamoDB a bit easier. But, note that if you wanted, you could easily replace it with the default [AWS DynamoDB Document Client](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/dynamodb-example-document-client.html) or maybe some other preferred library.
+
+On the Admin Area React application side, you can utilize the already imported [`@webiny/form`](https://github.com/webiny/webiny-js/tree/next/packages/form) and [`@webiny/ui`](https://github.com/webiny/webiny-js/tree/next/packages/ui) packages in order to expand the initially generated form.
+
+For data validation in general, we recommend you check out the [`@webiny/validation`](https://github.com/webiny/webiny-js/tree/next/packages/validation) library. It's easy to use, provides a plethora of different data validation rules, and also enables you to expand it with your own.
+
+Finally, with the libraries that we mentioned here, of course, you're also free to bring your own favorite ones.
+
+#### Security (Authentication and Authorization)
+
+Probably the most important aspect of any application is security. "Can the currently logged in user access this GraphQL mutation?" or "Can the currently logged in user access read this particular piece of information?", are just some of the rules that a proper security layer needs to handle.
+
+Because this is not something we can effectively predict, the generated application code does not include any authentication and authorization logic. But luckily, with a couple of [built-in utilities](https://www.webiny.com/docs/tutorials/create-an-application/security/introduction), this is not too hard to implement.
+
+#### Testing GraphQL API Application Code
+
+While extending the generated GraphQL API application code, it's often a good idea to write different types of tests which ensure everything works as expected and also that we didn't break anything in the process.
+
+That's why, as mentioned, with the generated GraphQL API application code, the scaffold also generates three example tests that you can expand or simply use as a reference in further development.
+
+##### Different Tests for Different Purposes
+
+###### [`typeDefs.unit.test.ts`](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cli-plugin-scaffold-graphql-service/template/__tests__/typeDefs.unit.test.ts)
+
+Unit tests are probably not something you're going to write too often. In theory, these tests should not talk to any external services, and should just ensure that isolated units in your code, like functions, classes, or class methods, work as expected. Because of this narrow scope, other types of tests often provide more value. Personally, I like to use these when I'm working on an important function that has to follow a specific business logic rules, and I want to ensure it works as expected.
+
+The provided [`typeDefs.unit.test.ts`](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cli-plugin-scaffold-graphql-service/template/__tests__/typeDefs.unit.test.ts) example test is simple - it ensures that the base [`CarManufacturer` GraphQL type](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cli-plugin-scaffold-graphql-service/template/typeDefs.ts#L2-L9) exists in your GraphQL schema (defined in [`typeDefs.ts`](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cli-plugin-scaffold-graphql-service/template/typeDefs.ts)). Probably not that useful, but still, we decided to include this example test, mainly for awareness purposes.
+
+###### [`crud.integration.test.ts`](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cli-plugin-scaffold-graphql-service/template/__tests__/crud.integration.test.ts)
+
+These are the tests that you'll probably write most often, as these interact with real cloud infrastructure resources. This means they are testing a bigger picture, and thus, can provide more value.
+
+Notice the "real cloud infrastructure resources" part. Yes, in order to run these, in the serverless world, we actually have to deploy the needed cloud infrastructure resources, so that our application code can interact with them. Luckily, this is something Webiny can help you with.
+
+You can start with the default setup and simply test against the cloud infrastructure resources that you've already deployed into the `dev` environment. But, down the road, you can also define a new, let's call it, `integration`, environment, and adjust the cloud infrastructure code to only deploy a specific set of resources that are needed for testing purposes. By reducing the number of necessary integration testing-related resources, you can make your tests run faster in your CI/CD pipeline, which is always a nice benefit to have.
+
+And although our application code is interacting with real cloud infrastructure resources during the execution of an integration test, what is interesting here is that the application code is still being run locally on our machine. Which means we can use the native [Node.js Debugger](https://nodejs.org/api/debugger.html) to travel line by line through the application code while it's running and inspect different values we might potentially be interested in. This can be of great help while we're working on a mew feature or if we simply need to debug a newly reported bug.
+
+The provided [`crud.integration.test.ts`](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cli-plugin-scaffold-graphql-service/template/__tests__/crud.integration.test.ts) integration example test ensures that the newly generated GraphQL query and mutation operations work as expected, by simply locally invoking our GraphQL API [handler function](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cwp-template-aws/template/api/code/graphql/src/index.ts). Creation of a new `CarManufacturer` entry, the update of an existing one, or paginating through a list of `CarManufacturer` entries are some of the assertions that are being made.
+
+Note that, as you make changes to the application code, most probably, you will also need to make adjustments in this test as well.
+
+###### [`e2e.integration.test.ts`](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cli-plugin-scaffold-graphql-service/template/__tests__/crud.e2e.test.ts)
+
+Last but not least, end-to-end tests enable us not only to ensure our application code works correctly with real cloud infrastructure resources, but also that the resources that are set up around it, are working as expected.
+
+For example, from our integration test, we may get an information that a specific GraphQL query is working as expected, but what good is that if the Amazon API Gateway isn't configured properly and users cannot even execute it?
+
+Serverless development is not just about writing application code. It's also about configuring all of the serverless cloud infrastructure resources and services correctly. That's why, with end-to-end tests, we're essentially using our application as a real user would.
+
+Note that this means the changes we make to our application code need to be deployed into the cloud. This is the opposite of what we had in the integration tests section, where we were running code locally. But again, luckily, with the [`webiny watch`](https://www.webiny.com/docs/how-to-guides/webiny-cli/use-watch-command/) command, you can continuously deploy your changes as you make them, and re-run your end-to-end tests accordingly.
+
+Unfortunately, unlike with our integration tests, here it's not recommended to partially deploy the testing cloud infrastructure resources. It's quite the opposite. Here, the resources should be deployed in a way that is as similar as possible to the setup we're using in production environment. The less difference there is, the higher level of confidence in our application we'll have.
+
+If we were to open the [`e2e.integration.test.ts`](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cli-plugin-scaffold-graphql-service/template/__tests__/crud.e2e.test.ts) example test, we could see that we're making very similar assertions to what we already had in the [`crud.integration.test.ts`](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cli-plugin-scaffold-graphql-service/template/__tests__/crud.integration.test.ts) integration example test. But, this time, we're issuing HTTP requests with a [`graphql-request`](https://www.npmjs.com/package/graphql-request) GraphQL client, directly to our deployed Amazon CloudFront distribution. This way, we ensure that both Amazon CloudFront and API Gateway are configured properly, and ultimately, that our GraphQL API returns a correct HTTP response to the user.
+
+##### Running Tests
+
+Out of the box, within the `scripts` section in the root [`package.json`](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cwp-template-aws/template/dependencies.json) file, we provide [four scripts](https://github.com/webiny/webiny-js/blob/v5.9.0/packages/cwp-template-aws/template/dependencies.json#L68-L71) you can run locally (while developing) and in your CI/CD: `test:unit`, `test:integration`, `test:e2e`, and `test`. Respectively, you can use these in order to run unit, integration, end-to-end, and all tests that you have in your Webiny project.
+
+## Want to Learn More?
+
+If you want to learn more, we encourage you to check out the [Extend Admin Area](https://www.webiny.com/docs/how-to-guides/webiny-cli/scaffolding/extend-admin-area) and [Extend GraphQL API](https://www.webiny.com/docs/how-to-guides/webiny-cli/scaffolding/extend-graphql-api) docs that we've also published with the Webiny 5.9.0 release. We also have a couple of general development guides that we're currently working on, so stay tuned for those
+
+
+
+<!-- ## Prerequisites -->
+
+<!-- Before you start this tutorial, make sure that you have Webiny installed. -->
+
+<!-- You can read on how to install it in our [Install Webiny](/docs/tutorials/install-webiny) article. -->
+
+<!-- ## Scaffold -->
+
+<!-- Scaffolding is the easiest way to build apps and APIs in Webiny. -->
+<!-- Using a scaffold you will generate your app or an API. -->
+<!-- You will get all of the required code automatically created for you. -->
+<!-- This is a great starting point, as then you can just modify and adapt the code to your needs, without dealing with much of the boilerplate work. -->
+
+<!-- There are several scaffolds that ship with Webiny, including the Admin area scaffold and the API scaffold, which we will explore more in this tutorial. -->
+<!-- All scaffolds have a wizard that guides you through the process by asking you a set of simple questions. -->
+<!-- More on that in the actual tutorial. -->
+
+<!-- :::note -->
+<!-- You can add your own custom scaffolds by building a [CLI plugin](/docs/tutorials/webiny-cli/adding-custom-commands) and using the current scaffold plugin as a [reference](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/src/index.ts). -->
+<!-- ::: -->
+
+<!-- ## Workspaces -->
+
+<!-- We link all our packages to `node_modules` via workspaces (read about them in yarn [docs](https://classic.yarnpkg.com/en/docs/workspaces/)), so we can use their name to import them in our applications. -->
+<!-- Packages are linked by default via `yarn postinstall`. If you want to link them manually, run `yarn link-packages`. -->
+<!-- :::note -->
+<!-- By default, the packages located in `./packages/` directory are linked. If you want to create a package that is outside that directory, you must add yours to the linkPackages script. -->
+
+<!-- The script is located in `./scripts/linkWorkspaces.js`. You must add your directory into the `whitelist` array, otherwise package linking will not pick up your packages. -->
+<!-- ::: -->
+
+
+
