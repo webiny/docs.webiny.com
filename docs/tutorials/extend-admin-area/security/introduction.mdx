@@ -19,18 +19,24 @@ import securityGroupsModule from "./assets/security-groups-module.png";
 - how to add custom permissions UI to permissions editor in Admin Area
 :::
 
+:::info Can I use this?
+
+In order to follow this tutorial, you must use Webiny version **5.9.0** or greater.
+
+:::
+
 :::info
 Learn more about the Webiny Security Framework in the [Security Framework](/docs/key-topics/security-framework/introduction) key topics section.
 :::
 
 ## Overview
 
-In previous two sections, we've seen how we can quickly expand the GraphQL schema of the main GraphQL API, and also how we can add new modules in the Webiny Admin Area application. All with a couple of built-in scaffolding utilities.
+In the previous two sections, we've seen how we can quickly extend our GraphQL API and Admin Area application, by creating a standalone Car Manufacturers module.
 
-In this tutorial, we expand our application by adding a layer of security around it. With it, we want to achieve the following:
+In this tutorial, we continue working on our module by adding a layer of security around it. With it, we want to achieve the following:
 
 1. prevent users from executing GraphQL API queries and mutations, if they don't have the necessary security permissions
-2. prevent users from accessing modules we've added into the Webiny Admin Area application, if the user doesn't have the necessary security permissions
+2. prevent users from accessing modules we've added into the Admin Area application, if the user doesn't have the necessary security permissions
 
 Note that in order to implement both behaviours, we are relying on **security permissions**, which is the first step of implementing a security layer for our application, and is the first topic we cover in this introduction section.
 
@@ -39,7 +45,7 @@ If you want to learn more about the main GraphQL API and how it works on the clo
 :::
 
 :::info
-The code that we will cover in this tutorial can also be found in our [GitHub examples repository](https://github.com/webiny/webiny-examples/tree/master/extend-admin-area/securing-your-application).
+The code that we will cover in this tutorial can also be found in our [GitHub examples repository](https://github.com/webiny/webiny-examples/tree/master/extend-admin-area-security).
 :::
 
 ## Security Permissions
@@ -70,9 +76,9 @@ A simple security permission object might look something like the following:
 
 ## Assigning Security Permissions to Identities
 
-Within Webiny Admin Area application's security model, security permissions are assigned to identities via security groups.
+Within Admin Area application's security model, security permissions are assigned to identities via security groups.
 
-Every identity (for example, a logged in user) belongs to **exactly one** security group. But, note that a single security group can have multiple security permissions objects assigned to it, allowing or preventing access across multiple Webiny and your custom applications.
+Every identity (for example, a logged-in user) belongs to **exactly one** security group. But, note that a single security group can have multiple security permissions objects assigned to it, allowing or preventing access across multiple Webiny and your custom applications.
 
 This can be seen while creating a new security group via the security groups module.
 
@@ -88,113 +94,110 @@ Ultimately, no matter if we're performing authorization on the API side or in th
 
 ## Creating Custom Security Permissions
 
-By adding a new permissions section in the security group form that we've seen above, we can allow system administrators to manually toggle access for our own custom features, for all identities that are linked with the particular security group.
+By adding a new permissions section in the security group form that we've seen above, we can allow logged-in users to manually toggle access for our own custom features, for all identities that are linked with the particular security group.
 
-Continuing with the car manufacturers example that we've used in previous tutorials, we could add a new Car Manufacturers section, and offer a couple of different options to the system administrator:
+Continuing with the car manufacturers example that we've used in previous tutorials, we could add a new Car Manufacturers section, and offer a couple of different options to the logged-in user:
 
 <CenteredImage alt="Added Security Permissions Group" src={addedSecurityPermissionsGroup} />
 
-To achieve this, within the Webiny Admin Area React application, we need to register the following `admin-app-permissions-renderer` plugin:
+To achieve this, within the Admin Area application, we need to register the following [`PermissionRendererPlugin`](https://github.com/webiny/webiny-js/blob/v5.10.0/packages/app-admin/src/plugins/PermissionRendererPlugin.ts#L19) plugin:
 
-```tsx title="packages/car-manufacturers/admin-app/src/permissions/index.tsx"
+```tsx title="apps/admin/code/src/plugins/scaffolds/carManufacturers/permissions.tsx"
 import React, { useCallback, useMemo } from "react";
-import { i18n } from "@webiny/app/i18n";
-import { AdminAppPermissionRendererPlugin } from "@webiny/app-admin/types";
-
-// UI React Components - let's make it look nice:
-import { Grid, Cell } from "@webiny/ui/Grid";
-import { AccordionItem } from "@webiny/ui/Accordion";
-import { ReactComponent as CarManufacturersIcon } from "../assets/directions_car-24px.svg";
-import { PermissionInfo } from "@webiny/app-admin/components/Permissions";
+import { PermissionRendererPlugin } from "@webiny/app-admin/plugins/PermissionRendererPlugin";
 
 // Components for working with forms:
 import { Form } from "@webiny/form";
 import { Select } from "@webiny/ui/Select";
 import { Switch } from "@webiny/ui/Switch";
 
-const t = i18n.ns("app-i18n/admin/plugins/permissionRenderer");
+// UI React Components - let's make it look nice:
+import { Grid, Cell } from "@webiny/ui/Grid";
+import { AccordionItem } from "@webiny/ui/Accordion";
+import { ReactComponent as CarManufacturersIcon } from "./assets/directions_car-24px.svg";
+import { PermissionInfo } from "@webiny/app-admin/components/Permissions";
+
 const PERMISSION_NAME = "car-manufacturers";
 
-export default {
-  type: "admin-app-permissions-renderer",
-  name: "admin-app-permissions-renderer-car-manufacturers",
-  render(props) {
-    // `value` represents an array of all permission objects selected for the
-    // security group we're currently editing. To apply changes to the `value`
-    // array, we use the provided `onChange` callback.
-    const { value, onChange } = props;
+export default new PermissionRendererPlugin({
+    render(props) {
+        // `value` represents an array of all permission objects selected for the
+        // security group we're currently editing. To apply changes to the `value`
+        // array, we use the provided `onChange` callback.
+        const { value, onChange } = props;
 
-    // Callback that gets triggered whenever a form element has changed.
-    // If needed, additional object manipulations can be performed too.
-    const onFormChange = useCallback(
-      data => {
-        // Let's filter out the `car-manufacturer` permission object.
-        // It's just easier to build a new one from scratch.
-        const newPermissions = value.filter(item => item.name !== PERMISSION_NAME);
+        // Callback that gets triggered whenever a form element has changed.
+        // If needed, additional object manipulations can be performed too.
+        const onFormChange = useCallback(
+            data => {
+                // Let's filter out the `car-manufacturer` permission object.
+                // It's just easier to build a new one from scratch.
+                const newPermissions = value.filter(item => item.name !== PERMISSION_NAME);
 
-        // We only want the permissions object to end up in the `value` array if
-        // we have a value in `rwd` or `specialFeature` properties.
-        if (data.rwd || data.specialFeature) {
-          newPermissions.push(data);
-        }
+                // We only want the permissions object to end up in the `value` array if
+                // we have a value in `rwd` or `specialFeature` properties.
+                if (data.rwd || data.specialFeature) {
+                    newPermissions.push(data);
+                }
 
-        // Finally, call the `onChange` callback to assign the permissions
-        // object into the `value`.
-        onChange(newPermissions);
-      },
-      [value]
-    );
+                // Finally, call the `onChange` callback to assign the permissions
+                // object into the `value`.
+                onChange(newPermissions);
+            },
+            [value]
+        );
 
-    // Set up default form data, which happens once the security group data
-    // has been retrieved from the GraphQL API.
-    const defaultFormData = useMemo(() => {
-      return value.find(item => item.name === PERMISSION_NAME) || { name: PERMISSION_NAME };
-    }, [value]);
+        // Set up default form data, which happens once the security group data
+        // has been retrieved from the GraphQL API.
+        const defaultFormData = useMemo(() => {
+            return value.find(item => item.name === PERMISSION_NAME) || { name: PERMISSION_NAME };
+        }, [value]);
 
-    // We are using a couple of different React components to get the job done:
-    // - for a nicer UI - AccordionItem, Grid, Cell, and PermissionInfo components
-    // - for working with forms - Form, Bind, Select, and Switch components
-    return (
-      <AccordionItem
-        icon={<CarManufacturersIcon />}
-        title={t`Car Manufacturers`}
-        description={t`Manage Car Manufacturer app access permissions.`}
-      >
-        <Form data={defaultFormData} onChange={onFormChange}>
-          {({ Bind }) => (
-            <Grid>
-              <Cell span={6}>
-                <PermissionInfo title={t`Access Level`} />
-              </Cell>
-              <Cell span={6}>
-                <Grid>
-                  <Cell span={12}>
-                    <Bind name={"rwd"}>
-                      <Select label={t`Access Level`}>
-                        <option value={""}>{t`No Access`}</option>
-                        <option value={"r"}>{t`Read`}</option>
-                        <option value={"rw"}>{t`Read, write`}</option>
-                        <option value={"rwd"}>{t`Read, write, delete`}</option>
-                      </Select>
-                    </Bind>
-                  </Cell>
-                  <Cell span={12}>
-                    <Bind name={"specialFeature"}>
-                      <Switch label={t`Has access to a special feature`} />
-                    </Bind>
-                  </Cell>
-                </Grid>
-              </Cell>
-            </Grid>
-          )}
-        </Form>
-      </AccordionItem>
-    );
-  }
-} as AdminAppPermissionRendererPlugin;
+        // We are using a couple of different React components to get the job done:
+        // - for a nicer UI - AccordionItem, Grid, Cell, and PermissionInfo components
+        // - for working with forms - Form, Bind, Select, and Switch components
+        return (
+            <AccordionItem
+                icon={<CarManufacturersIcon />}
+                title={"Car Manufacturers"}
+                description={"Manage Car Manufacturer app access permissions."}
+            >
+                <Form data={defaultFormData} onChange={onFormChange}>
+                    {({ Bind }) => (
+                        <Grid>
+                            <Cell span={6}>
+                                <PermissionInfo title={"Access Level"} />
+                            </Cell>
+                            <Cell span={6}>
+                                <Grid>
+                                    <Cell span={12}>
+                                        <Bind name={"rwd"}>
+                                            <Select label={"Access Level"}>
+                                                <option value={""}>{"No Access"}</option>
+                                                <option value={"r"}>{"Read"}</option>
+                                                <option value={"rw"}>{"Read, write"}</option>
+                                                <option value={"rwd"}>{"Read, write, delete"}</option>
+                                            </Select>
+                                        </Bind>
+                                    </Cell>
+                                    <Cell span={12}>
+                                        <Bind name={"specialFeature"}>
+                                            <Switch label={"Has access to a special feature"} />
+                                        </Bind>
+                                    </Cell>
+                                </Grid>
+                            </Cell>
+                        </Grid>
+                    )}
+                </Form>
+            </AccordionItem>
+        );
+    }
+});
+
 ```
 
-:::info
+:::tip
 In order to actually compile the code changes we're about to make and see them in browser, we need to run the following Webiny CLI command:
 
 ```bash
@@ -206,23 +209,20 @@ To learn more, check out the [Use the Watch Command](/docs/how-to-guides/webiny-
 
 Feel free to copy and paste the shown code into your project and use it as a starting point. When doing that, please note the following:
 
-- the `permissions` folder is a new folder that we created, it wasn't initially there
+- the `permissions.tsx` file is a new file that we created, it wasn't initially there
 - the code uses a custom [`directions_car-24px.svg`](https://github.com/webiny/webiny-examples/tree/master/extend-admin-area/securing-your-application/code/packages/car-manufacturers/admin-app/src/assets) SVG icon which you'll also want to copy into your project (otherwise the build will fail)
 
-After you do that, just make sure that the plugin is actually registered in [`apps/admin/code/src/plugins/index.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/apps/admin/code/src/plugins/index.ts), otherwise no change will appear in your browser.
+After you do that, just make sure that the plugin is actually imported in the [`apps/admin/code/src/plugins/scaffolds/carManufacturers/index.ts`](https://github.com/webiny/webiny-examples/blob/master/extend-admin-area-security/apps/admin/code/src/plugins/scaffolds/carManufacturers/index.ts) file:
 
-If you've been following the previous two tutorials, then you can simply import it via the [`packages/car-manufacturers/admin-app/src/index.ts`](https://github.com/webiny/webiny-examples/blob/master/extend-admin-area/securing-your-application/code/packages/car-manufacturers/admin-app/src/index.ts) file:
-
-```ts title="packages/car-manufacturers/admin-app/src/index.ts" {4,6}
-import { Plugin } from "@webiny/plugins/types";
+```ts title="packages/car-manufacturers/admin-app/src/index.ts" {3,5}
 import menus from "./menus";
 import routes from "./routes";
 import permissions from "./permissions";
 
-export default (): Plugin[] => [menus(), routes(), permissions];
+export default [menus, routes, permissions];
 ```
 
-By completing this step, we've added the new Car Manufacturers permissions section in the security group form. System administrators can now create new (or extend existing) security groups, and give access to our new Car Manufacturers module. For example, one security group can allow only reading car manufacturers data, while the other one may allow all three primary actions - read, write, and delete, and even allow access to the imaginary special feature.
+By completing this step, we've added the new Car Manufacturers permissions section in the security group form. logged-in users can now create new (or extend existing) security groups, and give access to our new Car Manufacturers module. For example, one security group can allow only reading car manufacturers data, while the other one may allow all three primary actions - read, write, and delete, and even allow access to the imaginary special feature.
 
 Now that we have this new security permissions section, let's create the new Car Manufacturers security group, that enables full access to our new Car Manufacturers module. We'll need this security group in order to perform some manual testing down the road.
 
@@ -236,9 +236,9 @@ While creating the new Car Manufacturers security group, you might have noticed 
 
 <CenteredImage alt="Define Access on a Locale Level" src={contentLocaleSection} />
 
-This is because, out of the box, Webiny is a multi-locale system, and as such, it gives you the ability to specify which locales an identity can access. Note that you cannot specify different permissions for different locales. All of the permissions you specify in one or more permission sections will be applied to all allowed locales.
+This is because, out of the box, the Admin Area application is designed to be a multi-locale system, and as such, it gives you the ability to specify which locales an identity can access. Note that you cannot specify different permissions for different locales. All of the permissions you specify in one or more permission sections will be applied to all allowed locales.
 
-For now, know that we will need to take this into account while performing the authorization checks in the following section. Also, for purposes of this tutorial, we can select **All Locales**, to allow access across all locales.
+For now, know that we will need to take this into account while performing the authorization checks in the following section. Also, for purposes of this tutorial, upon creating the new Car Manufacturers security group, we can select **All Locales**, to allow access across all locales.
 
 ## FAQ
 
@@ -260,4 +260,4 @@ We just thought the `rwd` approach is lightweight and simple to understand.
 
 Sometimes, permissions sections may grow in size. And in that case, it might be easier to have a simple checkbox that would enable full access to your module, instead of having the user click through all of the available permissions.
 
-So, if you've reached this point, then it might make sense to extend your security permissions object, with a special boolean `fullAccess` property, and take that into account while performing backend and frontend authorization (covered in following sections of this tutorial).
+So, if you've reached this point, then it might make sense to extend your security permissions object, with a special boolean `fullAccess` property, and take that into account while performing GraphQL API and Admin Area application authorization (covered in following sections of this tutorial).
