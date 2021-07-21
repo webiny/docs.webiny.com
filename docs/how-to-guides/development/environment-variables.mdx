@@ -231,6 +231,67 @@ Like we've seen in the backend development section, you can also assign environm
 
 In CI/CD workflows, again, you're encouraged to adapt built-in methods for working with environment variables, that are offered by your CI/CD provider.
 
+## Debug Environment Variable
+
+To improve the debugging experience, we have the `DEBUG` environment variable in place.
+It enables two features, which we'll cover in detail shortly:
+1. Detail error response in case of server error
+2. Visual feedback in case of a network request fails
+
+### Detail Error Response
+By default, in case of server error, the API responds with an _Internal server error_ with status code `500`, for example:
+
+```json
+{
+    "error": {
+        "name": "Error",
+        "message": "Internal Sever Error"
+    }
+}
+```
+
+It is to ensure that unnecessary internal details don't pass to the end-user.
+
+Although in development, you might want to know the details about the error for a better debugging experience. For example, the error message, code, and even the stack trace.
+
+Setting `DEBUG=true` helps you achieve exactly that, for example:
+
+```json
+{
+    "error": {
+        "name": "Error",
+        "message": "Unknown type\"Stringgg\". Did you mean \"String\"?",
+        "stack": "Error: Unknown type \"Stringgg\". Did you mean \"String\"?\n    at p (/var/task/handler.js:15:52587)\n    at x (/var/task/handler.js:45:166906)\n    at fe (/var/task/handler.js:126:504732)\n    at Ee (/var/task/handler.js:126:514113)\n    at t.createGraphQLSchema (/var/task/handler.js:57:373)\n    at handle (/var/task/handler.js:45:189370)\n    at /var/task/handler.js:45:187469\n    at new Promise (<anonymous>)\n    at i (/var/task/handler.js:45:187419)\n    at /var/task/handler.js:45:187592"
+    }
+}
+```
+
+:::note
+You must redeploy the API after updating the environment variables. Otherwise, the change will not reflect.
+:::
+
+### Visual Feedback
+With the above change in place, you have the error with details that we can inspect in the network tab of the browser's dev tools.
+That's nice, but, to further improve the development experience, you can set the `REACT_APP_DEBUG=true`.
+
+It will render an overlay in case of any network error so that you have all the details about the error without inspecting the network tab:
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/environment-variables/error-overlay.png").default}
+    style={{ marginBottom: 20 }}
+    alt="Error overlay in debug mode"
+/>
+
+<!-- vale on -->
+
+We set it by default when you [start](https://github.com/webiny/webiny-js/blob/next/packages/project-utils/bundling/app/index.js#L33) the Admin app locally.
+But, you can always do the same for other environments like `dev` for example.
+
+
+
+
 ## FAQ
 
 #### Can you provide any details on how the root `.env` file is loaded?
