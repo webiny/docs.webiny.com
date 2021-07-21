@@ -17,12 +17,13 @@ export default props => {
             style={{
                 display: "flex",
                 justifyContent: "center",
-                margin: "20px 0"
+                margin: "20px 0",
+                flexDirection: "column"
             }}
         >
             <img
                 onClick={openLightbox}
-                style={{ cursor: "pointer", ...props.style }}
+                style={{ display: "block", cursor: "pointer", ...props.style }}
                 className={classNames(props.className, {
                     ["no-shadow"]: props.shadow === false
                 })}
@@ -30,6 +31,17 @@ export default props => {
                 title={props.title || props.alt}
                 src={props.src}
             />
+            <div
+                onClick={openLightbox}
+                style={{
+                    textAlign: "center",
+                    marginTop: 5,
+                    fontSize: "80%",
+                    color: "var(--ifm-toc-link-color)"
+                }}
+            >
+                (click to enlarge)
+            </div>
             {isOpen && (
                 <Lightbox
                     mainSrc={props.src}
