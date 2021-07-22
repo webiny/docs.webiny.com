@@ -37,18 +37,19 @@ module.exports = {
                 "tutorials/install-webiny",
                 {
                     type: "category",
-                    label: "Create an Application",
+                    label: "Extend Admin Area",
                     items: [
-                        "tutorials/create-an-application/introduction",
-                        "tutorials/create-an-application/api-package",
-                        "tutorials/create-an-application/admin-area-package",
+                        "tutorials/extend-admin-area/introduction",
+                        "tutorials/extend-admin-area/getting-started",
+                        "tutorials/extend-admin-area/extending-entities",
+                        // "tutorials/extend-admin-area/testing",
                         {
                             type: "category",
-                            label: "Securing Your Application",
+                            label: "Security",
                             items: [
-                                "tutorials/create-an-application/security/introduction",
-                                "tutorials/create-an-application/security/graphql-api",
-                                "tutorials/create-an-application/security/admin-area"
+                                "tutorials/extend-admin-area/security/introduction",
+                                "tutorials/extend-admin-area/security/graphql-api",
+                                "tutorials/extend-admin-area/security/admin-area"
                             ]
                         }
                     ]
@@ -194,6 +195,8 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.10.0-to-5.11.0",
+                        "how-to-guides/upgrade-webiny/5.9.0-to-5.10.0",
                         "how-to-guides/upgrade-webiny/5.8.0-to-5.9.0",
                         "how-to-guides/upgrade-webiny/5.7.0-to-5.8.0",
                         "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
@@ -327,13 +330,21 @@ module.exports = {
         },
         {
             Changelog: [
+                "changelog/5.11.0",
+                "changelog/5.10.0",
                 "changelog/5.9.0",
                 "changelog/5.8.0",
                 "changelog/5.7.0",
-                "changelog/5.6.0",
-                "changelog/5.5.0",
-                "changelog/5.4.0",
-                "changelog/5.3.0"
+                {
+                    type: "category",
+                    label: "Older Releases",
+                    items: [
+                        "changelog/5.6.0",
+                        "changelog/5.5.0",
+                        "changelog/5.4.0",
+                        "changelog/5.3.0"
+                    ]
+                }
             ]
         },
         "webiny-telemetry"

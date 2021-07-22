@@ -58,9 +58,28 @@ yarn webiny destroy api --env dev --debug
 
 This can significantly help in debugging underlying deployment ([Pulumi](/docs/key-topics/deployment/iac-with-pulumi)) errors, since without it, in some cases the returned error report doesn't contain enough useful information. We've also seen cases in which the report would actually be misleading and even incorrect, making the debugging process much harder for the user.
 
+## FAQ
+
+#### How do I destroy cloud infrastructure resources deployed into the `prod` environment? I'm receiving a warning about protected cloud infrastructure resources.
+
+When deploying into the `prod` environment, some of the cloud infrastructure resources that Webiny deploys for you, such as the default [DynamoDB table](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/dynamoDb.ts#L27) or the default [Cognito User Pool](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/cognito.ts#L70), are marked as [protected](https://www.pulumi.com/docs/intro/concepts/resources/#protect):
+
+> The `protect` option marks a resource as protected. A protected resource cannot be deleted directly. Instead, you must first set `protect: false` and run `pulumi up`. Then you can delete the resource by removing the line of code or by running `pulumi destroy`. The default is to inherit this value from the parent resource, and `false` for resources without a parent.
+
+:::info
+
+Within a Webiny project, note that the `pulumi up` and `pulumi destroy` commands are run via the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) and [`webiny destroy`](/docs/how-to-guides/deployment/destroy-cloud-infrastructure) commands, respectively.
+
+:::
+
+
+So, in order to destroy all cloud infrastructure resources deployed into the `prod` environment, for starters, unmark all cloud resources as protected, which can be done by setting the `protectedEnvironment` [(`api/pulumi/prod/index.ts`)](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/index.ts#L17) flag to `false`.
+
+Once that's in place, run the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command to apply changes, and finally, run the [`webiny destroy`](/docs/how-to-guides/deployment/destroy-cloud-infrastructure) to destroy everything.
+
 ## Troubleshooting
 
-#### Destroying my project takes a long time to finish
+#### Destroying my project takes a long time to finish.
 
 We're aware of this fact, and this is mainly because of the [Amazon ElasticSearch Service](https://aws.amazon.com/elasticsearch-service/). While other cloud infrastructure resources get destroyed reasonably fast, this service can take anywhere from 15 to 30 minutes to destroy itself. In rare cases, we've even seen the service still present in user's account [for days](https://forums.aws.amazon.com/thread.jspa?threadID=233859).
 
