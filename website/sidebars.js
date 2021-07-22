@@ -137,6 +137,13 @@ module.exports = {
                         },
                         {
                             type: "category",
+                            label: "Page Builder",
+                            items: [
+                                "how-to-guides/webiny-applications/page-builder/extend-graphql-api",
+                            ]
+                        },
+                        {
+                            type: "category",
                             label: "Headless CMS",
                             items: [
                                 "how-to-guides/webiny-applications/headless-cms/create-a-webiny-headless-cms-field-plugin",
@@ -190,6 +197,7 @@ module.exports = {
                         }
                     ]
                 },
+                "how-to-guides/extend-graphql-api",
                 {
                     type: "category",
                     label: "Upgrade Webiny",
