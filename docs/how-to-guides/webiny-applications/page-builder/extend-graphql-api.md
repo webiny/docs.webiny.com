@@ -28,7 +28,7 @@ Use the [`webiny watch`](/docs/how-to-guides/webiny-cli/use-watch-command) comma
 
 In this example, we'll add a new `special` boolean field to the central `PbPage` GraphQL type. As the name suggests, the field will tell us whether a page is special or not.
 
-It all starts with the [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0-beta.1/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10), which we'll need to register within our GraphQL API's application code. Once we have that, optionally, we might want to register the [`IndexPageDataPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0-beta.1/packages/api-page-builder/src/plugins/IndexPageDataPlugin.ts#L14) plugin, which will enable us to get the value of the new `special` field also while listing pages.
+It all starts with the [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10), which we'll need to register within our GraphQL API's application code. Once we have that, optionally, we might want to register the [`IndexPageDataPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/IndexPageDataPlugin.ts#L14) plugin, which will enable us to get the value of the new `special` field also while listing pages.
 
 ```ts title="api/code/graphql/src/plugins/pages.ts"
 import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
@@ -104,12 +104,12 @@ Running the above mutation should mark the page with the `60f903881f76a100082006
 
 Let's say we wanted to extend our GraphQL schema with the custom `duplicatePage` mutation, which, as the name suggests, would enable us to make copies of pages.
 
-We can achieve this with a single [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0-beta.1/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugin.
+We can achieve this with a single [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugin.
 
 ```ts title="api/code/graphql/src/plugins/pages.ts"
 import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
 import { PbContext } from "@webiny/api-page-builder/types";
-import { Response, ErrorResponse, NotFoundResponse } from "@webiny/handler-graphql";
+import { Response, ErrorResponse, NotFoundResponse } from "@webiny/handler-graphql/responses";
 
 export default [
     new GraphQLSchemaPlugin({
