@@ -149,7 +149,9 @@ module.exports = {
                                 "how-to-guides/webiny-applications/headless-cms/create-a-webiny-headless-cms-field-plugin",
                                 "how-to-guides/webiny-applications/headless-cms/create-a-content-model-form-layout",
                                 "how-to-guides/webiny-applications/headless-cms/using-graphql-api",
-                                "how-to-guides/webiny-applications/headless-cms/rendering-rich-text"
+                                "how-to-guides/webiny-applications/headless-cms/extend-graphql-api",
+                                "how-to-guides/webiny-applications/headless-cms/rendering-rich-text",
+
                             ]
                         },
                         {
