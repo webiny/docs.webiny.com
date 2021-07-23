@@ -7,10 +7,20 @@ description: Learn how to use GraphQL plugins in order to expand your GraphQL AP
 slug: extend-graphql-api
 ---
 
+import CenteredImage from "@components/CenteredImage";
+import listBooksQuery from "./extend-graphql-api/list-books-query.png";
+
 :::tip What you'll learn
 
 - the two separate GraphQL APIs that are included by default in every Webiny project
 - how to use the [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) in order to extend an existing GraphQL API
+
+:::
+
+:::info
+
+Use the [`webiny watch`](/docs/how-to-guides/webiny-cli/use-watch-command) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/).
+
 :::
 
 ## Introduction
@@ -57,26 +67,24 @@ The plugin is registered within your GraphQL API's application code. For example
 The [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugin is part of the [`@webiny/handler-graphql`](https://github.com/webiny/webiny-js/tree/v5.11.0/packages/handler-graphql) package, which can also be used to create new standalone GraphQL APIs.
 :::
 
-The following is an example of a simple [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugin that extends the default GraphQL API with a new `listBooks` query:
+The following is an example of a simple [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugin that extends the default GraphQL API with a new `listBooks` query.
 
 ```ts title="api/code/graphql/src/plugins/books.ts"
 import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
-import { ListResponse } from "@webiny/handler-graphql/responses";
 
 export default new GraphQLSchemaPlugin({
   // Extend the `Query` type with the `Book` type and `listBooks` query field,
-  // which returns a list of all books previosly saved in the database.
+  // which returns a list of all books previously saved in the database.
   typeDefs: /* GraphQL */ `
-                   extend type Query {
-                     type Book {
-                       title
-                       description
-                     }
-
-                     # Returns a list of all users
-                     listBooks: [Book]
-                   }
-                 `,
+    type Book {
+      title: String
+      description: String
+    }
+    extend type Query {
+      # Returns a list of all users
+      listBooks: [Book]
+    }
+  `,
   // In order for the `listBooks` to work, we also need to create a resolver function.
   resolvers: {
     Query: {
@@ -88,12 +96,30 @@ export default new GraphQLSchemaPlugin({
         ];
 
         // Finally, return the list of books using the `ListResponse` class instance.
-        return new ListResponse(...books);
+        return books;
       }
     }
   }
 });
 ```
+
+Having [the plugin](https://github.com/webiny/webiny-examples/blob/master/extend-graphql-api/list-books/api/code/graphql/src/plugins/books.ts#L3) registered within the default GraphQL API's application code (in the mentioned [`api/code/graphql/src/index.ts`](https://github.com/webiny/webiny-examples/blob/master/extend-graphql-api/list-books/api/code/graphql/src/index.ts#L27) entrypoint file), we should be able to see and execute the `listBooks` query, for example via the [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/):
+
+```graphql
+{
+  listBooks {
+    title
+    description
+  }
+}
+```
+
+Executing the query should give us the following result:
+
+<CenteredImage
+  alt={"Executing the new `listBooks` Query via API Playground"}
+  src={listBooksQuery}
+/>
 
 :::tip
 To extend your default GraphQL API in no time, make sure to try the [Extend Admin Area](/docs/how-to-guides/webiny-cli/scaffolding/extend-admin-area) and [Extend GraphQL API](/docs/how-to-guides/webiny-cli/scaffolding/extend-graphql-api) scaffolds.
