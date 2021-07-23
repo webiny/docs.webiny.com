@@ -20,7 +20,7 @@ import duplicatesRunMutation from "./extend-graphql-api/duplicates-run-mutation.
 
 :::info
 
-Use the [`webiny watch`](#) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/).
+Use the [`webiny watch`](/docs/how-to-guides/webiny-cli/use-watch-command) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/).
 
 :::
 
@@ -78,7 +78,7 @@ The code above can be placed in the [`api/code/graphql/src/plugins/pages.ts`](ht
 
 With all the changes in place, we should be able to update an existing Page Builder page and mark it as special, with the following mutation:
 
-```gql
+```graphql
 mutation UpdatePage($id: ID!, $data: PbUpdatePageInput!) {
   pageBuilder {
     updatePage(id: $id, data: $data) {
@@ -195,7 +195,7 @@ After the mutation has been executed, we should be able to see the created copy 
 
 In the shown examples, you may have noticed we were using the `context` object in GraphQL resolver functions. This object contains multiple different properties, mainly being defined from different Webiny applications that were imported in the GraphQL API's [`api/code/graphql/src/index.ts`](https://github.com/webiny/webiny-examples/blob/master/page-builder/extend-graphql-api/custom-mutations/api/code/graphql/src/index.ts) entrypoint file.
 
-That's why, for example, we were able to utilize the [`context.pageBuilder.pages.get`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/graphql/crud/pages.crud.ts#L134) and [`context.pageBuilder.pages.update`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/graphql/crud/pages.crud.ts#L606) methods.
+That's why, for example, we were able to utilize the [`context.pageBuilder.pages.get`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/graphql/crud/pages.crud.ts#L134) and [`context.pageBuilder.pages.update`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/graphql/crud/pages.crud.ts#L606) methods, in the [Custom Mutations](/docs/how-to-guides/webiny-applications/page-builder/extend-graphql-api#custom-mutations) section.
 
 For easier discovery and type safety, we suggest a type is always assigned to the `context` object in your GraphQL resolver functions.
 
