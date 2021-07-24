@@ -1,0 +1,121 @@
+---
+id: content-model-plugins
+title: Defining Content Models via Plugins
+sidebar_label: Defining Content Models via Plugins
+keywords: ["headless", "cms", "content", "model", "plugin"]
+description: Learn how to define content models and content model groups via plugins.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import contentModelsGroupEditor from "./content-models-plugins/content-models-group-editor.png";
+
+:::tip What you'll learn
+
+- how to define content models and content model groups via plugins
+
+:::
+
+## Overview
+
+Content models and content model groups can be defined in two ways.
+
+### Via the Admin Area
+
+The most straightforward way to define content models and content model groups would be via the Admin Area application, via the Content Model Editor and the Content Model Groups module. This is especially suitable for users that are not developers, and just want to manage their content in a quick and easy way.
+
+<CenteredImage
+  alt="Defining Content Models and Content Model Groups via the Admin Area Application"
+  src={contentModelsGroupEditor}
+/>
+
+### Using Plugins
+
+And although we can get pretty far by simply defining content models and content model groups via the Admin Area, on the other hand, we can also do this within our application code, by registering one or more [`ContentModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-headless-cms/src/content/plugins/ContentModelPlugin.ts#L4) and [`ContentModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-headless-cms/src/content/plugins/ContentModelGroupPlugin.ts#L4) plugins. Once defined, content models and content model groups can be then used via the Admin Area in the same way as if they were created regularly (via the Content Model Editor).
+
+Some of the other benefits of this approach are:
+
+- our content models and content model groups get to be stored in our version control
+- since everything is done via code, in some cases we receive additional flexibility
+- basically, only developers have the ability to perform changes
+
+In the following sections, we cover a couple of examples that show how to define content models and content model groups via plugins.
+
+## Examples
+
+### Basic Example
+
+In this example, we show how we can define a simple **Product** content model, that belongs to the **E-Commerce** content model group.
+
+```ts
+import { ContentModelPlugin } from "@webiny/api-headless-cms/content/plugins/ContentModelPlugin";
+import { ContentModelGroupPlugin } from "@webiny/api-headless-cms/content/plugins/ContentModelGroupPlugin";
+
+export default [
+  // Defines a new "E-Commerce" content models group.
+  new ContentModelGroupPlugin({
+    id: "ecommerce",
+    name: "E-Commerce",
+    slug: "e-commerce",
+    icon: "fas/shopping-cart"
+  }),
+
+  // Defines a new "Product" content model.
+  new ContentModelPlugin({
+    name: "Product",
+    modelId: "product",
+    group: {
+      id: "ecommerce",
+      name: "E-Commerce"
+    },
+    fields: [
+      {
+        id: "name",
+        fieldId: "name",
+        type: "text",
+        label: "Product Name",
+        helpText: "A short product name",
+        renderer: { name: "text-input" },
+        validation: [
+          {
+            name: "required",
+            message: "Value is required."
+          }
+        ]
+      },
+      {
+        id: "sku",
+        fieldId: "sku",
+        type: "text",
+        label: "SKU",
+        placeholderText: "SKU = Stock Keeping Unit",
+        renderer: { name: "text-input" }
+      },
+      {
+        id: "price",
+        fieldId: "price",
+        type: "number",
+        label: "Price",
+        renderer: { name: "text-input" }
+      }
+    ],
+    layout: [["name"], ["sku", "price"]],
+    titleFieldId: "name"
+  })
+];
+```
+
+## FAQ
+
+#### Can content models (and groups) defined via plugins be edited via Admin Area?
+
+Content models and content model groups that were defined via plugins cannot be edited via Admin Area (via the Content Model Editor and Content Model Groups module). All of the changes need to be done within the application code.
+
+#### Are there any differences when it comes to security controls?
+
+When it comes to security, both ways of defining content models and content model groups have access to the same features and follow the same security-related built-in mechanisms. In other words, via the Security application, you can still decide which users have access to particular content models and content model groups that were defined via plugins, and which don't.
+
+#### Can I convert a content model that was defined via Admin Area into a plugin (and vice-versa)?
+
+You can, but it will require a bit of manual work. For example, if you wanted to convert a content model that was defined via Admin Area into a plugin, you would have to find it directly in the database, and copy the data into your application code and try to fit it into the [`ContentModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-headless-cms/src/content/plugins/ContentModelPlugin.ts#L4) plugin.
+
+If you're doing this and require additional assistance, feel free to contact us over our community [Slack](https://www.webiny.com/slack).
