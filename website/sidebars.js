@@ -151,7 +151,7 @@ module.exports = {
                                 "how-to-guides/webiny-applications/headless-cms/using-graphql-api",
                                 "how-to-guides/webiny-applications/headless-cms/extend-graphql-api",
                                 "how-to-guides/webiny-applications/headless-cms/rendering-rich-text",
-
+                                "how-to-guides/webiny-applications/headless-cms/content-model-plugins"
                             ]
                         },
                         {
