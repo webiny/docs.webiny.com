@@ -11,6 +11,7 @@ import specialQueryResults from "./extend-graphql-api/special-query-results.png"
 import specialRunMutation from "./extend-graphql-api/special-run-mutation.png";
 import duplicatesListPages from "./extend-graphql-api/duplicates-list-pages.png";
 import duplicatesRunMutation from "./extend-graphql-api/duplicates-run-mutation.png";
+import listPagesQuery from "./extend-graphql-api/list-pages-query.png";
 
 :::tip What you'll learn
 
@@ -100,7 +101,116 @@ Running the above mutation should mark the page with the `60f903881f76a100082006
 
 <CenteredImage alt={"Querying Pages with the New Special Field Included in the Results"} src={specialQueryResults}/>
 
-## Custom Mutations
+## Modifying GraphQL Queries
+
+If needed, existing pages-related GraphQL queries can be modified too.
+
+Continuing from the [previous](/docs/how-to-guides/webiny-applications/page-builder/extend-graphql-api#adding-new-page-fields) example, let's say we also wanted to be able to list special pages only. We can do that with the help of the [`SearchLatestPagesPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/SearchLatestPagesPlugin.ts#L3) and [`SearchPublishedPagesPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/SearchPublishedPagesPlugin.ts#L3) plugins (both extending [`SearchPagesPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/SearchPagesPlugin.ts#L22)):
+
+```ts title="api/code/graphql/src/plugins/pages.ts" {29-35,43-67}
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
+import { IndexPageDataPlugin } from "@webiny/api-page-builder/plugins/IndexPageDataPlugin";
+import { Page } from "@webiny/api-page-builder/types";
+import { SearchLatestPagesPlugin } from "@webiny/api-page-builder/plugins/SearchLatestPagesPlugin";
+import { SearchPublishedPagesPlugin } from "@webiny/api-page-builder/plugins/SearchPublishedPagesPlugin";
+
+interface ExtendedPage extends Page {
+  special: boolean;
+}
+
+export default [
+  // We can extend the `PbListPagesWhereInput` and `PbListPublishedPagesWhereInput`
+  // types in order to enable filtering pages by the `special` field. Note that in order for this
+  // to work, we'll also need `SearchLatestPagesPlugin` and `SearchLatestPagesPlugin` (see below).
+  new GraphQLSchemaPlugin({
+    typeDefs: /* GraphQL */ `
+      extend type PbPage {
+        special: Boolean
+      }
+
+      extend type PbPageListItem {
+        special: Boolean
+      }
+
+      extend input PbUpdatePageInput {
+        special: Boolean
+      }
+
+      extend input PbListPagesWhereInput {
+        special: Boolean
+      }
+
+      extend input PbListPublishedPagesWhereInput {
+        special: Boolean
+      }
+    `
+  }),
+
+  new IndexPageDataPlugin<ExtendedPage>(({ data, page }) => {
+    data.special = page.special;
+  }),
+
+  // Query modifiers must be applied to both latest and published pages queries.
+  // Both of these make sure that if the GraphQL query contains `special: true` in the `where`
+  // input, that the ElasticSearch query is modified accordingly.
+  new SearchLatestPagesPlugin({
+    modifyQuery({ query, args }) {
+      if (args.where && args.where.special) {
+        query.must.push({
+          term: {
+            special: true
+          }
+        });
+      }
+    }
+  }),
+  new SearchPublishedPagesPlugin({
+    modifyQuery({ query, args }) {
+      if (args.where && args.where.special) {
+        query.must.push({
+          term: {
+            special: true
+          }
+        });
+      }
+    }
+  })
+];
+```
+
+With all the changes in place, we should be able to run the following GraphQL query:
+
+```gql
+query ListSpecialPages {
+  pageBuilder {
+    listPages(where: { special: true }) {
+      data {
+        title
+        special
+      }
+      error {
+        data
+        message
+        code
+      }
+    }
+  }
+}
+```
+
+For example:
+
+<CenteredImage alt={"Listing Special Pages"} src={listPagesQuery}/>
+
+Note that because we've created both the [`SearchLatestPagesPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/SearchLatestPagesPlugin.ts#L3) and [`SearchPublishedPagesPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/SearchPublishedPagesPlugin.ts#L3) plugins, we can also apply the same `special: true` filter within the `listPublishedPages` GraphQL query.
+
+:::info
+
+The difference between the [`listPages`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/graphql/graphql/pages.gql.ts#L320) and [`listPublishedPages`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/graphql/graphql/pages.gql.ts#L329) is in the returned results. The former will always return latest revisions of a pages, which is more useful while listing pages inside the Admin Area application. The latter always returns published revisions of pages, which is more suitable for public applications and websites.
+
+:::
+
+## Custom GraphQL Mutations
 
 Let's say we wanted to extend our GraphQL schema with the custom `duplicatePage` mutation, which, as the name suggests, would enable us to make copies of pages.
 
@@ -112,52 +222,47 @@ import { PbContext } from "@webiny/api-page-builder/types";
 import { Response, ErrorResponse, NotFoundResponse } from "@webiny/handler-graphql/responses";
 
 export default [
-    new GraphQLSchemaPlugin({
-        // Extend the `PbMutation` type with the `duplicatePage` mutation.
-        typeDefs: /* GraphQL */ `
-            extend type PbMutation {
-                # Creates a copy of the provided page.
-                duplicatePage(id: ID!): PbPageResponse
-            }
-        `,
-        // In order for the `duplicatePage` to work, we also need to create a resolver function.
-        resolvers: {
-            PbMutation: {
-                duplicatePage: async (_, args: { id: string }, context: PbContext) => {
-                    // Retrieve the original page. If it doesn't exist, immediately exit.
-                    const pageToDuplicate = await context.pageBuilder.pages.get(args.id);
-                    if (!pageToDuplicate) {
-                        return new NotFoundResponse("Page not found.");
-                    }
+  new GraphQLSchemaPlugin({
+    // Extend the `PbMutation` type with the `duplicatePage` mutation.
+    typeDefs: /* GraphQL */ `
+      extend type PbMutation {
+        # Creates a copy of the provided page.
+        duplicatePage(id: ID!): PbPageResponse
+      }
+    `,
+    // In order for the `duplicatePage` to work, we also need to create a resolver function.
+    resolvers: {
+      PbMutation: {
+        duplicatePage: async (_, args: { id: string }, context: PbContext) => {
+          // Retrieve the original page. If it doesn't exist, immediately exit.
+          const pageToDuplicate = await context.pageBuilder.pages.get(args.id);
+          if (!pageToDuplicate) {
+            return new NotFoundResponse("Page not found.");
+          }
 
-                    try {
-                        // We only need the `id` of the newly created page.
-                        const newPage = await context.pageBuilder.pages.create(
-                            pageToDuplicate.category
-                        );
+          try {
+            // We only need the `id` of the newly created page.
+            const newPage = await context.pageBuilder.pages.create(pageToDuplicate.category);
 
-                        // Set data that will be assigned to the newly created page.
-                        const data = {
-                            title: `Copy of ${pageToDuplicate.title}`,
-                            path: `${pageToDuplicate.path}-copy-${new Date().getTime()}`,
-                            content: pageToDuplicate.content,
-                            settings: pageToDuplicate.settings
-                        };
+            // Set data that will be assigned to the newly created page.
+            const data = {
+              title: `Copy of ${pageToDuplicate.title}`,
+              path: `${pageToDuplicate.path}-copy-${new Date().getTime()}`,
+              content: pageToDuplicate.content,
+              settings: pageToDuplicate.settings
+            };
 
-                        // Finally, update the newly created page.
-                        const updatedNewPage = await context.pageBuilder.pages.update(
-                            newPage.id,
-                            data
-                        );
+            // Finally, update the newly created page.
+            const updatedNewPage = await context.pageBuilder.pages.update(newPage.id, data);
 
-                        return new Response(updatedNewPage);
-                    } catch (e) {
-                        return new ErrorResponse(e);
-                    }
-                }
-            }
+            return new Response(updatedNewPage);
+          } catch (e) {
+            return new ErrorResponse(e);
+          }
         }
-    })
+      }
+    }
+  })
 ];
 ```
 
@@ -168,9 +273,9 @@ The code above can be placed in the [`api/code/graphql/src/plugins/pages.ts`](ht
 With all the changes in place, we should be able to run the following GraphQL mutation:
 
 ```gql
-mutation DuplicatePage($id:ID!) {
+mutation DuplicatePage($id: ID!) {
   pageBuilder {
-    duplicatePage (id:$id) {
+    duplicatePage(id: $id) {
       data {
         id
         title
@@ -181,7 +286,7 @@ mutation DuplicatePage($id:ID!) {
 }
 ```
 
-For example: 
+For example:
 
 <CenteredImage alt={"Duplicating an Existing Page"} src={duplicatesRunMutation}/>
 
@@ -198,6 +303,3 @@ In the shown examples, you may have noticed we were using the `context` object i
 That's why, for example, we were able to utilize the [`context.pageBuilder.pages.get`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/graphql/crud/pages.crud.ts#L134) and [`context.pageBuilder.pages.update`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/graphql/crud/pages.crud.ts#L606) methods, in the [Custom Mutations](/docs/how-to-guides/webiny-applications/page-builder/extend-graphql-api#custom-mutations) section.
 
 For easier discovery and type safety, we suggest a type is always assigned to the `context` object in your GraphQL resolver functions.
-
-
-
