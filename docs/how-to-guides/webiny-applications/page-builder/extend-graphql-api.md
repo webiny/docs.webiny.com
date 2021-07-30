@@ -296,7 +296,7 @@ After the mutation has been executed, we should be able to see the created copy 
 
 ## FAQ
 
-#### What is the `context` object and from where are all of its properties coming from?
+#### What is the `context` object and where are all of its properties coming from?
 
 In the shown examples, you may have noticed we were using the `context` object in GraphQL resolver functions. This object contains multiple different properties, mainly being defined from different Webiny applications that were imported in the GraphQL API's [`api/code/graphql/src/index.ts`](https://github.com/webiny/webiny-examples/blob/master/page-builder/extend-graphql-api/custom-mutations/api/code/graphql/src/index.ts) entrypoint file.
 
