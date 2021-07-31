@@ -196,16 +196,23 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.11.0-to-5.11.1",
                         "how-to-guides/upgrade-webiny/5.10.0-to-5.11.0",
                         "how-to-guides/upgrade-webiny/5.9.0-to-5.10.0",
                         "how-to-guides/upgrade-webiny/5.8.0-to-5.9.0",
                         "how-to-guides/upgrade-webiny/5.7.0-to-5.8.0",
-                        "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
-                        "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
-                        "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
-                        "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
-                        "how-to-guides/upgrade-webiny/5.0.0-to-5.1.0",
-                        "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"
+                        {
+                            type: "category",
+                            label: "Older Upgrades",
+                            items: [
+                                "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
+                                "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
+                                "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
+                                "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
+                                "how-to-guides/upgrade-webiny/5.0.0-to-5.1.0",
+                                "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"
+                            ]
+                        }
                     ]
                 }
             ],
@@ -331,15 +338,16 @@ module.exports = {
         },
         {
             Changelog: [
+                "changelog/5.11.1",
                 "changelog/5.11.0",
                 "changelog/5.10.0",
                 "changelog/5.9.0",
                 "changelog/5.8.0",
-                "changelog/5.7.0",
                 {
                     type: "category",
                     label: "Older Releases",
                     items: [
+                        "changelog/5.7.0",
                         "changelog/5.6.0",
                         "changelog/5.5.0",
                         "changelog/5.4.0",
