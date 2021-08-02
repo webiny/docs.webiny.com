@@ -231,15 +231,18 @@ Like we've seen in the backend development section, you can also assign environm
 
 In CI/CD workflows, again, you're encouraged to adapt built-in methods for working with environment variables, that are offered by your CI/CD provider.
 
-## Debug Environment Variable
+## `Debug` Environment Variable
 
-To improve the debugging experience, we have the `DEBUG` environment variable in place.
-It enables two features, which we'll cover in detail shortly:
-1. Detail error response in case of server error
-2. Visual feedback in case of a network request fails
+In order to provide the best possible debugging experience, and at the same time, maintain a strong security posture, Webiny uses the `DEBUG` environment variable to determine what information needs to be revealed in case one or more errors were thrown in the application runtime.
 
-### Detail Error Response
-By default, in case of server error, the API responds with an _Internal server error_ with status code `500`, for example:
+By default, the `DEBUG` environment variable is set to `true`, via the `.env` file located in your project root. For development purposes, this can useful as you'll get to see full error reports whenever an error has been returned from for example the GraphQL API, or maybe even in your React application code.
+
+On the other hand, for some pre-production and production environments, most probably you will want to not have this variable set to `true`, as in some cases, full error reports might reveal sensitive data, and may pose a security vulnerability.
+
+In the following text, we cover a couple of key features that are available while the `DEBUG` flag is set to `true`.
+
+### Backend Error Reporting
+In case of a backend error, for example, an error in a GraphQL resolver function, by default, the client that issued the request will receive the following error response:
 
 ```json
 {
@@ -250,11 +253,11 @@ By default, in case of server error, the API responds with an _Internal server e
 }
 ```
 
-It is to ensure that unnecessary internal details don't pass to the end-user.
+As mentioned, the reason for the obscurity is primarily security, as we want to avoid potential leak of sensitive information to the public.
 
 Although in development, you might want to know the details about the error for a better debugging experience. For example, the error message, code, and even the stack trace.
 
-Setting `DEBUG=true` helps you achieve exactly that, for example:
+But, for development purposes, setting the `DEBUG` environment variable to `true`, will force the backend to return something like the following:
 
 ```json
 {
