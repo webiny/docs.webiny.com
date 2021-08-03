@@ -174,15 +174,15 @@ By default, every Webiny projects contains two frontend project applications, **
 
 ### Custom Environment Variables
 
-For frontend applications, environment variables need to be handled in their respective `start` and `build` commands. In a Webiny project, these can be found in the `webiny.config.js` file, which is the essential configuration file of every package that a project application may hold.
+For frontend applications, environment variables need to be handled in their respective `start` and `build` commands. In a Webiny project, these can be found in the `webiny.config.ts` file, which is the essential configuration file of every package that a project application may hold.
 
 :::info Project Applications
 Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/key-topics/project-organization/project-applications-and-packages) key topic.
 :::
 
-The following code shows the `webiny.config.js` file of the `website` package, which is the one and only package of the **Website** project application:
+The following code shows the `webiny.config.ts` file of the `website` package, which is the one and only package of the **Website** project application:
 
-```js title="apps/website/code/webiny.config.js" {11,15,26,30}
+```js title="apps/website/code/webiny.config.ts" {11,15,26,30}
 (...)
 
 module.exports = {
@@ -197,7 +197,7 @@ module.exports = {
 
             // Add additional environment variables by directly
             // assigning them into the "process.env" object.
-            process.env.MY_CUSTOM_ENV_VARIABLE = 'some-random-value';
+            process.env.REACT_APP_MY_CUSTOM_ENV_VARIABLE = 'some-random-value';
 
             // Start local development
             await startApp(options, context);
@@ -212,7 +212,7 @@ module.exports = {
 
             // Add additional environment variables by directly
             // assigning them into the "process.env" object.
-            process.env.MY_CUSTOM_ENV_VARIABLE = 'some-random-value';
+            process.env.REACT_APP_MY_CUSTOM_ENV_VARIABLE = 'some-random-value';
 
             // Bundle app for deployment
             await buildApp(options, context);
@@ -231,7 +231,7 @@ Like we've seen in the backend development section, you can also assign environm
 
 In CI/CD workflows, again, you're encouraged to adapt built-in methods for working with environment variables, that are offered by your CI/CD provider.
 
-## `Debug` Environment Variable
+## DEBUG Environment Variable
 
 In order to provide the best possible debugging experience, and at the same time, maintain a strong security posture, Webiny uses the `DEBUG` environment variable to determine what information needs to be revealed in case one or more errors were thrown in the application runtime.
 
@@ -253,11 +253,9 @@ In case of a backend error, for example, an error in a GraphQL resolver function
 }
 ```
 
-As mentioned, the reason for the obscurity is primarily security, as we want to avoid potential leak of sensitive information to the public.
+As mentioned, the reason for the obscurity is primarily security, as we want to avoid potential leaking of sensitive information to the public.
 
-Although in development, you might want to know the details about the error for a better debugging experience. For example, the error message, code, and even the stack trace.
-
-But, for development purposes, setting the `DEBUG` environment variable to `true`, will force the backend to return something like the following:
+On the other hand, for development purposes, setting the `DEBUG` environment variable to `true`, will force the backend to return something like the following:
 
 ```json
 {
@@ -270,14 +268,13 @@ But, for development purposes, setting the `DEBUG` environment variable to `true
 ```
 
 :::note
-You must redeploy the API after updating the environment variables. Otherwise, the change will not reflect.
+You must redeploy your backend project application after updating the environment variables. Otherwise, the change will not be reflected.
 :::
 
 ### Visual Feedback
-With the above change in place, you have the error with details that we can inspect in the network tab of the browser's dev tools.
-That's nice, but, to further improve the development experience, you can set the `REACT_APP_DEBUG=true`.
+The DEBUG environment variable can also be used within your frontend (React) applications.
 
-It will render an overlay in case of any network error so that you have all the details about the error without inspecting the network tab:
+If set to `true`, all errors detected in the application runtime will be presented in a clear error report, with all the relevant information like error message, and a complete stack trace:
 
 <!-- vale off -->
 
@@ -292,6 +289,14 @@ It will render an overlay in case of any network error so that you have all the 
 We set it by default when you [start](https://github.com/webiny/webiny-js/blob/next/packages/project-utils/bundling/app/index.js#L33) the Admin app locally.
 But, you can always do the same for other environments like `dev` for example.
 
+The DEBUG environment variable can be set via the application's `webiny.config.ts` config file, for example, [`apps/admin/code/webiny.config.ts`](https://github.com/webiny/webiny-js/blob/next/apps/admin/code/webiny.config.ts) or [`apps/website/code/webiny.config.ts`](https://github.com/webiny/webiny-js/blob/next/apps/website/code/webiny.config.ts), for example:
+
+```ts
+// Make sure to use the `REACT_APP_` prefix
+process.env.REACT_APP_DEBUG = "true";
+```
+
+
 
 
 
@@ -304,3 +309,11 @@ Behind the scenes, [Webiny CLI](/docs/key-topics/webiny-cli) uses the [`dotenv`]
 #### What are the commands that will load the root `.env` file?
 
 The following commands load the `.env` file: [`deploy`](/docs/how-to-guides/deployment/deploy-your-project#the-deploy-command), [`destroy`](/docs/how-to-guides/deployment/destroy-cloud-infrastructure#the-destroy-command), [`watch`](/docs/how-to-guides/webiny-cli/use-watch-command), and [`pulumi`](/docs/how-to-guides/deployment/execute-pulumi-commands).
+
+#### Can I use the DEBUG variable while developing custom applications?
+
+Yes.
+
+#### Do I have to always `REACT_APP_` prefix when defining frontend environment variables?
+
+Yes, you must create custom environment variables beginning with `REACT_APP_` to avoid accidentally exposing a private key on the machine that could have the same name.
