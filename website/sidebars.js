@@ -249,6 +249,15 @@ module.exports = {
                 },
                 {
                     type: "category",
+                    label: "UI Composer",
+                    items: [
+                        "key-topics/ui-composer/introduction",
+                        "key-topics/ui-composer/building-views",
+                        "key-topics/ui-composer/creating-elements"
+                    ]
+                },
+                {
+                    type: "category",
                     label: "Deployment",
                     items: [
                         "key-topics/deployment/introduction",
@@ -348,7 +357,7 @@ module.exports = {
         },
         {
             Changelog: [
-                "changelog/5.12.0",
+                "changelog/v5.12.0",
                 "changelog/5.11.1",
                 "changelog/5.11.0",
                 "changelog/5.10.0",
