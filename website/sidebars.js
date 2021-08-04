@@ -139,7 +139,8 @@ module.exports = {
                             type: "category",
                             label: "Page Builder",
                             items: [
-                                "how-to-guides/webiny-applications/page-builder/extend-graphql-api"
+                                "how-to-guides/webiny-applications/page-builder/extend-graphql-api",
+                                "how-to-guides/webiny-applications/page-builder/extend-page-settings"
                             ]
                         },
                         {

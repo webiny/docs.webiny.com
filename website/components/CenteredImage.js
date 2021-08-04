@@ -23,7 +23,7 @@ export default props => {
         >
             <img
                 onClick={openLightbox}
-                style={{ display: "block", cursor: "pointer", ...props.style }}
+                style={{ display: "block", cursor: "pointer", margin: "auto", ...props.style }}
                 className={classNames(props.className, {
                     ["no-shadow"]: props.shadow === false
                 })}

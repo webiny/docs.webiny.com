@@ -19,13 +19,14 @@ import devTools from "./assets/devTools.png";
 :::
 
 :::note
-This article uses `@webiny/app-admin` as a source of all UI Composer classes.
-In your non-Webiny projects, you can use `@webiny/ui-composer` package directly.
+Webiny UI Composer doesn't provide any UI elements. This article uses `@webiny/app-admin` package to import UI classes, because it already contains a set of elements that we use in our Admin Area app.
+
+In your non-Webiny projects, you can use `@webiny/ui-composer` package directly, and build your own library of elements.
 :::
 
 ## Defining a Basic View
 
-For those of you who have experience working with other programming languages (like C#, Java, Python, Swift), this way of building UIs will feel very familiar. For JS-only folk, this will most likely seem weird in the beginning.
+For those of you who have experience working with other programming languages (like C#, Java, Python, Swift), this way of building UIs will feel very familiar. For JS/React-only folk, this will most likely seem weird in the beginning.
 
 This is what a basic view could look like:
 
@@ -53,10 +54,12 @@ class MyView extends UIView {
 }
 ```
 
-Now we need to render it. You can render this new view anywhere in your existing React app, by using the provided `ViewComponent` React component:
+Now we need to render it. You can render this new view anywhere in your existing React app, by using the provided `UIViewComponent` React component:
 
 ```tsx title="Rendering in React"
-<ViewComponent view={new MyView()} />
+import { UIViewComponent } from "@webiny/app-admin/ui/UIView";
+
+<UIViewComponent view={new MyView()} />
 ```
 
 With just this code, your view should look like this:
@@ -134,7 +137,7 @@ Now let's attach this new hook to the view, using another instance of a plugin (
 
 We'll also attach some rendering logic to our buttons.
 
-```ts title="Adding a Hook to Existing View and Attach Rendering Logic"
+```ts title="Adding a Hook to Existing View and Attaching Rendering Logic"
 new UIViewPlugin<MyView>(MyView, view => {
   // Define a view hook by giving it a name, and a hook function
   view.addHookDefinition("myView", useMyView);
@@ -142,17 +145,26 @@ new UIViewPlugin<MyView>(MyView, view => {
   const firstButton = view.getElement<ButtonElement>("button1");
   const secondButton = view.getElement<ButtonElement>("button2");
 
+  // TIP: Create a reusable getter to use it in all of your callbacks
+  const getHookValue = () => {
+    return view.getHook<UseMyView>("myView");
+  };
+
   // Add a rendering rule
   firstButton.addShouldRender(() => {
-    // Get view hook to access state
-    const { buttonClicked } = view.getHook<UseMyView>("myView");
-    return !buttonClicked;
+    // Return a boolean to show/hide this element
+    return !getHookValue().buttonClicked;
   });
 
   // Call a hook function on button click
   secondButton.setOnClick(() => {
-    const { setButtonClicked } = view.getHook<UseMyView>("myView");
-    setButtonClicked(true);
+    getHookValue().setButtonClicked(true);
+  });
+
+  // Make button label dynamic
+  secondButton.setLabel(() => {
+    const { buttonClicked } = getHookValue();
+    return buttonClicked ? "I was clicked!" : "Help!";
   });
 });
 ```

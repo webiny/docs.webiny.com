@@ -1,0 +1,143 @@
+---
+id: extend-page-settings
+title: Extend Page Settings
+sidebar_label: Extend Page Settings
+keywords: ["webiny", "ui", "page builder", "extend", "page settings"]
+description: Learn how to extend page settings with new fields
+---
+
+import CenteredImage from "@components/CenteredImage";
+import updatedSchema from "./extend-page-settings/schema.png";
+import passwordField from "./extend-page-settings/passwordField.png";
+import websitePassword from "./extend-page-settings/websitePassword.png";
+
+:::tip What you'll learn
+
+- how to hook into the page settings views
+- how to add new fields to the existing page settings views
+
+:::
+
+## Overview
+
+Page settings UI within the Webiny Page Builder, by default, offers 3 major sections: `General settings`, `Social media`, and `SEO settings`. These 3 sections are represented by the underlying view classes, implemented using the [Webiny UI Composer](/docs/key-topics/ui-composer/introduction):
+
+Adding new fields to the page settings involves the following steps:
+
+1. Extend the GraphQL API to be able to handle the new field.
+2. Add a form field to the UI to represent the value from the GraphQL API.
+3. Add the new field selection to the GraphQL query that is sent from the browser to the GraphQL API.
+
+In this example, we'll add a `password` field to the `General Settings`.
+
+## Add a New Settings Field to GraphQL API
+
+Each object in the GraphQL is represented by its own GraphQL type. In case of general settings, these types are `PbGeneralPageSettings` for queries, and `PbGeneralPageSettingsInput` for mutations. The following plugin adds our new `password` field to both of these types:
+
+```ts title="api/code/graphql/src/plugins/pageSettings.ts"
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
+
+export default new GraphQLSchemaPlugin({
+  typeDefs: /* GraphQL */ `
+    extend type PbGeneralPageSettings {
+      password: String
+    }
+
+    extend input PbGeneralPageSettingsInput {
+      password: String
+    }
+  `
+});
+```
+
+:::info
+The code above can be placed in the `api/code/graphql/src/plugins/pageSettings.ts` file, which doesn't exist by default, so you will have to create it manually. Furthermore, once the file is created, make sure that it's actually imported and registered in the `api/code/graphql/src/index.ts` entrypoint file.
+:::
+
+With this plugin, once you redeploy the API, your GraphQL schema will contain the new `password` field:
+
+<CenteredImage
+  src={updatedSchema}
+  title={"New Password Field in the Schema"}
+  style={{ width: 636 }}
+/>
+
+## Add a Form Field to the UI
+
+The view class responsible for the general settings is the `GeneralSettingsView` class. To modify it, we need to hook into it using the `UIViewPlugin`. We also need to add the new field to the GraphQL query that loads page data.
+
+```tsx title="apps/admin/code/src/plugins/pageSettings.ts"
+import { gql } from "graphql-tag";
+import { AddQuerySelectionPlugin } from "@webiny/app/plugins/AddQuerySelectionPlugin";
+import { UIViewPlugin } from "@webiny/app-admin/ui/UIView";
+import { GeneralSettingsView } from "@webiny/app-page-builder/editor/ui/views/GeneralSettingsView";
+import { PasswordElement } from "@webiny/app-admin/ui/elements/form/PasswordElement";
+
+export default [
+  // Add an input field for the password
+  new UIViewPlugin<GeneralSettingsView>(GeneralSettingsView, view => {
+    view.addField(
+      new PasswordElement("password", {
+        name: "settings.general.password",
+        label: "Password",
+        description: "If set, the page will be protected by this password on the frontend."
+      })
+    );
+  }),
+  // Add a selection to outgoing `GetPage` GraphQL operation
+  new AddQuerySelectionPlugin({
+    operationName: "PbGetPage",
+    selectionPath: "pageBuilder.getPage.data",
+    addSelection: gql`
+      {
+        settings {
+          general {
+            password
+          }
+        }
+      }
+    `
+  })
+];
+```
+
+After your app rebuilds, the new field will be rendered in the settings view. Using this technique, you can add as many fields as you need. You can also hook into other page settings views, using their corresponding classes: `SocialSettingsView` and `SEOSettingsView`.
+
+<CenteredImage src={passwordField} title={"Password Field Added to the General Settings View"} />
+
+For the Admin Area, the work is done. You can now get and update the value of that new `password` field.
+
+## Add the New Query Selection in the Website App
+
+:::note
+This step is optional. If you're writing custom queries and are executing the GraphQL API calls yourself, you can skip this step.
+:::
+
+Website app doesn't know about the plugin we added in the Admin Area app. By default, it will not include the `password` field in the GraphQL query. If you want this field to be automatically queried with the rest of the page data, you need to add a plugin, just like in the Admin Area app.
+
+```ts title="apps/website/code/src/plugins/pageSettings.ts"
+import { gql } from "graphql-tag";
+import { AddQuerySelectionPlugin } from "@webiny/app/plugins/AddQuerySelectionPlugin";
+
+export default new AddQuerySelectionPlugin({
+  operationName: "PbGetPublishedPage",
+  selectionPath: "pageBuilder.getPublishedPage.data",
+  addSelection: gql`
+    {
+      settings {
+        general {
+          password
+        }
+      }
+    }
+  `
+});
+```
+
+:::info
+The code above can be placed in the `apps/website/code/src/plugins/pageSettings.ts` file, which doesn't exist by default, so you will have to create it manually. Furthermore, once the file is created, make sure that it's actually imported and registered in the `apps/website/code/src/plugins/index.ts` entrypoint file.
+:::
+
+Once the `website` app is rebuilt, it will contain the `password` field in the `PbGetPublishedPage` operation response:
+
+<CenteredImage src={websitePassword} title={"Password Is Now Returned from the API"} />
