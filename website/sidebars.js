@@ -141,6 +141,7 @@ module.exports = {
                             label: "Page Builder",
                             items: [
                                 "how-to-guides/webiny-applications/page-builder/extend-graphql-api",
+                                "how-to-guides/webiny-applications/page-builder/extend-page-settings"
                             ]
                         },
                         {
@@ -206,15 +207,16 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.11.1-to-5.12.0",
                         "how-to-guides/upgrade-webiny/5.11.0-to-5.11.1",
                         "how-to-guides/upgrade-webiny/5.10.0-to-5.11.0",
                         "how-to-guides/upgrade-webiny/5.9.0-to-5.10.0",
                         "how-to-guides/upgrade-webiny/5.8.0-to-5.9.0",
-                        "how-to-guides/upgrade-webiny/5.7.0-to-5.8.0",
                         {
                             type: "category",
                             label: "Older Upgrades",
                             items: [
+                                "how-to-guides/upgrade-webiny/5.7.0-to-5.8.0",
                                 "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
                                 "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
                                 "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
@@ -245,6 +247,15 @@ module.exports = {
                             label: "Headless CMS",
                             items: ["key-topics/webiny-applications/headless-cms/graphql-api"]
                         }
+                    ]
+                },
+                {
+                    type: "category",
+                    label: "UI Composer",
+                    items: [
+                        "key-topics/ui-composer/introduction",
+                        "key-topics/ui-composer/building-views",
+                        "key-topics/ui-composer/creating-elements"
                     ]
                 },
                 {
@@ -348,15 +359,16 @@ module.exports = {
         },
         {
             Changelog: [
+                "changelog/v5.12.0",
                 "changelog/5.11.1",
                 "changelog/5.11.0",
                 "changelog/5.10.0",
                 "changelog/5.9.0",
-                "changelog/5.8.0",
                 {
                     type: "category",
                     label: "Older Releases",
                     items: [
+                        "changelog/5.8.0",
                         "changelog/5.7.0",
                         "changelog/5.6.0",
                         "changelog/5.5.0",

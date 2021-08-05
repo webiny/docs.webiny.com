@@ -1,0 +1,225 @@
+---
+id: creating-elements
+title: Creating Elements
+sidebar_label: Creating Elements
+keywords: ["webiny", "ui", "composer", "react", "element"]
+description: Learn how to create custom elements to use with UI Composer
+---
+
+:::tip What you'll learn
+
+- how to create elements
+- how to implement various renderers
+
+:::
+
+:::note
+This article uses the original `@webiny/ui-composer` package to showcase the creation of a completely custom UI element, the same way _you_ would do it in your project.
+:::
+
+## Overview
+
+Elements are the basic building blocks of your UI, and allow you to have a nice, developer-friendly SDK for your projects. In this article we look at how to create a simple element, how to make it pluginable, and how to support various renderers.
+
+## Creating a Basic Element
+
+Let's create a `HeadingElement` element, to render simple heading tags. It will accept `size` and `text` parameters.
+
+```ts title="Defining an Element Class"
+import { UIElement, UIElementConfig } from "@webiny/ui-composer/UIElement";
+
+interface HeadingElementConfig extends UIElementConfig {
+  text: string;
+  size: number;
+}
+
+class HeadingElement extends UIElement<HeadingElementConfig> {
+  private _heading = {
+    1: "h1",
+    2: "h2"
+  };
+
+  getSize() {
+    return this.config.size;
+  }
+
+  getText() {
+    return this.config.text;
+  }
+
+  render(props?: any): React.ReactNode {
+    const Component = this._heading[this.getSize()];
+    return <Component>{this.getText()}</Component>;
+  }
+}
+```
+
+:::tip
+You can structure the class however you like. This is not React, these are plain classes. The only important thing is that it extends the `UIElement` base class.
+:::
+
+When instantiating an element, it always needs to have a unique ID. That's how other developers will be able to reference that particular element from their plugins.
+
+```ts title="Instantiating an Element Class"
+new HeadingElement("heading", { size: 2, text: "MyHeading" });
+```
+
+When you add this element to a view (as described in the [Building Views](/docs/key-topics/ui-composer/building-views) article), it will render an `<h2>` element. Currently, this element only supports `h1` and `h2`. We'll expand the rendering capabilities later in the article.
+
+## Making Element Extendable
+
+To make your custom elements extendable via plugins, we need to call the plugins from the class constructor. We also need to add some getter/setters so that other developers can modify your element instances. Exposing a public interface is important for other developers to be able to successfully interact with your elements.
+
+```ts title="Apply Element Plugins" {7-22}
+class HeadingElement extends UIElement<HeadingElementConfig> {
+  private _heading = {
+    1: "h1",
+    2: "h2"
+  };
+
+  constructor(id: string, config: HeadingElementConfig) {
+    super(id, config);
+
+    // Apply plugins of type `UIElementPlugin` registered for this particular class
+    this.applyPlugins(HeadingElement);
+  }
+
+  // Add size setter
+  setSize(size: number) {
+    this.config.size = size;
+  }
+
+  // Add text setter
+  setText(text: string) {
+    this.config.text = text;
+  }
+
+  getSize() {
+    return this.config.size;
+  }
+
+  getText() {
+    return this.config.text;
+  }
+
+  render(props?: any): React.ReactNode {
+    const Component = this._heading[this.getSize()];
+    return <Component>{this.getText()}</Component>;
+  }
+}
+```
+
+Now anyone can hook into your element from the outside, using the `UIElementPlugin`.
+
+```ts title="Hooking Into Any Element"
+import { UIElementPlugin } from "@webiny/ui-composer/UIElement";
+
+new UIElementPlugin<HeadingElement>(HeadingElement, element => {
+  // This will be called for every HeadingElement
+
+  // You can conditionally make changes to the element instance
+  if (element.id === "heading") {
+    element.setSize(1);
+  }
+});
+```
+
+---
+
+Up to this point, we were using the `render` method almost as if it's plain React. If it's your final implementation, and you don't need to have your renderers pluginable, you _can_ do it. The only downside is that external developers will _not_ be able to add new renderers to elements shipped in this manner.
+
+Let's look at how you can improve this element class to support pluginable renderers.
+
+## Enabling Support For Renderers
+
+In this example, we'll implement a default renderer, which supports `<h1>` and `<h2>`, and falls back to `<h2>` if it runs into an unsupported heading size.
+
+```tsx title="Defining a Renderer"
+import { UIRenderer, UIRenderParams } from "@webiny/ui-composer/ui/UIRenderer";
+
+// Extend `UIRenderer` class
+class HeadingElementRenderer extends UIRenderer<HeadingElement> {
+  private _heading = {
+    1: "h1",
+    2: "h2"
+  };
+
+  render({ element }: UIRenderParams<HeadingElement>): React.ReactNode {
+    // Fetch a component to render or fall back to `h2`
+    const Component = this._heading[element.getSize()] || "h2";
+
+    // Use the public interface of the element to get its text
+    return <Component>{element.getText()}</Component>;
+  }
+}
+```
+
+That's our renderer. Now we can use it in the `HeadingElement` class. This is what your element class should look like:
+
+```tsx title="Configuring Element Class to Use a Renderer" {5-6,30-36}
+class HeadingElement extends UIElement<HeadingElementConfig> {
+  constructor(id: string, config: HeadingElementConfig) {
+    super(id, config);
+
++   // Add renderer
++   this.addRenderer(new HeadingElementRenderer());
+
+    // Apply plugins of type `UIElementPlugin` registered for this particular class
+    this.applyPlugins(HeadingElement);
+  }
+
+  // Add size setter
+  setSize(size: number) {
+    this.config.size = size;
+  }
+
+  // Add text setter
+  setText(text: string) {
+    this.config.text = text;
+  }
+
+  getSize() {
+    return this.config.size;
+  }
+
+  getText() {
+    return this.config.text;
+  }
+
+- render({ element }: UIRenderParams<HeadingElement>): React.ReactNode {
+-   // Fetch a component to render or fall back to `h2`
+-   const Component = this._heading[element.getSize()] || "h2";
+-
+-   // Use the public interface of the element to get its text
+-   return <Component>{element.getText()}</Component>;
+- }
+}
+```
+
+As you can see, we removed the `render` method override to let the base `UIElement` class do its magic, and we registered a renderer instance in the constructor. Looking in the browser, the output is the same as before. But now we can add more renderers.
+
+## Adding a Custom Renderer Using a Plugin
+
+Let's add another renderer that will only handle `size: 3` elements:
+
+```tsx title="Adding a Custom Renderer"
+import { UIElementPlugin } from "@webiny/ui-composer/UIElement";
+import { UIRenderer, UIRenderParams } from "@webiny/ui-composer/ui/UIRenderer";
+
+// Create a renderer for `size: 3` headings
+class CustomElementRenderer extends UIRenderer<HeadingElement> {
+  // This method allows us to conditionally apply or skip the renderer
+  canRender(element: HeadingElement): boolean {
+    return element.getSize() === 3;
+  }
+
+  render({ element }: UIRenderParams<HeadingElement>): React.ReactNode {
+    return <h3>{element.getText()}</h3>;
+  }
+}
+
+// Hook into all `HeadingElement` instances and attach the new renderer
+new UIElementPlugin(HeadingElement, element => {
+  element.addRenderer(new CustomHeadingRenderer());
+});
+```

@@ -1,0 +1,176 @@
+---
+id: building-views
+title: Building Views
+sidebar_label: Building Views
+keywords: ["webiny", "ui", "composer", "view"]
+description: Learn how to build views using the Webiny UI Composer
+---
+
+import CenteredImage from "@components/CenteredImage";
+import firstButton from "./assets/firstButton.png";
+import secondButton from "./assets/secondButton.png";
+import devTools from "./assets/devTools.png";
+
+:::tip What you'll learn
+
+- how to define views
+- how to use plugins to modify existing views
+
+:::
+
+:::note
+Webiny UI Composer doesn't provide any UI elements. This article uses `@webiny/app-admin` package to import UI classes, because it already contains a set of elements that we use in our Admin Area app.
+
+In your non-Webiny projects, you can use `@webiny/ui-composer` package directly, and build your own library of elements.
+:::
+
+## Defining a Basic View
+
+For those of you who have experience working with other programming languages (like C#, Java, Python, Swift), this way of building UIs will feel very familiar. For JS/React-only folk, this will most likely seem weird in the beginning.
+
+This is what a basic view could look like:
+
+```ts title="Defining a View"
+import { UIView } from "@webiny/app-admin/ui/UIView";
+import { ButtonElement } from "@webiny/app-admin/ui/elements/ButtonElement";
+
+class MyView extends UIView {
+  constructor() {
+    // Pass a view ID to parent constructor
+    super("MyView");
+
+    // Enable grid layout
+    this.useGrid(true);
+
+    // Add your elements to the view!
+    this.addElement(
+      new ButtonElement("button1", {
+        label: "Click me!",
+        type: "primary",
+        onClick: () => alert("Hi!")
+      })
+    );
+  }
+}
+```
+
+Now we need to render it. You can render this new view anywhere in your existing React app, by using the provided `UIViewComponent` React component:
+
+```tsx title="Rendering in React"
+import { UIViewComponent } from "@webiny/app-admin/ui/UIView";
+
+<UIViewComponent view={new MyView()} />
+```
+
+With just this code, your view should look like this:
+
+<CenteredImage src={firstButton} title="A Simple View" style={{ width: "200px", margin: "auto" }} />
+
+Here's what happened:
+
+- we defined a view with a grid layout
+- the button is occupying the first cell of the first row
+- anyone can now hook into this view with a plugin and modify it!
+
+:::info
+Webiny UI buttons are not designed to fill the cell width. It depends on the React component, and your components might look slightly different. In this article we're using Webiny Admin Area app as a playground.
+:::
+
+## Customizing the View
+
+Let's see how we can use a plugin to modify this view.
+
+```ts title="Modifying Using a Plugin"
+// Register a plugin to hook into a specific view class
+new UIViewPlugin<MyView>(MyView, view => {
+  // Get an existing element
+  const firstButton = view.getElement<ButtonElement>("button1");
+
+  // Change button configuration
+  firstButton.setLabel("Aha!");
+  firstButton.setType("secondary");
+  firstButton.setOnClick(() => {
+    alert("Achievement unlocked!");
+  });
+
+  // Create a second element
+  const secondButton = new ButtonElement("button2", {
+    label: "Help!",
+    type: "primary",
+    onClick: () => alert("Help wanted!")
+  });
+
+  // Place it to the right of the first button
+  secondButton.moveAfter(firstButton);
+});
+```
+
+<CenteredImage src={secondButton} title="The View After Modification" />
+
+By just saying `secondButton.moveAfter(firstButton);` we are telling our layout manager to split the row into 2 equal cells and place the new element into that new cell.
+
+## Identifying Elements
+
+Let's pretend for a second that this view was defined in an `npm` package, and you don't know the element IDs. How do you go about finding out the element and view IDs?
+
+[React Dev Tools](https://www.google.com/search?q=react-dev-tools) will help you with that! When rendering the layout, we mount proxy components to denote where a view or an element starts, and we include a view class name (for views), and an element class name (with the element ID) in the `key` prop.
+
+<CenteredImage src={devTools} title="Finding the Relevant Element and View IDs" />
+
+## Attaching React Hooks
+
+In this example, we want to add a custom hook to the existing view, and we want to hide one of the buttons when the other button is clicked. As you can see, this will include some state management. UI Composer doesn't care about application state, but state can influence how certain elements are rendered.
+
+```ts title="Define a Simple Hook"
+import { useState } from "react";
+
+type UseMyView = ReturnType<typeof useMyView>;
+
+function useMyView() {
+  const [buttonClicked, setButtonClicked] = useState(false);
+
+  return { buttonClicked, setButtonClicked };
+}
+```
+
+Now let's attach this new hook to the view, using another instance of a plugin (we could attach it in the original view, or in our first plugin, but I want to demonstrate how you can incrementally build up any view).
+
+We'll also attach some rendering logic to our buttons.
+
+```ts title="Adding a Hook to Existing View and Attaching Rendering Logic"
+new UIViewPlugin<MyView>(MyView, view => {
+  // Define a view hook by giving it a name, and a hook function
+  view.addHookDefinition("myView", useMyView);
+
+  const firstButton = view.getElement<ButtonElement>("button1");
+  const secondButton = view.getElement<ButtonElement>("button2");
+
+  // TIP: Create a reusable getter to use it in all of your callbacks
+  const getHookValue = () => {
+    return view.getHook<UseMyView>("myView");
+  };
+
+  // Add a rendering rule
+  firstButton.addShouldRender(() => {
+    // Return a boolean to show/hide this element
+    return !getHookValue().buttonClicked;
+  });
+
+  // Call a hook function on button click
+  secondButton.setOnClick(() => {
+    getHookValue().setButtonClicked(true);
+  });
+
+  // Make button label dynamic
+  secondButton.setLabel(() => {
+    const { buttonClicked } = getHookValue();
+    return buttonClicked ? "I was clicked!" : "Help!";
+  });
+});
+```
+
+:::tip
+Make sure to access hooks within the callbacks, to get their latest value (state). Whenever the hook value changes, the entire view is rerendered, and at that point, new values of all hooks are assigned to the view instance.
+:::
+
+You can attach as many `shouldRender` callbacks as you like. They will be executed in reverse order, starting from the last one, going to the first one, until one of them returns `false`. Otherwise, the element is always rendered.
