@@ -113,6 +113,7 @@ module.exports = {
                             items: ["how-to-guides/development/frontend-applications/introduction"]
                         },*/
                         "how-to-guides/development/environment-variables",
+                        "how-to-guides/development/environment-variables",
                         {
                             type: "category",
                             label: "Integrations",
@@ -127,7 +128,10 @@ module.exports = {
                         {
                             type: "category",
                             label: "Admin Area",
-                            items: ["how-to-guides/webiny-applications/admin-area/api-playground"]
+                            items: [
+                                "how-to-guides/webiny-applications/admin-area/api-playground",
+                                "how-to-guides/webiny-applications/admin-area/change-logo"
+                            ]
                         },
                         {
                             type: "category",
