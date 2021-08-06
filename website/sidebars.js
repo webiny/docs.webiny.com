@@ -130,7 +130,8 @@ module.exports = {
                             label: "Admin Area",
                             items: [
                                 "how-to-guides/webiny-applications/admin-area/api-playground",
-                                "how-to-guides/webiny-applications/admin-area/change-logo"
+                                "how-to-guides/webiny-applications/admin-area/change-logo",
+                                "how-to-guides/webiny-applications/admin-area/customize-navigation-menu"
                             ]
                         },
                         {
