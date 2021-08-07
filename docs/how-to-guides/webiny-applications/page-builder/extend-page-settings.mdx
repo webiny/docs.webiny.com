@@ -182,3 +182,24 @@ The code above can be placed in the `apps/website/code/src/plugins/pageSettings.
 Once the application is rebuilt, the `password` field will be included in all `PbGetPublishedPage` GraphQL query operations:
 
 <CenteredImage src={websitePassword} title={"Password Is Now Returned from the API"} />
+
+## Handling DateTime Fields
+
+GraphQL `DateTime` type has a little peculiarity you should be aware of, to avoid unnecessary debugging.
+When you add a `DateTime` scalar to your GraphQL Schema, and perform a mutation, that `DateTime` field will be converted to JS **Date** object during input validation (performed by GraphQL Schema), and it will be passed as such to the resolver.
+
+It's the default behaviour of the `DateTime` scalar, from the [graphql-scalars](https://www.npmjs.com/package/graphql-scalars) library, which Webiny uses.
+
+The following example demonstrates how you should handle the `DateTime` fields in your code, when storing those fields to the database:
+
+```ts title="Storing DateTime Fields to the Database"
+new PagePlugin<CustomPage>({
+  beforeUpdate({ inputData, updateData }) {
+    // Convert the Date object to ISO string.
+    const eventStartISO = inputData.settings.general.eventStart.toISOString();
+
+    // Now you can safely assign the value which will be stored to the database.
+    updateData.settings.general.eventStart = eventStartISO;
+  }
+});
+```
