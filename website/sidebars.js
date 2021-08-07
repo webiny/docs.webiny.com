@@ -339,6 +339,7 @@ module.exports = {
                     ]
                 },
                 "key-topics/multi-tenancy",
+                "key-topics/plugins",
                 "key-topics/webiny-cli"
             ],
             References: [
