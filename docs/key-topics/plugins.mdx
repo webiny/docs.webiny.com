@@ -128,6 +128,40 @@ export default (root, args, context) => {
 };
 ```
 
+## Plugins in the Webiny CLI
+
+Our CLI also uses plugins for commands, deploy hooks, etc. Internally, the CLI has an instance of the `PluginsContainer` class, and all the plugins are loaded at bootstrap time, by loading the `webiny.project.ts` file.
+
+The following example shows how you can add new plugins to the Webiny CLI in your Webiny project:
+
+```ts title="webiny.project.ts"
+import cliWorkspaces from "@webiny/cli-plugin-workspaces";
+import cliPulumiDeploy from "@webiny/cli-plugin-deploy-pulumi";
+
+export default {
+  template: "@webiny/cwp-template-aws@5.12.0",
+  name: "my-project",
+  cli: {
+    plugins: [
+      // Execute plugin factories for imported plugins
+      cliWorkspaces(),
+      cliPulumiDeploy(),
+      // You can add your new plugins inline
+      {
+        type: "cli-command",
+        create({ yargs, context }) {
+          yargs.command("say-hi", "Prints a welcome message.", () => {
+            console.log("Hi there! I'm a new Webiny CLI command.");
+          });
+        }
+      }
+    ]
+  }
+};
+```
+
+When you run any `yarn webiny` command, our CLI will first load this file, grab all the provided plugins and register them in the internal plugins container. After that, the command processing will start, and one of the commands will be executed by [yargs](https://www.npmjs.com/package/yargs) (a library we use to handle commands in our CLI).
+
 ## Conclusion
 
 On a high level, this is all there is to Webiny's system of plugins. You simply add more and more plugins to hook into certain events, processes, and to add different types of functionality to the core system. What plugins do, and how complex they are, depends entirely on your requirements.
