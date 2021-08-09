@@ -184,6 +184,28 @@ Once the application is rebuilt, the `password` field will be included in all `P
 
 <CenteredImage src={websitePassword} title={"Password Is Now Returned from the API"} />
 
+## Handling DateTime Fields
+
+GraphQL `DateTime` type has a little peculiarity you should be aware of, to avoid unnecessary debugging.
+When you add a `DateTime` scalar to your GraphQL Schema, and perform a mutation, that `DateTime` field will be converted to a [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) object during input validation (performed by GraphQL Schema), and it will be passed as such to the resolver.
+
+It's the default behaviour of the `DateTime` scalar, from the [graphql-scalars](https://www.npmjs.com/package/graphql-scalars) library, which Webiny uses.
+
+The following example demonstrates how you should handle the `DateTime` fields in your code, when storing those fields to the database:
+
+```ts title="Storing DateTime Fields to the Database"
+new PagePlugin<CustomPage>({
+  beforeUpdate({ inputData, updateData }) {
+    // Convert the Date object to ISO string.
+    const eventStartISO = inputData.settings.general.eventStart.toISOString();
+
+    // Now you can safely assign the value which will be stored to the database.
+    updateData.settings.general.eventStart = eventStartISO;
+  }
+});
+```
+
+
 ## Add New Fields to `listPublishedPages` Query
 
 If you need to add your new fields to the output of the `listPublishedPages` query, there are a couple of things to know about this query.
@@ -222,8 +244,8 @@ export default [
 With these plugins in place, you can now access the `password` field on the `listPublishedPages` query:
 
 <CenteredImage
-  src={listPublishedPages}
-  title={`Password Field in the "listPublishedPages" Query`}
+    src={listPublishedPages}
+    title={`Password Field in the "listPublishedPages" Query`}
 />
 
 :::info Important
