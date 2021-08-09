@@ -11,6 +11,7 @@ import settingsView from "./extend-page-settings/settingsView.png";
 import updatedSchema from "./extend-page-settings/schema.png";
 import passwordField from "./extend-page-settings/passwordField.png";
 import websitePassword from "./extend-page-settings/websitePassword.png";
+import listPublishedPages from "./extend-page-settings/listPublishedPages.png";
 
 :::tip What you'll learn
 
@@ -182,3 +183,49 @@ The code above can be placed in the `apps/website/code/src/plugins/pageSettings.
 Once the application is rebuilt, the `password` field will be included in all `PbGetPublishedPage` GraphQL query operations:
 
 <CenteredImage src={websitePassword} title={"Password Is Now Returned from the API"} />
+
+## Add New Fields to `listPublishedPages` Query
+
+If you need to add your new fields to the output of the `listPublishedPages` query, there are a couple of things to know about this query.
+
+List operations are performed on Elasticsearch, and the data that comes back from the ES index goes directly into GraphQL resolvers. The data that is stored in the ES index only contains partial page data, relevant for searching.
+
+When you add new fields to page settings, that data is _not_ stored to ES, unless you provide a plugin which will add that data to the index.
+
+You also need to extend the `PbPageListItem` GraphQL type, which is returned from `listPublishedPages`, as it is different from the one used in `getPublishedPage` query.
+
+The following example shows how you can add the new `password` field into the ES index, so that it becomes available in the `listPublishedPages` query:
+
+```ts title="Add Data To Elasticsearch Index and GraphQL Schema"
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
+import { IndexPageDataPlugin } from "@webiny/api-page-builder/plugins/IndexPageDataPlugin";
+
+export default [
+  new GraphQLSchemaPlugin({
+    typeDefs: /* GraphQL */ `
+      extend type PbPageListItem {
+        password: String
+      }
+    `
+  }),
+
+  // Add the new `password` field to the data going into ES index.
+  new IndexPageDataPlugin<PageWithPassword>(({ data, page }) => {
+    // `data` represents the current page's data that will be stored in Elasticsearch.
+    // You can store your custom data anywhere on the object. It doesn't need to follow the actual settings structure
+    // of the original `page` object, as this data is for `list` operations only.
+    data.password = page.settings.general.password;
+  })
+];
+```
+
+With these plugins in place, you can now access the `password` field on the `listPublishedPages` query:
+
+<CenteredImage
+  src={listPublishedPages}
+  title={`Password Field in the "listPublishedPages" Query`}
+/>
+
+:::info Important
+After these plugins are deployed, you need to **publish** the page, to trigger ES index update. Only then your new data will be available for querying in the `listPublishedPages` query.
+:::
