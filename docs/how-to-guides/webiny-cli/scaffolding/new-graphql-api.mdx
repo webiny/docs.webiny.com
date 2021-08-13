@@ -6,104 +6,54 @@ keywords: ["scaffolding", "new", "graphql", "api"]
 description: Learn how to use the New GraphQL API scaffold.
 ---
 
+import CenteredImage from "@components/CenteredImage";
+import cloudInfrastructureDiagram from "./new-graphql-api/new_graphql_api_scaffold.png";
+
 :::info Can I use this?
 
-The **Extend GraphQL API** scaffold (previously GraphQL **API Package**) received a major overhaul in [Webiny 5.9.0](/docs/changelog/5.9.0). Note that this guide is not relevant for projects that are using Webiny 5.8.0 and lower.
+This feature is available since **v5.13.0**.
 
 :::
 
 :::tip What you'll learn
 
-- main features of the **Extend GraphQL API** scaffold
+- main features of the **New GraphQL API** scaffold
 - how to continue developing on top of the generated application code
 
 :::
 
 ## Overview
 
-The **Extend GraphQL API** scaffold extends your project's GraphQL HTTP API with a new [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) query and mutation operations.
+The **New GraphQL API** scaffold creates a new standalone GraphQL HTTP API, which can be utilized by your frontend applications. Once created, you can start extending it either manually via the existing [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugins, or even the [Extend GraphQL API](/docs/how-to-guides/webiny-cli/scaffolding/extend-graphql-api) scaffold.
 
-Note that, when we say GraphQL HTTP API, by default, we're referring to the one deployed as part of the **API** project application, located within the [`api/code/graphql`](https://github.com/webiny/webiny-js/tree/v5.10.0/packages/cwp-template-aws/template/api/code/graphql) folder.
-
-:::info
-Learn more about the **API** project application on the cloud infrastructure level in the [Cloud Infrastructure](/docs/key-topics/cloud-infrastructure/api/introduction) key topics section.
-:::
-
+##
 ## Features
 
-### New CRUD Query and Mutation Operations
+### Clean Setup
 
-The **Extend GraphQL API** extends your GraphQL API with two query and three mutation operations.
+Except for the base application and cloud infrastructure code, the created GraphQL API does not contain any additional code or specific business logic. It's a *clean slate* and you can start building on top of the created code in any way you prefer. You can also bring needed libraries, introduce new cloud infrastructure resources, and more.
 
-The names of these depend on the name of the initial data model, which is specified during the scaffold's wizard. For example, by passing **CarManufacturer** as the initial data model name, the GraphQL API will be extended with the following queries and mutations:
+Be sure to check the [Development](/docs/how-to-guides/webiny-cli/scaffolding/new-graphql-api#development) section below to learn more.
 
-```graphql
-type CarManufacturerQuery {
-  # Returns a single CarManufacturer entry by given ID.
-  getCarManufacturer(id: ID!): CarManufacturer
+### Simple Cloud Infrastructure
 
-  # Returns a list of CarManufacturer entries. Supports basic sorting and pagination.
-  listCarManufacturers(
-    limit: Int
-    before: String
-    after: String
-    sort: CarManufacturersListSort
-  ): CarManufacturersList!
-}
+Only a couple of cloud infrastructure resources need to be deployed in order to host a new GraphQL API, which is depicted by the following diagram:
 
-type CarManufacturerMutation {
-  # Creates and returns a new CarManufacturer entry.
-  createCarManufacturer(data: CarManufacturerCreateInput!): CarManufacturer!
+<CenteredImage shadow={false} alt="Cloud Infrastructure Resources" src={cloudInfrastructureDiagram} />
 
-  # Updates and returns an existing CarManufacturer entry.
-  updateCarManufacturer(id: ID!, data: CarManufacturerUpdateInput!): CarManufacturer!
+As shown, the scaffold will also include a single Amazon DynamoDB <diagram-letter>D</diagram-letter> table, which you can use for all of your GraphQL API's data storing and retrieval needs. In case you need additional databases, you're free to include them (more on this in the [Development](/docs/how-to-guides/webiny-cli/scaffolding/new-graphql-api#development) section below).
 
-  # Deletes and returns an existing CarManufacturer entry.
-  deleteCarManufacturer(id: ID!): CarManufacturer!
-}
+Additionally, note that when [deploying](/docs/how-to-guides/deployment/deploy-your-project) into the production (`prod`) environment, the GraphQL Handler AWS Lambda <diagram-letter>C</diagram-letter> function will be deployed into a new [Amazon Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/). Down the line, doing this for cloud infrastructure resources can improve your GraphQL API's overall security posture.
 
-extend type Query {
-  carManufacturers: CarManufacturerQuery
-}
+### Compatible With the Existing Extend GraphQL API Scaffold
 
-extend type Mutation {
-  carManufacturers: CarManufacturerMutation
-}
-```
+In order to speed up development, you can use the existing [Extend GraphQL API](/docs/how-to-guides/webiny-cli/scaffolding/extend-graphql-api) scaffold to quickly extend the created GraphQL API with new sets of essential CRUD GraphQL query and mutation operations.
 
-:::info
-If you want to check out the full GraphQL schema that's generated during the scaffolding, take a look at the [template](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/template/typeDefs.ts) that's used in the process.
-:::
+In fact, during the **New GraphQL API** scaffold's setup wizard, users will be asked if they want to immediately do that.
 
-### Storing and Retrieving Data
+### Testing Ready
 
-All of the generated GraphQL queries and mutations rely on a single database for storing and retrieving data. By default, this is [AWS DynamoDB](https://aws.amazon.com/dynamodb/), which is defined in [`api/pulumi/dev/dynamoDb.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/dev/dynamoDb.ts) and [`api/pulumi/prod/dynamoDb.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/pulumi/prod/dynamoDb.ts).
-
-For all database interactions, the generated application code relies on a library called [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox):
-
-> The DynamoDB Toolbox is a set of tools that makes it easy to work with Amazon DynamoDB and the DocumentClient. It's designed with Single Tables in mind, but works just as well with multiple tables.
-
-Note that if you prefer a different library, like for example the [DynamoDB Document Client](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/dynamodb-example-document-client.html), you're free to use it, but it will require some manual migration work.
-
-### Multi-Locale Support Enabled
-
-By default, Webiny Admin Area is a multi-locale system, which means entries like pages, page categories, forms, settings, and so on, are always created for a specific locale.
-
-The generated application code follows the same idea. There aren't any additional steps that you need to takefyo in order to enable multi-locale support.
-
-### Testing Setup
-
-With the application code, the scaffold also generates one unit, one integration, and one end-to-end (E2E) test, which you can use as a reference in further development. All of the tests can be found in the [`__tests__`](https://github.com/webiny/webiny-js/tree/v5.10.0/packages/cli-plugin-scaffold-graphql-service/template/__tests__) folder located within the scaffolded application code. More on this in the [Development](/docs/how-to-guides/webiny-cli/scaffolding/extend-graphql-api#development) section below.
-
-:::tip
-A brief overview of different types of tests can be found in the [CI/CD / Testing](/docs/key-topics/ci-cd/testing#application-testing---a-brief-overview) key topic.
-:::
-
-### No Additional Cloud Infrastructure Resources
-
-The scaffold does not add any additional cloud infrastructure resources. The generated application code is simply added to the existing GraphQL API application code ([`api/code/graphql`](https://github.com/webiny/webiny-js/tree/v5.10.0/packages/cwp-template-aws/template/api/code/graphql)).
-
-Of course, if additional cloud infrastructure resources are needed, you're free to amend the [existing cloud infrastructure code](https://github.com/webiny/webiny-js/tree/v5.10.0/packages/cwp-template-aws/template/api/pulumi), and reference the added and deployed resources in your application code.
+Except for the application and cloud infrastructure code, the scaffold also generates the necessary [Jest](/docs/key-topics/tools-libraries#testing) configuration and foundation for testing the GraphQL API functionality you'll be building.
 
 ## Development
 
@@ -111,33 +61,13 @@ Of course, if additional cloud infrastructure resources are needed, you're free 
 
 The following are the most essential files and folders that are generated in the scaffolding process.
 
-:::info
-By default, all of the files are generated in a new folder, located at `api/code/graphql/src/plugins/scaffolds/{dataModelName}`, for example `api/code/graphql/src/plugins/scaffolds/carManufacturers`.
-:::
+[`pulumi/`](https://github.com/webiny/webiny-js/tree/cli-scaffold-react-app/packages/cli-plugin-scaffold-graphql-api/template/pulumi)
 
-[`index.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/template/index.ts)
+This is the folder that contains all of the cloud infrastructure code. In it, we have the [`dev`](https://github.com/webiny/webiny-js/tree/cli-scaffold-react-app/packages/cli-plugin-scaffold-graphql-api/template/pulumi/dev) and [`prod`](https://github.com/webiny/webiny-js/tree/cli-scaffold-react-app/packages/cli-plugin-scaffold-graphql-api/template/pulumi/dev) folders, which represent the cloud infrastructure resources that will be deployed into development and production environments, respectively.
 
-This is the entry file, which exports the [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts) plugin responsible for extending the existing GraphQL API schema, using new [type definitions](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/template/index.ts#L13) and supporting [resolvers](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/template/index.ts#L14-L25).
+If we were to compare the two, we'd find that the code located in the `prod` folder also deploys a new [Amazon Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/) and that the single AWS Lambda function is deployed into it. Down the line, doing this for cloud infrastructure resources can improve our GraphQL API's overall security posture.
 
-[`typeDefs.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/template/typeDefs.ts)
-
-A file that contains the schema with which we are extending our GraphQL API. This will usually be the starting point if you want to make further changes to the generated code, for example add new fields to the initial data model, add new GraphQL query or mutation operations, and more.
-
-Note that in the case of the latter, you also need to define a standalone resolver function that is responsible for handling newly added query or mutation operation.
-
-[`resolvers/`](https://github.com/webiny/webiny-js/tree/v5.10.0/packages/cli-plugin-scaffold-graphql-service/template/resolvers)
-
-This folder contains the GraphQL resolver classes that support the generated [query](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/template/resolvers/TargetDataModelsQuery.ts) and [mutation](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/template/resolvers/TargetDataModelsMutation.ts) GraphQL operations.
-
-These will need to be updated as you make changes in the mentioned [`typeDefs.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/template/typeDefs.ts) file. For example, if you were to introduce a new `listPopularCarManufacturers` GraphQL query, the same `listPopularCarManufacturers` method would need to be defined within the [`CarManufacturersQuery`](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-graphql-service/template/resolvers/TargetDataModelsQuery.ts) class.
-
-[`entities/`](https://github.com/webiny/webiny-js/tree/v5.10.0/packages/cli-plugin-scaffold-graphql-service/template/entities)
-
-Contains [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox) entities, which are used within GraphQL resolver functions. You are free to add additional entities, or modify the existing one (for example - add new entity attributes).
-
-[`__tests__/`](https://github.com/webiny/webiny-js/tree/v5.10.0/packages/cli-plugin-scaffold-graphql-service/template/__tests__)
-
-Contains tests that ensure your application code is working as expected. As mentioned, three tests are included by default: one unit, one integration, and one end-to-end (E2E) test.
+Note that, by default, the code in the `prod` folder will only be used when deploying into the `prod` environment. If you wish to also use this
 
 ### First Deploy
 
@@ -203,16 +133,4 @@ Please note that, by default, the authentication and authorization logic isn't i
 
 Luckily, with a couple of built-in utilities, this can be relatively easily added. Please check out the [existing tutorials](/docs/tutorials/extend-admin-area/security/introduction) to learn how to implement these on your own.
 
-#### I need more flexibility when it comes to data querying. Can I bring in a different database, for example ElasticSearch?
-
-Yes, you can. You can actually utilize the already deployed ElasticSearch cluster that's deployed with every Webiny project, by default.
-
-Until we create a dedicated tutorial on the topic, feel free to ping us via our community [Slack](https://www.webiny.com/slack).
-
-#### Can Webiny's multi-tenancy feature be utilized with this scaffold?
-
-Yes, but do note that since multi-tenancy is part of Webiny's enterprise offering, the relevant multi-tenancy code is not included in the generated application code.
-
-For more information on multi-tenancy, we recommend you check out the [Multi-Tenancy](/docs/key-topics/multi-tenancy) key topic. Also, for any implementation-related questions, feel free to contact us directly via our community [Slack](https://www.webiny.com/slack).
-
-
+#### Do I need to deploy the created GraphQL API in order to continue development?
