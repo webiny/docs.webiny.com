@@ -100,6 +100,7 @@ module.exports = {
                     type: "category",
                     label: "Development",
                     items: [
+                        "how-to-guides/development/importing-plugins",
                         /*{
                             type: "category",
                             label: "Backend Applications",
@@ -112,7 +113,6 @@ module.exports = {
                             label: "Frontend Applications",
                             items: ["how-to-guides/development/frontend-applications/introduction"]
                         },*/
-                        "how-to-guides/development/environment-variables",
                         "how-to-guides/development/environment-variables",
                         {
                             type: "category",

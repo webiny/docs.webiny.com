@@ -21,13 +21,19 @@ import modifySections from "./customize-navigation-menu/modify-sections.png";
 
 :::
 
+:::info Can I use this?
+
+In order to follow this tutorial, you must use Webiny version **5.13.0** or greater.
+
+:::
+
 :::info Good to know
 If you're not already familiar with the [Webiny UI Composer](/docs/key-topics/ui-composer/introduction), we recommend familiarizing yourself with the concept before moving on with this guide.
 :::
 
 ## Overview
 
-Navigation within the Admin Area application is implemented using the [NavigationView](https://github.com/webiny/webiny-js/blob/next/packages/app-admin/src/ui/views/NavigationView.tsx) view class. It is built using the [UI Composer](/docs/key-topics/ui-composer/introduction). This means that you can hook into any part of the view and modify it.
+Navigation within the Admin Area application is implemented using the [`NavigationView`](https://github.com/webiny/webiny-js/blob/next/packages/app-admin/src/ui/views/NavigationView.tsx) view class. It is built using the [UI Composer](/docs/key-topics/ui-composer/introduction). This means that you can hook into any part of the view and modify it.
 
 In this article, we cover some common customizations you might need for your project.
 
@@ -43,7 +49,7 @@ For example, all menu items within the content section are sorted by tags (tags 
 
 ### Menu Items
 
-All menu items are created using the [NavigationMenuElement](https://github.com/webiny/webiny-js/blob/next/packages/app-admin/src/ui/elements/NavigationMenuElement.tsx) element class. This element class has [several renderers](https://github.com/webiny/webiny-js/tree/next/packages/app-admin/src/plugins/menu/renderers) assigned to it, and depending on the location in the hierarchy of the navigation view, the appropriate renderer will be used to render each individual element.
+All menu items are created using the [`NavigationMenuElement`](https://github.com/webiny/webiny-js/blob/next/packages/app-admin/src/ui/elements/NavigationMenuElement.tsx) element class. This element class has [several renderers](https://github.com/webiny/webiny-js/tree/next/packages/app-admin/src/plugins/menu/renderers) assigned to it, and depending on the location in the hierarchy of the navigation view, the appropriate renderer will be used to render each individual element.
 
 :::info UI Renderers
 To learn how renderers within the UI Composer work, read the article on [Creating Elements](/docs/key-topics/ui-composer/creating-elements#enabling-support-for-renderers).
@@ -51,9 +57,9 @@ To learn how renderers within the UI Composer work, read the article on [Creatin
 
 To add menu items to the navigation view, `NavigationView` class exposes 3 helper methods:
 
-- **addAppMenuElement(element: NavigationMenuElement)** - adds the given element to the content section of the navigation view, and tags it with an `app` tag
-- **addUtilityMenuElement(element: NavigationMenuElement)** - adds the given element to the content section of the navigation view, and tags it with a `utils` tag
-- **addSettingsMenuElement(element: NavigationMenuElement)** - adds the given element to the `Settings` menu. By default, these items will be on a second level in the hierarchy, so we don't need to tag them.
+- `addAppMenuElement(element: NavigationMenuElement)` - adds the given element to the content section of the navigation view, and tags it with an `app` tag
+- `addUtilityMenuElement(element: NavigationMenuElement)` - adds the given element to the content section of the navigation view, and tags it with a `utils` tag
+- `addSettingsMenuElement(element: NavigationMenuElement)` - adds the given element to the **Settings** menu. By default, these items will be on a second level in the hierarchy, so we don't need to tag them.
 
 Tags are used to differentiate between menu item's "importance". By default, we use the `app` and `utils` tag, but you can easily introduce your own tags for your new menu items.
 
@@ -69,7 +75,7 @@ As we mentioned in the previous section, menu items get tagged. With an `app` ta
 
 ## Add a New Menu
 
-In this example, we add a new application menu item, called `Github`, then create a new section called `Repositories`, and add two links within that section.
+In this example, we add a new application menu item, called **Github**, then create a new section called **Repositories**, and add two links within that section.
 
 ```tsx
 import React from "react";
@@ -120,7 +126,7 @@ With this plugin, we created a menu group `Github`, a menu section `Repositories
 
 In this example, we remove the Form Builder menu item from the navigation. This same technique can be applied to any element.
 
-First, we need to find the ID of the element. To do that, we need to open React Dev Tools, and find the corresponding `<ElementID>`. The element class and its ID will be printed in the `key` prop, separated by a colon.
+First, we need to find the ID of the element. To do that, we need to open [React Dev Tools](https://www.google.com/search?q=react+dev+tools), and find the corresponding `<ElementID>`. The element class and its ID will be printed in the `key` prop, separated by a colon.
 
 In our case, it will be `NavigationMenuElement:navigation.content.app-form-builder`, which means it is an element of class `NavigationMenuElement` and it has an ID of `navigation.content.app-form-builder`.
 
@@ -156,7 +162,7 @@ You can, in general, use the `await view.isRendered()` in all of your plugins, t
 
 ### Add a Class Renderer
 
-In this example, we add a custom menu item renderer, to support links as top level menu items in the content section of the navigation view (by default, we only support menu groups). It will be taken into consideration for all menu item elements that are created using the `NavigationMenuElement` class.
+In this example, we add a custom menu item renderer, to support links as top level menu items in the content section of the navigation view (by default, we only support menu groups). This custom renderer will be taken into consideration for all menu item elements that are created using the `NavigationMenuElement` class.
 
 We need to set some constraints to apply this new renderer in an optimal way, and not override an existing renderer by accident. Let's establish that we only want this renderer to apply to menu items that are in the content section of the navigation view, the item has to be the top-level item, and it must have the `path` config set (this can be both local route and an external URL).
 
@@ -197,8 +203,8 @@ class CustomLinkRenderer extends UIRenderer<NavigationMenuElement> {
   // We will only apply this renderer if all of the established constraints are satisfied.
   canRender(element: NavigationMenuElement): boolean {
     // Is the element located in the content section?
-    // Using `getParentOfType` we can check if element is a child of some other element or view.
-    const isInContent = Boolean(element.getParentOfType(ContentElement));
+    // Using `getParentByType` we can check if element is a child of some other element or view.
+    const isInContent = Boolean(element.getParentByType(ContentElement));
 
     // Element is a top-level element, located in the content section, and has `path` set.
     return element.depth === 1 && isInContent && element.config.path;
@@ -331,7 +337,7 @@ There are cases where this pattern is very useful, especially because you don't 
 With custom menu items, you may want to break out of the built-in sorting rules. There's an easy way to add your own sorting logic on top of the default one. Let's go back to the menu item registration, and add a custom sorter using tags.
 
 :::info Splitting Plugins
-In this example, I'm splitting the logic into several plugins, to clearly show responsibilities of each plugin.
+In this example, we're splitting the logic into several plugins, to clearly show responsibilities of each plugin.
 :::
 
 ```ts title="Custom Menu Item Sorter"
