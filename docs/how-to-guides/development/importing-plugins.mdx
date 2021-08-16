@@ -13,6 +13,10 @@ description: Learn how to add plugins to various sections of Webiny.
 
 :::
 
+:::info
+If you're not yet familiar with the concept of plugins in Webiny, please refer to the [Plugins](/docs/key-topics/plugins) key topic article.
+:::
+
 ## Overview
 
 Throughout our docs, and especially in the how-to guides, we often show which plugins you need to use to achieve certain goals, but we skip the step-by-step instructions on how to enable those plugins. That is to prevent redundant content being copied in every article. In those guides, you'll simply see an instruction like _"Add this plugin to your Admin Area application"_.
@@ -35,26 +39,45 @@ The plugins entry files for these applications can be found at the following loc
 To register a new plugin, you need to navigate to the appropriate plugins entry file, and add your plugin to the end of the array that is being registered into the [PluginsContainer](/docs/key-topics/plugins#plugins-container).
 
 :::tip Organize your plugins
-We always recommend creating a dedicated file, or even a folder, to hold your custom plugins. See [Best Practices](/docs/how-to-guides/development/importing-plugins#best-practices) section for examples.
+We always recommend creating a dedicated file, or even a folder, to hold your custom plugins.
 :::
 
-```ts title="apps/{admin|website}/code/src/plugins/index.ts"
-import { plugins } from "@webiny/plugins";
-// ...other imports...
-
-plugins.register([
-  // ... other plugins ...
-  // Add your own plugins at the very end of the array.
+```ts title="apps/{admin|website}/code/src/plugins/myPlugins.ts"
+// A dedicated file for your custom plugin(s)
+export default [
   {
     type: "my-plugin-type",
     hello() {
       console.log("Hello!");
     }
   }
+];
+```
+
+Now that we have a file containing our plugins, we can import it and register in the React application:
+
+```ts title="apps/{admin|website}/code/src/plugins/index.ts"
+import { plugins } from "@webiny/plugins";
+// ...other imports...
+
+// Import your custom plugins
+import myPlugins from "./myPlugins";
+
+plugins.register([
+  // ... other plugins ...
+
+  // Add your own plugins at the very end of the array.
+  myPlugins
 ]);
 ```
 
 With this, your new plugin(s) will be registered into the application.
+
+:::tip
+If you already have your React app running locally, the new import will be picked up automatically, and your plugin should be registered as soon as the browser reloads.
+
+If your application is deployed to the cloud, you'll need to redeploy it to apply your new plugin(s).
+:::
 
 ## GraphQL APIs
 
@@ -67,69 +90,8 @@ We'll cover the two main GraphQL API Lambda function handlers: **Main GraphQL AP
 
 To register a new plugin, you need to add it to the end of the `plugins` array that is being passed to the `createHandler` factory function.
 
-:::tip Organize your plugins
-We always recommend creating a dedicated file, or even a folder, to hold your custom plugins. See [Best Practices](/docs/how-to-guides/development/importing-plugins#best-practices) section for examples.
-:::
-
-```ts title="api/code/{graphql|headlessCMS}/src/index.ts"
-// ...other imports...
-
-export const handler = createHandler({
-  plugins: [
-    // ... other plugins ...
-    {
-      type: "my-plugin-type",
-      hello() {
-        console.log("Hello!");
-      }
-    }
-  ]
-});
-```
-
-:::info IMPORTANT!
-Even though this process looks very similar to how we register plugins into React applications, there's a big difference between the two. React applications have one single global `PluginsContainer`, while API applications create a new `PluginsContainer` to handle each individual invocation (HTTP request).
-
-To learn more, please read the [Plugins](/docs/key-topics/plugins) key topic article.
-:::
-
-## Webiny CLI
-
-To register a new plugin into the Webiny CLI, navigate to `webiny.project.ts` file, located in the root of your Webiny project, and add your new plugin to the `plugins` array.
-
-:::tip Organize your plugins
-We always recommend creating a dedicated file, or even a folder, to hold your custom plugins. See [Best Practices](/docs/how-to-guides/development/importing-plugins#best-practices) section for examples.
-:::
-
-```ts title="<projectRoot>/webiny.project.ts"
-// ... other imports ...
-export default {
-  template: "@webiny/cwp-template-aws@5.x.y",
-  name: "my-project",
-  cli: {
-    plugins: [
-      // ... other plugins ...
-      {
-        type: "cli-command",
-        create({ yargs, context }) {
-          yargs.command("say-hi", "Prints a welcome message.", () => {
-            console.log("Hi there! I'm a new Webiny CLI command.");
-          });
-        }
-      }
-    ]
-  }
-};
-```
-
-## Best Practices
-
-Even though nothing prevents you from adding plugins inline, like we did in the examples above, we recommend creating separate files, or even folders, if you have many plugins, to group your plugins by feature. Then, simply import them in the plugins entry file and register.
-
-Here's an example:
-
-```ts title="apps/{admin|website}/code/src/plugins/myPlugins.ts"
-// A dedicated file for your custom plugins
+```ts title="api/code/{graphql|headlessCMS}/src/plugins/myPlugins.ts"
+// A dedicated file for your custom plugin(s)
 export default [
   {
     type: "my-plugin-type",
@@ -140,19 +102,71 @@ export default [
 ];
 ```
 
-Then, in the plugins entry file:
+Now that we have a file containing our plugins, we can import it and register in the corresponding Lambda function entry file:
 
-```ts title="apps/{admin|website}/code/src/plugins/index.ts (Admin Area plugins entry file)"
-import { plugins } from "@webiny/plugins";
+```ts title="api/code/{graphql|headlessCMS}/src/index.ts"
 // ...other imports...
 
 // Import your custom plugins
-import myPlugins from "./myPlugins";
+import myPlugins from "./plugins/myPlugins";
 
-plugins.register([
-  // ... other plugins ...
+export const handler = createHandler({
+  plugins: [
+    // ... other plugins ...
 
-  // Add your custom plugins at the very end of the array.
-  myPlugins
-]);
+    // Add your own plugins at the very end of the array.
+    myPlugins
+  ]
+});
 ```
+
+:::tip
+If you already have the [watch](/docs/how-to-guides/webiny-cli/use-watch-command/#webiny-watch-command) running, the new import will be picked up, built, and deployed to the cloud automatically.
+
+If not, you'll need to [deploy](/docs/how-to-guides/deployment/deploy-your-project#the-deploy-command) your API manually, to apply the new plugin(s).
+:::
+
+:::info IMPORTANT!
+Even though this process looks very similar to how we register plugins into React applications, there's a big difference between the two. React applications have one single global `PluginsContainer`, while API applications create a new one to handle each individual invocation (HTTP request).
+
+To learn more, please read the [Plugins](/docs/key-topics/plugins) key topic article.
+:::
+
+## Webiny CLI
+
+To register a new plugin into the Webiny CLI, navigate to `webiny.project.ts` file, located in the root of your Webiny project, and add your new plugin to the `plugins` array.
+
+As usual, we recommend creating a dedicated file/folder for your custom plugins, to keep things nicely organized. 
+
+```ts title="cliPlugins.ts"
+export default [
+  {
+    type: "cli-command",
+    create({ yargs, context }) {
+      yargs.command("say-hi", "Prints a welcome message.", () => {
+        console.log("Hi there! I'm a new Webiny CLI command.");
+      });
+    }
+  }
+];
+```
+
+Now add your new plugin to the Webiny CLI: 
+
+```ts title="webiny.project.ts"
+// ... other imports ...
+import cliPlugins from "./cliPlugins";
+
+export default {
+  template: "@webiny/cwp-template-aws@5.x.y",
+  name: "my-project",
+  cli: {
+    plugins: [
+      // ... other plugins ...
+      cliPlugins
+    ]
+  }
+};
+```
+
+Next time you run the Webiny CLI, your new plugin will be applied.
