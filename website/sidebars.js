@@ -98,27 +98,21 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "Development",
+                    label: "Scaffolding",
                     items: [
-                        /*{
-                            type: "category",
-                            label: "Backend Applications",
-                            items: [
-                                "how-to-guides/development/serverless-applications/introduction"
-                            ]
-                        },
-                        {
-                            type: "category",
-                            label: "Frontend Applications",
-                            items: ["how-to-guides/development/frontend-applications/introduction"]
-                        },*/
-                        "how-to-guides/development/environment-variables",
-                        {
-                            type: "category",
-                            label: "Integrations",
-                            items: ["how-to-guides/development/integrations/integrate-tailwindcss"],
-                        },
+                        "how-to-guides/scaffolding/introduction",
+                        "how-to-guides/scaffolding/new-full-stack-application",
+                        "how-to-guides/scaffolding/new-graphql-api",
+                        "how-to-guides/scaffolding/extend-graphql-api",
+                        "how-to-guides/scaffolding/extend-admin-area",
+                        "how-to-guides/scaffolding/new-react-application",
+                        "how-to-guides/scaffolding/ci-cd",
                     ],
+                },
+                {
+                    type: "category",
+                    label: "Integrations",
+                    items: ["how-to-guides/integrations/integrate-tailwindcss"],
                 },
                 {
                     type: "category",
@@ -183,28 +177,9 @@ module.exports = {
                         },
                     ],
                 },
-                {
-                    type: "category",
-                    label: "Webiny CLI",
-                    items: [
-                        "how-to-guides/webiny-cli/use-watch-command",
-                        "how-to-guides/webiny-cli/working-with-workspaces",
-                        {
-                            type: "category",
-                            label: "Scaffolding",
-                            items: [
-                                "how-to-guides/webiny-cli/scaffolding/introduction",
-                                "how-to-guides/webiny-cli/scaffolding/new-full-stack-application",
-                                "how-to-guides/webiny-cli/scaffolding/new-graphql-api",
-                                "how-to-guides/webiny-cli/scaffolding/extend-graphql-api",
-                                "how-to-guides/webiny-cli/scaffolding/extend-admin-area",
-                                "how-to-guides/webiny-cli/scaffolding/new-react-application",
-                                "how-to-guides/webiny-cli/scaffolding/ci-cd",
-                            ],
-                        },
-                    ],
-                },
                 "how-to-guides/extend-graphql-api",
+                "how-to-guides/environment-variables",
+                "how-to-guides/use-watch-command",
                 {
                     type: "category",
                     label: "Upgrade Webiny",
@@ -283,11 +258,6 @@ module.exports = {
                         "key-topics/ci-cd/workflows",
                     ],
                 },
-                /*{
-                    type: "category",
-                    label: "Page Builder",
-                    items: ["key-topics/page-builder/prerendering-pages"]
-                },*/
                 {
                     type: "category",
                     label: "Cloud Infrastructure",
