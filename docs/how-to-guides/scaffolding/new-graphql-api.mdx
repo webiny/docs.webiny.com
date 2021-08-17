@@ -32,7 +32,7 @@ The **New GraphQL API** scaffold creates a new standalone GraphQL HTTP API, whic
 
 Except for the base application and cloud infrastructure code, the created GraphQL API does not contain any additional code or specific business logic. It's a _clean slate_ and you can start building on top of the created code in any way you prefer. You can also bring needed libraries, introduce new cloud infrastructure resources, and more.
 
-Be sure to check the [Development](/docs/how-to-guides/webiny-cli/scaffolding/new-graphql-api#development) section below to learn more.
+Be sure to check the [Development](#development) section below to learn more.
 
 ### Simple Cloud Infrastructure
 
@@ -120,7 +120,7 @@ The config for the [Babel](/docs/key-topics/tools-libraries#building-code) JavaS
 
 #### [`code/graphql/package.json`](https://github.com/webiny/webiny-js/blob/cli-scaffold-react-app/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/package.json)
 
-In case you missed it, every Webiny project is organized as a monorepo, which can consist of multiple packages. This is the reason why the [`package.json`](https://github.com/webiny/webiny-js/blob/cli-scaffold-react-app/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/package.json) manifest file exists.
+In case you missed it, every Webiny project is organized as a [monorepo](/docs/key-topics/project-organization/monorepo-organization), which can consist of multiple packages. This is the reason why the [`code/graphql/package.json`](https://github.com/webiny/webiny-js/blob/cli-scaffold-react-app/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/package.json) manifest file exists.
 
 In most cases, this file will only be modified when new NPM packages are added.
 
@@ -140,14 +140,6 @@ Note that, by default, the cloud infrastructure code in the [`prod`](https://git
 Learn more about Pulumi, the default infrastructure-as-code (IaC) framework Webiny relies on, in the [Infrastructure as code with Pulumi](/docs/key-topics/deployment/iac-with-pulumi) key topic.
 :::
 
-### Extending the GraphQL API
-
-The new GraphQL API can be extended in two ways.
-
-A more manual approach would be to create and register new [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugins, via which you define how you want to extend the GraphQL schema and all of the resolver functions. To learn more, take a look at the the [Extend GraphQL API](/docs/how-to-guides/extend-graphql-api) guide.
-
-On the other hand, a much faster way of extending the GraphQL API would be to use the [Extend GraphQL API](/docs/how-to-guides/webiny-cli/scaffolding/extend-graphql-api) scaffold, which not only creates all of the boilerplate code, but also a set of essential GraphQL query and mutations, sets up the database connection, generates sample tests, and more.
-
 ### First Deploy
 
 Once you've completed the scaffold's wizard and the files have been generated, in order to actually access the GraphQL API, you need to deploy it. This can be done as usual via the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command, or, even easier, if you're about to jump straight into coding, by running the [`webiny watch`](/docs/how-to-guides/webiny-cli/use-watch-command) command. This command will not only deploy the changes, but also start a new watch session, which will automatically redeploy further application code changes, as you perform them. More on this below.
@@ -164,11 +156,20 @@ yarn webiny watch {graphql-api-path} --env {env}
 
 With the new watch session initialized, every change you make in the code will automatically trigger a re-deploy of the code, enabling you to see the changes in the cloud almost immediately as you make them (every redeployment takes 2-4 seconds to complete).
 
-And although developers often choose this approach when developing smaller features or proof of concepts, for anything larger in scope, we recommend the new code to be tested via one or more different types of tests.
+And although developers often choose this approach when developing smaller features, proof of concepts or applying quick fixes, for anything larger in scope, we recommend the new code to be tested via one or more different types of tests.
 
 :::tip
 To learn more about how to write different types of tests, we recommend you check out the [Writing and Running Tests](/docs/how-to-guides/webiny-cli/scaffolding/extend-graphql-api#writing-and-running-tests) section in the [Extend GraphQL API](/docs/how-to-guides/webiny-cli/scaffolding/extend-graphql-api) guide.
 :::
+
+### Extending the GraphQL API
+
+The new GraphQL API can be extended in two ways.
+
+A more manual approach would be to create and register new [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugins, via which you define how you want to extend the GraphQL schema and all of the resolver functions. To learn more, take a look at the the [Extend GraphQL API](/docs/how-to-guides/extend-graphql-api) guide.
+
+On the other hand, a much faster way of extending the GraphQL API would be to use the [Extend GraphQL API](/docs/how-to-guides/webiny-cli/scaffolding/extend-graphql-api) scaffold, which not only creates all of the boilerplate code, but also a set of essential GraphQL query and mutations, sets up the database connection, generates sample tests, and more.
+
 
 ## FAQ
 
@@ -181,3 +182,29 @@ Luckily, with a couple of built-in utilities, this can be relatively easily adde
 #### Do I need to deploy the created GraphQL API in order to continue development?
 
 Yes, every change that you make needs to be deployed into the cloud, in order to actually see it in action. At the moment, the local-development option isn't supported.
+
+#### For development purposes, into which environment should I deploy?
+
+You can use any name as the name of the environment, but common practice is to use `dev`, for example:
+
+```
+yarn webiny watch {react-application-path} --env dev
+```
+
+#### Can I modify commands specified within the `webiny.config.ts` file?
+
+You certainly can. You can also add new commands, if need be.
+
+#### How can I add new libraries to the created React application?
+
+In case you missed it, every Webiny project is organized as a [monorepo](/docs/key-topics/project-organization/monorepo-organization), which can consist of multiple packages. This is the reason why the [`code/graphql/package.json`](https://github.com/webiny/webiny-js/blob/cli-scaffold-react-app/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/package.json) manifest file exists.
+
+This is also the reason why we can't just run `yarn add xyz` from our project root. We need to specify to which yarn workspace the new library needs to be added, which can be done via the [`yarn workspace {workspace-name} add {library-name}`](https://classic.yarnpkg.com/en/docs/cli/workspace/) command.
+
+So, let's say we wanted to add the [`dataloader`](https://www.npmjs.com/package/dataloader) library to our newly created GraphQL API that's created within the `new-graphql-api` folder. To add the library, we'd use the following command:
+
+```bash
+yarn workspace new-graphql-api add dataloader
+```
+
+Note that the name of the workspace is defined in the workspace's `package.json` file, via the `name` property (traditionally used to define the package name). In case of the `new-react-app` React application, that would be in `new-graphql-api/code/graphql/package.json` file.
