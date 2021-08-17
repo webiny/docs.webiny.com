@@ -21,7 +21,7 @@ import listPagesQuery from "./extend-graphql-api/list-pages-query.png";
 
 :::info
 
-Use the [`webiny watch`](/docs/how-to-guides/webiny-cli/use-watch-command) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/).
+Use the [`webiny watch`](/docs/how-to-guides/use-watch-command) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/).
 
 :::
 
