@@ -194,8 +194,11 @@ module.exports = {
                             label: "Scaffolding",
                             items: [
                                 "how-to-guides/webiny-cli/scaffolding/introduction",
-                                "how-to-guides/webiny-cli/scaffolding/extend-admin-area",
+                                "how-to-guides/webiny-cli/scaffolding/new-full-stack-application",
+                                "how-to-guides/webiny-cli/scaffolding/new-graphql-api",
                                 "how-to-guides/webiny-cli/scaffolding/extend-graphql-api",
+                                "how-to-guides/webiny-cli/scaffolding/extend-admin-area",
+                                "how-to-guides/webiny-cli/scaffolding/new-react-application",
                                 "how-to-guides/webiny-cli/scaffolding/ci-cd",
                             ],
                         },
