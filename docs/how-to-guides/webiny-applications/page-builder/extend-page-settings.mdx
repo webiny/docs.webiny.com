@@ -11,6 +11,7 @@ import settingsView from "./extend-page-settings/settingsView.png";
 import updatedSchema from "./extend-page-settings/schema.png";
 import passwordField from "./extend-page-settings/passwordField.png";
 import websitePassword from "./extend-page-settings/websitePassword.png";
+import listPublishedPages from "./extend-page-settings/listPublishedPages.png";
 
 :::info Can I Use This?
 This feature is available since Webiny **v5.12.0**.
@@ -52,6 +53,11 @@ import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
 import { PagePlugin } from "@webiny/api-page-builder/plugins/PagePlugin";
 import { Page } from "@webiny/api-page-builder/types";
 
+// Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
+// plugin. Apart from making your application code type-safe, it will also make the
+// interaction with the `context` object significantly easier.
+import { Context } from "~/types";
+
 // We need this interface for the PagePlugin below.
 // It will enable you to have proper autocomplete on your new fields.
 interface PageWithPassword extends Page {
@@ -64,7 +70,7 @@ interface PageWithPassword extends Page {
 
 export default [
   // Add `password` to the page settings types
-  new GraphQLSchemaPlugin({
+  new GraphQLSchemaPlugin<Context>({
     typeDefs: /* GraphQL */ `
       extend type PbGeneralPageSettings {
         password: String
@@ -103,7 +109,7 @@ With this plugin, once you redeploy the API project application, your GraphQL sc
 
 :::tip
 
-Use the [`webiny watch`](/docs/how-to-guides/webiny-cli/use-watch-command) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/).
+Use the [`webiny watch`](/docs/how-to-guides/use-watch-command) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/).
 
 :::
 
@@ -186,3 +192,76 @@ The code above can be placed in the `apps/website/code/src/plugins/pageSettings.
 Once the application is rebuilt, the `password` field will be included in all `PbGetPublishedPage` GraphQL query operations:
 
 <CenteredImage src={websitePassword} title={"Password Is Now Returned from the API"} />
+
+## Handling DateTime Fields
+
+GraphQL `DateTime` type has a little peculiarity you should be aware of, to avoid unnecessary debugging.
+When you add a `DateTime` scalar to your GraphQL Schema, and perform a mutation, that `DateTime` field will be converted to a [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) object during input validation (performed by GraphQL Schema), and it will be passed as such to the resolver.
+
+It's the default behaviour of the `DateTime` scalar, from the [graphql-scalars](https://www.npmjs.com/package/graphql-scalars) library, which Webiny uses.
+
+The following example demonstrates how you should handle the `DateTime` fields in your code, when storing those fields to the database:
+
+```ts title="Storing DateTime Fields to the Database"
+new PagePlugin<CustomPage>({
+  beforeUpdate({ inputData, updateData }) {
+    // Convert the Date object to ISO string.
+    const eventStartISO = inputData.settings.general.eventStart.toISOString();
+
+    // Now you can safely assign the value which will be stored to the database.
+    updateData.settings.general.eventStart = eventStartISO;
+  }
+});
+```
+
+
+## Add New Fields to `listPublishedPages` Query
+
+If you need to add your new fields to the output of the `listPublishedPages` query, there are a couple of things to know about this query.
+
+List operations are performed on Elasticsearch, and the data that comes back from the ES index goes directly into GraphQL resolvers. The data that is stored in the ES index only contains partial page data, relevant for searching.
+
+When you add new fields to page settings, that data is _not_ stored to ES, unless you provide a plugin which will add that data to the index.
+
+You also need to extend the `PbPageListItem` GraphQL type, which is returned from `listPublishedPages`, as it is different from the one used in `getPublishedPage` query.
+
+The following example shows how you can add the new `password` field into the ES index, so that it becomes available in the `listPublishedPages` query:
+
+```ts title="Add Data To Elasticsearch Index and GraphQL Schema"
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
+import { IndexPageDataPlugin } from "@webiny/api-page-builder/plugins/IndexPageDataPlugin";
+
+// Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
+// plugin. Apart from making your application code type-safe, it will also make the
+// interaction with the `context` object significantly easier.
+import { Context } from "~/types";
+
+export default [
+  new GraphQLSchemaPlugin<Context>({
+    typeDefs: /* GraphQL */ `
+      extend type PbPageListItem {
+        password: String
+      }
+    `
+  }),
+
+  // Add the new `password` field to the data going into ES index.
+  new IndexPageDataPlugin<PageWithPassword>(({ data, page }) => {
+    // `data` represents the current page's data that will be stored in Elasticsearch.
+    // You can store your custom data anywhere on the object. It doesn't need to follow the actual settings structure
+    // of the original `page` object, as this data is for `list` operations only.
+    data.password = page.settings.general.password;
+  })
+];
+```
+
+With these plugins in place, you can now access the `password` field on the `listPublishedPages` query:
+
+<CenteredImage
+    src={listPublishedPages}
+    title={`Password Field in the "listPublishedPages" Query`}
+/>
+
+:::info Important
+After these plugins are deployed, you need to **publish** the page, to trigger ES index update. Only then your new data will be available for querying in the `listPublishedPages` query.
+:::

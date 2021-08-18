@@ -65,7 +65,7 @@ module.exports = {
                     type: "category",
                     label: "Page Builder",
                     items: [
-                        "tutorials/page-builder/create-a-new-page-builder-element",
+                        "tutorials/page-builder/create-a-new-page-element",
                         "tutorials/page-builder/customize-an-existing-page-builder-element"
                     ]
                 },
@@ -98,28 +98,21 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "Development",
+                    label: "Scaffolding",
                     items: [
-                        "how-to-guides/development/importing-plugins",
-                        /*{
-                            type: "category",
-                            label: "Backend Applications",
-                            items: [
-                                "how-to-guides/development/serverless-applications/introduction"
-                            ]
-                        },
-                        {
-                            type: "category",
-                            label: "Frontend Applications",
-                            items: ["how-to-guides/development/frontend-applications/introduction"]
-                        },*/
-                        "how-to-guides/development/environment-variables",
-                        {
-                            type: "category",
-                            label: "Integrations",
-                            items: ["how-to-guides/development/integrations/integrate-tailwindcss"]
-                        }
+                        "how-to-guides/scaffolding/introduction",
+                        "how-to-guides/scaffolding/full-stack-application",
+                        "how-to-guides/scaffolding/graphql-api",
+                        "how-to-guides/scaffolding/extend-graphql-api",
+                        "how-to-guides/scaffolding/extend-admin-area",
+                        "how-to-guides/scaffolding/react-application",
+                        "how-to-guides/scaffolding/ci-cd"
                     ]
+                },
+                {
+                    type: "category",
+                    label: "Integrations",
+                    items: ["how-to-guides/integrations/integrate-tailwindcss"]
                 },
                 {
                     type: "category",
@@ -128,11 +121,7 @@ module.exports = {
                         {
                             type: "category",
                             label: "Admin Area",
-                            items: [
-                                "how-to-guides/webiny-applications/admin-area/api-playground",
-                                "how-to-guides/webiny-applications/admin-area/change-logo",
-                                "how-to-guides/webiny-applications/admin-area/customize-navigation-menu"
-                            ]
+                            items: ["how-to-guides/webiny-applications/admin-area/api-playground"]
                         },
                         {
                             type: "category",
@@ -188,39 +177,24 @@ module.exports = {
                         }
                     ]
                 },
-                {
-                    type: "category",
-                    label: "Webiny CLI",
-                    items: [
-                        "how-to-guides/webiny-cli/use-watch-command",
-                        "how-to-guides/webiny-cli/working-with-workspaces",
-                        {
-                            type: "category",
-                            label: "Scaffolding",
-                            items: [
-                                "how-to-guides/webiny-cli/scaffolding/introduction",
-                                "how-to-guides/webiny-cli/scaffolding/extend-admin-area",
-                                "how-to-guides/webiny-cli/scaffolding/extend-graphql-api",
-                                "how-to-guides/webiny-cli/scaffolding/ci-cd"
-                            ]
-                        }
-                    ]
-                },
                 "how-to-guides/extend-graphql-api",
+                "how-to-guides/environment-variables",
+                "how-to-guides/use-watch-command",
                 {
                     type: "category",
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.12.0-to-5.13.0",
                         "how-to-guides/upgrade-webiny/5.11.1-to-5.12.0",
                         "how-to-guides/upgrade-webiny/5.11.0-to-5.11.1",
                         "how-to-guides/upgrade-webiny/5.10.0-to-5.11.0",
                         "how-to-guides/upgrade-webiny/5.9.0-to-5.10.0",
-                        "how-to-guides/upgrade-webiny/5.8.0-to-5.9.0",
                         {
                             type: "category",
                             label: "Older Upgrades",
                             items: [
+                                "how-to-guides/upgrade-webiny/5.8.0-to-5.9.0",
                                 "how-to-guides/upgrade-webiny/5.7.0-to-5.8.0",
                                 "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
                                 "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
@@ -284,11 +258,6 @@ module.exports = {
                         "key-topics/ci-cd/workflows"
                     ]
                 },
-                /*{
-                    type: "category",
-                    label: "Page Builder",
-                    items: ["key-topics/page-builder/prerendering-pages"]
-                },*/
                 {
                     type: "category",
                     label: "Cloud Infrastructure",
@@ -339,7 +308,6 @@ module.exports = {
                     ]
                 },
                 "key-topics/multi-tenancy",
-                "key-topics/plugins",
                 "key-topics/webiny-cli"
             ],
             References: [
@@ -365,15 +333,16 @@ module.exports = {
         },
         {
             Changelog: [
+                "changelog/5.13.0",
                 "changelog/v5.12.0",
                 "changelog/5.11.1",
                 "changelog/5.11.0",
                 "changelog/5.10.0",
-                "changelog/5.9.0",
                 {
                     type: "category",
                     label: "Older Releases",
                     items: [
+                        "changelog/5.9.0",
                         "changelog/5.8.0",
                         "changelog/5.7.0",
                         "changelog/5.6.0",

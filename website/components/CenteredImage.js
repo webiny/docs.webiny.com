@@ -31,17 +31,19 @@ export default props => {
                 title={props.title || props.alt}
                 src={props.src}
             />
-            <div
-                onClick={openLightbox}
-                style={{
-                    textAlign: "center",
-                    marginTop: 5,
-                    fontSize: "80%",
-                    color: "var(--ifm-toc-link-color)"
-                }}
-            >
-                (click to enlarge)
-            </div>
+            {props.canEnlarge !== false && (
+                <div
+                    onClick={openLightbox}
+                    style={{
+                        textAlign: "center",
+                        marginTop: 5,
+                        fontSize: "80%",
+                        color: "var(--ifm-toc-link-color)"
+                    }}
+                >
+                    (click to enlarge)
+                </div>
+            )}
             {isOpen && (
                 <Lightbox
                     mainSrc={props.src}

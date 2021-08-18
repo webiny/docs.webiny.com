@@ -21,7 +21,7 @@ import listPagesQuery from "./extend-graphql-api/list-pages-query.png";
 
 :::info
 
-Use the [`webiny watch`](/docs/how-to-guides/webiny-cli/use-watch-command) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/).
+Use the [`webiny watch`](/docs/how-to-guides/use-watch-command) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/).
 
 :::
 
@@ -36,6 +36,11 @@ import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
 import { IndexPageDataPlugin } from "@webiny/api-page-builder/plugins/IndexPageDataPlugin";
 import { Page } from "@webiny/api-page-builder/types";
 
+// Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
+// plugin. Apart from making your application code type-safe, it will also make the
+// interaction with the `context` object significantly easier.
+import { Context } from "~/types";
+
 interface ExtendedPage extends Page {
   special: boolean;
 }
@@ -45,7 +50,7 @@ export default [
   // 1. Extend the fundamental `PbPage` type.
   // 2. Extend the `PbPageListItem` type which is used when listing pages.
   // 3. In order to update the field, we also need to extend the `PbUpdatePageInput` input.
-  new GraphQLSchemaPlugin({
+  new GraphQLSchemaPlugin<Context>({
     typeDefs: /* GraphQL */ `
       extend type PbPage {
         special: Boolean
@@ -107,12 +112,17 @@ If needed, existing pages-related GraphQL queries can be modified too.
 
 Continuing from the [previous](/docs/how-to-guides/webiny-applications/page-builder/extend-graphql-api#adding-new-page-fields) example, let's say we also wanted to be able to list special pages only. We can do that with the help of the [`SearchLatestPagesPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/SearchLatestPagesPlugin.ts#L3) and [`SearchPublishedPagesPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/SearchPublishedPagesPlugin.ts#L3) plugins (both extending [`SearchPagesPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/SearchPagesPlugin.ts#L22)):
 
-```ts title="api/code/graphql/src/plugins/pages.ts" {29-35,43-67}
+```ts title="api/code/graphql/src/plugins/pages.ts" {34-40,48-72}
 import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
 import { IndexPageDataPlugin } from "@webiny/api-page-builder/plugins/IndexPageDataPlugin";
 import { Page } from "@webiny/api-page-builder/types";
 import { SearchLatestPagesPlugin } from "@webiny/api-page-builder/plugins/SearchLatestPagesPlugin";
 import { SearchPublishedPagesPlugin } from "@webiny/api-page-builder/plugins/SearchPublishedPagesPlugin";
+
+// Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
+// plugin. Apart from making your application code type-safe, it will also make the
+// interaction with the `context` object significantly easier.
+import { Context } from "~/types";
 
 interface ExtendedPage extends Page {
   special: boolean;
@@ -122,7 +132,7 @@ export default [
   // We can extend the `PbListPagesWhereInput` and `PbListPublishedPagesWhereInput`
   // types in order to enable filtering pages by the `special` field. Note that in order for this
   // to work, we'll also need `SearchLatestPagesPlugin` and `SearchLatestPagesPlugin` (see below).
-  new GraphQLSchemaPlugin({
+  new GraphQLSchemaPlugin<Context>({
     typeDefs: /* GraphQL */ `
       extend type PbPage {
         special: Boolean
@@ -221,8 +231,13 @@ import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
 import { PbContext } from "@webiny/api-page-builder/types";
 import { Response, ErrorResponse, NotFoundResponse } from "@webiny/handler-graphql/responses";
 
+// Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
+// plugin. Apart from making your application code type-safe, it will also make the
+// interaction with the `context` object significantly easier.
+import { Context } from "~/types";
+
 export default [
-  new GraphQLSchemaPlugin({
+  new GraphQLSchemaPlugin<Context>({
     // Extend the `PbMutation` type with the `duplicatePage` mutation.
     typeDefs: /* GraphQL */ `
       extend type PbMutation {
