@@ -65,7 +65,7 @@ module.exports = {
                     type: "category",
                     label: "Page Builder",
                     items: [
-                        "tutorials/page-builder/create-a-new-page-builder-element",
+                        "tutorials/page-builder/create-a-new-page-element",
                         "tutorials/page-builder/customize-an-existing-page-builder-element",
                     ],
                 },
