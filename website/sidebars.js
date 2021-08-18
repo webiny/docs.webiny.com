@@ -121,7 +121,11 @@ module.exports = {
                         {
                             type: "category",
                             label: "Admin Area",
-                            items: ["how-to-guides/webiny-applications/admin-area/api-playground"]
+                            items: [
+                                "how-to-guides/webiny-applications/admin-area/api-playground",
+                                "how-to-guides/webiny-applications/admin-area/change-logo",
+                                "how-to-guides/webiny-applications/admin-area/customize-navigation-menu"
+                            ]
                         },
                         {
                             type: "category",
@@ -177,6 +181,7 @@ module.exports = {
                         }
                     ]
                 },
+                "how-to-guides/importing-plugins",
                 "how-to-guides/extend-graphql-api",
                 "how-to-guides/environment-variables",
                 "how-to-guides/use-watch-command",
@@ -297,7 +302,6 @@ module.exports = {
                         }
                     ]
                 },
-                "key-topics/tools-libraries",
                 {
                     type: "category",
                     label: "Security Framework",
@@ -307,6 +311,8 @@ module.exports = {
                         "key-topics/security-framework/react-security"
                     ]
                 },
+                "key-topics/tools-libraries",
+                "key-topics/plugins",
                 "key-topics/multi-tenancy",
                 "key-topics/webiny-cli"
             ],
