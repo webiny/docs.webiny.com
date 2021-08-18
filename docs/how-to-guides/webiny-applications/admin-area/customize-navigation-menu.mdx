@@ -1,0 +1,426 @@
+---
+id: customize-navigation-menu
+title: Customize Navigation Menu
+sidebar_label: Customize Navigation Menu
+keywords: ["admin", "area", "ui", "navigation", "menu"]
+description: Learn how to add, remove, and modify menu items in the navigation menu.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import navigationStructure from "./customize-navigation-menu/navigation-structure.png";
+import newMenu from "./customize-navigation-menu/new-menu.png";
+import locateElement from "./customize-navigation-menu/locateElement.png";
+import customMenuRenderer from "./customize-navigation-menu/custom-menu-renderer.png";
+import customMenuSorter from "./customize-navigation-menu/custom-menu-sorter.png";
+import modifySections from "./customize-navigation-menu/modify-sections.png";
+
+:::info Can I use this?
+
+In order to follow this guide, you must use Webiny version **5.13.0** or greater.
+
+:::
+
+:::tip What you'll learn
+
+- how the navigation menu works
+- how to add, remove, and modify menu items in the navigation menu
+
+:::
+
+:::info Good to know
+If you're not already familiar with the [Webiny UI Composer](/docs/key-topics/ui-composer/introduction), we recommend familiarizing yourself with the concept before moving on with this guide.
+:::
+
+:::info Prerequisites
+To use the instructions presented in this guide, you need to know how to register Webiny plugins in your React applications. Please visit the [Importing Plugins](/docs/how-to-guides/importing-plugins) guide, if you're not already familiar with the process.
+:::
+
+## Overview
+
+Navigation within the Admin Area application is implemented using the [`NavigationView`](https://github.com/webiny/webiny-js/blob/next/packages/app-admin/src/ui/views/NavigationView.tsx) view class. It is built using the [UI Composer](/docs/key-topics/ui-composer/introduction). This means that you can hook into any part of the view and modify it.
+
+In this article, we cover some common customizations you might need for your project.
+
+### Structure
+
+`NavigationView` view has a certain structure: it has a **header** element, a **content** element, and a **footer** element (marked with purple boxes in the image below).
+
+<CenteredImage src={navigationStructure} title={"Navigation Structure"} />
+
+The purpose of these sections is to provide a developer-friendly interface for customization, as well as establish sensible defaults for rendering of menu items.
+
+For example, all menu items within the content section are sorted by tags (tags are explained in the next section), then alphabetically. The footer section only sorts menu items alphabetically.
+
+### Menu Items
+
+All menu items are created using the [`NavigationMenuElement`](https://github.com/webiny/webiny-js/blob/next/packages/app-admin/src/ui/elements/NavigationMenuElement.tsx) element class. This element class has [several renderers](https://github.com/webiny/webiny-js/tree/next/packages/app-admin/src/plugins/menu/renderers) assigned to it, and depending on the location in the hierarchy of the navigation view, the appropriate renderer will be used to render each individual element.
+
+:::info UI Renderers
+To learn how renderers within the UI Composer work, read the article on [Creating Elements](/docs/key-topics/ui-composer/creating-elements#enabling-support-for-renderers).
+:::
+
+To add menu items to the navigation view, `NavigationView` class exposes 3 helper methods:
+
+- `addAppMenuElement(element: NavigationMenuElement)` - adds the given element to the content section of the navigation view, and tags it with an `app` tag
+- `addUtilityMenuElement(element: NavigationMenuElement)` - adds the given element to the content section of the navigation view, and tags it with a `utils` tag
+- `addSettingsMenuElement(element: NavigationMenuElement)` - adds the given element to the **Settings** menu. By default, these items will be on a second level in the hierarchy, so we don't need to tag them.
+
+Tags are used to differentiate between menu item's "importance". By default, we use the `app` and `utils` tag, but you can easily introduce your own tags for your new menu items.
+
+:::tip
+These helper methods are there for you to make adding of menu items as straightforward as possible. You can still use the low-level API of the UI Composer, if you have to.
+:::
+
+### Menu Item Sorting
+
+There are 2 menu item sorters configured for the content section of the navigation view, out of the box. First we sort items by "importance", then alphabetically. These sorters are configurable, and you can implement your own sorting logic (covered later in the article).
+
+As we mentioned in the previous section, menu items get tagged. With an `app` tag, we tell the navigation view that this menu item represents an application, and it needs to be at the top of all other "less important" menu items. Menu items tagged with a `utils` tag will be rendered at the bottom (for example, the `Settings` menu).
+
+## Add a New Menu
+
+In this example, we add a new application menu item, called **Github**, then create a new section called **Repositories**, and add two links within that section.
+
+```tsx
+import React from "react";
+import { UIViewPlugin } from "@webiny/app-admin/ui/UIView";
+import { NavigationView } from "@webiny/app-admin/ui/views/NavigationView";
+import { NavigationMenuElement } from "@webiny/app-admin/ui/elements/NavigationMenuElement";
+import { ReactComponent as GithubIcon } from "@webiny/app-admin/assets/icons/github-brands.svg";
+
+new UIViewPlugin<NavigationView>(NavigationView, view => {
+  // Use the `addAppMenuElement` to add an application menu item
+  const myAppMenu = view.addAppMenuElement(
+    new NavigationMenuElement("myMenu", {
+      label: "Github",
+      icon: <GithubIcon />
+    })
+  );
+
+  // Create a child menu item using the `addElement` method.
+  // This is a UI Composer method, present on all UIElement classes, which serves for adding child elements to any parent element.
+  const reposMenu = myAppMenu.addElement(
+    new NavigationMenuElement("repos", {
+      label: "Repositories"
+    })
+  );
+
+  // Add yet another level of child elements.
+  reposMenu.addElement(
+    new NavigationMenuElement("webiny-js", {
+      label: "Webiny JS",
+      path: "https://github.com/webiny/webiny-js"
+    })
+  );
+
+  reposMenu.addElement(
+    new NavigationMenuElement("webiny-js-docs", {
+      label: "Webiny Docs",
+      path: "https://github.com/webiny/docs.webiny.com"
+    })
+  );
+});
+```
+
+With this plugin, we created a menu group `Github`, a menu section `Repositories`, and two links.
+
+<CenteredImage src={newMenu} title={"New Menu in The Main Navigation"} style={{ width: 500 }} />
+
+## Remove a Menu
+
+In this example, we remove the Form Builder menu item from the navigation. This same technique can be applied to any element.
+
+First, we need to find the ID of the element. To do that, we need to open [React Dev Tools](https://www.google.com/search?q=react+dev+tools), and find the corresponding `<ElementID>`. The element class and its ID will be printed in the `key` prop, separated by a colon.
+
+In our case, it will be `NavigationMenuElement:navigation.content.app-form-builder`, which means it is an element of class `NavigationMenuElement` and it has an ID of `navigation.content.app-form-builder`.
+
+<CenteredImage src={locateElement} title="Find Element ID" />
+
+Now we can implement a plugin, and remove the element.
+
+```tsx
+import { UIViewPlugin } from "@webiny/app-admin/ui/UIView";
+import { NavigationView } from "@webiny/app-admin/ui/views/NavigationView";
+
+new UIViewPlugin<NavigationView>(NavigationView, async view => {
+  // Wait until the view is fully rendered.
+  await view.isRendered();
+
+  // Get the element by ID (it can be located anywhere lower in the hierarchy)
+  const formBuilderMenu = view.getElement("navigation.content.app-form-builder");
+
+  // Check if the element really exists (because other plugins may have removed it already)
+  if (formBuilderMenu) {
+    formBuilderMenu.remove();
+  }
+});
+```
+
+This is the first time we encountered an asynchronous callback. We're waiting for the first render to happen. Why is that necessary?
+
+It depends on the complexity and hierarchy of the view. Keep in mind that plugins are applied to their corresponding classes at instantiation time (right at the end of the class constructor execution), and when it's a complex element, with child elements, it's very likely that parent element was not yet assigned, meaning that the parent/child hierarchy is not yet established.
+
+You can, in general, use the `await view.isRendered()` in all of your plugins, to be on the safe side.
+
+## Menu Rendering
+
+### Add a Class Renderer
+
+In this example, we add a custom menu item renderer, to support links as top level menu items in the content section of the navigation view (by default, we only support menu groups). This custom renderer will be taken into consideration for all menu item elements that are created using the `NavigationMenuElement` class.
+
+We need to set some constraints to apply this new renderer in an optimal way, and not override an existing renderer by accident. Let's establish that we only want this renderer to apply to menu items that are in the content section of the navigation view, the item has to be the top-level item, and it must have the `path` config set (this can be both local route and an external URL).
+
+```tsx title="Custom Element Renderer"
+import React from "react";
+import { css } from "emotion";
+import { Link } from "@webiny/react-router";
+import { NavigationView } from "@webiny/app-admin/ui/views/NavigationView";
+import { NavigationMenuElement } from "@webiny/app-admin/ui/elements/NavigationMenuElement";
+import { UIRenderer, UIRenderParams } from "@webiny/app-admin/ui/UIRenderer";
+import { ContentElement } from "@webiny/app-admin/ui/views/NavigationView/ContentElement";
+import { ReactComponent as OpenInNew } from "@webiny/app-admin/assets/icons/round-open_in_new-24px.svg";
+import { List, ListItem, ListItemGraphic, ListItemMeta } from "@webiny/ui/List";
+import { Icon } from "@webiny/ui/Icon";
+import { IconButton } from "@webiny/ui/Button";
+
+// Let's also style the new menu item to match the styling of other renderers.
+const menuTitle = css({
+  ".mdc-drawer &.mdc-list": {
+    borderBottom: "1px solid var(--mdc-theme-on-background)",
+    padding: 0,
+    ".mdc-list-item": {
+      margin: 0,
+      padding: "0 15px",
+      height: "48px",
+      width: "100%",
+      fontWeight: 600,
+      boxSizing: "border-box",
+      ".mdc-list-item__meta svg": {
+        width: 18,
+        height: 18
+      }
+    }
+  }
+});
+
+class CustomLinkRenderer extends UIRenderer<NavigationMenuElement> {
+  // We will only apply this renderer if all of the established constraints are satisfied.
+  canRender(element: NavigationMenuElement): boolean {
+    // Is the element located in the content section?
+    // Using `getParentByType` we can check if element is a child of some other element or view.
+    const isInContent = Boolean(element.getParentByType(ContentElement));
+
+    // Element is a top-level element, located in the content section, and has `path` set.
+    return element.depth === 1 && isInContent && element.config.path;
+  }
+
+  render({ element }: UIRenderParams<NavigationMenuElement>): React.ReactNode {
+    // Default `onClick` behaviour is always "close drawer".
+    const defaultOnClick = element.getView<NavigationView>().getNavigationHook().hideMenu;
+    const onClick = element.config.onClick || defaultOnClick;
+
+    return (
+      <Link to={element.config.path} onClick={onClick ? () => onClick(props) : null}>
+        <List className={menuTitle}>
+          <ListItem ripple={false}>
+            {element.config.icon ? (
+              <ListItemGraphic>
+                <Icon icon={element.config.icon} />
+              </ListItemGraphic>
+            ) : null}
+            {element.config.label}
+            <ListItemMeta>
+              <IconButton icon={<OpenInNew />} />
+            </ListItemMeta>
+          </ListItem>
+        </List>
+      </Link>
+    );
+  }
+}
+```
+
+The renderer is ready. Now we need to add it to the `NavigationMenuElement` class. We can hook into any element class by using the `UIElementPlugin` plugin.
+
+```ts
+import { UIElementPlugin } from "@webiny/app-admin/ui/UIElement";
+import { UIViewPlugin } from "@webiny/app-admin/ui/UIView";
+import { NavigationView } from "@webiny/app-admin/ui/views/NavigationView";
+import { NavigationMenuElement } from "@webiny/app-admin/ui/elements/NavigationMenuElement";
+
+// Register the new renderer for all NavigationMenuElement instances.
+new UIElementPlugin<NavigationMenuElement>(NavigationMenuElement, element => {
+  // Attach a new renderer to every menu item instance
+  element.addRenderer(new CustomLinkRenderer());
+});
+
+// Create a new menu item that should trigger the new renderer.
+// (its config will match all of the conditions defined in the renderer)
+new UIViewPlugin<NavigationView>(NavigationView, view => {
+  view.addAppMenuElement(
+    new NavigationMenuElement("myMenu", {
+      label: "Github",
+      icon: <GithubIcon />,
+      path: "https://github.com/webiny/webiny-js"
+    })
+  );
+});
+```
+
+This will result in our new menu item being rendered with the new custom renderer.
+
+<CenteredImage src={customMenuRenderer} title="Custom Menu Renderer in Action" />
+
+### Add an Instance Renderer
+
+This example shows how you can apply the same renderer we created earlier, but in a local manner, so that it only handles a particular instance of a menu item, and is the _only_ renderer that will be executed for that menu.
+
+:::note Skipping Code
+The styling code is **skipped** to make the example shorter. Use the styling code from the previous example, if you don't already have it.
+:::
+
+```tsx
+import React from "react";
+import { UIViewPlugin } from "@webiny/app-admin/ui/UIView";
+import { NavigationView } from "@webiny/app-admin/ui/views/NavigationView";
+import { NavigationMenuElement } from "@webiny/app-admin/ui/elements/NavigationMenuElement";
+import { ReactComponent as GithubIcon } from "@webiny/app-admin/assets/icons/github-brands.svg";
+import { UIRenderer, UIRenderParams } from "@webiny/app-admin/ui/UIRenderer";
+import { Link } from "@webiny/react-router";
+import { List, ListItem, ListItemGraphic, ListItemMeta } from "@webiny/ui/List";
+import { Icon } from "@webiny/ui/Icon";
+import { IconButton } from "@webiny/ui/Button";
+import { ReactComponent as OpenInNew } from "@webiny/app-admin/assets/icons/round-open_in_new-24px.svg";
+
+// In this scenario, we don't need to perform any conditional checks, so we're removing the `canRender()` check.
+class CustomLinkRenderer extends UIRenderer<NavigationMenuElement> {
+  render({ element }: UIRenderParams<NavigationMenuElement>): React.ReactNode {
+    // Default `onClick` behaviour is always "close drawer".
+    const defaultOnClick = element.getView<NavigationView>().getNavigationHook().hideMenu;
+    const onClick = element.config.onClick || defaultOnClick;
+
+    return (
+      <Link to={element.config.path} onClick={onClick ? () => onClick(props) : null}>
+        <List className={menuTitle}>
+          <ListItem ripple={false}>
+            {element.config.icon ? (
+              <ListItemGraphic>
+                <Icon icon={element.config.icon} />
+              </ListItemGraphic>
+            ) : null}
+            {element.config.label}
+            <ListItemMeta>
+              <IconButton icon={<OpenInNew />} />
+            </ListItemMeta>
+          </ListItem>
+        </List>
+      </Link>
+    );
+  }
+}
+
+// Create a new menu item and attach a renderer to it.
+new UIViewPlugin<NavigationView>(NavigationView, view => {
+  const myMenu = view.addAppMenuElement(
+    new NavigationMenuElement("myMenu", {
+      label: "Github",
+      icon: <GithubIcon />,
+      path: "https://github.com/webiny/webiny-js"
+    })
+  );
+
+  // Attach the renderer directly to the element instance.
+  myMenu.addRenderer(new CustomLinkRenderer());
+});
+```
+
+There are cases where this pattern is very useful, especially because you don't need to think about conditions that need to be matched. A good example of this pattern is our [File Manager menu item](https://github.com/webiny/webiny-js/blob/next/packages/app-admin/src/plugins/menu/fileManager.tsx), where we need to wrap the menu item with a File Manager component.
+
+### Add Custom Sorter
+
+With custom menu items, you may want to break out of the built-in sorting rules. There's an easy way to add your own sorting logic on top of the default one. Let's go back to the menu item registration, and add a custom sorter using tags.
+
+:::info Splitting Plugins
+In this example, we're splitting the logic into several plugins, to clearly show responsibilities of each plugin.
+:::
+
+```ts title="Custom Menu Item Sorter"
+// Define a custom tag.
+const MY_TAG = "myTag";
+
+// Add a menu item element.
+new UIViewPlugin<NavigationView>(NavigationView, view => {
+  const myMenuItem = view.addAppMenuElement(
+    new NavigationMenuElement("myMenu", {
+      label: "Github",
+      icon: <GithubIcon />,
+      path: "https://github.com/webiny/webiny-js"
+    })
+  );
+
+  // Add your tag to the menu item element.
+  myMenuItem.addTag(MY_TAG);
+});
+
+// Add a custom sorter.
+new UIViewPlugin<NavigationView>(NavigationView, view => {
+  // Sorters live on the `content` element, and we need to use the `getContentElement` method
+  // which will give us access to the content element, and from there call the `addSorter` method.
+  view.getContentElement().addSorter((a, b) => {
+    // The general logic of this sorter is "push my custom items to the top".
+    if (a.hasTag(MY_TAG) && !b.hasTag(MY_TAG)) {
+      return -1;
+    }
+
+    if (!a.hasTag(MY_TAG) && b.hasTag(MY_TAG)) {
+      return 1;
+    }
+
+    // Once we're done handling tags, sort alphabetically.
+    return a.config.label.localeCompare(b.config.label);
+  });
+});
+```
+
+As a result, the navigation now looks like this:
+
+<CenteredImage src={customMenuSorter} title="Custom Menu Sorter in Action" />
+
+## Modify Navigation View Sections
+
+In this example we'll replace the header section with a custom component, and we'll also completely remove the footer.
+
+```tsx
+import React from "react";
+import { useSecurity } from "@webiny/app-security";
+import { UIViewPlugin } from "@webiny/app-admin/ui/UIView";
+import { GenericElement } from "@webiny/app-admin/ui/elements/GenericElement";
+import { ElementID, NavigationView } from "@webiny/app-admin/ui/views/NavigationView";
+
+const MyHeader = () => {
+  const { identity } = useSecurity();
+  return <h4 style={{ padding: 10 }}>👋 Hello, {identity.firstName}!</h4>;
+};
+
+// Replace the header section with a custom React component
+new UIViewPlugin<NavigationView>(NavigationView, view => {
+  view.getHeaderElement().replaceWith(new GenericElement(ElementID.Header, () => <MyHeader />));
+});
+
+// Remove the footer section
+new UIViewPlugin<NavigationView>(NavigationView, view => {
+  view.getFooterElement().remove();
+});
+```
+
+`GenericElement` is a utility element class that serves as an escape hatch when you need to mount a React component just once. Usually, we recommend always creating a dedicated n element class for every React component, but sometimes it's just not worth the effort. Like in this example, where we just want to mount one simple component, and move on.
+
+The result of these simple manipulations looks like this:
+
+<CenteredImage src={modifySections} title="Modify Navigation View Sections" />
+
+## FAQ
+
+### What can I render in the navigation view?
+
+Absolutely anything! Following these examples, you can build all kinds of custom menu items. What you render in your renderers is entirely up to you, it doesn't even have to be a link, or a traditional menu. Any React component will do: buttons, calendars, charts - it's up to your project requirements.

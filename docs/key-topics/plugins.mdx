@@ -1,0 +1,171 @@
+---
+id: plugins
+title: Plugins
+sidebar_label: Plugins
+keywords: ["webiny", "plugins"]
+description: Learn about plugins, how they work, and the differences between frontend and backend environments.
+---
+
+:::tip What you'll learn
+
+- how Webiny is built using plugins
+- what is a `PluginsContainer`
+- how plugins work in the context of a React application
+- how plugins work in the context of a GraphQL API
+
+:::
+
+:::info
+This article gives a theoretical explanation of the concept. If you're looking for instructions on practical usage, please refer to the [Importing Plugins](/docs/how-to-guides/importing-plugins) article.
+:::
+
+## Overview
+
+Webiny is mostly built using plugins. There's just a bit of boilerplate code, and no matter if it's React, GraphQL API, or the Webiny CLI, the majority of Webiny's functionality lives in plugins.
+
+Plugins are very simple in nature. They can be a plain JS object, or extend a built-in `Plugin` class. The main piece of information that makes plugins work is their `type` attribute, which is used to fetch and execute plugins at runtime.
+
+Plugins can not only do what Webiny expects them to, but can also introduce hooks for other plugins, which can call other plugins, and so on. You just use them as building blocks for your business logic, UI, data processing, etc.
+
+:::info Good to know
+You will find a mix of plain JS objects and class plugins when reading our docs, or browsing the Github repository. This is because, initially, we started with plugins as plain objects. Recently, we realized that we can greatly improve the developer experience and speed of development by providing concrete plugin classes you can just instantiate, or extend, instead of dabbling with TS types.
+
+All the new plugins we're creating, are written as classes. You can expect plain object plugins to go away in the future, but we will cover them in this article, because the majority of the platform still uses them.
+:::
+
+## Plugins Container
+
+When an application is starting, be it React, GraphQL API, or the CLI, all plugins need to be registered into an instance of a `PluginsContainer` class. It's a central registry that holds all the plugins, and you use this registry to access plugins when you need them.
+
+To work with plugins, you need to use the `@webiny/plugins` package.
+
+The way it works is described in the following code example:
+
+```ts
+// Import PluginsContainer class.
+import { PluginsContainer } from "@webiny/plugins";
+
+// Create an instance of the plugins container.
+const plugins = new PluginsContainer();
+
+// Register plugins.
+plugins.register({
+  type: "hello-plugin",
+  hello() {
+    alert("Hello, adventurer!");
+  }
+});
+
+// Use plugins.
+const helloPlugins = plugins.byType("hello-plugin");
+helloPlugins.forEach(plugin => plugin.hello());
+```
+
+This is the whole concept. Keep in mind that you will never need to create your own plugins containers. This is all handled by Webiny for you, and the example above simply demonstrates what's happening under the hood.
+
+## Plugins in React Applications
+
+The `@webiny/plugins` package always exports one ready-made instance of the `PluginsContainer`, so you never need to create it yourself. Think of it as a globally accessible singleton. We need a singleton to import plugins from other `npm` packages, and by having them all import this same package (`@webiny/plugins`), at _build time_, they will be referencing the same webpack module. This means that at _runtime_, all the external plugins will be working with this one centralized registry, and will be able to access all of your app's plugins.
+
+```ts title="Working With Plugins in React"
+// Import the global plugins container.
+import { plugins } from "@webiny/plugins";
+
+// Register your plugin.
+plugins.register({
+  type: "my-plugin",
+  hello() {
+    alert("Hello, adventurer!");
+  }
+});
+
+// Use plugins anywhere in your application (even in 3rd party npm packages).
+import { plugins } from "@webiny/plugins";
+
+const helloPlugins = plugins.byType("my-plugin");
+helloPlugins.forEach(plugin => plugin.hello());
+```
+
+To recap: by always importing the same `plugins` instance from `@webiny/plugins`, you're referencing the same `PluginsContainer` instance, and so, you have access to all the plugins anywhere in the application.
+
+:::info Why not use React Context to share plugins?
+Not all plugins are related to React. There are plugins that are used outside React, but still within your application. For this reason, plugins container lives on its own.
+:::
+
+## Plugins in the GraphQL API
+
+In GraphQL API, things are slightly different. When an event invokes your Lambda function, we have to treat it as an isolated scope of execution, and we can't share the same instance of the `PluginsContainer` between invocations.
+
+On every Lambda invocation, Webiny will construct a new instance of the `PluginsContainer` class, and assign it to the `context` object, which is then passed to GraphQL resolvers.
+
+To register plugins into a Lambda handler, you simply pass them to the `createHandler` factory provided by Webiny, to construct Lambda handlers. The following example demonstrates how all our Lambda handlers are created, but with a reduced number of plugins:
+
+```ts title="Creating a Lambda Handler"
+import { createHandler } from "@webiny/handler-aws";
+import { ContextPlugin } from "@webiny/handler/plugins/ContextPlugin";
+
+// Export a `handler` function.
+export const handler = createHandler({
+  plugins: [
+    // An example of a plain object plugin.
+    {
+      type: "my-plugin",
+      hello() {
+        console.log("Hello!");
+      }
+    },
+    // An example of a class plugin.
+    new ContextPlugin(context => {
+      // Do something with the handler context.
+    })
+  ]
+});
+```
+
+The following code shows how you can access plugins in a GraphQL resolver:
+
+```ts title="Use Plugins in a GraphQL Resolver"
+// A demo resolver.
+export default (root, args, context) => {
+  const myPlugins = context.plugins.byType("my-plugin");
+  myPlugins.forEach(plugin => plugin.hello());
+};
+```
+
+## Plugins in the Webiny CLI
+
+Our CLI also uses plugins for commands, deploy hooks, etc. Internally, the CLI has an instance of the `PluginsContainer` class, and all the plugins are loaded at bootstrap time, by loading the `webiny.project.ts` file.
+
+The following example shows how you can add new plugins to the Webiny CLI in your Webiny project:
+
+```ts title="webiny.project.ts"
+import cliWorkspaces from "@webiny/cli-plugin-workspaces";
+import cliPulumiDeploy from "@webiny/cli-plugin-deploy-pulumi";
+
+export default {
+  template: "@webiny/cwp-template-aws@5.12.0",
+  name: "my-project",
+  cli: {
+    plugins: [
+      // Execute plugin factories for imported plugins
+      cliWorkspaces(),
+      cliPulumiDeploy(),
+      // You can add your new plugins inline
+      {
+        type: "cli-command",
+        create({ yargs, context }) {
+          yargs.command("say-hi", "Prints a welcome message.", () => {
+            console.log("Hi there! I'm a new Webiny CLI command.");
+          });
+        }
+      }
+    ]
+  }
+};
+```
+
+When you run any `yarn webiny` command, our CLI will first load this file, grab all the provided plugins and register them in the internal plugins container. After that, the command processing will start, and one of the commands will be executed by [yargs](https://www.npmjs.com/package/yargs) (a library we use to handle commands in our CLI).
+
+## Conclusion
+
+On a high level, this is all there is to Webiny's system of plugins. You simply add more and more plugins to hook into certain events, processes, and to add different types of functionality to the core system. What plugins do, and how complex they are, depends entirely on your requirements.
