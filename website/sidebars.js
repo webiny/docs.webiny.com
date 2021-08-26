@@ -11,8 +11,8 @@ module.exports = {
                         "webiny-overview/performance-benchmark/introduction",
                         "webiny-overview/performance-benchmark/headless-cms-write-benchmark",
                         "webiny-overview/performance-benchmark/headless-cms-read-benchmark",
-                        "webiny-overview/performance-benchmark/pb-deliver-a-page"
-                    ]
+                        "webiny-overview/performance-benchmark/pb-deliver-a-page",
+                    ],
                 },
                 {
                     type: "category",
@@ -26,12 +26,12 @@ module.exports = {
                                 "webiny-overview/serverless-cms/apps/headless-cms",
                                 "webiny-overview/serverless-cms/apps/page-builder",
                                 "webiny-overview/serverless-cms/apps/form-builder",
-                                "webiny-overview/serverless-cms/apps/file-manager"
-                            ]
-                        }
-                    ]
+                                "webiny-overview/serverless-cms/apps/file-manager",
+                            ],
+                        },
+                    ],
                 },
-                "webiny-overview/security"
+                "webiny-overview/security",
             ],
             Tutorials: [
                 "tutorials/install-webiny",
@@ -49,32 +49,32 @@ module.exports = {
                             items: [
                                 "tutorials/extend-admin-area/security/introduction",
                                 "tutorials/extend-admin-area/security/graphql-api",
-                                "tutorials/extend-admin-area/security/admin-area"
-                            ]
-                        }
-                    ]
+                                "tutorials/extend-admin-area/security/admin-area",
+                            ],
+                        },
+                    ],
                 },
                 {
                     type: "category",
                     label: "Headless CMS",
                     items: [
-                        "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin"
-                    ]
+                        "tutorials/headless-cms/create-a-webiny-headless-cms-address-field-plugin",
+                    ],
                 },
                 {
                     type: "category",
                     label: "Page Builder",
                     items: [
                         "tutorials/page-builder/create-a-new-page-element",
-                        "tutorials/page-builder/customize-an-existing-page-builder-element"
-                    ]
+                        "tutorials/page-builder/customize-an-existing-page-builder-element",
+                    ],
                 },
                 {
                     type: "category",
                     label: "Webiny CLI",
-                    items: ["tutorials/webiny-cli/adding-custom-commands"]
+                    items: ["tutorials/webiny-cli/adding-custom-commands"],
                 },
-                "tutorials/create-a-package-in-webiny-project"
+                "tutorials/create-a-package-in-webiny-project",
             ],
             "How-to Guides": [
                 {
@@ -91,10 +91,10 @@ module.exports = {
                             label: "AWS",
                             items: [
                                 "how-to-guides/deployment/aws/configure-aws-credentials",
-                                "how-to-guides/deployment/aws/use-aws-profiles"
-                            ]
-                        }
-                    ]
+                                "how-to-guides/deployment/aws/use-aws-profiles",
+                            ],
+                        },
+                    ],
                 },
                 {
                     type: "category",
@@ -106,13 +106,13 @@ module.exports = {
                         "how-to-guides/scaffolding/extend-graphql-api",
                         "how-to-guides/scaffolding/extend-admin-area",
                         "how-to-guides/scaffolding/react-application",
-                        "how-to-guides/scaffolding/ci-cd"
-                    ]
+                        "how-to-guides/scaffolding/ci-cd",
+                    ],
                 },
                 {
                     type: "category",
                     label: "Integrations",
-                    items: ["how-to-guides/integrations/integrate-tailwindcss"]
+                    items: ["how-to-guides/integrations/integrate-tailwindcss"],
                 },
                 {
                     type: "category",
@@ -124,23 +124,23 @@ module.exports = {
                             items: [
                                 "how-to-guides/webiny-applications/admin-area/api-playground",
                                 "how-to-guides/webiny-applications/admin-area/change-logo",
-                                "how-to-guides/webiny-applications/admin-area/customize-navigation-menu"
-                            ]
+                                "how-to-guides/webiny-applications/admin-area/customize-navigation-menu",
+                            ],
                         },
                         {
                             type: "category",
                             label: "File Manager",
                             items: [
-                                "how-to-guides/webiny-applications/file-manager/create-a-file-type-plugin"
-                            ]
+                                "how-to-guides/webiny-applications/file-manager/create-a-file-type-plugin",
+                            ],
                         },
                         {
                             type: "category",
                             label: "Page Builder",
                             items: [
                                 "how-to-guides/webiny-applications/page-builder/extend-graphql-api",
-                                "how-to-guides/webiny-applications/page-builder/extend-page-settings"
-                            ]
+                                "how-to-guides/webiny-applications/page-builder/extend-page-settings",
+                            ],
                         },
                         {
                             type: "category",
@@ -151,8 +151,8 @@ module.exports = {
                                 "how-to-guides/webiny-applications/headless-cms/using-graphql-api",
                                 "how-to-guides/webiny-applications/headless-cms/extend-graphql-api",
                                 "how-to-guides/webiny-applications/headless-cms/rendering-rich-text",
-                                "how-to-guides/webiny-applications/headless-cms/content-model-plugins"
-                            ]
+                                "how-to-guides/webiny-applications/headless-cms/content-model-plugins",
+                            ],
                         },
                         {
                             type: "category",
@@ -166,20 +166,20 @@ module.exports = {
                                         "how-to-guides/webiny-applications/themes/page-builder/introduction",
                                         "how-to-guides/webiny-applications/themes/page-builder/colors",
                                         "how-to-guides/webiny-applications/themes/page-builder/elements",
-                                        "how-to-guides/webiny-applications/themes/page-builder/layouts"
-                                    ]
+                                        "how-to-guides/webiny-applications/themes/page-builder/layouts",
+                                    ],
                                 },
                                 {
                                     type: "category",
                                     label: "Form Builder",
                                     items: [
                                         "how-to-guides/webiny-applications/themes/form-builder/introduction",
-                                        "how-to-guides/webiny-applications/themes/form-builder/layouts"
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
+                                        "how-to-guides/webiny-applications/themes/form-builder/layouts",
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
                 },
                 "how-to-guides/importing-plugins",
                 "how-to-guides/extend-graphql-api",
@@ -190,15 +190,16 @@ module.exports = {
                     label: "Upgrade Webiny",
                     items: [
                         "how-to-guides/upgrade-webiny/overview",
+                        "how-to-guides/upgrade-webiny/5.13.0-to-5.14.0",
                         "how-to-guides/upgrade-webiny/5.12.0-to-5.13.0",
                         "how-to-guides/upgrade-webiny/5.11.1-to-5.12.0",
                         "how-to-guides/upgrade-webiny/5.11.0-to-5.11.1",
                         "how-to-guides/upgrade-webiny/5.10.0-to-5.11.0",
-                        "how-to-guides/upgrade-webiny/5.9.0-to-5.10.0",
                         {
                             type: "category",
                             label: "Older Upgrades",
                             items: [
+                                "how-to-guides/upgrade-webiny/5.9.0-to-5.10.0",
                                 "how-to-guides/upgrade-webiny/5.8.0-to-5.9.0",
                                 "how-to-guides/upgrade-webiny/5.7.0-to-5.8.0",
                                 "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
@@ -206,11 +207,11 @@ module.exports = {
                                 "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
                                 "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
                                 "how-to-guides/upgrade-webiny/5.0.0-to-5.1.0",
-                                "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0"
-                            ]
-                        }
-                    ]
-                }
+                                "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0",
+                            ],
+                        },
+                    ],
+                },
             ],
             "Key Topics": [
                 {
@@ -219,8 +220,8 @@ module.exports = {
                     items: [
                         "key-topics/project-organization/project-applications-and-packages",
                         "key-topics/project-organization/project-applications",
-                        "key-topics/project-organization/monorepo-organization"
-                    ]
+                        "key-topics/project-organization/monorepo-organization",
+                    ],
                 },
                 {
                     type: "category",
@@ -229,9 +230,9 @@ module.exports = {
                         {
                             type: "category",
                             label: "Headless CMS",
-                            items: ["key-topics/webiny-applications/headless-cms/graphql-api"]
-                        }
-                    ]
+                            items: ["key-topics/webiny-applications/headless-cms/graphql-api"],
+                        },
+                    ],
                 },
                 {
                     type: "category",
@@ -239,8 +240,8 @@ module.exports = {
                     items: [
                         "key-topics/ui-composer/introduction",
                         "key-topics/ui-composer/building-views",
-                        "key-topics/ui-composer/creating-elements"
-                    ]
+                        "key-topics/ui-composer/creating-elements",
+                    ],
                 },
                 {
                     type: "category",
@@ -248,8 +249,8 @@ module.exports = {
                     items: [
                         "key-topics/deployment/introduction",
                         "key-topics/deployment/iac-with-pulumi",
-                        "key-topics/deployment/environments"
-                    ]
+                        "key-topics/deployment/environments",
+                    ],
                 },
                 {
                     type: "category",
@@ -260,8 +261,8 @@ module.exports = {
                         "key-topics/ci-cd/version-control",
                         "key-topics/ci-cd/cloud-infrastructure-state-files",
                         "key-topics/ci-cd/testing",
-                        "key-topics/ci-cd/workflows"
-                    ]
+                        "key-topics/ci-cd/workflows",
+                    ],
                 },
                 {
                     type: "category",
@@ -278,8 +279,8 @@ module.exports = {
                                 "key-topics/cloud-infrastructure/api/file-upload",
                                 "key-topics/cloud-infrastructure/api/file-download",
                                 "key-topics/cloud-infrastructure/api/overview-vpc-default",
-                                "key-topics/cloud-infrastructure/api/overview-vpc-custom"
-                            ]
+                                "key-topics/cloud-infrastructure/api/overview-vpc-custom",
+                            ],
                         },
                         {
                             type: "category",
@@ -287,8 +288,8 @@ module.exports = {
                             items: [
                                 "key-topics/cloud-infrastructure/admin/introduction",
                                 "key-topics/cloud-infrastructure/admin/overview",
-                                "key-topics/cloud-infrastructure/admin/serving-application-files"
-                            ]
+                                "key-topics/cloud-infrastructure/admin/serving-application-files",
+                            ],
                         },
                         {
                             type: "category",
@@ -297,10 +298,10 @@ module.exports = {
                                 "key-topics/cloud-infrastructure/website/introduction",
                                 "key-topics/cloud-infrastructure/website/overview",
                                 "key-topics/cloud-infrastructure/website/prerendering-pages",
-                                "key-topics/cloud-infrastructure/website/serving-pages"
-                            ]
-                        }
-                    ]
+                                "key-topics/cloud-infrastructure/website/serving-pages",
+                            ],
+                        },
+                    ],
                 },
                 {
                     type: "category",
@@ -308,57 +309,58 @@ module.exports = {
                     items: [
                         "key-topics/security-framework/introduction",
                         "key-topics/security-framework/api-security",
-                        "key-topics/security-framework/react-security"
-                    ]
+                        "key-topics/security-framework/react-security",
+                    ],
                 },
                 "key-topics/tools-libraries",
                 "key-topics/plugins",
                 "key-topics/multi-tenancy",
-                "key-topics/webiny-cli"
+                "key-topics/webiny-cli",
             ],
             References: [
                 {
                     type: "category",
                     label: "Headless CMS",
-                    items: ["references/headless-cms/plugins"]
+                    items: ["references/headless-cms/plugins"],
                 },
                 {
                     type: "category",
                     label: "Page Builder",
-                    items: ["references/page-builder/plugins"]
+                    items: ["references/page-builder/plugins"],
                 },
                 {
                     type: "category",
                     label: "Form Builder",
-                    items: ["references/form-builder/plugins"]
-                }
-            ]
+                    items: ["references/form-builder/plugins"],
+                },
+            ],
         },
         {
-            Contributing: ["contributing/documentation", "contributing/new-page-template"]
+            Contributing: ["contributing/documentation", "contributing/new-page-template"],
         },
         {
             Changelog: [
+                "changelog/5.14.0",
                 "changelog/5.13.0",
                 "changelog/v5.12.0",
                 "changelog/5.11.1",
                 "changelog/5.11.0",
-                "changelog/5.10.0",
                 {
                     type: "category",
                     label: "Older Releases",
                     items: [
+                        "changelog/5.10.0",
                         "changelog/5.9.0",
                         "changelog/5.8.0",
                         "changelog/5.7.0",
                         "changelog/5.6.0",
                         "changelog/5.5.0",
                         "changelog/5.4.0",
-                        "changelog/5.3.0"
-                    ]
-                }
-            ]
+                        "changelog/5.3.0",
+                    ],
+                },
+            ],
         },
-        "webiny-telemetry"
-    ]
+        "webiny-telemetry",
+    ],
 };
