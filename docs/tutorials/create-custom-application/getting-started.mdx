@@ -10,6 +10,10 @@ import CenteredImage from "@components/CenteredImage";
 import scaffoldsList from "./getting-started/scaffolds-list.png";
 import fullStackAppScaffold from "./getting-started/full-stack-app-scaffold.png";
 import dependentApps from "./getting-started/dependent-apps.png";
+import watchCommands from "./getting-started/watch-commands.png";
+import graphqlApiCloudInfrastructureDiagram from "./getting-started/new_graphql_api_scaffold.png";
+import reactAppCloudInfrastructureDiagram from "./getting-started/new_react_app_scaffold.png";
+
 
 :::tip WHAT YOU’LL LEARN
 
@@ -29,29 +33,37 @@ The best way to start building a new custom application would be to use the [Ful
 
 ### GraphQL API
 
-A new GraphQL API created as a new [project application](/docs/key-topics/project-organization/project-applications-and-packages) within our Webiny project. We will use the [Extend GraphQL API](/docs/tutorials/extend-admin-area/introduction) scaffold to extend it, meaning, create new GraphQL types, queries, and mutations.
-
-This project application doesn't depend on any other project applications, meaning we can immediately deploy it once the scaffolding process has finished.
+A new GraphQL API created within a new [project application](/docs/key-topics/project-organization/project-applications-and-packages) in our Webiny project (more information below). Once deployed, we will use the [Extend GraphQL API](/docs/tutorials/extend-admin-area/introduction) scaffold to extend it, meaning, create new GraphQL types, queries, and mutations.
 
 Speaking of deployment, note that we'll need to deploy the newly created GraphQL API before jumping to React application development, simply because the React application relies on it. This is also something the [Full Stack Application](/docs/how-to-guides/scaffolding/full-stack-application) scaffold will warn us about, and will offer to do it for us.
 
-### React Application
-
-A new React application created as a new [project application](/docs/key-topics/project-organization/project-applications-and-packages) within our Webiny project. Here, we won't be relying on any existing scaffolds. Instead, in order to recreate the original Pinterest application's user interface, we'll simply use our existing [React](https://reactjs.org/) and [Sass](https://sass-lang.com/) knowledge. As mentioned, we'll also use [Ant Design React library](https://ant.design/docs/react/introduce), which will make the whole process a bit faster.
-
-MENTION DEPLOYMENT / DEPENDENCY :DOWN:
+In order to host the GraphQL API, these are the cloud infrastructure resources that will get deployed:
 
 <CenteredImage
-  alt="React Application Depends on GraphQL API"
-  style={{ maxWidth: 500 }}
   shadow={false}
-  canEnlarge={false}
-  src={dependentApps}
+  alt="Cloud Infrastructure Resources"
+  src={graphqlApiCloudInfrastructureDiagram}
+/>
+
+Note that we will expand this infrastructure with a couple of additional resources, in the following sections of this tutorial.
+
+### React Application
+
+A new React application created within a new [project application](/docs/key-topics/project-organization/project-applications-and-packages) in our Webiny project (more information below). Here, we won't be relying on any existing scaffolds. Instead, in order to recreate the original Pinterest application's user interface, we'll simply use our existing [React](https://reactjs.org/) and [Sass](https://sass-lang.com/) knowledge. And, as mentioned, we'll also use the [Ant Design](https://ant.design/docs/react/introduce) React library, which will make the whole process a bit faster.
+
+Note that, for development purposes, except having the GraphQL API deployed, we don't need to perform any additional deployments. Frontend application development, or, in our case, React application development, can still be performed locally, on the developer's machine. You only deploy it when you need to have it online.
+
+In order to host the React application, these are the cloud infrastructure resources that will get deployed:
+
+<CenteredImage
+  shadow={false}
+  alt="Cloud Infrastructure Resources"
+  src={reactAppCloudInfrastructureDiagram}
 />
 
 ## Running the Scaffold
 
-So, in our terminal of choice, from our project root, let's run the following command:
+In our terminal of choice, from our project root, let's run the following command:
 
 ```
 yarn webiny scaffold
@@ -81,82 +93,80 @@ Ultimately, we should end up with the following output in our terminal:
   src={fullStackAppScaffold}
 />
 
+As we can see, the scaffold created the GraphQL API inside the `pinterest-clone/api` folder, and the React application inside the `pinterest-clone/app` folder. Note that these folders are just [project application](/docs/key-topics/project-organization/project-applications-and-packages) folders (notice the `webiny.project.ts` file). The actual application code will be located in `pinterest-clone/api/code/graphql` and `pinterest-clone/app/code` folders.
+
+```bash
+pinterest-clone
+├── api                               # GraphQL API project application folder.
+│   ├── code                          # Application code.
+│   │   └── graphql                   # GraphQL API application code.
+│   ├── pulumi                        # Cloud infrastructure code.
+│   └── webiny.application.ts         # Project application's manifest file.
+│
+└── app                               # React application project application folder.
+    ├── code                          # React application code.
+    ├── pulumi                        # Cloud infrastructure code.
+    └── webiny.application.ts         # Project application's manifest file.
+```
+
+
 ## Using the Watch Command
 
-Once the scaffold process has been completed, it's time to start building our application.
+Once the scaffolding process has been completed, it's time to start building our application.
 
-In order to do that effectively, we will need the [`webiny watch`](/docs/how-to-guides/use-watch-command) command, which, essentially, does two things. First, it ensures that your application code is automatically built and deployed into the cloud, as you're making changes to it. Second, any changes to the cloud infrastructure code is also detected, and, likewise, will result in cloud infrastructure changes.
+In order to do that effectively, we will need the [`webiny watch`](/docs/how-to-guides/use-watch-command) command, which ensures all of our application and cloud infrastructure code changes are detected, compiled, and automatically deployed into the cloud, when required.
 
-:::info
-Note that, when it comes to frontend development, or, in our case, React application development, the command will not perform any automatic deployments. This is simply because frontend application development can still be performed locally, on the developer's machine. You only deploy the application when you need to have it online.
+:::note
+When it comes to frontend development, or, in our case, React application development, the command will not perform any automatic deployments. This is simply because frontend application development can still be performed locally, on the developer's machine. You only deploy the application when you need to have it online.
 :::
 
-Since the
+Since two separate project applications were created in the scaffolding process, we'll need to run two separate [`webiny watch`](/docs/how-to-guides/use-watch-command) commands.
+
 ### GraphQL API
 
 The following command will start a new watch session on our GraphQL API application code:
 
 ```
-yarn webiny watch api/code/graphql --env dev
+yarn webiny watch pinterest-clone/api --env dev
 ```
-
-A couple of notes here.
-
-#### Watch Path
-
-Instead of `api/code/graphql`, note that we could've also passed `api` as the first argument. But, that would initialize a watch session on the whole **API** project application, which is most probably not what we want. We only want to watch the GraphQL API application code that's deployed as part of it, located within the `api/code/graphql` path.
-
-#### Initial Deployment
-
-Upon initializing a new watch session, all of the application code changes that were performed during the scaffolding process will automatically be deployed into the cloud. Meaning, all of the new GraphQL query and mutation operations should be immediately visible in the remote GraphQL schema.
 
 :::tip Misplaced GraphQL API URL?
-Running the `yarn webiny info` command in your Webiny project folder will give you all of the relevant project URLs, including the URL of your GraphQL API.
+Running the `yarn webiny output pinterest-clone/api --env dev` command from your project root will display all of the values that were exported from your cloud infrastructure code. That includes GraphQL API URL, Amazon DynamoDB table name, and more.
 :::
 
-### Admin Area Application
+### React Application
 
-The following command will start a new watch session on our Admin Area application code:
+The following command will start a new watch session on our React application code:
 
 ```
-yarn webiny watch apps/admin --env dev
+yarn webiny watch pinterest-clone/app --env dev
 ```
+
+:::tip
+Once started, by default, the React application should be locally accessible via [http://localhost:3001](http://localhost:3001).
+:::
 
 #### No Initial Deployment
 
-In contrast to the [GraphQL API](/docs/tutorials/extend-admin-area/getting-started#graphql-api) development, where the application code needs to be redeployed into the cloud as we're making changes to it, Admin Area application can be developed locally. Meaning, once the watch command is run, no automatic deployments will be performed.
+In contrast to the [GraphQL API](/docs/tutorials/extend-admin-area/getting-started#graphql-api) development, where the application code needs to be redeployed into the cloud as we're making changes to it, React application can be developed locally. Meaning, once the watch command is run, no automatic deployments will be performed.
+
+#### Why the `--env` Argument?
+
+Note that we need to specify the environment via the `--env` flag, even when watching the React application. This is because the `watch` and `build` scripts need to pick up some of the values exported from GraphQL API's cloud infrastructure code, for a specific environment. For example, in order to interact with the GraphQL API, the React application needs to know its URL. Since we could potentially have our GraphQL API deployed into several environments, we need to specify it.
 
 ## Final Result
 
-### Watch Commands
-
 The following screenshot shows the two watch commands run side-by-side in two separate terminal sessions:
 
-[IMAGE]
+<CenteredImage alt="Watching GraphQL API and React Application" src={watchCommands}/>
 
-### Admin Area Application
-
-Once the two watch sessions have been started, in our Admin Area application, we should be able to see the new **Car Manufacturers** module and, via the generated [CRUD view](/docs/how-to-guides/scaffolding/extend-admin-area/#new-webiny-admin-area-module), perform essential CRUD operations.
-
-[IMAGE]
-
-:::tip
-By default, the Admin Area application should be locally accessible via [http://localhost:3001](http://localhost:3001).
-:::
-
-## Further Development
-
-Once we got the initial **Car Manufacturers** Admin Area application module working, we can proceed by modifying and extending it to our needs.
-
-Usually, on the GraphQL API side, we'd want to start by extending the [`CarManufacturer` entity](https://github.com/webiny/webiny-examples/blob/master/extend-admin-area/api/code/graphql/src/plugins/scaffolds/carManufacturers/entities/CarManufacturer.ts) and our [GraphQL schema](https://github.com/webiny/webiny-examples/blob/master/extend-admin-area/api/code/graphql/src/plugins/scaffolds/carManufacturers/typeDefs.ts) with new attributes and fields, respectively. Once we're done, we'd then continue by propagating the same changes to the Admin Area application, by adding new form fields to the [`CarManufacturersForm`](https://github.com/webiny/webiny-examples/blob/master/extend-admin-area/apps/admin/code/src/plugins/scaffolds/carManufacturers/views/CarManufacturersForm.tsx) React component and updating relevant [GraphQL queries and mutations](https://github.com/webiny/webiny-examples/blob/master/extend-admin-area/apps/admin/code/src/plugins/scaffolds/carManufacturers/views/hooks/graphql.ts).
-
-To learn more, continue reading the following [Extending Entities](/docs/tutorials/extend-admin-area/extending-entities) section.
+Once the two watch sessions have been started, we can start building our application. In the next section, we'll start by extending the GraphQL API with a basic set of CRUD GraphQL query and mutation operations.
 
 ## FAQ
 
 #### Which database is used in the generated GraphQL API application code?
 
-The generated GraphQL API application code relies exclusively on [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) for storing and retrieving data. Of course, you're certainly free to [bring your own](/docs/how-to-guides/scaffolding/extend-graphql-api#storing-and-retrieving-data) databases and import different database clients, if need be.
+The generated GraphQL API application code relies exclusively on [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) for storing and retrieving data. Of course, you're certainly free to [bring your own](/docs/how-to-guides/scaffolding/extend-graphql-api#storing-and-retrieving-data) databases and import different database clients, if need be. In essence, this will require you to remove the Amazon DynamoDB table definition in the cloud infrastructure code, and integrate the preferred database client in your application code.
 
 #### Do I need to deploy the created React application in order to continue development?
 
