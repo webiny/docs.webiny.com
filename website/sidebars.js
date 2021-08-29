@@ -41,6 +41,7 @@ module.exports = {
                     items: [
                         "tutorials/create-custom-application/introduction",
                         "tutorials/create-custom-application/getting-started",
+                        "tutorials/create-custom-application/extending-graphql-api",
                         // "tutorials/create-custom/getting-started",
                         // "tutorials/create-custom/extending-entities",
                         // // "tutorials/extend-admin-area/testing",
