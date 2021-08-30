@@ -185,33 +185,7 @@ module.exports = {
                 "how-to-guides/extend-graphql-api",
                 "how-to-guides/environment-variables",
                 "how-to-guides/use-watch-command",
-                {
-                    type: "category",
-                    label: "Upgrade Webiny",
-                    items: [
-                        "how-to-guides/upgrade-webiny/overview",
-                        "how-to-guides/upgrade-webiny/5.13.0-to-5.14.0",
-                        "how-to-guides/upgrade-webiny/5.12.0-to-5.13.0",
-                        "how-to-guides/upgrade-webiny/5.11.1-to-5.12.0",
-                        "how-to-guides/upgrade-webiny/5.11.0-to-5.11.1",
-                        "how-to-guides/upgrade-webiny/5.10.0-to-5.11.0",
-                        {
-                            type: "category",
-                            label: "Older Upgrades",
-                            items: [
-                                "how-to-guides/upgrade-webiny/5.9.0-to-5.10.0",
-                                "how-to-guides/upgrade-webiny/5.8.0-to-5.9.0",
-                                "how-to-guides/upgrade-webiny/5.7.0-to-5.8.0",
-                                "how-to-guides/upgrade-webiny/5.6.0-to-5.7.0",
-                                "how-to-guides/upgrade-webiny/5.5.0-to-5.6.0",
-                                "how-to-guides/upgrade-webiny/5.4.0-to-5.5.0",
-                                "how-to-guides/upgrade-webiny/5.3.0-to-5.4.0",
-                                "how-to-guides/upgrade-webiny/5.0.0-to-5.1.0",
-                                "how-to-guides/upgrade-webiny/5.0.0-beta.4-to-5.0.0",
-                            ],
-                        },
-                    ],
-                },
+                "how-to-guides/upgrade-webiny",
             ],
             "Key Topics": [
                 {
@@ -339,24 +313,99 @@ module.exports = {
             Contributing: ["contributing/documentation", "contributing/new-page-template"],
         },
         {
-            Changelog: [
-                "changelog/5.14.0",
-                "changelog/5.13.0",
-                "changelog/v5.12.0",
-                "changelog/5.11.1",
-                "changelog/5.11.0",
+            "Release Notes": [
+                {
+                    type: "category",
+                    label: "5.14.0",
+                    items: ["release-notes/5.14.0/changelog", "release-notes/5.14.0/upgrade-guide"],
+                },
+                {
+                    type: "category",
+                    label: "5.13.0",
+                    items: ["release-notes/5.13.0/changelog", "release-notes/5.13.0/upgrade-guide"],
+                },
+                {
+                    type: "category",
+                    label: "5.12.0",
+                    items: ["release-notes/5.12.0/changelog", "release-notes/5.12.0/upgrade-guide"],
+                },
+                {
+                    type: "category",
+                    label: "5.11.1",
+                    items: ["release-notes/5.11.1/changelog", "release-notes/5.11.1/upgrade-guide"],
+                },
+                {
+                    type: "category",
+                    label: "5.11.0",
+                    items: ["release-notes/5.11.0/changelog", "release-notes/5.11.0/upgrade-guide"],
+                },
                 {
                     type: "category",
                     label: "Older Releases",
                     items: [
-                        "changelog/5.10.0",
-                        "changelog/5.9.0",
-                        "changelog/5.8.0",
-                        "changelog/5.7.0",
-                        "changelog/5.6.0",
-                        "changelog/5.5.0",
-                        "changelog/5.4.0",
-                        "changelog/5.3.0",
+                        {
+                            type: "category",
+                            label: "5.10.0",
+                            items: [
+                                "release-notes/5.10.0/changelog",
+                                "release-notes/5.10.0/upgrade-guide",
+                            ],
+                        },
+                        {
+                            type: "category",
+                            label: "5.9.0",
+                            items: [
+                                "release-notes/5.9.0/changelog",
+                                "release-notes/5.9.0/upgrade-guide",
+                            ],
+                        },
+                        {
+                            type: "category",
+                            label: "5.8.0",
+                            items: [
+                                "release-notes/5.8.0/changelog",
+                                "release-notes/5.8.0/upgrade-guide",
+                            ],
+                        },
+                        {
+                            type: "category",
+                            label: "5.7.0",
+                            items: [
+                                "release-notes/5.7.0/changelog",
+                                "release-notes/5.7.0/upgrade-guide",
+                            ],
+                        },
+                        {
+                            type: "category",
+                            label: "5.6.0",
+                            items: [
+                                "release-notes/5.6.0/changelog",
+                                "release-notes/5.6.0/upgrade-guide",
+                            ],
+                        },
+                        {
+                            type: "category",
+                            label: "5.5.0",
+                            items: [
+                                "release-notes/5.5.0/changelog",
+                                "release-notes/5.5.0/upgrade-guide",
+                            ],
+                        },
+                        {
+                            type: "category",
+                            label: "5.4.0",
+                            items: [
+                                "release-notes/5.4.0/changelog",
+                                "release-notes/5.4.0/upgrade-guide",
+                            ],
+                        },
+                        {
+                            type: "category",
+                            label: "5.3.0",
+                            items: [
+                                "release-notes/5.3.0/changelog"
+                            ],
+                        },
                     ],
                 },
             ],
