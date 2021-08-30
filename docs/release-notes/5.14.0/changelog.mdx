@@ -1,0 +1,77 @@
+---
+id: changelog
+title: Webiny 5.14.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.14.0", "changelog"]
+description: See what's new in Webiny version 5.14.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import pagePreviewNotWorking from "./page-preview-not-working.png"
+
+# Changes
+
+This document highlights the most important fixes, improvements, and features, that were introduced in Webiny `5.14.0`.
+
+:::info How To Upgrade?
+
+Please check the [Webiny 5.14.0 migration guide](/docs/release-notes/5.14.0/upgrade-guide) for the upgrade steps.
+
+:::
+
+## Page Builder
+
+### Fixed Previewing Pages via Page Builder Editor ([#1883](https://github.com/webiny/webiny-js/pull/1883))
+
+In some cases, previewing draft pages via the Page Builder editor would not work, because, in the page preview URL, the `__tenant` query parameter wouldn't be set correctly. You might have noticed the weird `[object Object]` value assigned to it.
+
+<CenteredImage alt="Page Builder Editor - Page Preview Not Working" src={pagePreviewNotWorking} />
+
+
+This has now been addressed, page previewing should work correctly.
+
+## Development
+
+### React Application Scaffold
+
+#### Enabled Imports Using Tilde ([#1881](https://github.com/webiny/webiny-js/pull/1881))
+
+We've received several reports of import statements using the tilde (**~**) symbol not working. for example:
+
+```ts
+import myComponent from "~/components/Layout";
+```
+
+This was the case only for frontend (React) applications. On the GraphQL APIs side, this worked as expected.
+
+In any case, an addition to the built-in Webpack configuration has been made, so from now on, this should work as expected.
+
+#### Using System Font ([#1882](https://github.com/webiny/webiny-js/pull/1882))
+
+The application code that was generated during the [React Application](/docs/how-to-guides/scaffolding/react-application) scaffolding process would import a custom font. In almost all cases, the font would not be available on user's machine, making the application a bit less visually appealing.
+
+Because of this, we've switched to the **Trebuchet MS, sans-serif** system font, so that everybody gets a consistent initial look of the application.
+
+### Full Stack Application Scaffold
+
+#### `webiny.config.ts` Updated Correctly ([#1882](https://github.com/webiny/webiny-js/pull/1882))
+
+In some cases, upon using the recently introduced [Full Stack Application](/docs/how-to-guides/scaffolding/full-stack-application) scaffold, the [`webiny.config.ts`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-full-stack-app/templates/essentials/code/webiny.config.ts) file would not get updated correctly. This would result in the React application not being able to communicate with the deployed GraphQL API, leaving the user confused and unable to continue.
+
+The file in question is now correctly updated during the scaffolding process, so you can start building your application without any unexpected blockers on the way.
+
+### CI/CD Scaffold
+
+#### All Existing Repositories Visible ([@IzioDev](https://github.com/IzioDev), [#1877](https://github.com/webiny/webiny-js/pull/1877))
+
+While going through the [CI/CD](/docs/how-to-guides/scaffolding/ci-cd) scaffold's setup wizard, if a user wanted to use an existing GitHub repository, the repositories list would only show the first one hundred entries. So, if a user had more than one hundred repositories, she/he would not be able to pick the wanted one, forcing the user to perform all kinds of workarounds to be able to complete the wizard.
+
+Special thanks to [IzioDev](https://github.com/IzioDev) for taking care of this.
+
+### Custom Apollo InMemoryCache ([#1884](https://github.com/webiny/webiny-js/pull/1884))
+
+In Webiny 5.7.0 we introduced an [ApolloDynamicLink](/docs/release-notes/5.7.0/changelog/#apollodynamiclink) plugin which allows you to hook into apollo-client link chain using plugins (instead of hard coding them during apollo-client setup). With that, we added support for modifying the query being executed, by using `AddQuerySelectionPlugin` plugin, which allows you to add new selection sets to the query.
+
+Recently, we discovered that, when data is returned from Apollo cache, it does not process apollo-client links, at all. This behaviour breaks the results returned from cache, if you're using `AddQuerySelectionPlugin` to add new selection sets to the GraphQL queries.
+
+With this release, we're introducing an extended `InMemoryCache` class which _does_ process `AddQuerySelectionPlugin` plugins to construct the correct query. Luckily, Apollo uses classes which allowed us to fix the issue without dirty hacks or forks! :rocket: :tada:

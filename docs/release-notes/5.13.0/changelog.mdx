@@ -1,0 +1,96 @@
+---
+id: changelog
+title: Webiny 5.13.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.13.0", "changelog"]
+description: See what's new in Webiny version 5.13.0.
+---
+
+# Changes
+
+This document highlights the most important fixes, improvements, and features, that were introduced in Webiny `5.13.0`.
+
+:::info How To Upgrade?
+
+Please check the [Webiny 5.13.0 migration guide](/docs/release-notes/5.13.0/upgrade-guide) for the upgrade steps.
+
+:::
+
+## Development
+
+### Three New Scaffolds ([#1839](https://github.com/webiny/webiny-js/pull/1839))
+
+The highlight of this release - we bring you three brand new scaffolds that are focused on aiding developers in custom application development. The three scaffolds are:
+
+- [Full Stack Application](/docs/how-to-guides/scaffolding/full-stack-application)
+- [GraphQL API](/docs/how-to-guides/scaffolding/graphql-api)
+- [React Application](/docs/how-to-guides/scaffolding/react-application)
+
+To get started, simply run the existing `webiny scaffold` command and pick the scaffold you need. On the other hand, if you'd like to learn more, you can check out the linked how-to guides.
+
+Finally, we're also working on a brand new **Create Custom Application** tutorial, which will show you step-by-step how to utilize these scaffolds, and also how to build on top of them. Stay tuned!
+
+### New `types.ts` Declaration File In GraphQL API Application Code ([#1839](https://github.com/webiny/webiny-js/pull/1839))
+
+By default, every Webiny project starts with two GraphQL APIs. The default one, which is being utilized by all of the Webiny applications like Page Builder, Form Builder, and others. And, the Headless CMS GraphQL API, which is a standalone GraphQL API, used only for content management, preview, and reading purposes.
+
+When it comes to custom development or extending these, one of the frictions we've seen developers were experiencing was figuring out what is the `context` object and what are the properties it consists of. This is especially important while creating custom GraphQL field resolver functions.
+
+:::tip
+The `context` object is extended via [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/cli-scaffold-react-app/packages/handler/src/plugins/ContextPlugin.ts#L7) plugins, which is what all of the default Webiny applications are using as well. But, most likely, you will be interacting with it in your GraphQL resolver functions.
+:::
+
+So, to improve the developer experience, in the application code of both GraphQL APIs, we've added the new `types.ts` file, which export the `Context` interface that completely describes the `context` object. To use it in your custom application code, for example in a custom GraphQL resolver function, simply import the interface and pass it to the `GraphQLSchemaPlugin` plugin, for example:
+
+```ts title="Using the New Context Interface and Passing It to the ContextPlugin Plugin." {3,4,6,7}
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
+
+// The `Context` interface can be easily imported via the `~/types` path.
+import { Context } from "~/types";
+
+// Pass the Context interface to the `GraphQLSchemaPlugin` plugin.
+export default new GraphQLSchemaPlugin<Context>({
+  typeDefs: (...),
+  resolvers: {
+    Query: {
+      listBooks: async (_, args, context) => {
+        (...)
+      }
+    }
+  }
+});
+```
+
+Except for the ability to interact with the `context` object in a type-safe manner, another benefit of this approach is easier usage. All of the properties of the `context` object will now be shown by your IDE, in an autocomplete dropdown menu.
+
+The existing guides that cover extending GraphQL APIs were also updated, so make sure to [check them out](/docs/how-to-guides/extend-graphql-api) to learn more:
+
+### Yarn 3 Support ([#1862](https://github.com/webiny/webiny-js/pull/1862))
+You can now use [Yarn 3](https://github.com/yarnpkg/berry) with your existing projects, and all new Webiny projects will be created with Yarn 3. Yarn project is using the codename **berry** for all their releases. To prevent unexpected problems as major version releases occur, our CLI and **create-webiny-project** utility will have the supported versions of Yarn whitelisted. Currently, we allow versions 2 and 3, and we'll keep adding new versions when they arrive, only after thorough testing.
+
+### Non-default AWS Profiles Now Work As Expected ([#1839](https://github.com/webiny/webiny-js/pull/1839))
+
+When specifying a non-default AWS profile via an environment variable, for example via the root `.env` file, users would experience an issue at the end of the project deployment. More specifically, after all of the cloud infrastructure resources of the **Website** project application were deployed, several AWS Lambda function invocations would fail, because the AWS profile wasn't properly assumed.
+
+This has now been taken care of and you should be able to successfully deploy your Webiny project with a non-default AWS profile.
+
+:::info
+Check out the [Use AWS Profiles](/docs/how-to-guides/deployment/aws/use-aws-profiles/) how-to guide to learn how to use different AWS profiles upon deploying your Webiny project.
+:::
+
+### Fix `watch` on Windows ([#1848](https://github.com/webiny/webiny-js/pull/1848))
+There's currently a bug in the Pulumi path detection for file watching, so on Windows, where paths start with **C:**, etc., Pulumi thinks it's a relative path, and constructs a wrong file path to watch. To bypass this issue, and get the [watch](/docs/how-to-guides/use-watch-command/#webiny-watch-command) command to work on Windows, we've temporarily disabled path filtering on Windows.
+
+Watch works just a good, but you might experience a case of double update on Lambda functions. Not a major problem, just a little detail you'll most likely not even notice, if you don't pay attention to deploy logs.
+
+### Allow Links To Be Rendered in the Menu Group ([#1857](https://github.com/webiny/webiny-js/pull/1857))
+With the introduction of [Webiny UI Composer](/docs/key-topics/ui-composer/introduction), in Admin Area, navigation menu items are now rendered using the new concept of [renderers](/docs/key-topics/ui-composer/creating-elements#enabling-support-for-renderers). Unfortunately, it did not include a renderer for links as a direct child of a menu group. With this release, we've improved one of the renderers to handle both 2-level and 3-level menu hierarchy.
+
+:::note
+Users who used the [Extend Admin Area](/docs/how-to-guides/scaffolding/extend-admin-area) scaffold were the first to experience this issue, as the main-menu items that were created during the scaffolding process simply weren't clickable.
+:::
+
+### Add `.mjs` Webpack Rule ([#1852](https://github.com/webiny/webiny-js/pull/1852))
+When including a third-party dependency into your GraphQL Lambda functions, if that dependency uses JS modules (`.mjs` extension), webpack bundling would fail. We've now added a rule to properly bundle `.mjs` files.
+
+Shout out to [@econtentmaps](https://github.com/econtentmaps) for testing the fix! :raised_hands: :heart:

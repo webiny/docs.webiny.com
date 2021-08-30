@@ -1,0 +1,108 @@
+---
+id: upgrade-guide
+title: Upgrade from 5.4.0 to 5.5.0
+sidebar_label: Upgrade Guide
+keywords: ["webiny", "version", "upgrade", "5.4.0", "5.5.0"]
+description: Learn how to upgrade Webiny from 5.4.0 to 5.5.0.
+---
+
+:::tip What you’ll learn
+- how to upgrade Webiny from 5.4.0 to 5.5.0
+:::
+
+:::danger
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny#-precaution-measures) section.
+:::
+
+:::info
+Make sure to check out the [5.5.0 changelog](/docs/release-notes/5.5.0/changelog) to get familiar with all the changes  introduced in this release.
+:::
+
+## Upgrade Webiny Packages
+
+The first step is to upgrade all `@webiny/*` packages, which can be done by running the following command in the root of your project:
+
+```bash
+# Execute in your project root.
+yarn up "@webiny/*@5.5.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.5.0`.
+
+## Upgrade Webiny Project
+
+:::caution
+Before running the below `webiny upgrade` command, please run the following from your project root:
+
+```bash
+npx https://gist.github.com/doitadrian/80c1407e3b513f8e1daaf77ae9e4703b
+```
+
+Running this command will apply a minor fix to the `webiny upgrade` command that you're about to execute.
+:::
+
+This release includes a couple of smaller changes on the project organization level. To make it easier, we provide a simple [Webiny CLI](/docs/key-topics/webiny-cli) command that will automatically make all the necessary adjustments for you.
+
+Once you've run the above upgrade command, run the following:
+
+```bash
+# Execute in your project root.
+yarn webiny upgrade 5.5.0
+```
+
+:::info
+Before running the `webiny upgrade` command, we recommend that you commit any active code changes you might have in your working branch.
+:::
+
+### Additional Manual Upgrade Steps
+
+Once the `webiny upgrade` command has finished, a couple of manual steps remain to be completed, after which, your project should be completely updated.
+
+You can then proceed by committing the changes to your working branch and trying to [deploy](/docs/how-to-guides/deployment/deploy-your-project) the project to one of the development or pre-production environment.
+
+#### 1. Add `apolloLinks.ts` file (located in your Website project application)
+
+In your **Website** project application (`apps/website`), we need to add the new [`apolloLinks.ts`](https://github.com/webiny/webiny-js/blob/v5.5.0/packages/cwp-template-aws/template/apps/website/code/src/plugins/apolloLinks.ts) file, that contains a couple of plugins, necessary for resolving a couple of pre-rendering related [issues](https://github.com/webiny/webiny-js/pull/1569).
+
+Copy and paste the above mentioned `apolloLinks.ts` file to `apps/website/code/src/plugins/apolloLinks.ts`, and also, make sure it's imported in the [index.ts](https://github.com/webiny/webiny-js/blob/v5.5.0/packages/cwp-template-aws/template/apps/website/code/src/plugins/index.ts), located in the same `plugins` folder:
+
+```ts title="apps/website/code/src/plugins/index.ts" {5,9}
+import { plugins } from "@webiny/plugins";
+import imageComponent from "@webiny/app/plugins/image";
+import pageBuilder from "./pageBuilder";
+import formBuilder from "./formBuilder";
+import apolloLinks from "./apolloLinks";
+
+import theme from "theme";
+
+plugins.register([imageComponent(), pageBuilder, formBuilder, apolloLinks(), theme()]);
+```
+
+#### 2. Update `Page` React component (located in your Website project application)
+
+Open your `/apps/website/code/src/components/Page/index.tsx` file and replace its content with [the new one](https://github.com/webiny/webiny-js/blob/v5.5.0/packages/cwp-template-aws/template/apps/website/code/src/components/Page/index.tsx). This change is also related to new pre-rendering related fixes.
+
+#### 3. Optionally, add necessary environment variables to enable newly introduced logs forwarding
+
+The new `webiny watch` command enables you to [stream logs](/docs/release-notes/5.5.0/changelog#logs) from your application code directly to your terminal. And while all new projects will have this feature automatically enabled, there are a couple of manual steps that needs to be done for projects that are making the upgrade to version `5.5.0`.
+
+In [api/pulumi/dev/index.ts](https://github.com/webiny/webiny-js/blob/v5.5.0/packages/cwp-template-aws/template/api/pulumi/dev/index.ts), upon instantiating both `Graphql` and `HeadlessCMS` classes, make sure to pass the `WEBINY_LOGS_FORWARD_URL: String(process.env.WEBINY_LOGS_FORWARD_URL)` as an environment variable.
+
+With that, you will also need to add the `@webiny/handler-logs` dependency to [`api-graphql`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/package.json#L27) and [`api-headless-cms`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/headlessCMS/package.json#L21) packages, and register its plugins in respective [index.ts](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/src/index.ts#L25) / [index.ts](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/headlessCMS/src/index.ts#L17) files.
+
+This will enable logs forwarding for your main GraphQL API and HeadlessCMS GraphQL API Lambda functions.
+
+#### 4. Fix the `buildFunction` in the `transform` Lambda Function Handler
+
+We've received several reports of the [`webiny.config.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/fileManager/transform/webiny.config.ts#L1) not importing the correct `buildFunction`. Before doing any deployments, please ensure that the config file imports the correct `buildFunction`:
+
+```tsx
+import { buildFunction } from "@webiny/api-file-manager/handlers/transform/bundle";
+```
+
+## Upgrade Headless CMS Permissions
+After a successful deployment, open your Admin Area to execute the automated upgrade of Headless CMS permissions. It will update permissions data structure on user groups and API keys.
+
+:::caution
+We recommend verifying your CMS permissions after the upgrade, to make sure they reflect exactly what is expected.
+:::
