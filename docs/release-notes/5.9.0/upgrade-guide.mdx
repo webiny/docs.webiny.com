@@ -1,0 +1,100 @@
+---
+id: upgrade-guide
+title: Upgrade from 5.8.0 to 5.9.0
+sidebar_label: Upgrade Guide
+keywords: ["webiny", "version", "upgrade", "5.8.0", "5.9.0"]
+description: Learn how to upgrade Webiny from 5.8.0 to 5.9.0.
+---
+
+:::tip What you’ll learn
+
+- how to upgrade Webiny from 5.8.0 to 5.9.0
+
+:::
+
+:::danger
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny#-precaution-measures) section.
+:::
+
+:::info
+Make sure to check out the [5.9.0 changelog](/docs/release-notes/5.9.0/changelog) to get familiar with all the changes introduced in this release.
+:::
+
+## 1. Project Preparation
+
+First, we need to prepare your project for the upgrade process. With security packages refactor, some packages no longer exist, and if we try to upgrade dependencies straight away, `yarn` will complain. To fix that, we need to clean up your project first, to eliminate references to those deprecated packages.
+
+In your project root, run the following:
+
+```bash
+npx https://gist.github.com/Pavel910/abc4c063eae8c18754d6a026d1fc1d06
+```
+
+## 2. Upgrade Webiny Packages
+
+We're now ready to upgrade all `@webiny/*` packages! Run the following command:
+
+```bash
+yarn up "@webiny/*@5.9.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.9.0`.
+
+:::info
+Before moving on, make sure you commit all your changes.
+:::
+
+## 3. Run the Upgrade Command
+
+Now let's run the project upgrade:
+
+```bash
+yarn webiny upgrade 5.9.0
+```
+
+The upgrade script will make a couple of changes to your existing **API** project application's code (located within the `api` folder). Once the upgrade command has finished, you can run the [`git status`](https://git-scm.com/docs/git-status) command to see all changes that the command performed.
+
+## 4. Post Upgrade Script
+
+To finalize the upgrade, run the following command:
+
+```bash
+npx https://gist.github.com/Pavel910/4a7a9694945fffcc65b293de8091116b
+```
+
+This takes care of a small glitch in the upgrade process, which we noticed _after_ we released the 5.9.0 code. Gists to the rescue!
+
+## 5. Deploy Your Project
+
+Finally, proceed by re-deploying your Webiny project:
+
+```bash
+# Execute in your project root.
+yarn webiny deploy --env {environment}
+```
+
+:::caution
+As stated in the [Overview](/docs/how-to-guides/upgrade-webiny#pre-production-environments-first) section, we recommend that you first deploy your changes into one of your pre-production environments, like `dev` or `staging`.
+:::
+
+:::tip
+Learn more about different deployment environments in the [CI/CD / Environments](/docs/key-topics/ci-cd/environments) key topic.
+:::
+
+## Additional Steps and Notes
+
+### GraphQL API Package Scaffold
+
+If you've been using the **GraphQL API Package** scaffold in your Webiny project prior to the `5.9.0` release, you will have to revisit the created [`types.ts`](https://github.com/webiny/webiny-js/blob/v5.8.0/packages/cli-plugin-scaffold-graphql-service/template/src/types.ts#L7) file for each created package, and replace the following line:
+
+```ts
+import { TenancyContext } from "@webiny/api-security-tenancy/types";
+```
+
+Replace it with the following import statement:
+
+```ts
+import { TenancyContext } from "@webiny/api-tenancy/types";
+```
+
+This change is required simply because the `@webiny/api-security-tenancy` package doesn't exist anymore. Note that the new `@webiny/api-tenancy` package should already exist in your project, so there's no need to add it manually.

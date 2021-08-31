@@ -1,0 +1,113 @@
+---
+id: upgrade-guide
+title: Upgrade from 5.10.0 to 5.11.0
+sidebar_label: Upgrade Guide
+keywords: ["webiny", "version", "upgrade", "5.10.0", "5.11.0"]
+description: Learn how to upgrade Webiny from 5.10.0 to 5.11.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import firstDeployAfterUpgrade from "./upgrade-guide/first-deploy-after-upgrade.png";
+import pulumiCliError from "./upgrade-guide/pulumi-cli-error.png";
+
+:::tip What you’ll learn
+
+- how to upgrade Webiny from 5.10.0 to 5.11.0
+
+:::
+
+:::danger
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny#-precaution-measures) section.
+:::
+
+:::info
+Make sure to check out the [5.11.0 changelog](/docs/release-notes/5.11.0/changelog) to get familiar with all the changes introduced in this release.
+:::
+
+## 1. Upgrade Webiny Packages
+
+Upgrade all `@webiny/*` packages by running the following command:
+
+```bash
+yarn up "@webiny/*@5.11.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.11.0`.
+
+:::info
+Before moving on, make sure you commit all your changes.
+:::
+
+## 2. Run the Upgrade Command
+
+The next step is to run the project upgrade:
+
+```bash
+yarn webiny upgrade 5.11.0
+```
+
+Once the upgrade command has finished, you can run the [`git status`](https://git-scm.com/docs/git-status) command to see all changes that the command performed.
+
+## 3. Deploy Your Project
+
+Finally, proceed by re-deploying your Webiny project:
+
+```bash
+# Execute in your project root.
+yarn webiny deploy --env {environment}
+```
+
+:::caution
+As stated in the [Overview](/docs/how-to-guides/upgrade-webiny#pre-production-environments-first) section, we recommend that you first deploy your changes into one of your pre-production environments, like `dev` or `staging`.
+:::
+
+:::tip
+Learn more about different deployment environments in the [CI/CD / Environments](/docs/key-topics/ci-cd/environments) key topic.
+:::
+
+## Additional Notes
+
+### Pulumi v3 Upgrade
+
+:::danger
+As stated in the [Overview](/docs/how-to-guides/upgrade-webiny#pre-production-environments-first) section, to prevent any data loss or other critical problems that might occur while upgrading, we recommend that you first deploy your changes into one of your pre-production environments, like `dev` or `staging`.
+:::
+
+As mentioned in the [changelog](/docs/release-notes/5.11.0/changelog), from the 5.11.0 release, all Webiny projects will use [Pulumi](/docs/key-topics/deployment/iac-with-pulumi) v3.
+
+In terms of existing projects and upgrading, there shouldn't be any major changes or extra steps that you'll need to perform. But, there are a couple of things to have in mind.
+
+Once you've run the above shown `webiny upgrade` command, the existing Pulumi CLI should automatically be removed from your project. And, upon re-deploying your Webiny project (using the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command), the new Pulumi CLI should be downloaded and installed, again automatically.
+
+Furthermore, during the first deployment, in case you didn't make any changes that would affect the deployment, you should only see a change in `provider` for each cloud infrastructure resource:
+
+<CenteredImage src={firstDeployAfterUpgrade} alt="First Deploy After Upgrade"/>
+
+In order to test this out, we suggest you use the `--preview` flag, which will enable you to see all of the changes that will be performed in the new deployment, for example:
+
+```bash
+yarn webiny deploy api --env {env} --preview
+```
+
+#### Troubleshooting
+
+In case something is not behaving as expected, we recommend you check the following things.
+
+If the suggested solutions to mentioned problems still don't help, feel free to contact us via our [community Slack](https://www.webiny.com/slack), we'd be glad to provide additional assistance.
+
+##### Ensure All Packages Are at the Exact Same Version
+
+In a couple of cases, we've seen multiple versions of the [`@pulumi/pulumi`](https://www.npmjs.com/package/@pulumi/pulumi) package being used within a single Webiny project. This should not happen.
+
+You can use the `yarn why @pulumi/pulumi` command to see which package versions are being used.
+
+If it turns out that multiple package versions are being used, then try running `yarn` from your project root, or simply install all dependencies from scratch, for example by cloning the project and installing.
+
+##### Ensure There Is No Pulumi CLI Globally Installed
+
+A couple of times, we've seen the following error starting to occur, after a Webiny project was upgraded to 5.11.0:
+
+<CenteredImage src={pulumiCliError} alt="Pulumi CLI Error"/>
+
+We've discovered that this issue can be resolved by simply removing Pulumi CLI as a globally installed tool. For example, if you were using MacOS and installed the Pulumi CLI via [Homebrew](https://brew.sh/), then uninstalling it via `brew uninstall pulumi` would solve the shown issue.
+

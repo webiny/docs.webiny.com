@@ -1,0 +1,131 @@
+---
+id: upgrade-guide
+title: Upgrade from 5.5.0 to 5.6.0
+sidebar_label: Upgrade Guide
+keywords: ["webiny", "version", "upgrade", "5.5.0", "5.6.0"]
+description: Learn how to upgrade Webiny from 5.5.0 to 5.6.0.
+---
+
+:::tip What you’ll learn
+- how to upgrade Webiny from 5.5.0 to 5.6.0
+:::
+
+:::danger
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny#-precaution-measures) section.
+:::
+
+:::info
+Make sure to check out the [5.6.0 changelog](/docs/release-notes/5.6.0/changelog) to get familiar with all the changes  introduced in this release.
+:::
+
+## Upgrade Webiny Packages
+
+The first step is to upgrade all `@webiny/*` packages, which can be done by running the following command in the root of your project:
+
+```bash
+# Execute in your project root.
+yarn up "@webiny/*@5.6.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.6.0`.
+
+## Upgrade Page Builder Plugins
+
+### Add Navigator Plugin
+
+In your [`apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts`](https://github.com/webiny/webiny-js/blob/next/apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts#L117)
+file, add the `navigator` toolbar plugin after `addElement` plugin as shown below:
+
+```ts title="apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts" {3,10}
+// Toolbar
+import addElement from "@webiny/app-page-builder/editor/plugins/toolbar/addElement";
+import navigator from "@webiny/app-page-builder/editor/plugins/toolbar/navigator";
+(...)
+
+export default [
+  (...)
+  // Toolbar
+  addElement,
+  navigator(),
+  (...)
+];
+
+```
+
+### Add Visibility Element Settings Plugin
+
+To start using the _Visibility element Settings_, you need to make the following changes:
+
+1. In your [`apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts`](https://github.com/webiny/webiny-js/blob/next/apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts#L138)
+file, add the `visibility` element settings editor plugin as shown below:
+
+```ts title="apps/admin/code/src/plugins/pageBuilder/editorPlugins.ts" {2,8}
+// Element settings
+import visibility from "@webiny/app-page-builder/editor/plugins/elementSettings/visibility";
+(...)
+
+export default [
+  (...)
+  // Element settings
+  visibility,
+  (...)
+];
+```
+
+2. In your [`apps/admin/code/src/plugins/pageBuilder/renderPlugins.ts`](https://github.com/webiny/webiny-js/blob/next/apps/admin/code/src/plugins/pageBuilder/renderPlugins.ts#L72)
+file, add the `visibility` element settings render plugin as shown below:
+
+```ts title="apps/admin/code/src/plugins/pageBuilder/renderPlugins.ts" {2,8}
+// Element settings
+import visibility from "@webiny/app-page-builder/render/plugins/elementSettings/visibility";
+(...)
+
+export default [
+  (...)
+  // Element settings
+  visibility,
+  (...)
+];
+```
+
+3. In your [`apps/website/code/src/plugins/pageBuilder.ts`](https://github.com/webiny/webiny-js/blob/next/apps/website/code/src/plugins/pageBuilder.ts#L88)
+file, add the `visibility` element settings render plugin as shown below:
+
+```ts title="apps/website/code/src/plugins/pageBuilder.ts" {4,10}
+/**
+ * Page element settings plugins.
+ */
+import visibility from "@webiny/app-page-builder/render/plugins/elementSettings/visibility";
+(...)
+
+export default [
+  (...)
+  // Page element settings
+  visibility,
+  (...)
+];
+```
+
+
+## Upgrade Page Builder Theme Typography Styles
+
+In your [`apps/theme/pageBuilder/styles/elements/typography.scss`](https://github.com/webiny/webiny-js/blob/next/apps/theme/pageBuilder/styles/elements/typography.scss#L69) file, add the following code:
+
+```scss
+(...)
+// Formatting styles for text
+.webiny-pb-page-element-text {
+  & b {
+    font-weight: bold;
+  }
+
+  & u {
+    text-decoration: underline;
+  }
+
+  & i {
+    font-style: italic;
+  }
+}
+(...)
+```

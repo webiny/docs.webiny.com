@@ -1,0 +1,76 @@
+---
+id: upgrade-guide
+title: Upgrade from 5.7.0 to 5.8.0
+sidebar_label: Upgrade Guide
+keywords: ["webiny", "version", "upgrade", "5.7.0", "5.8.0"]
+description: Learn how to upgrade Webiny from 5.7.0 to 5.8.0.
+---
+
+:::tip What you’ll learn
+- how to upgrade Webiny from 5.7.0 to 5.8.0
+:::
+
+:::danger
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny#-precaution-measures) section.
+:::
+
+:::info
+Make sure to check out the [5.8.0 changelog](/docs/release-notes/5.8.0/changelog) to get familiar with all the changes  introduced in this release.
+:::
+
+## 1. Upgrade Webiny Packages
+
+The first step is to upgrade all `@webiny/*` packages, which can be done by running the following command in the root of your project:
+
+```bash
+# Execute in your project root.
+yarn up "@webiny/*@5.8.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.8.0`.
+
+## 2. Upgrade API Project Application's Code
+
+Once all of the Webiny packages have been upgraded, continue by running the following upgrade command:
+
+```bash
+# Execute in your project root.
+yarn webiny upgrade 5.8.0
+```
+
+The upgrade script will make a couple of changes to your existing **API** project application's code (located within the `api` folder). Once the upgrade command has finished, you can run the [`git status`](https://git-scm.com/docs/git-status) command to see all changes that the command performed.
+
+:::info
+Before running the `webiny upgrade` command, we recommend that you commit any active code changes you might have in your working branch.
+:::
+
+## 3. Deploy Your Project and Finish the Upgrade in the Webiny Admin Area
+
+Finally, proceed by re-deploying your Webiny project:
+
+```bash
+# Execute in your project root.
+yarn webiny deploy --env {environment}
+```
+
+Then, open your existing Admin Area application in your browser, and follow the instructions presented in the upgrade wizard. Note that, depending on the amount of data in the database, the upgrade process might take anywhere from a few seconds to a couple of minutes in order to finish.
+
+:::info
+If the upgrade wizard does not show, try clearing cookies, local storage, and logging back in. If the problem persists, verify that the previous steps were performed correctly. Finally, for further assistance, please don't hesitate to post a question in our [Community Slack #help](https://webiny-community.slack.com/archives/C014Y0HGJ0Y) channel.
+:::
+
+:::caution
+As stated in the [Overview](/docs/how-to-guides/upgrade-webiny#pre-production-environments-first) section, we recommend that you first deploy your changes into one of your pre-production environments, like `dev` or `staging`.
+:::
+
+## Optional - Upgrade Custom Elasticsearch Plugins
+
+:::info
+The following only applies to users who have created custom Elasticsearch plugins in their application code.
+:::
+
+In this release, we introduced the [elastic-ts](https://github.com/jacobwgillespie/elastic-ts) package, which enables us to have a more robust Typescript support while writing Elasticsearch-related code (for example, performing Elasticsearch queries).
+
+Due to changing from our own types to this library, there is a change that you must do in your custom Elasticsearch plugins which concern the `query`.
+
+Our `ElasticsearchQuery` type had `mustNot` property, but `elastic-ts` `BoolQueryConfig` has `must_not` property. You need to change that property if you had it in your plugins.

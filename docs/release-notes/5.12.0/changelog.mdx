@@ -1,0 +1,77 @@
+---
+id: changelog
+title: Webiny 5.12.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.12.0", "changelog"]
+description: See what's new in Webiny version 5.12.0.
+---
+
+# Changes
+
+This document highlights the most important fixes, improvements, and features, that were introduced in Webiny `5.12.0`.
+
+:::info How To Upgrade?
+
+Make sure you didn't miss the **[5.11.1](/docs/release-notes/5.11.1/changelog)** release, which was an urgent security hotfix! You **must** apply that upgrade before moving on to **5.12.0**.
+
+Please check the [Webiny 5.12.0 migration guide](//docs/release-notes/5.12.0/upgrade-guide) for the upgrade steps.
+
+:::
+
+## Admin Area
+
+### Webiny UI Composer ([#1800](https://github.com/webiny/webiny-js/pull/1800))
+
+We finally have a way to build UI, ship it to you, and allow you to modify every part of it using minimum amount of code! :tada: At some point in the future, this will even allow us to replace entire UI libraries! :star-struck:
+
+Since React is a declarative tool, once a view is defined, you can't modify it from the outside. Especially if it's encapsulated inside another component. You can't change input labels, validation rules, position of elements, apply conditional rendering, add more UI elements to it, etc., if you don't have access to the original code. When you use React components from `npm` packages, you get a black box. So how did we solve the problem?
+
+With Webiny UI Composer, you get a layer of control before React rendering kicks in. UI is defined using elements (as classes), which can have 1 or more renderers (which are also pluginable and configurable), which produce JSX. Instead of going straight to JSX, you define views using a traditional, object-oriented way:
+
+```ts title="Defining a View"
+import { UIView } from "@webiny/ui-composer/UIView";
+
+class MyView extends UIView {
+  constructor() {
+    // Pass a view ID to parent constructor
+    super("MyView");
+
+    // Add your elements to the view!
+    const firstButton = this.addElement(
+      new ButtonElement("button1", {
+        label: "Click me!",
+        type: "primary",
+        onClick: () => alert("Hi!")
+      })
+    );
+
+    // Create a second element
+    const secondButton = new ButtonElement("button2", {
+      label: "Help!",
+      type: "primary",
+      onClick: () => alert("Help wanted!")
+    });
+
+    // Place it to the right of the first button
+    secondButton.moveAfter(firstButton);
+  }
+}
+```
+
+For Webiny, this is the only way forward to give you a _truly_ customizable platform. With this release, several parts of Admin Area app are already implemented with the UI Composer: the main admin layout, header, navigation sidebar, page editor settings and users form. There are plenty of views to rewrite to make the whole Admin Area customizable, and we'll prepare issues on Github that you, the community, can help us tackle.
+
+Scaffolds are backwards compatible, so you can continue using them. But in the future we will update them to use the UI Composer as well, as soon as we have all the UI elements for the Admin Area app ready.
+
+To learn more about the UI Composer, please visit the [official documentation](/docs/key-topics/ui-composer/introduction).
+
+## Headless CMS
+
+### Ability to Define Content Models and Content Model Groups via Plugins ([#1797](https://github.com/webiny/webiny-js/pull/1797))
+
+In this release, we've introduced the ability to define content models and content model groups via plugins. This brings a couple of cool benefits, like having both stored in your version control, in some cases additional flexibility, and more.
+
+Be sure to check out the [Define Content Models via Plugins](/docs/how-to-guides/webiny-applications/headless-cms/content-model-plugins) guide to learn more.
+
+### Compress Data That Is Stored in DynamoDB Table for ES ([#1821](https://github.com/webiny/webiny-js/pull/1821))
+
+DynamoDB has a hard limit of 400Kb per record. When your content entry contains long text or rich text fields, it can easily become larger than that. The new plugin (which will be added to your current project via an upgrade process) will compress the data that is being stored into our DynamoDB table for Elasticsearch, and thus, create some more space for your content.

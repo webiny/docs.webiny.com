@@ -1,0 +1,68 @@
+---
+id: changelog
+title: Webiny 5.8.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.8.0", "changelog"]
+description: See what's new in Webiny version 5.8.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import createdBy from "./createdBy.png";
+import entryId from "./entryId.png";
+import retrieveById from "./retrieveById.png";
+
+# Changes
+
+This document highlights the most important fixes, improvements, and features, that were introduced in Webiny `5.8.0`.
+
+:::info How To Upgrade?
+Please check the [Webiny 5.8.0 migration guide](/docs/release-notes/5.8.0/upgrade-guide) for the upgrade steps.
+:::
+
+## Headless CMS
+
+### Filtering of Content Entries by `createdBy` and `ownedBy` Fields ([#1641](https://github.com/webiny/webiny-js/issues/1641))
+
+Via the [Headless CMS GraphQL API](/docs/key-topics/webiny-applications/headless-cms/graphql-api), existing content entries can now be filtered by `createdBy` and `ownedBy` fields. This can be useful when in need to retrieve content entries created or owned by a specific user. For example:
+
+<CenteredImage alt={`Filtering of Content Entries by "createdBy" Field`} src={createdBy} />
+
+The filtering can be utilized in any of the [three Headless CMS GraphQL API types](/docs/key-topics/webiny-applications/headless-cms/graphql-api#graphql-api-types) - manage, preview, and read.
+
+### Filtering of Content Entries by `entryId` ([#1660](https://github.com/webiny/webiny-js/pull/1660))
+
+Every content entry ID consists of two parts - entry ID and revision number. For example, the following three IDs represent the same content entry, but three different revisions of it: `abcxyz#0001`, `abcxyz#0007`, `abcxyz#0015`.
+
+:::info
+With Webiny Headless CMS, users first define content models, for example **Blog Post**, **Book**, **Author**, and so on. Once those are in place, they continue by creating content entries, which consist of the information that was specified in their respective content model. Every content entry can have multiple revisions, of which only one can be marked as the published one.
+:::
+
+Via the [Headless CMS GraphQL API](/docs/key-topics/webiny-applications/headless-cms/graphql-api), this structure of content entry IDs allows users to retrieve a specific revision of a content entry. For example, here we are retrieving the revision number three (note the `#0003` in the value passed to the `id` input field):
+
+<CenteredImage alt={`Filtering of Content Entries by "id" Field`} src={retrieveById} />
+
+But still, we've seen cases in which users just want to retrieve the currently published revision of a particular content entry, making the actual revision number irrelevant.
+
+So, starting from this release, you can also query content entries by `entryId`. It is a new GraphQL input field which, depending on the Headless CMS GraphQL API [type](/docs/key-topics/webiny-applications/headless-cms/graphql-api#graphql-api-types), applies the following filtering:
+
+- **manage** and **preview** - will look for the **latest** content entry revision
+- **read** - will look for the **published** content entry revision
+
+In the following example, we're retrieving an imaginary **Book** content entry by its entry ID:
+
+<CenteredImage alt={`Filtering of Content Entries by "entryId"`} src={entryId} />
+
+Note that we are using the **read** GraphQL API type here, meaning we will always get the published revision in the GraphQL response. If we were doing the same over the **manage** or **preview** GraphQL API types, we'd get the latest one (it doesn't matter whether the latest revision is published or not).
+
+## File Manager
+
+### All File Types Can Now Be Uploaded ([#1663](https://github.com/webiny/webiny-js/pull/1663))
+
+While uploading different types of files, if the file's MIME type was greater than 50 in its characters length, the upload request would get rejected. We've adjusted the backend validation rules, so all file types should be accepted now.
+
+## Webiny CLI
+
+### Scaffolds - The Yarn/Typescript Error ([#1658](https://github.com/webiny/webiny-js/issues/1658))
+
+We've received several reports of existing scaffolds not working anymore, due to a new Yarn/Typescript-related issue (check the [issue](https://github.com/webiny/webiny-js/issues/1658) for more information). In order to improve stability, we've decided to "lock" the version of Typescript using the [`resolutions`](https://yarnpkg.com/configuration/manifest/#resolutions) property, as it seems this is an external issue we cannot control. For now, the version is set to `4.1.3`, but we might revisit this in the near future.
+
