@@ -7,6 +7,8 @@ description: Learn how to build a simple React application that interacts with a
 ---
 
 import CenteredImage from "@components/CenteredImage";
+import pinterestMosaicLayout from "./homepage/pinterest-mosaic-layout.png";
+import homepage from "./homepage/homepage.png";
 
 :::tip WHAT YOU’LL LEARN
 
@@ -22,4 +24,97 @@ In order to follow this tutorial, you must use Webiny version **5.13.0** or grea
 
 ## Overview
 
-Now that we have
+Now that we have our **New Pin** modal dialog working as expected, we're can continue by creating the homepage. As seen in previous sections, the homepage lists all pins that were created by different users.
+
+Like in the previous section, fetching the list of created pins can be easily done via the [Apollo Client](https://www.apollographql.com/docs/react/v2/) and its [`useQuery`](https://www.apollographql.com/docs/react/v2/data/queries/#executing-a-query) React hook. A bit trickier part is rendering the pins in a mosaic layout, which is how the original [Pinterest](https://www.pinterest.com/) website does it.
+
+<CenteredImage src={pinterestMosaicLayout} alt="Pinterest - The Mosaic Layout"/>
+
+Luckily, we can achieve this pretty easily with a small React library called [`react-columned`](https://www.npmjs.com/package/react-columned), which we'll need to add to our React application.
+
+## Creating the Homepage
+
+For starters, let's add the mentioned [`react-columned`](https://www.npmjs.com/package/react-columned) library with the following command:
+
+```bash
+yarn workspace pinterest-clone-app add antd
+```
+
+Once we have that, we can start working on our homepage. The following is the final [`Home`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/04-react-application/04.03-homepage/pinterest-clone/app/code/src/plugins/routes/home.tsx#L25) React component that's responsible for rendering it, located in the [`pinterest-clone/app/code/src/plugins/routes/home.tsx`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/04-react-application/04.03-homepage/pinterest-clone/app/code/src/plugins/routes/home.tsx) file:
+
+```tsx title="pinterest-clone/app/code/src/plugins/routes/home.tsx"
+import React from "react";
+import { RoutePlugin } from "@webiny/app/plugins/RoutePlugin";
+import { Link, Route } from "@webiny/react-router";
+import { Empty } from "antd";
+import { useQuery } from "@apollo/react-hooks";
+import gql from "graphql-tag";
+import Columned from "react-columned";
+import Layout from "~/components/Layout";
+import blankImage from "~/images/blankImage.png";
+
+const LIST_PINS = gql`
+    query ListPins($sort: PinsListSort, $limit: Int, $after: String, $before: String) {
+        pins {
+            listPins(sort: $sort, limit: $limit, after: $after, before: $before) {
+                data {
+                    id
+                    title
+                }
+            }
+        }
+    }
+`;
+
+// The home page.
+const Home: React.FC = () => {
+    const listPinsQuery = useQuery(LIST_PINS, { variables: { limit: 100 } });
+    const { data = [] } = listPinsQuery?.data?.pins?.listPins || {};
+
+    return (
+        <Layout className={"home"}>
+            {data.length > 0 ? (
+                /* If we have pins to show, use the `Columned` component to render them in a mosaic layout. */
+                <Columned>
+                    {data.map(item => (
+                        /* Every pin should link to its details page. */
+                        <Link key={item.id} to={"/pins/" + item.id}>
+                            {/* If the pin contains an image, we show it. Otherwise, we show a placeholder image. */}
+                            <img
+                                title={item.title}
+                                alt={item.title}
+                                src={item.coverImage || blankImage}
+                            />
+                        </Link>
+                    ))}
+                </Columned>
+            ) : (
+                /* If there are no pins to show, render "Nothing to show." message. */
+                <Empty description={"Nothing to show."} />
+            )}
+        </Layout>
+    );
+};
+
+// We register routes via the `RoutePlugin` plugin.
+export default new RoutePlugin({
+    route: <Route path="/" exact component={Home} />
+});
+```
+
+:::tip
+Notice how we've used the tilde (`~`) character to target the parent [`images`](#) and [`components`](#) folders. Using that instead of something like `../../../` can make our import statements easier to read and maintain.
+:::
+
+:::note
+We already had a quick mention of the [`Home`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/04-react-application/04.01-layout/pinterest-clone/app/code/src/plugins/routes/home.tsx#L7) React component in the [Optional Steps](/docs/tutorials/create-custom-application/react-application/layout#optional-steps) section of the [Layout](/docs/tutorials/create-custom-application/react-application/layout) step.
+:::
+
+
+With this component in place, our homepage should look like the following:
+
+<CenteredImage src={homepage} alt="Homepage - List of Pins"/>
+
+At the moment, we could probably say that our homepage looks a bit bland and maybe boring. But let's not worry about it for now. The whole page will start looking much more lively and nicer as soon as we bring the missing cover image field and file upload functionality into the mix.
+
+For now, our goal was to have our homepage show a list of pins created by different users, and we've certainly achieved that. This means we're ready for the final step, and that's creating the **Pin Details** page.
