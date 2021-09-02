@@ -41,7 +41,18 @@ module.exports = {
                     items: [
                         "tutorials/create-custom-application/introduction",
                         "tutorials/create-custom-application/getting-started",
-                        "tutorials/create-custom-application/extending-graphql-api",
+                        "tutorials/create-custom-application/graphql-api",
+                        {
+                            type: "category",
+                            label: "React Application",
+                            items: [
+                                "tutorials/create-custom-application/react-application/introduction",
+                                "tutorials/create-custom-application/react-application/layout",
+                                "tutorials/create-custom-application/react-application/new-pin-modal-dialog",
+                                "tutorials/create-custom-application/react-application/homepage",
+                                "tutorials/create-custom-application/react-application/pin-details-page",
+                            ],
+                        },
                         // "tutorials/create-custom/getting-started",
                         // "tutorials/create-custom/extending-entities",
                         // // "tutorials/extend-admin-area/testing",
@@ -423,9 +434,7 @@ module.exports = {
                         {
                             type: "category",
                             label: "5.3.0",
-                            items: [
-                                "release-notes/5.3.0/changelog"
-                            ],
+                            items: ["release-notes/5.3.0/changelog"],
                         },
                     ],
                 },
