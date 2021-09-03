@@ -53,6 +53,16 @@ module.exports = {
                                 "tutorials/create-custom-application/react-application/pin-details-page",
                             ],
                         },
+                        // {
+                        //     type: "category",
+                        //     label: "Security",
+                        //     items: [
+                        //         "tutorials/create-custom-application/security/introduction",
+                        //         "tutorials/create-custom-application/security/graphql-api",
+                        //         "tutorials/create-custom-application/security/react-application"
+                        //     ],
+                        // },
+
                         // "tutorials/create-custom/getting-started",
                         // "tutorials/create-custom/extending-entities",
                         // // "tutorials/extend-admin-area/testing",
