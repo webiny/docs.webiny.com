@@ -16,7 +16,15 @@ const siteConfig = {
         path.resolve(__dirname, "plugins/wts"),
         path.resolve(__dirname, "plugins/aliases")
     ],
-    scripts: ["/docusaurus-scripts/heap.js"],
+    scripts: [
+        "/docusaurus-scripts/heap.js",
+        {
+            src: "https://plausible.io/js/plausible.js",
+            async: true,
+            defer: true,
+            "data-domain": "webiny.com"
+        }
+    ],
     title: "Webiny Documentation", // Title for your website.
     tagline: "Serverless CMS",
     url: "https://www.webiny.com", // Your website URL
