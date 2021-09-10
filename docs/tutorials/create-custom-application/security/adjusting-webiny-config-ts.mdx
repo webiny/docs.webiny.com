@@ -1,0 +1,107 @@
+---
+id: adjusting-webiny-config-ts-configuration-file
+title: Adjusting "webiny.config.ts" Configuration File
+sidebar_label: Adjusting "webiny.config.ts" Configuration File
+keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
+description: Learn how to implement authentication in your custom React application.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import cloudInfraAutoDeploy from "./adding-user-pool-and-user-pool-domain/cloud-infra-auto-deploy.png";
+
+:::tip WHAT YOU’LL LEARN
+
+- how to implement authentication in your custom application
+
+:::
+
+:::info Can I use this?
+
+In order to follow this tutorial, you must use Webiny version **5.13.0** or greater.
+
+:::
+
+## Adjusting the `webiny.config.ts` Configuration File
+
+There's one additional step we need to complete before we can finally start working on our React application code, and that's adjusting its [`webiny.config.ts`](#) configuration file, located in [`pinterest-clone/app/code`](#) folder. This is where we'll finally use all of the stack output properties that we added in GraphQL API and React application cloud infrastructure code, and pass them as environment variables to our React application.
+
+:::note
+Remember, all of the cloud infrastructure additions we did in previous two sections need to be deployed.
+:::
+
+The following code highlights the changes that need to be performed:
+
+```ts title="pinterest-clone/app/code/webiny.config.ts" {15-17,20-22,33,43}
+import invariant from "invariant";
+import { startApp, buildApp } from "@webiny/project-utils";
+import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
+
+// Exports fundamental start (watch) and build commands.
+// Within both commands, we rely on the deployed GraphQL API (project-applications-path/api) and its stack
+// output to retrieve the URL over which the GraphQL API is accessible. If needed, additional
+// information can be retrieved too, but remember to export it in the cloud infrastructure
+// code, in the following files:
+// - `project-applications-path/api/pulumi/dev/index.ts`
+// - `project-applications-path/api/pulumi/prod/index.ts`
+
+const MAP = {
+    REACT_APP_GRAPHQL_API_URL: "${graphqlApiUrl}",
+    REACT_APP_USER_POOL_REGION: "${region}",
+    REACT_APP_USER_POOL_ID: "${cognitoUserPool.id}",
+    REACT_APP_USER_POOL_DOMAIN: "${cognitoUserPool.domain}",
+};
+
+const APP_MAP = {
+    REACT_APP_USER_POOL_WEB_CLIENT_ID: "${cognitoUserPoolClientId}",
+};
+
+const NO_ENV_MESSAGE = `Please specify the environment via the "--env" argument, for example: "--env dev".`;
+
+export default {
+    commands: {
+        async watch(options, context) {
+            invariant(options.env, NO_ENV_MESSAGE);
+            Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, MAP));
+
+            // Let's also the user pool client ID and pass it via environment variables too.
+            Object.assign(process.env, getStackOutput("pinterest-clone/app", options.env, APP_MAP));
+
+            // Starts local application development.
+            await startApp(options, context);
+        },
+        async build(options, context) {
+            invariant(options.env, NO_ENV_MESSAGE);
+            Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, MAP));
+
+            // Let's also the user pool client ID and pass it via environment variables too.
+            Object.assign(process.env, getStackOutput("pinterest-clone/app", options.env, APP_MAP));
+
+            // Creates a production build of your application, ready to be deployed to
+            // a hosting provider of your choice, for example Amazon S3.
+            await buildApp(options, context);
+        },
+    },
+};
+```
+
+First, we've updated the existing `MAP` object, which is used upon retrieving our GraphQL API's stack output:
+
+```ts
+getStackOutput("pinterest-clone/api", options.env, MAP);
+```
+
+As the name itself suggests, the object represents a map. It is used to instruct the [`getStackOutput`](#) function to map the received stack output properties to new ones. This is useful because, in the [`watch`](#) and [`build`](#) commands, we're assigning stack output properties as environment variables, which must contain the `REACT_APP_` prefix in order for us to be able to access them within the actual React application code.
+
+So, we've added three new properties to the `MAP` object: `REACT_APP_USER_POOL_REGION`, `REACT_APP_USER_POOL_ID`, and `REACT_APP_USER_POOL_DOMAIN`, which will represent the `region`, `cognitoUserPoolId`, and `cognitoUserPoolDomain` properties included in the retrieved GraphQL API's stack output.
+
+We also had to add a new `APP_MAP` map object for the properties that will be retrieved from our React application's stack output. This map is then used with the new `getStackOutput` function call, which has the `pinterest-clone/app` specified as the project application folder:
+
+```ts
+getStackOutput("pinterest-clone/app", options.env, APP_MAP);
+```
+
+## RESTART SESSION TODO
+
+## Final Result
+
+With all of the new stack output properties now being passed to our React application code as new environment variables, we've now reached a stage in which we can finally begin to implement the Hosted UI authentication flow.

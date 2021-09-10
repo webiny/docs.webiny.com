@@ -1,0 +1,154 @@
+---
+id: implementing-authentication-and-authorization-logic
+title: Implementing Authentication and Authorization Logic
+sidebar_label: Implementing Authentication and Authorization Logic
+keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
+description: Learn how to implement authentication in your custom React application.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import createPinMutation from "./implementing-authentication-and-authorization-logic/create-pin-mutation-test.png";
+import createPinMutationUnauthorized from "./implementing-authentication-and-authorization-logic/create-pin-mutation-unauthorized.png";
+
+:::tip WHAT YOU’LL LEARN
+
+- how to implement authentication in your custom application
+
+:::
+
+:::info Can I use this?
+
+In order to follow this tutorial, you must use Webiny version **5.13.0** or greater.
+
+:::
+
+```graphql
+mutation CreatePin($data: PinCreateInput!) {
+  pins {
+    createPin(data: $data) {
+      id
+      title
+      description
+    }
+  }
+}
+```
+
+Once run, we should receive a response similar to the following (the only piece of information that should be different on your end should be the returned `id`):
+
+<CenteredImage alt={'"CreatePin" Mutation - Publicly Accessible'} src={createPinMutation} />
+
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {6-10,23-27}
+/**
+ * Creates and returns a new Pin entry.
+ * @param data
+ */
+async createPin({ data }: CreatePinParams) {
+    const { security } = this.context;
+    const identity = await security.getIdentity();
+    if (!identity) {
+        throw new Error("Not authenticated.");
+    }
+
+    // We use `mdbid` (https://www.npmjs.com/package/mdbid) library to generate
+    // a random, unique, and sequential (sortable) ID for our new entry.
+    const id = mdbid();
+
+    const pin = {
+        ...data,
+        PK: this.getPK(),
+        SK: id,
+        id,
+        createdOn: new Date().toISOString(),
+        savedOn: new Date().toISOString(),
+        createdBy: identity && {
+            id: identity.id,
+            type: identity.type,
+            displayName: identity.displayName
+        },
+        webinyVersion: process.env.WEBINY_VERSION
+    };
+
+    // Will throw an error if something goes wrong.
+    await Pin.put(pin);
+
+    return pin;
+}
+```
+
+<CenteredImage alt={'"CreatePin" Mutation - Not Authorized'} src={createPinMutationUnauthorized} />
+
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {8-12,20-22}
+
+/**
+ * Updates and returns an existing Pin entry.
+ * @param id
+ * @param data
+ */
+async updatePin({ id, data }: UpdatePinParams) {
+    const { security } = this.context;
+    const identity = await security.getIdentity();
+    if (!identity) {
+        throw new Error("Not authenticated.");
+    }
+
+    // If entry is not found, we throw an error.
+    const { Item: pin } = await Pin.get({ PK: this.getPK(), SK: id });
+    if (!pin) {
+        throw new Error(`Pin "${id}" not found.`);
+    }
+
+    if (pin.createdBy.id !== identity.id) {
+        throw new Error("Not authenticated.");
+    }
+
+    const updatedPin = { ...pin, ...data };
+
+    // Will throw an error if something goes wrong.
+    await Pin.update(updatedPin);
+
+    return updatedPin;
+}
+```
+
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {6-10,19-21}
+/**
+ * Deletes and returns an existing Pin entry.
+ * @param id
+ */
+async deletePin({ id }: DeletePinParams) {
+    const { security } = this.context;
+    const identity = await security.getIdentity();
+    if (!identity) {
+        throw new Error("Not authenticated.");
+    }
+
+    // If entry is not found, we throw an error.
+    const { Item: pin } = await Pin.get({ PK: this.getPK(), SK: id });
+    if (!pin) {
+        throw new Error(`Pin "${id}" not found.`);
+    }
+
+
+    if (pin.createdBy.id !== identity.id) {
+        throw new Error("Not authenticated.");
+    }
+
+    // Will throw an error if something goes wrong.
+    await Pin.delete(pin);
+
+    return pin;
+}
+```
+
+```graphql
+mutation UpdatePin($id: ID!, $data: PinUpdateInput!) {
+  pins {
+    updatePin(id: $id, data: $data) {
+      id
+      title
+      description
+    }
+  }
+}
+```

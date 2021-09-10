@@ -1,0 +1,109 @@
+---
+id: integrating-hosted-ui-authentication-flow
+title: Integrating Hosted UI Authentication Flow
+sidebar_label: Integrating Hosted UI Authentication Flow
+keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
+description: Learn how to implement authentication in your custom React application.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import headerLoggedIn from "./integrating-hosted-ui-authentication-flow/header-logged-in.png";
+import headerNotLoggedIn from "./integrating-hosted-ui-authentication-flow/header-not-logged-in.png";
+import hostedUiSignIn from "./integrating-hosted-ui-authentication-flow/hosted-ui-01-sign-in.png";
+import hostedUiSignUp from "./integrating-hosted-ui-authentication-flow/hosted-ui-02-sign-up.png";
+import hostedUiVerification from "./integrating-hosted-ui-authentication-flow/hosted-ui-03-verification.png";
+
+:::tip WHAT YOU’LL LEARN
+
+- how to implement authentication in your custom application
+
+:::
+
+:::info Can I use this?
+
+In order to follow this tutorial, you must use Webiny version **5.13.0** or greater.
+
+:::
+
+```tsx title="pinterest-clone/app/code/src/components/Layout.tsx" {5,6,16-17,28-57}
+import React, { useState, useCallback } from "react";
+import { Menu, Avatar, Button, Divider, Dropdown } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { Link } from "@webiny/react-router";
+import { useSecurity } from "@webiny/app-security";
+import Auth from "@aws-amplify/auth";
+import logo from "~/images/logo.png";
+import NewPinModal from "./NewPinModal";
+
+/**
+ * The default layout component which you can use on any page.
+ * Feel free to customize it or create additional layout components.
+ */
+const Layout: React.FC<{ className: string }> = (props) => {
+  const [visible, setVisible] = useState(false);
+  const login = useCallback(() => Auth.federatedSignIn(), []);
+  const { identity } = useSecurity();
+
+  return (
+    <div className="layout">
+      {/* We're using the `nav` tag for rendering the header. */}
+      <nav>
+        <div>
+          <Link to={"/"}>
+            <img src={logo} className="logo" alt={"Pinterest Clone"} />
+          </Link>
+        </div>
+        <div>
+          {identity ? (
+            <>
+              <Button
+                onClick={() => setVisible(true)}
+                type="primary"
+                size={"large"}
+                shape="circle"
+                icon={<PlusOutlined />}
+              />
+              <Dropdown
+                overlay={
+                  <Menu>
+                    <Menu.Item key={"signout"} danger onClick={identity.logout}>
+                      Sign Out
+                    </Menu.Item>
+                  </Menu>
+                }
+              >
+                <Avatar size={"large"} style={{ cursor: "pointer" }}>
+                  {identity.firstName.charAt(0)}
+                </Avatar>
+              </Dropdown>
+            </>
+          ) : (
+            <Button type="primary" onClick={login}>
+              Sign In
+            </Button>
+          )}
+        </div>
+      </nav>
+      <Divider style={{ margin: 0 }} />
+
+      {/* The pages are rendered within the `main` tag. */}
+      <main className={props.className}>{props.children}</main>
+      <NewPinModal visible={visible} onClose={() => setVisible(false)} />
+    </div>
+  );
+};
+
+export default Layout;
+```
+
+<CenteredImage alt="Header Bar - Not Logged In State" src={headerNotLoggedIn} />
+
+<CenteredImage style={{ maxWidth: 750 }} alt="Hosted UI Authentication Flow - Sign In" src={hostedUiSignIn} />
+<CenteredImage style={{ maxWidth: 750 }} alt="Hosted UI Authentication Flow - Sign Up" src={hostedUiSignUp} />
+<CenteredImage
+  style={{ maxWidth: 750 }}
+  alt="Hosted UI Authentication Flow - E-mail Verification"
+  src={hostedUiVerification}
+/>
+
+<CenteredImage alt="Header Bar - Logged In State" src={headerLoggedIn} />

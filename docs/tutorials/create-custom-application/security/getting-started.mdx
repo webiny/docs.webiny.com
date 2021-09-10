@@ -1,0 +1,138 @@
+---
+id: getting-started
+title: Getting Started
+sidebar_label: Getting Started
+keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
+description: Learn how to implement authentication in your custom React application.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import hostedUi1 from "./getting-started/hosted-ui-1.png";
+import hostedUi2 from "./getting-started/hosted-ui-2.png";
+
+:::tip WHAT YOU’LL LEARN
+
+- how to implement authentication in your custom application
+
+:::
+
+:::info Can I use this?
+
+In order to follow this tutorial, you must use Webiny version **5.13.0** or greater.
+
+:::
+
+## Authentication Flow with Amazon Cognito
+
+As mentioned in the previous section, in order to perform authentication in our application, we first need to have an **authentication flow**. In other words, we need to provide a way for users to sign up and sign in into our application.
+
+An authentication flow can easily be introduced via [Amazon Cognito](https://aws.amazon.com/cognito/), by creating a new [User Pool](https://docs.aws.amazon.com/cognito/latest/developerguide/getting-started-with-cognito-user-pools.html). With it, we can implement a couple of different authentication flows, but for the purposes of this tutorial, we'll go with the easiest one, and that's [Hosted UI](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-app-integration.html).
+
+:::info
+Other approaches
+:::
+
+With this approach, the authentication flow is completely offloaded to Amazon Cognito. Once a user wishes to sign up or sign in into our application, she/he usually clicks on a button or a link in it, which causes a redirect to the standalone hosted authentication flow. So, as mentioned, the authentication flow is happening completely outside of our application.
+
+<CenteredImage alt="User Authentication Flow Start" shadow={false} style={{ maxWidth: 500 }} src={hostedUi1} />
+
+Once completed successfully, the user is redirected back to our application, but this time, authenticated. Which means we should be able to retrieve the currently signed-in user within both React application and GraphQL API, ultimately enabling us to safely perform sensitive operations like sensitive GraphQL mutations, maybe even file upload, and more.
+
+<CenteredImage alt="User Authentication Flow End" shadow={false} style={{ maxWidth: 500 }} src={hostedUi2} />
+
+In total, in order to fully implement this flow, we're going to need three new Amazon Cognito cloud infrastructure resources. Two deployed as part of our GraphQL API:
+
+- **Amazon Cognito User Pool** - responsible for storing user data and providing an authentication flow
+- **Amazon Cognito User Pool Domain** - provides a way to access the **Hosted UI** authentication flow
+
+And, one deployed as part of our React application:
+
+- **Amazon Cognito User Pool Client** - enables us to access the authentication flow from our React application and interact with Amazon Cognito HTTP API
+
+:::note
+In the following sections, for the sake of brevity, we'll refer to these resources without the **Amazon Cognito** prefix: **User Pool**, **User Pool Domain**, and **User Pool Client**.
+:::
+
+All of these will be defined within our cloud infrastructure code, which is what we'll start with, in the next section of this tutorial.
+
+## Before We Begin
+
+### `dev` and `prod` Stacks
+
+The GraphQL API's cloud infrastructure code, located in the [`pinterest-clone/api/pulumi`](#) folder, is actually organized as two separate [`dev`](#) and [`prod`](#) folders. This enables us to deploy slightly different cloud infrastructure into non-production and production environments, respectively. In this tutorial, we'll focus on the [`dev`](#) folder, but note that the same changes should be applied within the [`prod`](#) folder as well. We certainly don't want to end up with vital cloud infrastructure resources missing in one or the other.
+
+:::info
+Check out the [GraphQL API](/docs/how-to-guides/scaffolding/graphql-api#pulumi) scaffold guide for more information on differences between the `dev` and `prod` folders.
+:::
+
+The React application's cloud infrastructure doesn't follow this organization, simply because it's not needed. Which means, there, we'll only need to make a change once and that's it.
+
+### Stack Output
+
+If we were to open the cloud infrastructure code that is initially included during the [Full Stack Application](/docs/how-to-guides/scaffolding/full-stack-application) scaffolding process, we may notice that at the end of each entrypoint file, for example [`pinterest-clone/api/pulumi/dev/index.ts`](#), we are returning an object that consists of a couple of properties:
+
+```ts title="pinterest-clone/api/pulumi/dev/index.ts"
+return {
+    region: process.env.AWS_REGION,
+    apiUrl: cloudfront.getDistributionUrl(),
+    dynamoDbTable: dynamoDb.table.name,
+};
+```
+
+It's important to note that the returned object represents something called the **stack output**, which, essentially, enables us to expose multiple values that were created during a deployment process. These may entail unique IDs of deployed cloud infrastructure resources, maybe a URL that points to a specific resource, and basically anything else that we might need.
+
+The stack output can then be retrieved within cloud infrastructure or application code that is part of the same, or an entirely separate, [project application](/docs/key-topics/project-organization/project-applications). For example, if we were to open the React application's [`webiny.config.ts`](#) configuration file, located in [`pinterest-clone/app/code/webiny.config.ts`](#), we'd see that we're using the [`getStackOutput`](#) function in order to retrieve the URL over which our GraphQL API can be accessed:
+
+```ts title="pinterest-clone/app/code/webiny.config.ts" {3,13-15,23,30}
+import invariant from "invariant";
+import { startApp, buildApp } from "@webiny/project-utils";
+import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
+
+// Exports fundamental start (watch) and build commands.
+// Within both commands, we rely on the deployed GraphQL API (project-applications-path/api) and its stack
+// output to retrieve the URL over which the GraphQL API is accessible. If needed, additional
+// information can be retrieved too, but remember to export it in the cloud infrastructure
+// code, in the following files:
+// - `project-applications-path/api/pulumi/dev/index.ts`
+// - `project-applications-path/api/pulumi/prod/index.ts`
+
+const MAP = {
+    REACT_APP_GRAPHQL_API_URL: "${graphqlApiUrl}"
+};
+
+const NO_ENV_MESSAGE = `Please specify the environment via the "--env" argument, for example: "--env dev".`;
+
+export default {
+    commands: {
+        async watch(options, context) {
+            invariant(options.env, NO_ENV_MESSAGE);
+            Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, MAP));
+
+            // Starts local application development.
+            await startApp(options, context);
+        },
+        async build(options, context) {
+            invariant(options.env, NO_ENV_MESSAGE);
+            Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, MAP));
+
+            // Creates a production build of your application, ready to be deployed to
+            // a hosting provider of your choice, for example Amazon S3.
+            await buildApp(options, context);
+        }
+    }
+};
+```
+
+As we can see, once we've retrieved the stack output values, via [`Object.assign`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign), we're assigning them to the `process.env` object. Meaning, we're exposing the retrieved values as environment variables, which we'll be able to use in our React application's code.
+
+For now, note that in the next couple of sections, we'll be doing a couple of updates to both the stack output and the shown [`webiny.config.ts`](#) configuration file. These will be needed in order to connect the deployed cloud infrastructure resources and our application together.
+
+:::tip
+Stack output can also be quickly retrieved via [Webiny CLI](/docs/key-topics/webiny-cli), via the `webiny output` command, for example:
+
+```bash
+yarn webiny output pinterest-clone/api --env dev
+```
+:::
+
+### `webiny.config.ts` Configuration File

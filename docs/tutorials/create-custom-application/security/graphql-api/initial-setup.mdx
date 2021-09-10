@@ -1,0 +1,190 @@
+---
+id: initial-setup
+title: Initial Setup
+sidebar_label: Initial Setup
+keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
+description: Learn how to implement authentication in your custom React application.
+---
+
+import CenteredImage from "@components/CenteredImage";
+
+:::tip WHAT YOU’LL LEARN
+
+- how to implement authentication in your custom application
+
+:::
+
+:::info Can I use this?
+
+In order to follow this tutorial, you must use Webiny version **5.13.0** or greater.
+
+:::
+
+Add a couple of new libraries: [`@webiny/app-security`](https://www.npmjs.com/package/@webiny/app-security) and [`@aws-amplify/auth`](https://www.npmjs.com/package/@aws-amplify/auth).
+
+```bash
+yarn workspace pinterest-clone-api add @webiny/api-security @webiny/api-security-cognito-authentication
+```
+
+```ts title="pinterest-clone/api/pulumi/dev/index.ts" {30-31}
+import * as pulumi from "@pulumi/pulumi";
+import DynamoDB from "./dynamoDb";
+import Graphql from "./graphql";
+import ApiGateway from "./apiGateway";
+import Cloudfront from "./cloudfront";
+import Cognito from "./cognito";
+import S3 from "./s3";
+
+// Among other things, this determines the amount of information we reveal on runtime errors.
+// https://www.webiny.com/docs/how-to-guides/environment-variables/#debug-environment-variable
+const DEBUG = String(process.env.DEBUG);
+
+// Enables logs forwarding.
+// https://www.webiny.com/docs/how-to-guides/use-watch-command#enabling-logs-forwarding
+const WEBINY_LOGS_FORWARD_URL = String(process.env.WEBINY_LOGS_FORWARD_URL);
+
+export default () => {
+    const cognito = new Cognito();
+    const dynamoDb = new DynamoDB();
+    const s3 = new S3();
+
+    const api = new Graphql({
+        dbTable: dynamoDb.table,
+        cognitoUserPool: cognito.userPool,
+        s3Bucket: s3.bucket,
+        env: {
+            // The single DynamoDB table in which data can be stored and queried.
+            DB_TABLE: dynamoDb.table.name,
+            FILES_BUCKET: s3.bucket.id,
+            COGNITO_REGION: String(process.env.AWS_REGION),
+            COGNITO_USER_POOL_ID: cognito.userPool.id,
+            DEBUG,
+            WEBINY_LOGS_FORWARD_URL
+        }
+    });
+
+    (...)
+};
+```
+
+```ts title="pinterest-clone/api/code/graphql/src/index.ts" {4,5,18,24-37}
+import { createHandler } from "@webiny/handler-aws";
+import graphqlPlugins from "@webiny/handler-graphql";
+import logsPlugins from "@webiny/handler-logs";
+import securityPlugins, { SecurityIdentity } from "@webiny/api-security";
+import cognitoAuthenticationPlugins from "@webiny/api-security-cognito-authentication";
+
+// Imports plugins created via scaffolding utilities.
+import scaffoldsPlugins from "./plugins/scaffolds";
+
+const debug = process.env.DEBUG === "true";
+
+export const handler = createHandler({
+    plugins: [
+        /**
+         * Setup Webiny Security Framework to handle authentication and authorization.
+         * Learn more: https://www.webiny.com/docs/key-topics/security-framework/introduction
+         */
+        securityPlugins(),
+
+        /**
+         * Cognito authentication plugin.
+         * This plugin will verify the JWT token against a provided User Pool.
+         */
+        cognitoAuthenticationPlugins({
+            region: process.env.COGNITO_REGION,
+            userPoolId: process.env.COGNITO_USER_POOL_ID,
+            identityType: "user",
+            getIdentity({ identityType, token }) {
+                return new SecurityIdentity({
+                    id: token["cognito:username"],
+                    type: identityType,
+                    displayName: `${token.given_name} ${token.family_name}`,
+                    firstName: token.given_name,
+                    lastName: token.family_name
+                });
+            }
+        }),
+        logsPlugins(),
+        graphqlPlugins({ debug }),
+        scaffoldsPlugins()
+    ],
+    http: { debug }
+});
+```
+
+```ts title="pinterest-clone/api/code/graphql/src/types.ts" {5,18}
+import { HandlerContext } from "@webiny/handler/types";
+import { HttpContext } from "@webiny/handler-http/types";
+import { ArgsContext } from "@webiny/handler-args/types";
+import { ClientContext } from "@webiny/handler-client/types";
+import { SecurityContext } from "@webiny/api-security/types";
+
+// When working with the `context` object (for example while defining a new GraphQL resolver function),
+// you can import this interface and assign it to it. This will give you full autocomplete functionality
+// and type safety. The easiest way to import it would be via the following import statement:
+// import { Context } from "~/types";
+// Feel free to extend it with additional context interfaces, if needed. Also, please do not change the
+// name of the interface, as existing scaffolding utilities may rely on it during the scaffolding process.
+export interface Context
+    extends HandlerContext,
+        HttpContext,
+        ArgsContext,
+        ClientContext,
+        SecurityContext {}
+```
+
+
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts:30" {23}
+// https://github.com/jeremydaly/dynamodb-toolbox
+import { Entity } from "dynamodb-toolbox";
+import table from "./table";
+import { PinEntity } from "../types";
+
+/**
+ * Once we have the table, we define the PinEntity entity.
+ * If needed, additional entities can be defined using the same approach.
+ */
+export default new Entity<PinEntity>({
+    table,
+    name: "Pin",
+    timestamps: false,
+    attributes: {
+        PK: { partitionKey: true },
+        SK: { sortKey: true },
+        id: { type: "string" },
+        title: { type: "string" },
+        description: { type: "string" },
+        coverImage: { type: "string" },
+        createdOn: { type: "string" },
+        savedOn: { type: "string" },
+        createdBy: { type: "map" },
+
+        // Will store current version of Webiny, for example "5.9.1".
+        // Might be useful in the future or while performing upgrades.
+        webinyVersion: { type: "string" }
+    }
+});
+```
+
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts" {6,17}
+// If our GraphQL API uses Webiny Security Framework, we can retrieve the
+// currently logged in identity and assign it to the `createdBy` property.
+// https://www.webiny.com/docs/key-topics/security-framework/introduction
+// import { SecurityIdentity } from "@webiny/api-security/types";
+
+import { SecurityIdentity } from "@webiny/api-security";
+
+export interface PinEntity {
+    PK: string;
+    SK: string;
+    id: string;
+    title: string;
+    description?: string;
+    coverImage?: string;
+    createdOn: string;
+    savedOn: string;
+    createdBy: Pick<SecurityIdentity, "id" | "displayName" | "type">;
+    webinyVersion: string;
+}
+```

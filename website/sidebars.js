@@ -53,15 +53,33 @@ module.exports = {
                                 "tutorials/create-custom-application/react-application/pin-details-page",
                             ],
                         },
-                        // {
-                        //     type: "category",
-                        //     label: "Security",
-                        //     items: [
-                        //         "tutorials/create-custom-application/security/introduction",
-                        //         "tutorials/create-custom-application/security/graphql-api",
-                        //         "tutorials/create-custom-application/security/react-application"
-                        //     ],
-                        // },
+                        {
+                            type: "category",
+                            label: "Security",
+                            items: [
+                                "tutorials/create-custom-application/security/introduction",
+                                "tutorials/create-custom-application/security/getting-started",
+                                "tutorials/create-custom-application/security/adding-user-pool-and-user-pool-domain",
+                                "tutorials/create-custom-application/security/adding-user-pool-client",
+                                "tutorials/create-custom-application/security/adjusting-webiny-config-ts-configuration-file",
+                                {
+                                    type: "category",
+                                    label: "React Application",
+                                    items: [
+                                        "tutorials/create-custom-application/security/react-application/initial-setup",
+                                        "tutorials/create-custom-application/security/react-application/integrating-hosted-ui-authentication-flow",
+                                    ],
+                                },
+                                {
+                                    type: "category",
+                                    label: "GraphQL API",
+                                    items: [
+                                        "tutorials/create-custom-application/security/graphql-api/initial-setup",
+                                        "tutorials/create-custom-application/security/graphql-api/implementing-authentication-and-authorization-logic",
+                                    ],
+                                },
+                            ],
+                        },
 
                         // "tutorials/create-custom/getting-started",
                         // "tutorials/create-custom/extending-entities",
