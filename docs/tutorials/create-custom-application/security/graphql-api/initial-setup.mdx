@@ -2,15 +2,29 @@
 id: initial-setup
 title: Initial Setup
 sidebar_label: Initial Setup
-keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
-description: Learn how to implement authentication in your custom React application.
+keywords:
+  [
+    "create",
+    "custom",
+    "application",
+    "security",
+    "auth",
+    "authentication",
+    "authorization",
+    "graphql",
+    "api",
+    "initial",
+    "setup",
+  ]
+description: Before implementing authentication and authorization checks in our GraphQL API, there are a couple of initial setup steps that we need to perform. In this section, we'll learn what those are.
 ---
 
 import CenteredImage from "@components/CenteredImage";
 
 :::tip WHAT YOU’LL LEARN
 
-- how to implement authentication in your custom application
+- what are the initial steps we need to perform, before implementing authentication and authorization checks in our GraphQL API
+- how to perform all of the initial steps
 
 :::
 
@@ -19,6 +33,10 @@ import CenteredImage from "@components/CenteredImage";
 In order to follow this tutorial, you must use Webiny version **5.15.0** or greater.
 
 :::
+
+## Overview
+
+123
 
 ## Adding the Needed Packages
 
@@ -103,36 +121,36 @@ import scaffoldsPlugins from "./plugins/scaffolds";
 const debug = process.env.DEBUG === "true";
 
 export const handler = createHandler({
-    plugins: [
-        /**
-         * Setup Webiny Security Framework to handle authentication and authorization.
-         * Learn more: https://www.webiny.com/docs/key-topics/security-framework/introduction
-         */
-        securityPlugins(),
+  plugins: [
+    /**
+     * Setup Webiny Security Framework to handle authentication and authorization.
+     * Learn more: https://www.webiny.com/docs/key-topics/security-framework/introduction
+     */
+    securityPlugins(),
 
-        /**
-         * Cognito authentication plugin.
-         * This plugin will verify the JWT token against a provided User Pool.
-         */
-        cognitoAuthenticationPlugins({
-            region: process.env.COGNITO_REGION,
-            userPoolId: process.env.COGNITO_USER_POOL_ID,
-            identityType: "user",
-            getIdentity({ identityType, token }) {
-                return new SecurityIdentity({
-                    id: token["cognito:username"],
-                    type: identityType,
-                    displayName: `${token.given_name} ${token.family_name}`,
-                    firstName: token.given_name,
-                    lastName: token.family_name
-                });
-            }
-        }),
-        logsPlugins(),
-        graphqlPlugins({ debug }),
-        scaffoldsPlugins()
-    ],
-    http: { debug }
+    /**
+     * Cognito authentication plugin.
+     * This plugin will verify the JWT token against a provided User Pool.
+     */
+    cognitoAuthenticationPlugins({
+      region: process.env.COGNITO_REGION,
+      userPoolId: process.env.COGNITO_USER_POOL_ID,
+      identityType: "user",
+      getIdentity({ identityType, token }) {
+        return new SecurityIdentity({
+          id: token["cognito:username"],
+          type: identityType,
+          displayName: `${token.given_name} ${token.family_name}`,
+          firstName: token.given_name,
+          lastName: token.family_name,
+        });
+      },
+    }),
+    logsPlugins(),
+    graphqlPlugins({ debug }),
+    scaffoldsPlugins(),
+  ],
+  http: { debug },
 });
 ```
 
@@ -150,7 +168,7 @@ The `identityType` is a simple string that can, down the road, tell us what type
 
 #### `getIdentity`
 
-Optionally, the `getIdentity` callback function enables us to return a custom [`SecurityIdentity`](#) instance once the identity has been successfully authenticated.  This is helpful when we want to define additional properties on it, or maybe decide to assign a different value to the required ones - `id`, `type`, and `displayName`.
+Optionally, the `getIdentity` callback function enables us to return a custom [`SecurityIdentity`](#) instance once the identity has been successfully authenticated. This is helpful when we want to define additional properties on it, or maybe decide to assign a different value to the required ones - `id`, `type`, and `displayName`.
 
 In our case, the reason we went with a custom `getIdentity` callback function is because, by default, the `id` property of the [`SecurityIdentity`](#) instance will be mapped to signed-in user's e-mail address, which is not what we want. Be relying on the `cognito:username` property of the received and decoded authorization token (notice the `token` named parameter), we're relying on an ID that was generated on the Amazon Cognito side.
 
@@ -162,7 +180,7 @@ The [`SecurityIdentity`](#) instance that we return from the `setIdentity` callb
 
 The following step is not required, but it's certainly recommended because we'll benefit from improved type-safety and easier use.
 
-If we were to open the [`pinterest-clone/api/code/graphql/src/types.ts`](#) file, in it, we'd find the [`Context`](#) interface, which we can utilize any time we're actually interacting with the handler's central `context` object. In our case, this would be within our GraphQL resolver functions, but it could also happen in different [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/cli-scaffold-react-app/packages/handler/src/plugins/ContextPlugin.ts#L7),  [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10), and other plugins.
+If we were to open the [`pinterest-clone/api/code/graphql/src/types.ts`](#) file, in it, we'd find the [`Context`](#) interface, which we can utilize any time we're actually interacting with the handler's central `context` object. In our case, this would be within our GraphQL resolver functions, but it could also happen in different [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/cli-scaffold-react-app/packages/handler/src/plugins/ContextPlugin.ts#L7), [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10), and other plugins.
 
 So, since the newly added packages (sets of plugins) are actually modifying the `context` object by adding new properties to it, let's make sure those changes are reflected in the `Context` interface as well.
 
@@ -180,11 +198,11 @@ import { SecurityContext } from "@webiny/api-security/types";
 // Feel free to extend it with additional context interfaces, if needed. Also, please do not change the
 // name of the interface, as existing scaffolding utilities may rely on it during the scaffolding process.
 export interface Context
-    extends HandlerContext,
-        HttpContext,
-        ArgsContext,
-        ClientContext,
-        SecurityContext {}
+  extends HandlerContext,
+    HttpContext,
+    ArgsContext,
+    ClientContext,
+    SecurityContext {}
 ```
 
 As we can see, at the top of the file, we've simply imported the `SecurityContext` interface, and then, below, added it to our `Context` interface. Which means that, from now on, every time we interact with the `context` object, we'll be able to safely access all of the additional properties that the newly added security-related plugins defined.
@@ -208,26 +226,26 @@ import { PinEntity } from "../types";
  * If needed, additional entities can be defined using the same approach.
  */
 export default new Entity<PinEntity>({
-    table,
-    name: "Pin",
-    timestamps: false,
-    attributes: {
-        PK: { partitionKey: true },
-        SK: { sortKey: true },
-        id: { type: "string" },
-        title: { type: "string" },
-        description: { type: "string" },
-        coverImage: { type: "string" },
-        createdOn: { type: "string" },
-        savedOn: { type: "string" },
+  table,
+  name: "Pin",
+  timestamps: false,
+  attributes: {
+    PK: { partitionKey: true },
+    SK: { sortKey: true },
+    id: { type: "string" },
+    title: { type: "string" },
+    description: { type: "string" },
+    coverImage: { type: "string" },
+    createdOn: { type: "string" },
+    savedOn: { type: "string" },
 
-        // For the `Pin` entity, we can use a simple "map" type as the attribute type.
-        createdBy: { type: "map" },
+    // For the `Pin` entity, we can use a simple "map" type as the attribute type.
+    createdBy: { type: "map" },
 
-        // Will store current version of Webiny, for example "5.9.1".
-        // Might be useful in the future or while performing upgrades.
-        webinyVersion: { type: "string" }
-    }
+    // Will store current version of Webiny, for example "5.9.1".
+    // Might be useful in the future or while performing upgrades.
+    webinyVersion: { type: "string" },
+  },
 });
 ```
 
@@ -240,19 +258,19 @@ export default new Entity<PinEntity>({
 import { SecurityIdentity } from "@webiny/api-security";
 
 export interface PinEntity {
-    PK: string;
-    SK: string;
-    id: string;
-    title: string;
-    description?: string;
-    coverImage?: string;
-    createdOn: string;
-    savedOn: string;
+  PK: string;
+  SK: string;
+  id: string;
+  title: string;
+  description?: string;
+  coverImage?: string;
+  createdOn: string;
+  savedOn: string;
 
-    // For the `PinEntity` type, let's be specific and specify which fields are accepted.
-    createdBy: Pick<SecurityIdentity, "id" | "displayName" | "type">;
+  // For the `PinEntity` type, let's be specific and specify which fields are accepted.
+  createdBy: Pick<SecurityIdentity, "id" | "displayName" | "type">;
 
-    webinyVersion: string;
+  webinyVersion: string;
 }
 ```
 

@@ -2,8 +2,23 @@
 id: adding-user-pool-and-user-pool-domain
 title: Adding User Pool and User Pool Domain
 sidebar_label: Adding User Pool and User Pool Domain
-keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
-description: Learn how to implement authentication in your custom React application.
+keywords:
+  [
+    "create",
+    "custom",
+    "application",
+    "security",
+    "auth",
+    "authentication",
+    "authorization",
+    "cloud",
+    "infrastructure",
+    "adding",
+    "user",
+    "pool",
+    "domain",
+  ]
+description: Learn how we can add and deploy a new User Pool and User Pool Domain, via GraphQL API's cloud infrastructure code.
 ---
 
 import CenteredImage from "@components/CenteredImage";
@@ -11,7 +26,7 @@ import cloudInfraAutoDeploy from "./adding-user-pool-and-user-pool-domain/cloud-
 
 :::tip WHAT YOU’LL LEARN
 
-- how to implement authentication in your custom application
+- how we can add and deploy a new User Pool and User Pool Domain, via GraphQL API's cloud infrastructure code
 
 :::
 
@@ -34,52 +49,49 @@ import * as pulumi from "@pulumi/pulumi";
 const BASE_ATTRIBUTE_NAMES = ["email", "given_name", "family_name"];
 
 class Cognito {
-    userPool: aws.cognito.UserPool;
-    userPoolDomain: aws.cognito.UserPoolDomain;
-    constructor() {
-        // Creates a new user pool. For more information on all of the available options, see:
-        // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpool/
-        // https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPool.html
-        this.userPool = new aws.cognito.UserPool("pinterest-clone", {
-            schemas: BASE_ATTRIBUTE_NAMES.map(name => ({
-                name,
-                attributeDataType: "String",
-                required: true,
-                developerOnlyAttribute: false,
-                mutable: true,
-                stringAttributeConstraints: {
-                    maxLength: "2048",
-                    minLength: "0"
-                }
-            })),
-            passwordPolicy: {
-                minimumLength: 8,
-                requireLowercase: false,
-                requireNumbers: false,
-                requireSymbols: false,
-                requireUppercase: false,
-                temporaryPasswordValidityDays: 7
-            },
-            autoVerifiedAttributes: ["email"],
-            usernameAttributes: ["email"]
-        });
+  userPool: aws.cognito.UserPool;
+  userPoolDomain: aws.cognito.UserPoolDomain;
+  constructor() {
+    // Creates a new user pool. For more information on all of the available options, see:
+    // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpool/
+    // https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPool.html
+    this.userPool = new aws.cognito.UserPool("pinterest-clone", {
+      schemas: BASE_ATTRIBUTE_NAMES.map((name) => ({
+        name,
+        attributeDataType: "String",
+        required: true,
+        developerOnlyAttribute: false,
+        mutable: true,
+        stringAttributeConstraints: {
+          maxLength: "2048",
+          minLength: "0",
+        },
+      })),
+      passwordPolicy: {
+        minimumLength: 8,
+        requireLowercase: false,
+        requireNumbers: false,
+        requireSymbols: false,
+        requireUppercase: false,
+        temporaryPasswordValidityDays: 7,
+      },
+      autoVerifiedAttributes: ["email"],
+      usernameAttributes: ["email"],
+    });
 
-        // Creates a user pool domain over which we'll be able to access the Hosted UI authentication flow.
-        // For more information on all of the available options, see:
-        // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpooldomain/
-        this.userPoolDomain = new aws.cognito.UserPoolDomain(
-            "pinterest-clone",
-            {
-                domain: "pinterest-clone",
-                userPoolId: this.userPool.id
-            }
-        );
-    }
+    // Creates a user pool domain over which we'll be able to access the Hosted UI authentication flow.
+    // For more information on all of the available options, see:
+    // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpooldomain/
+    this.userPoolDomain = new aws.cognito.UserPoolDomain("pinterest-clone", {
+      domain: "pinterest-clone",
+      userPoolId: this.userPool.id,
+    });
+  }
 
-    // A simple getter that will construct and return us the complete user pool domain.
-    getUserPoolDomain() {
-        return pulumi.interpolate`${this.userPoolDomain.domain}.auth.${process.env.AWS_REGION}.amazoncognito.com`;
-    }
+  // A simple getter that will construct and return us the complete user pool domain.
+  getUserPoolDomain() {
+    return pulumi.interpolate`${this.userPoolDomain.domain}.auth.${process.env.AWS_REGION}.amazoncognito.com`;
+  }
 }
 
 export default Cognito;
@@ -109,52 +121,52 @@ const DEBUG = String(process.env.DEBUG);
 const WEBINY_LOGS_FORWARD_URL = String(process.env.WEBINY_LOGS_FORWARD_URL);
 
 export default () => {
-    const dynamoDb = new DynamoDB();
-    const cognito = new Cognito();
+  const dynamoDb = new DynamoDB();
+  const cognito = new Cognito();
 
-    const api = new Graphql({
-        dbTable: dynamoDb.table,
-        env: {
-            // The single DynamoDB table in which data can be stored and queried.
-            DB_TABLE: dynamoDb.table.name,
-            DEBUG,
-            WEBINY_LOGS_FORWARD_URL
-        }
-    });
+  const api = new Graphql({
+    dbTable: dynamoDb.table,
+    env: {
+      // The single DynamoDB table in which data can be stored and queried.
+      DB_TABLE: dynamoDb.table.name,
+      DEBUG,
+      WEBINY_LOGS_FORWARD_URL,
+    },
+  });
 
-    const apiGateway = new ApiGateway({
-        routes: [
-            {
-                name: "graphql-post",
-                path: "/graphql",
-                method: "POST",
-                function: api.functions.api
-            },
-            {
-                name: "graphql-options",
-                path: "/graphql",
-                method: "OPTIONS",
-                function: api.functions.api
-            }
-        ]
-    });
+  const apiGateway = new ApiGateway({
+    routes: [
+      {
+        name: "graphql-post",
+        path: "/graphql",
+        method: "POST",
+        function: api.functions.api,
+      },
+      {
+        name: "graphql-options",
+        path: "/graphql",
+        method: "OPTIONS",
+        function: api.functions.api,
+      },
+    ],
+  });
 
-    const cloudfront = new Cloudfront({ apiGateway });
+  const cloudfront = new Cloudfront({ apiGateway });
 
-    return {
-        region: process.env.AWS_REGION,
-        apiUrl: cloudfront.getDistributionUrl(),
-        graphqlApiUrl: cloudfront.getDistributionUrl("/graphql"),
-        dynamoDbTable: dynamoDb.table.name,
-        cognitoUserPool: {
-            id: cognito.userPool.id,
-            domain: cognito.getUserPoolDomain()
-        }
-    };
+  return {
+    region: process.env.AWS_REGION,
+    apiUrl: cloudfront.getDistributionUrl(),
+    graphqlApiUrl: cloudfront.getDistributionUrl("/graphql"),
+    dynamoDbTable: dynamoDb.table.name,
+    cognitoUserPool: {
+      id: cognito.userPool.id,
+      domain: cognito.getUserPoolDomain(),
+    },
+  };
 };
 ```
 
-As names suggest, the `cognitoUserPoolId` and `cognitoUserPoolDomain` properties represent the ID and the domain of the deployed User Pool and User Pool Domain, respectively. We've added these values to the stack output simply because we'll later need them within our React application    code (more on this soon).
+As names suggest, the `cognitoUserPoolId` and `cognitoUserPoolDomain` properties represent the ID and the domain of the deployed User Pool and User Pool Domain, respectively. We've added these values to the stack output simply because we'll later need them within our React application code (more on this soon).
 
 ## Deployment
 
@@ -162,7 +174,11 @@ In order to continue further development, the new cloud infrastructure resources
 
 If you had the [`webiny watch`](/docs/how-to-guides/use-watch-command) command up and running while making the shown changes, the new cloud infrastructure resources should have been deployed automatically for you:
 
-<CenteredImage alt="Automatic Re-deployment of Cloud Infrastructure" style={{ maxWidth: 750 }} src={cloudInfraAutoDeploy} />
+<CenteredImage
+  alt="Automatic Re-deployment of Cloud Infrastructure"
+  style={{ maxWidth: 750 }}
+  src={cloudInfraAutoDeploy}
+/>
 
 If not, you can either start a new watch session, or simply deploy the changes via the [`webiny deploy`](#) command. Both approaches will ensure the new cloud infrastructure resources are deployed and are ready to be used.
 

@@ -2,8 +2,19 @@
 id: getting-started
 title: Getting Started
 sidebar_label: Getting Started
-keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
-description: Learn how to implement authentication in your custom React application.
+keywords:
+  [
+    "create",
+    "custom",
+    "application",
+    "security",
+    "auth",
+    "authentication",
+    "authorization",
+    "getting",
+    "started",
+  ]
+description: Get a high-level overview of Amazon Cognito's Hosted UI authentication flow.
 ---
 
 import CenteredImage from "@components/CenteredImage";
@@ -12,7 +23,8 @@ import hostedUi2 from "./getting-started/hosted-ui-2.png";
 
 :::tip WHAT YOU’LL LEARN
 
-- how to implement authentication in your custom application
+- an overview of Amazon Cognito's Hosted UI authentication flow
+- what are some of the things we need to consider, before starting with the tutorial
 
 :::
 
@@ -22,7 +34,7 @@ In order to follow this tutorial, you must use Webiny version **5.15.0** or grea
 
 :::
 
-## Authentication Flow with Amazon Cognito
+## Authentication Flow with Amazon Cognito's Hosted UI
 
 As mentioned in the previous section, in order to perform authentication in our application, we first need to have an **authentication flow**. In other words, we need to provide a way for users to sign up and sign in into our application.
 
@@ -34,11 +46,21 @@ Other approaches
 
 With this approach, the authentication flow is completely offloaded to Amazon Cognito. Once a user wishes to sign up or sign in into our application, she/he usually clicks on a button or a link in it, which causes a redirect to the standalone hosted authentication flow. So, as mentioned, the authentication flow is happening completely outside of our application.
 
-<CenteredImage alt="User Authentication Flow Start" shadow={false} style={{ maxWidth: 500 }} src={hostedUi1} />
+<CenteredImage
+  alt="User Authentication Flow Start"
+  shadow={false}
+  style={{ maxWidth: 500 }}
+  src={hostedUi1}
+/>
 
 Once completed successfully, the user is redirected back to our application, but this time, authenticated. Which means we should be able to retrieve the currently signed-in user within both React application and GraphQL API, ultimately enabling us to safely perform sensitive operations like sensitive GraphQL mutations, maybe even file upload, and more.
 
-<CenteredImage alt="User Authentication Flow End" shadow={false} style={{ maxWidth: 500 }} src={hostedUi2} />
+<CenteredImage
+  alt="User Authentication Flow End"
+  shadow={false}
+  style={{ maxWidth: 500 }}
+  src={hostedUi2}
+/>
 
 In total, in order to fully implement this flow, we're going to need three new Amazon Cognito cloud infrastructure resources. Two deployed as part of our GraphQL API:
 
@@ -73,9 +95,9 @@ If we were to open the cloud infrastructure code that is initially included duri
 
 ```ts title="pinterest-clone/api/pulumi/dev/index.ts"
 return {
-    region: process.env.AWS_REGION,
-    apiUrl: cloudfront.getDistributionUrl(),
-    dynamoDbTable: dynamoDb.table.name,
+  region: process.env.AWS_REGION,
+  apiUrl: cloudfront.getDistributionUrl(),
+  dynamoDbTable: dynamoDb.table.name,
 };
 ```
 
@@ -97,29 +119,29 @@ import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
 // - `project-applications-path/api/pulumi/prod/index.ts`
 
 const MAP = {
-    REACT_APP_GRAPHQL_API_URL: "${graphqlApiUrl}"
+  REACT_APP_GRAPHQL_API_URL: "${graphqlApiUrl}",
 };
 
 const NO_ENV_MESSAGE = `Please specify the environment via the "--env" argument, for example: "--env dev".`;
 
 export default {
-    commands: {
-        async watch(options, context) {
-            invariant(options.env, NO_ENV_MESSAGE);
-            Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, MAP));
+  commands: {
+    async watch(options, context) {
+      invariant(options.env, NO_ENV_MESSAGE);
+      Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, MAP));
 
-            // Starts local application development.
-            await startApp(options, context);
-        },
-        async build(options, context) {
-            invariant(options.env, NO_ENV_MESSAGE);
-            Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, MAP));
+      // Starts local application development.
+      await startApp(options, context);
+    },
+    async build(options, context) {
+      invariant(options.env, NO_ENV_MESSAGE);
+      Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, MAP));
 
-            // Creates a production build of your application, ready to be deployed to
-            // a hosting provider of your choice, for example Amazon S3.
-            await buildApp(options, context);
-        }
-    }
+      // Creates a production build of your application, ready to be deployed to
+      // a hosting provider of your choice, for example Amazon S3.
+      await buildApp(options, context);
+    },
+  },
 };
 ```
 
@@ -133,6 +155,7 @@ Stack output can also be quickly retrieved via [Webiny CLI](/docs/key-topics/web
 ```bash
 yarn webiny output pinterest-clone/api --env dev
 ```
+
 :::
 
 ### `webiny.config.ts` Configuration File

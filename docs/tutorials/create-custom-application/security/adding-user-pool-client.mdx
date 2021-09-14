@@ -2,8 +2,23 @@
 id: adding-user-pool-client
 title: Adding User Pool Client
 sidebar_label: Adding User Pool Client
-keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
-description: Learn how to implement authentication in your custom React application.
+keywords:
+  [
+    "create",
+    "custom",
+    "application",
+    "security",
+    "auth",
+    "authentication",
+    "authorization",
+    "cloud",
+    "infrastructure",
+    "adding",
+    "user",
+    "pool",
+    "client",
+  ]
+description: Learn how we can add and deploy a new User Pool Client, via React application's cloud infrastructure code.
 ---
 
 import CenteredImage from "@components/CenteredImage";
@@ -11,7 +26,7 @@ import cloudInfraAutoDeploy from "./adding-user-pool-and-user-pool-domain/cloud-
 
 :::tip WHAT YOU’LL LEARN
 
-- how to implement authentication in your custom application
+- how we can add and deploy a new User Pool Client, via React application's cloud infrastructure code
 
 :::
 
@@ -33,37 +48,37 @@ import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
 import Cloudfront from "./cloudfront";
 
 class Cognito {
-    userPoolClient: aws.cognito.UserPoolClient;
-    constructor({ cloudfront }: { cloudfront: Cloudfront }) {
-        const { cognitoUserPool } = getStackOutput({
-            folder: "pinterest-clone/api",
-            env: String(process.env.WEBINY_ENV)
-        });
+  userPoolClient: aws.cognito.UserPoolClient;
+  constructor({ cloudfront }: { cloudfront: Cloudfront }) {
+    const { cognitoUserPool } = getStackOutput({
+      folder: "pinterest-clone/api",
+      env: String(process.env.WEBINY_ENV),
+    });
 
-        // Allowed callback and logout URLs. We need localhost for development purposes,
-        // and the Cloudfront distribution for the deployed application.
-        const local = `http://localhost:3001`;
-        const callbackUrls = [`${local}?signIn`, cloudfront.getDistributionUrl("?signIn")];
-        const logoutUrls = [`${local}?signOut`, cloudfront.getDistributionUrl("?signOut")];
+    // Allowed callback and logout URLs. We need localhost for development purposes,
+    // and the Cloudfront distribution for the deployed application.
+    const local = `http://localhost:3001`;
+    const callbackUrls = [`${local}?signIn`, cloudfront.getDistributionUrl("?signIn")];
+    const logoutUrls = [`${local}?signOut`, cloudfront.getDistributionUrl("?signOut")];
 
-        // Creates a new user pool client, which we'll use in our React application.
-        // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpoolclient/
-        // https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolClient.html
-        this.userPoolClient = new aws.cognito.UserPoolClient("pinterest-clone", {
-            userPoolId: cognitoUserPool.id,
-            callbackUrls,
-            logoutUrls,
+    // Creates a new user pool client, which we'll use in our React application.
+    // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpoolclient/
+    // https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolClient.html
+    this.userPoolClient = new aws.cognito.UserPoolClient("pinterest-clone", {
+      userPoolId: cognitoUserPool.id,
+      callbackUrls,
+      logoutUrls,
 
-            // A list of provider names for the identity providers that are supported on
-            // this client. Supported values: COGNITO, Facebook, Google and LoginWithAmazon.
-            supportedIdentityProviders: ["COGNITO"],
+      // A list of provider names for the identity providers that are supported on
+      // this client. Supported values: COGNITO, Facebook, Google and LoginWithAmazon.
+      supportedIdentityProviders: ["COGNITO"],
 
-            // Enables usage of OAuth flows.
-            allowedOauthFlowsUserPoolClient: true,
-            allowedOauthFlows: ["implicit"],
-            allowedOauthScopes: ["openid", "profile", "email"]
-        });
-    }
+      // Enables usage of OAuth flows.
+      allowedOauthFlowsUserPoolClient: true,
+      allowedOauthFlows: ["implicit"],
+      allowedOauthScopes: ["openid", "profile", "email"],
+    });
+  }
 }
 
 export default Cognito;
@@ -92,22 +107,22 @@ import Cloudfront from "./cloudfront";
 import Cognito from "./cognito";
 
 export = async () => {
-    // Add tags to all resources that support tagging.
-    tagResources({
-        WbyProjectName: process.env.WEBINY_PROJECT_NAME as string,
-        WbyEnvironment: process.env.WEBINY_ENV as string
-    });
+  // Add tags to all resources that support tagging.
+  tagResources({
+    WbyProjectName: process.env.WEBINY_PROJECT_NAME as string,
+    WbyEnvironment: process.env.WEBINY_ENV as string,
+  });
 
-    const app = new App();
-    const cloudfront = new Cloudfront({ appS3Bucket: app.bucket });
-    const cognito = new Cognito({ cloudfront });
+  const app = new App();
+  const cloudfront = new Cloudfront({ appS3Bucket: app.bucket });
+  const cognito = new Cognito({ cloudfront });
 
-    return {
-        appUrl: pulumi.interpolate`https://${cloudfront.distribution.domainName}`,
-        cognitoUserPool: {
-            clientId: cognito.userPoolClient.id
-        }
-    };
+  return {
+    appUrl: pulumi.interpolate`https://${cloudfront.distribution.domainName}`,
+    cognitoUserPool: {
+      clientId: cognito.userPoolClient.id,
+    },
+  };
 };
 ```
 
@@ -147,4 +162,3 @@ With all of this in place, there's one additional step we need to complete befor
 #### Local vs. Cloud Native Development? TODO
 
 With serverless and cloud-native development, these kinds of situations are not unusual. Yes, it may be a bit cumbersome to deploy cloud infrastructure resources when we're just developing our application locally. But, on the other hand, we need to have the GraphQL API deployed anyhow. And, at least with this approach, we're testing our React application with real cloud infrastructure resources, and not some kind of emulations or mocks, which, in some cases, can provide false positives and can be even harder to set up.
-

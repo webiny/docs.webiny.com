@@ -2,15 +2,29 @@
 id: initial-setup
 title: Initial Setup
 sidebar_label: Initial Setup
-keywords: ["create", "custom", "application", "graphql", "react", "authentication"]
-description: Learn how to implement authentication in your custom React application.
+keywords:
+  [
+    "create",
+    "custom",
+    "application",
+    "security",
+    "auth",
+    "authentication",
+    "authorization",
+    "react",
+    "application",
+    "initial",
+    "setup",
+  ]
+description: Before integrating the Hosted UI authentication flow in our React application, there are a couple of initial setup steps that we need to perform. In this section, we'll learn what those are.
 ---
 
 import CenteredImage from "@components/CenteredImage";
 
 :::tip WHAT YOU’LL LEARN
 
-- how to implement authentication in your custom application
+- what are the initial steps we need to perform, before integrating the Hosted UI authentication flow in our React application
+- how to perform all of the initial steps
 
 :::
 
@@ -19,6 +33,10 @@ import CenteredImage from "@components/CenteredImage";
 In order to follow this tutorial, you must use Webiny version **5.15.0** or greater.
 
 :::
+
+## Overview
+
+123
 
 ## Adding the Needed Libraries
 
@@ -61,44 +79,44 @@ import { useSecurity, SecurityIdentity } from "@webiny/app-security";
 
 // Apart from the React component, we also configure the Auth class here.
 Auth.configure({
-    region: process.env.REACT_APP_USER_POOL_REGION,
-    userPoolId: process.env.REACT_APP_USER_POOL_ID,
-    userPoolWebClientId: process.env.REACT_APP_USER_POOL_WEB_CLIENT_ID,
-    oauth: {
-        domain: process.env.REACT_APP_USER_POOL_DOMAIN,
-        redirectSignIn: `${location.origin}?signIn`,
-        redirectSignOut: `${location.origin}?signOut`,
-        responseType: "token"
-    }
+  region: process.env.REACT_APP_USER_POOL_REGION,
+  userPoolId: process.env.REACT_APP_USER_POOL_ID,
+  userPoolWebClientId: process.env.REACT_APP_USER_POOL_WEB_CLIENT_ID,
+  oauth: {
+    domain: process.env.REACT_APP_USER_POOL_DOMAIN,
+    redirectSignIn: `${location.origin}?signIn`,
+    redirectSignOut: `${location.origin}?signOut`,
+    responseType: "token",
+  },
 });
 
 // The `Authenticator` component.
-const Authenticator: React.FC = props => {
-    const { setIdentity } = useSecurity();
+const Authenticator: React.FC = (props) => {
+  const { setIdentity } = useSecurity();
 
-    useEffect(() => {
-        // Get the currently signed-in user.
-        Auth.currentSession()
-            .then(response => {
-                const user = response.getIdToken().payload;
-                setIdentity(
-                    new SecurityIdentity({
-                        login: user.email,
-                        firstName: user.given_name,
-                        lastName: user.family_name,
-                        logout: () => {
-                            Auth.signOut();
-                            setIdentity(null);
-                        }
-                    })
-                );
-            })
-            .catch(() => {
-                /* Do nothing. */
-            });
-    }, []);
+  useEffect(() => {
+    // Get the currently signed-in user.
+    Auth.currentSession()
+      .then((response) => {
+        const user = response.getIdToken().payload;
+        setIdentity(
+          new SecurityIdentity({
+            login: user.email,
+            firstName: user.given_name,
+            lastName: user.family_name,
+            logout: () => {
+              Auth.signOut();
+              setIdentity(null);
+            },
+          })
+        );
+      })
+      .catch(() => {
+        /* Do nothing. */
+      });
+  }, []);
 
-    return <>{props.children}</>;
+  return <>{props.children}</>;
 };
 
 export default Authenticator;
@@ -130,26 +148,24 @@ import "antd/dist/antd.css";
 // The beginning of our React application, where we mount a couple of useful providers.
 // If needed, feel free to add new or modify existing providers.
 export const App = () => (
-    <>
-        {/*
+  <>
+    {/*
             <SecurityProvider> is a generic provider of identity information. 3rd party identity providers (like Cognito,
             Okta, Auth0) will handle the authentication, and set the information about the user into this provider,
             so other parts of the system have a centralized place to fetch user information from.
         */}
-        <SecurityProvider>
-            <Authenticator>
-                {/* Sets up a new Apollo GraphQL client, pointed to an existing GraphQL API. */}
-                <ApolloProvider
-                    client={createApolloClient({ uri: process.env.REACT_APP_GRAPHQL_API_URL })}
-                >
-                    {/* Enables routing in our application. */}
-                    <BrowserRouter basename={process.env.PUBLIC_URL}>
-                        <Routes />
-                    </BrowserRouter>
-                </ApolloProvider>
-            </Authenticator>
-        </SecurityProvider>
-    </>
+    <SecurityProvider>
+      <Authenticator>
+        {/* Sets up a new Apollo GraphQL client, pointed to an existing GraphQL API. */}
+        <ApolloProvider client={createApolloClient({ uri: process.env.REACT_APP_GRAPHQL_API_URL })}>
+          {/* Enables routing in our application. */}
+          <BrowserRouter basename={process.env.PUBLIC_URL}>
+            <Routes />
+          </BrowserRouter>
+        </ApolloProvider>
+      </Authenticator>
+    </SecurityProvider>
+  </>
 );
 ```
 
@@ -168,30 +184,30 @@ import { setContext } from "apollo-link-context";
 import { Auth } from "@aws-amplify/auth";
 
 export default [
-    // This link removes `__typename` from the variables being sent to the API.
-    new OmitTypenameLinkPlugin(),
+  // This link removes `__typename` from the variables being sent to the API.
+  new OmitTypenameLinkPlugin(),
 
-    // This link checks for presence of `extensions.console` in the response and logs all items to browser console.
-    new ConsoleLinkPlugin(),
+  // This link checks for presence of `extensions.console` in the response and logs all items to browser console.
+  new ConsoleLinkPlugin(),
 
-    // This plugin creates an ApolloLink that checks for `NetworkError` and shows an ErrorOverlay in the browser.
-    new NetworkErrorLinkPlugin(),
+  // This plugin creates an ApolloLink that checks for `NetworkError` and shows an ErrorOverlay in the browser.
+  new NetworkErrorLinkPlugin(),
 
-    new ApolloLinkPlugin(() => {
-        return setContext(async (_, { headers }) => {
-            try {
-                const user = await Auth.currentSession();
-                return {
-                    headers: {
-                        ...headers,
-                        Authorization: user.getIdToken().getJwtToken()
-                    }
-                };
-            } catch (error) {
-                return { headers };
-            }
-        });
-    })
+  new ApolloLinkPlugin(() => {
+    return setContext(async (_, { headers }) => {
+      try {
+        const user = await Auth.currentSession();
+        return {
+          headers: {
+            ...headers,
+            Authorization: user.getIdToken().getJwtToken(),
+          },
+        };
+      } catch (error) {
+        return { headers };
+      }
+    });
+  }),
 ];
 ```
 
