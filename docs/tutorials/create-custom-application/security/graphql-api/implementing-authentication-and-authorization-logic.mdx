@@ -9,6 +9,9 @@ description: Learn how to implement authentication in your custom React applicat
 import CenteredImage from "@components/CenteredImage";
 import createPinMutation from "./implementing-authentication-and-authorization-logic/create-pin-mutation-test.png";
 import createPinMutationUnauthorized from "./implementing-authentication-and-authorization-logic/create-pin-mutation-unauthorized.png";
+import updatePinMutationCannotUpdateOtherUsersPin from "./implementing-authentication-and-authorization-logic/update-pin-cannot-update-other-users-pin.png";
+import updatePinMutationCreateWithUser from "./implementing-authentication-and-authorization-logic/update-pin-create-with-user.png";
+import updatePinMutationUpdateWithUser from "./implementing-authentication-and-authorization-logic/update-pin-update-with-user.png";
 
 :::tip WHAT YOU’LL LEARN
 
@@ -21,6 +24,16 @@ import createPinMutationUnauthorized from "./implementing-authentication-and-aut
 In order to follow this tutorial, you must use Webiny version **5.13.0** or greater.
 
 :::
+
+## Overview
+
+At the moment, all pins-related queries and mutations that were created during the [Extend GraphQL API](/docs/how-to-guides/scaffolding/extend-graphql-api) scaffolding process are publicly accessible.
+
+:::info In Case You Forgot
+In the [GraphQL API](/docs/tutorials/create-custom-application/graphql-api) section of this tutorial, we've used the [Extend GraphQL API](/docs/how-to-guides/scaffolding/extend-graphql-api) scaffold to extend our GraphQL API and introduce essential CRUD GraphQL queries and mutations.
+:::
+
+For example, if were to perform the following `CreatePin` GraphQL mutation, we would be able to create a new pin, with no user tied to it:
 
 ```graphql
 mutation CreatePin($data: PinCreateInput!) {
@@ -38,12 +51,31 @@ Once run, we should receive a response similar to the following (the only piece 
 
 <CenteredImage alt={'"CreatePin" Mutation - Publicly Accessible'} src={createPinMutation} />
 
+And that's not all. Anonymous users can even change the information on pins created by other users, and even delete them! This is certainly not what we'd expect of a modern application nor from any kind of application at all.
+
+So, in this final section of the tutorial, we'll implement the necessary authentication and authorization checks, which will ensure users can perform the sensitive GraphQL mutations, only if they're really allowed to.
+
+Note that by **sensitive GraphQL mutations**, we mean the following:
+
+  - [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L53)
+  - [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L56)
+  - [`deletePin(id: ID!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L59)
+
+All of the resolver functions for these mutations are located in the [`PinsMutation`](#) class, located in the [`pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts`](#) file, and this is where we'll perform all of the changes in the sections that follow.
+
+## Before We Begin - A Note on Testing
+
+## Creating Pins
+
+Let's start with the [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L53) mutation. In order to make it secure, we'll apply the following changes to the [`createPin`](#) resolver function:
+
 ```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {6-10,23-27}
 /**
  * Creates and returns a new Pin entry.
  * @param data
  */
 async createPin({ data }: CreatePinParams) {
+    // Before doing anything, let's make sure the user is signed in.
     const { security } = this.context;
     const identity = await security.getIdentity();
     if (!identity) {
@@ -61,7 +93,7 @@ async createPin({ data }: CreatePinParams) {
         id,
         createdOn: new Date().toISOString(),
         savedOn: new Date().toISOString(),
-        createdBy: identity && {
+        createdBy: {
             id: identity.id,
             type: identity.type,
             displayName: identity.displayName
@@ -76,16 +108,34 @@ async createPin({ data }: CreatePinParams) {
 }
 ```
 
+As we can see, we made two additions to the existing application code. First, we are retrieving the signed-in user, via the [`await security.getIdentity();`](#) call. This is something we'll add to the remaining two resolver functions too, as we immediately want to throw an error if the user is not signed in.
+
+We've also updated the `pin` object, where we added the `createdBy` property, and assigned an object with user information to it. By doing this, we're tying every created pin to a user, which will be very important once we get to the remaining two resolver function.
+
+With all of the changes in place, while not signed-in, performing the same `CreatePin` mutation, should give us the following **Not authenticated.** error response:
+
 <CenteredImage alt={'"CreatePin" Mutation - Not Authorized'} src={createPinMutationUnauthorized} />
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {8-12,20-22}
+On the other hand, if we were perform the same mutation, but this time as a signed-in user, we should receive the following response:
 
+<CenteredImage alt={'"CreatePin" Mutation - Authorized'} src={updatePinMutationCreateWithUser} />
+
+If that's true, that means everything is in order, and we can continue with updating the next resolver function in line, and that's [`updatePin`](#).
+
+## Updating Pins
+
+Next up - the [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L56) mutation.
+
+Apart from the initial signed-in user check that we also performed in the previous resolver function, in the [`updatePin`](#) resolver function, we also need to check whether the pin that's about to be updated actually belongs to the signed-in user. Note that in order to perform this check, we actually need to retrieve the pin from the database and inspect its `createdBy` field, which we've defined in the [previous section](/docs/tutorials/create-custom-application/security/graphql-api/initial-setup#adding-createdby-field) of this tutorial.
+
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {7-11,19-21}
 /**
  * Updates and returns an existing Pin entry.
  * @param id
  * @param data
  */
 async updatePin({ id, data }: UpdatePinParams) {
+    // Before doing anything, let's make sure the user is signed in.
     const { security } = this.context;
     const identity = await security.getIdentity();
     if (!identity) {
@@ -111,12 +161,45 @@ async updatePin({ id, data }: UpdatePinParams) {
 }
 ```
 
+:::note
+If the retrieval of the requested pin failed, then we can immediately exit with an appropriate error message.
+:::
+
+So, via the [`UpdatePin`](#) mutation, if we tried to update a pin that was created by another user, we should receive the **Not authenticated.** error response:
+
+```graphql
+mutation UpdatePin($id: ID!, $data: PinUpdateInput!) {
+  pins {
+    updatePin(id: $id, data: $data) {
+      id
+      title
+      description
+    }
+  }
+}
+```
+
+<CenteredImage alt={'"UpdatePin" Mutation - Not Authorized'} src={updatePinMutationCannotUpdateOtherUsersPin} />
+
+To manually test if this really works as intended, while signed-in, we could create a new pin, and then immediately try to update it.
+
+<CenteredImage alt={'"CreatePin" Mutation - Authorized'} src={updatePinMutationCreateWithUser} />
+
+Once the pin is created, upon updating it, we should not receive the already seen **Not authenticated.** error response, because we're signed in with the same user that created the pin:
+
+<CenteredImage alt={'"UpdatePin" Mutation - Authorized'} src={updatePinMutationUpdateWithUser} />
+
+## Deleting Pins
+
+Finally, let's implement the same pair of checks that we performed in the previous resolver function, this time within the [`deletePin`](#) resolver function:
+
 ```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {6-10,19-21}
 /**
  * Deletes and returns an existing Pin entry.
  * @param id
  */
 async deletePin({ id }: DeletePinParams) {
+    // Before doing anything, let's make sure the user is signed in.
     const { security } = this.context;
     const identity = await security.getIdentity();
     if (!identity) {
@@ -141,14 +224,15 @@ async deletePin({ id }: DeletePinParams) {
 }
 ```
 
-```graphql
-mutation UpdatePin($id: ID!, $data: PinUpdateInput!) {
-  pins {
-    updatePin(id: $id, data: $data) {
-      id
-      title
-      description
-    }
-  }
-}
-```
+In order to manually test this, we can use the same approach we used with the previous `UpdatePin` mutation. So, first we would create a new pin, and after that, simply delete it. If the user that tried to delete the pin is the same as the one that created it, then the mutation should be executed successfully.
+
+## Final Result
+
+By implementing the necessary authentication and authorization checks in the existing GraphQL mutations (in respective resolver functions), we've made our application much more secure than it initially was:
+
+- only signed-in users can create pins
+- when a pin is created, it is tied to the signed-in user
+- changes to existing pins can only be performed if the signed-in user initially created the pin
+- the same rule applies when it comes to deleting pins
+
+In the next section, we'll quickly summarize everything that we've learned in these couple of security-related sections of the Create Custom Application tutorial.

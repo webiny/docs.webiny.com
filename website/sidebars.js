@@ -78,6 +78,7 @@ module.exports = {
                                         "tutorials/create-custom-application/security/graphql-api/implementing-authentication-and-authorization-logic",
                                     ],
                                 },
+                                "tutorials/create-custom-application/security/conclusion",
                             ],
                         },
 

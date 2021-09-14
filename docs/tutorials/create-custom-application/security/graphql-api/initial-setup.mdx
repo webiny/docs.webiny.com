@@ -20,13 +20,31 @@ In order to follow this tutorial, you must use Webiny version **5.13.0** or grea
 
 :::
 
-Add a couple of new libraries: [`@webiny/app-security`](https://www.npmjs.com/package/@webiny/app-security) and [`@aws-amplify/auth`](https://www.npmjs.com/package/@aws-amplify/auth).
+## Adding the Needed Packages
+
+In order to implement the necessary authentication and authorization checks within our GraphQL API, like in the previous section, let's again start by adding a couple of new packages into the mix.
+
+#### [`@webiny/api-security`](https://github.com/webiny/webiny-js/tree/next/packages/api-security)
+
+A collection of plugins that will set up the [Webiny Security Framework](https://www.webiny.com/docs/key-topics/security-framework/introduction) in our GraphQL API handler function.
+
+#### [`@webiny/api-security-cognito-authentication`](https://github.com/webiny/webiny-js/tree/next/packages/api-security-cognito-authentication)
+
+By itself, the above package doesn't do much. It's simply a framework, which is always paired with an authentication provider. In our case, we want to pair it up with the Amazon Cognito provider, which is what this package does.
+
+The following command will add both packages to our React application:
 
 ```bash
 yarn workspace pinterest-clone-api add @webiny/api-security @webiny/api-security-cognito-authentication
 ```
 
-```ts title="pinterest-clone/api/pulumi/dev/index.ts" {30-31}
+## Updating Cloud Infrastructure Code
+
+In order to start setting up the newly added packages, we'll first need to update our cloud infrastructure code.
+
+More specifically, we'll need to pass two new environment variables to our GraphQL API handler function: `COGNITO_REGION` and `COGNITO_USER_POOL_ID`.
+
+```ts title="pinterest-clone/api/pulumi/dev/index.ts" {29-30}
 import * as pulumi from "@pulumi/pulumi";
 import DynamoDB from "./dynamoDb";
 import Graphql from "./graphql";
@@ -55,7 +73,6 @@ export default () => {
         env: {
             // The single DynamoDB table in which data can be stored and queried.
             DB_TABLE: dynamoDb.table.name,
-            FILES_BUCKET: s3.bucket.id,
             COGNITO_REGION: String(process.env.AWS_REGION),
             COGNITO_USER_POOL_ID: cognito.userPool.id,
             DEBUG,
@@ -66,6 +83,12 @@ export default () => {
     (...)
 };
 ```
+
+As we'll soon see, in our application code, these will be passed to our GraphQL API handler function, upon configuring the relevant security plugins.
+
+## Setting Up the Packages
+
+Essentially, both [`@webiny/api-security`](https://github.com/webiny/webiny-js/tree/next/packages/api-security) and [`@webiny/api-security-cognito-authentication`](https://github.com/webiny/webiny-js/tree/next/packages/api-security-cognito-authentication) packages are exporting a collection of plugins, which are meant to be registered within our GraphQL API handler function:
 
 ```ts title="pinterest-clone/api/code/graphql/src/index.ts" {4,5,18,24-37}
 import { createHandler } from "@webiny/handler-aws";
@@ -113,6 +136,36 @@ export const handler = createHandler({
 });
 ```
 
+As we can see, via the [`securityPlugins`](#) function call, we're first registering the plugins that set up the [Webiny Security Framework](https://www.webiny.com/docs/key-topics/security-framework/introduction). No additional configuration parameters need to be passed here.
+
+Then, via the [`cognitoAuthenticationPlugins`](#) function call, we're registering another set of plugins that will, basically, enable us to perform authentication against Amazon Cognito and the User Pool we've defined in a [previous section](/docs/tutorials/create-custom-application/security/adding-user-pool-and-user-pool-domain).
+
+### Configuration Parameters
+
+Except assigning the newly added environment variables to `region` and `userPoolId` properties, in the [`cognitoAuthenticationPlugins`](#) function call, we're also assigning `"user"` to `identityType`, and our own custom callback function to the `getIdentity` property.
+
+#### `identityType`
+
+The `identityType` is a simple string that can, down the road, tell us what type of an identity we're working with and which authentication provider managed to authenticate it. For us, this is not that important, as we only have a single type of a user and only a single [`@webiny/api-security-cognito-authentication`](https://github.com/webiny/webiny-js/tree/next/packages/api-security-cognito-authentication) authentication provider. But, since the `identityType` is a required property, we had to set it to something, so we simply passed `"user"` here.
+
+#### `getIdentity`
+
+Optionally, the `getIdentity` callback function enables us to return a custom [`SecurityIdentity`](#) instance once the identity has been successfully authenticated.  This is helpful when we want to define additional properties on it, or maybe decide to assign a different value to the required ones - `id`, `type`, and `displayName`.
+
+In our case, the reason we went with a custom `getIdentity` callback function is because, by default, the `id` property of the [`SecurityIdentity`](#) instance will be mapped to signed-in user's e-mail address, which is not what we want. Be relying on the `cognito:username` property of the received and decoded authorization token (notice the `token` named parameter), we're relying on an ID that was generated on the Amazon Cognito side.
+
+:::info
+The [`SecurityIdentity`](#) instance that we return from the `setIdentity` callback function is what we'll be returned to us while performing authentication down the road, for example within our GraphQL resolver functions. More on this in the following section of this tutorial.
+:::
+
+## Updating `Context` Interface
+
+The following step is not required, but it's certainly recommended because we'll benefit from improved type-safety and easier use.
+
+If we were to open the [`pinterest-clone/api/code/graphql/src/types.ts`](#) file, in it, we'd find the [`Context`](#) interface, which we can utilize any time we're actually interacting with the handler's central `context` object. In our case, this would be within our GraphQL resolver functions, but it could also happen in different [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/cli-scaffold-react-app/packages/handler/src/plugins/ContextPlugin.ts#L7),  [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10), and other plugins.
+
+So, since the newly added packages (sets of plugins) are actually modifying the `context` object by adding new properties to it, let's make sure those changes are reflected in the `Context` interface as well.
+
 ```ts title="pinterest-clone/api/code/graphql/src/types.ts" {5,18}
 import { HandlerContext } from "@webiny/handler/types";
 import { HttpContext } from "@webiny/handler-http/types";
@@ -134,8 +187,17 @@ export interface Context
         SecurityContext {}
 ```
 
+As we can see, at the top of the file, we've simply imported the `SecurityContext` interface, and then, below, added it to our `Context` interface. Which means that, from now on, every time we interact with the `context` object, we'll be able to safely access all of the additional properties that the newly added security-related plugins defined.
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts:30" {23}
+## Adding `createdBy` Field
+
+With all of the above steps correctly performed, we should be able to retrieve the signed-in user and perform essential authentication and authorization checks within our GraphQL resolver functions. Which means that, upon creating a new pin (via the [`createPin`](#) mutation), we'll also be able to tie the signed-in user to it.
+
+In order to do this, we need to expand the [`Pin`](#) entity, and the [`PinEntity`](#) type with a new field, which we'll store the signed-in user information.
+
+So, as the final step in this section of the tutorial, let's add the `createdBy` field which will be responsible for storing signed-in user information. In terms of the data type, the field will accept an object that consists of three properties: `id`, `displayName`, and `type`.
+
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts:30" {25}
 // https://github.com/jeremydaly/dynamodb-toolbox
 import { Entity } from "dynamodb-toolbox";
 import table from "./table";
@@ -158,6 +220,8 @@ export default new Entity<PinEntity>({
         coverImage: { type: "string" },
         createdOn: { type: "string" },
         savedOn: { type: "string" },
+
+        // For the `Pin` entity, we can use a simple "map" type as the attribute type.
         createdBy: { type: "map" },
 
         // Will store current version of Webiny, for example "5.9.1".
@@ -167,7 +231,7 @@ export default new Entity<PinEntity>({
 });
 ```
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts" {6,17}
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts" {6,19}
 // If our GraphQL API uses Webiny Security Framework, we can retrieve the
 // currently logged in identity and assign it to the `createdBy` property.
 // https://www.webiny.com/docs/key-topics/security-framework/introduction
@@ -184,7 +248,23 @@ export interface PinEntity {
     coverImage?: string;
     createdOn: string;
     savedOn: string;
+
+    // For the `PinEntity` type, let's be specific and specify which fields are accepted.
     createdBy: Pick<SecurityIdentity, "id" | "displayName" | "type">;
+
     webinyVersion: string;
 }
 ```
+
+:::info In Case You Forgot
+In the [GraphQL API](/docs/tutorials/create-custom-application/graphql-api) section of this tutorial, we've used the [Extend GraphQL API](/docs/how-to-guides/scaffolding/extend-graphql-api) scaffold to extend our GraphQL API and introduce essential CRUD GraphQL queries and mutations.
+
+By default, the application code relies on [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox), which is a library that makes it a bit easier to interact with the [Amazon DynamoDB](https://aws.amazon.com/dynamodb/features/) database. The `Entity` class we've seen in the above code sample is part of it.
+
+:::
+
+## Final Result
+
+With all of the above-shown changes in place, the initial setup is complete, which means we're finally ready to start implementing authentication and authorization checks in our GraphQL resolvers.
+
+Note that the setup is only performed once. After that, the majority of security-related tasks will revolve around implementing proper authentication and authorization checks.
