@@ -59,9 +59,15 @@ module.exports = {
                             items: [
                                 "tutorials/create-custom-application/security/introduction",
                                 "tutorials/create-custom-application/security/getting-started",
-                                "tutorials/create-custom-application/security/adding-user-pool-and-user-pool-domain",
-                                "tutorials/create-custom-application/security/adding-user-pool-client",
-                                "tutorials/create-custom-application/security/adjusting-webiny-config-ts-configuration-file",
+                                {
+                                    type: "category",
+                                    label: "Cloud Infrastructure",
+                                    items: [
+                                        "tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-and-user-pool-domain",
+                                        "tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-client",
+                                        "tutorials/create-custom-application/security/cloud-infrastructure/adjusting-webiny-config-ts-configuration-file",
+                                    ],
+                                },
                                 {
                                     type: "category",
                                     label: "React Application",
@@ -81,19 +87,6 @@ module.exports = {
                                 "tutorials/create-custom-application/security/conclusion",
                             ],
                         },
-
-                        // "tutorials/create-custom/getting-started",
-                        // "tutorials/create-custom/extending-entities",
-                        // // "tutorials/extend-admin-area/testing",
-                        // {
-                        //     type: "category",
-                        //     label: "Security",
-                        //     items: [
-                        //         "tutorials/extend-admin-area/security/introduction",
-                        //         "tutorials/extend-admin-area/security/graphql-api",
-                        //         "tutorials/extend-admin-area/security/react-application",
-                        //     ],
-                        // },
                     ],
                 },
                 {
