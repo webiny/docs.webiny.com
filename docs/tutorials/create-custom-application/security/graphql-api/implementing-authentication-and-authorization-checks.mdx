@@ -21,10 +21,13 @@ description: Learn how to implement authentication and authorization checks with
 
 import CenteredImage from "@components/CenteredImage";
 import createPinMutation from "./implementing-authentication-and-authorization-checks/create-pin-mutation-test.png";
+import gqlClientAuthHeader from "./implementing-authentication-and-authorization-checks/graphql-client-authorization-header.png";
+import networkTabAuthorizationToken from "./implementing-authentication-and-authorization-checks/network-tab-authorization-token.png";
 import createPinMutationUnauthorized from "./implementing-authentication-and-authorization-checks/create-pin-mutation-unauthorized.png";
+import createPinMutationAuthorized from "./implementing-authentication-and-authorization-checks/create-pin-mutation-authorized.png";
 import updatePinMutationCannotUpdateOtherUsersPin from "./implementing-authentication-and-authorization-checks/update-pin-cannot-update-other-users-pin.png";
-import updatePinMutationCreateWithUser from "./implementing-authentication-and-authorization-checks/update-pin-create-with-user.png";
 import updatePinMutationUpdateWithUser from "./implementing-authentication-and-authorization-checks/update-pin-update-with-user.png";
+import deletePinAuthorized from "./implementing-authentication-and-authorization-checks/delete-pin-authorized.png";
 
 :::tip WHAT YOU’LL LEARN
 
@@ -87,9 +90,16 @@ In the following couple of sections, we'll manually test the changes that we'll 
 
 When it comes to signed-in users, in order to simulate one, we'll need to add the `authorization` header via the **HTTP Headers** tab:
 
-TODO IMAGE
+<CenteredImage
+  alt={'GraphQL Playground - Setting "authorization" Header'}
+  src={gqlClientAuthHeader}
+/>
 
 The value of the header is a base 64 encoded JWT token, which can be easily retrieved by signing in regularly, via the React application, opening the Network tab, picking any **POST** GraphQL HTTP request from the list of all requests, and finding the token in the **Request Headers** section:
+
+SAY IN CHROME TODO
+
+<CenteredImage alt={"Google Chrome - Network Tab"} src={networkTabAuthorizationToken} />
 
 Once you've found it, simply copy and paste the token into the GraphQL playground, and you should be good to go.
 
@@ -99,7 +109,7 @@ Once you've found it, simply copy and paste the token into the GraphQL playgroun
 
 Let's start with the [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L53) mutation. In order to make it secure, we'll apply the following changes to the [`createPin`](#) resolver function:
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {6-10,23-27}
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {7-11,24-28}
 /**
  * Creates and returns a new Pin entry.
  * @param data
@@ -148,7 +158,7 @@ With all of the changes in place, while not signed-in, performing the same `Crea
 
 On the other hand, if we were perform the same mutation, but this time as a signed-in user, we should receive the following response:
 
-<CenteredImage alt={'"CreatePin" Mutation - Authorized'} src={updatePinMutationCreateWithUser} />
+<CenteredImage alt={'"CreatePin" Mutation - Authorized'} src={createPinMutationAuthorized} />
 
 If that's true, that means everything is in order, and we can continue with updating the next resolver function in line, and that's [`updatePin`](#).
 
@@ -158,7 +168,7 @@ Next up - the [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github
 
 Apart from the initial signed-in user check that we also performed in the previous resolver function, in the [`updatePin`](#) resolver function, we also need to check whether the pin that's about to be updated actually belongs to the signed-in user. Note that in order to perform this check, we actually need to retrieve the pin from the database and inspect its `createdBy` field, which we've defined in the [previous section](/docs/tutorials/create-custom-application/security/graphql-api/initial-setup#adding-createdby-field) of this tutorial.
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {7-11,19-21}
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {8-12,20-22}
 /**
  * Updates and returns an existing Pin entry.
  * @param id
@@ -221,7 +231,10 @@ mutation UpdatePin($id: ID!, $data: PinUpdateInput!) {
 
 To manually test if this really works as intended, while signed-in, we could create a new pin, and then immediately try to update it.
 
+<!--
+
 <CenteredImage alt={'"CreatePin" Mutation - Authorized'} src={updatePinMutationCreateWithUser} />
+ -->
 
 Once the pin is created, upon updating it, we should not receive the already seen **Not authenticated.** error response, because we're signed in with the same user that created the pin:
 
@@ -231,7 +244,7 @@ Once the pin is created, upon updating it, we should not receive the already see
 
 Finally, let's implement the same pair of checks that we performed in the previous resolver function, this time within the [`deletePin`](#) resolver function:
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {6-10,19-21}
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {7-11,19-21}
 /**
  * Deletes and returns an existing Pin entry.
  * @param id
@@ -250,7 +263,6 @@ async deletePin({ id }: DeletePinParams) {
         throw new Error(`Pin "${id}" not found.`);
     }
 
-
     if (pin.createdBy.id !== identity.id) {
         throw new Error("Not authenticated.");
     }
@@ -263,6 +275,8 @@ async deletePin({ id }: DeletePinParams) {
 ```
 
 In order to manually test this, we can use the same approach we used with the previous `UpdatePin` mutation. So, first we would create a new pin, and after that, simply delete it. If the user that tried to delete the pin is the same as the one that created it, then the mutation should be executed successfully.
+
+<CenteredImage alt={'"DeletePin" Mutation - Authorized'} src={deletePinAuthorized} />
 
 ## Final Result
 
