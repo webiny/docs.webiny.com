@@ -7,10 +7,10 @@ description: Learn how to quickly extend a GraphQL API with the Extend GraphQL A
 ---
 
 import CenteredImage from "@components/CenteredImage";
-import extendGqlApiScaffold from "./extending-graphql-api/extend-gql-api-scaffold.png";
-import extendGqlApiScaffoldOutput from "./extending-graphql-api/extend-gql-api-scaffold-output.png";
-import createPinMutation from "./extending-graphql-api/create-pin-mutation-test.png";
-import coverImagePreview from "./extending-graphql-api/cover-image-preview.png";
+import extendGqlApiScaffold from "./graphql-api/extend-gql-api-scaffold.png";
+import extendGqlApiScaffoldOutput from "./graphql-api/extend-gql-api-scaffold-output.png";
+import createPinMutation from "./graphql-api/create-pin-mutation-test.png";
+import coverImagePreview from "./graphql-api/cover-image-preview.png";
 
 :::tip WHAT YOU’LL LEARN
 
@@ -65,7 +65,7 @@ Once we've selected the **Extend GraphQL API** scaffold from the list, we'll get
 1. the path of the GraphQL API's plugins folder
 2. the name of the initial entity
 
-As the answer to the first question, we can simply use the [`pinterest-clone/api/code/graphql/src/plugins`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins) path, which should be automatically prefilled for us. As for the name of the initial entity, we'll enter **Pin**.
+As the answer to the first question, we can simply use the [`pinterest-clone/api/code/graphql/src/plugins`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins) path, which should be automatically prefilled for us. As for the name of the initial entity, we'll enter **Pin**.
 
 Once we've answered all of the questions, after a quick confirmation step, scaffolding will start and eventually, we should end up with the following output in our terminal:
 
@@ -74,14 +74,14 @@ Once we've answered all of the questions, after a quick confirmation step, scaff
 After the scaffolding process has been completed, we should end up with the following new GraphQL query and mutation operations in our GraphQL API:
 
 - mutations:
-  - [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L53)
-  - [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L56)
-  - [`deletePin(id: ID!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L59)
+  - [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L53)
+  - [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L56)
+  - [`deletePin(id: ID!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L59)
 - queries:
-  - [`listPins(limit: Int, before: String, after: String, sort: PinsListSort): PinsList!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L48)
-  - [`getPin(id: ID!): Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L47)
+  - [`listPins(limit: Int, before: String, after: String, sort: PinsListSort): PinsList!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L48)
+  - [`getPin(id: ID!): Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L47)
 
-Notice how all of these ultimately return the [`Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L2) type, which is defined like the following:
+Notice how all of these ultimately return the [`Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L2) type, which is defined like the following:
 
 ```graphql
 type Pin {
@@ -137,14 +137,21 @@ Adding the missing `coverImage` field can be done by making the following change
 1. add the `coverImage` attribute to the `Pin` entity
 2. add the `coverImage` field to the `Pin` GraphQL type
 
-So, for starters, let's open our [`Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts#L10) entity and simply define the new attribute on it (parts of code removed for brevity):
+So, for starters, let's open our [`Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts#L10) entity and simply define the new attribute on it (parts of code removed for brevity):
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts" {13}
-(...)
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts" {20}
+// https://github.com/jeremydaly/dynamodb-toolbox
+import { Entity } from "dynamodb-toolbox";
+import table from "./table";
+import { PinEntity } from "../types";
 
+/**
+ * Once we have the table, we define the PinEntity entity.
+ * If needed, additional entities can be defined using the same approach.
+ */
 export default new Entity<PinEntity>({
     table,
-    name: "Pins",
+    name: "Pin",
     timestamps: false,
     attributes: {
         PK: { partitionKey: true },
@@ -155,7 +162,6 @@ export default new Entity<PinEntity>({
         coverImage: { type: "string" },
         createdOn: { type: "string" },
         savedOn: { type: "string" },
-        // createdBy: { type: "map" },
 
         // Will store current version of Webiny, for example "5.9.1".
         // Might be useful in the future or while performing upgrades.
@@ -171,12 +177,9 @@ For more information, check out the [Storing and Retrieving Data](/docs/how-to-g
 
 :::
 
-Notice how we're passing the [`PinEntity`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts#L6) interface upon instantiating the `Entity` class. Since the interface is essentially listing all attributes that our entity consists of, let's update it as well:
+Notice how we're passing the [`PinEntity`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts#L6) interface upon instantiating the `Entity` class. Since the interface is essentially listing all attributes that our entity consists of, let's update it as well:
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts" {10}
-
-(...)
-
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts" {7}
 export interface PinEntity {
     PK: string;
     SK: string;
@@ -186,16 +189,13 @@ export interface PinEntity {
     coverImage?: string;
     createdOn: string;
     savedOn: string;
-    // createdBy: Pick<SecurityIdentity, "id" | "displayName" | "type">;
     webinyVersion: string;
 }
-
-(...)
 ```
 
-Finally, let's update our `Pin` GraphQL types in our schema, located in the [`typeDefs.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts) file:
+Finally, let's update our `Pin` GraphQL types in our schema, located in the [`typeDefs.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts) file:
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts" {6,15,21}
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts" {6,14,20}
 export default /* GraphQL */ `
     type Pin {
         id: ID!
@@ -204,7 +204,6 @@ export default /* GraphQL */ `
         coverImage: String
         createdOn: DateTime!
         savedOn: DateTime!
-        createdBy: PinCreatedBy
     }
 
     input PinCreateInput {

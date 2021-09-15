@@ -23,6 +23,7 @@ description: Learn how we can add and deploy a new User Pool and User Pool Domai
 
 import CenteredImage from "@components/CenteredImage";
 import cloudInfraAutoDeploy from "./adding-user-pool-and-user-pool-domain/cloud-infra-auto-deploy.png";
+import cloudInfraDeploy from "./adding-user-pool-and-user-pool-domain/cloud-infra-deploy.png";
 
 :::tip WHAT YOU’LL LEARN
 
@@ -42,56 +43,57 @@ Let's start by defining a new User Pool and a User Pool Domain within our GraphQ
 
 Inside of the [`pinterest-clone/api/pulumi/dev`](#) folder, let's create the new [`cognito.ts`](#) file. It should export the following [`Cognito`](#) class that encapsulates new cloud infrastructure code:
 
-```ts title="pinterest-clone/api/pulumi/dev/cognito.ts" {12,39}
+```ts title="pinterest-clone/api/pulumi/dev/cognito.ts" {13,41}
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 
 const BASE_ATTRIBUTE_NAMES = ["email", "given_name", "family_name"];
 
 class Cognito {
-  userPool: aws.cognito.UserPool;
-  userPoolDomain: aws.cognito.UserPoolDomain;
-  constructor() {
-    // Creates a new user pool. For more information on all of the available options, see:
-    // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpool/
-    // https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPool.html
-    this.userPool = new aws.cognito.UserPool("pinterest-clone", {
-      schemas: BASE_ATTRIBUTE_NAMES.map((name) => ({
-        name,
-        attributeDataType: "String",
-        required: true,
-        developerOnlyAttribute: false,
-        mutable: true,
-        stringAttributeConstraints: {
-          maxLength: "2048",
-          minLength: "0",
-        },
-      })),
-      passwordPolicy: {
-        minimumLength: 8,
-        requireLowercase: false,
-        requireNumbers: false,
-        requireSymbols: false,
-        requireUppercase: false,
-        temporaryPasswordValidityDays: 7,
-      },
-      autoVerifiedAttributes: ["email"],
-      usernameAttributes: ["email"],
-    });
+    userPool: aws.cognito.UserPool;
+    userPoolDomain: aws.cognito.UserPoolDomain;
+    constructor() {
+        // Creates a new user pool. For more information on all of the available options, see:
+        // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpool/
+        // https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPool.html
+        this.userPool = new aws.cognito.UserPool("pinterest-clone", {
+            schemas: BASE_ATTRIBUTE_NAMES.map(name => ({
+                name,
+                attributeDataType: "String",
+                required: true,
+                developerOnlyAttribute: false,
+                mutable: true,
+                stringAttributeConstraints: {
+                    maxLength: "2048",
+                    minLength: "0"
+                }
+            })),
+            passwordPolicy: {
+                minimumLength: 8,
+                requireLowercase: false,
+                requireNumbers: false,
+                requireSymbols: false,
+                requireUppercase: false,
+                temporaryPasswordValidityDays: 7
+            },
+            autoVerifiedAttributes: ["email"],
+            usernameAttributes: ["email"]
+        });
 
-    // Creates a user pool domain over which we'll be able to access the Hosted UI authentication flow.
-    // For more information on all of the available options, see:
-    // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpooldomain/
-    this.userPoolDomain = new aws.cognito.UserPoolDomain("pinterest-clone", {
-      domain: "pinterest-clone",
-      userPoolId: this.userPool.id,
-    });
-  }
+        // Creates a user pool domain over which we'll be able to access the Hosted UI authentication flow.
+        // For more information on all of the available options, see:
+        // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpooldomain/
+        // https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolDomain.html
+        this.userPoolDomain = new aws.cognito.UserPoolDomain("pinterest-clone", {
+            domain: `pinterest-clone-${process.env.WEBINY_ENV}`,
+            userPoolId: this.userPool.id,
+        });
+    }
 
-  // A simple getter that will construct and return us the complete user pool domain.
-  getUserPoolDomain() {
-    return pulumi.interpolate`${this.userPoolDomain.domain}.auth.${process.env.AWS_REGION}.amazoncognito.com`;
-  }
+    // A simple getter that will construct and return us the complete user pool domain.
+    getUserPoolDomain() {
+        return pulumi.interpolate`${this.userPoolDomain.domain}.auth.${process.env.AWS_REGION}.amazoncognito.com`;
+    }
 }
 
 export default Cognito;
@@ -180,7 +182,15 @@ If you had the [`webiny watch`](/docs/how-to-guides/use-watch-command) command u
   src={cloudInfraAutoDeploy}
 />
 
-If not, you can either start a new watch session, or simply deploy the changes via the [`webiny deploy`](#) command. Both approaches will ensure the new cloud infrastructure resources are deployed and are ready to be used.
+If not, you can either start a new watch session, or simply deploy the changes via the [`webiny deploy`](#) command.
+
+<CenteredImage
+  alt="Automatic Re-deployment of Cloud Infrastructure"
+  style={{ maxWidth: 750 }}
+  src={cloudInfraDeploy}
+/>
+
+Both approaches will ensure the new cloud infrastructure resources are deployed and are ready to be used.
 
 ## Final Result
 

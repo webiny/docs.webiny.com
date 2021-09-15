@@ -44,21 +44,22 @@ In order to continue with this and the following sections of the tutorial, all o
 
 The following code highlights the changes that need to be performed:
 
-```ts title="pinterest-clone/app/code/webiny.config.ts" {15-17,20-22,33,43}
+```ts title="pinterest-clone/app/code/webiny.config.ts" {16-18,21-23,40-47,63-70}
 import invariant from "invariant";
 import { startApp, buildApp } from "@webiny/project-utils";
 import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
 
 // Exports fundamental start (watch) and build commands.
-// Within both commands, we rely on the deployed GraphQL API (project-applications-path/api) and its stack
+// Within both commands, we rely on the deployed GraphQL API (pinterest-clone/api) and its stack
 // output to retrieve the URL over which the GraphQL API is accessible. If needed, additional
 // information can be retrieved too, but remember to export it in the cloud infrastructure
 // code, in the following files:
-// - `project-applications-path/api/pulumi/dev/index.ts`
-// - `project-applications-path/api/pulumi/prod/index.ts`
+// - `pinterest-clone/api/pulumi/dev/index.ts`
+// - `pinterest-clone/api/pulumi/prod/index.ts`
 
 const API_MAP = {
-  REACT_APP_GRAPHQL_API_URL: "${graphqlApiUrl}",
+  REACT_APP_API_URL: "${apiUrl}",
+  REACT_APP_GRAPHQL_API_URL: "${apiUrl}/graphql",
   REACT_APP_USER_POOL_REGION: "${region}",
   REACT_APP_USER_POOL_ID: "${cognitoUserPool.id}",
   REACT_APP_USER_POOL_DOMAIN: "${cognitoUserPool.domain}",
@@ -74,20 +75,46 @@ export default {
   commands: {
     async watch(options, context) {
       invariant(options.env, NO_ENV_MESSAGE);
-      Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, API_MAP));
+      Object.assign(
+        process.env,
+        getStackOutput({
+          folder: "pinterest-clone/api",
+          env: options.env,
+          map: API_MAP,
+        })
+      );
 
-      // Let's also the user pool client ID and pass it via environment variables too.
-      Object.assign(process.env, getStackOutput("pinterest-clone/app", options.env, APP_MAP));
+      Object.assign(
+        process.env,
+        getStackOutput({
+          folder: "pinterest-clone/app",
+          env: options.env,
+          map: APP_MAP,
+        })
+      );
 
       // Starts local application development.
       await startApp(options, context);
     },
     async build(options, context) {
       invariant(options.env, NO_ENV_MESSAGE);
-      Object.assign(process.env, getStackOutput("pinterest-clone/api", options.env, API_MAP));
+      Object.assign(
+        process.env,
+        getStackOutput({
+          folder: "pinterest-clone/api",
+          env: options.env,
+          map: API_MAP,
+        })
+      );
 
-      // Let's also the user pool client ID and pass it via environment variables too.
-      Object.assign(process.env, getStackOutput("pinterest-clone/app", options.env, APP_MAP));
+      Object.assign(
+        process.env,
+        getStackOutput({
+          folder: "pinterest-clone/app",
+          env: options.env,
+          map: APP_MAP,
+        })
+      );
 
       // Creates a production build of your application, ready to be deployed to
       // a hosting provider of your choice, for example Amazon S3.
@@ -100,7 +127,11 @@ export default {
 First, we've updated the existing `API_MAP` object, which is used upon retrieving our GraphQL API's stack output:
 
 ```ts
-getStackOutput("pinterest-clone/api", options.env, MAP);
+getStackOutput({
+  folder: "pinterest-clone/api",
+  env: options.env,
+  map: API_MAP,
+});
 ```
 
 As the name itself suggests, the object represents a map. It is used to instruct the [`getStackOutput`](#) function to map the received stack output properties to new ones. This is useful because, in the [`watch`](#) and [`build`](#) commands, we're assigning stack output properties as environment variables, which must contain the `REACT_APP_` prefix in order for us to be able to access them within the actual React application code.
@@ -110,7 +141,11 @@ So, we've added three new properties to the `API_MAP` object: `REACT_APP_USER_PO
 We also had to add a new `APP_MAP` map object for the properties that will be retrieved from our React application's stack output. This map is then used with the new `getStackOutput` function call, which has the `pinterest-clone/app` specified as the project application folder:
 
 ```ts
-getStackOutput("pinterest-clone/app", options.env, APP_MAP);
+getStackOutput({
+  folder: "pinterest-clone/app",
+  env: options.env,
+  map: APP_MAP,
+});
 ```
 
 ## Final Result

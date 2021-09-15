@@ -215,7 +215,7 @@ In order to do this, we need to expand the [`Pin`](#) entity, and the [`PinEntit
 
 So, as the final step in this section of the tutorial, let's add the `createdBy` field which will be responsible for storing signed-in user information. In terms of the data type, the field will accept an object that consists of three properties: `id`, `displayName`, and `type`.
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts:30" {25}
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts" {25}
 // https://github.com/jeremydaly/dynamodb-toolbox
 import { Entity } from "dynamodb-toolbox";
 import table from "./table";
@@ -226,51 +226,46 @@ import { PinEntity } from "../types";
  * If needed, additional entities can be defined using the same approach.
  */
 export default new Entity<PinEntity>({
-  table,
-  name: "Pin",
-  timestamps: false,
-  attributes: {
-    PK: { partitionKey: true },
-    SK: { sortKey: true },
-    id: { type: "string" },
-    title: { type: "string" },
-    description: { type: "string" },
-    coverImage: { type: "string" },
-    createdOn: { type: "string" },
-    savedOn: { type: "string" },
+    table,
+    name: "Pin",
+    timestamps: false,
+    attributes: {
+        PK: { partitionKey: true },
+        SK: { sortKey: true },
+        id: { type: "string" },
+        title: { type: "string" },
+        description: { type: "string" },
+        coverImage: { type: "string" },
+        createdOn: { type: "string" },
+        savedOn: { type: "string" },
 
-    // For the `Pin` entity, we can use a simple "map" type as the attribute type.
-    createdBy: { type: "map" },
+        // For the `Pin` entity, we can use a simple "map" type as the attribute type.
+        createdBy: { type: "map" },
 
-    // Will store current version of Webiny, for example "5.9.1".
-    // Might be useful in the future or while performing upgrades.
-    webinyVersion: { type: "string" },
-  },
+        // Will store current version of Webiny, for example "5.9.1".
+        // Might be useful in the future or while performing upgrades.
+        webinyVersion: { type: "string" }
+    }
 });
 ```
 
-```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts" {6,19}
-// If our GraphQL API uses Webiny Security Framework, we can retrieve the
-// currently logged in identity and assign it to the `createdBy` property.
-// https://www.webiny.com/docs/key-topics/security-framework/introduction
-// import { SecurityIdentity } from "@webiny/api-security/types";
-
+```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts" {1,14}
 import { SecurityIdentity } from "@webiny/api-security";
 
 export interface PinEntity {
-  PK: string;
-  SK: string;
-  id: string;
-  title: string;
-  description?: string;
-  coverImage?: string;
-  createdOn: string;
-  savedOn: string;
+    PK: string;
+    SK: string;
+    id: string;
+    title: string;
+    description?: string;
+    coverImage?: string;
+    createdOn: string;
+    savedOn: string;
 
-  // For the `PinEntity` type, let's be specific and specify which fields are accepted.
-  createdBy: Pick<SecurityIdentity, "id" | "displayName" | "type">;
+    // For the `PinEntity` type, let's be specific and specify which fields are accepted.
+    createdBy: Pick<SecurityIdentity, "id" | "type" | "displayName">;
 
-  webinyVersion: string;
+    webinyVersion: string;
 }
 ```
 
@@ -280,6 +275,30 @@ In the [GraphQL API](/docs/tutorials/create-custom-application/graphql-api) sect
 By default, the application code relies on [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox), which is a library that makes it a bit easier to interact with the [Amazon DynamoDB](https://aws.amazon.com/dynamodb/features/) database. The `Entity` class we've seen in the above code sample is part of it.
 
 :::
+
+### TypeDefs
+
+```graphql title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts" {9,12-16}
+export default /* GraphQL */ `
+    type Pin {
+        id: ID!
+        title: String!
+        description: String
+        coverImage: String
+        createdOn: DateTime!
+        savedOn: DateTime!
+        createdBy: PinCreatedBy
+    }
+
+    type PinCreatedBy {
+        id: String
+        type: String
+        displayName: String
+    }
+
+    (...)
+`;
+```
 
 ## Final Result
 
