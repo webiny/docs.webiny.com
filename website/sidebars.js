@@ -81,7 +81,7 @@ module.exports = {
                                     label: "GraphQL API",
                                     items: [
                                         "tutorials/create-custom-application/security/graphql-api/initial-setup",
-                                        "tutorials/create-custom-application/security/graphql-api/implementing-authentication-and-authorization-logic",
+                                        "tutorials/create-custom-application/security/graphql-api/implementing-authentication-and-authorization-checks",
                                     ],
                                 },
                                 "tutorials/create-custom-application/security/conclusion",
