@@ -16,14 +16,14 @@ keywords:
     "initial",
     "setup",
   ]
-description: Before integrating the Hosted UI authentication flow in our React application, there are a couple of initial setup steps that we need to perform. In this section, we'll learn what those are.
+description: Before integrating the Hosted UI authentication flow into our React application, there are a couple of initial setup steps that we need to perform. In this section, we'll learn what those are.
 ---
 
 import CenteredImage from "@components/CenteredImage";
 
 :::tip WHAT YOU’LL LEARN
 
-- what are the initial steps we need to perform, before integrating the Hosted UI authentication flow in our React application
+- what are the initial steps we need to perform, before integrating the Hosted UI authentication flow into our React application
 - how to perform all of the initial steps
 
 :::
@@ -40,11 +40,25 @@ The code that we cover in this section can also be found in our GitHub [examples
 
 ## Overview
 
-123
+With all of the necessary new cloud infrastructure resources deployed and our [`webiny.config.ts`](#) configuration file updated, we're now finally ready to start integrating the Hosted UI authentication flow into our React application. But, before we do that, we need to perform a couple of initial setup steps.
 
-## Adding the Needed Libraries
+First of all, we'll add two new libraries that will make it a bit easier to work with the current user within our React application code. Once that's in place, we will perform the following:
 
-With all of the necessary new cloud infrastructure resources deployed and our [`webiny.config.ts`](#) configuration file updated, we're now finally ready to start implementing the Hosted UI authentication flow in our React application. Let's start by adding a couple of new libraries into the mix.
+- create the [`Authentication`](#) React component, which will be responsible for performing the initial authentication process (every time a user starts using our React application)
+- modify our [`App`](#) entrypoint React component, by rendering the [`SecurityProvider`](#) and the just created [`Authentication`](#) component
+- register a new Apollo Link plugin, which will ensure user's [ID token (JWT)](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-id-token.html) is attached on every issued GraphQL HTTP request
+
+:::tip
+JSON Web Token (JWT) is an open standard (RFC 7519) that defines a compact and self-contained way for securely transmitting information between parties as a JSON object.
+
+Check out this [Introduction to JSON Web Tokens](https://jwt.io/introduction/) article to learn more.
+:::
+
+Let's see how we can achieve all of these.
+
+## 1. Adding the Needed Libraries
+
+ Let's start by adding a couple of new libraries into the mix.
 
 #### [`@webiny/app-security`](https://www.npmjs.com/package/@webiny/app-security)
 
@@ -60,15 +74,7 @@ The following command will add both libraries to our React application:
 yarn workspace pinterest-clone-app add @webiny/app-security @aws-amplify/auth
 ```
 
-## Setting Up the Libraries
-
-Let's set up the newly added libraries. The set up process will consist of three steps:
-
-1. create the [`Authenticator`](#) React Component
-2. modify the [`App`](#) React component
-3. create the Apollo Link plugin
-
-### 1. Create the [`Authenticator`](#) React Component
+## 2. Create the [`Authenticator`](#) React Component
 
 The [`Authenticator`](#) React component will be a small React component that will consist of a single [`useEffect`](https://reactjs.org/docs/hooks-effect.html) React hook, in which we'll perform the following.
 
@@ -128,7 +134,7 @@ export default Authenticator;
 
 Notice how we're also configuring the [`Auth`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L100) class, by passing all of the environment variables that we've defined in the [previous section](/docs/tutorials/create-custom-application/security/adjusting-webiny-config-ts-configuration-file) of this tutorial. We decided to do this here simply because this way we have all of the relevant code in one place, in a single file.
 
-### 2. Modify the [`App`](#) React component
+## 3. Modify the [`App`](#) React component
 
 Next, let's modify the [`App`](#) entrypoint React component, located in the [`pinterest-clone/app/code/src`](#) folder.
 
@@ -175,9 +181,9 @@ export const App = () => (
 );
 ```
 
-### 3. Create the Apollo Link Plugin
+## 4. Create the Apollo Link Plugin
 
-The last piece of the puzzle is the creation of a new [`ApolloLinkPlugin`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/app/src/plugins/ApolloLinkPlugin.ts#L8) plugin, which will simply ensure that the user's JWT token is attached to every HTTP request issued by the [Apollo GraphQL (v2)](https://www.apollographql.com/docs/react/v2) client. This will then ensure that the user is also successfully authenticated on the GraphQL API side (more on this soon).
+The last piece of the puzzle is the creation of a new [`ApolloLinkPlugin`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/app/src/plugins/ApolloLinkPlugin.ts#L8) plugin, which will simply ensure that the user's [ID token (JWT)](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-id-token.html) token is attached to every HTTP request issued by the [Apollo GraphQL (v2)](https://www.apollographql.com/docs/react/v2) client. This will then ensure that the user is also successfully authenticated on the GraphQL API side (more on this soon).
 
 We can define the new plugin within the existing [`pinterest-clone/app/code/src/plugins/apollo.ts`](#) file:
 
@@ -217,7 +223,7 @@ export default [
 ];
 ```
 
-As we can see, on each HTTP request, we're again calling the [`currentSession`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L1420) method of the [`Auth`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L100) class to retrieve the currently signed-in user's information, from which we're retrieving her/his JWT token and assigning it as the value of the `Authorization` header.
+As we can see, on each HTTP request, we're again calling the [`currentSession`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L1420) method of the [`Auth`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L100) class to retrieve the currently signed-in user's information, from which we're retrieving her/his ID token (JWT form of it) and assigning it as the value of the `Authorization` header.
 
 With this final step completed, we've completed the initial step and we can move to the Hosted UI authentication flow integration.
 
