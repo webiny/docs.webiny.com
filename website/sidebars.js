@@ -37,6 +37,60 @@ module.exports = {
                 "tutorials/install-webiny",
                 {
                     type: "category",
+                    label: "Create Custom Application",
+                    items: [
+                        "tutorials/create-custom-application/introduction",
+                        "tutorials/create-custom-application/getting-started",
+                        "tutorials/create-custom-application/graphql-api",
+                        {
+                            type: "category",
+                            label: "React Application",
+                            items: [
+                                "tutorials/create-custom-application/react-application/introduction",
+                                "tutorials/create-custom-application/react-application/layout",
+                                "tutorials/create-custom-application/react-application/new-pin-modal-dialog",
+                                "tutorials/create-custom-application/react-application/homepage",
+                                "tutorials/create-custom-application/react-application/pin-details-page",
+                            ],
+                        },
+                       /* {
+                            type: "category",
+                            label: "Security",
+                            items: [
+                                "tutorials/create-custom-application/security/introduction",
+                                "tutorials/create-custom-application/security/getting-started",
+                                {
+                                    type: "category",
+                                    label: "Cloud Infrastructure",
+                                    items: [
+                                        "tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-and-user-pool-domain",
+                                        "tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-client",
+                                        "tutorials/create-custom-application/security/cloud-infrastructure/adjusting-webiny-config-ts-configuration-file",
+                                    ],
+                                },
+                                {
+                                    type: "category",
+                                    label: "React Application",
+                                    items: [
+                                        "tutorials/create-custom-application/security/react-application/initial-setup",
+                                        "tutorials/create-custom-application/security/react-application/integrating-hosted-ui-authentication-flow",
+                                    ],
+                                },
+                                {
+                                    type: "category",
+                                    label: "GraphQL API",
+                                    items: [
+                                        "tutorials/create-custom-application/security/graphql-api/initial-setup",
+                                        "tutorials/create-custom-application/security/graphql-api/implementing-authentication-and-authorization-checks",
+                                    ],
+                                },
+                                "tutorials/create-custom-application/security/conclusion",
+                            ],
+                        },*/
+                    ],
+                },
+                {
+                    type: "category",
                     label: "Extend Admin Area",
                     items: [
                         "tutorials/extend-admin-area/introduction",
@@ -402,9 +456,7 @@ module.exports = {
                         {
                             type: "category",
                             label: "5.3.0",
-                            items: [
-                                "release-notes/5.3.0/changelog"
-                            ],
+                            items: ["release-notes/5.3.0/changelog"],
                         },
                     ],
                 },
