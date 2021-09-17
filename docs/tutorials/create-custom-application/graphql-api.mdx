@@ -52,7 +52,11 @@ A more manual approach would be to create and register new [`GraphQLSchemaPlugin
 
 On the other hand, a much faster way of extending the GraphQL API would be to use the [Extend GraphQL API](/docs/how-to-guides/scaffolding/extend-graphql-api) scaffold, which not only creates all of the boilerplate code, but also a set of essential GraphQL query and mutations, sets up the database connection, creates sample tests, and more.
 
-For this tutorial, we'll go with the second approach. So, in your terminal of choice, run the `webiny scaffold` and pick the **Extend GraphQL API** from the list of all available scaffolds.
+For this tutorial, we'll go with the second approach. So, in your terminal of choice, run the `webiny scaffold` command and pick the **Extend GraphQL API** from the list of all available scaffolds:
+
+```bash
+yarn webiny scaffold
+```
 
 <CenteredImage
   alt="Extend GraphQL API Scaffold"
@@ -74,12 +78,12 @@ Once we've answered all of the questions, after a quick confirmation step, scaff
 After the scaffolding process has been completed, we should end up with the following new GraphQL query and mutation operations in our GraphQL API:
 
 - mutations:
-  - [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L53)
-  - [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L56)
-  - [`deletePin(id: ID!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L59)
+  - [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L46)
+  - [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L49)
+  - [`deletePin(id: ID!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L52)
 - queries:
-  - [`listPins(limit: Int, before: String, after: String, sort: PinsListSort): PinsList!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L48)
-  - [`getPin(id: ID!): Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L47)
+  - [`listPins(limit: Int, before: String, after: String, sort: PinsListSort): PinsList!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L41)
+  - [`getPin(id: ID!): Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L40)
 
 Notice how all of these ultimately return the [`Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L2) type, which is defined like the following:
 
@@ -122,7 +126,9 @@ Once run, we should receive a response similar to the following (the only piece 
 
 <CenteredImage alt={'"CreatePin Mutation" Test'} src={createPinMutation} />
 
-NOT SECURE! TODO
+:::note
+By default, query and mutation operations defined by the [Extend GraphQL API](/docs/how-to-guides/scaffolding/extend-graphql-api) are publicly accessible. For now, this is not a concern for us. As mentioned, we will tackle the security aspect of our application in the upcoming sections of this tutorial.
+:::
 
 :::tip Misplaced GraphQL API URL?
 Running the `yarn webiny output pinterest-clone/api --env dev` command from your project root will display all of the values that were exported from your cloud infrastructure code. That includes GraphQL API URL, Amazon DynamoDB table name, AWS region, and more.
@@ -134,8 +140,8 @@ Feel free to play around with other queries and mutations. Once you're ready to 
 
 Adding the missing `coverImage` field can be done by making the following changes in the generated application code:
 
-1. add the `coverImage` attribute to the `Pin` entity
-2. add the `coverImage` field to the `Pin` GraphQL type
+1. add the `coverImage` attribute to the [`Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts#L10) entity
+2. add the `coverImage` field to the [`Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L2) GraphQL type
 
 So, for starters, let's open our [`Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts#L10) entity and simply define the new attribute on it (parts of code removed for brevity):
 
@@ -230,9 +236,13 @@ If everything was done correctly, we should be able to see the newly added field
 
 <CenteredImage alt={'"CreatePin Mutation" Test'} src={coverImagePreview} />
 
+:::note
+If you're using the [GraphQL Playground](https://www.electronjs.org/apps/graphql-playground) client, note that it may not immediately reflect the changes you made to the GraphQL schema. You may need to refresh the currently opened tab or even restart the whole application in order for it to become completely up-to-date.
+:::
+
 ## Next Steps
 
-Now that we've defined our fundamental `Pin` GraphQL type and the related set of CRUD GraphQL queries and mutations, we can switch to frontend, and start building our React application.
+Now that we've defined our fundamental [`Pin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L2) GraphQL type and the related set of CRUD GraphQL queries and mutations, we can switch to frontend, and start building our React application.
 
 But, do note that we'll still be returning to our GraphQL API. As already mentioned, we'll still need to implement a couple of missing pieces here. Most importantly: security and the image upload functionality. We will tackle these separately in the upcoming sections of this tutorial.
 

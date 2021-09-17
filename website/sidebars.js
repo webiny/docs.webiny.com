@@ -53,7 +53,7 @@ module.exports = {
                                 "tutorials/create-custom-application/react-application/pin-details-page",
                             ],
                         },
-                        {
+                       /* {
                             type: "category",
                             label: "Security",
                             items: [
@@ -86,7 +86,7 @@ module.exports = {
                                 },
                                 "tutorials/create-custom-application/security/conclusion",
                             ],
-                        },
+                        },*/
                     ],
                 },
                 {
