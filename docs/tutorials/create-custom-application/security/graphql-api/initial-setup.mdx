@@ -226,11 +226,13 @@ As we can see, at the top of the file, we've simply imported the `SecurityContex
 
 ## 5. Adding `createdBy` Field
 
-With all of the above steps correctly performed, we should be able to retrieve the signed-in user and perform essential authentication and authorization checks within our GraphQL resolver functions. Which means that, upon creating a new pin (via the [`createPin`](#) mutation), we'll also be able to tie the signed-in user to it.
+With all of the above steps correctly performed, we should be able to retrieve the signed-in user and perform essential authentication and authorization checks within our GraphQL resolver functions. Which means that, upon creating a new pin (via the [`createPin(data: PinCreateInput!): Pin!`](#) mutation), we'll also be able to tie the signed-in user to it.
 
-In order to do this, we need to expand the [`Pin`](#) entity, and the [`PinEntity`](#) type with a new field, which we'll store the signed-in user information.
+In order to do this, we'll need to expand the existing [`Pin`](#) entity, and the [`PinEntity`](#) type with the new field [`createdBy`](#) field, which will be responsible for storing signed-in user information. As we'll be able to see, the field will accept an object that consists of three properties: `id`, `displayName`, and `type`.
 
-So, as the final step in this section of the tutorial, let's add the `createdBy` field which will be responsible for storing signed-in user information. In terms of the data type, the field will accept an object that consists of three properties: `id`, `displayName`, and `type`.
+Apart from that, we'll also want to perform the same update on the GraphQL schema side, so that this information can be retrieved from our React application.
+
+So, let's start by updating the [`Pin`](#) entity and [`PinEntity`](#) type first:
 
 ```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/entities/Pin.ts" {25}
 // https://github.com/jeremydaly/dynamodb-toolbox
@@ -293,7 +295,10 @@ By default, the application code relies on [DynamoDB Toolbox](https://github.com
 
 :::
 
-### TypeDefs
+Once that's in place, all that is left to do is update our GraphQL schema:
+
+1. define the new [`PinCreatedBy`](#) type
+2. extend the existing [`Pin`](#) type with the the new [`createdBy: PinCreatedBy`](#) field
 
 ```graphql title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts" {9,12-16}
 export default /* GraphQL */ `
