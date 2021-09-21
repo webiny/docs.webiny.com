@@ -1,0 +1,189 @@
+---
+id: connect-custom-domain
+title: Connect Custom Domain
+sidebar_label: Connect Custom Domain
+keywords: ["deploy", "project", "application", "customization", "domain"]
+description: Learn how to connect custom domain to your application in a Webiny project.
+---
+
+:::tip What you’ll learn
+
+- how to connect custom domain to your project application
+:::
+
+## Introduction
+
+By default, both **Admin Area** `(apps/admin)` and **Website** `(apps/admin)` React applications are accessible by the CloudFront URL,
+which is fine for development purposes, however, for the production environment you're most likely need a custom domain for those applications.
+
+Why? Because, custom domains are human-readable, easy to remember, and good for branding.
+
+In this guide, we show how to add a custom domain to the **Admin Area** `(apps/admin)` React application,
+however, the same steps can be used for connecting it to the **Website** `(apps/admin)` React application.
+
+We use the [`AWS Management Console`](https://console.aws.amazon.com) throughout this guide to perform the required steps.
+
+:::info
+Make sure you are logged in into the [`AWS Management Console`](https://console.aws.amazon.com) with the same account (profile)
+that you have used to create the Webiny project.
+
+Read more about using [`AWS profies`](/docs/how-to-guides/deployment/aws/use-aws-profiles) in a Webiny project.
+:::
+
+## Before We Begin
+
+Make sure that you do the following before you update your distribution to add a custom domain name:
+- Register the domain name with the domain provider of your choice.
+- Add a certificate from an authorized certificate authority (CA) to CloudFront that covers the domain name you plan to use with the distribution,
+to validate that you are authorized to use the domain.
+
+:::info
+Read more about requirements for using alternate domain names in the official [AWS documentation article](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/CNAMEs.html#alternate-domain-names-requirements).
+:::
+
+## Add Alternate Domain for CloudFront Distribution
+
+Head over to [`AWS Management Console`](https://console.aws.amazon.com) and select **CloudFront** from the **Services** menu:
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/connect-custom-domain/aws-console.png").default}
+    alt="AWS Management Console"
+    style={{ borderRadius: 0, marginBottom: 24 }}
+/>
+
+<!-- vale on -->
+
+Head over to the details of your CloudFront Distribution and hit **Edit**:
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/connect-custom-domain/edit-distribution.png").default}
+    alt="Edit CloudFront Distribution in AWS Management Console"
+    style={{ borderRadius: 0, marginBottom: 24 }}
+/>
+
+<!-- vale on -->
+
+:::info
+To identify which CloudFront distribution you need to edit, you can use the `yarn webiny info --env=<ENV>` command,
+which lists the CloudFront URLs of all deployed applications for that environment.
+:::
+
+Then type in your new domain name in the **Alternate Domain Names (CNAMEs)** field:
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/connect-custom-domain/add-domain-name.png").default}
+    alt="Add domain name in AWS Management Console"
+    style={{ borderRadius: 0, marginBottom: 24 }}
+/>
+
+:::info
+You can add multiple **CNAMEs,** for example, `example.com` and `www.example.com`,
+by either separating them with commas or putting each one on a new line.
+:::
+
+<!-- vale on -->
+
+Now switch the **SSL Certificate** to **Custom SSL Certificate** and select the certificate for the custom domain (in our case `test.webiny.com`) from the drop down:
+
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/connect-custom-domain/add-custom-ssl-certificate.png").default}
+    alt="Add custom SSL certificate in AWS Management Console"
+    style={{ borderRadius: 0, marginBottom: 24 }}
+/>
+
+<!-- vale on -->
+
+:::info Don't have an SSL certificate?
+If you don't have an **SSL certificate**, you can request one by clicking *Request or Import a Certificate with ACM* button as shown.
+
+Learn more about AWS Certificate Manager (ACM) in the official [AWS documentation article](https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html).
+:::
+
+After selecting the **SSL Certificate**, scroll down and hit **Yes, Edit** to save the changes.
+
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/connect-custom-domain/save-ssl.png").default}
+    alt="Save SSL certificate in AWS Management Console"
+    style={{ borderRadius: 0, marginBottom: 24 }}
+/>
+
+<!-- vale on -->
+
+Next, head over to the **Behaviors** tab from the top.
+
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/connect-custom-domain/behaviours-tab.png").default}
+    alt="Behaviour tab for CloudFront Distribution"
+    style={{ borderRadius: 0, marginBottom: 24 }}
+/>
+
+<!-- vale on -->
+
+<!-- TODO: Check if there will be only one tab or more than one -->
+Then select the only one we have and hit **Edit**:
+
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/connect-custom-domain/edit-record.png").default}
+    alt="Edit default record"
+    style={{ borderRadius: 0, marginBottom: 24 }}
+/>
+
+<!-- vale on -->
+
+Then switch the **Viewer Protocol Policy** to **Redirect HTTP to HTTPS**. And scroll down to the bottom and hit **Yes, Edit**.
+
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/connect-custom-domain/check-redirect.png").default}
+    alt="Check HTTP to HTTPS redirect"
+    style={{ borderRadius: 0, marginBottom: 24 }}
+/>
+
+<!-- vale on -->
+
+Next, let’s point our domain to the CloudFront Distribution.
+
+## Point Domain to CloudFront Distribution
+
+Now that we have added our custom domain as the alternative domain for the CloudFront URL, we also must configure the DNS service for the domain to route traffic for the domain,
+such as `www.example.com`, to the CloudFront domain name for your distribution, such as `d111111abcdef8.cloudfront.net`.
+
+Use the method provided by your DNS service provider to add a **CNAME** record for your domain.
+This new **CNAME** record will redirect DNS queries from your domain (for example, `www.example.com`) to the CloudFront domain name for your distribution (for example, `d111111abcdef8.cloudfront.net`).
+For more information, see the documentation provided by your DNS service provider.
+
+:::caution
+The changes made to the DNS service might take few minutes to reflect on the AWS CloudFront Distribution.
+:::
+
+Finally, test the alternate domain name by visiting URLs with your domain name instead of the CloudFront domain name for your distribution:
+
+<!-- vale off -->
+
+<img
+    src={require("./assets/connect-custom-domain/test-domain.png").default}
+    alt="Test custom domain"
+    style={{ borderRadius: 0, marginBottom: 24 }}
+/>
+
+<!-- vale on -->
