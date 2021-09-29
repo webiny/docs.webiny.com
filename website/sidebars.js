@@ -40,6 +40,7 @@ module.exports = {
                     label: "Create Custom Application",
                     items: [
                         "tutorials/create-custom-application/introduction",
+                        "tutorials/create-custom-application/serverless-application-development",
                         "tutorials/create-custom-application/getting-started",
                         "tutorials/create-custom-application/graphql-api",
                         {
