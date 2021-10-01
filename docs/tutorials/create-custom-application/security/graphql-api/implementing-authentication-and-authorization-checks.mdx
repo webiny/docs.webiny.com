@@ -72,6 +72,15 @@ mutation CreatePin($data: PinCreateInput!) {
 }
 ```
 
+```json title="GraphQL Mutation Variables"
+{
+  "data": {
+    "title": "A New Pin",
+    "description": "This is a new pin."
+  }
+}
+```
+
 Once run, we should receive a response similar to the following (the only piece of information that should be different on your end should be the returned `id`):
 
 <CenteredImage alt={'"CreatePin" Mutation - Publicly Accessible'} src={createPinMutation} />
@@ -98,6 +107,12 @@ When it comes to signed-in users, in order to simulate one, we'll need to add th
   alt={'GraphQL Playground - Setting "authorization" Header'}
   src={gqlClientAuthHeader}
 />
+
+```json title="HTTP Headers"
+{
+    "authorization": "YOUR_AUTH_TOKEN_HERE"
+}
+```
 
 The value of the header is a base 64 encoded JWT token, which we should be able to easily retrieve via [Google Chrome DevTools](https://developer.chrome.com/docs/devtools/overview/).
 
@@ -237,6 +252,16 @@ mutation UpdatePin($id: ID!, $data: PinUpdateInput!) {
 }
 ```
 
+```json title="GraphQL Mutation Variables"
+{
+  "id": "PASTE_PIN_ID_HERE",
+  "data": {
+    "title": "A New Pin UPDATED",
+    "description": "This is a new pin. UPDATED"
+  }
+}
+```
+
 <CenteredImage
   alt={'"UpdatePin" Mutation - Not Authorized'}
   src={updatePinMutationCannotUpdateOtherUsersPin}
@@ -288,6 +313,29 @@ async deletePin({ id }: DeletePinParams) {
 ```
 
 In order to manually test this, we can use the same approach we used with the previous `UpdatePin` mutation. So, first we would create a new pin, and after that, simply delete it. If the user that tried to delete the pin is the same as the one that created it, then the mutation should be executed successfully.
+
+```graphql
+mutation DeletePin($id: ID!) {
+  pins {
+    deletePin(id: $id) {
+      id
+      title
+      description
+      createdBy {
+        id
+        type
+        displayName
+      }
+    }
+  }
+}
+```
+
+```json title="GraphQL Mutation Variables"
+{
+  "id": "PASTE_PIN_ID_HERE"
+}
+```
 
 <CenteredImage alt={'"DeletePin" Mutation - Authorized'} src={deletePinAuthorized} />
 
