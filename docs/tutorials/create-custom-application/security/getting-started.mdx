@@ -94,6 +94,89 @@ Check out the [GraphQL API](/docs/how-to-guides/scaffolding/graphql-api#pulumi) 
 
 The React application's cloud infrastructure doesn't follow this organization, simply because it's not needed. Which means, there, we'll only need to make a change once and that's it.
 
+### `webiny.config.ts` Configuration File
+
+It's useful to know that every package in a Webiny project possesses a `webiny.config.ts` configuration file. For example, if we were to open our GraphQL API's [`webiny.config.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/02-getting-started/pinterest-clone/api/code/graphql/webiny.config.ts) file, located in the [`pinterest-clone/api/code/graphql`](pinterest-clone/api/code/graphql) folder, we'd see the following:
+
+```ts title="pinterest-clone/api/code/graphql/webiny.config.ts" {6,7}
+import { buildFunction, watchFunction } from "@webiny/project-utils";
+
+// Exports fundamental watch and build commands.
+export default {
+    commands: {
+        watch: watchFunction,
+        build: buildFunction
+    }
+};
+```
+
+Essentially, the main purpose of this file is to export the needed `watch` and `build` commands, which are then internally utilized by the [`webiny watch`](/docs/how-to-guides/use-watch-command/)  and [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) commands, respectively. As we can see, these can be simple one-liners, but can also include additional custom steps.
+
+As another example, if we were to open our React application's [`webiny.config.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/02-getting-started/pinterest-clone/app/code/webiny.config.ts) file located in the [`pinterest-clone/app/code`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/02-getting-started/pinterest-clone/app/code) folder, we'd see the following:
+
+```ts title="pinterest-clone/app/code/webiny.config.ts" {22,36}
+import invariant from "invariant";
+import { startApp, buildApp } from "@webiny/project-utils";
+import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
+
+// Exports fundamental start (watch) and build commands.
+// Within both commands, we rely on the deployed GraphQL API (pinterest-clone/api) and its stack
+// output to retrieve the URL over which the GraphQL API is accessible. If needed, additional
+// information can be retrieved too, but remember to export it in the cloud infrastructure
+// code, in the following files:
+// - `pinterest-clone/api/pulumi/dev/index.ts`
+// - `pinterest-clone/api/pulumi/prod/index.ts`
+
+const API_MAP = {
+    REACT_APP_API_URL: "${apiUrl}",
+    REACT_APP_GRAPHQL_API_URL: "${apiUrl}/graphql"
+};
+
+const NO_ENV_MESSAGE = `Please specify the environment via the "--env" argument, for example: "--env dev".`;
+
+export default {
+    commands: {
+        async watch(options, context) {
+            invariant(options.env, NO_ENV_MESSAGE);
+            Object.assign(
+                process.env,
+                getStackOutput({
+                    folder: "pinterest-clone/api",
+                    env: options.env,
+                    map: API_MAP
+                })
+            );
+
+            // Starts local application development.
+            await startApp(options, context);
+        },
+        async build(options, context) {
+            invariant(options.env, NO_ENV_MESSAGE);
+            Object.assign(
+                process.env,
+                getStackOutput({
+                    folder: "pinterest-clone/api",
+                    env: options.env,
+                    map: API_MAP
+                })
+            );
+
+            // Creates a production build of your application, ready to be deployed to
+            // a hosting provider of your choice, for example Amazon S3.
+            await buildApp(options, context);
+        }
+    }
+};
+```
+
+Here we have slightly more complex `watch` and `build` commands, but, at this point, we don't need to concern ourselves with what's exactly happening here. The main takeaway is that these commands can be expanded to our needs.
+
+We'll be revisiting these configuration files in the following sections, so we'll be able to get an even better feeling of how these work and the role they play in our application.
+
+:::info
+In case you missed it, a Webiny project can consist of one ore more project applications, where a project application can consist of one or more packages. Learn more about the Webiny project organization in the [Project Organization](/docs/tutorials/create-custom-application/security/getting-started) key topics section.
+:::
+
 ### Stack Output
 
 If we were to open the cloud infrastructure code that is initially included during the [Full Stack Application](/docs/how-to-guides/scaffolding/full-stack-application) scaffolding process, we may notice that at the end of each entrypoint file, for example in [`pinterest-clone/api/pulumi/dev/index.ts`](#), we are returning an object that consists of a couple of properties:
@@ -178,5 +261,3 @@ yarn webiny output pinterest-clone/api --env dev
 ```
 
 :::
-
-### `webiny.config.ts` Configuration File
