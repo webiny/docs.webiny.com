@@ -20,7 +20,7 @@ description: Learn how to we can transfer all of the stack output properties tha
 ---
 
 import CenteredImage from "@components/CenteredImage";
-import cloudInfraAutoDeploy from "./adding-user-pool-and-user-pool-domain/cloud-infra-auto-deploy.png";
+import stackOutputExample from "./adjusting-webiny-config-ts/stack-output-example.png";
 
 :::tip WHAT YOU’LL LEARN
 
@@ -156,14 +156,62 @@ getStackOutput({
 });
 ```
 
-## Final Result
-
-With all of the new stack output properties now being passed to our React application code as new environment variables, we've now reached a stage in which we can finally begin to implement the Hosted UI authentication flow.
-
 ## Restart Watch Session
 
-Note that, in order for the performed changes to take effect and the new environment variables to become accessible in our React application code, you'll need to restart the watch session. So, if you had one active, in your terminal, simply stop it and start a new one, by running the [`webiny watch`](/docs/how-to-guides/use-watch-command/) command again:
+Note that, in order for the performed changes to take effect and the new environment variables to become accessible in our React application code, we'll need to restart the watch session. So, if you had one active, in your terminal, simply stop it and start a new one, by running the [`webiny watch`](/docs/how-to-guides/use-watch-command/) command again:
 
 ```
 yarn webiny watch pinterest-clone/app --env dev
 ```
+
+## Note on Deploying into New Environments
+
+Let's say we needed to deploy our React application, in its current state, into a brand new environment.
+
+When doing that, note that the **first** deployment will always need to be done **twice**. This is because of the order in which the React application is built and the User Pool Client is deployed.
+
+Essentially, the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command performs two steps:
+
+1. compile application code and create a production build of our application
+2. based on the cloud infrastructure code, deploy our application and other defined resources
+
+This means that upon deploying our React application for the first time, the [`getStackOutput`](#) function call, that we've added in the [`build`](#) command in our [`webiny.config.js`](#) file, won't return any results. No deployed cloud infrastructure means no stack output to read from.
+
+So, when doing the first deployment, we recommend you first deploy your cloud infrastructure resources only, and then proceed by doing another deployment, this time with our application code. We can achieve this with the following command:
+
+```bash
+yarn webiny deploy pinterest-clone/app --env new-environment --no-build && \
+yarn webiny deploy pinterest-clone/app --env new-environment
+```
+
+Once the first deployment has been performed, the following deployments of our React application can be done as usual, with the single [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) execution:
+
+```bash
+yarn webiny deploy pinterest-clone/app --env new-environment
+```
+
+## Final Result
+
+With all of the new stack output properties now being passed to our React application code as new environment variables, we've now reached a stage in which we can finally begin to implement the Hosted UI authentication flow.
+
+## FAQ
+
+#### Is there a way to detect whether we're deploying our React application for the first time?
+
+To determine whether the React application has been deployed or not, we can run the following [`webiny output`](/docs/key-topics/webiny-cli#yarn-webiny-output---env-env) command:
+
+```bash
+yarn webiny output pinterest-clone/app --env  --json
+```
+
+If the result is different from `"null"`, that would mean the application has been previously deployed.
+
+<CenteredImage
+  alt='Running "webiny Output" Command on a Non-existing and Existing Environments'
+  style={{ maxWidth: 750 }}
+  src={stackOutputExample}
+/>
+
+:::note
+Note that the returned `null` is actually a string. So, in your code or a CI/CD workflow step, make sure to do a string-based comparison (`=== "null"`).
+:::
