@@ -85,7 +85,7 @@ module.exports = {
                                         "tutorials/create-custom-application/security/graphql-api/implementing-authentication-and-authorization-checks",
                                     ],
                                 },
-                                "tutorials/create-custom-application/security/conclusion",
+                                "tutorials/create-custom-application/security/wrapping-it-up",
                             ],
                         },
                     ],
