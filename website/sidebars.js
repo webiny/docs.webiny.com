@@ -400,7 +400,10 @@ module.exports = {
                         {
                             type: "category",
                             label: "5.11.1",
-                            items: ["release-notes/5.11.1/changelog", "release-notes/5.11.1/upgrade-guide"]
+                            items: [
+                                "release-notes/5.11.1/changelog",
+                                "release-notes/5.11.1/upgrade-guide"
+                            ]
                         },
                         {
                             type: "category",
