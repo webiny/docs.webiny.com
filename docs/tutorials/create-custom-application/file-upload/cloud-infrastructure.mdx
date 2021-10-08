@@ -1,0 +1,185 @@
+---
+id: cloud-infrastructure
+title: Cloud Infrastructure
+sidebar_label: Cloud Infrastructure
+keywords:
+  [
+    "create",
+    "custom",
+    "application",
+    "security",
+    "auth",
+    "authentication",
+    "authorization",
+    "cloud",
+    "infrastructure",
+    "adding",
+    "user",
+    "pool",
+    "domain",
+  ]
+description: Learn how we can add and deploy a new User Pool and User Pool Domain, via GraphQL API's cloud infrastructure code.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import cloudInfraAutoDeploy from "./../security/cloud-infrastructure/adding-user-pool-and-user-pool-domain/cloud-infra-auto-deploy.png";
+import cloudInfraDeploy from "./../security/cloud-infrastructure/adding-user-pool-and-user-pool-domain/cloud-infra-deploy.png";
+
+:::tip WHAT YOU’LL LEARN
+
+- how we can add and deploy a new User Pool and User Pool Domain, via GraphQL API's cloud infrastructure code
+
+:::
+
+:::info Can I use this?
+
+In order to follow this tutorial, you must use Webiny version **5.15.0** or greater.
+
+:::
+
+:::info
+The code that we cover in this section can also be found in our GitHub [examples repository](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/05-security/03-cloud-infrastructure/01-adding-user-pool-and-user-pool-domain). Also, if you'd like to see the complete and final code of the application we're building, check out the [`full-example`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/full-example) folder.
+:::
+
+## Adding Amazon S3 Bucket
+
+:::note
+In this section, we'll be performing all of the needed cloud infrastructure code changes within the [`dev`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/06-file-upload/03-cloud-infrastructure/pinterest-clone/api/pulumi/dev) stack. Note that you should perform the same changes within the [`prod`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/06-file-upload/03-cloud-infrastructure/pinterest-clone/api/pulumi/prod) stack as well.
+
+In case you missed it, check out the [`dev` and `prod` Stacks](/docs/tutorials/create-custom-application/security/getting-started#dev-and-prod-stacks) section.
+:::
+
+Let's start by defining a new Amazon S3 Bucket within our GraphQL API's cloud infrastructure code.
+
+Inside of the [`pinterest-clone/api/pulumi/dev`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/06-file-upload/03-cloud-infrastructure/pinterest-clone/api/pulumi/dev) folder, let's create the new [`s3.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/06-file-upload/03-cloud-infrastructure/pinterest-clone/api/pulumi/dev/cognito.ts) file. It should export the following [`S3`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/06-file-upload/03-cloud-infrastructure/pinterest-clone/api/pulumi/dev/cognito.ts#L6) class that encapsulates new cloud infrastructure code:
+
+```ts title="pinterest-clone/api/pulumi/dev/cognito.ts" {6}
+import * as aws from "@pulumi/aws";
+
+class S3 {
+    bucket: aws.s3.Bucket;
+    constructor() {
+        this.bucket = new aws.s3.Bucket("pinterest-clone", {
+            acl: "private",
+            forceDestroy: true,
+            corsRules: [
+                {
+                    allowedHeaders: ["*"],
+                    allowedMethods: ["POST", "GET"],
+                    allowedOrigins: ["*"],
+                    maxAgeSeconds: 3000
+                }
+            ]
+        });
+    }
+}
+
+export default S3;
+```
+
+As we can see, we're exporting a single `S3` class with a single Amazon S3 Bucket definition encapsulated within it.
+
+Some of the more important properties are `acl`, which makes all uploaded files publicly inacessibledetermines the parent User Pool, and the `callbackUrls` and `logoutUrls` properties, which contain a list of allowed redirect URLs. Remember, once a user completes the external Hosted UI authentication flow, she/he is redirected back to our application. That's why we've added both localhost URL (for local development purposes) and an existing Cloudfront distribution URL (used once our React application is deployed and used online). We'll see how we'll distinguish between the two in our React application, soon enough.
+
+Like in the previous section, the next step is to visit the [`index.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/02-adding-user-pool-client/pinterest-clone/app/pulumi/index.ts) entry point file, located in the [`pinterest-clone/app/pulumi`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/02-adding-user-pool-client/pinterest-clone/app/pulumi) folder. There, we'll import the newly created file, instantiate the `Cognito` class so that the encapsulated cloud infrastructure code actually gets executed, and, finally, update the stack output properties. Here we'll add the `cognitoUserPool.clientId` property, which, as the name suggests, will contain the ID of the deployed User Pool Client.
+
+The next step is to import the new file in the existing [`index.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/06-file-upload/03-cloud-infrastructure/pinterest-clone/api/pulumi/dev/index.ts) entrypoint file, located in the [`pinterest-clone/api/pulumi/dev`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/06-file-upload/03-cloud-infrastructure/pinterest-clone/api/pulumi/dev) folder. Once imported, we'll also need to perform two additional changes.
+
+First, in order for the new cloud infrastructure code to be actually executed, we'll instantiate the imported `Cognito` class. Second, we will modify the list of returned values, which, as previously mentioned, represents the [stack output](/docs/tutorials/create-custom-application/security/getting-started#stack-output).
+
+Ultimately, this is how the updated [`index.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/06-file-upload/03-cloud-infrastructure/pinterest-clone/api/pulumi/dev/index.ts) entrypoint file should look like:
+
+```ts title="pinterest-clone/api/pulumi/dev/index.ts" {5,17,53-56}
+import DynamoDB from "./dynamoDb";
+import Graphql from "./graphql";
+import ApiGateway from "./apiGateway";
+import Cloudfront from "./cloudfront";
+import Cognito from "./cognito";
+
+// Among other things, this determines the amount of information we reveal on runtime errors.
+// https://www.webiny.com/docs/how-to-guides/environment-variables/#debug-environment-variable
+const DEBUG = String(process.env.DEBUG);
+
+// Enables logs forwarding.
+// https://www.webiny.com/docs/how-to-guides/use-watch-command#enabling-logs-forwarding
+const WEBINY_LOGS_FORWARD_URL = String(process.env.WEBINY_LOGS_FORWARD_URL);
+
+export default () => {
+  const dynamoDb = new DynamoDB();
+  const cognito = new Cognito();
+
+  const api = new Graphql({
+    dbTable: dynamoDb.table,
+    env: {
+      // The single DynamoDB table in which data can be stored and queried.
+      DB_TABLE: dynamoDb.table.name,
+      DEBUG,
+      WEBINY_LOGS_FORWARD_URL,
+    },
+  });
+
+  const apiGateway = new ApiGateway({
+    routes: [
+      {
+        name: "graphql-post",
+        path: "/graphql",
+        method: "POST",
+        function: api.functions.api,
+      },
+      {
+        name: "graphql-options",
+        path: "/graphql",
+        method: "OPTIONS",
+        function: api.functions.api,
+      },
+    ],
+  });
+
+  const cloudfront = new Cloudfront({ apiGateway });
+
+  return {
+    region: process.env.AWS_REGION,
+    apiUrl: cloudfront.getDistributionUrl(),
+    graphqlApiUrl: cloudfront.getDistributionUrl("/graphql"),
+    dynamoDbTable: dynamoDb.table.name,
+    cognitoUserPool: {
+      id: cognito.userPool.id,
+      domain: cognito.getUserPoolDomain(),
+    }
+  };
+};
+```
+
+As names suggest, the `cognitoUserPool.id` and `cognitoUserPool.domain` properties represent the ID and the domain of the deployed User Pool and User Pool Domain, respectively. We've added these values to the stack output simply because we'll later need them within our React application code (more on this soon).
+
+## Deployment
+
+In order to continue further development, the new cloud infrastructure resources need to be deployed.
+
+If you had the [`webiny watch`](/docs/how-to-guides/use-watch-command) command up and running while making the shown changes, the new cloud infrastructure resources should have been deployed automatically for you:
+
+<CenteredImage
+  alt="Automatic Re-deployment of Cloud Infrastructure"
+  style={{ maxWidth: 750 }}
+  src={cloudInfraAutoDeploy}
+/>
+
+If not, you can either start a new watch session, or simply deploy the changes via the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command.
+
+<CenteredImage
+  alt="Automatic Re-deployment of Cloud Infrastructure"
+  style={{ maxWidth: 750 }}
+  src={cloudInfraDeploy}
+/>
+
+:::tip
+As seen in the screenshot above, except all of the cloud infrastructure resources-related changes, in the **Outputs** section, we can also see the updated stack output.
+:::
+
+Ultimately, both approaches will ensure the new cloud infrastructure resources are deployed and are ready to be used.
+
+## Final Result
+
+In this section, we've defined and deployed a new User Pool and a User Pool Domain, all within our GraphQL API's cloud infrastructure code. Also, by adding the `cognitoUserPool.id` and `cognitoUserPool.domain` stack output properties, we've exposed the ID and the domain of the deployed User Pool and User Pool Domain. This will enable us to later retrieve these values within our React application code and connect everything together.
+
+In the next section, we'll still be playing with the cloud infrastructure code, but this time within our React application, where we'll need to define a new [User Pool Client](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-client-apps.html).

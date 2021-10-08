@@ -1,0 +1,69 @@
+---
+id: getting-started
+title: Getting Started
+sidebar_label: Getting Started
+keywords:
+  [
+    "create",
+    "custom",
+    "application",
+    "security",
+    "auth",
+    "authentication",
+    "authorization",
+    "getting",
+    "started",
+  ]
+description: Get a high-level overview of Amazon Cognito's Hosted UI authentication flow.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import pppRetrieve from "./getting-started/ppp-retrieve.png";
+import pppUpload from "./getting-started/ppp-upload.png";
+
+:::tip WHAT YOU’LL LEARN
+
+- an overview of Amazon Cognito's Hosted UI authentication flow
+- what are some of the things we need to consider, before starting with the tutorial
+
+:::
+
+:::info Can I use this?
+
+In order to follow this tutorial, you must use Webiny version **5.15.0** or greater.
+
+:::
+
+:::info
+The code that we cover in this section can also be found in our GitHub [examples repository](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/05-security/02-getting-started). Also, if you'd like to see the complete and final code of the application we're building, check out the [`full-example`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/full-example) folder.
+:::
+
+## File Upload Using Amazon S3 and the Pre-signed POST Data Approach
+
+In order to implement the file upload functionality, we'll use [Amazon S3](https://aws.amazon.com/s3/) and the **pre-signed POST data** approach.
+
+On a high level, the process we're about to implement consists of two steps:
+
+1. Our React application issues an HTTP request to our GraphQL API <diagram-letter>C</diagram-letter>, which responds with the unique Amazon S3 upload URL and pre-signed POST data (more on this soon). Note that this request does not contain the actual file that needs to be uploaded, but it can contain additional meta data if needed, like for example the name of the file.
+
+<CenteredImage
+  shadow={false}
+  style={{ maxWidth: 650 }}
+  src={pppRetrieve}
+  alt="Presigned POST Data Retrieval"
+/>
+
+2. Once our React application has received the response from the GraphQL API, it issues a multipart/form-data POST request, this time directly to the mentioned Amazon S3 upload URL <diagram-letter>D</diagram-letter>. This request contains the received pre-signed POST data, along with the file that is to be uploaded. Finally, Amazon S3 responds with the 204 OK response code if the file upload was successful or with an appropriate error response code if something went wrong.
+
+<CenteredImage
+  shadow={false}
+  style={{ maxWidth: 650 }}
+  src={pppUpload}
+  alt="File Upload With the Presigned POST Data Included"
+/>
+
+:::tip
+Check out the [Upload files to AWS S3 using pre-signed POST data and a Lambda function](https://www.webiny.com/blog/upload-files-to-aws-s3-using-pre-signed-post-data-and-a-lambda-function-7a9fb06d56c1?source=post_page-----7a9fb06d56c1----------------------) blog post to learn more about this approach.
+:::
+
+Note that, in its current state, our application does not deploy an Amazon S3 bucket. So, defining it via our cloud infrastructure will be our first order of business. As we'll be able to see, the process won't differ too much from what we've already had the chance to see in the [Security](/docs/tutorials/create-custom-application/security/introduction) section of this tutorial.
