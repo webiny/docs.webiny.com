@@ -370,6 +370,11 @@ module.exports = {
             "Release Notes": [
                 {
                     type: "category",
+                    label: "5.16.0",
+                    items: ["release-notes/5.16.0/changelog", "release-notes/5.16.0/upgrade-guide"]
+                },
+                {
+                    type: "category",
                     label: "5.15.0",
                     items: ["release-notes/5.15.0/changelog", "release-notes/5.15.0/upgrade-guide"]
                 },
@@ -390,13 +395,13 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "5.11.1",
-                    items: ["release-notes/5.11.1/changelog", "release-notes/5.11.1/upgrade-guide"]
-                },
-                {
-                    type: "category",
                     label: "Older Releases",
                     items: [
+                        {
+                            type: "category",
+                            label: "5.11.1",
+                            items: ["release-notes/5.11.1/changelog", "release-notes/5.11.1/upgrade-guide"]
+                        },
                         {
                             type: "category",
                             label: "5.11.0",
