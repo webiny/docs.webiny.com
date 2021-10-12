@@ -6,6 +6,9 @@ keywords: ["webiny", "version", "5.16.0", "changelog"]
 description: See what's new in Webiny version 5.16.0.
 ---
 
+import CenteredImage from "@components/CenteredImage";
+import watchDeployPaneImprovement from "./changelog/watch-deploy-pane-improvement.png";
+
 # Changes
 
 This document highlights the most important fixes, improvements, and features, that were introduced in Webiny `5.16.0`.
@@ -16,90 +19,39 @@ Please check the [Webiny 5.16.0 migration guide](/docs/release-notes/5.16.0/upgr
 
 :::
 
+## Development
+
+### Pulumi CLI Is Now Downloaded Into Project Root's `.webiny` Folder ([#1947](https://github.com/webiny/webiny-js/pull/1947))
+
+To deploy necessary cloud infrastructure, by default, Webiny relies on [Pulumi](/docs/key-topics/deployment/iac-with-pulumi), a modern infrastructure as code framework.
+
+For every Webiny project, the framework is downloaded automatically, and, prior to this release, all of the related binaries would be downloaded into project's `node_modules/@webiny/pulumi-sdk/pulumi` folder. And although this works, over time, we've noticed a couple of interesting issues with this solution:
+
+- running the `yarn` command to reinstall project's dependencies would cause the downloaded binaries to be removed, making the user re-download the Pulumi CLI
+- while in runtime, Pulumi CLI can store sensitive files in this directory, which can create different deployment and security-related issues
+
+Because of these, from now on, all of the Pulumi CLI related binaries will be downloaded into the `.webiny/pulumi-cli` folder, located in your project root.
+
 :::note
-The majority of changes that were introduced in this release are related to the [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)-only version of Webiny.
+Once your project has been upgraded to `5.16.0`, upon running the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) or the [`webiny watch`](/docs/how-to-guides/use-watch-command) command, the Pulumi CLI will be re-downloaded. This is normal and will happen even if you already had the Pulumi CLI downloaded in the mentioned `node_modules/@webiny/pulumi-sdk/pulumi` folder.
 :::
 
-:::tip  Amazon DynamoDB-only version of Webiny
-[In case you missed it](/docs/key-topics/cloud-infrastructure/api/introduction), at the moment, Webiny relies on both [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) and [Amazon OpenSearch Service](https://aws.amazon.com/opensearch-service/the-elk-stack/what-is-elasticsearch/) databases in order to store and retrieve data. And while this is definitely a good choice for larger projects, for smaller and mid-sized projects, we'll be introducing an Amazon DynamoDB-only version of Webiny. For now there are no official estimates when this will be available, but we can definitely say that a very large amount of work has already been done.
-:::
+### Improved Webiny CLI ([#1946](https://github.com/webiny/webiny-js/pull/1946))
 
+Webiny CLI also received a couple of neat improvements.
+
+For starters, we've introduced the `--allow-production` flag for the [`webiny watch`](/docs/how-to-guides/use-watch-command) command, which allows the user to run the command even with `prod` and `production` environments (by default, the command doesn't allow that).
+
+Speaking of the [`webiny watch`](/docs/how-to-guides/use-watch-command) command, we've also made the logs displayed in the **Deploy** pane a bit cleaner and nicer:
+
+<CenteredImage alt='"webiny watch" Command - The Improved Deploy Pane' src={watchDeployPaneImprovement} style={{maxWidth: 750}}/>
+
+Finally, the [Full Stack Application](/docs/how-to-guides/scaffolding/full-stack-application/) scaffold should now work correctly on Windows operating system.
+
+###
 
 ## Page Builder
 
-### Storage Operations ([#1872](https://github.com/webiny/webiny-js/pull/1872))
+### Export Pre-rendering Plugins Separately ([#1954](https://github.com/webiny/webiny-js/pull/1954))
 
-We extracted existing DynamoDB + Elasticsearch storage logic into [`@webiny/api-page-builder-so-ddb-es`](https://github.com/webiny/webiny-js/tree/next/packages/api-page-builder-so-ddb-es) package.
-This allows us to create package that stores the data into DynamoDB only, or some other database.
-
-We moved `SearchPagesPlugin`, `SearchLatestPagesPlugin` and `SearchPublishedPages` from [`@webiny/api-page-builder`](https://github.com/webiny/webiny-js/tree/next/packages/api-page-builder) to [`@webiny/api-page-builder-so-ddb-es`](https://github.com/webiny/webiny-js/tree/next/packages/api-page-builder-so-ddb-es).
-
-### GraphQL
-##### Common changes
-* `sort` is now a list of strings and default sort is `createdOn_DESC` - you can check out the schema to see the fields you can sort by
-
-##### Changes In Pages Schema:
-* query `listPublishedPages` `page` argument is changed to `after` - pass the `meta.cursor` value to `after` to paginate
-* `meta` output was changed to be the same as in other apps
-```graphql
-meta {
-	hasMorePages: Boolean!
-	totalCount: Number!
-	cursor: String
-}
-
-```
-##### Changes In Menu Schema:
-* the type `PbMenu` `items` input and output are an array of JSON objects
-
-
-### Prerendering
-We extracted prerendering logic into separate file, [`@webiny/api-page-builder/prerendering`](https://github.com/webiny/webiny-js/tree/next/packages/api-page-builder/src/prerendering), so it is now imported into [`api/code/graphql/src/index.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/src/index.ts#L11) file. If you do not want to use prerendering of pages, feel free to remove the referenced import statement.
-
-
-## Elasticsearch
-
-### Query Modifier Plugin ([#1872](https://github.com/webiny/webiny-js/pull/1872))
-Due to changes in the way of how query building for Elasticsearch works we changed `ElasticsearchQueryModifierPlugin` in the [`@webiny/api-elasticsearch`](https://github.com/webiny/webiny-js/tree/next/packages/api-elasticsearch) package.
-It is an abstract class now, so if you used it to modify the query, please change it to either `PageElasticsearchQueryModifierPlugin` for [`@webiny/api-page-builder`](https://github.com/webiny/webiny-js/tree/next/packages/api-page-builder) or `FileElasticsearchQueryModifierPlugin` for [`@webiny/api-file-manager`](https://github.com/webiny/webiny-js/tree/next/packages/api-file-manager).
-Also, in that abstract class, method named `apply` was renamed to `modifyQuery`.
-
-### Body And Sort Modifier Plugins ([#1872](https://github.com/webiny/webiny-js/pull/1872))
-
-There are new `ElasticsearchBodyModifierPlugin` and `ElasticsearchSortModifierPlugin` abstract classes, which are extended in each of the application that uses Elasticsearch. As their name suggests, they are specialized to modify either body or sort parameters of the Elasticsearch query.
-
-For Page Builder check out `PageElasticsearchBodyModifierPlugin` and `PageElasticsearchSortModifierPlugin` classes.
-
-For File Manager check out  `FileElasticsearchBodyModifierPlugin` and `FileElasticsearchSortModifierPlugin` classes.
-
-
-## Headless CMS
-
-### Reference Field - Fixed Order of Entries ([#1922](https://github.com/webiny/webiny-js/pull/1922), [@nelsonchen5](https://github.com/nelsonchen5))
-
-When consuming content via the **read** Headless CMS GraphQL API, the reference fields that might have been included in the GraphQL query would return entries in an incorrect order. From now on, this is no longer the case.
-
-A special shout out to [@nelsonchen5](https://github.com/nelsonchen5) for sorting this out! ❤️
-
-:::tip
-Learn more about different types of the Headless CMS GraphQL API in [this key topic](/docs/key-topics/webiny-applications/headless-cms/graphql-api).
-:::
-
-### `ElasticsearchFieldPlugin` Class Not Used Anymore ([#1872](https://github.com/webiny/webiny-js/pull/1872))
-
-The definition of Elasticsearch field now uses `CmsEntryElasticsearchFieldPlugin` class instead of `ElasticsearchFieldPlugin`.
-
-## File Manager ([#1912](https://github.com/webiny/webiny-js/pull/1912))
-
-### GraphQL
-Fixed a bug with missing `where` parameter in the `listFiles` query. Also added the `tag_and_in` option to where so users can search for files that contain all given tags.
-
-Also note that `types`, `tags`, `ids` and `search` parameters in `listFiles` query are deprecated. Use the `where` parameter instead.
-
-## Development
-
-### Webiny CLI - `--help` Argument Now Works as Expected ([#1926](https://github.com/webiny/webiny-js/pull/1926), [@snstanton](https://github.com/snstanton))
-
-When using the Webiny CLI, the `--help` argument now works as expected.
-
-Special thanks to [@snstanton](https://github.com/snstanton) for taking care of this! ️️❤️
+### New Pre-rendering Hooks ([#1945](https://github.com/webiny/webiny-js/pull/1945))
