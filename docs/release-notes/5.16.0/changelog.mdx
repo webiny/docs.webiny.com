@@ -52,6 +52,57 @@ Finally, the [Full Stack Application](/docs/how-to-guides/scaffolding/full-stack
 
 ## Page Builder
 
-### Export Pre-rendering Plugins Separately ([#1954](https://github.com/webiny/webiny-js/pull/1954))
+### Export Prerendering Plugins Separately ([#1954](https://github.com/webiny/webiny-js/pull/1954))
 
-### New Pre-rendering Hooks ([#1945](https://github.com/webiny/webiny-js/pull/1945))
+Under the hood, all of the pages created and published via the Page Builder application are prerendered. Meaning, the moment we publish a page, a background job ensures that the page's complete HTML is retrieved, and stored into an Amazon S3 bucket. Once that's done, the page becomes ready to be served to actual website users.
+
+Besides the mentioned "page publishing" event, there are actually a couple of other key events that also trigger these prerendering-related background jobs. For example:
+
+- when a page is unpublished, the previously stored page HTML is removed from the Amazon S3 bucket
+- when website settings change, like for example our website's title, the whole website is prerendered
+- and more
+
+If were to open our default GraphQL API's [`index.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/src/index.ts#L11) entrypoint file, located in the [`api/code/graphql/src`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/src/index.ts#L11) folder, we'd actually be able to find the import statement that includes all of this default prerendering-related functionality:
+
+```ts
+import pageBuilderPrerenderingPlugins from "@webiny/api-page-builder/prerendering";
+```
+
+And while this approach makes it possible to easily include the complete default prerendering-related functionality (or completely remove it if needed), it also prevents us from importing just specific pieces (plugins) of it. That's why we've made it possible to import the default prerendering-related functionality in a more granular way, via the following import statements:
+
+```ts
+import afterMenuUpdate from "@webiny/api-page-builder/prerendering/hooks/afterMenuUpdate";
+import afterPageDelete from "@webiny/api-page-builder/prerendering/hooks/afterPageDelete";
+import afterPagePublish from "@webiny/api-page-builder/prerendering/hooks/afterPagePublish";
+import afterPageUnpublish from "@webiny/api-page-builder/prerendering/hooks/afterPageUnpublish";
+import afterSettingsUpdate from "@webiny/api-page-builder/prerendering/hooks/afterSettingsUpdate";
+```
+
+So, with this approach, we can easily just update the behaviour that's, for example, triggered after a menu has been updated. We would simply remove the first import statement and define our own [`MenuPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/plugins/MenuPlugin.ts) instead. The rest of the import statements we'd leave as is.
+
+### New Prerendering Events ([#1945](https://github.com/webiny/webiny-js/pull/1945))
+
+With the prerendering-related plugins exported separately, we've also made it possible to intercept all prerendering-related calls, with just a simple [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/handler/src/plugins/ContextPlugin.ts#L7) plugin.
+
+For example, with the following piece of code, we can perform additional logic before a page or multiple pages are about to be prerendered:
+
+```ts api/code/graphql/src/plugins/somePlugin.ts
+import { Context } from "~/types";
+import { ContextPlugin } from "@webiny/handler/plugins/ContextPlugin";
+
+new ContextPlugin<Context>(async context => {
+    context.pageBuilder.onPageBeforeRender.subscribe(async ({ args, paths, tags }) => {
+        // Do whatever you might need - sync or async.
+        // You can even modify the `args.render` and `args.queue` objects, if needed.
+    });
+});
+```
+
+The following are the events we can subscribe to:
+
+- [`onPageBeforeRender`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L194) - triggered before a page or multiple pages are about to be rendered
+- [`onPageAfterRender`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L195)  - triggered after a page or multiple pages were rendered
+- [`onPageBeforeFlush`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L196)  - triggered before a page or multiple pages are about to be flushed
+- [`onPageAfterFlush`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L197)   - triggered before a page or multiple pages were flushed
+
+Note that rendering and flushing of pages is happening asynchronously. Meaning, the [`onPageAfterRender`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L195) and [`onPageAfterFlush`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L197) events will still be fired before the actual rendering and flushing happens.
