@@ -7,12 +7,12 @@ description: See what's new in Webiny version 5.17.0.
 ---
 
 import CenteredImage from "@components/CenteredImage";
-import revisionsMenu from "./revisions-menu.png";
-import tenantManager from "./tenant-manager.png";
-import oktaLogin from "./okta-login.png";
-import eventsAutocomplete from "./events-autocomplete.png";
-import accessManagement from "./access-management.png";
-import gridWidth from "./grid-witdh.gif";
+import revisionsMenu from "./assets/revisions-menu.png";
+import tenantManager from "./assets/tenant-manager.png";
+import oktaLogin from "./assets/okta-login.png";
+import eventsAutocomplete from "./assets/events-autocomplete.png";
+import accessManagement from "./assets/access-management.png";
+import gridWidth from "./assets/grid-witdh.gif";
 
 # Changes
 
@@ -47,7 +47,7 @@ Keep in mind that Access Management will always be there, no matter what IdP you
 
 We've developed a new mechanism of publishing and subscribing to events, to prevent explosion of plugins in the GraphQL API. Our new applications, like _tenancy_, _security_, and several others, now use this new system of events to make it easier to discover and extend functionality of Webiny.
 
-Instead of creating a new plugin type for every entity, events are defined on the application level (in the `context` object) and are easily discoverable in any IDE:
+Instead of creating a new plugin type for every entity or event, events are defined on the application level (in the `context` object) and are easily discoverable in any IDE:
 
 <CenteredImage
   src={eventsAutocomplete}
@@ -71,6 +71,14 @@ new ContextPlugin(context => {
   });
 });
 ```
+
+:::info Why this change?
+There's one **major** benefit of adding functionality to your system like this: you don't have to drill the `context` object all the way to the place where plugins are invoked. With this approach, apps remain free of the notion of `context` and can be reused and instantiated in separate Lambda functions, that may not even be GraphQL. Utilizing Javascript's [lexical scope](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures), all functions that you attach to existing apps via the `ContextPlugin`, will have access to the `context`, without apps even knowing that it exists.
+
+This greatly improves testability and reusability of parts of the system, because they don't depend on the unknown internals of the `context` object.
+
+Besides, less plugins to learn and maintain is always good, isn't it? :) Whenever you want to extend some app, you know you have to start with a `ContextPlugin`. 
+:::
 
 The new system of events is not yet propagated through all the Webiny applications, but this is how all new applications expose their events. In the near future we'll migrate all the apps to follow this system of events.
 

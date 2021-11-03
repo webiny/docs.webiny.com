@@ -85,10 +85,33 @@ With that, we want to let you know that we are already working on an improved pr
 
 If you're willing to contribute your thoughts and ideas, join the Github discussion [Webiny Projects - Simplify Organization of Folders and Files](https://github.com/webiny/webiny-js/discussions/1992).
 
-### Security Authentication and Authorization
+### Migrating Authentication and Authorization Plugins
 
 Although the new security layer takes the old `security-authentication` and `security-authorization` plugins into consideration, we recommend migrating your custom security plugins, if you have any.
 
-To see an example of an up-to-date authentication plugin, see the official implementation of a [Cognito authentication plugin](https://github.com/webiny/webiny-js/blob/next/packages/api-security-cognito/src/index.ts#L19-L36). As you will find, we no longer need a dedicated plugin, but instead, we register an authentication function directly into the `security` app, which lives on the `context` object. Same goes for [authorization plugins](https://github.com/webiny/webiny-js/blob/next/packages/api-security/src/plugins/apiKeyAuthorization.ts).
+To see an example of an up-to-date authentication plugin, see the official implementation of a [Cognito authentication plugin](https://github.com/webiny/webiny-js/blob/v5.17.0/packages/api-security-cognito/src/index.ts#L19-L36). As you will find, we no longer need a dedicated plugin, but instead, we register an authentication function directly into the `security` app, which lives on the `context` object. Same goes for [authorization plugins](https://github.com/webiny/webiny-js/blob/v5.17.0/packages/api-security/src/plugins/apiKeyAuthorization.ts).
 
 This way, it's much easier to group your functionality into one `ContextPlugin` plugin, and hook into all the parts of the system you want to extend.
+
+
+### Migrating the `UserPlugin` Plugin
+
+If you use the `UserPlugin` plugin to hook into Cognito users in your project, you will need to migrate it to the new event system. All the previous events are supported, they just have slightly different TS types, and are registered differently. Here's an example:
+
+```ts
+// Before
+new UserPlugin({
+  beforeCreate({ user, inputData, context }) {
+    // Do something with the user
+  }
+});
+
+// After
+new ContextPlugin(context => {
+  context.adminUsers.onUserBeforeCreate.subscribe(({ user, inputData }) => {
+    // Do something with the user
+  });
+});
+```
+
+And the same goes for other events that were supported previously. Note how `context` object is no longer passed to your callback as an argument, but is instead available to you from the parent scope.
