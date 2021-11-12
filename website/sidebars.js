@@ -340,6 +340,11 @@ module.exports = {
                         "key-topics/security-framework/react-security"
                     ]
                 },
+                {
+                    type: "category",
+                    label: "Headless CMS",
+                    items: ["key-topics/headless-cms/lifecycle-events"]
+                },
                 "key-topics/tools-libraries",
                 "key-topics/plugins",
                 "key-topics/multi-tenancy",

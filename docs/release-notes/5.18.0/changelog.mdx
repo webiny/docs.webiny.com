@@ -21,74 +21,19 @@ Please check the [Webiny 5.18.0 migration guide](/docs/release-notes/5.18.0/upgr
 
 We removed existing `CmsContentModelHookPlugin` and `CmsContentEntryHookPlugin` support in favor of publish/subscribe pattern. Groups did not have lifecycle support, so we added those.
 
-Available options for groups are:
- * onBeforeGroupCreate
- * onAfterGroupCreate
- * onBeforeGroupUpdate
- * onAfterGroupUpdate
- * onBeforeGroupDelete
- * onAfterGroupDelete
-
-Available options for model are:
-* onBeforeModelCreate
-* onAfterModelCreate
-* onBeforeModelUpdate
-* onAfterModelUpdate
-* onBeforeModelDelete
-* onAfterModelDelete
-
-And, in the end, for the entries:
- * onBeforeEntryCreate
- * onAfterEntryCreate
- * onBeforeEntryRevisionCreate
- * onAfterEntryRevisionCreate
- * onBeforeEntryUpdate
- * onAfterEntryUpdate
- * onBeforeEntryDelete
- * onAfterEntryDelete
- * onBeforeEntryRevisionDelete
- * onAfterEntryRevisionDelete
- * onBeforeEntryPublish
- * onAfterEntryPublish
- * onBeforeEntryUnpublish
- * onAfterEntryUnpublish
- * onBeforeEntryRequestChanges
- * onAfterEntryRequestChanges
- * onBeforeEntryRequestReview
- * onAfterEntryRequestReview
+To find out more about lifecycle events please read our [Lifecycle Events](/docs/key-topcis/headless-cms/lifecycle-events) article.
 
 
-All the options are available on `context.cms` object. Here is an example on how to subscribe to afterEntryCreate:
+### We Renamed a Lot of Plugins, Types and Interfaces
 
-```typescript
-import { CmsContext } from "@webiny/api-headless-cms/types";
-import { ContextPlugin } from "@webiny/handler/plugins/ContextPlugin";
+The team agreed on some new namings and to accommodate that we removed Content from all types, interfaces and classes.
+Names for some interfaces were changed a bit as well, for example, `ContentModelGroup` is now `CmsGroup`.
 
-const plugin = new ContextPlugin<CmsContext>(async context => {
-    context.cms.onAfterEntryCreate.subscribe(async params => {
-        const {
-            /**
-             * Input received from the user via GraphQL
-             */
-            input,
-            /**
-             * Entry created out of user input
-             */
-            entry,
-            /**
-             * The model this entry is going to belong to
-             */
-            model
-        } = params;
-        /**
-         * Trigger your custom function that notifies some other system about new entry.
-         */
-        await notifyDifferentSystemAboutNewEntry({
-            input,
-            entry,
-            mode
-        });
-    });
-});
-```
-Of course, do not forget to register your plugin in the system.
+There are probably a hundred or so types, interfaces and classes changed so listing them all would produce a non-readable piece of text.
+
+If you have created a Model or a Group via plugins, they are renamed as well.
+`ContentModelPlugin` is now `CmsModelPlugin` and `ContentModelGroupPlugin` is `CmsGroupPlugin` - file names were changed as well.
+
+:::note
+If you used some of renamed types, interfaces and classes your build/deploy will break, so just change them.
+:::
