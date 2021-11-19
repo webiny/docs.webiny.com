@@ -13,13 +13,6 @@ import { isWindows } from "react-device-detect";
 - how to deploy it to your [AWS](https://aws.amazon.com/) account
 :::
 
-:::danger AWS RESOURCES ARE NOT FREE!
-Although Webiny is mainly using serverless resources, it relies on **AWS ElasticsearchService**.
-It is the only non-serverless component of our infrastructure and is charged per hour. It amounts to roughly $25/month.
-
-Please keep this in mind, and if you just want to try Webiny, don't forget to destroy the infrastructure when you're done, to avoid the unnecessary expenses.
-:::
-
 ---
 
 ## Prerequisites
@@ -60,6 +53,34 @@ npx create-webiny-project my-new-project
 ```
 
 From there, follow the on-screen setup instructions, which includes answering a couple of project-related questions, and doing your first deployment.
+
+### DynamoDB (for Small and Medium Sized Projects)
+As noted, this option should be used if you intend to have a small to medium size project: up to a few hundred records, per application, in the database.
+:::note
+Because the DynamoDB does not provide advanced filtering or sorting we had to implement our own.
+:::
+
+Basically, we load the smallest amount of records possible from the DynamoDB and then perform filtering and sorting in the code.
+Unfortunately, it might happen that we load all the records from a certain application, depending on the filtering applied, but generally that will not be the case.
+
+Also note that Headless CMS is quite specific application where entries are split through the models. So if you have 5 models with 50 entries each we will, at most, load 50 entries.
+
+
+### DynamoDB + Elasticsearch (for Larger Projects)
+:::danger AWS RESOURCES ARE NOT FREE!
+Although Webiny is using serverless resources, the Elasticsearch option relies on **AWS ElasticsearchService**, which is not free.
+It is the only non-serverless component of our infrastructure and is charged per hour. It amounts to roughly $25/month.
+
+Please keep this in mind, and if you just want to try Webiny, it is better to use the DynamoDB-only option.
+If you are testing with the Elasticsearch, don't forget to destroy the infrastructure when you're done, to avoid the unnecessary expenses.
+:::
+
+Feel free to choose this option when you want to build some larger application, or you know that you will have a lot of records stored.
+
+DynamoDB + Elasticsearch project has exactly the same functionalities (filtering and sorting) as the DynamoDB one.
+When having a lot of records, it will be faster to search and sort in project deployed with Elasticsearch.
+
+
 
 ## First Deployment
 
@@ -105,7 +126,7 @@ Currently that's not possible. Please install either version 12 or 14.
 
 #### Deploying my project takes a long time to finish.
 
-We're aware of this fact, and this is mainly because of the [Amazon ElasticSearch Service](https://aws.amazon.com/elasticsearch-service/). While other cloud infrastructure resources get deployed reasonably fast, this service can take anywhere from 15 to 30 minutes to become ready.
+We're aware of this fact, and this is mainly because of the [Amazon Elasticsearch Service](https://aws.amazon.com/elasticsearch-service/). While other cloud infrastructure resources get deployed reasonably fast, this service can take anywhere from 15 to 30 minutes to become ready.
 
 Unfortunately, this is a well-known issue for quite some time, and until the present, there haven't been any positive improvements.
 
