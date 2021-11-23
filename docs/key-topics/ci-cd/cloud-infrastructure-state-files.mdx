@@ -109,22 +109,37 @@ Of course, it does come with a price, so make sure to check their official [pric
 
 As mentioned, Webiny will instruct the Pulumi framework to use the [local file system](/docs/key-topics/ci-cd/cloud-infrastructure-state-files#local-file-system) as the default backend. But, you can easily instruct it to use a different one, using the `WEBINY_PULUMI_BACKEND` environment variable, which needs to be assigned upon running the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command.
 
-For example, if we wanted to use Amazon S3 as our backend of choice, we could run:
+:::info
+Environment variables can be assigned in a couple of different ways. In local development, we recommend you assign them via the [`.env`](https://github.com/webiny/webiny-js/blob/v5.15.0/packages/cwp-template-aws/template/example.env) file, located in your project root. In CI/CD environments, you should use mechanisms recommended by your CI/CD provider.
+
+Check out the [Environment Variables](/docs/how-to-guides/environment-variables) how-to guide to learn more.
+:::
+
+### Amazon S3
+
+If we wanted to use Amazon S3 as our backend of choice, we could assign the following environment variable:
 
 ```bash
-# Deploying a complete Webiny project.
-WEBINY_PULUMI_BACKEND=s3://my-s3-bucket/some-folder-maybe yarn webiny deploy --env staging
+WEBINY_PULUMI_BACKEND=s3://my-s3-bucket/some-folder-maybe
 ```
 
-On the other hand, if we wanted to use the Pulumi Service, we could run:
+### Pulumi Service
+
+On the other hand, if we wanted to use the Pulumi Service, we could assign the following environment variables:
 
 ```bash
-# Deploying a single project application.
-WEBINY_PULUMI_BACKEND=my_secret_api_key_xyz
+WEBINY_PULUMI_BACKEND=https://api.pulumi.com
+PULUMI_ACCESS_TOKEN=pul-xyzabc123
 ```
+
+Note that, when using the Pulumi Service, it's recommended we remove the [`PULUMI_SECRETS_PROVIDER`](https://github.com/webiny/webiny-js/blob/v5.15.0/packages/cwp-template-aws/template/example.env#L6) and [`PULUMI_CONFIG_PASSPHRASE`](https://github.com/webiny/webiny-js/blob/v5.15.0/packages/cwp-template-aws/template/example.env#L10) environment variables. Essentially, these variable instruct Pulumi CLI which secrets provider we want to use, and since Pulumi Service has its own built-in one, we don't need these anymore.
+
+:::note
+By default, via the [`.env`](https://github.com/webiny/webiny-js/blob/v5.15.0/packages/cwp-template-aws/template/example.env#L4-L10) file located in your project root, the mentioned [`PULUMI_SECRETS_PROVIDER`](https://github.com/webiny/webiny-js/blob/v5.15.0/packages/cwp-template-aws/template/example.env#L6) and [`PULUMI_CONFIG_PASSPHRASE`](https://github.com/webiny/webiny-js/blob/v5.15.0/packages/cwp-template-aws/template/example.env#L10) environment variables are set to `passphrase` and a random string, respectively.
+:::
 
 :::info
-Environment variables can be assigned in a couple of different ways. Check out the [Environment Variables](/docs/how-to-guides/environment-variables) guide to learn more.
+Learn more about secrets and secrets providers in [Pulumi's official documentation](https://www.pulumi.com/docs/intro/concepts/secrets/).
 :::
 
 ### What To Use

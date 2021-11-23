@@ -1,0 +1,361 @@
+---
+id: create-a-webiny-headless-cms-custom-field-plugin
+title: Create a Webiny Headless CMS Custom Field Plugin
+sidebar_label: Custom Field Plugin
+keywords: ["webiny", "project", "install", "setup", "create"]
+description: Create a Webiny Headless CMS Custom Field Plugin.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import fieldDefinition from "./assets/field-definition.png";
+import fieldRendered from "./assets/field-renderer.png";
+import encryptedText from "./assets/encrypted-text.gif";
+
+:::tip What you'll learn
+
+- how to create a new content model field plugin
+- how a plugin stores and retrieves data
+:::
+
+:::info
+The complete code of this tutorial can also be found in our [GitHub examples repository](https://github.com/webiny/webiny-examples/tree/master/headless-cms/custom-field-plugin).
+:::
+
+## Overview
+
+Webiny Headless CMS comes with a predefined set of content model fields. But, you can also create your own custom fields, to expand the built-in functionality. In this tutorial, we'll learn the anatomy of a Headless CMS field, and, as an example, create a custom field plugin to store encrypted data into the database, and decrypt it after retrieving it from the database.
+
+## Plugins
+
+Plugins are a vital part of Webiny, and the majority of Webiny's functionality lives in plugins. You can learn more about plugins [here](/docs/key-topics/plugins).
+
+We will create our custom field with the help of plugins. Plugins will construct every part of the custom field i.e. we will create a plugin to list our new field in the fields list, another plugin to render the field, another one to store and retrieve data.
+
+Webiny has five plugin types to create a custom CMS field. Out of these, three are mandatory, and two are optional.
+Let's briefly discuss these plugin types in this section, and in the further sections, we will see them in action.
+
+1. **[`CmsEditorFieldTypePlugin`](https://github.com/webiny/webiny-js/blob/83d6ff5be8de91cef9aca63ead199a8c00283957/packages/app-headless-cms/src/types.ts#L13)** is used to define the field and is responsible for showing the field in the fields list, within the content model editor UI.
+
+2. **[`CmsEditorFieldRendererPlugin`](https://github.com/webiny/webiny-js/blob/83d6ff5be8de91cef9aca63ead199a8c00283957/packages/app-headless-cms/src/types.ts#L166)** is responsible for rendering of the field in the content entry form (when you're creating the actual content).
+
+3. **[`CmsModelFieldToGraphQLPlugin`](https://github.com/webiny/webiny-js/blob/83d6ff5be8de91cef9aca63ead199a8c00283957/packages/api-headless-cms/src/types.ts#L383)** is used to define the field in the GraphQL API. It is responsible for defining field's schema types, inputs, resolvers, etc.
+
+   The three plugin types we covered above are **mandatory** to create a custom field, and the following two are **optional**.
+
+4. **[`CmsModelFieldToStoragePlugin`](https://github.com/webiny/webiny-js/blob/83d6ff5be8de91cef9aca63ead199a8c00283957/packages/api-headless-cms/src/types.ts#L1595)** handles storage transformations, i.e. you can modify the data before passing it to your storage layer, and also manipulate it after retrieval. In this tutorial, we will encrypt and decrypt our field data using this plugin type.
+
+5. **[`CmsModelFieldToElasticSearchPlugin`](https://github.com/webiny/webiny-js/blob/731966ba13e6d9c5c82828a89e0e9ef7d4a0a27d/packages/api-headless-cms-ddb-es/src/types.ts#L182)** defines transformations to run on a field with Elasticsearch interaction i.e. you can execute the transformations before and after you interact with the Elasticsearch index. Often, data stored to Elasticsearch is not stored in its original form, and requires some preparation to be properly indexed, or even excluded from indexing. This plugin gives you full control over how you store and retrieve data to, and from Elasticsearch.
+
+___
+
+Now, let's start building our custom field and see these plugins in action.
+We will name the new custom field **Secret Text**, as we'll be storing the text value as an encrypted string.
+
+### Field Type Plugin
+
+We will start by creating a field type plugin (`CmsEditorFieldTypePlugin`) to define the field and to show it in the field list in the content model editor.
+
+1. Create `fields/secretText` directory in `apps/admin/code/src/plugins/headlessCMS`.
+2. Create a file [`secretTextFieldPlugin.tsx`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/custom-field-plugin/ui/secretTextFieldPlugin.tsx) in the newly created directory.
+
+```tsx title="apps/admin/code/src/plugins/headlessCMS/fields/secretText/secretTextFieldPlugin.tsx"
+import React from "react";
+import { CmsEditorFieldTypePlugin } from "@webiny/app-headless-cms/types";
+
+const TextIcon: React.FunctionComponent = () => <i>icon</i>;
+
+export default (): CmsEditorFieldTypePlugin => ({
+  type: "cms-editor-field-type",
+  name: "cms-editor-field-type-secret-text",
+  field: {
+    type: "secret-text",
+    label: "Secret Text",
+    description: "Store encrypted text into the database.",
+    icon: <TextIcon />,
+    allowMultipleValues: false,
+    allowPredefinedValues: false,
+    multipleValuesLabel: "Use as a list of text values",
+    createField() {
+      return {
+        type: "secret-text",
+        validation: [],
+        renderer: {
+          name: ""
+        }
+      };
+    }
+  }
+});
+```
+
+3. Import this new plugin in `apps/admin/code/src/plugins/headlessCms.ts`.
+
+```ts title="apps/admin/code/src/plugins/headlessCms.ts" {5,13}
+(...)
+import richTextEditor from "./headlessCMS/richTextEditor";
+
+// Import the `secretTextFieldPlugin` plugin
+import secretTextFieldPlugin from "./headlessCMS/fields/secretText/secretTextFieldPlugin"
+
+export default [
+    headlessCmsPlugins(),
+    richTextEditor,
+    // Rest of the plugins
+    (...)
+    objectFieldRenderer,
+    secretTextFieldPlugin()
+];
+```
+
+Run the [`webiny watch`](/docs/how-to-guides/use-watch-command) command to start a new watch session on `apps/admin` application code.
+
+```
+yarn webiny watch apps/admin --env dev
+```
+
+This command will build our application and will serve the **Admin Area** application locally. It will also detect all changes in `apps/admin` and live rebuild the application.
+
+As a result, our new field should be shown in **Fields** menu:
+
+<CenteredImage src={fieldDefinition} alt="Field Definition" />
+
+### Field Renderer Plugin
+
+As our next step, we'll define a renderer for our new field. The renderer determines how this field will be rendered in the content entry form, when you create/update your data. We'll be using the `CmsEditorFieldRendererPlugin` plugin type.
+
+1. Create a file [`secretTextFieldRendererPlugin.tsx`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/custom-field-plugin/ui/secretTextFieldRendererPlugin.tsx) in `apps/admin/code/src/plugins/headlessCMS/fields/secretText` directory.
+
+```tsx title="apps/admin/code/src/plugins/headlessCMS/fields/secretText/secretTextFieldRendererPlugin.tsx"
+import React from "react";
+import { CmsEditorFieldRendererPlugin } from "@webiny/app-headless-cms/types";
+import { Input } from "@webiny/ui/Input";
+
+export default (): CmsEditorFieldRendererPlugin => ({
+  type: "cms-editor-field-renderer",
+  name: "cms-editor-field-renderer-secret-text",
+  renderer: {
+    rendererName: "secret-text",
+    name: `Secret Text`,
+    description: `Enter the text to encrypt`,
+    canUse({ field }) {
+      return field.type === "secret-text";
+    },
+    render({ field, getBind }) {
+      const Bind = getBind();
+
+      return (
+        <Bind>
+          {bind => (
+            <Input
+              {...bind}
+              label={field.label}
+              placeholder={field.placeholderText}
+              description={field.helpText}
+            />
+          )}
+        </Bind>
+      );
+    }
+  }
+});
+```
+
+3. Import this new plugin in `apps/admin/code/src/plugins/headlessCms.ts`.
+
+```ts title="apps/admin/code/src/plugins/headlessCms.ts" {5,14}
+(...)
+import richTextEditor from "./headlessCMS/richTextEditor";
+
+// Import the `secretTextFieldRendererPlugin` plugin
+import secretTextFieldRendererPlugin from "./headlessCMS/fields/secretText/secretTextFieldRendererPlugin"
+
+export default [
+    headlessCmsPlugins(),
+    richTextEditor,
+    // Rest of the plugins
+    (...)
+    objectFieldRenderer,
+    secretTextFieldPlugin(),
+    secretTextFieldRendererPlugin()
+];
+```
+
+4. As the [`webiny watch`](/docs/how-to-guides/use-watch-command) command is already running on `apps/admin`, we should see these changes immediately.
+   Drag and drop the **Secret Text** field to create a model and navigate to the **PREVIEW** tab; you should see an input field here:
+   <CenteredImage src={fieldRendered} alt="Field Rendered" />
+
+Cool, so far, we are done with the UI part of the custom field. In the next step, we will handle the GraphQL part by creating a Field to GraphQL API plugin (`CmsModelFieldToGraphQLPlugin`) for the **Secret Text** field.
+
+### Field To GraphQL Plugin
+
+1. Create `fields/secretText` directory in `api/code/headlessCMS/src`.
+2. Create a file [`secretTextFieldPlugin.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/custom-field-plugin/api/secretTextFieldPlugin.ts) in newly created directory.
+
+```ts title="api/code/headlessCMS/src/fields/secretText/secretTextFieldPlugin.ts"
+import { CmsModelFieldToGraphQLPlugin } from "@webiny/api-headless-cms/types";
+
+const createListFilters = ({ field }) => {
+  return `
+        ${field.fieldId}: String
+        ${field.fieldId}_not: String
+        ${field.fieldId}_in: [String]
+        ${field.fieldId}_not_in: [String]
+        ${field.fieldId}_contains: String
+        ${field.fieldId}_not_contains: String
+    `;
+};
+
+const plugin: CmsModelFieldToGraphQLPlugin = {
+  name: "cms-model-field-to-graphql-secret-text",
+  type: "cms-model-field-to-graphql",
+  fieldType: "secret-text",
+  isSortable: true,
+  isSearchable: true,
+  read: {
+    createTypeField({ field }) {
+      return `${field.fieldId}: String`;
+    },
+    createGetFilters({ field }) {
+      return `${field.fieldId}: String`;
+    },
+    createListFilters
+  },
+  manage: {
+    createListFilters,
+    createTypeField({ field }) {
+      return `${field.fieldId}: String`;
+    },
+    createInputField({ field }) {
+      return field.fieldId + ": String";
+    }
+  }
+};
+
+export default plugin;
+```
+
+3. Import this new plugin in `api/code/headlessCMS/src/index.ts`.
+
+```ts title="api/code/headlessCMS/src/index.ts" {5,12}
+(...)
+import scaffoldsPlugins from "./plugins/scaffolds";
+
+// Import the `secretTextFieldPlugin` plugin
+import secretTextFieldPlugin from "./fields/secretText/secretTextFieldPlugin"
+
+export const handler = createHandler({
+    plugins: [
+    // Rest of the plugins
+    (...)
+    elasticsearchDataGzipCompression(),
+    secretTextFieldPlugin
+    (...)
+});
+```
+
+4. Deploy the API changes, run the [`webiny watch`](/docs/how-to-guides/use-watch-command) command to start a new watch session on `api/code/headlessCMS` application code.
+
+```
+yarn webiny watch api/code/headlessCMS --env dev
+```
+
+Super, we are all set to use our new field in the CMS model. At this stage, our custom field will behave like a normal text.
+In the second part of this tutorial, we will encrypt the data before storing it into the database and decrypt it while retrieving it.
+
+:::info
+As mentioned earlier, the three plugins we've created so far are mandatory for creating a custom field. The plugins discussed in the next section are optional, and can be used based on your requirements.
+:::
+
+## Storage Transformations
+
+`CmsModelFieldToStoragePlugin` plugin is used to manipulate the data before passing it to the storage layer, and also to modify data while retrieving it. In our case, we will _encrypt_ the data before storing it, and _decrypt_ it after retrieval.
+
+For encryption and decryption, we will use the [`cryptr`](https://www.npmjs.com/package/cryptr) package.
+To install it, we can run the following command from our project root:
+
+```bash
+yarn workspace api-headless-cms add cryptr
+```
+
+:::note
+Notice how we had to run the [`yarn workspace`](https://classic.yarnpkg.com/en/docs/cli/workspace/) command and specify the workspace name (`api-headless-cms`) in order to add the [`cryptr`](https://www.npmjs.com/package/cryptr) NPM package. This is because every Webiny project is organized as a monorepo and can consist of multiple workspaces. To learn more, check out the [Monorepo Organization](/docs/key-topics/project-organization/monorepo-organization) key topic.
+:::
+
+Now, let's proceed by creating a `CmsModelFieldToStoragePlugin` plugin for the **Secret Text** field.
+
+As a first step, we will encrypt data before storing it in the database.  
+Create a file [`secretTextFieldStoragePlugin.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/custom-field-plugin/api/secretTextFieldStoragePlugin.ts) in `api/code/headlessCMS/src/fields/secretText` directory.
+
+```ts title="api/code/headlessCMS/src/fields/secretText/secretTextFieldStoragePlugin.ts"
+import { CmsModelFieldToStoragePlugin } from "@webiny/api-headless-cms/types";
+import cryptr from "cryptr";
+
+export default (): CmsModelFieldToStoragePlugin<String> => ({
+  type: "cms-model-field-to-storage",
+  name: "cms-model-field-to-storage-address",
+  fieldType: "secret-text",
+  async toStorage({ value }) {
+    const encryptText = new cryptr("myTotallySecretKey").encrypt(value);
+    return {
+      value: encryptText
+    };
+  },
+  async fromStorage({ value }) {
+    return value.value;
+  }
+});
+```
+
+As a next step, import this new plugin in `api/code/headlessCMS/src/index.ts`.
+
+```ts title="api/code/headlessCMS/src/index.ts" {5,13}
+(...)
+import scaffoldsPlugins from "./plugins/scaffolds";
+
+// Import the `secretTextFieldStoragePlugin` plugin
+import secretTextFieldStoragePlugin from "./fields/secretText/secretTextFieldStoragePlugin"
+
+export const handler = createHandler({
+    plugins: [
+    // Rest of the plugins
+    (...)
+    elasticsearchDataGzipCompression(),
+    secretTextFieldPlugin,
+    secretTextFieldStoragePlugin()
+    (...)
+});
+```
+
+Now, let's create a content entry with our new field.
+
+<CenteredImage src={encryptedText} alt="Encrypted Text" />
+
+As we can see in the video above, when you create the entry and save it, you will see encrypted data in the input text field because, as per our current code, we encrypt our data before storing it, but we're not decrypting it back after retrieving from the database.
+
+In the next step, let's decrypt the data after we retrieve it.
+
+1. Open the `api/code/headlessCMS/src/fields/secretText/secretTextFieldStoragePlugin.ts` file.
+2. Update the `return` statement of `fromStorage` function with this:  
+
+```ts title="api/code/headlessCMS/src/fields/secretText/secretTextFieldStoragePlugin.ts" {5}
+export default (): CmsModelFieldToStoragePlugin<String> => ({
+    (...)
+
+    async fromStorage({ value }) {
+        return new cryptr('myTotallySecretKey').decrypt(value.value)
+    }
+
+    (...)
+});
+```
+
+With this change, upon retrieving the data, it will be decrypted.
+
+Congratulations! You have created your first custom field for Webiny Headless CMS!
+
+## Bonus Step - Elasticsearch Data Transformations
+
+As discussed earlier, another optional plugin type is `CmsModelFieldToElasticsearchPlugin`.  
+It is similar to the `CmsModelFieldToStoragePlugin` plugin type, but works with Elasticsearch, so you can do the transformations before storing the data into the index, and after retrieving it. [Here](https://github.com/webiny/webiny-js/blob/731966ba13e6d9c5c82828a89e0e9ef7d4a0a27d/packages/api-headless-cms-ddb-es/src/elasticsearch/indexing/numberIndexing.ts) is an example of Field to Elasticsearch Plugin.
+
+For primitive data types fields, `isSearchable: true` flag will do the work for you for indexing. But if you have a complex field or want to store your field in a certain special way, you can create a plugin of `CmsModelFieldToElasticsearchPlugin` type.

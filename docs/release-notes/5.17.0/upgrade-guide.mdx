@@ -1,0 +1,127 @@
+---
+id: upgrade-guide
+title: Upgrade from 5.16.0 to 5.17.0
+sidebar_label: Upgrade Guide
+keywords: ["webiny", "version", "upgrade", "5.16.0", "5.17.0"]
+description: Learn how to upgrade Webiny from 5.16.0 to 5.17.0.
+---
+
+:::tip What you’ll learn
+
+- how to upgrade Webiny from 5.16.0 to 5.17.0
+
+:::
+
+:::danger
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny#-precaution-measures) section.
+:::
+
+:::info
+Make sure to check out the [5.17.0 changelog](/docs/release-notes/5.17.0/changelog) to get familiar with all the changes introduced in this release.
+:::
+
+## 1. Project Preparation
+
+First, we need to prepare your project for the upgrade process. With security packages refactor, some packages no longer exist, and if we try to upgrade dependencies straight away, `yarn` will complain. To fix that, we need to clean up your project first, to eliminate references to those deprecated packages.
+
+In your project root, run the following:
+
+```bash
+npx https://gist.github.com/Pavel910/00845bb90c1d5299ccc882f2ef172996
+```
+
+## 2. Upgrade Webiny Packages
+
+We're now ready to upgrade all `@webiny/*` packages! Run the following command:
+
+```bash
+yarn up "@webiny/*@5.17.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.17.0`.
+
+:::info
+Before moving on, make sure you commit all your changes.
+:::
+
+## 3. Run the Upgrade Command
+
+Now let's run the project upgrade:
+
+```bash
+yarn webiny upgrade
+```
+
+The upgrade script will make a couple of changes to your existing **API** project application's code (located within the `api` folder) and several changes to your **Admin Area** project application. Once the upgrade command has finished, you can run the [`git status`](https://git-scm.com/docs/git-status) command to see all changes that the command performed.
+
+## 4. Patch the Migration
+After testing the upgrade with several of our clients, we discovered various edge cases that were not originally handled by the migration script. Those edge cases originated from the earlier Webiny versions, prior to 5.16. To make the upgrade script more robust, you need to run the following gist, before deploying your project:
+```bash
+npx https://gist.github.com/Pavel910/fa8f1a4d0bd0296665251897f0f54506
+```
+
+:::info
+If you’re deploying your project from a CI/CD pipeline, make sure you add this command before your deploy step.
+:::
+
+---
+
+Before moving on to the next step, review the changes in your IDE, and remove the backup files created by the upgrade script.
+
+## 5. Deploy Your Project
+
+Finally, proceed by re-deploying your Webiny project:
+
+```bash
+# Execute in your project root.
+yarn webiny deploy --env {environment}
+```
+
+:::caution
+As stated in the [Overview](/docs/how-to-guides/upgrade-webiny#pre-production-environments-first) section, we recommend that you first deploy your changes into one of your pre-production environments, like `dev` or `staging`.
+:::
+
+:::tip
+Learn more about different deployment environments in the [CI/CD / Environments](/docs/key-topics/ci-cd/environments) key topic.
+:::
+
+## Additional Steps and Notes
+
+### Project File Upgrades
+
+We are aware of the problems that can occur when upgrading project files, especially since there are so many files that make up a single Webiny project. It also requires a lot of effort and time on our side to write these upgrade scripts, test them, and make them reliable (at least for the major part of our users).
+
+With that, we want to let you know that we are already working on an improved project setup which will greatly reduce the amount of files in your project, and will bring the need for these project-level file modifications in between releases to a minimum.
+
+If you're willing to contribute your thoughts and ideas, join the Github discussion [Webiny Projects - Simplify Organization of Folders and Files](https://github.com/webiny/webiny-js/discussions/1992).
+
+### Migrating Authentication and Authorization Plugins
+
+Although the new security layer takes the old `security-authentication` and `security-authorization` plugins into consideration, we recommend migrating your custom security plugins, if you have any.
+
+To see an example of an up-to-date authentication plugin, see the official implementation of a [Cognito authentication plugin](https://github.com/webiny/webiny-js/blob/v5.17.0/packages/api-security-cognito/src/index.ts#L19-L36). As you will find, we no longer need a dedicated plugin, but instead, we register an authentication function directly into the `security` app, which lives on the `context` object. Same goes for [authorization plugins](https://github.com/webiny/webiny-js/blob/v5.17.0/packages/api-security/src/plugins/apiKeyAuthorization.ts).
+
+This way, it's much easier to group your functionality into one `ContextPlugin` plugin, and hook into all the parts of the system you want to extend.
+
+
+### Migrating the `UserPlugin` Plugin
+
+If you use the `UserPlugin` plugin to hook into Cognito users in your project, you will need to migrate it to the new event system. All the previous events are supported, they just have slightly different TS types, and are registered differently. Here's an example:
+
+```ts
+// Before
+new UserPlugin({
+  beforeCreate({ user, inputData, context }) {
+    // Do something with the user
+  }
+});
+
+// After
+new ContextPlugin(context => {
+  context.adminUsers.onUserBeforeCreate.subscribe(({ user, inputData }) => {
+    // Do something with the user
+  });
+});
+```
+
+And the same goes for other events that were supported previously. Note how `context` object is no longer passed to your callback as an argument, but is instead available to you from the parent scope.

@@ -1,0 +1,137 @@
+---
+id: changelog
+title: Webiny 5.17.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.17.0", "changelog"]
+description: See what's new in Webiny version 5.17.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import revisionsMenu from "./assets/revisions-menu.png";
+import tenantManager from "./assets/tenant-manager.png";
+import oktaLogin from "./assets/okta-login.png";
+import eventsAutocomplete from "./assets/events-autocomplete.png";
+import accessManagement from "./assets/access-management.png";
+import gridWidth from "./assets/grid-witdh.gif";
+
+# Changes
+
+This document highlights the most important fixes, improvements, and features, that were introduced in Webiny `5.17.0`.
+
+:::info How To Upgrade?
+Please check the [Webiny 5.17.0 migration guide](/docs/release-notes/5.17.0/upgrade-guide) for the upgrade steps.
+:::
+
+## New Security Layer
+
+For the past several months, we've been collecting feedback and requirements from community, partners, and clients, related to the inner (and outer) workings of our security layer. In this release, we're happy to present you with the new security layer, which is a lot more flexible, and can cater for a wide variety of authentication and authorization scenarios.
+
+It can be connected to _any_ IdP with ease, as it now revolves entirely around _identities_, and not _users_. User profiles are entirely optional, and Webiny can function without any user-related information, as long as you can verify an identity.
+
+## Cognito Admin Users
+
+Admin users logic is now separated from the security layer logic, and has a dedicated npm package, that handles admin user profiles, specifically for Cognito IdP.
+
+On top of that, we've migrated user profiles to use IdP `sub` (a real ID) instead of using an email address as a unique identifier. This means that in new projects, created from Webiny v5.17.0, you will be able to change user emails, because they are no longer used as an ID in the database, and Cognito User Pool configuration was changed to allow this behavior, using the `preferred_username` attribute. To learn more about Cognito User Pool attributes, visit the [official AWS documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html).
+
+In the Admin Area project application, we've slightly rearranged menu items to reflect these changes in security and user profiles. We now have an _Access Management_ section, which contains API Keys and Groups (which are IdP agnostic), and then there's a dedicated _Admin Users_ section, which is dedicated to the Cognito Admin Users implemention:
+
+<CenteredImage
+    src={accessManagement}
+    title={`Access Management and Admin Users now have separate sections in the main navigation.`}
+/>
+
+Keep in mind that Access Management will always be there, no matter what IdP you use. But Admin Users you see here is our default implementation of users using the Cognito IdP. If you use Okta, or any other IdP, there may be an entirely different implementation of user management, which you can implement yourself.
+
+## New System of Events
+
+We've developed a new mechanism of publishing and subscribing to events, to prevent explosion of plugins in the GraphQL API. Our new applications, like _tenancy_, _security_, and several others, now use this new system of events to make it easier to discover and extend functionality of Webiny.
+
+Instead of creating a new plugin type for every entity or event, events are defined on the application level (in the `context` object) and are easily discoverable in any IDE:
+
+<CenteredImage
+  src={eventsAutocomplete}
+  title={`Discover application events by typing "on" to filter out event topics.`}
+/>
+
+This greatly simplifies the process of subscribing to multiple events across the system, using a simple `ContextPlugin` plugin:
+
+```ts title="Add functionality across the board with a single plugin."
+new ContextPlugin(context => {
+  context.security.onLogin.subscribe(({ identity }) => {
+    // At this point, you have a valid identity object.
+  });
+
+  context.adminUsers.onUserBeforeCreate.subscribe(({ inputData }) => {
+    // Validate new user input.
+  });
+
+  context.tenancy.onTenantAfterCreate.subscribe(({ tenant }) => {
+    // Call external services to notify about a new tenant.
+  });
+});
+```
+
+:::info Why this change?
+There's one **major** benefit of adding functionality to your system like this: you don't have to drill the `context` object all the way to the place where plugins are invoked. With this approach, apps remain free of the notion of `context` and can be reused and instantiated in separate Lambda functions, that may not even be GraphQL. Utilizing Javascript's [lexical scope](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Closures), all functions that you attach to existing apps via the `ContextPlugin`, will have access to the `context`, without apps even knowing that it exists.
+
+This greatly improves testability and reusability of parts of the system, because they don't depend on the unknown internals of the `context` object.
+
+Besides, less plugins to learn and maintain is always good, isn't it? :) Whenever you want to extend some app, you know you have to start with a `ContextPlugin`. 
+:::
+
+The new system of events is not yet propagated through all the Webiny applications, but this is how all new applications expose their events. In the near future we'll migrate all the apps to follow this system of events.
+
+## Enterprise Features
+
+> NOTE: the following features are only available to **Enterprise License** users. If interested, [book a call](https://www.webiny.com/call/demo) to find out more.
+
+### Multi-Tenancy
+
+Our GraphQL API and Admin Area application now officially support multi-tenancy, with a new Tenant Manager module. This allows you to build SaaS-like applications, where tenants have their data completely isolated from each other, using one deployment of Webiny.
+
+<CenteredImage
+  src={tenantManager}
+  title={"Tenant Manager module allows you to create new tenants and switch between them."}
+/>
+
+### Okta Integration
+
+Webiny can now be integrated with Okta IdP for both the GraphQL API and Admin Area app. You have full control over your Okta configuration and how you perform authentication and authorization. With extensive set of events in our new security layer, you can configure any authentication/authorization flow imaginable.
+
+<CenteredImage src={oktaLogin} title={"Okta login using Okta's React SDK."} />
+
+## Other
+
+### Sort Settings for Pages List Element ([#1997](https://github.com/webiny/webiny-js/pull/1997))
+
+In one of the recent releases, we did some updates to the Page Builder GraphQL schema, to use the same naming convention and parameter types across similar queries within Webiny. With that, we've broken the Pages List element within our Page Builder. :cry:
+
+Big shout out to [@dibenso](https://github.com/dibenso) who discovered and fixed this bug :raised_hands: :heart:
+
+### Menu Component Positioning ([#2006](https://github.com/webiny/webiny-js/pull/2006))
+
+Menu component now positions correctly when rendered at the bottom of the view, and is not being cut off by `overflow: hidden` parent element.
+
+<CenteredImage
+  src={revisionsMenu}
+  title={"Menu now changes direction depending on its location in the view."}
+/>
+
+Shout out to [@econtentmaps](https://github.com/econtentmaps) for reporting this one :beers:
+
+
+### Grid/Cell Element Width in the PB Editor ([#1412](https://github.com/webiny/webiny-js/issues/1412))
+
+In the Page Builder Editor, setting the width of a grid to 50% would make the width of a child cell also be 50% (which is relative to the parent grid, resulting in a wrong final size). This is now fixed, and grid cells are no longer affected by changes of width on the parent grid element.
+
+<CenteredImage
+  src={gridWidth}
+  title={"Changing grid width no longer changes the width of grid cells."}
+/>
+
+This one was also reported by [@econtentmaps](https://github.com/econtentmaps) :raised_hands: :rocket:
+
+### React Form Component
+
+Form component has undergone some refactoring, and was migrated from a class component to a functional component. With this, each `<Form>` is now effectively a React Context provider, and you can bind to a form using the `useBind()` hook. More on this coming in the docs in the near future.  

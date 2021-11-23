@@ -1,0 +1,145 @@
+---
+id: changelog
+title: Webiny 5.16.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.16.0", "changelog"]
+description: See what's new in Webiny version 5.16.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import watchDeployPaneImprovement from "./changelog/watch-deploy-pane-improvement.png";
+import exportPageUI from "./changelog/export-page-demo.gif";
+import importPageUI from "./changelog/import-page-demo.gif";
+
+# Changes
+
+This document highlights the most important fixes, improvements, and features, that were introduced in Webiny `5.16.0`.
+
+:::info How To Upgrade?
+
+Please check the [Webiny 5.16.0 migration guide](/docs/release-notes/5.16.0/upgrade-guide) for the upgrade steps.
+
+:::
+
+## Page Builder
+
+### Introducing Export and Import of Pages ([#1960](https://github.com/webiny/webiny-js/pull/1960))
+
+With this new feature, you can easily export multiple pages created with the Page Builder application:
+
+<CenteredImage alt='Page Builder - export page demo' src={exportPageUI} style={{maxWidth: 750}}/>
+
+Once completed, the exported pages can be imported in a different environment or even another Webiny project, by simply clicking on the **Import Page** button and providing the exported file:
+
+<CenteredImage alt='Page Builder - export page demo' src={importPageUI} style={{maxWidth: 750}}/>
+
+:::info
+To learn more about environments in general, check out the [Environments](/docs/key-topics/deployment/environments) key topic.
+:::
+
+### Export Prerendering Plugins Separately ([#1954](https://github.com/webiny/webiny-js/pull/1954))
+
+Under the hood, all of the pages created and published via the Page Builder application are prerendered. Meaning, the moment we publish a page, a background job ensures that the page's complete HTML is retrieved, and stored into an Amazon S3 bucket. Once that's done, the page becomes ready to be served to actual website users.
+
+Besides the mentioned "page publishing" event, there are actually a couple of other key events that also trigger these prerendering-related background jobs. For example:
+
+- when a page is unpublished, the previously stored page HTML is removed from the Amazon S3 bucket
+- when website settings change, like for example our website's title, the whole website is prerendered
+- and more
+
+If were to open our default GraphQL API's [`index.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/src/index.ts#L11) entrypoint file, located in the [`api/code/graphql/src`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/src/index.ts#L11) folder, we'd actually be able to find the import statement that includes all of this default prerendering-related functionality:
+
+```ts
+import pageBuilderPrerenderingPlugins from "@webiny/api-page-builder/prerendering";
+```
+
+And while this approach makes it possible to easily include the complete default prerendering-related functionality (or completely remove it if needed), it also prevents us from importing just specific pieces (plugins) of it. That's why we've made it possible to import the default prerendering-related functionality in a more granular way, via the following import statements:
+
+```ts
+import afterMenuUpdate from "@webiny/api-page-builder/prerendering/hooks/afterMenuUpdate";
+import afterPageDelete from "@webiny/api-page-builder/prerendering/hooks/afterPageDelete";
+import afterPagePublish from "@webiny/api-page-builder/prerendering/hooks/afterPagePublish";
+import afterPageUnpublish from "@webiny/api-page-builder/prerendering/hooks/afterPageUnpublish";
+import afterSettingsUpdate from "@webiny/api-page-builder/prerendering/hooks/afterSettingsUpdate";
+```
+
+So, with this approach, we can easily just update the behaviour that's, for example, triggered after a menu has been updated. We would simply remove the first import statement and define our own [`MenuPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/plugins/MenuPlugin.ts) instead. The rest of the import statements we'd leave as is.
+
+### New Prerendering Events ([#1945](https://github.com/webiny/webiny-js/pull/1945))
+
+With the prerendering-related plugins exported separately, we've also made it possible to intercept all prerendering-related calls, with just a simple [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/handler/src/plugins/ContextPlugin.ts#L7) plugin.
+
+For example, with the following piece of code, we can perform additional logic before a page or multiple pages are about to be prerendered:
+
+```ts api/code/graphql/src/plugins/somePlugin.ts
+import { Context } from "~/types";
+import { ContextPlugin } from "@webiny/handler/plugins/ContextPlugin";
+
+new ContextPlugin<Context>(async context => {
+    context.pageBuilder.onPageBeforeRender.subscribe(async ({ args, paths, tags }) => {
+        // Do whatever you might need - sync or async.
+        // You can even modify the `args.render` and `args.queue` objects, if needed.
+    });
+});
+```
+
+The following are the events we can subscribe to:
+
+- [`onPageBeforeRender`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L194) - triggered before a page or multiple pages are about to be rendered
+- [`onPageAfterRender`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L195)  - triggered after a page or multiple pages were rendered
+- [`onPageBeforeFlush`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L196)  - triggered before a page or multiple pages are about to be flushed
+- [`onPageAfterFlush`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L197)   - triggered before a page or multiple pages were flushed
+
+Note that rendering and flushing of pages is happening asynchronously. Meaning, the [`onPageAfterRender`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L195) and [`onPageAfterFlush`](https://github.com/webiny/webiny-js/blob/next/packages/api-page-builder/src/graphql/types.ts#L197) events will still be fired before the actual rendering and flushing happens.
+
+## Form Builder
+
+### Changes In The GraphQL Schema
+
+We changed the `listFormSubmissions` query to accept `[FbSubmissionSort!]` instead of `FbSubmissionSortInput`. This change was done to match our other API packages GraphQL schemas.
+If you had some custom code with a query call to list the form submissions, be sure to change it accordingly.
+Available options to send are `createdOn_ASC`, `createdOn_DESC`, `savedOn_ASC` and `savedOn_DESC`. The default sort is `createdOn_ASC`.
+
+## Development
+
+### Pulumi CLI Is Now Downloaded Into Project Root's `.webiny` Folder ([#1947](https://github.com/webiny/webiny-js/pull/1947))
+
+To deploy necessary cloud infrastructure, by default, Webiny relies on [Pulumi](/docs/key-topics/deployment/iac-with-pulumi), a modern infrastructure as code framework.
+
+For every Webiny project, the framework is downloaded automatically, and, prior to this release, all of the related binaries would be downloaded into project's `node_modules/@webiny/pulumi-sdk/pulumi` folder. And although this works, over time, we've noticed a couple of interesting issues with this solution:
+
+- running the `yarn` command to reinstall project's dependencies would cause the downloaded binaries to be removed, making the user re-download the Pulumi CLI
+- while in runtime, Pulumi CLI can store sensitive files in this directory, which can create different deployment and security-related issues
+
+Because of these, from now on, all of the Pulumi CLI related binaries will be downloaded into the `.webiny/pulumi-cli` folder, located in your project root.
+
+:::note
+Once your project has been upgraded to `5.16.0`, upon running the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) or the [`webiny watch`](/docs/how-to-guides/use-watch-command) command, the Pulumi CLI will be re-downloaded. This is normal and will happen even if you already had the Pulumi CLI downloaded in the mentioned `node_modules/@webiny/pulumi-sdk/pulumi` folder.
+:::
+
+### Improved Webiny CLI ([#1946](https://github.com/webiny/webiny-js/pull/1946))
+
+Webiny CLI also received a couple of neat improvements.
+
+For starters, we've introduced the `--allow-production` flag for the [`webiny watch`](/docs/how-to-guides/use-watch-command) command, which allows the user to run the command even with `prod` and `production` environments (by default, the command doesn't allow that).
+
+Speaking of the [`webiny watch`](/docs/how-to-guides/use-watch-command) command, we've also made the logs displayed in the **Deploy** pane a bit cleaner and nicer:
+
+<CenteredImage alt='"webiny watch" Command - The Improved Deploy Pane' src={watchDeployPaneImprovement}
+               style={{maxWidth: 750}}/>
+
+Finally, the [Full Stack Application](/docs/how-to-guides/scaffolding/full-stack-application/) scaffold should now work correctly on Windows operating system.
+
+### Changes In the Way We Approach Project Upgrades
+
+With this release, we've decided to change the way we approach project upgrades.
+
+#### How Was It Done Before This Version?
+
+Prior to this release, upon running the `webiny upgrade`, the command would directly modify your project's code, most often within the `api` or `apps` folders. But, ultimately, the problem with this approach is that it is just too complex and lengthy, so we needed to start looking for an alternative.
+
+#### How Will It Be Done From This Version?
+
+Starting with this version, upon running the same `webiny upgrade` command, we will create a backup of the existing folders and files and create new folders and files in their place. We will only backup the files and folders that are being changed in some way. In most cases, it will be file changes only.
+
+When the upgrade is complete, as a final step, you will need to transfer your custom code from the backed up files to the new ones.
