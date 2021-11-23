@@ -98,14 +98,13 @@ The React application's cloud infrastructure code doesn't follow this organizati
 
 It's useful to know that every package in a Webiny project possesses the `webiny.config.ts` configuration file. For example, if we were to open our GraphQL API's [`webiny.config.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/02-getting-started/pinterest-clone/api/code/graphql/webiny.config.ts) file, located in the [`pinterest-clone/api/code/graphql`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/05-security/02-getting-started/pinterest-clone/api/code/graphql) folder, we'd see the following:
 
-```ts title="pinterest-clone/api/code/graphql/webiny.config.ts" {6,7}
-import { buildFunction, watchFunction } from "@webiny/project-utils";
+```ts title="pinterest-clone/api/code/graphql/webiny.config.ts" {5,6}
+const { createWatchFunction, createBuildFunction } = require("@webiny/project-utils");
 
-// Exports fundamental watch and build commands.
-export default {
+module.exports = {
     commands: {
-        watch: watchFunction,
-        build: buildFunction
+        watch: createWatchFunction({ cwd: __dirname }),
+        build: createBuildFunction({ cwd: __dirname })
     }
 };
 ```
@@ -114,9 +113,9 @@ Essentially, the main purpose of this file is to export the needed `watch` and `
 
 As another example, if we were to open our React application's [`webiny.config.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/02-getting-started/pinterest-clone/app/code/webiny.config.ts) file located in the [`pinterest-clone/app/code`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/02-getting-started/pinterest-clone/app/code) folder, we'd see the following:
 
-```ts title="pinterest-clone/app/code/webiny.config.ts" {22,36}
+```ts title="pinterest-clone/app/code/webiny.config.ts" {22,40}
 import invariant from "invariant";
-import { startApp, buildApp } from "@webiny/project-utils";
+import { createWatchApp, createBuildApp } from "@webiny/project-utils";
 import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
 
 // Exports fundamental start (watch) and build commands.
@@ -136,7 +135,7 @@ const NO_ENV_MESSAGE = `Please specify the environment via the "--env" argument,
 
 export default {
     commands: {
-        async watch(options, context) {
+        async watch(options) {
             invariant(options.env, NO_ENV_MESSAGE);
             Object.assign(
                 process.env,
@@ -147,10 +146,14 @@ export default {
                 })
             );
 
+            // Starts the local development server at port 3000.
+            Object.assign(process.env, { PORT: 3000 });
+
             // Starts local application development.
-            await startApp(options, context);
+            const watch = createWatchApp({ cwd: __dirname });
+            await watch(options);
         },
-        async build(options, context) {
+        async build(options) {
             invariant(options.env, NO_ENV_MESSAGE);
             Object.assign(
                 process.env,
@@ -163,7 +166,8 @@ export default {
 
             // Creates a production build of your application, ready to be deployed to
             // a hosting provider of your choice, for example Amazon S3.
-            await buildApp(options, context);
+            const build = createBuildApp({ cwd: __dirname });
+            await build(options);
         }
     }
 };
@@ -194,9 +198,9 @@ It's important to note that the returned object represents something called the 
 
 The stack output can then be retrieved within cloud infrastructure or application code that is part of the same, or an entirely separate, [project application](/docs/key-topics/project-organization/project-applications). For example, if we were to open our React application's [`webiny.config.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/02-getting-started/pinterest-clone/app/code/webiny.config.ts) configuration file, located in the [`pinterest-clone/app/code`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/02-getting-started/pinterest-clone/app/code/webiny.config.ts) folder, we'd see that we're using the [`getStackOutput`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/02-getting-started/pinterest-clone/app/code/webiny.config.ts#L26) function in order to retrieve the URL over which our GraphQL API can be accessed:
 
-```ts title="pinterest-clone/app/code/webiny.config.ts" {3,13-16,24-31,38-45}
+```ts title="pinterest-clone/app/code/webiny.config.ts" {3,13-16,24-31,42-49}
 import invariant from "invariant";
-import { startApp, buildApp } from "@webiny/project-utils";
+import { createWatchApp, createBuildApp } from "@webiny/project-utils";
 import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
 
 // Exports fundamental start (watch) and build commands.
@@ -216,7 +220,7 @@ const NO_ENV_MESSAGE = `Please specify the environment via the "--env" argument,
 
 export default {
     commands: {
-        async watch(options, context) {
+        async watch(options) {
             invariant(options.env, NO_ENV_MESSAGE);
             Object.assign(
                 process.env,
@@ -227,10 +231,14 @@ export default {
                 })
             );
 
+            // Starts the local development server at port 3000.
+            Object.assign(process.env, { PORT: 3000 });
+
             // Starts local application development.
-            await startApp(options, context);
+            const watch = createWatchApp({ cwd: __dirname });
+            await watch(options);
         },
-        async build(options, context) {
+        async build(options) {
             invariant(options.env, NO_ENV_MESSAGE);
             Object.assign(
                 process.env,
@@ -243,7 +251,8 @@ export default {
 
             // Creates a production build of your application, ready to be deployed to
             // a hosting provider of your choice, for example Amazon S3.
-            await buildApp(options, context);
+            const build = createBuildApp({ cwd: __dirname });
+            await build(options);
         }
     }
 };
