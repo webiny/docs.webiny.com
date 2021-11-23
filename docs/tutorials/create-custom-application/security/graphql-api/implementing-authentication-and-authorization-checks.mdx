@@ -144,8 +144,8 @@ Let's start with the [`createPin(data: PinCreateInput!): Pin!`](https://github.c
  */
 async createPin({ data }: CreatePinParams) {
     // Before doing anything, let's make sure the user is signed in.
-    const { security } = this.context;
-    const identity = await security.getIdentity();
+    const { authentication } = this.context;
+    const identity = await authentication.getIdentity();
     if (!identity) {
         throw new Error("Not authenticated.");
     }
@@ -176,7 +176,7 @@ async createPin({ data }: CreatePinParams) {
 }
 ```
 
-As we can see, we made two additions to the existing application code. First, we are retrieving the signed in user, via the [`await security.getIdentity();`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts#L50) call. This is something we'll add to the remaining two resolver functions too, as we immediately want to throw an error if the user is not signed in.
+As we can see, we made two additions to the existing application code. First, we are retrieving the signed in user, via the [`await authentication.getIdentity();`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts#L50) call. This is something we'll add to the remaining two resolver functions too, as we immediately want to throw an error if the user is not signed in.
 
 We've also updated the `pin` object, where we added the `createdBy` property, and assigned an object with user information to it. By doing this, we're tying every created pin to a user, which will be very important once we get to the remaining two resolver function.
 
@@ -204,8 +204,8 @@ Apart from the initial signed in user check that we also performed in the previo
  */
 async updatePin({ id, data }: UpdatePinParams) {
     // Before doing anything, let's make sure the user is signed in.
-    const { security } = this.context;
-    const identity = await security.getIdentity();
+    const { authentication } = this.context;
+    const identity = await authentication.getIdentity();
     if (!identity) {
         throw new Error("Not authenticated.");
     }
@@ -217,7 +217,7 @@ async updatePin({ id, data }: UpdatePinParams) {
     }
 
     if (pin.createdBy.id !== identity.id) {
-        throw new Error("Not authenticated.");
+        throw new Error("Not authorized.");
     }
 
     const updatedPin = { ...pin, ...data };
@@ -289,8 +289,8 @@ Finally, let's implement the same pair of checks that we performed in the previo
  */
 async deletePin({ id }: DeletePinParams) {
     // Before doing anything, let's make sure the user is signed in.
-    const { security } = this.context;
-    const identity = await security.getIdentity();
+    const { authentication } = this.context;
+    const identity = await authentication.getIdentity();
     if (!identity) {
         throw new Error("Not authenticated.");
     }
@@ -302,7 +302,7 @@ async deletePin({ id }: DeletePinParams) {
     }
 
     if (pin.createdBy.id !== identity.id) {
-        throw new Error("Not authenticated.");
+        throw new Error("Not authorized.");
     }
 
     // Will throw an error if something goes wrong.
