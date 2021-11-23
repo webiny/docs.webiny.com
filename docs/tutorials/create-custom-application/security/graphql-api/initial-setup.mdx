@@ -55,18 +55,18 @@ Let's see how we can achieve all of these.
 
 In order to implement the necessary authentication and authorization checks within our GraphQL API, like in the previous section, let's again start by adding a couple of new libraries into the mix.
 
-#### [`@webiny/api-security`](https://github.com/webiny/webiny-js/tree/next/packages/api-security)
+#### [`@webiny/api-authentication`](https://github.com/webiny/webiny-js/tree/next/packages/api-authentication)
 
-A collection of plugins that will set up the [Webiny Security Framework](https://www.webiny.com/docs/key-topics/security-framework/introduction) in our GraphQL API handler function.
+A collection of plugins that will set up a thin authentication layer in our GraphQL API handler function.
 
-#### [`@webiny/api-security-cognito-authentication`](https://github.com/webiny/webiny-js/tree/next/packages/api-security-cognito-authentication)
+#### [`@webiny/api-authentication-cognito`](https://github.com/webiny/webiny-js/tree/next/packages/api-authentication-cognito)
 
-By itself, the above library doesn't do much. It's simply a framework, which is always paired with an authentication provider. In our case, we want to pair it up with the Amazon Cognito provider, which is what this library does.
+By itself, the above library doesn't do much. It's simply a framework, which is always paired with an authentication provider. In our case, we want to pair it up with the Amazon Cognito authentication, which is what this library does.
 
 The following command will add both libraries to our React application:
 
 ```bash
-yarn workspace pinterest-clone-api add @webiny/api-security @webiny/api-security-cognito-authentication
+yarn workspace pinterest-clone-api add @webiny/api-authentication @webiny/api-authentication-cognito
 ```
 
 ## 2. Updating Cloud Infrastructure Code
@@ -123,14 +123,15 @@ In order for the new environment variables to be available in our GraphQL API ha
 
 ## 3. Setting Up the Libraries (Plugins)
 
-Essentially, both [`@webiny/api-security`](https://github.com/webiny/webiny-js/tree/next/packages/api-security) and [`@webiny/api-security-cognito-authentication`](https://github.com/webiny/webiny-js/tree/next/packages/api-security-cognito-authentication) packages are exporting a collection of plugins, which are meant to be registered within our GraphQL API handler function:
+Essentially, both [`@webiny/api-authentication`](https://github.com/webiny/webiny-js/tree/next/packages/api-authentication) and [`@webiny/api-authentication-cognito`](https://github.com/webiny/webiny-js/tree/next/packages/api-authentication-cognito) packages are exporting a collection of plugins, which are meant to be registered within our GraphQL API handler function:
 
-```ts title="pinterest-clone/api/code/graphql/src/index.ts" {4,5,18,24-37}
+```ts title="pinterest-clone/api/code/graphql/src/index.ts" {4-6,18-19,24-28}
 import { createHandler } from "@webiny/handler-aws";
 import graphqlPlugins from "@webiny/handler-graphql";
 import logsPlugins from "@webiny/handler-logs";
-import securityPlugins, { SecurityIdentity } from "@webiny/api-security";
-import cognitoAuthenticationPlugins from "@webiny/api-security-cognito-authentication";
+import authenticationPlugins from "@webiny/api-authentication";
+import { authenticateUsingHttpHeader } from "@webiny/api-authentication/authenticateUsingHttpHeader";
+import cognitoAuthenticationPlugins from "@webiny/api-authentication-cognito";
 
 // Imports plugins created via scaffolding utilities.
 import scaffoldsPlugins from "./plugins/scaffolds";
@@ -138,60 +139,39 @@ import scaffoldsPlugins from "./plugins/scaffolds";
 const debug = process.env.DEBUG === "true";
 
 export const handler = createHandler({
-  plugins: [
-    /**
-     * Setup Webiny Security Framework to handle authentication and authorization.
-     * Learn more: https://www.webiny.com/docs/key-topics/security-framework/introduction
-     */
-    securityPlugins(),
+    plugins: [
+        /**
+         * Setup authentication plugins.
+         */
+        authenticationPlugins(),
+        authenticateUsingHttpHeader(),
 
-    /**
-     * Cognito authentication plugin.
-     * This plugin will verify the JWT token against a provided User Pool.
-     */
-    cognitoAuthenticationPlugins({
-      region: process.env.COGNITO_REGION,
-      userPoolId: process.env.COGNITO_USER_POOL_ID,
-      identityType: "user",
-      getIdentity({ identityType, token }) {
-        return new SecurityIdentity({
-          id: token["cognito:username"],
-          type: identityType,
-          displayName: `${token.given_name} ${token.family_name}`,
-          firstName: token.given_name,
-          lastName: token.family_name,
-        });
-      },
-    }),
-    logsPlugins(),
-    graphqlPlugins({ debug }),
-    scaffoldsPlugins(),
-  ],
-  http: { debug },
+        /**
+         * Setup Amazon Cognito authentication plugins.
+         */
+        cognitoAuthenticationPlugins({
+            region: process.env.COGNITO_REGION,
+            userPoolId: process.env.COGNITO_USER_POOL_ID,
+            identityType: "user"
+        }),
+
+        logsPlugins(),
+        graphqlPlugins({ debug }),
+        scaffoldsPlugins()
+    ],
+    http: { debug }
 });
 ```
 
-As we can see, via the [`securityPlugins`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/01-initial-setup/pinterest-clone/api/code/graphql/src/index.ts#L18) function call, we're first registering the plugins that set up the [Webiny Security Framework](https://www.webiny.com/docs/key-topics/security-framework/introduction). No additional configuration parameters need to be passed here.
+As we can see, via the [`authenticationPlugins`](#) and [`authenticateUsingHttpHeader`](#) function calls, we're first registering the plugins that set up the authentication layer. No additional configuration parameters need to be passed here.
 
-Then, via the [`cognitoAuthenticationPlugins`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/01-initial-setup/pinterest-clone/api/code/graphql/src/index.ts#L24) function call, we're registering another set of plugins that will, basically, enable us to perform authentication against Amazon Cognito and the User Pool we've defined in a [previous section](/docs/tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-and-user-pool-domain).
+Then, via the [`cognitoAuthenticationPlugins`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/01-initial-setup/pinterest-clone/api/code/graphql/src/index.ts#L24) function call, we're registering another set of plugins that will essentially enable us to perform authentication against Amazon Cognito and the User Pool we've defined in a [previous section](/docs/tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-and-user-pool-domain).
 
 ### Configuration Parameters
 
-Except assigning the newly added environment variables to `region` and `userPoolId` properties, in the [`cognitoAuthenticationPlugins`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/01-initial-setup/pinterest-clone/api/code/graphql/src/index.ts#L24) function call, we're also assigning `"user"` to `identityType`, and our own custom callback function to the `getIdentity` property.
+Except assigning the newly added environment variables to `region` and `userPoolId` properties, in the [`cognitoAuthenticationPlugins`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/01-initial-setup/pinterest-clone/api/code/graphql/src/index.ts#L24) function call, we're also assigning `"user"` to `identityType`
 
-#### `identityType`
-
-The `identityType` is a simple string that can, down the road, tell us what type of an identity we're working with and which authentication provider managed to authenticate it. For us, this is not that important, as we only have a single type of a user and only a single [`@webiny/api-security-cognito-authentication`](https://github.com/webiny/webiny-js/tree/next/packages/api-security-cognito-authentication) authentication provider. But, since the `identityType` is a required property, we had to set it to something, so we simply passed `"user"` here.
-
-#### `getIdentity`
-
-Optionally, the `getIdentity` callback function enables us to return a custom [`SecurityIdentity`](https://github.com/webiny/webiny-js/blob/next/packages/api-security/src/SecurityIdentity.ts#L8) instance once the identity has been successfully authenticated. This is helpful when we want to define additional properties on it, or maybe decide to assign a different value to the required ones - `id`, `type`, and `displayName`.
-
-In our case, the reason we went with a custom `getIdentity` callback function is because, by default, the `id` property of the [`SecurityIdentity`](https://github.com/webiny/webiny-js/blob/next/packages/api-security/src/SecurityIdentity.ts#L8) instance will be mapped to signed in user's e-mail address, which is not what we want. Be relying on the `cognito:username` property of the received and decoded ID (JWT) token (notice the `token` named parameter), we're relying on an ID that was generated on the Amazon Cognito side.
-
-:::info
-The [`SecurityIdentity`](https://github.com/webiny/webiny-js/blob/next/packages/api-security/src/SecurityIdentity.ts#L8) instance that we return from the `setIdentity` callback function is what we'll be returned to us while performing authentication down the road, for example within our GraphQL resolver functions. More on this in the following section of this tutorial.
-:::
+`identityType` is a simple string that can, down the road, tell us what type of an identity we're working with and which authentication provider managed to authenticate it. For us, this is not that important, as we only have a single type of a user and only a single [`@webiny/api-authentication-cognito`](https://github.com/webiny/webiny-js/tree/next/packages/api-authentication-cognito) authentication provider. But, since the `identityType` is a required property, we had to set it to something, so we've simply set it to `"user"`.
 
 ## 4. Updating `Context` Interface
 
@@ -206,7 +186,7 @@ import { HandlerContext } from "@webiny/handler/types";
 import { HttpContext } from "@webiny/handler-http/types";
 import { ArgsContext } from "@webiny/handler-args/types";
 import { ClientContext } from "@webiny/handler-client/types";
-import { SecurityContext } from "@webiny/api-security/types";
+import { AuthenticationContext } from "@webiny/api-authentication/types";
 
 // When working with the `context` object (for example while defining a new GraphQL resolver function),
 // you can import this interface and assign it to it. This will give you full autocomplete functionality
@@ -215,14 +195,14 @@ import { SecurityContext } from "@webiny/api-security/types";
 // Feel free to extend it with additional context interfaces, if needed. Also, please do not change the
 // name of the interface, as existing scaffolding utilities may rely on it during the scaffolding process.
 export interface Context
-  extends HandlerContext,
-    HttpContext,
-    ArgsContext,
-    ClientContext,
-    SecurityContext {}
+    extends HandlerContext,
+        HttpContext,
+        ArgsContext,
+        ClientContext,
+        AuthenticationContext {}
 ```
 
-As we can see, at the top of the file, we've simply imported the `SecurityContext` interface, and then, below, added it to our `Context` interface. Which means that, from now on, every time we interact with the `context` object, we'll be able to safely access all of the additional properties that the newly added security-related plugins defined.
+As we can see, at the top of the file, we've simply imported the `AuthenticationContext` interface, and then, below, added it to our `Context` interface. Which means that, from now on, every time we interact with the `context` object, we'll be able to safely access all of the additional properties that the newly added security-related plugins defined.
 
 ## 5. Adding `createdBy` Field
 
@@ -269,7 +249,7 @@ export default new Entity<PinEntity>({
 ```
 
 ```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/types.ts" {1,14}
-import { SecurityIdentity } from "@webiny/api-security";
+import { Identity } from "@webiny/api-authentication/types";
 
 export interface PinEntity {
     PK: string;
@@ -282,7 +262,7 @@ export interface PinEntity {
     savedOn: string;
 
     // For the `PinEntity` type, let's be specific and specify which fields are accepted.
-    createdBy: Pick<SecurityIdentity, "id" | "type" | "displayName">;
+    createdBy: Pick<Identity, "id" | "type" | "displayName">;
 
     webinyVersion: string;
 }
