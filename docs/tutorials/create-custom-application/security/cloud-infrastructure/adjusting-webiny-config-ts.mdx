@@ -52,9 +52,9 @@ Changes made to the [`webiny.config.ts`](https://github.com/webiny/webiny-exampl
 
 The following code highlights the changes that need to be performed:
 
-```ts title="pinterest-clone/app/code/webiny.config.ts" {16-18,21-23,40-47,63-70}
+```ts title="pinterest-clone/app/code/webiny.config.ts" {16-18,21-23,40-47,67-74}
 import invariant from "invariant";
-import { startApp, buildApp } from "@webiny/project-utils";
+import { createWatchApp, createBuildApp } from "@webiny/project-utils";
 import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
 
 // Exports fundamental start (watch) and build commands.
@@ -66,69 +66,74 @@ import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
 // - `pinterest-clone/api/pulumi/prod/index.ts`
 
 const API_MAP = {
-  REACT_APP_API_URL: "${apiUrl}",
-  REACT_APP_GRAPHQL_API_URL: "${apiUrl}/graphql",
-  REACT_APP_USER_POOL_REGION: "${region}",
-  REACT_APP_USER_POOL_ID: "${cognitoUserPool.id}",
-  REACT_APP_USER_POOL_DOMAIN: "${cognitoUserPool.domain}"
+    REACT_APP_API_URL: "${apiUrl}",
+    REACT_APP_GRAPHQL_API_URL: "${apiUrl}/graphql",
+    REACT_APP_USER_POOL_REGION: "${region}",
+    REACT_APP_USER_POOL_ID: "${cognitoUserPool.id}",
+    REACT_APP_USER_POOL_DOMAIN: "${cognitoUserPool.domain}"
 };
 
 const APP_MAP = {
-  REACT_APP_USER_POOL_WEB_CLIENT_ID: "${cognitoUserPool.clientId}"
+    REACT_APP_USER_POOL_WEB_CLIENT_ID: "${cognitoUserPool.clientId}"
 };
 
 const NO_ENV_MESSAGE = `Please specify the environment via the "--env" argument, for example: "--env dev".`;
 
 export default {
-  commands: {
-    async watch(options, context) {
-      invariant(options.env, NO_ENV_MESSAGE);
-      Object.assign(
-        process.env,
-        getStackOutput({
-          folder: "pinterest-clone/api",
-          env: options.env,
-          map: API_MAP,
-        })
-      );
+    commands: {
+        async watch(options) {
+            invariant(options.env, NO_ENV_MESSAGE);
+            Object.assign(
+                process.env,
+                getStackOutput({
+                    folder: "pinterest-clone/api",
+                    env: options.env,
+                    map: API_MAP
+                })
+            );
 
-      Object.assign(
-        process.env,
-        getStackOutput({
-          folder: "pinterest-clone/app",
-          env: options.env,
-          map: APP_MAP,
-        })
-      );
+            Object.assign(
+                process.env,
+                getStackOutput({
+                    folder: "pinterest-clone/app",
+                    env: options.env,
+                    map: APP_MAP,
+                })
+            );
 
-      // Starts local application development.
-      await startApp(options, context);
-    },
-    async build(options, context) {
-      invariant(options.env, NO_ENV_MESSAGE);
-      Object.assign(
-        process.env,
-        getStackOutput({
-          folder: "pinterest-clone/api",
-          env: options.env,
-          map: API_MAP,
-        })
-      );
+            // Starts the local development server at port 3002.
+            Object.assign(process.env, { PORT: 3002 });
 
-      Object.assign(
-        process.env,
-        getStackOutput({
-          folder: "pinterest-clone/app",
-          env: options.env,
-          map: APP_MAP,
-        })
-      );
+            // Starts local application development.
+            const watch = createWatchApp({ cwd: __dirname });
+            await watch(options);
+        },
+        async build(options) {
+            invariant(options.env, NO_ENV_MESSAGE);
+            Object.assign(
+                process.env,
+                getStackOutput({
+                    folder: "pinterest-clone/api",
+                    env: options.env,
+                    map: API_MAP
+                })
+            );
 
-      // Creates a production build of your application, ready to be deployed to
-      // a hosting provider of your choice, for example Amazon S3.
-      await buildApp(options, context);
-    },
-  },
+            Object.assign(
+                process.env,
+                getStackOutput({
+                    folder: "pinterest-clone/app",
+                    env: options.env,
+                    map: APP_MAP,
+                })
+            );
+
+            // Creates a production build of your application, ready to be deployed to
+            // a hosting provider of your choice, for example Amazon S3.
+            const build = createBuildApp({ cwd: __dirname });
+            await build(options);
+        }
+    }
 };
 ```
 
