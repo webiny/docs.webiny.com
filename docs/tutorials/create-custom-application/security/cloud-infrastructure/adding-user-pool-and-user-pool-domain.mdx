@@ -53,9 +53,10 @@ Let's start by defining a new User Pool and a User Pool Domain within our GraphQ
 
 Inside of the [`pinterest-clone/api/pulumi/dev`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/05-security/03-cloud-infrastructure/01-adding-user-pool-and-user-pool-domain/pinterest-clone/api/pulumi/dev) folder, let's create the new [`cognito.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/01-adding-user-pool-and-user-pool-domain/pinterest-clone/api/pulumi/dev/cognito.ts) file. It should export the following [`Cognito`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/01-adding-user-pool-and-user-pool-domain/pinterest-clone/api/pulumi/dev/cognito.ts#L6) class that encapsulates new cloud infrastructure code:
 
-```ts title="pinterest-clone/api/pulumi/dev/cognito.ts" {13,41}
+```ts title="pinterest-clone/api/pulumi/dev/cognito.ts" {14,42}
 import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
+import * as crypto from "crypto";
 
 const BASE_ATTRIBUTE_NAMES = ["email", "given_name", "family_name"];
 
@@ -95,8 +96,11 @@ class Cognito {
         // https://www.pulumi.com/docs/reference/pkg/aws/cognito/userpooldomain/
         // https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolDomain.html
         this.userPoolDomain = new aws.cognito.UserPoolDomain("pinterest-clone", {
-            domain: `pinterest-clone-${process.env.WEBINY_ENV}`,
-            userPoolId: this.userPool.id,
+            domain: this.userPool.id.apply((id: string) => {
+                // Create a unique MD5 hash of the User Pool ID and use that for the domain name.
+                return crypto.createHash("md5").update(id).digest("hex");
+            }),
+            userPoolId: this.userPool.id
         });
     }
 
