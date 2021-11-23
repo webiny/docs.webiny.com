@@ -334,7 +334,10 @@ module.exports = {
                         {
                             type: "category",
                             label: "5.13.0",
-                            items: ["release-notes/5.13.0/changelog", "release-notes/5.13.0/upgrade-guide"]
+                            items: [
+                                "release-notes/5.13.0/changelog",
+                                "release-notes/5.13.0/upgrade-guide"
+                            ]
                         },
                         {
                             type: "category",
