@@ -1,0 +1,153 @@
+---
+id: upgrade-guide
+title: Upgrade from 5.17.0 to 5.18.0
+sidebar_label: Upgrade Guide
+keywords: ["webiny", "version", "upgrade", "5.17.0", "5.18.0"]
+description: Learn how to upgrade Webiny from 5.17.0 to 5.18.0.
+---
+
+:::tip What you’ll learn
+
+- how to upgrade Webiny from 5.17.0 to 5.18.0
+
+:::
+
+:::danger
+Before continuing, make sure to take the necessary precautions, listed in the [Overview](/docs/how-to-guides/upgrade-webiny#-precaution-measures) section.
+:::
+
+:::info
+Make sure to check out the [5.18.0 changelog](/docs/release-notes/5.18.0/changelog) to get familiar with all the changes introduced in this release.
+:::
+
+## 1. Upgrade Webiny Packages
+
+Upgrade all `@webiny/*` packages by running the following command:
+
+```bash
+yarn up "@webiny/*@5.18.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.18.0`.
+
+:::info
+Before moving on, make sure you commit all your changes.
+:::
+
+## 2. Run the Upgrade Command
+
+The next step is to run the project upgrade:
+
+```bash
+yarn webiny upgrade
+```
+
+If you'd like to learn more about the most important changes that the upgrade process will apply, check out the [Additional Information](/docs/release-notes/5.18.0/upgrade-guide#additional-information) section. Also, once the upgrade command has finished, you can run the [`git status`](https://git-scm.com/docs/git-status) command to see all changes that the command performed.
+
+## 3. Deploy Your Project
+
+Finally, proceed by re-deploying your Webiny project:
+
+```bash
+# Execute in your project root.
+yarn webiny deploy --env {environment}
+```
+
+:::caution
+As stated in the [Overview](/docs/how-to-guides/upgrade-webiny#pre-production-environments-first) section, we recommend that you first deploy your changes into one of your pre-production environments, like `dev` or `staging`.
+:::
+
+:::tip
+Learn more about different deployment environments in the [CI/CD / Environments](/docs/key-topics/ci-cd/environments) key topic.
+:::
+
+
+## Additional Information
+
+The `webiny upgrade` command (run in step 2) will perform a couple of changes to your Webiny project files. Here are some of the more important ones.
+
+### Updated `webiny.config.ts` Configuration Files
+
+This is the biggest change that will be applied during the upgrade process.
+
+Within all `webiny.config.ts` files in your Webiny project, `build` and `watch` command will be updated. For example, a previous version of the [`api/graphql/code/webiny.config.ts`](https://github.com/webiny/webiny-js/blob/v5.17.4/packages/cwp-template-aws/template/ddb-es/api/code/graphql/webiny.config.ts) configuration file...
+
+```ts
+import { buildFunction, watchFunction } from "@webiny/project-utils";
+
+export default {
+    commands: {
+        build: buildFunction,
+        watch: watchFunction
+    }
+};
+```
+
+... will be transformed [into the following](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/ddb-es/api/code/graphql/webiny.config.ts):
+
+```ts
+import { createBuildFunction, createWatchFunction } from "@webiny/project-utils";
+
+export default {
+    commands: {
+        build: createBuildFunction({ cwd: __dirname }),
+        watch: createWatchFunction({ cwd: __dirname })
+    }
+};
+```
+
+As we can see, instead of importing the old `buildFunction` and `watchFunction` functions and assigning them to the `build` and `watch` properties of the exported `commands` object, we're now assigning `createBuildFunction({ cwd: __dirname })` and `createWatchFunction({ cwd: __dirname })`, respectively.
+
+The same will happen for frontend applications and any custom packages that you might have in your project, where the `build` and `watch` commands will be replaced with [`createBuildApp`](#) and [`createWatchApp`](#), and [`createBuildPackage`](#) and [`createWatchPackage`](#), respectively.
+
+Please note that all `webiny.config.ts` files will be simply replaced with new ones. If you had some custom code in these, please make sure to revisit them and ensure the overrides are not lost. Furthermore, all Webpack and Babel overrides are now sent via the `overrides` property, and not directly into the `build` / `watch` function. For example, if we were to open the [`api/code/fileManager/transform/webiny.config.ts`](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/common/api/code/fileManager/transform/webiny.config.ts#L10-L11), we'd be able to see the following Webpack override:
+
+```ts
+import { createBuildFunction, createWatchFunction } from "@webiny/project-utils";
+
+const webpack = config => {
+    (config.externals as any).push("sharp");
+    return config;
+};
+
+export default {
+    commands: {
+        build: createBuildFunction({ cwd: __dirname, overrides: { webpack } }),
+        watch: createWatchFunction({ cwd: __dirname, overrides: { webpack } })
+    }
+};
+```
+
+TypeScript types have been updated so it should be clear how to properly re-assign the overrides that you might already had in place. But in any case, if you end up with a question, feel free to message us over at our [community Slack channel](https://www.webiny.com/slack).
+
+:::tip
+Additionally, you can also take a look at the default code for all `webiny.config.ts` files in our GitHub repository: [`api`](https://github.com/webiny/webiny-js/tree/v5/packages/cwp-template-aws/template/common/api/code) (additional packages [here](https://github.com/webiny/webiny-js/tree/v5/packages/cwp-template-aws/template/ddb-es/api/code)), [`apps/admin`](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/common/apps/admin/code/webiny.config.ts), and [`apps/website`](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/common/apps/website/code/webiny.config.ts).
+:::
+
+### Admin Area Project Application - Updated Pulumi Code
+
+From the 5.18.0 version of Webiny, Admin Area React code is no longer deployed via Pulumi code, but with a custom `after-deploy` plugin, defined within the also newly created [`apps/admin/cli/deploy.ts`](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/common/apps/admin/cli/deploy.ts) file.
+
+Because of this, we no longer need the file upload-related code previously located in the [`apps/admin/pulumi/app.ts`](https://github.com/webiny/webiny-js/blob/v5.17.4/packages/cwp-template-aws/template/common/apps/admin/pulumi/app.ts#L19-L37) file. All that is needed is the [following](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/common/apps/admin/pulumi/app.ts):
+
+```ts
+import * as aws from "@pulumi/aws";
+
+class App {
+    bucket: aws.s3.Bucket;
+    constructor() {
+        this.bucket = new aws.s3.Bucket("admin-app", {
+            acl: "public-read",
+            forceDestroy: true,
+            website: {
+                indexDocument: "index.html",
+                errorDocument: "index.html"
+            }
+        });
+    }
+}
+
+export default App;
+```
+
+One additional change that will be performed is addition of [`appStorage: app.bucket.id`](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/common/apps/admin/pulumi/index.ts#L17) to the returned stack output values, inside the [`apps/admin/pulumi/index.ts`](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/common/apps/admin/pulumi/index.ts) entrypoint file.

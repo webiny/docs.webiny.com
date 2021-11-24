@@ -1,0 +1,178 @@
+---
+id: changelog
+title: Webiny 5.18.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.18.0", "changelog"]
+description: See what's new in Webiny version 5.18.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import webinyDynamoDb from "./images/webiny+dynamodb.png";
+import pulumiCliJsonIssue from "./images/pulumi-cli-json-issue.png";
+
+# Changes
+
+This document highlights the most important fixes, improvements, and features, that were introduced in Webiny `5.18.0`.
+
+:::info How To Upgrade?
+Please check the [Webiny 5.18.0 migration guide](/docs/release-notes/5.18.0/upgrade-guide) for the upgrade steps.
+:::
+
+## DynamoDB-only Version of Webiny Serverless CMS
+
+<CenteredImage
+    src={webinyDynamoDb}
+    shadow={false}
+    style={{maxWidth: 750}}
+    canEnlarge={false}
+    title={"The highlight of this release - the new Amazon DynamoDB-only version of Webiny!"}
+/>
+
+The highlight of this release - the new Amazon DynamoDB-only version of Webiny Serverless CMS!
+
+As the name itself suggests, this new setup completely relies on [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) for storing and retrieving data! So, with the [Amazon ElasticSearch](https://aws.amazon.com/opensearch-service/the-elk-stack/what-is-elasticsearch/) no longer being a requirement, developers and organizations working on smaller and medium-sized projects can benefit from the following:
+
+- faster to get started
+- easier custom development
+- less maintenance
+- 100% serverless
+- cheaper - there are no fixed monthly costs, you only pay for what you use
+
+We also believe this new setup will make things a bit easier for developers who want to contribute to the project. Open-source is something we've been passionate about from the very beginning of Webiny, so, we're definitely excited to see what impact the setup will have in terms of potential future community contributions.
+
+To get started with the new DynamoDB-only version of Webiny, simply run the following command in your terminal of choice, and follow the on-screen instructions:
+
+```bash
+npx create-webiny-project my-new-webiny-project
+```
+
+:::info
+For more installation-related information, you can also visit the updated [Install Webiny](/docs/tutorials/install-webiny) tutorial.
+:::
+
+We really hope you'll give this new version of Webiny Serverless CMS a try and that you'll like it. Of course, for any questions, suggestions, or general feedback, feel free to message us on our [community Slack channel](https://www.webiny.com/slack), we'd certainly love to hear from you!
+
+## Development
+
+### Overhaul of Existing Development Tools ([#1990](https://github.com/webiny/webiny-js/pull/1990), [#2028](https://github.com/webiny/webiny-js/pull/2028), [#1998](https://github.com/webiny/webiny-js/pull/1998), [#1989](https://github.com/webiny/webiny-js/pull/1989))
+
+A complete overhaul was done on the most important development-related Webiny CLI commands - [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) and [`webiny watch`](/docs/how-to-guides/use-watch-command). In short, you can expect both of these to be faster and also consume significantly less system resources.
+
+In case you would like to learn more, feel free to check out the links to closed pull requests:
+
+- [`deploy` and `watch` Commands - Optimize the Build Step (#1990)](https://github.com/webiny/webiny-js/pull/1990)
+- [Further Optimizations of the Watch Command (#2028)](https://github.com/webiny/webiny-js/pull/2028)
+- [Revamped Package Build Processes (#1998)](https://github.com/webiny/webiny-js/pull/1998)
+- [Optimize Deployment of Admin Area Application (#1989)](https://github.com/webiny/webiny-js/pull/1989)
+
+### `webiny.config.ts` - `build` / `watch` Commands - The New `overrides` Property
+
+From this release, within `webiny.config.ts` files, all Webpack and Babel overrides for the `build` and `watch` commands need to be defined via the new `overrides` property, [for example](https://github.com/webiny/webiny-js/blob/v5/packages/cwp-template-aws/template/common/api/code/fileManager/transform/webiny.config.ts#L10-L11):
+
+```ts title="api/code/fileManager/transform/webiny.config.ts" {10-11}
+import { createBuildFunction, createWatchFunction } from "@webiny/project-utils";
+
+const webpack = config => {
+    (config.externals as any).push("sharp");
+    return config;
+};
+
+export default {
+    commands: {
+        build: createBuildFunction({ cwd: __dirname, overrides: { webpack } }),
+        watch: createWatchFunction({ cwd: __dirname, overrides: { webpack } })
+    }
+};
+```
+
+For more information on this change, make sure to check out the [Additional Information](/docs/release-notes/5.18.0/upgrade-guide#additional-information) section in the [Upgrade Guide](/docs/release-notes/5.18.0/upgrade-guide).
+
+### Pulumi Command - Improved Handling of `--json` Flag
+
+Previously, when invoking the Pulumi CLI via the [`webiny pulumi`](/docs/key-topics/webiny-cli#yarn-webiny-pulumi-folder---env-env----command) command and passing the `--json` flag to it, the final output would still include informative messages:
+
+<CenteredImage
+    src={pulumiCliJsonIssue}
+    shadow={false}
+    style={{maxWidth: 750}}
+    title={'Inappropriate output of the "webiny pulumi" command.'}
+/>
+
+Eventually, this would make it impossible to parse the output of the command, so we've ensured that whenever the `--json` flag is passed, that no additional informative messages are returned, only the actual JSON.
+
+### Watch Command - Renamed `--logs` Argument
+
+For the sake of consistency, the `--logs` argument has been renamed to `--remoteRuntimeLogs` (or `-r` for short). For example:
+
+```bash
+yarn webiny watch api --env dev --remoteRuntimeLogs
+```
+
+The existing `--logs` flag now serves a different purpose - it enables the code compilation-related logs.
+
+:::tip
+Learn more about remote runtime logs (logs forwarding) in the [Use the Watch Command](/docs/how-to-guides/use-watch-command#enabling-logs-forwarding) how-to guide.
+:::
+
+## Headless CMS
+
+### Improved Lifecycle Events Using the "Pub/Sub" Approach
+
+The existing `InstallationPlugin`, `CmsContentModelHookPlugin` and `CmsContentEntryHookPlugin` plugins, used to hook into the lifecycle of the Headless CMS installation process, content models and content entries, were removed and replaced with a simpler publish/subscribe (pub/sub) approach.
+
+To learn more more about it, please read our [Lifecycle Events](/docs/key-topics/headless-cms/lifecycle-events) key topic.
+
+### Renamed Plugins, Types and Interfaces
+
+The team agreed on some new namings and, to accommodate that, we've removed the `Content` word from all types, interfaces and classes.
+Names for some interfaces were changed a bit as well, for example, `ContentModelGroup` is now `CmsGroup`.
+
+If you're interested in all changes we made, please consult the linked pull request. The most important changes would be the following:
+
+- `ContentModelPlugin` → [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L9)
+- `ContentModelGroupPlugin` → [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L8)
+- `CmsModelFieldToStoragePlugin` → [`StorageTransformPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/api-headless-cms/src/content/plugins/storage/StorageTransformPlugin.ts#L26)
+
+:::note
+In case you used some of the types mentioned here, please update them in your application code. For additional questions, please don't hesitate to send as a message in our community [Slack](https://www.webiny.com/slack) channel.
+:::
+
+<!--
+
+## Page Builder
+
+### Button Page Element - Ability to Register A Custom Callback Handler ([#2022](https://github.com/webiny/webiny-js/pull/2022))
+
+Prior to this release, we could say the Button page element was a bit "basic", since it was only capable of representing a link and nothing else. But, not anymore.
+
+Thanks to [@econtentmaps](https://github.com/econtentmaps), the button can now also be configured to execute a piece of code, that you previously registered via the new [`PbButtonElementClickHandlerPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/app-page-builder/src/types.ts#L256) plugin.
+
+[IMAGE]
+
+-->
+
+## Other
+
+### Corrected Caching of `OPTIONS` HTTP Requests ([#2025](https://github.com/webiny/webiny-js/pull/2025))
+
+Prior to this release, `OPTIONS` HTTP requests issued towards the deployed GraphQL APIs would not be properly cached by the browser. In some cases, this could have a negative impact on the overall frontend application performance.
+
+This has now been addressed. From now on, you should see the `OPTIONS` HTTP requests properly cached by the browser, and, hopefully, enjoy a bit faster frontend application experience.
+
+## Documentation
+
+### Reorganization of Existing Articles ([#347](https://github.com/webiny/docs.webiny.com/pull/347))
+
+Based on the feedback we've been getting from our users, we've decided to slightly reorganize the way articles are organized in our documentation portal.
+
+Essentially, more important articles are now located higher in the main menu, making them more visible and easier to discover. Also, some of the articles were transferred into different categories, ensuring a more natural and beneficial reading experience.
+
+We still have a couple of documentation-related improvements that we'd like to do, and we'll be releasing these out in the following weeks.
+
+### Create Custom Application - Security Tutorial ([#340](https://github.com/webiny/docs.webiny.com/pull/340))
+
+We've expanded our existing [Create Custom Application](/docs/tutorials/create-custom-application/introduction) tutorial with the new [Security](/docs/tutorials/create-custom-application/security/introduction) section!
+
+As the title suggests, in this section we dive deeper into the security aspect of custom application development. We cover implementation of different concepts like authentication, authorization, deploying custom cloud infrastructure resources, [Amazon Cognito User Pools](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools.html), and more!
+
+If you're interested in learning more about (serverless) custom application development with Webiny, then we certainly encourage you to check this out.

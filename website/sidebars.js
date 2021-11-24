@@ -88,6 +88,7 @@ module.exports = {
                         "how-to-guides/webiny-applications/headless-cms/extend-graphql-api",
                         "tutorials/headless-cms/create-a-webiny-headless-cms-custom-field-plugin",
                         "how-to-guides/webiny-applications/headless-cms/content-model-plugins",
+                        "key-topics/headless-cms/lifecycle-events",
                         "how-to-guides/webiny-applications/headless-cms/create-a-content-model-form-layout",
                         "how-to-guides/webiny-applications/headless-cms/rendering-rich-text"
                     ]
@@ -303,6 +304,11 @@ module.exports = {
                 "how-to-guides/upgrade-webiny",
                 {
                     type: "category",
+                    label: "5.18.0",
+                    items: ["release-notes/5.18.0/changelog", "release-notes/5.18.0/upgrade-guide"]
+                },
+                {
+                    type: "category",
                     label: "5.17.0",
                     items: ["release-notes/5.17.0/changelog", "release-notes/5.17.0/upgrade-guide"]
                 },
@@ -323,13 +329,16 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "5.13.0",
-                    items: ["release-notes/5.13.0/changelog", "release-notes/5.13.0/upgrade-guide"]
-                },
-                {
-                    type: "category",
                     label: "Older Releases",
                     items: [
+                        {
+                            type: "category",
+                            label: "5.13.0",
+                            items: [
+                                "release-notes/5.13.0/changelog",
+                                "release-notes/5.13.0/upgrade-guide"
+                            ]
+                        },
                         {
                             type: "category",
                             label: "5.12.0",

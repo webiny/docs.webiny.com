@@ -1,0 +1,125 @@
+---
+id: lifecycle-events
+title: Lifecycle Events
+sidebar_label: Lifecycle Events
+keywords: ["webiny", "headless cms", "lifecycle events"]
+description: Learn about Headless CMS lifecycle events, how they work and how to subscribe to a lifecycle event.
+---
+
+:::tip What you'll learn
+
+- what are lifecycle events
+- how lifecycle events work
+- how to subscribe to a lifecycle event
+
+:::
+
+:::info
+Lifecycle events using publish/subscribe pattern replace the hook plugins starting from version 5.18.0.
+:::
+
+## Overview
+
+In our Headless CMS we provide lifecycle events available for you to hook into.
+
+With the lifecycle events you can hook into a number of different operations.
+
+For example, when using [DynamoDB + Elasticsearch](https://github.com/webiny/webiny-js/blob/next/packages/api-headless-cms-ddb-es/src/index.ts#L111) as storage layer, we use the `onBeforeSystemInstall` to insert the template for Elasticsearch index.
+
+## Available Options
+### System
+ * onBeforeSystemInstall
+ * onAfterSystemInstall
+
+### Groups
+ * onBeforeGroupCreate
+ * onAfterGroupCreate
+ * onBeforeGroupUpdate
+ * onAfterGroupUpdate
+ * onBeforeGroupDelete
+ * onAfterGroupDelete
+
+### Model
+* onBeforeModelCreate
+* onAfterModelCreate
+* onBeforeModelUpdate
+* onAfterModelUpdate
+* onBeforeModelDelete
+* onAfterModelDelete
+
+### Entry
+ * onBeforeEntryCreate
+ * onAfterEntryCreate
+ * onBeforeEntryRevisionCreate
+ * onAfterEntryRevisionCreate
+ * onBeforeEntryUpdate
+ * onAfterEntryUpdate
+ * onBeforeEntryDelete
+ * onAfterEntryDelete
+ * onBeforeEntryRevisionDelete
+ * onAfterEntryRevisionDelete
+ * onBeforeEntryPublish
+ * onAfterEntryPublish
+ * onBeforeEntryUnpublish
+ * onAfterEntryUnpublish
+ * onBeforeEntryRequestChanges
+ * onAfterEntryRequestChanges
+ * onBeforeEntryRequestReview
+ * onAfterEntryRequestReview
+ * onBeforeEntryGet
+ * onBeforeEntryList
+
+
+All the parameters for the events are typed, so it is easy to find out what data is the subscription function receiving.
+
+## Example
+
+It is quite easy to subscribe to some lifecycle event. Let us show you an example:
+
+```typescript
+import { CmsContext } from "@webiny/api-headless-cms/types";
+import { ContextPlugin } from "@webiny/handler/plugins/ContextPlugin";
+
+const notifyDifferentSystemWhenEntryIsCreated = new ContextPlugin<CmsContext>(async context => {
+    context.cms.onAfterEntryCreate.subscribe(async params => {
+        const {
+            /**
+             * Input received from the user via GraphQL
+             */
+            input,
+            /**
+             * Entry created out of user input
+             */
+            entry,
+            /**
+             * The model this entry is going to belong to
+             */
+            model
+        } = params;
+        /**
+         * Trigger your custom function that notifies some other system about new entry.
+         */
+        await notifyDifferentSystemAboutNewEntry({
+            input,
+            entry,
+            mode
+        });
+    });
+});
+
+/**
+ * Register the plugin to the createHandler plugins array.
+ */
+const handler = createHandler({
+	plugins: [
+	    // ...
+		notifyDifferentSystemWhenEntryIsCreated,
+		// ...
+	]
+});
+```
+This example will trigger a notification function (your custom function) after the Entry was created successfully.
+
+:::warning
+Be aware that the order of subscribing matters, so if you want some event subscription to be executed before some other one, add it first.
+:::
