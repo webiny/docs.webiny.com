@@ -32,7 +32,7 @@ import cloudInfraDeploy from "./adding-user-pool-client/cloud-infra-deploy.png";
 
 :::info Can I use this?
 
-In order to follow this tutorial, you must use Webiny version **5.14.0** or greater.
+In order to follow this tutorial, you must use Webiny version **5.18.0** or greater.
 
 :::
 
@@ -44,7 +44,7 @@ The code that we cover in this section can also be found in our GitHub [examples
 
 With the Amazon Cognito User Pool and User Pool Domain deployed, we're ready to define the last missing cloud infrastructure resource, and that's the User Pool Client. This is what will enable us to access the Hosted UI authentication flow from our React application and interact with Amazon Cognito's HTTP API (more on this soon).
 
-In the [`pinterest-clone/app/pulumi`](#) folder, let's create a new [`cognito.ts`](#) file, and place the following code into it:
+In the [`pinterest-clone/app/pulumi`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/05-security/03-cloud-infrastructure/02-adding-user-pool-client/pinterest-clone/app/pulumi) folder, let's create a new [`cognito.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/02-adding-user-pool-client/pinterest-clone/app/pulumi/cognito.ts) file, and place the following code into it:
 
 ```ts title="pinterest-clone/app/pulumi/cognito.ts" {22}
 import * as aws from "@pulumi/aws";
@@ -61,7 +61,7 @@ class Cognito {
 
     // Allowed callback and logout URLs. We need localhost for development purposes,
     // and the Cloudfront distribution for the deployed application.
-    const local = `http://localhost:3001`;
+    const local = `http://localhost:3002`;
     const callbackUrls = [`${local}?signIn`, cloudfront.getDistributionUrl("?signIn")];
     const logoutUrls = [`${local}?signOut`, cloudfront.getDistributionUrl("?signOut")];
 
@@ -90,9 +90,9 @@ export default Cognito;
 
 Like in the previous section, we're again exporting a single `Cognito` class, although this time, only a single User Pool Client is encapsulated within it.
 
-Some of the more important properties here would be the `userPoolId`, which determines the parent User Pool, and the `callbackUrls` and `logoutUrls` properties, which contain a list of allowed redirect URLs. Remember, once a user completes the external Hosted UI authentication flow, she/he is redirected back to our application. That's why we've added both localhost URL (for local development purposes) and an existing Cloudfront distribution URL (used once our React application is deployed and used online). We'll see how we'll distinguish between the two in our React application, soon enough.
+Some of the more important properties here would be the `userPoolId`, which determines the parent User Pool, and the `callbackUrls` and `logoutUrls` properties, which contain a list of allowed redirect URLs. Remember, once users complete the external Hosted UI authentication flow, they are redirected back to our application. That's why we've added both localhost URL (for local development purposes) and an existing Cloudfront distribution URL (used once our React application is deployed and used online). We'll see how we'll distinguish between the two in our React application, soon enough.
 
-Like in the previous section, the next step is to visit the [`index.ts`](#) entry point file, located in the [`pinterest-clone/app/pulumi/index.ts`](#) folder. There, we'll import the newly created file, instantiate the `Cognito` class so that the encapsulated cloud infrastructure code actually gets executed, and finally, update the properties stack output properties. Here we'll add the `cognitoUserPoolClientId` property, which, as the name suggests, will contain the ID of the deployed User Pool Client.
+Like in the previous section, the next step is to visit the [`index.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/02-adding-user-pool-client/pinterest-clone/app/pulumi/index.ts) entry point file, located in the [`pinterest-clone/app/pulumi`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/02-adding-user-pool-client/pinterest-clone/app/pulumi) folder. There, we'll import the newly created file, instantiate the `Cognito` class so that the encapsulated cloud infrastructure code actually gets executed, and, finally, update the stack output properties. Here we'll add the `cognitoUserPool.clientId` property, which, as the name suggests, will contain the ID of the deployed User Pool Client.
 
 ```ts title="pinterest-clone/app/pulumi/index.ts" {13,24,28-30}
 import { tagResources } from "@webiny/cli-plugin-deploy-pulumi/utils";
@@ -141,19 +141,13 @@ And although, as far as the actual React application development is concerned, t
 
 For example, the Hosted UI authentication flow, which we're trying to implement here, can only be accessed with a valid User Pool Client. This means that, in order to use it in our React application and actually test the authentication flow, we need to deploy it.
 
-To some, this may come up as a bit of a surprise. For now, just note that with serverless and "cloud-native" application development, these kinds of situations are not unusual.
-
-So, in order to deploy our React application, we can run the following command:
-
-STOP WATCH IF YOU HAD ANY - TODO
-DEPLOYMENTS ? 2 DEPLOYS ?
+So, in order to do that, we can run the following command:
 
 ```bash
 yarn webiny deploy pinterest-clone/app --env dev --no-build
 ```
 
-Notice the `--no-build` argument at the end of the command. With it, we've instructed the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command to not worry about our React application, and just ensure that the supporting cloud infrastructure resources are deployed. Furthermore, note that this will not only deploy the newly defined User Pool Client, but also other already defined resources - a [CloudFront distribution](#) and an [Amazon S3 bucket](#).
-
+Notice the `--no-build` argument at the end of the command. With it, we've instructed the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command to not worry about our React application (its code), but just ensure that the supporting cloud infrastructure resources are deployed. Furthermore, note that this will not only deploy the newly defined User Pool Client, but also other already defined resources - an [Amazon S3 bucket](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/02-adding-user-pool-client/pinterest-clone/app/pulumi/index.ts#L22) and a [CloudFront distribution](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/02-adding-user-pool-client/pinterest-clone/app/pulumi/index.ts#L23).
 
 <CenteredImage
   alt="Initial deployment of Cloud Infrastructure"
@@ -161,16 +155,13 @@ Notice the `--no-build` argument at the end of the command. With it, we've instr
   src={cloudInfraDeploy}
 />
 
+:::tip
+As seen in the screenshot above, except all of the cloud infrastructure resources-related changes, in the **Outputs** section, we can also see the updated stack output.
+:::
+
 ## Final Result
 
-In this section, we defined and deployed the last cloud infrastructure resource that we need in order to implement the Hosted UI authentication flow: the User Pool Client. Also, by adding `cognitoUserPoolClientId` to stack output properties, we've exposed the ID of the deployed User Pool Client. This will enable us to later retrieve it within our React application code and connect everything together.
+In this section, we defined and deployed the last cloud infrastructure resource that we need in order to implement the Hosted UI authentication flow: the User Pool Client. Also, by adding `cognitoUserPool.clientId` to stack output properties, we've exposed the ID of the deployed User Pool Client. This will enable us to later retrieve it within our React application code and connect everything together.
 
-With all of this in place, there's one additional step we need to complete before we finally start working on our React application code, and that's adjusting its [`webiny.config.ts`](#) configuration file.
+With all of this in place, there's one additional step we need to complete before we finally start working on our React application code, and that's adjusting its [`webiny.config.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/03-cloud-infrastructure/02-adding-user-pool-client/pinterest-clone/app/code/webiny.config.ts) configuration file.
 
-<!--
-## FAQ
-
-#### Local vs. Cloud Native Development? TODO
-
-With serverless and cloud-native development, these kinds of situations are not unusual. Yes, it may be a bit cumbersome to deploy cloud infrastructure resources when we're just developing our application locally. But, on the other hand, we need to have the GraphQL API deployed anyhow. And, at least with this approach, we're testing our React application with real cloud infrastructure resources, and not some kind of emulations or mocks, which, in some cases, can provide false positives and can be even harder to set up.
- -->

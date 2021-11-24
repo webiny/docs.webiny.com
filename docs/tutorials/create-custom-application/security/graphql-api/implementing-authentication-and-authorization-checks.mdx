@@ -37,7 +37,7 @@ import deletePinAuthorized from "./implementing-authentication-and-authorization
 
 :::info Can I use this?
 
-In order to follow this tutorial, you must use Webiny version **5.14.0** or greater.
+In order to follow this tutorial, you must use Webiny version **5.18.0** or greater.
 
 :::
 
@@ -72,6 +72,15 @@ mutation CreatePin($data: PinCreateInput!) {
 }
 ```
 
+```json title="GraphQL Mutation Variables"
+{
+  "data": {
+    "title": "A New Pin",
+    "description": "This is a new pin."
+  }
+}
+```
+
 Once run, we should receive a response similar to the following (the only piece of information that should be different on your end should be the returned `id`):
 
 <CenteredImage alt={'"CreatePin" Mutation - Publicly Accessible'} src={createPinMutation} />
@@ -82,36 +91,51 @@ So, in this final section of the tutorial, we'll implement the necessary authent
 
 Note that by **sensitive GraphQL mutations**, we mean the following:
 
-- [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L53)
-- [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L56)
-- [`deletePin(id: ID!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L59)
+- [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L52-L53)
+- [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L55-L56)
+- [`deletePin(id: ID!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L58-L59)
 
-All of the resolver functions for these mutations are located in the [`PinsMutation`](#) class, located in the [`pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts`](#) file, and this is where we'll perform all of the changes in the sections that follow.
+All of the resolver functions for these mutations are located in the [`PinsMutationResolver`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts#L42) class, located in the [`pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts) file, and this is where we'll perform all of the changes in the sections that follow.
 
 ## Before We Begin - A Note on Testing
 
-In the following couple of sections, we'll manually test the changes that we'll perform. Meaning, after a change has been performed, via the [GraphQL Playground](https://github.com/graphql/graphql-playground) GraphQL client, we'll manually issue queries and mutations, both as signed in and anonymous users.
+In the following couple of sections, we'll manually test the changes that we'll perform. After a change has been performed, via the [GraphQL Playground](https://github.com/graphql/graphql-playground) GraphQL client, we'll manually issue GraphQL queries and mutations, both as signed in and anonymous users.
 
-When it comes to signed-in users, in order to simulate one, we'll need to add the `authorization` header via the **HTTP Headers** tab:
+When it comes to signed in users, in order to simulate one, we'll need to add the `authorization` header via the **HTTP Headers** tab:
 
 <CenteredImage
   alt={'GraphQL Playground - Setting "authorization" Header'}
   src={gqlClientAuthHeader}
 />
 
-The value of the header is a base 64 encoded JWT token, which can be easily retrieved by signing in regularly, via the React application, opening the Network tab, picking any **POST** GraphQL HTTP request from the list of all requests, and finding the token in the **Request Headers** section:
+```json title="HTTP Headers"
+{
+    "authorization": "YOUR_AUTH_TOKEN_HERE"
+}
+```
 
-SAY IN CHROME TODO
+The value of the header is a base 64 encoded JWT token, which we should be able to easily retrieve via [Google Chrome DevTools](https://developer.chrome.com/docs/devtools/overview/).
+
+:::note Not using Google Chrome browser?
+Other browsers also offer their own versions of development-related tools. For example, [Firefox Browser](https://www.mozilla.org/en-US/firefox/new/) has [Firefox Developer Tools](https://developer.mozilla.org/en-US/docs/Tools). Be sure to check your browser's documentation for more information.
+:::
+
+To retrieve the token, follow these steps:
+
+- sign in to the React application with your web browser
+- open [Google Chrome DevTools](https://developer.chrome.com/docs/devtools/overview/) ([how to I open it?](https://developer.chrome.com/docs/devtools/open/))
+- in the **Network** tab, from the list of all HTTP requests, pick any **POST** request directed at our GraphQL API's URL (if you're not seeing any, simply refresh the page)
+- in the **Headers** tab, you should be able to find the token in the **Request Headers** section (`authorization` header)
 
 <CenteredImage alt={"Google Chrome - Network Tab"} src={networkTabAuthorizationToken} />
 
-Once you've found it, simply copy and paste the token into the GraphQL playground, and you should be good to go.
+Once you've found it, simply copy and paste the token into the GraphQL playground as shown in the above screenshot, and you should be good to go.
 
 <!-- Finally, for a more automated way of testing the changes that we'll perform, check out the `Testing` section of this tutorial.  -->
 
 ## Creating Pins
 
-Let's start with the [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L53) mutation. In order to make it secure, we'll apply the following changes to the [`createPin`](#) resolver function:
+Let's start with the [`createPin(data: PinCreateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L52-L53) mutation. In order to make it secure, we'll apply the following changes to the [`createPin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts#L47) resolver function:
 
 ```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {7-11,24-28}
 /**
@@ -120,8 +144,8 @@ Let's start with the [`createPin(data: PinCreateInput!): Pin!`](https://github.c
  */
 async createPin({ data }: CreatePinParams) {
     // Before doing anything, let's make sure the user is signed in.
-    const { security } = this.context;
-    const identity = await security.getIdentity();
+    const { authentication } = this.context;
+    const identity = await authentication.getIdentity();
     if (!identity) {
         throw new Error("Not authenticated.");
     }
@@ -152,25 +176,25 @@ async createPin({ data }: CreatePinParams) {
 }
 ```
 
-As we can see, we made two additions to the existing application code. First, we are retrieving the signed-in user, via the [`await security.getIdentity();`](#) call. This is something we'll add to the remaining two resolver functions too, as we immediately want to throw an error if the user is not signed in.
+As we can see, we made two additions to the existing application code. First, we are retrieving the signed in user, via the [`await authentication.getIdentity();`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts#L50) call. This is something we'll add to the remaining two resolver functions too, as we immediately want to throw an error if the user is not signed in.
 
 We've also updated the `pin` object, where we added the `createdBy` property, and assigned an object with user information to it. By doing this, we're tying every created pin to a user, which will be very important once we get to the remaining two resolver function.
 
-With all of the changes in place, while not signed-in, performing the same `CreatePin` mutation, should give us the following **Not authenticated.** error response:
+With all of the changes in place, while not signed in, performing the same `CreatePin` mutation, should give us the following **Not authenticated.** error response:
 
 <CenteredImage alt={'"CreatePin" Mutation - Not Authorized'} src={createPinMutationUnauthorized} />
 
-On the other hand, if we were perform the same mutation, but this time as a signed-in user, we should receive the following response:
+On the other hand, if we were perform the same mutation, but this time as a signed in user, we should receive the following response:
 
 <CenteredImage alt={'"CreatePin" Mutation - Authorized'} src={createPinMutationAuthorized} />
 
-If that's true, that means everything is in order, and we can continue with updating the next resolver function in line, and that's [`updatePin`](#).
+If that's true, that means everything is in order, and we can continue with updating the next resolver function in line, and that's [`updatePin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts#L85).
 
 ## Updating Pins
 
-Next up - the [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/03-extending-graphql-api/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L56) mutation.
+Next up - the [`updatePin(id: ID!, data: PinUpdateInput!): Pin!`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/typeDefs.ts#L55-L56) mutation.
 
-Apart from the initial signed-in user check that we also performed in the previous resolver function, in the [`updatePin`](#) resolver function, we also need to check whether the pin that's about to be updated actually belongs to the signed-in user. Note that in order to perform this check, we actually need to retrieve the pin from the database and inspect its `createdBy` field, which we've defined in the [previous section](/docs/tutorials/create-custom-application/security/graphql-api/initial-setup#adding-createdby-field) of this tutorial.
+Apart from the initial signed in user check that we also performed in the previous resolver function, in the [`updatePin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts#L85) resolver function, we also need to check whether the pin that's about to be updated actually belongs to the signed in user. Note that in order to perform this check, we actually need to retrieve the pin from the database and inspect its `createdBy` field, which we've defined in the [previous section](/docs/tutorials/create-custom-application/security/graphql-api/initial-setup#adding-createdby-field) of this tutorial.
 
 ```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {8-12,20-22}
 /**
@@ -180,8 +204,8 @@ Apart from the initial signed-in user check that we also performed in the previo
  */
 async updatePin({ id, data }: UpdatePinParams) {
     // Before doing anything, let's make sure the user is signed in.
-    const { security } = this.context;
-    const identity = await security.getIdentity();
+    const { authentication } = this.context;
+    const identity = await authentication.getIdentity();
     if (!identity) {
         throw new Error("Not authenticated.");
     }
@@ -193,7 +217,7 @@ async updatePin({ id, data }: UpdatePinParams) {
     }
 
     if (pin.createdBy.id !== identity.id) {
-        throw new Error("Not authenticated.");
+        throw new Error("Not authorized.");
     }
 
     const updatedPin = { ...pin, ...data };
@@ -209,7 +233,7 @@ async updatePin({ id, data }: UpdatePinParams) {
 If the retrieval of the requested pin failed, then we can immediately exit with an appropriate error message.
 :::
 
-So, via the [`UpdatePin`](#) mutation, if we tried to update a pin that was created by another user, we should receive the **Not authenticated.** error response:
+So, via the `UpdatePin` mutation, if we tried to update a pin that was created by another user, we should receive the **Not authenticated.** error response:
 
 ```graphql
 mutation UpdatePin($id: ID!, $data: PinUpdateInput!) {
@@ -228,12 +252,22 @@ mutation UpdatePin($id: ID!, $data: PinUpdateInput!) {
 }
 ```
 
+```json title="GraphQL Mutation Variables"
+{
+  "id": "PASTE_PIN_ID_HERE",
+  "data": {
+    "title": "A New Pin UPDATED",
+    "description": "This is a new pin. UPDATED"
+  }
+}
+```
+
 <CenteredImage
   alt={'"UpdatePin" Mutation - Not Authorized'}
   src={updatePinMutationCannotUpdateOtherUsersPin}
 />
 
-To manually test if this really works as intended, while signed-in, we could create a new pin, and then immediately try to update it.
+To manually test if this really works as intended, while signed in, we could create a new pin, and then immediately try to update it.
 
 <!--
 
@@ -246,7 +280,7 @@ Once the pin is created, upon updating it, we should not receive the already see
 
 ## Deleting Pins
 
-Finally, let's implement the same pair of checks that we performed in the previous resolver function, this time within the [`deletePin`](#) resolver function:
+Finally, let's implement the same pair of checks that we performed in the previous resolver function, this time within the [`deletePin`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/05-graphql-api/02-implementing-authentication-and-authorization-checks/pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts#L115) resolver function:
 
 ```ts title="pinterest-clone/api/code/graphql/src/plugins/scaffolds/pins/resolvers/PinsMutation.ts" {7-11,19-21}
 /**
@@ -255,8 +289,8 @@ Finally, let's implement the same pair of checks that we performed in the previo
  */
 async deletePin({ id }: DeletePinParams) {
     // Before doing anything, let's make sure the user is signed in.
-    const { security } = this.context;
-    const identity = await security.getIdentity();
+    const { authentication } = this.context;
+    const identity = await authentication.getIdentity();
     if (!identity) {
         throw new Error("Not authenticated.");
     }
@@ -268,7 +302,7 @@ async deletePin({ id }: DeletePinParams) {
     }
 
     if (pin.createdBy.id !== identity.id) {
-        throw new Error("Not authenticated.");
+        throw new Error("Not authorized.");
     }
 
     // Will throw an error if something goes wrong.
@@ -280,15 +314,38 @@ async deletePin({ id }: DeletePinParams) {
 
 In order to manually test this, we can use the same approach we used with the previous `UpdatePin` mutation. So, first we would create a new pin, and after that, simply delete it. If the user that tried to delete the pin is the same as the one that created it, then the mutation should be executed successfully.
 
+```graphql
+mutation DeletePin($id: ID!) {
+  pins {
+    deletePin(id: $id) {
+      id
+      title
+      description
+      createdBy {
+        id
+        type
+        displayName
+      }
+    }
+  }
+}
+```
+
+```json title="GraphQL Mutation Variables"
+{
+  "id": "PASTE_PIN_ID_HERE"
+}
+```
+
 <CenteredImage alt={'"DeletePin" Mutation - Authorized'} src={deletePinAuthorized} />
 
 ## Final Result
 
-By implementing the necessary authentication and authorization checks in the existing GraphQL mutations (in respective resolver functions), we've made our application much more secure than it initially was:
+By implementing the necessary authentication and authorization checks in the existing GraphQL mutations (in their respective resolver functions), we've made our application much more secure than it initially was:
 
-- only signed-in users can create pins
-- when a pin is created, it is tied to the signed-in user
-- changes to existing pins can only be performed if the signed-in user initially created the pin
+- only signed in users can create pins
+- when a pin is created, it is tied to the signed in user
+- changes to existing pins can only be performed if the signed in user initially created the pin
 - the same rule applies when it comes to deleting pins
 
-In the next section, we'll quickly summarize everything that we've learned in these couple of security-related sections of the Create Custom Application tutorial.
+In the next section, we'll wrap up this section of the tutorial, by doing a small update on the **Pin Details** page and, finally, providing a short summary of everything that we've learned and built so far.

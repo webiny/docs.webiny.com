@@ -20,15 +20,15 @@ import CenteredImage from "@components/CenteredImage";
 
 :::tip WHAT YOU’LL LEARN
 
-- why, at the moment, our application is not secure enough
-- get introduced to the fundamental security-related terms like authentication and authorization
-- the plan we intend to follow in the next couple of sections, in order to make our application secure
+- why, at the moment, our application can be considered as not secure
+- get introduced to the fundamental security-related terms: authentication and authorization
+- the plan we intend to follow in the next couple of sections
 
 :::
 
 :::info Can I use this?
 
-In order to follow this tutorial, you must use Webiny version **5.14.0** or greater.
+In order to follow this tutorial, you must use Webiny version **5.18.0** or greater.
 
 :::
 
@@ -40,7 +40,7 @@ The code that we cover in this section can also be found in our GitHub [examples
 
 At the moment, we could certainly say our application is not secure:
 
-- everybody can create pins, even non signed-in users
+- everybody can create pins, even anonymous (not signed in) users
 - when a pin is created, we don't know who did it
 - by directly accessing the GraphQL API via a simple GraphQL client, we can even issue mutations and change the information on pins created by other users (and even delete them)
 
@@ -48,45 +48,37 @@ This is certainly not what we'd expect of a modern application nor from any kind
 
 So, in the next couple of sections, we'll continue working on our **Pinterest Clone** application by creating a layer of security around it. The layer will introduce the following two fundamental security concepts into our application.
 
-The first one is **authentication**, which, in short, is a process in which we confirm users are who they say they are. We determine their **identity**. Think of sign up and sign in **authentication flows**, these are both ways of **authenticating** users in our application.
+The first one is **authentication**, which, in short, is a process in which we confirm users are who they say they are. We determine their **identity**. Think of sign up and sign in **authentication flows**, these are both ways of **authenticating** users within our application.
 
-On the other hand, we have **authorization**, which, in secure environments, always follows authentication. Essentially, this is a process in which we determine whether a successfully authenticated user has the permission to access a particular resource or not. For example, the created pin can be updated or deleted only by the user who initially created it. Furthermore, we definitely do not want to allow pin creation by anonymous users.
+On the other hand, we have **authorization**, which, in secure environments, always follows authentication. Essentially, this is a process in which we determine whether a successfully authenticated user has the permission to access a particular resource or not. For example, the created pin can be updated or deleted only by the user who initially created it. Furthermore, we definitely do not want to allow pin creation by **anonymous (not signed in)** users.
 
-In order to implement authentication and authorization, we'll need to make some amends on both GraphQL API and React application sides of our application. But before we start with any kind of coding, let's quickly outline the plan.
-
-:::info
-Want to learn more about authentication and authorization? Check out this interesting [Okta article](https://www.okta.com/identity-101/authentication-vs-authorization/) that dives deeper into both concepts and differences between them.
+:::note
+Note that, when talking about **anonymous** users, we're referring to users whose identity is unknown. In other words, users who simply did not sign in to our application.
 :::
+
+In order to implement all of these concepts, we'll need to make changes to our application and cloud infrastructure code - both on the GraphQL API and React application side.
+
+Before we start with any kind of coding, let's quickly outline the plan.
 
 ## The Plan
 
-We're going to divide this section of tutorial into two parts: **authentication** and **authorization**.
+We're going to divide this section of the tutorial into four parts. Note that while going through these, we'll be shifting back and forth between our GraphQL API and React application, and also between our application and cloud infrastructure code. Basically, this is because of the natural order in which all of the different pieces are connected together.
 
-### Authentication
+### [Getting Started](/docs/tutorials/create-custom-application/security/getting-started)
 
-In order to perform authentication in our application, we first need to have an **authentication flow**. We can easily introduce one via [Amazon Cognito](https://aws.amazon.com/cognito/), by creating a new [User Pool](https://docs.aws.amazon.com/cognito/latest/developerguide/getting-started-with-cognito-user-pools.html).
+To get started, we'll quickly outline a couple of base concepts we'll be using in the sections that follow:
 
-Essentially, by simply adding a User Pool definition via our GraphQL API's cloud infrastructure code and passing down a couple of additional configuration values, we'll be able to integrate a simple sign up and sign in flows into our application very quickly.
+- give an overview of the authentication flow we'll be integrating into our application - the Amazon Cognito's Hosted UI
+- because we'll not only be working with our application, but also with our cloud infrastructure code, we'll dedicate a couple of sentences to explain how it's organized, explain what cloud infrastructure stack output is, and more
 
-:::info
-In case you missed it, cloud infrastructure code is located in `pulumi` folders. In our case, those are [`pinterest-clone/api/pulumi`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/05-security/05.00-introduction/pinterest-clone/api/pulumi) and [`pinterest-clone/app/pulumi`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/05-security/05.00-introduction/pinterest-clone/app/pulumi).
-:::
+### [Cloud Infrastructure](/docs/tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-and-user-pool-domain)
 
-Once our User Pool is defined, we'll switch to our React application, and make sure the user can access the new authentication flow and actually complete it.
+This is where we'll start working with our cloud infrastructure code, which will enable us to deploy additional Amazon Cognito-related cloud infrastructure resources. We'll be doing this partly on the GraphQL API and partly on the React application side.
 
-And last but certainly not the least, we'll show how we can quickly retrieve the currently signed-in user at any time, both on the GraphQL API and React application side. All with the help of a couple of ready-made Webiny libraries.
+### [React Application](/docs/tutorials/create-custom-application/security/react-application/initial-setup)
 
-<!-- So, we'll start with adjusting our GraphQL API and adding a new cloud infrastructure resource into the mix: the [Amazon Cognito User Pool](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools.html). Essentially, this is what will enable us to easily introduce a user authentication flow into our application. In other words, via its [Hosted UI](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-app-integration.html) option, it will provide us with an easy way for users to sign up and sign in into the application and authenticate themselves. -->
+Once all of the needed cloud infrastructure resources have been deployed, we can start integrating the mentioned Amazon Cognito's Hosted UI into our React application.
 
-### Authorization
+### [GraphQL API](/docs/tutorials/create-custom-application/security/graphql-api/initial-setup)
 
-With the authentication flow in place, we'll continue by implementing the authorization piece of our application's security layer.
-
-Essentially, based on the currently signed-in user, we will determine whether a particular GraphQL operation can be performed or not. For example:
-
-- only signed in users can create pins
-- signed in users can only update and delete pins that are created by themselves
-
-Ultimately, at any point, users should not be be able to change information that they do not own.
-
-<!-- Now that we have this brief overview of the authentication flow we're about to use, we can start with the actual implementation. We'll start by making a couple of additions to our cloud infrastructure code, both on the GraphQL API and React application side. Once we have the necessary cloud infrastructure resources deployed, we can then move to application code and connect everything together. -->
+Finally, once our users are able to sign up and sign in to our application, we'll complete our application's security layer by implementing authentication and authorization checks on the GraphQL API side, within our resolver functions.
