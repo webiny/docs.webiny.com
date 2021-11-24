@@ -36,41 +36,41 @@ module.exports = {
                         "tutorials/create-custom-application/react-application/homepage",
                         "tutorials/create-custom-application/react-application/pin-details-page"
                     ]
+                },
+                {
+                    type: "category",
+                    label: "Security",
+                    items: [
+                        "tutorials/create-custom-application/security/introduction",
+                        "tutorials/create-custom-application/security/getting-started",
+                        {
+                            type: "category",
+                            label: "Cloud Infrastructure",
+                            items: [
+                                "tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-and-user-pool-domain",
+                                "tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-client",
+                                "tutorials/create-custom-application/security/cloud-infrastructure/adjusting-webiny-config-ts-configuration-file"
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "React Application",
+                            items: [
+                                "tutorials/create-custom-application/security/react-application/initial-setup",
+                                "tutorials/create-custom-application/security/react-application/integrating-hosted-ui-authentication-flow"
+                            ]
+                        },
+                        {
+                            type: "category",
+                            label: "GraphQL API",
+                            items: [
+                                "tutorials/create-custom-application/security/graphql-api/initial-setup",
+                                "tutorials/create-custom-application/security/graphql-api/implementing-authentication-and-authorization-checks"
+                            ]
+                        },
+                        "tutorials/create-custom-application/security/wrapping-it-up"
+                    ]
                 }
-                /* {
-                     type: "category",
-                     label: "Security",
-                     items: [
-                         "tutorials/create-custom-application/security/introduction",
-                         "tutorials/create-custom-application/security/getting-started",
-                         {
-                             type: "category",
-                             label: "Cloud Infrastructure",
-                             items: [
-                                 "tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-and-user-pool-domain",
-                                 "tutorials/create-custom-application/security/cloud-infrastructure/adding-user-pool-client",
-                                 "tutorials/create-custom-application/security/cloud-infrastructure/adjusting-webiny-config-ts-configuration-file",
-                             ],
-                         },
-                         {
-                             type: "category",
-                             label: "React Application",
-                             items: [
-                                 "tutorials/create-custom-application/security/react-application/initial-setup",
-                                 "tutorials/create-custom-application/security/react-application/integrating-hosted-ui-authentication-flow",
-                             ],
-                         },
-                         {
-                             type: "category",
-                             label: "GraphQL API",
-                             items: [
-                                 "tutorials/create-custom-application/security/graphql-api/initial-setup",
-                                 "tutorials/create-custom-application/security/graphql-api/implementing-authentication-and-authorization-checks",
-                             ],
-                         },
-                         "tutorials/create-custom-application/security/conclusion",
-                     ],
-                 },*/
             ]
         },
         {

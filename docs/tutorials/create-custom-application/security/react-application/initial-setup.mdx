@@ -30,7 +30,7 @@ import CenteredImage from "@components/CenteredImage";
 
 :::info Can I use this?
 
-In order to follow this tutorial, you must use Webiny version **5.14.0** or greater.
+In order to follow this tutorial, you must use Webiny version **5.18.0** or greater.
 
 :::
 
@@ -40,12 +40,12 @@ The code that we cover in this section can also be found in our GitHub [examples
 
 ## Overview
 
-With all of the necessary new cloud infrastructure resources deployed and our [`webiny.config.ts`](#) configuration file updated, we're now finally ready to start integrating the Hosted UI authentication flow into our React application. But, before we do that, we need to perform a couple of initial setup steps.
+With all of the necessary new cloud infrastructure resources deployed and our [`webiny.config.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/webiny.config.ts) configuration file updated, we're now finally ready to start integrating the Hosted UI authentication flow into our React application. But, before we do that, we need to perform a couple of initial setup steps.
 
 First of all, we'll add two new libraries that will make it a bit easier to work with the current user within our React application code. Once that's in place, we will perform the following:
 
-- create the [`Authentication`](#) React component, which will be responsible for performing the initial authentication process (every time a user starts using our React application)
-- modify our [`App`](#) entrypoint React component, by rendering the [`SecurityProvider`](#) and the just created [`Authentication`](#) component
+- create the [`Authenticator`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L19) React component, which will be responsible for performing the initial authentication process (every time a user starts using our React application)
+- modify our [`App`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/App.tsx#L15) entrypoint React component, by rendering the [`SecurityProvider`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/App.tsx#L22) and the just created [`Authenticator`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/App.tsx#L23) component
 - register a new Apollo Link plugin, which will ensure user's [ID token (JWT)](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-id-token.html) is attached on every issued GraphQL HTTP request
 
 :::tip
@@ -60,9 +60,9 @@ Let's see how we can achieve all of these.
 
  Let's start by adding a couple of new libraries into the mix.
 
-#### [`@webiny/app-security`](https://www.npmjs.com/package/@webiny/app-security)
+#### [`@webiny/app-security`](https://github.com/webiny/webiny-js/tree/next/packages/app-security)
 
-Via the [`useSecurity`](#) React hook, this library will make it easy to retrieve the currently signed-in user in any React component we might have.
+Via the [`useSecurity`](https://github.com/webiny/webiny-js/tree/next/packages/app-security) React hook, this library will make it easy to retrieve the currently signed in user in any React component we might have.
 
 #### [`@aws-amplify/auth`](https://www.npmjs.com/package/@aws-amplify/auth)
 
@@ -74,13 +74,13 @@ The following command will add both libraries to our React application:
 yarn workspace pinterest-clone-app add @webiny/app-security @aws-amplify/auth
 ```
 
-## 2. Create the [`Authenticator`](#) React Component
+## 2. Create the [`Authenticator`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L19) React Component
 
-The [`Authenticator`](#) React component will be a small React component that will consist of a single [`useEffect`](https://reactjs.org/docs/hooks-effect.html) React hook, in which we'll perform the following.
+The [`Authenticator`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L19) React component will be a small React component that will consist of a single [`useEffect`](https://reactjs.org/docs/hooks-effect.html) React hook, in which we'll perform the following.
 
-First, via the mentioned [`Auth`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L100) class and its [`currentSession`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L1420) method, we'll try to retrieve the currently signed-in user. If successful, then, via the [`useSecurity`](#) React hook and the [`setIdentity`](#) function that it exposes, we'll simply set the user information into the hook's internal state. As we'll soon see, this is what will enable us to easily retrieve the currently signed-in user in any React component that we might have.
+First, via the mentioned [`Auth`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L6) class and its [`currentSession`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L1420) method, we'll try to retrieve the currently signed in user. If successful, then, via the [`useSecurity`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L20) React hook and the [`setIdentity`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L20) function that it exposes, we'll simply set the user information into the hook's internal state. As we'll soon see, this is what will enable us to easily retrieve the currently signed in user in any React component that we might have.
 
-We will define the [`Authenticator`](#) React component in the [`pinterest-clone/app/code/src/components`](#) folder, in the new [`Authenticator.tsx`](#) file:
+We will define the [`Authenticator`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L19) React component in the [`pinterest-clone/app/code/src/components`](https://github.com/webiny/webiny-examples/tree/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components) folder, in the new [`Authenticator.tsx`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx) file:
 
 ```tsx title="pinterest-clone/app/code/src/components/Authenticator.tsx"
 import React, { useEffect } from "react";
@@ -105,7 +105,7 @@ const Authenticator: React.FC = (props) => {
   const { setIdentity } = useSecurity();
 
   useEffect(() => {
-    // Get the currently signed-in user.
+    // Get the currently signed in user.
     Auth.currentSession()
       .then((response) => {
         const user = response.getIdToken().payload;
@@ -132,15 +132,15 @@ const Authenticator: React.FC = (props) => {
 export default Authenticator;
 ```
 
-Notice how we're also configuring the [`Auth`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L100) class, by passing all of the environment variables that we've defined in the [previous section](/docs/tutorials/create-custom-application/security/cloud-infrastructure/adjusting-webiny-config-ts-configuration-file) of this tutorial. We decided to do this here simply because this way we have all of the relevant code in one place, in a single file.
+Notice how we're also configuring the [`Auth`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L100) class, by passing all of the environment variables that we've defined in the [previous section](/docs/tutorials/create-custom-application/security/cloud-infrastructure/adjusting-webiny-config-ts-configuration-file) of this tutorial. We decided to do this here simply because this way we have all of the relevant code in one place, within a single file.
 
-## 3. Modify the [`App`](#) React component
+## 3. Modify the [`App`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/App.tsx#L15) React component
 
-Next, let's modify the [`App`](#) entrypoint React component, located in the [`pinterest-clone/app/code/src`](#) folder.
+Next, let's modify the [`App`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/App.tsx#L15) entrypoint React component, located in the [`pinterest-clone/app/code/src`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src) folder.
 
-Essentially, what we'll be doing here is wrapping all of the existing React components with the newly created [`Authenticator`](#) and the [`SecurityProvider`](#) components. The latter one comes from the [`@webiny/app-security`](https://www.npmjs.com/package/@webiny/app-security) library and is necessary for the shown [`useSecurity`](#) hook to actually work.
+Essentially, what we'll be doing here is wrapping all of the existing React components with the newly created [`Authenticator`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L19) and the [`SecurityProvider`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/App.tsx#L22) components. The latter one comes from the [`@webiny/app-security`](https://www.npmjs.com/package/@webiny/app-security) library and is necessary for the shown [`useSecurity`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L20) hook to actually work.
 
-Ultimately, this is how our [`App.tsx`](#) file should look like:
+Ultimately, this is how our [`App.tsx`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/App.tsx) file should look like:
 
 ```tsx title="pinterest-clone/app/code/src/App.tsx" {5,6,22-23,33-34}
 import React from "react";
@@ -183,9 +183,9 @@ export const App = () => (
 
 ## 4. Create the Apollo Link Plugin
 
-The last piece of the puzzle is the creation of a new [`ApolloLinkPlugin`](https://github.com/webiny/webiny-js/blob/v5.14.0/packages/app/src/plugins/ApolloLinkPlugin.ts#L8) plugin, which will simply ensure that the user's [ID token (JWT)](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-id-token.html) token is attached to every HTTP request issued by the [Apollo GraphQL (v2)](https://www.apollographql.com/docs/react/v2) client. This will then ensure that the user is also successfully authenticated on the GraphQL API side (more on this soon).
+The last piece of the puzzle is the creation of a new [`ApolloLinkPlugin`](https://github.com/webiny/webiny-js/blob/v5.18.0/packages/app/src/plugins/ApolloLinkPlugin.ts#L8) plugin, which will simply ensure that the user's [ID token (JWT)](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-id-token.html) token is attached to every HTTP request issued by the [Apollo GraphQL (v2)](https://www.apollographql.com/docs/react/v2) client. This will then ensure that the user is also successfully authenticated on the GraphQL API side (more on this soon).
 
-We can define the new plugin within the existing [`pinterest-clone/app/code/src/plugins/apollo.ts`](#) file:
+We can define the new plugin within the existing [`pinterest-clone/app/code/src/plugins/apollo.ts`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/plugins/apollo.ts) file:
 
 ```ts title="pinterest-clone/app/code/src/plugins/apollo.ts" {5,6,18-32}
 import { ConsoleLinkPlugin } from "@webiny/app/plugins/ConsoleLinkPlugin";
@@ -223,10 +223,8 @@ export default [
 ];
 ```
 
-As we can see, on each HTTP request, we're again calling the [`currentSession`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L1420) method of the [`Auth`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L100) class to retrieve the currently signed-in user's information, from which we're retrieving her/his ID token (JWT form of it) and assigning it as the value of the `Authorization` header.
-
-With this final step completed, we've completed the initial step and we can move to the Hosted UI authentication flow integration.
+As we can see, on each HTTP request, we're again calling the [`currentSession`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L1420) method of the [`Auth`](https://github.com/aws-amplify/amplify-js/blob/main/packages/auth/src/Auth.ts#L100) class to retrieve the currently signed in user's information, from which we're retrieving her/his ID token (JWT form of it) and assigning it as the value of the `Authorization` header.
 
 ## Final Result
 
-With the new [`Authenticator`](#) React component and the Apollo Link plugin defined, and the modified [`App`](#) entrypoint React component, we're now ready to perform the final steps and finally see the Hosted UI authentication flow in action.
+With the new [`Authenticator`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/components/Authenticator.tsx#L19) React component and the Apollo Link plugin defined, and the modified [`App`](https://github.com/webiny/webiny-examples/blob/master/create-custom-application/05-security/04-react-application/01-initial-setup/pinterest-clone/app/code/src/App.tsx#L15) entrypoint React component, we're now ready to perform the final steps and finally see the Hosted UI authentication flow in action.
