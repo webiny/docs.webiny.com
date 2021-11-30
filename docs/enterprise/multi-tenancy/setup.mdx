@@ -1,0 +1,286 @@
+---
+id: setup
+title: Setup Multi-Tenancy
+sidebar_label: "Setup Multi-Tenancy"
+keywords: ["webiny", "enterprise", "multi-tenancy"]
+description: Learn how to configure multi-tenancy in your Webiny project
+---
+
+:::tip What you'll learn
+
+- how to enable multi-tenancy in the existing Webiny project
+- how to assign custom domains to each tenant
+
+:::
+
+import CenteredImage from "@components/CenteredImage";
+import importTMApi from "./setup/import-tenant-manager-api.png";
+import importTMReact from "./setup/import-tenant-manager-react.png";
+import cloudfront from "./setup/cloudfront-distribution.png";
+import lambdaDelete from "./setup/lambda-delete-error.png";
+import newTenantForm from "./setup/new-tenant.png";
+import rootTenantLabel from "./setup/root-tenant-settings.png";
+import rootTenantDialog from "./setup/tenant-settings-dialog.png";
+
+## Overview
+
+There are several steps involved in enabling multi-tenancy:
+
+- adding an environment variable used at build time
+- importing a Tenant Manager module to be able to manage tenants
+- adding a Lambda@Edge function to the Pulumi configuration
+- creating a certificate in AWS ACM, and linking it with CloudFront distribution
+
+The following sections guide you through the process in a step-by-step manner.
+
+## 1) Prepare the Project
+
+If you're upgrading your existing `5.18.x` project, we need to upgrade the `npm` packages to the experimental release, which contains the multi-tenancy functionality. To do that, execute the following command in your terminal:
+
+```shell
+yarn up "@webiny/*@0.0.0-mt-3"
+```
+
+Alternatively, you can create a new project using the experimental release, by running:
+
+```shell
+npx create-webiny-project@0.0.0-mt-3 my-project --tag=0.0.0-mt-3
+```
+
+## 2) Add New Dependencies
+
+We need to add several new packages to the project.
+
+Add Tenant Manager module dependency to the GraphQL API dependencies:
+
+```shell
+yarn workspace api-graphql add @webiny/api-tenant-manager@0.0.0-mt-3
+```
+
+Add Tenant Manager module dependency to the Admin app dependencies:
+
+```shell
+yarn workspace admin add @webiny/app-tenant-manager@0.0.0-mt-3
+```
+
+Add a package with custom AWS components for Pulumi to the root package.json:
+
+```shell
+yarn add @webiny/pulumi-aws@0.0.0-mt-3
+```
+
+## 3) Import Tenant Manager
+
+Open `api/code/graphql/src/index.ts`, and import the Tenant Manager plugin:
+
+```ts
+import tenantManager from "@webiny/api-tenant-manager";
+```
+
+Then, add the plugin to the Lambda handler, below `securityPlugins`. See an example in the image below:
+
+<CenteredImage src={importTMApi} title="Enable Tenant Manager plugin." />
+
+Now we need to do a similar thing in the `admin` app. Open `apps/admin/code/src/plugins/index.ts`, and import the plugin:
+
+```ts
+import tenantManager from "@webiny/app-tenant-manager/plugins";
+```
+
+Then, register the plugin somewhere below the `tenancyPlugins`. See an example in the image below:
+
+<CenteredImage src={importTMReact} title="Enable Tenant Manager plugin." />
+
+## 4) Set Environment Variable
+
+Open `.env` in the root of your project, and add a new ENV variable:
+
+```yaml
+# Enable multi-tenancy
+WEBINY_MULTI_TENANCY=true
+```
+
+This variable will be picked up by the build process for both the API functions, as well as React applications, and multi-tenancy logic will be enabled in the applicable apps.
+
+## 5) Create a Certificate in AWS ACM
+
+Before we modify the infrastructure setup, and deploy the project, we'll need to have a valid certificate in AWS ACM. Go to https://console.aws.amazon.com/acm/home?region=us-east-1#/certificates/request and request a new certificate, or import an existing one.
+
+Once the domains in the certificate are verified, we can proceed with Pulumi configuration.
+
+## 6) Configure `website` Infrastructure
+
+To handle request routing, we need to have a Lambda@Edge function, which will map each request to an appropriate tenant, and rewrite the request to the appropriate folder in the S3 bucket, where the prerendered page snapshots are stored.
+
+> NOTE: we only want to modify the `delivery` distribution, as that's the one that will be hit by visitors, and serve prerendered content.
+
+There are several changes we need to do on the CloudFront distribution:
+
+- enable `Host` header forwarding
+- add a Lambda function association for `origin-request` event
+- assign the ACM certificate you created in step 5)
+- add custom domain alias
+
+Open `apps/website/pulumi/delivery.ts` and add the following changes:
+
+```ts title="apps/website/pulumi/delivery.ts" {2-3,18,76,82-88,96-101}
+import * as aws from "@pulumi/aws";
+import * as pulumi from "@pulumi/pulumi";
+import { WebsiteTenantRouter } from "@webiny/pulumi-aws";
+
+class Delivery {
+  bucket: aws.s3.Bucket;
+  cloudfront: aws.cloudfront.Distribution;
+  constructor({ appS3Bucket }: { appS3Bucket: aws.s3.Bucket }) {
+    this.bucket = new aws.s3.Bucket("delivery", {
+      acl: "public-read",
+      forceDestroy: true,
+      website: {
+        indexDocument: "index.html",
+        errorDocument: "_NOT_FOUND_PAGE_/index.html"
+      }
+    });
+
+    const websiteRouter = new WebsiteTenantRouter("website-router");
+
+    this.cloudfront = new aws.cloudfront.Distribution("delivery", {
+      enabled: true,
+      waitForDeployment: false,
+      origins: [
+        {
+          originId: this.bucket.arn,
+          domainName: this.bucket.websiteEndpoint,
+          customOriginConfig: {
+            originProtocolPolicy: "http-only",
+            httpPort: 80,
+            httpsPort: 443,
+            originSslProtocols: ["TLSv1.2"]
+          }
+        },
+        {
+          originId: appS3Bucket.arn,
+          domainName: appS3Bucket.websiteEndpoint,
+          customOriginConfig: {
+            originProtocolPolicy: "http-only",
+            httpPort: 80,
+            httpsPort: 443,
+            originSslProtocols: ["TLSv1.2"]
+          }
+        }
+      ],
+      orderedCacheBehaviors: [
+        {
+          compress: true,
+          allowedMethods: ["GET", "HEAD", "OPTIONS"],
+          cachedMethods: ["GET", "HEAD", "OPTIONS"],
+          forwardedValues: {
+            cookies: {
+              forward: "none"
+            },
+            headers: [],
+            queryString: false
+          },
+          pathPattern: "/static/*",
+          viewerProtocolPolicy: "allow-all",
+          targetOriginId: appS3Bucket.arn,
+          // MinTTL <= DefaultTTL <= MaxTTL
+          minTtl: 0,
+          defaultTtl: 2592000, // 30 days
+          maxTtl: 2592000
+        }
+      ],
+      defaultRootObject: "index.html",
+      defaultCacheBehavior: {
+        compress: true,
+        targetOriginId: this.bucket.arn,
+        viewerProtocolPolicy: "redirect-to-https",
+        allowedMethods: ["GET", "HEAD", "OPTIONS"],
+        cachedMethods: ["GET", "HEAD", "OPTIONS"],
+        forwardedValues: {
+          cookies: { forward: "none" },
+          queryString: true,
+          headers: ["Host"]
+        },
+        // MinTTL <= DefaultTTL <= MaxTTL
+        minTtl: 0,
+        defaultTtl: 30,
+        maxTtl: 30,
+        lambdaFunctionAssociations: [
+          {
+            eventType: "origin-request",
+            includeBody: false,
+            lambdaArn: pulumi.interpolate`${websiteRouter.originRequest.qualifiedArn}`
+          }
+        ]
+      },
+      priceClass: "PriceClass_100",
+      restrictions: {
+        geoRestriction: {
+          restrictionType: "none"
+        }
+      },
+      aliases: ["custom.domain.com", "*.saas.com"],
+      viewerCertificate: {
+        acmCertificateArn:
+          "arn:aws:acm:us-east-1:656932293860:certificate/eb47f296-39c3-44df-a04e-339e17f25f4f",
+        sslSupportMethod: "sni-only"
+      }
+    });
+  }
+}
+
+export default Delivery;
+```
+
+For the `acmCertificateArn`, use the ARN of the certificate you created in step 5).
+
+For `aliases`, enter the custom domains supported by your certificate. You can use wildcards to support multiple subdomains.
+
+## 7) Deploy Your Project
+
+Now it's time to deploy the entire project. We need to deploy everything: `api`, `admin`, and `website`. The easiest way to do all 3 at once, is by running the following:
+
+```shell
+yarn webiny deploy --env=dev
+```
+
+## 8) Configure Custom Domains For Tenants
+
+Once your project is deployed, open your `admin` app. To configure a custom domain for the root tenant, hover over the `Root Tenant` label in the top app bar, and click it. This will open a settings dialog, where you can configure custom domains for your root tenant.
+
+<CenteredImage src={rootTenantLabel} title="Open Root Tenant Settings Dialog." /> 
+<CenteredImage src={rootTenantDialog} title="Configure Root Tenant Custom Domains." />
+
+If you don't have a custom domain for your root tenant, you should enter your CloudFront CDN domain here, otherwise the Lambda@Edge router will not be able to route the request to your root tenant website.  
+
+For your sub-tenants, domain configuration is located in the tenant form:
+<CenteredImage src={newTenantForm} title="Domain Settings For Sub-Tenants." /> 
+
+## FAQ
+
+### I'm receiving a Pulumi error saying something about Cloudfront request headers.
+
+You may occasionally run into an error that goes something like this:
+
+```
+error: deleting urn:pulumi:dev::website::aws:cloudfront/distribution:Distribution::delivery: 1 error occurred:
+* CloudFront Distribution E36AOIOBR5JHMQ cannot be deleted: PreconditionFailed: The request failed because it didn't meet the preconditions in one or more request-header fields.
+status code: 412
+```
+
+This one is usually resolved by refreshing the Pulumi state:
+
+```shell
+ yarn webiny pulumi apps/website -- refresh --yes
+````
+
+> NOTE: there's a space between `--` and `refresh`.
+
+After this, running the `deploy` command goes back to normal.
+
+### Pulumi throws an error while deleting my Lambda@Edge function
+
+You're probably seeing the following error:
+<CenteredImage src={lambdaDelete} title="Error Deleting Lambda@Edge Function." /> 
+
+Lambda@Edge functions are replicated to all AWS Edge locations. This means that this particular function will not be deleted until AWS removes it from all the Edge locations. Even thought this error looks terrible, your deploy went just fine. Give it a couple of minutes, and re-deploy. You'll see that, after some time, your old Lambda@Edge function will be deleted successfully. 

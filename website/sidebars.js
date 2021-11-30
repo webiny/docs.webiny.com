@@ -434,5 +434,8 @@ module.exports = {
             items: ["contributing/documentation", "contributing/new-page-template"]
         },
         "webiny-telemetry"
+    ],
+    enterprise: [
+        { type: "category", label: "Multi-Tenancy", items: ["enterprise/multi-tenancy/setup"] }
     ]
 };
