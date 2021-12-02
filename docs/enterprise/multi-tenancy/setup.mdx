@@ -16,7 +16,6 @@ description: Learn how to configure multi-tenancy in your Webiny project
 import CenteredImage from "@components/CenteredImage";
 import importTMApi from "./setup/import-tenant-manager-api.png";
 import importTMReact from "./setup/import-tenant-manager-react.png";
-import cloudfront from "./setup/cloudfront-distribution.png";
 import lambdaDelete from "./setup/lambda-delete-error.png";
 import newTenantForm from "./setup/new-tenant.png";
 import rootTenantLabel from "./setup/root-tenant-settings.png";
@@ -31,7 +30,7 @@ There are several steps involved in enabling multi-tenancy:
 - adding a Lambda@Edge function to the Pulumi configuration
 - creating a certificate in AWS ACM, and linking it with CloudFront distribution
 
-Cloudfront will be used for TLS termination, and AWS ACM for certificate management. Customers may use other 3rd party CDNs for those steps. If that’s the case please get in touch so we can support you through the setup.
+Cloudfront will be used for TLS termination, and AWS ACM for certificate management. Customers may use other 3rd party CDNs for those steps. If that’s the case, please get in touch so we can support you through the setup.
 
 The following sections guide you through the process in a step-by-step manner.
 
@@ -108,7 +107,7 @@ This variable will be picked up by the build process for both the API functions,
 
 Before we modify the infrastructure setup, and deploy the project, we'll need to have a valid certificate in AWS ACM. Go to https://console.aws.amazon.com/acm/home?region=us-east-1#/certificates/request and request a new certificate, or import an existing one.
 
-Once the domains in the certificate are verified, we can proceed with Pulumi configuration.
+Once the domains in the certificate are verified, we can proceed to the Pulumi configuration. For more information on creating certificates and validating hostnames, please go to [What Is AWS Certificate Manager? - AWS Certificate Manager](https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html)
 
 ## 6) Configure `website` Infrastructure
 
@@ -121,7 +120,7 @@ There are several changes we need to do on the CloudFront distribution:
 - enable `Host` header forwarding
 - add a Lambda function association for `origin-request` event
 - assign the ACM certificate you created in step 5)
-- add custom domain alias
+- add custom domain aliases
 
 Open `apps/website/pulumi/delivery.ts` and add the following changes:
 
@@ -250,13 +249,17 @@ yarn webiny deploy --env=dev
 
 Once your project is deployed, open your `admin` app. To configure a custom domain for the root tenant, hover over the `Root Tenant` label in the top app bar, and click it. This will open a settings dialog, where you can configure custom domains for your root tenant.
 
-<CenteredImage src={rootTenantLabel} title="Open Root Tenant Settings Dialog." /> 
+<CenteredImage src={rootTenantLabel} title="Open Root Tenant Settings Dialog." />
 <CenteredImage src={rootTenantDialog} title="Configure Root Tenant Custom Domains." />
 
-If you don't have a custom domain for your root tenant, you should enter your CloudFront CDN domain here, otherwise the Lambda@Edge router will not be able to route the request to your root tenant website.  
+:::warning
+If you don't have a custom domain for your root tenant, you should enter your CloudFront CDN domain here. Otherwise, the Lambda@Edge router will not be able to route the request to your root tenant website.
+
+To find your CloudFront website domain, run `yarn webiny info --env=dev` and look for the `Website URL`.
+:::
 
 For your sub-tenants, domain configuration is located in the tenant form:
-<CenteredImage src={newTenantForm} title="Domain Settings For Sub-Tenants." /> 
+<CenteredImage src={newTenantForm} title="Domain Settings For Sub-Tenants." />
 
 ## FAQ
 
@@ -283,6 +286,6 @@ After this, running the `deploy` command goes back to normal.
 ### Pulumi throws an error while deleting my Lambda@Edge function
 
 You're probably seeing the following error:
-<CenteredImage src={lambdaDelete} title="Error Deleting Lambda@Edge Function." /> 
+<CenteredImage src={lambdaDelete} title="Error Deleting Lambda@Edge Function." />
 
-Lambda@Edge functions are replicated to all AWS Edge locations. This means that this particular function will not be deleted until AWS removes it from all the Edge locations. Even thought this error looks terrible, your deploy went just fine. Give it a couple of minutes, and re-deploy. You'll see that, after some time, your old Lambda@Edge function will be deleted successfully. 
+Lambda@Edge functions are replicated to all AWS Edge locations. This means that this particular function will not be deleted until AWS removes it from all the Edge locations. Even thought this error looks terrible, your deploy went just fine. Give it a couple of minutes, and re-deploy. You'll see that, after some time, your old Lambda@Edge function will be deleted successfully.
