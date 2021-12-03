@@ -258,6 +258,7 @@ module.exports = {
                 },
                 "how-to-guides/environment-variables",
                 "how-to-guides/importing-plugins",
+                "how-to-guides/extend-graphql-api",
                 {
                     type: "category",
                     label: "UI Composer",
