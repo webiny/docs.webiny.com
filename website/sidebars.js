@@ -75,7 +75,7 @@ module.exports = {
         },
         {
             type: "category",
-            label: "Webiny Applications",
+            label: "Serverless CMS",
             items: [
                 "webiny-overview/serverless-cms/apps/intro",
                 {
@@ -258,6 +258,7 @@ module.exports = {
                 },
                 "how-to-guides/environment-variables",
                 "how-to-guides/importing-plugins",
+                "how-to-guides/extend-graphql-api",
                 {
                     type: "category",
                     label: "UI Composer",
