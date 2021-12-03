@@ -75,7 +75,7 @@ module.exports = {
         },
         {
             type: "category",
-            label: "Webiny Applications",
+            label: "Serverless CMS",
             items: [
                 "webiny-overview/serverless-cms/apps/intro",
                 {
