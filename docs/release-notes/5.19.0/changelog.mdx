@@ -65,11 +65,46 @@ yarn webiny deploy api --env dev --no-deploy
 
 ### Button Page Element - Ability to Register A Custom Callback Handler ([#2022](https://github.com/webiny/webiny-js/pull/2022))
 
-Prior to this release, we could say the Button page element was a bit "basic", since it was only capable of representing a link and nothing else. But, not anymore.
+Prior to this release, we could say the default Button page element was a bit "basic", since it was only capable of representing a link and nothing else. But, not anymore.
 
-Thanks to [**@econtentmaps**](https://github.com/econtentmaps), the button can now also be configured to execute a piece of code, that you previously registered via the new [`PbButtonElementClickHandlerPlugin`](https://github.com/webiny/webiny-js/blob/v5/packages/app-page-builder/src/types.ts#L260) plugin.
+Thanks to [**@econtentmaps**](https://github.com/econtentmaps), the Button page element can now also be configured to execute a piece of code (a click handler) that you previously registered via the new [`PbButtonElementClickHandlerPlugin`](https://github.com/webiny/webiny-js/blob/v5/packages/app-page-builder/src/types.ts#L260) plugin.
 
 <CenteredImage
-    src={pageBuilderBtnAction}
-    title={"The highlight of this release - the new Amazon DynamoDB-only version of Webiny!"}
+  src={pageBuilderBtnAction}
+  title={"The highlight of this release - the new Amazon DynamoDB-only version of Webiny!"}
 />
+
+Here are a couple of quick examples that show how to use this new plugin type:
+
+```ts
+import { PbButtonElementClickHandlerPlugin } from "@webiny/app-page-builder/types";
+
+export default [
+  // Registers a simple click handler that doesn't depend on any variables.
+  {
+    type: "pb-page-element-button-click-handler",
+    name: "simple-handler",
+    title: "A Simple Handler",
+    // Once the button is clicked, we display a simple alert message.
+    handler: params => {
+      alert("I was clicked!");
+    }
+  },
+  // Registers a click handler that depends on two variables (color and size).
+  {
+    type: "pb-page-element-button-click-handler",
+    name: "handler-with-variables",
+    title: "Handler With Variables",
+    // Here are the variables that users will be able to set via the
+    // button's "Action" settings (in the Page Builder editor).
+    variables: [
+      { name: "color", label: "My Color", defaultValue: "red" },
+      { name: "size", label: "My Size", defaultValue: "XXL" }
+    ],
+    // Once the button is clicked, we simply log the received variables.
+    handler: function({ variables }) {
+      console.log(variables); // Logs { color, size } object.
+    }
+  } as PbButtonElementClickHandlerPlugin<{ color: string; type: string }>
+];
+```
