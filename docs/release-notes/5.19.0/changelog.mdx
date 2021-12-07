@@ -108,3 +108,63 @@ export default [
   } as PbButtonElementClickHandlerPlugin<{ color: string; type: string }>
 ];
 ```
+
+## Headless CMS
+
+### Searching the Reference Field for Any Version of the Entry ([#2067](https://github.com/webiny/webiny-js/pull/2068))
+
+For example, we have models `Category` and `Article`, and `Category` is a single value ref field on the `Article` model.
+Prior to *5.19.0* you could not search all `Articles` that have `Category`, for example, *My Category* in any version. From now on, you will be able to.
+Here is an example of the GraphQL Query for it:
+```graphql
+{
+	listArticles(
+		where: {
+			category: {
+				entryId: "61a8c8a4625b0c0008fc8652"
+			}
+		}
+	) {
+		data {
+			id
+			category {
+				id
+			}
+		}
+	}
+}
+```
+
+Because of what we stored into the database prior to *5.19.0* searching for all `Articles` with any `Category` version of *My Category* is not possible with previous query.
+
+There are workarounds for that, and you can read about them [here](/docs/release-notes/5.19.0/ref-field-workarounds).
+
+
+### Uppercase and Lowercase Field Validators With Space ([#2080](https://github.com/webiny/webiny-js/pull/2080))
+
+We added new validators that will match either *A-Z + space* or *a-z + space*.
+They are available in newly created projects from 5.19.0 onward.
+
+If you need them in your existing project, you will need to add them in your `apps/admin/code/src/plugins/headlessCms.ts` file.
+
+You need to add 4 plugins in total:
+
+```typescript title="apps/admin/code/src/plugins/headlessCms.ts"
+import lowerCaseSpaceFieldValidator from "@webiny/app-headless-cms/admin/plugins/validators/patternPlugins/lowerCaseSpace";
+import upperCaseSpaceFieldValidator from "@webiny/app-headless-cms/admin/plugins/validators/patternPlugins/upperCaseSpace";
+
+import editorLowerCaseSpaceFieldValidator from "@webiny/app-headless-cms/admin/plugins/fieldValidators/patternPlugins/lowerCaseSpace";
+import editorUpperCaseSpaceFieldValidator from "@webiny/app-headless-cms/admin/plugins/fieldValidators/patternPlugins/upperCaseSpace";
+```
+
+And, of course, add them to the default export array:
+
+```typescript
+export default [
+	// ...existing plugins
+	lowerCaseSpaceFieldValidator,
+	upperCaseSpaceFieldValidator,
+	editorLowerCaseSpaceFieldValidator,
+	editorUpperCaseSpaceFieldValidator,
+];
+```

@@ -1,0 +1,78 @@
+---
+id: ref-field-workarounds
+title: Ref Field Workarounds
+sidebar_label: Ref Field Workarounds
+keywords: ["webiny", "version", "upgrade", "5.19.0"]
+description: Learn how to search ref field prior to 5.19.0
+---
+
+:::tip What you’ll learn
+
+- how to search for articles with any category version on old entries
+
+:::
+
+## Example Models for This Article
+
+In this article we will use `Article` and `Category` models where `Category` will be a single value reference field on the article.
+So GraphQL query would look like:
+
+
+```graphql
+{
+	listArticles {
+		data {
+			id
+			entryId
+			category {
+				id
+				entryId
+			}
+		}
+	}
+}
+```
+
+
+## Why Do We Need a Workaround?
+
+Prior to *5.19.0* we did not store both ID (generated string + version) and entryId (generated string only) into the database, and you could not search for all `Articles` that have `Category` in any available version.
+We changed that in *5.19.0*.
+
+Since there are data changes that are required for search to work, and we decided not to do a migration for that, because it is too dangerous to change your data like that, you will need a workaround to search entries stored prior to *5.19.0*.
+
+Let's say you want to search for Category with `entryId` *61a8c8a4625b0c0008fc8652* and you know that latest version is *3*, you would run a query like this:
+
+```graphql
+{
+	listArticles(
+		where: {
+			category: {
+				entryId_in: [
+					"61a8c8a4625b0c0008fc8652#0001",
+					"61a8c8a4625b0c0008fc8652#0002",
+					"61a8c8a4625b0c0008fc8652#0003",
+					"61a8c8a4625b0c0008fc8652"
+				]
+			}
+		}
+	) {
+		data {
+			id
+			category {
+				id
+			}
+		}
+	}
+}
+```
+In this example, exact IDs are to search entries stored prior to *5.19.0* and generated string only is to search for newly stored entries.
+
+## What If I Do Not Want to Use Workaround?
+
+If you do not want to use the workaround, you will need to save and publish all your already published entries.
+You can either do it manually or via API calls directly.
+
+If you want to use the API be sure to first update the entry and then publish it.
+
+If you want to use Webiny Admin UI, you can just click *Save & Publish* button which updates and publishes the entry.
