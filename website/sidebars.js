@@ -305,6 +305,11 @@ module.exports = {
                 "how-to-guides/upgrade-webiny",
                 {
                     type: "category",
+                    label: "5.19.0",
+                    items: ["release-notes/5.19.0/changelog", "release-notes/5.19.0/upgrade-guide"]
+                },
+                {
+                    type: "category",
                     label: "5.18.0",
                     items: ["release-notes/5.18.0/changelog", "release-notes/5.18.0/upgrade-guide"]
                 },
@@ -325,13 +330,16 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "5.14.0",
-                    items: ["release-notes/5.14.0/changelog", "release-notes/5.14.0/upgrade-guide"]
-                },
-                {
-                    type: "category",
                     label: "Older Releases",
                     items: [
+                        {
+                            type: "category",
+                            label: "5.14.0",
+                            items: [
+                                "release-notes/5.14.0/changelog",
+                                "release-notes/5.14.0/upgrade-guide"
+                            ]
+                        },
                         {
                             type: "category",
                             label: "5.13.0",

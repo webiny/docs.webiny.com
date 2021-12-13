@@ -1,0 +1,176 @@
+---
+id: changelog
+title: Webiny 5.19.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.19.0", "changelog"]
+description: See what's new in Webiny version 5.19.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import pageBuilderBtnAction from "./images/page-builder-btn-action.png";
+import truncationFixed from "./images/truncation-fixed.png";
+
+# Changes
+
+## Development
+
+### Locked Versions of `@pulumi/*` Packages ([#2089](https://github.com/webiny/webiny-js/pull/2089))
+
+In attempt to make things a bit more stable, we've decided to put a lock on the `@pulumi/*` NPM package versions. Locking has been achieved via the [`resolutions`](https://yarnpkg.com/configuration/manifest/#resolutions) property in the root `package.json` file.
+
+:::info
+`@pulumi/*` NPM packages are being utilized by Pulumi, the underlying infrastructure-as-code (IaC) solution Webiny relies on. To learn more, check out the [Infrastructure as Code With Pulumi](/docs/key-topics/deployment/iac-with-pulumi) key topic.
+:::
+
+:::note
+For existing projects that are being upgraded to `5.19.0`, the `resolutions` property will be updated via the [`webiny upgrade`](/docs/release-notes/5.19.0/upgrade-guide#2-run-the-upgrade-command) command.
+:::
+
+### Pulumi SDK - Using Correct Separator When Constructing `PATH` Environment Variable ([#2084](https://github.com/webiny/webiny-js/pull/2084))
+
+Because of an issue in the construction of the `PATH` environment variable in our internal [Pulumi SDK](https://github.com/webiny/webiny-js/tree/next/packages/pulumi-sdk), on non-Windows operating systems, users might've experienced an issue during deployment of their custom project applications. This has now been addressed, so new deployments should work as expected.
+
+Thank you goes to [**@snstanton**](https://github.com/snstanton) for discovering this! ️️❤️
+
+### Fixed Incorrect AWS Profile Being Logged During Deployment ([#2078](https://github.com/webiny/webiny-js/pull/2078))
+
+In order to use the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project) command, AWS credentials need to be set, which can be done in [multiple ways](/docs/how-to-guides/deployment/aws/configure-aws-credentials).
+
+When relying on environment variables, users can choose to either use a combination of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, or a single `AWS_PROFILE` variable. In case of the former, we've noticed that, during deployment, an incorrect message would get displayed in the terminal, saying AWS profile "undefined" is being used.
+
+This has now been addressed. From now on, when a combination of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables is used, the AWS Access Key ID will be displayed instead.
+
+### New `acl` and `cacheControl` Options on the `uploadFolderToS3` Function ([#2066](https://github.com/webiny/webiny-js/pull/2066), [#2083](https://github.com/webiny/webiny-js/pull/2083))
+
+The [`uploadFolderToS3`](https://github.com/webiny/webiny-js/blob/0de898563ff84bf47d6aa740c2e43773f7c2d90e/packages/cli-plugin-deploy-pulumi/utils/aws/uploadFolderToS3.d.ts#L8) is a small utility function that is used to upload a complete folder directly to an Amazon S3 bucket. At the moment, it's used when you deploy your Admin Area and Website project applications, within [`apps/admin/cli/deploy.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/common/apps/admin/cli/deploy.ts#L39) and [`apps/admin/cli/deploy.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/common/apps/admin/cli/deploy.ts#L39), respectively.
+
+With this release, we've improved this utility function, by enabling users to specify the [`acl`](https://github.com/webiny/webiny-js/blob/0de898563ff84bf47d6aa740c2e43773f7c2d90e/packages/cli-plugin-deploy-pulumi/utils/aws/uploadFolderToS3.d.ts#L22) and [`cacheControl`](https://github.com/webiny/webiny-js/blob/0de898563ff84bf47d6aa740c2e43773f7c2d90e/packages/cli-plugin-deploy-pulumi/utils/aws/uploadFolderToS3.d.ts#L23) properties that will be set for every uploaded file.
+
+Once again, a big thank you to [**@snstanton**](https://github.com/snstanton) for implementing this nifty improvement! 🍻
+
+:::tip
+The `acl` property lets you set **Canned ACL** for every uploaded file. To learn more, check out [official AWS documentation](https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#Canned%20ACL).
+:::
+
+### `webiny deploy` Command - Introduced `--deploy` Flag ([#2096](https://github.com/webiny/webiny-js/pull/2096))
+
+A new `--deploy` flag has been added to the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project).
+
+By setting it to false (by passing `--no-deploy`), this small addition allows users to skip the deployment step, which can be useful if they only want to build the specified project application. For example:
+
+```bash
+yarn webiny deploy api --env dev --no-deploy
+```
+
+### `webiny watch` Command - Fixed Multiline Logs ([#2103](https://github.com/webiny/webiny-js/pull/2103))
+
+Previously, if you were to add multiline logs in your cloud infrastructure (Pulumi) code, the [`webiny watch`](/docs/how-to-guides/use-watch-command/#can-i-use-the-webiny-watch-command-to-start-a-watch-process-on-frontend-react-apps) command's terminal output would get truncated. This has now been addressed, so you can freely add any additional multiline logs that you might need.
+
+<CenteredImage
+  src={truncationFixed}
+  title={"The highlight of this release - the new Amazon DynamoDB-only version of Webiny!"}
+/>
+
+## Page Builder
+
+### Button Page Element - Ability to Register A Custom Callback Handler ([#2022](https://github.com/webiny/webiny-js/pull/2022))
+
+Prior to this release, we could say the default Button page element was a bit "basic", since it was only capable of representing a link and nothing else. But, not anymore.
+
+Thanks to [**@econtentmaps**](https://github.com/econtentmaps), the Button page element can now also be configured to execute a piece of code (a click handler) that you previously registered via the new [`PbButtonElementClickHandlerPlugin`](https://github.com/webiny/webiny-js/blob/v5/packages/app-page-builder/src/types.ts#L260) plugin.
+
+<CenteredImage
+  src={pageBuilderBtnAction}
+  title={"The highlight of this release - the new Amazon DynamoDB-only version of Webiny!"}
+/>
+
+Here are a couple of quick examples that show how to use this new plugin type:
+
+```ts
+import { PbButtonElementClickHandlerPlugin } from "@webiny/app-page-builder/types";
+
+export default [
+  // Registers a simple click handler that doesn't depend on any variables.
+  {
+    type: "pb-page-element-button-click-handler",
+    name: "simple-handler",
+    title: "A Simple Handler",
+    // Once the button is clicked, we display a simple alert message.
+    handler: params => {
+      alert("I was clicked!");
+    }
+  },
+  // Registers a click handler that depends on two variables (color and size).
+  {
+    type: "pb-page-element-button-click-handler",
+    name: "handler-with-variables",
+    title: "Handler With Variables",
+    // Here are the variables that users will be able to set via the
+    // button's "Action" settings (in the Page Builder editor).
+    variables: [
+      { name: "color", label: "My Color", defaultValue: "red" },
+      { name: "size", label: "My Size", defaultValue: "XXL" }
+    ],
+    // Once the button is clicked, we simply log the received variables.
+    handler: function({ variables }) {
+      console.log(variables); // Logs { color, size } object.
+    }
+  } as PbButtonElementClickHandlerPlugin<{ color: string; type: string }>
+];
+```
+
+## Headless CMS
+
+### Searching the Reference Field for Any Version of the Entry ([#2067](https://github.com/webiny/webiny-js/pull/2068))
+
+For example, we have models `Category` and `Article`, and `Category` is a single value ref field on the `Article` model.
+Prior to *5.19.0* you could not search all `Articles` that have `Category`, for example, *My Category* in any version. From now on, you will be able to.
+Here is an example of the GraphQL Query for it:
+```graphql
+{
+	listArticles(
+		where: {
+			category: {
+				entryId: "61a8c8a4625b0c0008fc8652"
+			}
+		}
+	) {
+		data {
+			id
+			category {
+				id
+			}
+		}
+	}
+}
+```
+
+
+### Uppercase and Lowercase Field Validators With Space ([#2080](https://github.com/webiny/webiny-js/pull/2080))
+
+We added new validators that will match either *A-Z + space* or *a-z + space*.
+They are available in newly created projects from 5.19.0 onward.
+
+If you need them in your existing project, you will need to add them in your `apps/admin/code/src/plugins/headlessCms.ts` file.
+
+You need to add 4 plugins in total:
+
+```typescript title="apps/admin/code/src/plugins/headlessCms.ts"
+import lowerCaseSpaceFieldValidator from "@webiny/app-headless-cms/admin/plugins/validators/patternPlugins/lowerCaseSpace";
+import upperCaseSpaceFieldValidator from "@webiny/app-headless-cms/admin/plugins/validators/patternPlugins/upperCaseSpace";
+
+import editorLowerCaseSpaceFieldValidator from "@webiny/app-headless-cms/admin/plugins/fieldValidators/patternPlugins/lowerCaseSpace";
+import editorUpperCaseSpaceFieldValidator from "@webiny/app-headless-cms/admin/plugins/fieldValidators/patternPlugins/upperCaseSpace";
+```
+
+And, of course, add them to the default export array:
+
+```typescript
+export default [
+	// ...existing plugins
+	lowerCaseSpaceFieldValidator,
+	upperCaseSpaceFieldValidator,
+	editorLowerCaseSpaceFieldValidator,
+	editorUpperCaseSpaceFieldValidator,
+];
+```
