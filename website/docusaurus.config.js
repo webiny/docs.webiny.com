@@ -7,8 +7,12 @@ const siteConfig = {
             {
                 redirects: [
                     {
-                        to: "/docs/webiny/introduction",
-                        from: "/docs"
+                        from: "/docs/enterprise",
+                        to: "/docs/enterprise/multi-tenancy/setup"
+                    },
+                    {
+                        from: "/docs",
+                        to: "/docs/webiny/introduction"
                     }
                 ]
             }
@@ -76,12 +80,12 @@ const siteConfig = {
                     href: "https://github.com/webiny/webiny-js",
                     label: "GitHub",
                     position: "right"
-                },
-                {
-                    href: "https://storybook.webiny.com",
-                    label: "Storybook",
-                    position: "right"
                 }
+                // {
+                //     href: "https://storybook.webiny.com",
+                //     label: "Storybook",
+                //     position: "right"
+                // }
             ]
         },
         announcementBar: {
