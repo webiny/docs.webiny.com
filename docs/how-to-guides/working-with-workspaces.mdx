@@ -45,23 +45,25 @@ When deploying your project applications, building of packages is done automatic
 :::
 
 ### How It Works
-Note that the `workspaces run` command runs the commands specified in the `webiny.config.js` file, and not the scripts that might've been defined in packages' `package.json` file, in its `scripts` section.
+Note that the `workspaces run` command runs the commands specified in the `webiny.config.ts` file, and not the scripts that might've been defined in packages' `package.json` file, in its `scripts` section.
 
-The `webiny.config.js` is almost always present in every package. For example, your React applications might have something like the following:
+The `webiny.config.ts` is almost always present in every package. For example, your React applications might have something like the following:
 
-```js
-// webiny.config.js
-const { startApp, buildApp } = require("@webiny/project-utils");
+```ts title="webiny.config.ts"
+const { createWatchApp, createBuildApp } = require("@webiny/project-utils");
 
 module.exports = {
     commands: {
         async start(args, context) {
-            // Start local development.
-            await startApp(args, context);
+            // Starts local application development.
+            const watch = createWatchApp({ cwd: __dirname });
+            await watch(options);
         },
         async build(args, context) {
-            // Bundle app for deployment.
-            await buildApp(args, context);
+            // Creates a production build of your application, ready to be deployed to
+            // a hosting provider of your choice, for example Amazon S3.
+            const build = createBuildApp({ cwd: __dirname });
+            await build(options);
         }
     }
 };
@@ -91,14 +93,14 @@ yarn webiny ws run build --folder ./react-apps --env dev --custom-argument-1
 
 ### How It Works
 
-Once executed, the `workspaces run` command first retrieves a list of all packages, specified via either the `--folder` or `--scope` argument. After that, the command requires the `webiny.config.js`
+Once executed, the `workspaces run` command first retrieves a list of all packages, specified via either the `--folder` or `--scope` argument. After that, the command requires the `webiny.config.ts`
 
 ## FAQ
 
 #### What happens if the command doesn't exist in one or more packages?
 
-If you're running a specific command for multiple packages, and some of the packages don't have it defined in its `webiny.config.js`, those packages will simply be ignored. Ultimately, for each package, the command gets executed only if it's actually defined in the `webiny.config.js`.
+If you're running a specific command for multiple packages, and some of the packages don't have it defined in its `webiny.config.ts`, those packages will simply be ignored. Ultimately, for each package, the command gets executed only if it's actually defined in the `webiny.config.ts`.
 
-#### Can I add more commands in the `webiny.config.js`?
+#### Can I add more commands in the `webiny.config.ts`?
 
 Yes, you can. Feel free to expand it in any way needed.

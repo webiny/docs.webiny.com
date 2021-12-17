@@ -216,9 +216,9 @@ In order to do this, upon starting a new watch session or building our applicati
 
 So, we need to add the following lines into the [`code/webiny.config.ts`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-react-app/template/code/webiny.config.ts):
 
-```ts title="webiny.config.ts" {1,3,5,6,7,9,17-18,24-25}
+```ts title="webiny.config.ts" {1,3,5,6,7,9,17-18,25-26}
 import invariant from "invariant";
-import { startApp, buildApp } from "@webiny/project-utils";
+import { createWatchApp, createBuildApp } from "@webiny/project-utils";
 import { getStackOutput } from "@webiny/cli-plugin-deploy-pulumi/utils";
 
 const MAP = {
@@ -237,7 +237,8 @@ export default {
       Object.assign(process.env, getStackOutput("api", options.env, MAP));
 
       // Starts local application development.
-      await startApp(options, context);
+      const watch = createWatchApp({ cwd: __dirname });
+      await watch(options);
     },
     async build(options, context) {
       invariant(options.env, NO_ENV_MESSAGE);
@@ -245,9 +246,10 @@ export default {
 
       // Creates a production build of your application, ready to be deployed to
       // a hosting provider of your choice, for example Amazon S3.
-      await buildApp(options, context);
-    },
-  },
+      const build = createBuildApp({ cwd: __dirname });
+      await build(options);
+    }
+  }
 };
 ```
 

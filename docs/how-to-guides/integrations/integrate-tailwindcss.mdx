@@ -46,80 +46,84 @@ Learn more about project applications and packages in the [Project Applications 
 We need to add the Tailwind CSS to the `postcss` plugins inside the Webpack configuration of the application.
 
 Every package in a Webiny application has a `webiny.config.ts` file that exports the often used development-related commands.
-In the case of **Website**`(apps/website)` it contains the following commands:
-- `start` to start the application
+
+In case of **Website** `(apps/website)`, it contains the following commands:
+- `watch` to watch the application
 - `build` to build the application
 
 Let's take a brief look at the file content:
 
 ```js title="apps/website/code/webiny.config.ts"
-const { startApp, buildApp } = require("@webiny/project-utils");
+const { createWatchApp, createBuildApp } = require("@webiny/project-utils");
 // Some code is removed for the sake of brevity.
 
 module.exports = {
     commands: {
-        async start(options, context) {
+        async watch(options) {
             (...)
-            // Start local development.
-            await startApp(options, context);
+
+            // Starts local application development.
+            const watch = createWatchApp({ cwd: __dirname });
+            await watch(options);
         },
-        async build(options, context) {
+        async build(options) {
             (...)
-            // Bundle app for deployment.
-            await buildApp(options, context);
+
+            // Creates a production build of your application, ready to be deployed to
+            // a hosting provider of your choice, for example Amazon S3.
+            const build = createBuildApp({ cwd: __dirname });
+            await build(options);
         }
     }
 };
 ```
-As you can see in the above file, we export an object with `commands.start` and `commands.build` functions.
+As we can see in the above file, we export an object with `commands.watch` and `commands.build` functions, where we use the `createWatchApp` and `createBuildApp` helper functions, imported from the `@webiny/project-utils` package.
 
-We use `startApp` and `buildApp` helper functions that we imported from `"@webiny/project-utils"` in `commands.start` and `commands.build` respectively.
+Both functions accept the optional `overrides` property. This is where we'll assign the necessary Webpack overrides, by assigning a simple callback function to its `webpack` property.
 
-Both, `startApp` and `buildApp` function, take two arguments: `options` and `context`.
-
-You can pass a function named `webpack` to this `options` object. It receives `config` as the single argument and should return the new config for Webpack.
-We will make use of this function to add Tailwind CSS support in our Webpack configuration:
-
-```js title="apps/website/code/webiny.config.ts {10-15,23-28}"
-const { startApp, buildApp } = require("@webiny/project-utils");
+```js title="apps/website/code/webiny.config.ts {12-16,27-31}"
+import { createWatchApp, createBuildApp } from "@webiny/project-utils";
 // Some code is removed for the sake of brevity.
 
-module.exports = {
+export default {
     commands: {
-        async start(options, context) {
-            (...)
-            // Start local development.
-            await startApp(
-                {
-                    ...options,
+        async watch(options) {
+            // (...)
+
+            // Starts local application development.
+            const watch = createWatchApp({
+                cwd: __dirname,
+                overrides: {
                     webpack(config) {
                         return require("./applyTailwindToWebpack")(config);
                     }
-                },
-                context
-            );
+                }
+            });
+            await watch(options);
         },
         async build(options, context) {
-            (...)
-            // Bundle app for deployment.
-            await buildApp(
-                {
-                    ...options,
+            // (...)
+
+            // Creates a production build of your application, ready to be deployed to
+            // a hosting provider of your choice, for example Amazon S3.
+            const build = createBuildApp({
+                cwd: __dirname,
+                overrides: {
                     webpack(config) {
                         return require("./applyTailwindToWebpack")(config);
                     }
-                },
-                context
-            );
+                }
+            });
+            await build(options);
         }
     }
 };
 ```
 
-We use `options.webpack` to add Tailwind CSS in the Webpack configuration in both `startApp` and `buildApp` commands.
+We use `overrides.webpack` to add Tailwind CSS in the Webpack configuration in both `createWatchApp` and `createBuildApp` commands.
 
 :::info
-We made this change in both `startApp` and `buildApp` commands so that we can use Tailwind CSS in both local development and deployed application.
+We made this change in both `createWatchApp` and `createBuildApp` commands so that we can use Tailwind CSS in both local development and deployed application.
 :::
 
 The actual code responsible for making the required modifications to the Webpack configuration is inside the [`applyTailwindToWebpack`](https://github.com/webiny/webiny-examples/blob/master/integrate-tailwind-css/code/applyTailwindToWebpack.js) file:
@@ -212,7 +216,7 @@ Tailwind CSS swaps these directives out at build-time with all of the styles it 
 That's all! Now, when you start your **Website** `(apps/website)` React application locally, by running:
 
 ```
-yarn start --env=local
+yarn watch --env=local
 ```
 
 Or build it (which happens automatically for you when you deploy your application using `webiny deploy` command):
