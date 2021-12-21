@@ -179,6 +179,7 @@ module.exports = {
                 "how-to-guides/deployment/execute-pulumi-commands",
                 "how-to-guides/deployment/connect-custom-domain",
                 "how-to-guides/deployment/destroy-cloud-infrastructure",
+                "how-to-guides/deployment/build-and-deploy-hooks",
                 {
                     type: "category",
                     label: "AWS",
