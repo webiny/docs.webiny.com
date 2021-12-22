@@ -22,7 +22,9 @@ Lifecycle events using publish/subscribe pattern replace the PagePlugin hooks st
 
 In our Page Builder we provide lifecycle events available for you to hook into.
 
-With the lifecycle events you can hook into a number of different operations.
+With the lifecycle events you can hook into a number of different operations, like:
+ * change the page data which is going to be stored
+ * notify another system that new page was stored
 
 ## Available Options
 ### System
@@ -79,8 +81,49 @@ All the parameters for the events are typed, so it is easy to find out what data
 
 ## Example
 
-It is quite easy to subscribe to some lifecycle event. Let us show you an example:
+It is quite easy to subscribe to some lifecycle event. Let us show you few examples:
 
+### Change what is stored into the database
+```typescript
+import { PbContext } from "@webiny/api-page-builder/types";
+import { ContextPlugin } from "@webiny/handler/plugins/ContextPlugin";
+
+const changePageBeforeStoring = new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageCreate.subscribe(async(params) => {
+        const {
+            /**
+             * The page that was stored into the database.
+             */
+            page
+        } = params;
+		/**
+		 * Let's say we want to lock the page for editing if it starts with "Webiny" word in the title.
+		 */
+        if (page.title.match(/^Webiny/) === null) {
+            return;
+        }
+
+        page.locked = true;
+    });
+});
+
+/**
+ * Register the plugin to the createHandler plugins array.
+ */
+const handler = createHandler({
+	plugins: [
+	    // ...
+		changePageBeforeStoring,
+		// ...
+	]
+});
+```
+
+:::danger
+Please, be aware that you can change what ever you want on the page object, so be careful with that.
+:::
+
+### Notify another system that a page was stored
 ```typescript
 import { PbContext } from "@webiny/api-page-builder/types";
 import { ContextPlugin } from "@webiny/handler/plugins/ContextPlugin";
@@ -112,5 +155,5 @@ const handler = createHandler({
 This example will trigger a notification function (your custom function) after the Page was created successfully.
 
 :::warning
-Be aware that the order of subscribing matters, so if you want some event subscription to be executed before some other one, add it first.
+Please, be aware that the order of subscribing matters, so if you want some event subscription to be executed before some other one, add it first.
 :::
