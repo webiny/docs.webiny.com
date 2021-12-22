@@ -102,6 +102,7 @@ module.exports = {
                         "tutorials/page-builder/customize-an-existing-page-builder-element",
                         "how-to-guides/webiny-applications/page-builder/extend-graphql-api",
                         "how-to-guides/webiny-applications/page-builder/extend-page-settings",
+                        "key-topics/page-builder/lifecycle-events",
                         {
                             type: "category",
                             label: "Themes",
