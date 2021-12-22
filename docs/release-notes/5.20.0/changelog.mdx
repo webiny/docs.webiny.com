@@ -17,14 +17,9 @@ import cloneModels from "./images/clone-models.gif";
 
 With this new feature, users now have the ability to clone existing content models into the same or a different locale. No more manual re-creation of the same content model in a different locale!
 
-<CenteredImage
-  src={cloneModels}
-  title={"Cloning of Existing Content Models"}
-/>
+<CenteredImage src={cloneModels} title={"Cloning of Existing Content Models"} />
 
-
-
-### Programmatically Created Content Models - Fixed "List-Entries" GraphQL Query  ([#2133](https://github.com/webiny/webiny-js/pull/2133))
+### Programmatically Created Content Models - Fixed "List-Entries" GraphQL Query ([#2133](https://github.com/webiny/webiny-js/pull/2133))
 
 We've resolved an issue that would occur when a user created a content model programmatically (via the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L9) plugin), and then tried to issue its respective GraphQL query that lists all entries. This issue was occurring only on the DynamoDB + Elasticsearch setup of Webiny.
 
@@ -58,10 +53,10 @@ From time to time, users may need to re-render a particular page they've previou
 mutation {
   pageBuilder {
     rerenderPage(id: "xyz") {
-        data {
-            id
-            path
-        }
+      data {
+        id
+        path
+      }
     }
   }
 }
@@ -69,12 +64,25 @@ mutation {
 
 ### Replaced Lifecycle Hooks With Publish And Subscribe Methods ([#2136](https://github.com/webiny/webiny-js/pull/2136))
 
-We removed `PagePlugin` hooks in favor of publish / subscribe methods. To find out which methods exist read the [article](/docs/key-topics/page-builder/lifecycle-events) about them.
+In order to provide a more unified developer experience, within your GraphQL API, hooking onto Page Builder’s key lifecycle events is now done via a simple [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/handler/src/plugins/ContextPlugin.ts). No need to import a separate plugin to achieve this.
+
+The following is a simple example that shows how you can hook onto the `onBeforeMenuUpdate` lifecycle event:
+
+```ts
+import { Context } from "~/types";
+
+new ContextPlugin<Context>(context => {
+  context.pageBuilder.onBeforeMenuUpdate.subscribe(async ({ menu, original }) => {
+    // Do something here.
+  });
+});
+```
+
+For more details on all of the available events, please see the dedicated [Lifecycle Events](/docs/key-topics/page-builder/lifecycle-events) guide.
 
 :::danger
-If you have used `PagePlugin` hooks, please switch to the subscribe methods, because hooks were completely removed.
+The old `PagePlugin` plugins no longer work. If you've already used them in your project, please replace them with the new `PageBuilder` plugin.
 :::
-
 
 ## Development
 
