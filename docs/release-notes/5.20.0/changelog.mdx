@@ -1,0 +1,107 @@
+---
+id: changelog
+title: Webiny 5.20.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.20.0", "changelog"]
+description: See what's new in Webiny version 5.20.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import cloneModels from "./images/clone-models.gif";
+
+# Changes
+
+## Headless CMS
+
+### Introducing the Ability to Clone Existing Content Models ([#2131](https://github.com/webiny/webiny-js/pull/2131)) ([#2132](https://github.com/webiny/webiny-js/pull/2132))
+
+With this new feature, users now have the ability to clone existing content models into the same or even a different locale. Manual re-creation of the same content model in a different locale is now a thing of the past!
+
+<CenteredImage src={cloneModels} title={"Cloning of Existing Content Models"} />
+
+### Programmatically Created Content Models - Fixed "List-Entries" GraphQL Query ([#2133](https://github.com/webiny/webiny-js/pull/2133))
+
+We've resolved an issue that would occur when a user created a content model programmatically (via the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L9) plugin), and then tried to issue its respective GraphQL query that lists all entries. This issue was occurring only on the DynamoDB + Elasticsearch setup of Webiny.
+
+:::info
+To learn more about creating content models via plugins, check out the [Define Content Models via Plugins](/docs/how-to-guides/webiny-applications/headless-cms/content-model-plugins/) guide.
+:::
+
+### Fixed Marking a Nested Object's Field as Title Field ([#2127](https://github.com/webiny/webiny-js/pull/2127))
+
+While defining a content model via the Content Model Editor, if a nested object's field ended up with the same `fieldId` property as the content model's `titleFieldId` property, an unexpected error would be thrown. This particular edge case has now been addressed.
+
+### Fixed an Admin Area Bug Where Date Field Value Was Set as Null ([#2126](https://github.com/webiny/webiny-js/pull/2126))
+
+Prior to this release, saving a new content model entry that includes one or more date fields whose values haven't been changed (default values were used) would result in an unexpected error. This has now been addressed.
+
+### Headless CMS GraphQL API - Resolved Search Issue ([#2125](https://github.com/webiny/webiny-js/pull/2125))
+
+In some cases, when using the Headless CMS GraphQL API to search for a content model entry via its `id` or `entryId` field would result in an unexpected error. The issues has been resolved.
+
+### Headless CMS GraphQL API - Broken GraphQL Schema ([#2120](https://github.com/webiny/webiny-js/pull/2120))
+
+Prior to this release, defining an empty nested object field as the initial field of a content model would break the Headless CMS' GraphQL schema, effectively making the GraphQL API unusable. A set of additional checks has been implemented, so this issue should now be resolved.
+
+## Page Builder
+
+### Added Ability to Re-render an Existing Published Page ([#2092](https://github.com/webiny/webiny-js/pull/2092))
+
+From time to time, users may need to re-render a particular page they've previously created and published. This can now be done easily via the built-in [API Playground](/docs/how-to-guides/webiny-applications/admin-area/api-playground/), by executing a simple `rerenderPage` GraphQL mutation. For example:
+
+```graphql title='Re-rendering a Page via the "rerenderPage" Mutation'
+mutation {
+  pageBuilder {
+    rerenderPage(id: "xyz") {
+      data {
+        id
+        path
+      }
+    }
+  }
+}
+```
+
+More information about this GraphQL mutation can also be found in the **Docs** tab, in the API Playground in your Admin Area application.
+
+### Replaced Lifecycle Hooks With Publish And Subscribe Methods ([#2136](https://github.com/webiny/webiny-js/pull/2136))
+
+In order to provide a more unified developer experience, within your GraphQL API, hooking onto Page Builder’s key lifecycle events is now done via a simple [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/handler/src/plugins/ContextPlugin.ts). No need to import the separate `PagePlugin` plugin to achieve this anymore.
+
+The following is a simple example that shows how you can hook onto the `onBeforeMenuUpdate` lifecycle event:
+
+```ts
+import { Context } from "~/types";
+
+new ContextPlugin<Context>(context => {
+  context.pageBuilder.onBeforeMenuUpdate.subscribe(async ({ menu, original }) => {
+    // Do something here.
+  });
+});
+```
+
+For more details on all of the available events, please see the dedicated [Lifecycle Events](/docs/key-topics/page-builder/lifecycle-events) guide.
+
+:::danger
+The `PagePlugin` plugin that was previously used is no longer supported. If you've already used it your project, please replace all occurrences with the new [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/next/packages/handler/src/plugins/ContextPlugin.ts) approach, as demonstrated above.
+:::
+
+## Development
+
+### Fixed `webiny watch` Command's `--remoteRuntimeLogs` (`-r`) Argument ([#2124](https://github.com/webiny/webiny-js/pull/2124))
+
+In a couple of scenarios, upon running the [`webiny watch`](/docs/how-to-guides/use-watch-command/) command, adding the `--remoteRuntimeLogs` (`-r`) argument would not properly return runtime logs in user's terminal. This has now been addressed.
+
+### Fixed React Component Scaffold's `webiny.config.ts` File ([#2123](https://github.com/webiny/webiny-js/pull/2123))
+
+The [`webiny.config.ts`](https://github.com/webiny/webiny-js/blob/next/packages/cli-plugin-scaffold-react-component/template/webiny.config.ts) file that is generated when running the React Component scaffold has been updated. It now reflects the changes done in the recent [5.18.0](/docs/release-notes/5.18.0/changelog) release.
+
+### Two New `webiny deploy` Hooks ([#2079](https://github.com/webiny/webiny-js/pull/2079))
+
+You can now hook onto the pre-build and post-build events that are emitted during the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project/) command. More information about all related hooks can be found in the new [Build and Deploy Hooks](/docs/how-to-guides/deployment/build-and-deploy-hooks) guide.
+
+## Documentation
+
+### Updated All Mentions of `webiny.config.ts` Files ([#366](https://github.com/webiny/docs.webiny.com/pull/366))
+
+All occurrences of `webiny.config.ts` configuration files have been updated to reflect the changes done in the recent [5.18.0](/docs/release-notes/5.18.0/changelog) release.

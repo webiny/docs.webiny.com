@@ -102,6 +102,7 @@ module.exports = {
                         "tutorials/page-builder/customize-an-existing-page-builder-element",
                         "how-to-guides/webiny-applications/page-builder/extend-graphql-api",
                         "how-to-guides/webiny-applications/page-builder/extend-page-settings",
+                        "key-topics/page-builder/lifecycle-events",
                         {
                             type: "category",
                             label: "Themes",
@@ -179,6 +180,7 @@ module.exports = {
                 "how-to-guides/deployment/execute-pulumi-commands",
                 "how-to-guides/deployment/connect-custom-domain",
                 "how-to-guides/deployment/destroy-cloud-infrastructure",
+                "how-to-guides/deployment/build-and-deploy-hooks",
                 {
                     type: "category",
                     label: "AWS",
@@ -305,6 +307,11 @@ module.exports = {
                 "how-to-guides/upgrade-webiny",
                 {
                     type: "category",
+                    label: "5.20.0",
+                    items: ["release-notes/5.20.0/changelog", "release-notes/5.20.0/upgrade-guide"]
+                },
+                {
+                    type: "category",
                     label: "5.19.1",
                     items: ["release-notes/5.19.1/changelog", "release-notes/5.19.1/upgrade-guide"]
                 },
@@ -325,13 +332,16 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "5.16.0",
-                    items: ["release-notes/5.16.0/changelog", "release-notes/5.16.0/upgrade-guide"]
-                },
-                {
-                    type: "category",
                     label: "Older Releases",
                     items: [
+                        {
+                            type: "category",
+                            label: "5.16.0",
+                            items: [
+                                "release-notes/5.16.0/changelog",
+                                "release-notes/5.16.0/upgrade-guide"
+                            ]
+                        },
                         {
                             type: "category",
                             label: "5.15.0",
