@@ -279,7 +279,8 @@ module.exports = {
                     type: "category",
                     label: "Integrations",
                     items: ["how-to-guides/integrations/integrate-tailwindcss"]
-                }
+                },
+                "key-topics/environment-variables"
             ]
         },
         {
@@ -307,6 +308,11 @@ module.exports = {
                 "how-to-guides/upgrade-webiny",
                 {
                     type: "category",
+                    label: "5.21.0",
+                    items: ["release-notes/5.21.0/changelog", "release-notes/5.21.0/upgrade-guide"]
+                },
+                {
+                    type: "category",
                     label: "5.20.0",
                     items: ["release-notes/5.20.0/changelog", "release-notes/5.20.0/upgrade-guide"]
                 },
@@ -325,15 +331,19 @@ module.exports = {
                     label: "5.18.0",
                     items: ["release-notes/5.18.0/changelog", "release-notes/5.18.0/upgrade-guide"]
                 },
-                {
-                    type: "category",
-                    label: "5.17.0",
-                    items: ["release-notes/5.17.0/changelog", "release-notes/5.17.0/upgrade-guide"]
-                },
+
                 {
                     type: "category",
                     label: "Older Releases",
                     items: [
+                        {
+                            type: "category",
+                            label: "5.17.0",
+                            items: [
+                                "release-notes/5.17.0/changelog",
+                                "release-notes/5.17.0/upgrade-guide"
+                            ]
+                        },
                         {
                             type: "category",
                             label: "5.16.0",
