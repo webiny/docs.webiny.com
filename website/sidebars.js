@@ -279,8 +279,7 @@ module.exports = {
                     type: "category",
                     label: "Integrations",
                     items: ["how-to-guides/integrations/integrate-tailwindcss"]
-                },
-                "key-topics/environment-variables"
+                }
             ]
         },
         {
