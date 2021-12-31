@@ -90,7 +90,12 @@ module.exports = {
                         "how-to-guides/webiny-applications/headless-cms/content-model-plugins",
                         "key-topics/headless-cms/lifecycle-events",
                         "how-to-guides/webiny-applications/headless-cms/create-a-content-model-form-layout",
-                        "how-to-guides/webiny-applications/headless-cms/rendering-rich-text"
+                        "how-to-guides/webiny-applications/headless-cms/rendering-rich-text",
+                        {
+                            type: "category",
+                            label: "Plugins",
+                            items: ["serverless-cms/headless-cms/plugins/storage-transform-plugin"]
+                        }
                     ]
                 },
                 {
