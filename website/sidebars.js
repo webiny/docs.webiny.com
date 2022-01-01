@@ -145,7 +145,7 @@ module.exports = {
                         "how-to-guides/webiny-applications/admin-area/introduction",
                         "how-to-guides/webiny-applications/admin-area/framework",
                         "how-to-guides/webiny-applications/admin-area/api-playground",
-                        "how-to-guides/webiny-applications/admin-area/change-logo",
+                        // "how-to-guides/webiny-applications/admin-area/change-logo",
                         // "how-to-guides/webiny-applications/admin-area/customize-navigation-menu",
                         {
                             type: "category",
@@ -263,15 +263,15 @@ module.exports = {
                 "how-to-guides/environment-variables",
                 "how-to-guides/importing-plugins",
                 "how-to-guides/extend-graphql-api",
-                {
-                    type: "category",
-                    label: "UI Composer",
-                    items: [
-                        "key-topics/ui-composer/introduction",
-                        "key-topics/ui-composer/building-views",
-                        "key-topics/ui-composer/creating-elements"
-                    ]
-                },
+                // {
+                //     type: "category",
+                //     label: "UI Composer",
+                //     items: [
+                //         "key-topics/ui-composer/introduction",
+                //         "key-topics/ui-composer/building-views",
+                //         "key-topics/ui-composer/creating-elements"
+                //     ]
+                // },
                 "tutorials/webiny-cli/adding-custom-commands",
                 "key-topics/tools-libraries",
                 "how-to-guides/webiny-applications/themes/introduction",

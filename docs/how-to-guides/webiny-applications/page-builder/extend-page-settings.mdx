@@ -30,8 +30,6 @@ Page settings UI within the Webiny Page Builder, by default, contains 3 major se
 
 <CenteredImage src={settingsView} title={"Page Settings View"} />
 
-These 3 sections are represented by the underlying view classes, implemented using the [Webiny UI Composer](/docs/key-topics/ui-composer/introduction).
-
 Adding a new field to the page settings involves the following steps:
 
 1. Extend the GraphQL API to be able to handle the new field.
@@ -51,19 +49,21 @@ The following code takes care of all the things described above.
 ```ts title="api/code/graphql/src/plugins/pageSettings.ts"
 import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
 import { PagePlugin } from "@webiny/api-page-builder/plugins/PagePlugin";
-import { Page } from "@webiny/api-page-builder/types";
+import { PbContext, OnBeforePageUpdateTopicParams } from "@webiny/api-page-builder/types";
 
 // Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
 // plugin. Apart from making your application code type-safe, it will also make the
 // interaction with the `context` object significantly easier.
 import { Context } from "~/types";
 
-// We need this interface for the PagePlugin below.
+// We need this interface for the event subscription below.
 // It will enable you to have proper autocomplete on your new fields.
-interface PageWithPassword extends Page {
-  settings: Page["settings"] & {
-    general: Page["settings"]["general"] & {
-      password: string;
+interface CustomEventParams extends OnBeforePageUpdateTopicParams {
+  page: OnBeforePageUpdateTopicParams["page"] & {
+    settings: {
+      general: {
+        password: string;
+      };
     };
   };
 }
@@ -81,16 +81,13 @@ export default [
       }
     `
   }),
-  // Explicitly assign the field value from GraphQL input to the data that is used to update the page.
-  // Note that we are passing a custom type to the plugin to allow us to use the new `password` field.
-  new PagePlugin<PageWithPassword>({
-    beforeUpdate({ inputData, updateData }) {
-      // Make sure `general` settings exist before assigning a value to it.
-      // There are situations where this may be empty, for example, during system installation.
-      if (updateData.settings.general) {
-        updateData.settings.general.password = inputData.settings.general.password;
-      }
-    }
+  // Subscribe to the page update event using the ContextPlugin.
+  new ContextPlugin<PbContext>(({ pageBuilder }) => {
+    // We are passing a custom event type to allow us to use the new `password` field.
+    pageBuilder.onBeforePageUpdate.subscribe<CustomEventParams>(({ page, input }) => {
+      // Explicitly assign the field value from GraphQL input to the data that is used to update the page.
+      page.settings.general.password = input.settings.general.password;
+    });
   })
 ];
 ```
@@ -214,7 +211,6 @@ new PagePlugin<CustomPage>({
 });
 ```
 
-
 ## Add New Fields to `listPublishedPages` Query
 
 If you need to add your new fields to the output of the `listPublishedPages` query, there are a couple of things to know about this query.
@@ -258,8 +254,8 @@ export default [
 With these plugins in place, you can now access the `password` field on the `listPublishedPages` query:
 
 <CenteredImage
-    src={listPublishedPages}
-    title={`Password Field in the "listPublishedPages" Query`}
+  src={listPublishedPages}
+  title={`Password Field in the "listPublishedPages" Query`}
 />
 
 :::info Important
