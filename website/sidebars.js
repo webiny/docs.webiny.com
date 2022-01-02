@@ -145,7 +145,7 @@ module.exports = {
                         "how-to-guides/webiny-applications/admin-area/introduction",
                         "how-to-guides/webiny-applications/admin-area/framework",
                         "how-to-guides/webiny-applications/admin-area/api-playground",
-                        // "how-to-guides/webiny-applications/admin-area/change-logo",
+                        "how-to-guides/webiny-applications/admin-area/change-logo",
                         // "how-to-guides/webiny-applications/admin-area/customize-navigation-menu",
                         {
                             type: "category",
