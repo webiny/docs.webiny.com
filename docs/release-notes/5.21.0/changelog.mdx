@@ -1,0 +1,92 @@
+---
+id: changelog
+title: Webiny 5.21.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.21.0", "changelog"]
+description: See what's new in Webiny version 5.21.0.
+---
+
+import Gallery from "@components/Gallery";
+import view1 from "./assets/reCAPTCHASettings.png";
+import view2 from "./assets/UserAccount.png";
+import view3 from "./assets/WebsiteSettings.png";
+
+# Changes
+
+With this release, we're starting the process of unifying all our apps (Page Builder, Headless CMS, etc.) under a single product, the **Webiny Serverless CMS** :rocket:.
+
+This release focuses on the frontend (React) side of things, and is aimed at simplifying the setup of the entire Admin app for the Webiny Serverless CMS. Read on to learn more details.
+
+## Admin App
+
+### Simplify Admin App Setup ([#2165](https://github.com/webiny/webiny-js/pull/2165))
+
+This refactor is an absolute flagship of this release!
+Up until now, Webiny Admin app consisted of a lot of boilerplate located in your project. There were lots of files, importing lots of plugins, the entire app setup was right there in your project, and you could easily break things (unwillingly), and even worse, it was very difficult for us, the core team, to release upgrades.
+
+We've introduced a new package, called `@webiny/app-serverless-cms`, and from now on, this will be the _only_ package you'll need to interact with (for the most part). The entire Admin app is configured using this new package, and all the utilities and plugins to extend Webiny are accessible via this package.
+
+This is what a setup of the entire Webiny Admin app looks like now:
+
+```tsx title="Webiny Admin App Setup"
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
+import "./App.scss";
+
+export const App = () => {
+  return (
+    <Admin>
+      <Cognito />
+    </Admin>
+  );
+};
+```
+
+Learn more in the [documentation article](/docs/how-to-guides/webiny-applications/admin-area/introduction).
+
+### A New Underlying React Framework ([#2165](https://github.com/webiny/webiny-js/pull/2165))
+
+With the Admin app setup overhaul comes a new underlying framework, which focuses on using native React concepts, exclusively. A few years ago, when Webiny just started, some tools and techniques we know and love today, were not available (like React Context and hooks). This resulted in looking for workarounds, like a global plugins registry. Sure, it worked, and still works. But we want Webiny to use the latest tools, as much as possible. We also want to make it really easy to extend Webiny with as less code as possible. And what's better, than using just plain React components to hook into everything?!
+
+Learn more about the framework in the [documentation](/docs/how-to-guides/webiny-applications/admin-area/framework).
+
+### New Plugins ([#2165](https://github.com/webiny/webiny-js/pull/2165))
+
+A new framework means a new way of using plugins. Plugins are now plain React components. No more global registry with [POJOs](https://masteringjs.io/tutorials/fundamentals/pojo).
+
+> Your old plugins still work, and will continue to work until we provide a replacement for each one of them in form of a React component.
+
+To kick things off, we've implemented a couple of the most fundamental and commonly used plugins, like [`AddMenu`](/docs/how-to-guides/webiny-applications/admin-area/framework#the-addmenu-plugin), [`AddRoute`](/docs/how-to-guides/webiny-applications/admin-area/framework#the-addroute-plugin), [`AddLogo`](/docs/how-to-guides/webiny-applications/admin-area/change-logo), and a few others. [Naming conventions](/docs/how-to-guides/webiny-applications/admin-area/framework#naming-conventions) make things easier to discover, and you don't need to worry about the Typescript types, because now everything is provided to you via dedicated React components.
+
+## Headless CMS
+
+### Added GraphQL Required Input ([#2144](https://github.com/webiny/webiny-js/pull/2144))
+
+We added the non-null input mark (`!`) for the fields which have `required` validators set.
+
+## Development
+
+### PubSub Events Now Support Custom Event Types
+
+As we're migrating our apps to use the recently introduced publish/subscribe mechanism, for hooking into the business logic in the GraphQL API, we noticed that it lacks the ability to extend the types of the event payloads. The `subscribe` method now accepts a [generic type](https://www.typescriptlang.org/docs/handbook/2/generics.html), which you can use to extend the default event payload type.
+
+A good example of this can be found in our [Extend Page Settings](/docs/how-to-guides/webiny-applications/page-builder/extend-page-settings#add-a-new-settings-field-to-graphql-api) article.
+
+### Added Webiny Version Header To GraphQL Response ([#2143](https://github.com/webiny/webiny-js/pull/2143))
+
+We added the Webiny version header to every GraphQL response. By default, header is not added. To add it into the output, read our article about [environment variables](/docs/how-to-guides/environment-variables#enable-webiny-version-header-environment-variable).
+
+### Stop The Deploy Process On Errors in Deploy Hooks ([#2161](https://github.com/webiny/webiny-js/pull/2161))
+
+Prior to this PR, if one of the [deploy hooks](/docs/how-to-guides/deployment/build-and-deploy-hooks/) threw an error, the deploy process would not be stopped, which is incorrect. This PR ensures that any error encountered in the deploy process, including hooks, will stop the whole deploy process.
+
+## Visual Improvements
+
+Some views received a bit of love, and now look visually more appealing. This is primarily related to the settings views, where the content was stretched to fill the width of the screen. Now it's limited to 700px by default, and makes the form look a lot better. The user account form was also slightly improved. See some examples in the screenshots below.
+
+<Gallery>
+  <Gallery.Image src={view3} title="Page Builder - Website Settings" />
+  <Gallery.Image src={view1} title="Form Builder - reCaptcha Settings" />
+  <Gallery.Image src={view2} title="Account Settings" />
+</Gallery>

@@ -90,7 +90,12 @@ module.exports = {
                         "how-to-guides/webiny-applications/headless-cms/content-model-plugins",
                         "key-topics/headless-cms/lifecycle-events",
                         "how-to-guides/webiny-applications/headless-cms/create-a-content-model-form-layout",
-                        "how-to-guides/webiny-applications/headless-cms/rendering-rich-text"
+                        "how-to-guides/webiny-applications/headless-cms/rendering-rich-text",
+                        {
+                            type: "category",
+                            label: "Plugins",
+                            items: ["serverless-cms/headless-cms/plugins/storage-transform-plugin"]
+                        }
                     ]
                 },
                 {
@@ -142,9 +147,11 @@ module.exports = {
                     type: "category",
                     label: "Admin Area",
                     items: [
+                        "how-to-guides/webiny-applications/admin-area/introduction",
+                        "how-to-guides/webiny-applications/admin-area/framework",
                         "how-to-guides/webiny-applications/admin-area/api-playground",
                         "how-to-guides/webiny-applications/admin-area/change-logo",
-                        "how-to-guides/webiny-applications/admin-area/customize-navigation-menu",
+                        // "how-to-guides/webiny-applications/admin-area/customize-navigation-menu",
                         {
                             type: "category",
                             label: "Extend Admin Area",
@@ -261,15 +268,15 @@ module.exports = {
                 "how-to-guides/environment-variables",
                 "how-to-guides/importing-plugins",
                 "how-to-guides/extend-graphql-api",
-                {
-                    type: "category",
-                    label: "UI Composer",
-                    items: [
-                        "key-topics/ui-composer/introduction",
-                        "key-topics/ui-composer/building-views",
-                        "key-topics/ui-composer/creating-elements"
-                    ]
-                },
+                // {
+                //     type: "category",
+                //     label: "UI Composer",
+                //     items: [
+                //         "key-topics/ui-composer/introduction",
+                //         "key-topics/ui-composer/building-views",
+                //         "key-topics/ui-composer/creating-elements"
+                //     ]
+                // },
                 "tutorials/webiny-cli/adding-custom-commands",
                 "key-topics/tools-libraries",
                 "how-to-guides/webiny-applications/themes/introduction",
@@ -307,6 +314,11 @@ module.exports = {
                 "how-to-guides/upgrade-webiny",
                 {
                     type: "category",
+                    label: "5.21.0",
+                    items: ["release-notes/5.21.0/changelog", "release-notes/5.21.0/upgrade-guide"]
+                },
+                {
+                    type: "category",
                     label: "5.20.0",
                     items: ["release-notes/5.20.0/changelog", "release-notes/5.20.0/upgrade-guide"]
                 },
@@ -325,15 +337,19 @@ module.exports = {
                     label: "5.18.0",
                     items: ["release-notes/5.18.0/changelog", "release-notes/5.18.0/upgrade-guide"]
                 },
-                {
-                    type: "category",
-                    label: "5.17.0",
-                    items: ["release-notes/5.17.0/changelog", "release-notes/5.17.0/upgrade-guide"]
-                },
+
                 {
                     type: "category",
                     label: "Older Releases",
                     items: [
+                        {
+                            type: "category",
+                            label: "5.17.0",
+                            items: [
+                                "release-notes/5.17.0/changelog",
+                                "release-notes/5.17.0/upgrade-guide"
+                            ]
+                        },
                         {
                             type: "category",
                             label: "5.16.0",
