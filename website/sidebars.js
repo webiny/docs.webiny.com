@@ -310,6 +310,13 @@ module.exports = {
             ]
         },
         {
+            type: "category",
+            label: "Community Plugins",
+            items: [
+                "community-plugins/introduction"
+            ]
+        },
+        {
             "Release Notes": [
                 "how-to-guides/upgrade-webiny",
                 {
