@@ -312,9 +312,7 @@ module.exports = {
         {
             type: "category",
             label: "Community Plugins",
-            items: [
-                "community-plugins/introduction"
-            ]
+            items: ["community-plugins/introduction"]
         },
         {
             "Release Notes": [
