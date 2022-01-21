@@ -8,7 +8,7 @@ const siteConfig = {
                 redirects: [
                     {
                         from: "/docs/enterprise",
-                        to: "/docs/enterprise/multi-tenancy/setup"
+                        to: "/docs/enterprise/multi-tenancy"
                     },
                     {
                         from: "/docs",
