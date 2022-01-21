@@ -312,9 +312,7 @@ module.exports = {
         {
             type: "category",
             label: "Community Plugins",
-            items: [
-                "community-plugins/introduction"
-            ]
+            items: ["community-plugins/introduction"]
         },
         {
             "Release Notes": [
@@ -486,6 +484,8 @@ module.exports = {
         "webiny-telemetry"
     ],
     enterprise: [
-        { type: "category", label: "Multi-Tenancy", items: ["enterprise/multi-tenancy/setup"] }
+        "enterprise/multi-tenancy",
+        "enterprise/theme-manager",
+        "enterprise/okta-integration"
     ]
 };
