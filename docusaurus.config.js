@@ -8,7 +8,7 @@ const siteConfig = {
                 redirects: [
                     {
                         from: "/docs/enterprise",
-                        to: "/docs/enterprise/multi-tenancy/setup"
+                        to: "/docs/enterprise/multi-tenancy"
                     },
                     {
                         from: "/docs",
@@ -41,7 +41,7 @@ const siteConfig = {
             "@docusaurus/preset-classic",
             {
                 docs: {
-                    path: "../docs",
+                    path: "./docs",
                     sidebarPath: require.resolve("./sidebars.js"),
                     editUrl: "https://github.com/webiny/docs.webiny.com/edit/master/docs/",
                     showLastUpdateAuthor: true,
