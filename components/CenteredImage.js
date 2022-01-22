@@ -27,8 +27,7 @@ export default props => {
                 className={classNames(props.className, {
                     ["no-shadow"]: props.shadow === false
                 })}
-                alt={props.alt}
-                title={props.title || props.alt}
+                alt={props.alt || props.title}
                 src={props.src}
             />
             {props.canEnlarge !== false && (
@@ -48,8 +47,7 @@ export default props => {
                 <Lightbox
                     mainSrc={props.src}
                     onCloseRequest={() => setState(false)}
-                    imageTitle={props.title}
-                    imageCaption={props.alt}
+                    imageTitle={props.title || props.alt}
                 />
             )}
         </div>
