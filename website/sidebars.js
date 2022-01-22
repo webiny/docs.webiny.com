@@ -491,6 +491,8 @@ module.exports = {
         "webiny-telemetry"
     ],
     enterprise: [
-        { type: "category", label: "Multi-Tenancy", items: ["enterprise/multi-tenancy/setup"] }
+        "enterprise/multi-tenancy/setup",
+        "enterprise/multi-tenancy/theme-manager",
+        "enterprise/multi-tenancy/okta-integration"
     ]
 };
