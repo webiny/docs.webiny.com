@@ -1,0 +1,103 @@
+---
+id: changelog
+title: Webiny 5.22.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.22.0", "changelog"]
+description: See what's new in Webiny version 5.22.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import multiplePreValue from "./assets/multiple-predefined-values.png";
+import singlePreValue from "./assets/single-predefined-values.png";
+import selSinglePreValue from "./assets/selected-single-predefined-values.png";
+import selMultiplePreValue from "./assets/selected-multiple-predefined-values.png";
+import themeManager from "/docs/enterprise/theme-manager/tenant-themes.png";
+import oktaLogin from "/docs/enterprise/okta-integration/okta-login.png";
+
+# Changes
+
+The major focus of this release was the upgrade of Webpack to version 5. It's been long overdue, and it's finally done. Along the way we also upgraded many of the underlying dependencies. Another area of improvement was the Headless CMS. 
+
+On the enterprise front, we're launching the Theme Manager and Okta integration.
+
+To see everything we worked on, see the details below.
+
+## Headless CMS
+
+### Unique Validator For Text Field ([#2166](https://github.com/webiny/webiny-js/pull/2166))
+
+A new **unique** validator has been introduced to the **text** field type. As the name itself suggests, when enabled, the validator will ensure that the value of this field is unique across all content entries (in other words, two content entries will not be able to have the same value of that field).
+
+The validator can be enabled via the **Validators** tab in the field settings.
+
+### Default Field Values ([#2184](https://github.com/webiny/webiny-js/pull/2184))
+
+#### Boolean Field
+
+Boolean field now supports a default value (**true** or **false**).
+
+#### Date/time Fields
+
+All of the date/time related fields can now optionally be configured with the current date/time as their default value. If enabled, the default value will be set on the frontend side (in the browser), while creating a new content entry. This way, user's timezone can also be taken into consideration upon setting field's default value.
+
+#### Text And Number Fields
+
+Upon creating a text or number field with the **Use predefined values** option enabled, users can now choose which of the defined value should be the initially selected one.
+
+How it looks when creating a model field:
+
+<CenteredImage shadow={false} title="Predefined single value" src={singlePreValue} />
+
+How it looks when creating an entry:
+
+<CenteredImage shadow={false} title="Predefined single selected value" src={selSinglePreValue} />
+
+Also, in case the **Use as list of...** option is enabled, multiple initially selected values can be set too.
+
+<CenteredImage shadow={false} title="Predefined multiple values" src={multiplePreValue} />
+
+How it looks when creating the entry:
+
+<CenteredImage shadow={false} title="Predefined single selected value" src={selMultiplePreValue} />
+
+When creating new content entry in the Admin app, be aware that if you unmark all the checkboxes or radio buttons, the field's value will end up being empty. To prevent that from happening, you can enable the **Required** field validator.
+
+### Fixed Date Clear Admin UI Crash ([#2185](https://github.com/webiny/webiny-js/pull/2185))
+
+We fixed an issue which would occur when a user tried to clear the value from an existing **Date/Time** field. From now on, the field's value will either be completely cleared, or it will be set to current date/time if the new [default value option](/docs/release-notes/5.22.0/changelog#datetime-fields) has been enabled.
+
+## Development
+
+### Upgraded Webpack to Version 5 ([#2101](https://github.com/webiny/webiny-js/pull/2101))
+
+We use Webpack to bundle API Lambda functions and React apps. We finally upgraded it to version 5 to be able to use things like React Fast Refresh, and have the ability to use better tree shaking via ESM in the future, as well as experiment with Module Federation.
+
+### Enabled React Fast Refresh ([#2101](https://github.com/webiny/webiny-js/pull/2101))
+
+React Fast Refresh is a replacement for React Hot Loader. React Hot Loader didn't always work because it lived outside of React, so it was often glitching, and it was hard to tell what caused the problem. React Fast Refresh is a new tool which works a lot better, even in such a plugin-heavy application as Webiny.
+
+### Simplified Babel Configuration ([#2101](https://github.com/webiny/webiny-js/pull/2101))
+
+We no longer require the `babel-plugin-named-asset-import` in project's Babel configuration. In the past, it was used to handle SVG imports and attach an svgr loader to those import statements. It can now be safely deleted from your project dependencies. Handling of SVGs is now also taken care of by Webpack.
+
+As a side note, we're thinking about moving all the babel configuration away from your project, to have less files, which will also make it easier to maintain upgrades for us.
+
+### Fine-Grained Cache Control on Files Uploaded to S3 ([#2180](https://github.com/webiny/webiny-js/pull/2180))
+
+This one was contributed by [Scott Stanton](https://github.com/snstanton) :raised_hands: :heart:. When we build Admin and Website apps, we deploy static assets to S3 using a custom function (not Pulumi), to make it much faster. Now it's possible to specify cache control settings on individual files, by passing in a map of patterns and the cache control string you want to apply to the files that match the given pattern.
+
+This can be used in `apps/admin/cli/deploy.ts` and `apps/website/cli/deploy.ts` when calling the `uploadFolderToS3` function.
+
+## Enterprise
+
+### Theme Manager
+
+Theme Manager is a new module which hooks into your multi-tenant project and the Page Builder, and allows you to have multiple themes which can be assigned to individual tenants. Once assigned, individual tenants can pick a theme they want to use for their website.
+
+<CenteredImage title="Assign Themes to Tenants" src={themeManager} />
+
+### Okta Integration for Multi-Tenant Projects
+
+By default, Webiny uses AWS Cognito as its IdP. With this release, we're adding support for [Okta](https://www.okta.com/), especially for multi-tenant projects, where you can control access to tenants by assigning them to different Okta Applications. 
+
+<CenteredImage title="Okta Login" src={oktaLogin} />

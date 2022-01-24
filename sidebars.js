@@ -312,13 +312,16 @@ module.exports = {
         {
             type: "category",
             label: "Community Plugins",
-            items: [
-                "community-plugins/introduction"
-            ]
+            items: ["community-plugins/introduction"]
         },
         {
             "Release Notes": [
                 "how-to-guides/upgrade-webiny",
+                {
+                    type: "category",
+                    label: "5.22.0",
+                    items: ["release-notes/5.22.0/changelog", "release-notes/5.22.0/upgrade-guide"]
+                },
                 {
                     type: "category",
                     label: "5.21.0",
@@ -341,14 +344,16 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "5.18.0",
-                    items: ["release-notes/5.18.0/changelog", "release-notes/5.18.0/upgrade-guide"]
-                },
-
-                {
-                    type: "category",
                     label: "Older Releases",
                     items: [
+                        {
+                            type: "category",
+                            label: "5.18.0",
+                            items: [
+                                "release-notes/5.18.0/changelog",
+                                "release-notes/5.18.0/upgrade-guide"
+                            ]
+                        },
                         {
                             type: "category",
                             label: "5.17.0",
@@ -486,6 +491,8 @@ module.exports = {
         "webiny-telemetry"
     ],
     enterprise: [
-        { type: "category", label: "Multi-Tenancy", items: ["enterprise/multi-tenancy/setup"] }
+        "enterprise/multi-tenancy",
+        "enterprise/theme-manager",
+        "enterprise/okta-integration"
     ]
 };

@@ -1,0 +1,278 @@
+---
+id: theme-manager
+title: Setup Theme Manager
+sidebar_label: "Theme Manager"
+keywords: ["webiny", "enterprise", "themes", "theme manager"]
+description: Learn how to configure a Theme Manager in your Webiny project
+---
+
+:::info Can I use this?
+
+This feature is available since Webiny **v5.22.0**.
+
+:::
+
+:::tip What you'll learn
+
+- how to enable theme management in the existing Webiny project
+- how to assign themes to individual tenants
+
+:::
+
+import CenteredImage from "@components/CenteredImage";
+import tenantThemes from "./theme-manager/tenant-themes.png";
+import importTMApi from "./theme-manager/import-theme-manager-api.png";
+import workspaces from "./theme-manager/workspaces.png";
+import tenantPbSettings from "./theme-manager/tenant-pb-settings.png";
+
+## Overview
+
+Theme Manager module makes it possible to assign website themes to individual tenants. Root tenant has access to all themes that are registered in the Admin app, and gets to decide which of those themes will be available to the sub-tenant.
+
+<CenteredImage title="Assign Themes to an Individual Tenant" src={tenantThemes} />
+
+## 1) Prepare the Project
+
+Your project needs to be at version `5.22.0` to use this feature.
+Please follow the [upgrade guide](/docs/how-to-guides/upgrade-webiny) to upgrade your project to the appropriate version.
+
+Alternatively, you can create a new `>=5.22.0` project, by running:
+
+```shell
+npx create-webiny-project my-project
+```
+
+:::info IMPORTANT
+If creating a new project, you'll have to first configure multi-tenancy. Follow [this guide](/docs/enterprise/multi-tenancy), if that's the case.
+:::
+
+## 2) Add New Dependencies
+
+We need to add several new packages to the project.
+
+Add Theme Manager module dependency to the GraphQL API dependencies:
+
+```shell
+yarn workspace api-graphql add @webiny/api-theme-manager
+```
+
+Add Theme Manager module dependency to the Admin app dependencies:
+
+```shell
+yarn workspace admin add @webiny/app-theme-manager
+```
+
+Add Theme Manager module dependency to the Website app dependencies:
+
+```shell
+yarn workspace website add @webiny/app-theme-manager
+```
+
+## 3) Import Theme Manager in the GraphQL API
+
+Open `api/code/graphql/src/index.ts`, and import the Theme Manager plugin:
+
+```ts
+import themeManager from "@webiny/api-theme-manager";
+```
+
+Then, add the plugin to the Lambda handler, towards the end of the plugins list. This plugin is extending the Page Builder app, so it has to be registered _after_ the Page Builder. See an example in the image below:
+
+<CenteredImage src={importTMApi} title="Enable Theme Manager Plugin in the GraphQL API." />
+
+## 4) Import and Configure Theme Manager in the Admin App
+
+Now we need to enable the Theme Manager module in the Admin app. In your `apps/admin/code/src/App.tsx`, add the following:
+
+```tsx title="apps/admin/code/src/App.tsx" {5,8-14,21}
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
+import { TenantManager } from "@webiny/app-tenant-manager";
+import { ThemeManager } from "@webiny/app-theme-manager";
+import "./App.scss";
+
+const themes = [
+  {
+    name: "default",
+    label: "Default Theme",
+    load: () => import("theme").then(m => m.default)
+  }
+];
+
+export const App = () => {
+  return (
+    <Admin>
+      <Cognito />
+      <TenantManager />
+      <ThemeManager themes={themes} />
+    </Admin>
+  );
+};
+```
+
+What's happening here is: we import the `ThemeManager` component, and we pass it an array of theme objects. As you can see from the code, themes are lazy-loaded, using [dynamic imports](https://webpack.js.org/guides/code-splitting/#dynamic-imports). This will create separate chunks for every theme, so only the theme that is actually being used will be loaded in the browser.
+
+The `name` property will be used by Webiny, and will be stored to the database when you assign a certain theme to a tenant, and in the Page Builder settings. The `label` property will be used in the Admin app UI, as a human-friendly theme descriptor.
+
+## 5) Import and Configure Theme Manager in the Website App
+
+Now we need to enable the Theme Manager module in the Website app. In your `apps/website/code/src/App.tsx`, add the following:
+
+```tsx title="apps/website/code/src/App.tsx" {5,9-14,19,25}
+import React from "react";
+import { ApolloProvider } from "@apollo/react-components";
+import { BrowserRouter, Switch, Route } from "@webiny/react-router";
+import { PageBuilderProvider } from "@webiny/app-page-builder/contexts/PageBuilder";
+import { ThemeLoader } from "@webiny/app-theme-manager";
+import { createApolloClient } from "./components/apolloClient";
+import Page from "./components/Page";
+
+const themes = [
+  {
+    name: "default",
+    load: () => import("theme").then(m => m.default)
+  }
+];
+
+export const App = () => (
+  <ApolloProvider client={createApolloClient()}>
+    <BrowserRouter basename={process.env.PUBLIC_URL}>
+      <ThemeLoader themes={themes}>
+        <PageBuilderProvider>
+          <Switch>
+            <Route path={"*"} component={Page} />
+          </Switch>
+        </PageBuilderProvider>
+      </ThemeLoader>
+    </BrowserRouter>
+  </ApolloProvider>
+);
+```
+
+Here, we're using the `ThemeLoader` component, and we're also passing it an array of themes like we did in the Admin app. On website render, ThemeLoader will make sure that the correct theme is loaded for the particular tenant.
+
+## 6) Adding More Themes
+
+Every Webiny project contains one theme, by default. You can find it in your project, by navigating to `apps/theme` folder. It's a simple [yarn workspace](https://classic.yarnpkg.com/lang/en/docs/workspaces/) which contains code. It doesn't have its own build process. It's bundled together with the app which imports it (like `admin` or `website`).
+
+To create more themes, all you have to do is duplicate the existing `theme` workspace. Here's how to do it, step by step:
+
+**1)** Duplicate the `theme` folder, and call it `theme-1`.
+
+**2)** Edit its `package.json` file (`apps/theme-1/package.json`), and change the `name` property to `theme-1`. This is very important, as this will be the name of the module you'll be importing in your apps.
+
+**3)** Add this new workspace path to the project level `package.json`, located at `<project>/package.json`:
+
+<CenteredImage src={workspaces} title="Add the New Workspace to the Project." />
+
+**4)** Run `yarn` to register the new workspace.
+
+**5)** Add the new theme to `admin` and `website` dependencies:
+
+```shell
+yarn workspace admin add theme-1 && yarn workspace website add theme-1
+```
+
+With this, you can now add your new theme in the Admin app, like so:
+
+```tsx title="apps/admin/code/src/App.tsx" {14-18}
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
+import { TenantManager } from "@webiny/app-tenant-manager";
+import { ThemeManager } from "@webiny/app-theme-manager";
+import "./App.scss";
+
+const themes = [
+  {
+    name: "default",
+    label: "Default Theme",
+    load: () => import("theme").then(m => m.default)
+  },
+  {
+    name: "theme-1",
+    label: "Theme #1",
+    load: () => import("theme-1").then(m => m.default)
+  }
+];
+
+export const App = () => {
+  return (
+    <Admin>
+      <Cognito />
+      <TenantManager />
+      <ThemeManager themes={themes} />
+    </Admin>
+  );
+};
+```
+
+And we also need to add the new theme in the Website app:
+
+```tsx title="apps/website/code/src/App.tsx" {14-17}
+import React from "react";
+import { ApolloProvider } from "@apollo/react-components";
+import { BrowserRouter, Switch, Route } from "@webiny/react-router";
+import { PageBuilderProvider } from "@webiny/app-page-builder/contexts/PageBuilder";
+import { ThemeLoader } from "@webiny/app-theme-manager";
+import { createApolloClient } from "./components/apolloClient";
+import Page from "./components/Page";
+
+const themes = [
+  {
+    name: "default",
+    load: () => import("theme").then(m => m.default)
+  },
+  {
+    name: "theme-1",
+    load: () => import("theme-1").then(m => m.default)
+  }
+];
+
+export const App = () => (
+  <ApolloProvider client={createApolloClient()}>
+    <BrowserRouter basename={process.env.PUBLIC_URL}>
+      <ThemeLoader themes={themes}>
+        <PageBuilderProvider>
+          <Switch>
+            <Route path={"*"} component={Page} />
+          </Switch>
+        </PageBuilderProvider>
+      </ThemeLoader>
+    </BrowserRouter>
+  </ApolloProvider>
+);
+```
+
+Once the code changes are done, deploy your Admin and Website apps, by running:
+
+```shell
+yarn webiny deploy apps/admin --env=dev && yarn webiny deploy apps/website --env=dev
+```
+
+:::info
+Every time you add a new theme, you need to deploy your Admin and Website apps.
+:::
+
+## 7) Assigning Themes to Tenants
+
+In the Tenant Manager, your themes will be visible in the tenant creation form. You can assign as many themes as you like to an individual tenant. Tenants will then be able to activate one of the assigned themes in their Page Builder settings.
+
+<CenteredImage title="Assign Themes to an Individual Tenant" src={tenantThemes} />
+
+## 8) Activating a Theme within the Page Builder
+
+Tenant admin users need to activate a specific theme in **Settings -> Page Builder -> Website**:
+
+<CenteredImage title="Activate a Specific Theme" src={tenantPbSettings} />
+
+## Conclusion
+
+This concludes the basic setup of themes in a multi-tenant environment. Note that the instructions provided in this article are written in such a way as to cause the least changes to your existing project structure. At this point, you can already see that things can become repetitive (like adding workspaces, adding themes to both Admin and Website apps, etc.).
+
+Here are some tips to make it more maintainable:
+
+- group your themes in a folder called `themes` (`apps/themes/theme-1`, `apps/themes/theme-2`, etc.)
+- use a workspace wildcard to cover all workspaces within the `theme` folder (`apps/themes/*`)
+- create a single shared workspace to export all theme definitions. This will reduce the code duplication, and you will only need to specify new themes in this one shared workspace, which is then imported within Admin and Website apps.
