@@ -22,6 +22,9 @@ import CenteredImage from "@components/CenteredImage";
 import oktaLogin from "./okta-integration/okta-login.png";
 import oktaAppClientId from "./okta-integration/app-client-id-input.png";
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 ## Overview
 
 Okta integration replaces the default Cognito setup, and allows companies to manage users and their access to Webiny instances from within Okta. Since Webiny's system of permissions contains rich permission objects, you can't define these in Okta. Instead, assignment to security groups is happening using JWT token claims, which help you map every identity to a specific security group within Webiny, on a particular tenant.
@@ -69,8 +72,13 @@ yarn workspace admin add @webiny/app-admin-okta
 
 We need to update security configuration in 2 Lambda functions: `graphql` and `headlessCMS`.
 
-Open `api/code/graphql/src/security.ts`, and replace the contents with the following code.
 The difference between your original file and the one below, is that we removed all Cognito plugins, and added Okta plugin instead, with some other tweaks to the security configuration. The most important changes are highlighted and commented for your convenience.
+
+> NOTE: there are two files, one for the `graphql` and one for the `headlessCMS` Lambda function, you need to update. Please grab the corresponding code from their dedicated tabs below. The code is similar, but _not_ the same.
+
+
+<Tabs>
+<TabItem value="security1" label="Main GraphQL API">
 
 ```ts title="api/code/graphql/src/security.ts" {10,29-32,40-46,55-80}
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
@@ -85,100 +93,191 @@ import anonymousAuthorization from "@webiny/api-security/plugins/anonymousAuthor
 import { createOkta } from "@webiny/api-security-okta";
 
 export default ({ documentClient }: { documentClient: DocumentClient }) => [
-  /**
-   * Create Tenancy app in the `context`.
-   */
-  createTenancyContext({
-    storageOperations: tenancyStorageOperations({ documentClient })
-  }),
-
-  /**
-   * Expose tenancy GraphQL schema.
-   */
-  createTenancyGraphQL(),
-
-  /**
-   * Create Security app in the `context`.
-   */
-  createSecurityContext({
     /**
-     * For Okta, this must be set to `false`, as we don't have links in the database.
+     * Create Tenancy app in the `context`.
      */
-    verifyIdentityToTenantLink: false,
-    storageOperations: securityStorageOperations({ documentClient })
-  }),
+    createTenancyContext({
+        storageOperations: tenancyStorageOperations({ documentClient })
+    }),
 
-  /**
-   * Expose security GraphQL schema.
-   */
-  createSecurityGraphQL({
     /**
-     * For Okta, we must provide custom logic to determine the "default" tenant for current identity.
-     * Since we're not linking identities to tenants via DB records, we can just return the current tenant.
+     * Expose tenancy GraphQL schema.
      */
-    async getDefaultTenant(context) {
-      return context.tenancy.getCurrentTenant();
-    }
-  }),
+    createTenancyGraphQL(),
 
-  /**
-   * Perform authentication using the common "Authorization" HTTP header.
-   * This will fetch the value of the header, and execute the authentication process.
-   */
-  authenticateUsingHttpHeader(),
-
-  /**
-   * Configure Okta authentication and authorization.
-   */
-  createOkta({
     /**
-     * `issuer` is required for token verification.
+     * Create Security app in the `context`.
      */
-    issuer: process.env.OKTA_ISSUER as string,
+    createSecurityContext({
+        /**
+         * For Okta, this must be set to `false`, as we don't have links in the database.
+         */
+        verifyIdentityToTenantLink: false,
+        storageOperations: securityStorageOperations({ documentClient })
+    }),
+
     /**
-     * Construct the identity object and map token claims to arbitrary identity properties.
+     * Expose security GraphQL schema.
      */
-    getIdentity({ token }) {
-      return {
-        id: token.sub,
-        type: "admin",
-        displayName: token.name,
-        group: token.webiny_group
-      };
-    },
+    createSecurityGraphQL({
+        /**
+         * For Okta, we must provide custom logic to determine the "default" tenant for current identity.
+         * Since we're not linking identities to tenants via DB records, we can just return the current tenant.
+         */
+        async getDefaultTenant(context) {
+            return context.tenancy.getCurrentTenant();
+        }
+    }),
+
     /**
-     * Get the slug of a security group to fetch permissions from.
+     * Perform authentication using the common "Authorization" HTTP header.
+     * This will fetch the value of the header, and execute the authentication process.
      */
-    getGroupSlug(context) {
-      return context.security.getIdentity().group;
-    }
-  }),
+    authenticateUsingHttpHeader(),
 
-  /**
-   * API Key authenticator.
-   * API Keys are a standalone entity, and are not connected to users in any way.
-   * They identify a project, a 3rd party client, not a particular user.
-   * They are used for programmatic API access, CMS data import/export, etc.
-   */
-  apiKeyAuthentication({ identityType: "api-key" }),
+    /**
+     * Configure Okta authentication and authorization.
+     */
+    createOkta({
+        /**
+         * `issuer` is required for token verification.
+         */
+        issuer: process.env.OKTA_ISSUER as string,
+        /**
+         * Construct the identity object and map token claims to arbitrary identity properties.
+         */
+        getIdentity({ token }) {
+            return {
+                id: token.sub,
+                type: "admin",
+                displayName: token.name,
+                group: token.webiny_group
+            };
+        },
+        /**
+         * Get the slug of a security group to fetch permissions from.
+         */
+        getGroupSlug(context) {
+            return context.security.getIdentity().group;
+        }
+    }),
 
-  /**
-   * Authorization plugin to fetch permissions for a verified API key.
-   * The "identityType" must match the authentication plugin used to load the identity.
-   */
-  apiKeyAuthorization({ identityType: "api-key" }),
+    /**
+     * API Key authenticator.
+     * API Keys are a standalone entity, and are not connected to users in any way.
+     * They identify a project, a 3rd party client, not a particular user.
+     * They are used for programmatic API access, CMS data import/export, etc.
+     */
+    apiKeyAuthentication({ identityType: "api-key" }),
 
-  /**
-   * Authorization plugin to load permissions for anonymous requests.
-   * This allows you to control which API resources can be accessed publicly.
-   * The authorization is performed by loading permissions from the "anonymous" user group.
-   */
-  anonymousAuthorization()
+    /**
+     * Authorization plugin to fetch permissions for a verified API key.
+     * The "identityType" must match the authentication plugin used to load the identity.
+     */
+    apiKeyAuthorization({ identityType: "api-key" }),
+
+    /**
+     * Authorization plugin to load permissions for anonymous requests.
+     * This allows you to control which API resources can be accessed publicly.
+     * The authorization is performed by loading permissions from the "anonymous" user group.
+     */
+    anonymousAuthorization()
 ];
 ```
 
-Now, we need to apply these same changes to the Headless CMS Lambda function.
-Open `api/code/headlessCMS/src/security.ts`, and replace the contents with the code shown above.
+</TabItem>
+<TabItem value="js2" label="Headless CMS API">
+
+```ts title="api/code/headlessCMS/src/security.ts" {10,24-27,37-62}
+import { DocumentClient } from "aws-sdk/clients/dynamodb";
+import { createTenancyContext } from "@webiny/api-tenancy";
+import { createStorageOperations as tenancyStorageOperations } from "@webiny/api-tenancy-so-ddb";
+import { createSecurityContext } from "@webiny/api-security";
+import { createStorageOperations as securityStorageOperations } from "@webiny/api-security-so-ddb";
+import { authenticateUsingHttpHeader } from "@webiny/api-security/plugins/authenticateUsingHttpHeader";
+import apiKeyAuthentication from "@webiny/api-security/plugins/apiKeyAuthentication";
+import apiKeyAuthorization from "@webiny/api-security/plugins/apiKeyAuthorization";
+import anonymousAuthorization from "@webiny/api-security/plugins/anonymousAuthorization";
+import { createOkta } from "@webiny/api-security-okta";
+
+export default ({ documentClient }: { documentClient: DocumentClient }) => [
+    /**
+     * Create Tenancy app in the `context`.
+     */
+    createTenancyContext({
+        storageOperations: tenancyStorageOperations({ documentClient })
+    }),
+
+    /**
+     * Create Security app in the `context`.
+     */
+    createSecurityContext({
+        /**
+         * For Okta, this must be set to `false`, as we don't have links in the database.
+         */
+        verifyIdentityToTenantLink: false,
+        storageOperations: securityStorageOperations({ documentClient })
+    }),
+    
+    /**
+     * Perform authentication using the common "Authorization" HTTP header.
+     * This will fetch the value of the header, and execute the authentication process.
+     */
+    authenticateUsingHttpHeader(),
+
+    /**
+     * Configure Okta authentication and authorization.
+     */
+    createOkta({
+        /**
+         * `issuer` is required for token verification.
+         */
+        issuer: process.env.OKTA_ISSUER as string,
+        /**
+         * Construct the identity object and map token claims to arbitrary identity properties.
+         */
+        getIdentity({ token }) {
+            return {
+                id: token.sub,
+                type: "admin",
+                displayName: token.name,
+                group: token.webiny_group
+            };
+        },
+        /**
+         * Get the slug of a security group to fetch permissions from.
+         */
+        getGroupSlug(context) {
+            return context.security.getIdentity().group;
+        }
+    }),
+
+    /**
+     * API Key authenticator.
+     * API Keys are a standalone entity, and are not connected to users in any way.
+     * They identify a project, a 3rd party client, not a particular user.
+     * They are used for programmatic API access, CMS data import/export, etc.
+     */
+    apiKeyAuthentication({ identityType: "api-key" }),
+
+    /**
+     * Authorization plugin to fetch permissions for a verified API key.
+     * The "identityType" must match the authentication plugin used to load the identity.
+     */
+    apiKeyAuthorization({ identityType: "api-key" }),
+
+    /**
+     * Authorization plugin to load permissions for anonymous requests.
+     * This allows you to control which API resources can be accessed publicly.
+     * The authorization is performed by loading permissions from the "anonymous" user group.
+     */
+    anonymousAuthorization()
+];
+
+```
+
+</TabItem>
+</Tabs>
 
 The last thing to do is to define the `OKTA_ISSUER` environment variable, and pass it to Pulumi config.
 
