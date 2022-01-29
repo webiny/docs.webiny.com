@@ -2,6 +2,9 @@ const path = require("path");
 
 const siteConfig = {
     plugins: [
+        // [
+        //     "@webiny/plugin-cognito"
+        // ]
         [
             "@docusaurus/plugin-client-redirects",
             {
