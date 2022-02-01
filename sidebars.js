@@ -344,13 +344,16 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "5.19.1",
-                    items: ["release-notes/5.19.1/changelog", "release-notes/5.19.1/upgrade-guide"]
-                },
-                {
-                    type: "category",
                     label: "Older Releases",
                     items: [
+                        {
+                            type: "category",
+                            label: "5.19.1",
+                            items: [
+                                "release-notes/5.19.1/changelog",
+                                "release-notes/5.19.1/upgrade-guide"
+                            ]
+                        },
                         {
                             type: "category",
                             label: "5.19.0",

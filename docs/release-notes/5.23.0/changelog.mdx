@@ -12,8 +12,7 @@ import createNewRefFieldEntryDialog from "./assets/ref-field-new-entry-dialog.jp
 
 # Changes
 
-The major focus of this release was the improving Headless CMS entry creation experience when it comes to a model with **ref** field.
-It's been long overdue, and it's finally done. Along the way we also did a few bug fixes.
+The major focus of this release was the improving Headless CMS entry creation experience when it comes to a model with **ref** fields. It's been long overdue, and it's finally done. Along the way we also did a few bug fixes.
 
 To see everything we worked on, see the details below.
 
@@ -28,11 +27,29 @@ In other words, users can generate reference field entries on the fly.
 
 How it looks when creating an entry:
 
-<CenteredImage shadow={false} title="Create new ref field entry button" src={createNewRefFieldEntry}/>
+<CenteredImage
+  shadow={false}
+  title="Create new ref field entry button"
+  src={createNewRefFieldEntry}/>
+<CenteredImage
+  shadow={false}
+  title="Create new ref field entry dialog"
+  src={createNewRefFieldEntryDialog}/>
 
-<CenteredImage shadow={false} title="Create new ref field entry dialog" src={createNewRefFieldEntryDialog}/>
-
-At the moment, we don't support this feature if the referenced model also has reference field(s). As a workaround, you need to start adding docs backward to every model in the reference chain.
+At the moment, this feature only works for one level of referencing. If you have models A->B->C, you'll only be able to use it on the fly to create a reference from A->B, but not from B->C within the same dialog. As a workaround, you need to add records for C in advance.
 
 Also, in case the **Use as list of...** option is enabled and multiple models are being referenced, please make sure the referenced values exist before setting the reference.
 
+## Security
+
+### Fix API Key Updating ([#2221](https://github.com/webiny/webiny-js/pull/2221))
+
+There was an issue with API keys, where updates to existing API keys would make them disappear from the results of the `listApiKeys` query. This is now resolved, and API keys are no longer vanishing on updates.
+
+## Webpack
+
+### Allow Usage of Assets with a Root Path
+
+With Webpack 5, a new version of `css-loader` (v4) made its way into the configuration. With that, it brought some new rules on how it [interprets URLs](https://webpack.js.org/loaders/css-loader/#url) in the CSS files.
+
+With prior versions of this loader, the following rule would be silently left as is: `url("/path/to/my/file.png")`. With the new version of this loader, it will yell at you, because this path effectively means _start from file system root_. So we added an explicit rule to ignore this type of paths, and just let them remain in the original form in the final CSS. This allows you to put your assets into the `public` folder of your app and reference them using a path starting with `/`. 
