@@ -64,7 +64,7 @@ Note that when we say "has access", specifically in this case, we're going to ch
 
 The code that defines menu items is located in the scaffolded [`apps/admin/code/src/plugins/scaffolds/carManufacturers/menus.tsx`](https://github.com/webiny/webiny-examples/blob/master/extend-admin-area-security/apps/admin/code/src/plugins/scaffolds/carManufacturers/menus.tsx) file. So, in there, we can add the following code:
 
-```tsx title="apps/admin/code/src/plugins/scaffolds/carManufacturers/menus.tsx" {4-5,7,9,10,12,13,20-45}
+```tsx title="apps/admin/code/src/plugins/scaffolds/carManufacturers/menus.tsx" {4-5,7,9,10,12,13,15-47,54-56}
 import React from "react";
 import { MenuPlugin } from "@webiny/app-admin/plugins/MenuPlugin";
 
@@ -81,7 +81,7 @@ import { CarManufacturersPermission } from "./types";
 
 // We need a component which will perform security checks, and conditionally render menu items.
 const CarManufacturersMenu = ({ Menu, Item }) => {
-  const { identity } = useSecurity();
+  const { get } = useSecurity();
 
   // We get the "car-manufacturers" permission from current identity (logged-in user).
   const permission = identity.getPermission<CarManufacturersPermission | FullAccessPermission>(
@@ -144,6 +144,8 @@ To learn more, check out the [Use the Watch Command](/docs/how-to-guides/use-wat
 :::
 
 As you may have noticed, we're using the exact same logic and code, that we previously used while trying to secure the [`getCarManufacturer`](/docs/tutorials/extend-admin-area/security/graphql-api#securing-graphql-api-resolvers) GraphQL resolver function. The only aspect that's different is the way we fetch the currently logged-in user's permission. Here, we are using the `useSecurity` React hook in order to first get the logged-in user, and then, via the `getPermission` method, the `car-manufacturers` permission.
+
+> NOTE: in order to use React hooks, we had to move the logic into a dedicated component (`CarManufacturersMenu`), because the `render` function of the `MenuPlugin` is not a React component. It's just a function that needs to return a React element to render. For that reason, we can't use hooks in this function directly. 
 
 In order to manually test this, we can just log in with a user that doesn't belong to the Car Manufacturers security group. In that case, if everything was done correctly, we should not be able to see the Car Manufacturers menu item:
 
