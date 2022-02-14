@@ -2,6 +2,9 @@ const path = require("path");
 
 const siteConfig = {
     plugins: [
+        // [
+        //     "@webiny/plugin-cognito"
+        // ]
         [
             "@docusaurus/plugin-client-redirects",
             {
@@ -43,7 +46,7 @@ const siteConfig = {
                 docs: {
                     path: "./docs",
                     sidebarPath: require.resolve("./sidebars.js"),
-                    editUrl: "https://github.com/webiny/docs.webiny.com/edit/master/docs/",
+                    editUrl: "https://github.com/webiny/docs.webiny.com/edit/master/",
                     showLastUpdateAuthor: true,
                     showLastUpdateTime: true
                 },
