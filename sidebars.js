@@ -104,6 +104,7 @@ module.exports = {
                     items: [
                         "webiny-overview/serverless-cms/apps/page-builder",
                         "tutorials/page-builder/create-a-new-page-element",
+                        "key-topics/page-builder/editor-hooks",
                         "tutorials/page-builder/customize-an-existing-page-builder-element",
                         "how-to-guides/webiny-applications/page-builder/extend-graphql-api",
                         "how-to-guides/webiny-applications/page-builder/extend-page-settings",
