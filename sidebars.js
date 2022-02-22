@@ -104,6 +104,7 @@ module.exports = {
                     items: [
                         "webiny-overview/serverless-cms/apps/page-builder",
                         "tutorials/page-builder/create-a-new-page-element",
+                        "key-topics/page-builder/editor-hooks",
                         "tutorials/page-builder/customize-an-existing-page-builder-element",
                         "how-to-guides/webiny-applications/page-builder/extend-graphql-api",
                         "how-to-guides/webiny-applications/page-builder/extend-page-settings",
@@ -319,6 +320,16 @@ module.exports = {
                 "how-to-guides/upgrade-webiny",
                 {
                     type: "category",
+                    label: "5.23.1",
+                    items: ["release-notes/5.23.1/changelog", "release-notes/5.23.1/upgrade-guide"]
+                },
+                {
+                    type: "category",
+                    label: "5.23.0",
+                    items: ["release-notes/5.23.0/changelog", "release-notes/5.23.0/upgrade-guide"]
+                },
+                {
+                    type: "category",
                     label: "5.22.1",
                     items: ["release-notes/5.22.1/changelog", "release-notes/5.22.1/upgrade-guide"]
                 },
@@ -339,13 +350,16 @@ module.exports = {
                 },
                 {
                     type: "category",
-                    label: "5.19.1",
-                    items: ["release-notes/5.19.1/changelog", "release-notes/5.19.1/upgrade-guide"]
-                },
-                {
-                    type: "category",
                     label: "Older Releases",
                     items: [
+                        {
+                            type: "category",
+                            label: "5.19.1",
+                            items: [
+                                "release-notes/5.19.1/changelog",
+                                "release-notes/5.19.1/upgrade-guide"
+                            ]
+                        },
                         {
                             type: "category",
                             label: "5.19.0",

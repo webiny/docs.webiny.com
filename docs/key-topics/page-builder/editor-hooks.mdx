@@ -1,0 +1,967 @@
+---
+id: lifecycle-events
+title: Lifecycle Events
+sidebar_label: Lifecycle Events
+keywords: ["webiny", "Page Builder", "lifecycle events"]
+description: Learn about Page Builder lifecycle events, how they work and how to subscribe to a lifecycle event.
+---
+
+:::tip What you'll learn
+
+- what are lifecycle events
+- how lifecycle events work
+- how to subscribe to a lifecycle event
+
+:::
+
+:::info
+Lifecycle events using publish/subscribe pattern replace the PagePlugin hooks starting from version 5.20.0.
+:::
+
+## Overview
+
+In our Page Builder we provide lifecycle events available for you to hook into.
+Lifecycle events are triggered before (`onBefore` keyword) and after (`onAfter` keyword) the data is stored into the database.
+
+With `onBefore` events you can change the data that is being stored into the database, so be careful with that.
+
+With the lifecycle events you can hook into a number of different operations, for example:
+ * change the page data which is going to be stored
+ * notify another system that new page was stored
+
+
+## System
+
+### onBeforeInstall
+This event is triggered before the installation of the Page Builder and insertion of initial `Welcome to Webiny` and `Not Found` pages.
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| tenant | ID of the current tenant |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforeInstall.subscribe(async({tenant}) => {
+		await notifyAnotherSystemThatPageBuilderIsGettingInstalled({tenant});
+    });
+})
+```
+
+
+### onAfterInstall
+This event is triggered after the installation of the Page Builder and insertion of initial `Welcome to Webiny` and `Not Found` pages.
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| tenant | ID of the current tenant |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterInstall.subscribe(async({tenant}) => {
+		await notifyAnotherSystemThatPageBuilderWasInstalled({tenant});
+    });
+})
+```
+
+
+## Settings
+### onBeforeSettingsUpdate
+This event is triggered before settings data is going to be stored.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Settings object which was received from the database  |
+| settings | Settings object which was changed by user input |
+| meta | Metadata |
+| meta.diff.pages | Array which contains which pages were changed |
+
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforeSettingsUpdate.subscribe(async({meta}) => {
+		await triggerPreparePrerenderingOfChangedPages({pages: meta.diff.pages});
+    });
+})
+```
+
+
+### onAfterSettingsUpdate
+This event is triggered after settings data was stored.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Settings object which was received from the database  |
+| settings | Settings object which was changed by user input |
+| meta | Metadata |
+| meta.diff.pages | Array which contains calculated page changes |
+
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterSettingsUpdate.subscribe(async({original, settings, meta}) => {
+        await storeSettingsToAnotherSystem({original, settings});
+		await triggerPrerenderingOfChangedPages({pages: meta.diff.pages});
+    });
+})
+```
+
+
+## Categories
+### onBeforeCategoryCreate
+This event is triggered before new category is stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| category | Category object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforeCategoryCreate.subscribe(async({category}) => {
+        /**
+		 * For example, you do not want the category name to contain the character "a".
+		 * You can check for that character here and throw an error. Or remove it.
+		 */
+        if (category.name.match(/a/) === null) {
+            return;
+        }
+        category.name = category.name.replace(/a/g, "");
+    });
+})
+```
+
+### onAfterCategoryCreate
+This event is triggered after new category is stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| category | Category object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterCategoryCreate.subscribe(async({category}) => {
+		await storeCategoryToAnotherSystem({category});
+    });
+})
+```
+
+### onBeforeCategoryUpdate
+This event is triggered before existing category is updated and stored.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Category object which was received from the database |
+| category | Category object which is going to be stored |
+
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforeCategoryUpdate.subscribe(async({original, category}) => {
+		/**
+		 * For example, you do not want to allow category slug changes.
+		 */
+        if (original.slug === category.slug) {
+            return;
+        }
+        throw new Error(`You are not allowed to change the category slug.`);
+    });
+})
+```
+
+### onAfterCategoryUpdate
+This event is triggered after existing category is updated and stored.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Category object which was received from the database |
+| category | Category object which was stored |
+
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterCategoryUpdate.subscribe(async({original, category}) => {
+		await storeCategoryToAnotherSystem({original, category});
+    });
+})
+```
+
+
+### onBeforeCategoryDelete
+This event is triggered before category is deleted from the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| category | Category object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforeCategoryDelete.subscribe(async({original, category}) => {
+		/**
+         * For example, we do not want to allow any category with a name which contains character "b" to be deleted.
+         */
+        if (category.name.match(/b/) === null) {
+            return;
+        }
+        throw new Error(`You are not allowed to delete a category with charcter "b" in its name.`);
+    });
+})
+```
+
+
+### onAfterCategoryDelete
+This event is triggered after category is deleted from the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| category | Category object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterCategoryDelete.subscribe(async({original, category}) => {
+		await deleteCategoryFromAnotherSystem({original, category});
+    });
+})
+```
+
+
+
+## Menus
+### onBeforeMenuCreate
+This event is triggered before new menu is stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| input | Input received from user |
+| menu | Menu object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforeMenuCreate.subscribe(async({menu}) => {
+		/**
+         * For example, do not allow empty menu description.
+         */
+        if (menu.description) {
+            return;
+        }
+        throw new Error(`Empty menu description is not allowed.`);
+    });
+})
+```
+
+### onAfterMenuCreate
+This event is triggered after new menu is stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| input | Input received from user |
+| menu | Menu object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterMenuCreate.subscribe(async({menu}) => {
+		await notifyAnotherSystemAboutNewMenu({menu});
+    });
+})
+```
+
+### onBeforeMenuUpdate
+This event is triggered before existing menu is changed and stored.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| input | Input received from user |
+| original | Menu object which was received from the database |
+| menu | Menu object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforeMenuUpdate.subscribe(async({menu}) => {
+		/**
+         * For example, do not allow empty menu description.
+         */
+        if (menu.description) {
+            return;
+        }
+        throw new Error(`Empty menu description is not allowed.`);
+    });
+})
+```
+
+### onAfterMenuUpdate
+This event is triggered after existing menu is changed and stored.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| input | Input received from user |
+| original | Menu object which was received from the database  |
+| menu | Menu object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterMenuUpdate.subscribe(async({original, menu}) => {
+		await notifyAnotherSystemAboutMenuUpdate({original, menu});
+    });
+})
+```
+
+### onBeforeMenuDelete
+This event is triggered before existing menu is deleted from the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| menu | Menu object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforeMenuDelete.subscribe(async({menu}) => {
+		/**
+         * For example, do not allow menu with non-empty description to be deleted.
+         */
+        if (!menu.description) {
+            return;
+        }
+        throw new Error(`Menu with non-empty description cannot be deleted.`);
+    });
+})
+```
+
+
+### onAfterMenuDelete
+This event is triggered after existing menu is deleted from the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| menu | Menu object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterMenuDelete.subscribe(async({menu}) => {
+		await notifyAnotherSystemAboutMenuDelete({menu});
+    });
+})
+```
+
+
+## Page Elements
+### onBeforePageElementCreate
+This event is triggered before new page element is stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| pageElement | Page element object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageElementCreate.subscribe(async({pageElement}) => {
+		/**
+         * For example, change the default generated ID to uuid v4
+         */
+        pageElement.id = uuidv4();
+    });
+})
+```
+
+
+### onAfterPageElementCreate
+This event is triggered after new page element is stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| pageElement | Page element object which is stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageElementCreate.subscribe(async({pageElement}) => {
+		await notifyAnotherSystemAboutNewPageElement({pageElement});
+    });
+})
+```
+
+### onBeforePageElementUpdate
+This event is triggered before existing page element is changed and stored.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Page element object which was received from the database  |
+| pageElement | Page element object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageElementUpdate.subscribe(async({original, pageElement}) => {
+		/**
+         * For example, do not allow id to be changed
+         */
+        if (original.id === pageElement.id) {
+            return;
+        }
+        throw new Error(`You cannot change the ID of the page element.`);
+    });
+})
+```
+
+### onAfterPageElementUpdate
+This event is triggered after existing page element is changed and stored.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Page element object which was received from the database  |
+| pageElement | Page element object which is stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageElementUpdate.subscribe(async({original, pageElement}) => {
+		await notifyAnotherSystemAboutPageElementUpdate({original, pageElement});
+    });
+})
+```
+
+### onBeforePageElementDelete
+This event is triggered before page element is deleted from the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| pageElement | Page element object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageElementDelete.subscribe(async({pageElement}) => {
+		/**
+         * For example, do not allow ANY page element to be deleted.
+         */
+        throw new Error(`You cannot delete page element.`);
+    });
+})
+```
+
+### onAfterPageElementDelete
+This event is triggered after page element is deleted from the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| pageElement | Page element object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageElementDelete.subscribe(async({pageElement}) => {
+		await notifyAnotherSystemAboutPageElementDelete({pageElement});
+    });
+})
+```
+
+## Pages
+### onBeforePageCreate
+
+This event is triggered before a new page is stored into the database. This event is not triggered when creating a page from another page.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| page | Page object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageCreate.subscribe(async({page}) => {
+		/**
+         * For example, set default title.
+         */
+        page.title = `Page created on ${(new Date()).toISOString()}`;
+    });
+})
+```
+
+### onAfterPageCreate
+
+This event is triggered after new page is stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| page | Page object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageCreate.subscribe(async({page}) => {
+        /**
+         * For example, notify another system that a new page was created.
+         */
+		await notifyAnotherSystemAboutNewPage({page});
+    });
+})
+```
+
+### onBeforePageCreateFrom
+
+This event is triggered before a new page, which is created from another page, is stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Page object which is the base for a new page |
+| page | Page object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageCreateFrom.subscribe(async({original, page}) => {
+        /**
+         * For example, change the title of the page so user knows it's a clone.
+         */
+        page.title = `Page is a clone of ${original.title}`;
+    });
+})
+```
+
+### onAfterPageCreateFrom
+
+This event is triggered after a new page, which is created from another page, is stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Page object which is the base for a new page |
+| page | Page object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageCreateFrom.subscribe(async({original, page}) => {
+        /**
+         * For example, notify another system that a new page was created from the original one.
+         */
+        await notifyAnotherSystemAboutClonedPage({original, page});
+    });
+})
+```
+
+### onBeforePageUpdate
+
+This event is triggered before a page is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Page object which was received from the database  |
+| page | Page object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageUpdate.subscribe(async({original, page}) => {
+        /**
+         * For example, check if the page path is unique and if it's not, add some random string at the end of the path.
+         */
+        const unique = await yourCustomIsUniqueFunction(page);
+        if (unique) {
+            return;
+        }
+        page.path = `${page.path}-${yourRandomStringGenerator()}`
+    });
+})
+```
+
+### onAfterPageUpdate
+
+This event is triggered after a page changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| original | Page object which was received from the database  |
+| page | Page object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageUpdate.subscribe(async({original, page}) => {
+        /**
+         * For example, notify another system that a page was changed and stored.
+         */
+        await notifyAnotherSystemAboutPageUpdate({original, page});
+    });
+})
+```
+
+
+
+### onBeforePageDelete
+
+This event is triggered before a page is deleted from the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| page | Page object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageDelete.subscribe(async({ page}) => {
+        /**
+         * For example, we do not allow a page which has "index" set as path to be deleted
+         */
+        if (page.path !== "index") {
+            return;
+        }
+        throw new Error(`Page with path "index" cannot be deleted.`);
+    });
+})
+```
+
+### onAfterPageDelete
+
+This event is triggered after a page is deleted from the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| page | Page object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageDelete.subscribe(async({ page}) => {
+        /**
+         * For example, notify another system that a page was deleted.
+         */
+        await notifyAnotherSystemAboutPageDelete({page});
+    });
+})
+```
+
+
+### onBeforePagePublish
+
+This event is triggered before a page is changed and stored into the database as the published one.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| publishedPage | Page object that is set as the published one in the database - published revision of page we are publishing |
+| latestPage | Page object of the last revision of the page we are publishing  |
+| page | Page object which is going to be published |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePagePublish.subscribe(async({latestPage, page}) => {
+        /**
+         * For example, we do not allow a page which is not the latest one to be published.
+         */
+        if (latestPage.version > page.version) {
+        	throw new Error(`Page you are trying to publish is not the latest revision of the page.`);
+        }
+    });
+})
+```
+
+### onAfterPagePublish
+
+This event is triggered after a page is changed and stored into the database as the published one.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| publishedPage | Page object that is set as the published one in the database - published revision of page we are publishing |
+| latestPage | Page object of the last revision of the page we are publishing  |
+| page | Page object which was published |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPagePublish.subscribe(async({publishedPage, latestPage, page}) => {
+        /**
+         * For example, notify another system of a published page.
+         */
+        await notifyAnotherSystemAboutPublishedPage({publishedPage, page});
+    });
+})
+```
+
+### onBeforePageUnpublish
+
+This event is triggered before a page is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| latestPage | Page object of the last revision of the page we are unpublishing  |
+| page | Page object which is going to be unpublished |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageUnpublish.subscribe(async({latestPage, page}) => {
+        /**
+         * For example, we do not allow a page which is the latest one to be unpublished.
+         */
+        if (latestPage.version === page.version) {
+        	throw new Error(`Page you are trying to unpublish is the latest revision of the page and it is not allowed to unpublish it.`);
+        }
+    });
+})
+```
+
+
+### onAfterPageUnpublish
+
+This event is triggered after a page is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| latestPage | Page object of the last revision of the page we are unpublishing  |
+| page | Page object which was unpublished |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageUnpublish.subscribe(async({page}) => {
+        /**
+         * For example, notify another system that page was unpublished.
+         */
+        await notifyAnotherSystemAboutUnpublishedPage({page});
+    });
+})
+```
+
+### onBeforePageRequestChanges
+
+This event is triggered before a page is marked as Requested Changes status and stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| latestPage | Page object of the last revision of the page we are requesting changes on  |
+| page | Page object which is going to be set into Requested Changes status |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageRequestChanges.subscribe(async({page}) => {
+        /**
+         * For example, we will check another system if request changes can be done on this page.
+         */
+        const allowed = await canRequestChangesBeDone({page});
+        if (allowed) {
+            return;
+        }
+        throw new Error(`You cannot request changes on this page.`);
+    });
+})
+```
+
+### onAfterPageRequestChanges
+
+This event is triggered after a page is marked as Requested Changes status and stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| latestPage | Page object of the last revision of the page we are requesting changes on  |
+| page | Page object which was set into Requested Changes status and stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageRequestChanges.subscribe(async({page}) => {
+        /**
+         * For example, notify another system that a request changes was set on this page.
+         */
+        await notifyAnotherSystemAboutRequestChanges({page});
+    });
+})
+```
+
+### onBeforePageRequestReview
+
+This event is triggered before a page is marked as Requested Review status and stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| latestPage | Page object of the last revision of the page we are requesting review on  |
+| page | Page object which is going to be set into Requested Review status |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onBeforePageRequestReview.subscribe(async({page}) => {
+        /**
+         * For example, we will check another system if request review can be done on this page.
+         */
+        const allowed = await canRequestReviewBeDone({page});
+        if (allowed) {
+            return;
+        }
+        throw new Error(`You cannot request review on this page.`);
+    });
+})
+```
+
+### onAfterPageRequestReview
+
+This event is triggered after a page is marked as Requested Review status and stored into the database.
+
+#### Event arguments
+
+| Property | Description |
+| -------- | ----------- |
+| latestPage | Page object of the last revision of the page we are requesting review on  |
+| page | Page object which was set into Requested Review status and stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async context => {
+    context.pageBuilder.onAfterPageRequestReview.subscribe(async({page}) => {
+        /**
+         * For example, notify another system that a request review was set on this page.
+         */
+        await notifyAnotherSystemAboutRequestReview({page});
+    });
+})
+```
+
+:::danger
+Please, be aware that you can change what ever you want on the object before it is stored into the database, so be careful with changing the data.
+:::
+
+## Registering Lifecycle Event Subscriptions
+
+For the subscriptions (your code) to be run, you must register it in the `createHandler` in the `api/code/graphql/src/index.ts` file.
+
+```typescript title="api/code/graphql/src/index.ts"
+
+const handler = createHandler({
+	plugins: [
+        // ... rest of plugins
+		new ContextPlugin<PbContext>(async context => {
+            context.pageBuilder.onBeforePageCreate.subscribe(async({page}) => {
+                // do your magic here
+            });
+		})
+	],
+});
+
+```
+
+:::warning
+Please, be aware that the order of subscribing matters, so if you want some event subscription to be executed before some other one, add it first.
+:::
