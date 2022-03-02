@@ -1,0 +1,46 @@
+---
+id: changelog
+title: Webiny 5.24.0 Changelog
+sidebar_label: Changelog
+keywords: ["webiny", "version", "5.24.0", "changelog"]
+description: See what's new in Webiny version 5.24.0.
+---
+
+import CenteredImage from "@components/CenteredImage";
+import invalidModel from "./assets/invalid-model.png";
+import typeConflicts from "./assets/type-conflicts.png";
+import fmSettings from "./assets/fm-settings.png";
+
+# Changes
+
+This release is not packed with lots of shiny things, but it does contain a major improvement to the Headless CMS schema generation, making the Headless CMS API a lot more robust. We also invested a huge amount of work into our Typescript types under the hood, and we're almost ready to switch Webiny to the `strict` mode.
+
+## Headless CMS
+
+### Validate Content Model SDL Before Storing to DB ([#2254](https://github.com/webiny/webiny-js/pull/2254))
+
+Headless CMS GraphQL Schema is a dynamically generated schema, constructed at runtime, from the content model definitions. This makes it difficult to prevent crashes or even isolate the "broken" part of the schema if it happens. We are now verifying each model's SDL _before_ it is saved to the database, thus being confident that, when a schema is being generated, all the data in the database is guaranteed to produce a valid SDL. Whatever you do with the content model, even adding a custom field plugin, you will not be able to save a content model if the resulting SDL is invalid.
+
+<CenteredImage title={"Invalid Model Definition"} src={invalidModel} />
+
+Besides the SDL validation, we now also have a much smarter validator on the content model name. Whenever you enter the desired content model name, we'll not only check it against the reserved keywords list, but we'll also check if the GraphQL type is already taken in the GraphQL Schema using the schema introspection. This will prevent you from using a built-in system type, for example, `SecurityIdentity`, and accidentally crash the API.
+
+<CenteredImage title={"Type Conflict"} src={typeConflicts} />
+
+### Fix the Pristine State of the Content Model Editor ([#2254](https://github.com/webiny/webiny-js/pull/2254))
+
+When you enter the Headless CMS content model editor, there's this feature that prevents you from navigating away, if the model is not saved. Funny enough, it won't let you go away even if you _don't_ change a single thing :sweat_smile:. With this release, it will no longer block you from navigating away, if the model is pristine.
+
+## File Manager
+
+### Expose `srcPrefix` in the File Manager Settings ([#2254](https://github.com/webiny/webiny-js/pull/2254))
+
+Some of our users reported the need to update the file URL prefix for various reasons, from custom domains to simply copying database records in bulks into a newly deployed project. The prefix is always inserted into the system when you run the initial setup wizard. But if you do anything out of the ordinary, it's hard to change that prefix. We've added an input specifically for that in the File Manager settings form:
+
+<CenteredImage title={"File Manager URL Prefix"} src={fmSettings} />
+
+## Other
+
+### Typescript Improvements
+
+We're preparing Webiny for switching to Typescript's `strict` mode. This will greatly improve the quality of all the code written in the future. However, as Webiny went from Vanilla JS, to Flow, to Typescript over the years, there's a lot of work to be done on this front. The efforts are mainly lead by our [Bruno Zoric](https://github.com/brunozoric), who invested tremendous effort into making `strict` mode a reality. There's still a lot of cleanup to do by the rest of the team, but `strict` mode will land in one of the upcoming releases :tada: :rocket:.
