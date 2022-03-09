@@ -22,7 +22,7 @@ This feature is available since Webiny **v5.22.0**.
 
 ## Overview
 
-Okta integration replaces the default Cognito setup, and allows companies to manage users and their access to Webiny instances from within Okta. Since Webiny's system of permissions contains rich permission objects, you can't define these in Okta. Instead, assignment to security groups is happening using JWT token claims, which help you map every identity to a specific security group within Webiny, on a particular tenant.
+Okta integration replaces the default Cognito setup, and allows companies to manage users and their access to Webiny instances from within Okta. Since Webiny's system of permissions contains rich permission objects, you can't define these in Okta. Instead, assignment to security groups is happening using JSON Web Token (JWT) claims, which help you map every identity to a specific security group within Webiny, on a particular tenant.
 
 ![Okta SignIn Widget](./assets/okta-integration/okta-login.png)
 
@@ -274,7 +274,7 @@ export default ({ documentClient }: { documentClient: DocumentClient }) => [
   </TabsItem>
 </TabsComponent>  
 
-The last thing to do is to define the `OKTA_ISSUER` environment variable, and pass it to Pulumi config.
+The last thing to do is to define the `OKTA_ISSUER` environment variable, and pass it to the Pulumi configuration.
 
 In your project directory, open the `.env` file, and define the `OKTA_ISSUER` variable, using your authorization server URI. You can find this URI in the Okta dashboard, by navigating to **Security -> API**.
 
@@ -282,7 +282,7 @@ In your project directory, open the `.env` file, and define the `OKTA_ISSUER` va
 OKTA_ISSUER=https://dev-123456.oktapreview.com/oauth2/default
 ```
 
-This will ensure that when Pulumi starts the deploy process, this environment variable is present in `process.env`.
+This will ensure that, when Pulumi starts the deploy process, this environment variable is present in `process.env`.
 
 Now we need to pass it to the GraphQL API and Headless CMS API Lambda functions. Open `api/pulumi/dev/index.ts` and add the `OKTA_ISSUER` key to environment variable definitions, as shown below:
 
@@ -324,7 +324,7 @@ const headlessCms = new HeadlessCMS({
 
 <Alert type="info" title="IMPORTANT">
 
-Definition of this environment variable on Lambda functions has to be repeated for all infrastructure stacks you're using in your project. If you're also using the `prod` stack, make sure you also add these variables in the respective Lambda functions in the `prod` stack configuration, e.g., in `api/pulumi/prod/index.ts`, and all the other stacks you might have created yourself.
+Definition of this environment variable on Lambda functions has to be repeated for all infrastructure stacks you're using in your project. If you're also using the `prod` stack, make sure you also add these variables in the respective Lambda functions in the `prod` stack configuration, such as `api/pulumi/prod/index.ts` and all the other stacks you might have created yourself.
 
 </Alert>
 
@@ -351,7 +351,7 @@ export const App = () => {
 };
 ```
 
-Next, we need to add this new `./okta` file, which contains the factory for [Okta SignIn Widget](https://developer.okta.com/code/react/okta_react_sign-in_widget/) and [Okta Auth JS](https://developer.okta.com/code/react/okta_react/). This file allows you to configure the entire Okta SDK however you like, and also apply style changes if you need them.
+Next, we need to add this new `./okta` file which contains the factory for [Okta SignIn Widget](https://developer.okta.com/code/react/okta_react_sign-in_widget/) and [Okta Auth JS](https://developer.okta.com/code/react/okta_react/). This file allows you to configure the entire Okta SDK however you like, and also apply style changes if you need them.
 
 Copy the following code, and place it in `apps/admin/code/src/okta.ts`:
 
@@ -398,7 +398,7 @@ export const oktaFactory: OktaFactory = ({ clientId }) => {
 
 We're using Okta SignIn Widget to handle the whole login process, so we need to import and configure it. The reason we're exporting a factory is that we need to obtain an Okta App Client ID depending on the tenant we're trying to access. We do that by sending a GraphQL query to our API, which returns the App Client ID for the given tenant. Only then we can configure the Okta SignIn Widget and start the authentication flow. App Client ID configuration for tenants is described in the next section.
 
-There are two important variables you need to insert into this new `okta.ts` file: the **oktaDomain** and the **rootAppClientId **. Even though we obtain App Client IDs via the API, we're unable to do it for the root tenant, since we need to login into the root tenant to execute the installation wizard (chicken & egg problem). So for the root tenant, we must have its App Client ID present in the code.
+There are two important variables you need to insert into this new `okta.ts` file, **oktaDomain** and **rootAppClientId**. Even though we obtain App Client IDs through the API, we're unable to do it for the root tenant, since we need to login into the root tenant to execute the installation wizard (chicken & egg problem). So, for the root tenant, we must have its App Client ID present in the code.
 
 With this, you're ready to deploy the project. To deploy the whole project, run the following:
 
@@ -414,11 +414,11 @@ yarn webiny deploy api --env=dev && yarn webiny deploy apps/admin --env=dev
 
 ## 5) Configuring App Client ID for New Tenants
 
-Once your project is deployed, open your Admin app. If everything went well, you should be presented with an Okta login screen. The Okta user you're using to login must have access to the root tenant app client, and have the appropriate claims assigned to his JWT token so he can be mapped to the correct security group, as described in the [Configure Okta in the GraphQL API](/docs/enterprise/multi-tenancy/okta-integration#3-configure-okta-in-the-graphql-api) section.
+Once your project is deployed, open your Admin app. If everything went well, you should be presented with an Okta login screen. The Okta user you're using to login must have access to the root tenant app client, and have the appropriate claims assigned to the user's JWT so the user can be mapped to the correct security group, as described in the [Configure Okta in the GraphQL API](/docs/enterprise/okta-integration#3-configure-okta-in-the-graphql-api) section.
 
 <Alert type="success" title="Recommendation">
 
-We recommend that your main root tenant admin user has a `full-access` group assignment. Think of this user as a **super admin** user who can run system setup, create new tenants, etc. A `full-access` security group is always present in the system, so you don't need to create it manually.
+We recommend that your main root tenant admin user has a `full-access` group assignment. Think of this user as a **super admin** user who can run system setup, create new tenants, and so on. A `full-access` security group is always present in the system. So, you don't need to create it manually.
 
 </Alert>
 
@@ -426,7 +426,7 @@ Once you've logged in, navigate to **Tenant Manager -> Tenants**. In the tenant 
 
 ![Assign App Client ID to Tenant](./assets/okta-integration/app-client-id-input.png)
 
-The value entered here is what the Admin app will be fetching via the API during app bootstrap (on every browser reload). Multiple tenants can use the same app client ID, so for development purposes, you can have 1 Okta app shared between all the developers in the team, across all tenants in their development environments.
+The value entered here is what the Admin app will be fetching via the API during app bootstrap (on every browser reload). Since multiple tenants can use the same app client ID, for development purposes, you can have 1 Okta app shared between all the developers in the team, across all tenants in their development environments.
 
 ## 6) Accessing Admin App of a Particular Tenant
 
@@ -439,4 +439,4 @@ http://localhost:3001/?tenantId=61e6db7813ab8e0009e252d1
 ```
 For production environments, this query parameter is exactly how you'll setup the **Initiate login URI** in your Okta dashboard, to point users to the respective tenant.
 
-For development purposes though, developers will need to specify the query string parameter manually in the browser, since they'll most likely be sharing the same Okta app client, but their tenant IDs will be different.
+For development purposes, though, developers will need to specify the query string parameter manually in the browser, since they'll most likely be sharing the same Okta app client, but their tenant IDs will be different.
