@@ -35,7 +35,7 @@ Webiny uses [Next.js](https://nextjs.org/) for its documentation. Here is how yo
     yarn dev
     ```
 
-## Project Structure
+## Project structure
 All the articles are inside the [`src/pages/docs`](https://github.com/webiny/docs.webiny.com/tree/master/src/pages/docs) folder. And you can manage sidebar menu items from the [`src/navs/documentation.js`](https://github.com/webiny/docs.webiny.com/blob/master/src/navs/documentation.js) file.
 
 ## Contributors
