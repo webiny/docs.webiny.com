@@ -34,3 +34,10 @@ Webiny uses [Next.js](https://nextjs.org/) for its documentation. Here is how yo
     ```sh
     yarn dev
     ```
+
+## Contributors
+
+### 🧡 Thanks goes to these wonderful people!
+<a href="https://github.com/webiny/docs.webiny.com/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=webiny/docs.webiny.com" />
+</a>
