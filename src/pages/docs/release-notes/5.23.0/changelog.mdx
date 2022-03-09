@@ -1,0 +1,87 @@
+---
+title: Webiny 5.23.0 Changelog
+description: See what's new in Webiny version 5.23.0.
+---
+
+import { Alert } from "@/components/Alert"
+
+# Changes
+
+The major focus of this release was the improving Headless CMS entry creation experience when it comes to a model with **ref** fields. It's been long overdue, and it's finally done. Along the way we also did a few improvements across the board.
+
+To see everything we worked on, see the details below.
+
+## Headless CMS
+
+### Create Ref Field Entry on Fly ([#2215](https://github.com/webiny/webiny-js/pull/2215))
+
+A new way of creating entry has been introduced to the **ref** field type.
+Now users can create a new reference field entry(if it doesn't exist) right from a content entry form without having to go back to the reference model entry form to create one.
+
+In other words, users can generate reference field entries on the fly.
+
+How it looks when creating an entry:
+
+![Create new ref field entry button](./assets/ref-field-new-entry-input.jpg)
+
+![Create new ref field entry dialog](./assets/ref-field-new-entry-dialog.jpg)
+
+At the moment, this feature only works for one level of referencing. If you have models A->B->C, you'll only be able to use it on the fly to create a reference from A->B, but not from B->C within the same dialog. As a workaround, you need to add records for C in advance.
+
+Also, in case the **Use as list of...** option is enabled and multiple models are being referenced, please make sure the referenced values exist before setting the reference.
+
+## Security
+
+### Fix API Key Updating ([#2221](https://github.com/webiny/webiny-js/pull/2221))
+
+There was an issue with API keys, where updates to existing API keys would make them disappear from the results of the `listApiKeys` query. This is now resolved, and API keys are no longer vanishing on updates.
+
+<Alert type="info">
+
+Your existing keys that vanished will not just appear, but the new ones will work as expected. If you need help fixing the existing keys, get in touch with us on the [Community Slack](https://www.webiny.com/slack).
+
+</Alert>
+
+## Other
+
+### Apply Webpack Customizer for Production Builds ([#2227](https://github.com/webiny/webiny-js/pull/2227))
+
+When building Admin and Website apps for production, webpack customizers were not being executed, but they worked fine for local development builds. This PR fixes this issue, and webpack customizers are now also being executed for production builds.
+
+### Allow Usage of Assets with a Root Path
+
+With Webpack 5, a new version of `css-loader` (v4) made its way into the configuration. With that, it brought some new rules on how it [interprets URLs](https://webpack.js.org/loaders/css-loader/#url) in the CSS files.
+
+With prior versions of this loader, the following rule would be silently left as is: `url("/path/to/my/file.png")`. With the new version of this loader, it will yell at you, because this path effectively means _start from file system root_. So we added an explicit rule to ignore this type of paths, and just let them remain in the original form in the final CSS. This allows you to put your assets into the `public` folder of your app and reference them using a path starting with `/`.
+
+### Use Node v14 for Lambda Runtime ([#2200](https://github.com/webiny/webiny-js/pull/2200))
+
+All Lambda functions will now use Node 14 runtime. Existing user project Lambda configurations are upgraded via the upgrade script.
+
+### Ability to Wait for Specific Context Property ([#2177](https://github.com/webiny/webiny-js/pull/2177))
+
+This feature allows you to run your logic only when the requested property appears on the context. Often, you don't know the exact order of plugins, and you can't be sure that the requested context value was initialized. Accessing the `context.something` directly, may cause errors. This PR introduces a smarter way to hook into context values:
+
+```ts
+new ContextPlugin(context => {
+  // Wait for "pageBuilder"
+  context.waitFor("pageBuilder", () => {
+    // Now we're sure that `pageBuilder` exists on the `context`.
+  });
+
+  // You can also wait for multiple properties
+  context.waitFor(["security", "headlessCMS"], () => {
+    // Now we're sure that `security` and `headlessCMS` exist on the `context`.
+  });
+});
+```
+
+This will only execute your callback _when_ and _if_ the targeted property is available. This unlocks interesting possibilities, since you no longer have to worry about the presence of the requested property, so it's easier to apply conditional plugins to the system.
+
+### Don't Trim Trailing Hyphens from Page Slugs
+
+In the Page Builder Editor, when typing the page slug manually, trailing hyphens where always trimmed, preventing users from manually typing a hyphen. This is now fixed, and leading/trailing hyphens are allowed.
+
+### Remove Dark Theme Variant from the Admin App
+
+A long time ago, dark theme used to exist in Webiny, and we recently ran into the remains of SCSS that were generating a huge chunk of styles for the dark theme, which is not used. This is now removed, and the overall Admin app build should be slightly faster and the resulting static assets smaller.
