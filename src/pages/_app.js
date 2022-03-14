@@ -90,6 +90,7 @@ export default function App({ Component, pageProps, router }) {
         <meta key="twitter:card" name="twitter:card" content="summary_large_image" />
         <meta key="twitter:site" name="twitter:site" content="@WebinyCMS" />
         <meta key="twitter:description" name="twitter:description" content={description} />
+        <meta name="description" content={description}/>
         <meta
           key="twitter:image"
           name="twitter:image"
