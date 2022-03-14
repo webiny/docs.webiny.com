@@ -14,8 +14,8 @@ export function TabsComponent({ children = [] }) {
           return (
             <Tab
               key={i}
-              className="px-[25px] border-b-2 border-b-smoke text-center hover:bg-smoke text-black p-3 font-roboto text-[0.875rem] font-semibold cursor-pointer dark:hover:bg-orange text-white"
-              selectedClassName="border-b-orange border-b-2 text-orange hover:rounded-b-none dark:bg-orange text-white"
+              className="px-[25px] border-b-2 border-b-smoke text-center text-black hover:bg-smoke p-3 font-roboto text-[0.875rem] font-semibold cursor-pointer dark:hover:bg-orange dark:text-white"
+              selectedClassName="border-b-orange border-b-2 text-orange hover:rounded-b-none dark:bg-orange"
             >
               {tabItem.props.title}
             </Tab>
