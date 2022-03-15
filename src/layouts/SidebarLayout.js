@@ -113,7 +113,7 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
       <li
         href="#"
         onClick={() => setShowMenu(!showMenu)}
-        className="root-element relative flex items-center cursor-pointer h-[30px] mt-[5px] mb-[3px]"
+        className="root-element relative flex items-center cursor-pointer h-[30px] mt-[5px] mb-[3px] ml-[20px]"
       >
         <div className={`${depth === 0 ? 'absolute left-[-15px] top-[9px]' : 'mr-[10px]'}`}>
           <div className={"transition-all transform duration-300 "+ (showMenu ? 'rotate-90' : '')} alt="collapsable">
