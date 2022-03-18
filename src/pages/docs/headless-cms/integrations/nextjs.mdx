@@ -1,18 +1,29 @@
 ---
 title: Building a Frontend with NextJS
-description: Learn how to build a frontend for Webiny headless CMS with NextJS
+description: Learn how to build a frontend for Webiny Headless CMS with NextJS
 ---
 import { Alert } from '@/components/Alert'
 
 <Alert type="success" title="What you'll learn">
 
-- How to fetch data from Webiny
-- How to parse data including rich text
+- how to fetch data from Webiny
+- how to parse data including rich text
 - how to use preview mode
 
 </Alert>
 
 ## Overview
+
+In this article we'll learn how to integrate a NextJS application that uses Webiny as a Headless CMS. We'll go through the following:
+
+1. Getting started with Webiny 
+2. Setting up a NextJS project
+3. Fetching data
+4. Rendering Webiny's rich text field
+5. Using NextJS preview mode
+
+
+## Getting started with Webiny
 
 Webiny works really well as a headless CMS with [NextJS](http://nextjs.org), especially is that so when using static rendering and the new Preview mode available in NextJS version 9.3.
 
@@ -47,7 +58,7 @@ Add the following models and fields: (Skip this step if you already have content
 - A `text` field with the value "slug" (optionally use the regex above as a validator)
 - A `files` field with the value "featured image"
 - A `rich text` field with the value "body"
-- A `reference` field with the value "Author"
+- A `reference` field with the value "author"
 
 Next, add some content by going to Headless CMS > Ungrouped and choosing a content model.
 
@@ -55,11 +66,15 @@ Before we spin up our NextJS project, let's go to the API playrgound and see how
 
 ![GraphQL playground](./assets/nextjs-starter/api-playground-open.png)
 
-Notice that there are four APIs listed in the tabs at the top of the page. Choose **HeadlessCMS - Read API**. From here you can explore your content structure and the schema (via the right side panel). Directly below the tabs is a URL string. That's the URL you can use to fetch data. 
+Notice that there are four APIs listed in the tabs at the top of the page. Choose **HeadlessCMS - Read API**. From here you can explore your content structure and the schema (via the right side panel). Directly below the tabs is a URL string. That's the URL you can use to fetch data. Make a note of this URL, you'll need it soon.
 
-Make a note of this URL, you'll need it soon.
+<Alert type="info">
 
-Let's configure API credentials. Choose **API Keys** in the sidebar. Add an API key with any name and description. Select "Headless CMS" and choose a Custom access level for all content model groups with the values `read` and `preview`. Make sure to leave "manage" unchecked. This will help secure our Webiny instance.
+For more information about the [Headless CMS GraphQL API, see this page of our docs](/docs/headless-cms/basics/graphql-api).
+
+</Alert>
+
+Next, let's configure API credentials. Choose **API Keys** in the sidebar. Add an API key with any name and description. Select "Headless CMS" and choose a Custom access level for all content model groups with the values `read` and `preview`. Make sure to leave "manage" unchecked. This will help secure our Webiny instance.
 
 Save the API token and the Token itself will be revealed. You can use the same API token for both published and draft posts.
 
@@ -67,19 +82,32 @@ Save the API token and the Token itself will be revealed. You can use the same A
 
 You can [follow the "Getting Started" page on the NextJS site](https://nextjs.org/docs/getting-started), or run `yarn create next-app` to spin up a basic project. 
 
-Once you've done one of these, add a new file **.env.local** to the project root. NextJS will look for environment variables in that location.
+Once you've done one of these, add a new file `.env.local` to the project root. NextJS will look for environment variables in that location.
+
+<Alert type="info">
 
 [You can read more about how NextJS uses Environment Variables here](https://nextjs.org/docs/basic-features/environment-variables).
 
-Add the API endpoint URL (maybe call it `NEXT_PUBLIC_WEBINY_API_URL`), and the API token (maybe as `WEBINY_API_SECRET`). Make sure you don't commit this file to your project's git repository otherwise anyone could gain access to your API.
+</Alert>
+
+Add the API endpoint URL (maybe call it `NEXT_PUBLIC_WEBINY_API_URL`), and the API token (maybe as `WEBINY_API_SECRET`). 
+
+```bash .env.local
+NEXT_PUBLIC_WEBINY_API_URL=<your-url-here>
+WEBINY_API_SECRET=<your-token-here>
+```
+
+Make sure you don't commit this file to your project's git repository otherwise anyone could gain access to your API. You can do that by adding it to the `.gitignore` file.
 
 ![Environment variables set up in the project root](./assets/nextjs-starter/environment-variables.png)
 
 ## Fetching data
 
-Once you have your `.env.local` file set up in the project root (see above), you can try to connect to the API. Here's some sample code for the connection:
+Once you have your `.env.local` file set up in the project root, you can try to connect to the API so that we can fetch our content. 
 
-```js
+Create a new folder in the root directory called `lib`, and within that a new file called `api.js`. Add this code which will allow us to use JavaScript's `fetch` function with the GraphQL API:
+
+```js /lib/api.js
 async function fetchAPI(query, { variables } = {} ) {
   const res = await fetch(process.env.NEXT_PUBLIC_WEBINY_API_URL, {
     method: 'POST',
@@ -103,11 +131,17 @@ async function fetchAPI(query, { variables } = {} ) {
 }
 ```
 
+<Alert type="info">
+
+You won't need to add Axios, node-fetch or any other dependency to the project because [NextJS polyfills server-side fetch](https://nextjs.org/blog/next-9-4#improved-built-in-fetch-support).
+
+</Alert>
+
 The `POST` verb is used to post the query we want our GraphQL API to return. Also please note in the `'Authorization'` header, you need to ensure you have `Bearer ` before the API secret. This specifies the method of authentication.
 
 Here's a basic query you can use to fetch all content for the model `posts` and return only the `slug` field:
 
-```js
+```js /lib/api.js
 export async function getAllPostsWithSlug() {
   const data = await fetchAPI(`
     query PostSlugs {
@@ -121,11 +155,15 @@ export async function getAllPostsWithSlug() {
   return data.listPosts.data
 }
 ```
+<Alert type="info">
+
 There's [more information about using GraphQL here](https://www.webiny.com/docs/headless-cms/basics/using-graphql-api).
+
+</Alert>
 
 Here's a more detailed query which uses variables and sorting to fetch multiple groups of data:
 
-```js
+```js /lib/api.js
 export async function getPostBySlug(slug) {
   const data = await fetchAPI(
 
@@ -181,7 +219,7 @@ Hopefully with this information you will be able to use the data from Webiny to 
 
 To create static pages, create a file in the **/posts/** directory called **[slug].js**, and add this function at the bottom:
 
-```js
+```js /pages/posts/[slug].js
 export async function getStaticPaths() {
   const allPosts = await getAllPostsWithSlug()
 
@@ -202,7 +240,7 @@ This will render all of the posts as static pages.
 
 To get data for each statically generated page add the following to the bottom of the page:
 
-```js
+```js /pages/posts/[slug].js
 export async function getStaticProps(context) {
   const { params } = context
   const data = await getPostBySlug(params.slug)
@@ -221,14 +259,17 @@ export async function getStaticProps(context) {
 
 Now you will be able to access `props.post` in the render and build out your UI:
 
-```jsx
-
+```jsx /pages/posts/[slug].js
 export default function Post({ post, morePosts, preview }) {
   return (
     <h1>{post.title}</h1>
   )
 }
 ```
+
+You should now be able to see your data! Run `yarn dev` and open the browser on port `3000`, or whichever port you are using.
+
+![NextJs blog example](./assets/nextjs-starter/next-blog-example.png)
 
 ## Rendering rich text fields
 
@@ -240,7 +281,7 @@ npm install @webiny/react-rich-text-renderer
 
 Once the package is installed, you can use it as you would any other component:
 
-```javascript
+```jsx /pages/posts/[slug].js
 // import the renderer
 import { RichTextRenderer }
 
@@ -250,8 +291,11 @@ import { RichTextRenderer }
 
 It's entirely possible to make your own renderer. If you open that package you'll see how we have done it, you can copy that code and modify it as you wish.
 
+<Alert type="info">
+
 [For more information about the rich text renderer package, see this documentation](/docs/headless-cms/extending/render-rich-text-content)
 
+</Alert>
 
 
 ## Using NextJS preview mode
@@ -260,14 +304,23 @@ NextJS provides an API for previewing content that hasn't been published yet, an
 
 Webiny has a separate API for **published** and **draft** content. Although we can use the same API token to connect to both APIs, we need to fetch from the correct API endpoint.
 
-Choose **API Keys** in the sidebar, and ensure that **preview** is checked in the API key you are using. Then go to **API Playground** and choose **Headless CMS - Preview API** on the tabs at the top of the main window.
+Because we checked **preview** when we set up the API keys, our NextJS app will be authorised to fetch data from this endpoint too. 
+
+In your Webiny instance, go to **API Playground** and choose **Headless CMS - Preview API** on the tabs at the top of the main window.
+
+![GraphQL playground - preview API URL](./assets/nextjs-starter/graphql-playground-preview.png)
 
 Copy the URL and save that into your `.env.local` file (perhaps call it `NEXT_PUBLIC_WEBINY_PREVIEW_API_URL`).
+
+```bash .env.local
+NEXT_PUBLIC_WEBINY_PREVIEW_API_URL=<your-url-here>
+
+```
 
 First, we're going to extract whether the user has `preview` mode enabled from the `getStaticProps()` function:
 
 
-```js
+```js /pages/posts/[slug].js
 export async function getStaticProps(context) {
   const { params, preview } = context
   const data = await getPostBySlug(params.slug, preview)
@@ -286,7 +339,7 @@ export async function getStaticProps(context) {
 
 Now we can pass that variable to our `fetchAPI()` function
 
-```js
+```js  /lib/api.js
 export async function getPostBySlug(slug, preview) {
   const data = await fetchAPI(
 
@@ -340,7 +393,7 @@ export async function getPostBySlug(slug, preview) {
 
 Next modify your `fetchAPI` function to add the `preview` parameter:
 
-```js
+```js /pages/posts/[slug].js
 async function fetchAPI(query, { variables } = {}, preview ) {
  const url = preview ? process.env.NEXT_PUBLIC_WEBINY_PREVIEW_API_URL : process.env.NEXT_PUBLIC_WEBINY_API_URL
  
@@ -367,6 +420,10 @@ async function fetchAPI(query, { variables } = {}, preview ) {
 ```
 
 To complete the setup, you can [follow the steps from "Securely accessing it from your Headless CMS" on the NextJS documentation site](https://nextjs.org/docs/advanced-features/preview-mode#securely-accessing-it-from-your-headless-cms).
+
+Once you have those steps set up, visit the API endpoint specified in the docs above. You should be able to see draft posts:
+
+![NextJS example - preview mode](./assets/nextjs-starter/preview-mode.png)
 
 ## Conclusion
 
