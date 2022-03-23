@@ -39,6 +39,9 @@ export const documentationNav = [
       page('headless-cms/extending/extend-graphql-api'),
       page('headless-cms/extending/render-rich-text-content'),
     ]),
+    section('Integrations', [
+      page('headless-cms/integrations/nextjs'),
+    ]),
     section('References', [
       page('headless-cms/references/lifecycle-events'),
       page('headless-cms/references/plugins'),
