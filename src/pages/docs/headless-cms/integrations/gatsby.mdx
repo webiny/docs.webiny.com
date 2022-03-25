@@ -14,7 +14,7 @@ import { Alert } from '@/components/Alert'
 
 ## Overview
 
-In this article we'll learn how to integrate a NextJS application that uses Webiny as a Headless CMS. We'll go through the following:
+In this article we'll learn how to integrate a GatsbyJS application that uses Webiny as a Headless CMS. We'll go through the following:
 
 1. Getting started with Webiny 
 2. Setting up a GatsbyJS project
@@ -26,11 +26,11 @@ In this article we'll learn how to integrate a NextJS application that uses Webi
 
 Webiny works really well as a headless CMS with [GatsbyJS](http://gatsbyjs.com), 
 
-The easiest way to get started is to use the [official starter](https://github.com/webiny/nextjs-starter-webiny), but we're going to walk through a similar custom implementation here.
+The easiest way to get started is to use the [official starter](https://github.com/webiny/gatsby-starter-webiny), but we're going to walk through a similar custom implementation here.
 
 <Alert type="info">
 
-Use the [official starter](https://github.com/webiny/nextjs-starter-webiny) for 1-click install on Vercel.
+Use the [official starter](https://github.com/webiny/gatsby-starter-webiny) for 1-click install on Vercel.
 
 </Alert>
 
@@ -61,7 +61,7 @@ Add the following models and fields: (Skip this step if you already have content
 
 Next, add some content by going to Headless CMS > Ungrouped and choosing a content model.
 
-Before we spin up our NextJS project, let's go to the API playrgound and see how our GraphQL API is structured. In the sidebar menu, choose "API Playground" to open the GraphQL explorer.
+Before we spin up our Gatsby project, let's go to the API playground and see how our GraphQL API is structured. In the sidebar menu, choose "API Playground" to open the GraphQL explorer.
 
 ![GraphQL playground](./assets/nextjs-starter/api-playground-open.png)
 
@@ -152,7 +152,126 @@ Gatsby's approach to data is quite unique but very useful. Now that we have data
 
 ![Gatsby's GraphQL IDE with the webiny data](./assets/gatsby-starter/gatsby-graphql-ide-with-data.png)
 
-To create pages, we need to either create a dynamic route
+To create pages, we need to modify the `gatsby-node.js` file so that it fetches and renders our posts.
+
+To do that, first import the dependencies we will need:
+
+```javascript gatsby-node.js
+const path = require(`path`)
+const { createFilePath } = require(`gatsby-source-filesystem`)
+```
+
+Next we need to export a `createPages` function which will loop over our data and create pages using a template we specify.
+
+```javascript gatsby-node.js
+exports.createPages = async ({ graphql, actions, reporter }) => {
+  const { createPage } = actions
+
+  // Define a template for blog post
+  const blogPost = path.resolve(`./src/templates/blog-post.js`)
+
+  // Get all blog posts sorted by created date
+  const result = await graphql(
+    `
+      query Posts {
+        webiny {
+          listPosts(sort:createdOn_DESC) {
+            data {
+              id
+              title
+              slug
+              description
+              createdOn
+              featuredImage
+              author {
+                name
+                picture
+              }
+            }
+          }
+        }
+      }
+    `
+  )
+
+  if (result.errors) {
+    reporter.panicOnBuild(
+      `There was an error loading your blog posts`,
+      result.errors
+    )
+    return
+  }
+
+  const posts = result.data.webiny.listPosts.data
+
+  // Create blog posts pages
+  if (posts.length > 0) {
+    posts.forEach((post, index) => {
+
+      createPage({
+        path: post.slug,
+        component: blogPost,
+        context: {
+          id: post.id,
+          createdOn: post.createdOn,
+          slug: post.slug,
+        },
+      })
+    })
+  }
+}
+```
+
+The final step is to create a template for your created nodes and pass the data to the component:
+
+```javascript /src/templates/blog-post.js
+export const pageQuery = graphql`
+  query PostBySlug(
+      $slug: String
+      $id: ID
+      $createdOn: Webiny_DateTime
+    ) {
+    site {
+      siteMetadata {
+        title
+      }
+    }
+    webiny {
+      getPost(where: {slug: $slug}) {
+        data {
+          id
+          title
+          slug
+          description
+          createdOn
+          featuredImage
+          body
+          author {
+            name
+            picture
+          }
+        }
+      }
+    } 
+  }
+`
+```
+
+Now you should be able to render data in the page component:
+
+```javascript /src/templates/blog-post.js
+const BlogPostTemplate = ({ data, location }) => {
+  const post = data.webiny.getPost.data
+  const siteTitle = data.site.siteMetadata?.title || `Title`
+  const { previous, next } = data.webiny
+
+  return (
+    <h1>{post.title}</h1>
+  )
+}
+```
+
+If this is succesful you should be able to start your development server and see pages rendered with URL paths that correspond to your posts.
 
 <Alert type="info">
 For more information about creating pages from data, [see the Gatsby documentation](https://www.gatsbyjs.com/docs/programmatically-create-pages-from-data/).
@@ -170,10 +289,18 @@ import { RichTextRenderer } from '../components/rich-text-renderer'
 <RichTextRenderer data={content} />
 ```
 
-It's entirely possible to make your own renderer. If you open that package you'll see how we have done it, you can copy that code and modify it as you wish.
+
 
 <Alert type="info">
 
-[For more information about the rich text renderer package, see this documentation](/docs/headless-cms/extending/render-rich-text-content)
+[For more information about the rich text renderer, see this documentation](/docs/headless-cms/extending/render-rich-text-content)
 
 </Alert>
+
+## Conclusion
+
+Using Webiny for a Headless CMS using GatsbyJS is an easy, cost-effective and scalable solution.
+
+As well as the basics we've discussed here, you have virtually no limit on the amount of records you store, or even the amount of images you store inside Webiny. You can also have multiple locales to support multiple languages, and other apps are included such as the [page builder](https://www.webiny.com/docs/page-builder/theming/introduction). Also, we have [pricing plans that scale](https://www.webiny.com/pricing) if you're a small business owner or enterprise customer.
+
+We hope you enjoy using Webiny to create your next website!
