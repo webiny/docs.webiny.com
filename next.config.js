@@ -31,9 +31,6 @@ module.exports = withBundleAnalyzer({
   images: {
     disableStaticImages: true,
   },
-  async redirects() {
-    return require('./redirects.json')
-  },
   webpack(config, options) {
     if (!options.dev && options.isServer) {
       let originalEntry = config.entry
