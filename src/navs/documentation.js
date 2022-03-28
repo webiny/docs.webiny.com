@@ -41,6 +41,7 @@ export const documentationNav = [
     ]),
     section('Integrations', [
       page('headless-cms/integrations/nextjs'),
+      page('headless-cms/integrations/gatsby'),
     ]),
     section('References', [
       page('headless-cms/references/lifecycle-events'),
