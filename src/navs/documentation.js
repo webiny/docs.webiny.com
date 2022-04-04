@@ -273,31 +273,31 @@ export const documentationNav = [
                 page("release-notes/5.23.0/changelog"),
                 page("release-notes/5.23.0/upgrade-guide"),
             ]),
-            collapsable("5.22.1", [
+            collapsable("Older Releases", [
+              collapsable("5.22.1", [
                 page("release-notes/5.22.1/changelog"),
                 page("release-notes/5.22.1/upgrade-guide"),
-            ]),
-            collapsable("5.22.0", [
+              ]),
+              collapsable("5.22.0", [
                 page("release-notes/5.22.0/changelog"),
                 page("release-notes/5.22.0/upgrade-guide"),
-            ]),
-            collapsable("5.21.0", [
+              ]),
+              collapsable("5.21.0", [
                 page("release-notes/5.21.0/changelog"),
                 page("release-notes/5.21.0/upgrade-guide"),
-            ]),
-            collapsable("5.20.0", [
+              ]),
+              collapsable("5.20.0", [
                 page("release-notes/5.20.0/changelog"),
                 page("release-notes/5.20.0/upgrade-guide"),
-            ]),
-            collapsable("5.19.1", [
+              ]),
+              collapsable("5.19.1", [
                 page("release-notes/5.19.1/changelog"),
                 page("release-notes/5.19.1/upgrade-guide"),
-            ]),
-            collapsable("5.19.0", [
+              ]),
+              collapsable("5.19.0", [
                 page("release-notes/5.19.0/changelog"),
                 page("release-notes/5.19.0/upgrade-guide"),
-            ]),
-            collapsable("Older Releases", [
+              ]),
                 collapsable("5.18.0", [
                     page("release-notes/5.18.0/changelog"),
                     page("release-notes/5.18.0/upgrade-guide"),
