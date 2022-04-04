@@ -1,32 +1,32 @@
-import { SidebarLayout } from '@/layouts/SidebarLayout'
-import { getParentNav } from '@/utils/getParentNav'
-import { useRouter } from 'next/router'
+import { SidebarLayout } from "@/layouts/SidebarLayout";
+import { getParentNav } from "@/utils/getParentNav";
+import { useRouter } from "next/router";
 
-import { Title } from '@/components/Title'
-import { documentationNav } from '@/navs/documentation'
+import { Title } from "@/components/Title";
+import { documentationNav } from "@/navs/documentation";
 
 export function DocumentationLayout(props) {
-  let router = useRouter();
-  
-  const parents = getParentNav(props.layoutProps.Layout.nav);
+    let router = useRouter();
 
-  let parent = ''
-  if(parents!==null){
-    parent = (parents[0] ? parents[0].title+' - ' : '')+parents[1].title;
-  }
+    const parents = getParentNav(props.layoutProps.Layout.nav);
 
-  let suffix = router.pathname === '/' ? parent : parent+' | Webiny Docs';
+    let parent = "";
+    if (parents !== null) {
+        parent = (parents[0] ? parents[0].title + " - " : "") + parents[1].title;
+    }
 
-  return (
-    <>
-      <Title 
-      suffix={suffix} 
-      title={props.layoutProps.meta.metaTitle || props.layoutProps.meta.title}
-      description={props.layoutProps.description}
-      />
-      <SidebarLayout nav={documentationNav} {...props} />
-    </>
-  )
+    let suffix = router.pathname === "/" ? parent : parent + " | Webiny Docs";
+
+    return (
+        <>
+            <Title
+                suffix={suffix}
+                title={props.layoutProps.meta.metaTitle || props.layoutProps.meta.title}
+                description={props.layoutProps.description}
+            />
+            <SidebarLayout nav={documentationNav} {...props} />
+        </>
+    );
 }
 
-DocumentationLayout.nav = documentationNav
+DocumentationLayout.nav = documentationNav;

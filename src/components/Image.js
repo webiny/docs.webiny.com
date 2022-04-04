@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import Lightbox from "react-image-lightbox";
 import classNames from "classnames";
 
-export default props => {
+export default (props) => {
     const [isOpen, setState] = useState(false);
 
     const openLightbox = useCallback(() => {
@@ -13,15 +13,17 @@ export default props => {
         setState(true);
     }, []);
 
-    return <div
+    return (
+        <div
             style={{
                 display: "flex",
                 justifyContent: "center",
                 margin: "20px 0",
-                flexDirection: "column"
-            }}>
-                <img onClick={openLightbox} alt={props.alt || props.title} src={props.src}/>
-                
+                flexDirection: "column",
+            }}
+        >
+            <img onClick={openLightbox} alt={props.alt || props.title} src={props.src} />
+
             {props.canEnlarge !== false && (
                 <div
                     onClick={openLightbox}
@@ -29,7 +31,7 @@ export default props => {
                         textAlign: "center",
                         marginTop: 5,
                         fontSize: "80%",
-                        color: "var(--ifm-toc-link-color)"
+                        color: "var(--ifm-toc-link-color)",
                     }}
                 >
                     (click to enlarge)
@@ -42,7 +44,8 @@ export default props => {
                     imageTitle={props.title || props.alt}
                 />
             )}
-            </div>;
+        </div>
+    );
 
     return (
         <div
@@ -50,14 +53,14 @@ export default props => {
                 display: "flex",
                 justifyContent: "center",
                 margin: "20px 0",
-                flexDirection: "column"
+                flexDirection: "column",
             }}
         >
             <img
                 onClick={openLightbox}
                 style={{ display: "block", cursor: "pointer", margin: "auto", ...props.style }}
                 className={classNames(props.className, {
-                    ["no-shadow"]: props.shadow === false
+                    ["no-shadow"]: props.shadow === false,
                 })}
                 alt={props.alt || props.title}
                 src={props.src}
@@ -69,7 +72,7 @@ export default props => {
                         textAlign: "center",
                         marginTop: 5,
                         fontSize: "80%",
-                        color: "var(--ifm-toc-link-color)"
+                        color: "var(--ifm-toc-link-color)",
                     }}
                 >
                     (click to enlarge)
