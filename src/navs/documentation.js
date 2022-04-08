@@ -171,6 +171,9 @@ export const documentationNav = [
                 "core-development-concepts/extending-and-customizing/create-a-package-in-webiny-project"
             ),
             page("core-development-concepts/extending-and-customizing/integrate-tailwindcss"),
+            page(
+                "core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index-template"
+            ),
         ]),
         section("CI/CD", [
             page("core-development-concepts/ci-cd/introduction"),
