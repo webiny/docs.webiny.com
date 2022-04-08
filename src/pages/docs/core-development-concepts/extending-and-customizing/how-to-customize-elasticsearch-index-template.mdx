@@ -14,12 +14,61 @@ import { Alert } from "@/components/Alert"
 ## Overview
 
 By the default, we have a basic index template for each of our applications that use Elasticsearch:
-* Headless CMS Entries [plugin](https://github.com/webiny/webiny-js/blob/8b1410114a2b9dd7836ff221dd0367cdf3ce9b62/packages/api-headless-cms-ddb-es/src/plugins/CmsEntryElasticsearchIndexTemplatePlugin.ts) [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-headless-cms-ddb-es/src/elasticsearch/templates/base.ts)
-* Page Builder Pages [plugin](https://github.com/webiny/webiny-js/blob/8b1410114a2b9dd7836ff221dd0367cdf3ce9b62/packages/api-page-builder-so-ddb-es/src/plugins/definitions/PageElasticsearchIndexTemplatePlugin.ts) [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-page-builder-so-ddb-es/src/elasticsearch/templates/base.ts)
-* Form Builder Forms and Submissions [plugin](https://github.com/webiny/webiny-js/blob/8b1410114a2b9dd7836ff221dd0367cdf3ce9b62/packages/api-form-builder-so-ddb-es/src/plugins/FormElasticsearchIndexTemplatePlugin.ts) [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-form-builder-so-ddb-es/src/elasticsearch/templates/base.ts)
-* File Manager Files [plugin](https://github.com/webiny/webiny-js/blob/8b1410114a2b9dd7836ff221dd0367cdf3ce9b62/packages/api-file-manager-ddb-es/src/plugins/FileElasticsearchIndexTemplatePlugin.ts) [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-file-manager-ddb-es/src/elasticsearch/templates/base.ts)
+* Headless CMS Entries [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-headless-cms-ddb-es/src/elasticsearch/templates/base.ts)
+* Page Builder Pages [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-page-builder-so-ddb-es/src/elasticsearch/templates/base.ts)
+* Form Builder Forms and Submissions [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-form-builder-so-ddb-es/src/elasticsearch/templates/base.ts)
+* File Manager Files [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-file-manager-ddb-es/src/elasticsearch/templates/base.ts)
 
-Each of those templates define how the Elasticsearch index will look like when it is created.
+Each of those templates define how the Elasticsearch index for that particular application will look like when it is created.
 ```info
 Templates are inserted on the installation of each application.
+```
+
+## Available Template Plugins
+
+### Headless CMS
+For the Headless CMS Entries we have [CmsEntryElasticsearchIndexTemplatePlugin](https://github.com/webiny/webiny-js/blob/8b1410114a2b9dd7836ff221dd0367cdf3ce9b62/packages/api-headless-cms-ddb-es/src/plugins/CmsEntryElasticsearchIndexTemplatePlugin.ts).
+
+We store only the entries into this index.
+
+### File Manager
+For the File Manager Files we have the [FileElasticsearchIndexTemplatePlugin](https://github.com/webiny/webiny-js/blob/8b1410114a2b9dd7836ff221dd0367cdf3ce9b62/packages/api-file-manager-ddb-es/src/plugins/FileElasticsearchIndexTemplatePlugin.ts).
+
+### Page Builder
+For the Page Builder Pages we have the [PageElasticsearchIndexTemplatePlugin](https://github.com/webiny/webiny-js/blob/8b1410114a2b9dd7836ff221dd0367cdf3ce9b62/packages/api-page-builder-so-ddb-es/src/plugins/definitions/PageElasticsearchIndexTemplatePlugin.ts).
+
+### Form Builder
+For the Form Builder Forms and Submissions we have the [FormElasticsearchIndexTemplatePlugin](https://github.com/webiny/webiny-js/blob/8b1410114a2b9dd7836ff221dd0367cdf3ce9b62/packages/api-form-builder-so-ddb-es/src/plugins/FormElasticsearchIndexTemplatePlugin.ts).
+
+
+## How To Create Your Own Template?
+
+### Rules
+There are few rules that you will need to follow if you want to successfully create the index template.
+1. The `name` property must be __UNIQUE__, or it will override the existing template.
+Let's say you name your custom Headless CMS index template `headless-cms-entries-index-default` - it will overwrite our default one, so be careful if you do not want to override existing templates.
+
+2. If you want to apply your template (override mapping) of the default template, use the `order` value larger than the template you want to override.
+You cannot have two templates with the same `order` value that will get applied on the index creation so be careful about that.
+
+3. Each of the template plugin `index_patterns` __MUST__ match contain one of given patterns:
+ * `-headless-cms-` for the `CmsEntryElasticsearchIndexTemplatePlugin`
+ * `-file-manager$` for the `FileElasticsearchIndexTemplatePlugin`
+ * `-page-builder$` for the `PageElasticsearchIndexTemplatePlugin`
+ * `-form-builder$` for the `FormElasticsearchIndexTemplatePlugin`
+
+Notice that index name patterns for File Manager, Page Builder and Form Builder end with a `$`, which is a pattern end.
+Headless CMS index name contains a bit more data, so we just match the `-headless-cms-`.
+
+### Example
+For the example we will use the `CmsEntryElasticsearchIndexTemplatePlugin`.
+
+```typescript
+new CmsEntryElasticsearchIndexTemplatePlugin({
+    name: "headless-cms-entries-index-custom-example",
+    order: 251,
+    body: {
+        index_patterns: ["*-headless-cms-*"]
+    }
+})
 ```
