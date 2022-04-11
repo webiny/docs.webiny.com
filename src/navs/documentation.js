@@ -260,6 +260,10 @@ export const documentationNav = [
     collapsable("Release Notes", [
         page("release-notes/upgrade-webiny"),
         section("Release Notes", [
+            collapsable("5.26.0", [
+                page("release-notes/5.26.0/changelog"),
+                page("release-notes/5.26.0/upgrade-guide"),
+            ]),
             collapsable("5.25.0", [
                 page("release-notes/5.25.0/changelog"),
                 page("release-notes/5.25.0/upgrade-guide"),
