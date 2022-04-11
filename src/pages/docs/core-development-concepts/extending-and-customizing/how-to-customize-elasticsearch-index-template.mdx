@@ -65,17 +65,60 @@ Headless CMS index name contains a bit more data, so we just match the `-headles
  * Headless CMS - 200 - 299 (the default template value is 250)
  * Page Builder - 300 - 399 (the default template value is 350)
 
+### How Are The Index Names Created?
+
+#### Overview
+
+Allowed index names can contain dashes (-), underscores (_), numbers (0-9) and english letters (a-z).
+
+Index name __MUST__ always be lowercase, and it cannot start with dash, underscore or a number.
+
+You can set the `ELASTICSEARCH_SHARED_INDEXES` environment variable to `true` to create a single index for all tenants for each application (or for each model in case of the Headless CMS), but we do not encourage it.
+
+You can also set the `ELASTIC_SEARCH_INDEX_PREFIX` environment variable to `true` to add a prefix to every index created.
+Use case for this would be for when you have multiple environment on a single Elasticsearch instance. You can prefix each environment indexes with, for example, `dev`, `prod`, `staging`, `test`, etc...
+
+#### File Manager
+
+Index name for the File Manager Files is built out of the `tenant id` and `-file-manager` suffix.
+If your tenant is a `root` tenant, the index will look like `root-file-manager`.
+
+You can see how the index is created in [this](https://github.com/webiny/webiny-js/blob/b615a8a02acf222f6a90c740ebbd7aec5e767218/packages/api-file-manager-ddb-es/src/operations/configurations.ts) file.
+
+#### Form Builder
+
+Index name for the Form Builder Forms and Submissions is built out of the `tenant id` and `-form-builder` suffix.
+If your tenant is a `root` tenant, the index will look like `root-form-builder`.
+
+You can see how the index is created in [this](https://github.com/webiny/webiny-js/blob/3c595a1d7edd07a9763ba3959f954f88fbb3d462/packages/api-form-builder-so-ddb-es/src/configurations.ts) file.
+
+#### Headless CMS
+
+Index name for the Headless CMS Entries is built out of `tenant id`, `-headless-cms`, `locale code` and `model id`.
+If your tenant is a `root` tenant, locale is `en-US` and model is `Articles`, the index will look like `root-headless-cms-en-us-articles`.
+
+You can see how the index is created in [this](https://github.com/webiny/webiny-js/blob/3c595a1d7edd07a9763ba3959f954f88fbb3d462/packages/api-headless-cms-ddb-es/src/configurations.ts) file.
+
+#### Page Builder
+
+Index name for the Page Builder Pages is built out of the `tenant id` and `-page-builder` suffix.
+If your tenant is a `root` tenant, the index will look like `root-page-builder`.
+
+You can see how the index is created in [this](https://github.com/webiny/webiny-js/blob/3c595a1d7edd07a9763ba3959f954f88fbb3d462/packages/api-page-builder-so-ddb-es/src/operations/configurations.ts) file.
+
+
+
 ### Example
 
 Headless CMS index template plugin `CmsEntryElasticsearchIndexTemplatePlugin` example:
 ```typescript
-import { CmsEntryElasticsearchIndexTemplatePlugin } from "@webiny/packages/api-headless-cms-ddb-es/plugins/CmsEntryElasticsearchIndexTemplatePlugin";
+import { CmsEntryElasticsearchIndexTemplatePlugin } from "@webiny/api-headless-cms-ddb-es/plugins/CmsEntryElasticsearchIndexTemplatePlugin";
 const plugin = new CmsEntryElasticsearchIndexTemplatePlugin({
     name: "headless-cms-entries-index-custom-example",
     // apply the index template after the default one.
     order: 251,
     body: {
-        index_patterns: ["*-headless-cms-*"],
+        index_patterns: ["*-headless-cms-de-*"],
         mappings: {
             properties: {
                 // we do not want to map a field with name "jsonFieldName"
