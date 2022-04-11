@@ -7,7 +7,7 @@ import { Alert } from "@/components/Alert"
 
 <Alert type="success" title="What you'll learn">
 
-- how to customize Elasticsearch Index Template
+- how to customize Elasticsearch Index Template for each application
 
 </Alert>
 
@@ -48,11 +48,15 @@ For the Page Builder Pages we have the [PageElasticsearchIndexTemplatePlugin](ht
 
 ### Rules
 There are few rules that you will need to follow if you want to successfully create the index template.
-1. The `name` property must be __UNIQUE__, or it will override the existing template.
-Let's say you name your custom Headless CMS index template `headless-cms-entries-index-default` - it will overwrite our default one, so be careful if you do not want to override existing templates.
+1. The `name` property must be __UNIQUE__, or it will override the existing template configuration.
+Let's say you name your custom Headless CMS index template `headless-cms-entries-index-default` - it will overwrite our default template configuration, so be careful if you do not want to override existing templates.
 
-2. If you want to apply your template (override mapping) of the default template, use the `order` value greater than the template you want to override.
+2. If you want to apply your template after some other template, use the `order` value greater than the template you want to override.
 You can have two templates with the same `order` value that will get applied on the index creation, but you cannot be sure which one will override which one at that point, so be careful about that.
+
+<Alert type="warning">
+  Note that templates stack on each other, so if you do not override the template configuration from a first template applied, it will be set into the created index.
+</Alert>
 
 3. Each of the template plugin `index_patterns` __MUST__ match contain one of given regex patterns:
    * `-file-manager$` for the `FileElasticsearchIndexTemplatePlugin`
@@ -63,7 +67,7 @@ You can have two templates with the same `order` value that will get applied on 
 Notice that index name patterns for File Manager, Page Builder and Form Builder end with a `$`, which means that index pattern must end with what is defined.
 Headless CMS index name contains a bit more data, so we just match the `-headless-cms-` anywhere in the index pattern.
 
-4. We gave our templates different minimum and maximum `order` values:
+4. We gave our template plugins different minimum and maximum `order` values:
  * File Manager - 0 - 99 (the default template value is 50)
  * Form Builder - 100 - 199(the default template value is 150)
  * Headless CMS - 200 - 299 (the default template value is 250)
@@ -73,7 +77,7 @@ Headless CMS index name contains a bit more data, so we just match the `-headles
 
 #### Overview
 
-Index names can contain dashes (-), underscores (_), numbers (0-9) and english letters (a-z).
+Index name can contain dashes (-), underscores (_), numbers (0-9) and english letters (a-z).
 
 Index name __MUST__ always be lowercase, and it cannot start with dash, underscore or a number.
 
@@ -112,7 +116,7 @@ You can see how the index is created in [this](https://github.com/webiny/webiny-
 
 
 
-### Example
+### Examples
 
 Headless CMS index template plugin `CmsEntryElasticsearchIndexTemplatePlugin` example:
 ```typescript
@@ -156,3 +160,10 @@ const plugin = new PageElasticsearchIndexTemplatePlugin({
     }
 })
 ```
+
+
+### Useful Links
+
+* [Elasticsearch - Create or update index template API](https://www.elastic.co/guide/en/elasticsearch/reference/7.17/indices-templates-v1.html#put-index-template-v1-api-request-body)
+* [Elasticsearch - Index Mapping](https://www.elastic.co/guide/en/elasticsearch/reference/7.17/mapping.html)
+* [Elasticsearch - Index Settings](https://www.elastic.co/guide/en/elasticsearch/reference/7.17/index-modules.html#index-modules-settings)
