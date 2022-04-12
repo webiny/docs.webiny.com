@@ -17,18 +17,37 @@ import { Alert } from "@/components/Alert"
 
 ## Overview
 
-We do not store all the data into the Elasticsearch because there is no need for it (eg. Headless CMS Models and Groups).
+### When Do We Use The Elasticsearch Index Template?
+
+We use the index templates for our File Manager, Form Builder, Headless CMS and Page Builder applications.
+
+In File Manager, Form Builder and Page Builder applications we use one index per tenant and locale, if locale specific indexes is set.
+
+In Headless CMS we use index for each tenant, locale and model combination because of complexity of the data stored into Elasticsearch.
 
 By the default, we have a basic index template for each of our applications that use Elasticsearch:
-* File Manager Files [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-file-manager-ddb-es/src/elasticsearch/templates/base.ts)
-* Form Builder Forms and Submissions [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-form-builder-so-ddb-es/src/elasticsearch/templates/base.ts)
-* Headless CMS Entries [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-headless-cms-ddb-es/src/elasticsearch/templates/base.ts)
-* Page Builder Pages [template](https://github.com/webiny/webiny-js/blob/feat/api-elasticsearch/index-template-plugin/packages/api-page-builder-so-ddb-es/src/elasticsearch/templates/base.ts)
+* File Manager Files [template](https://github.com/webiny/webiny-js/blob/2f55b1d6aea2085f8c46fc73c48157a49cd46ae0/packages/api-file-manager-ddb-es/src/elasticsearch/templates/base.ts)
+* Form Builder Forms and Submissions [template](https://github.com/webiny/webiny-js/blob/2f55b1d6aea2085f8c46fc73c48157a49cd46ae0/packages/api-form-builder-so-ddb-es/src/elasticsearch/templates/base.ts)
+* Headless CMS Entries [template](https://github.com/webiny/webiny-js/blob/2f55b1d6aea2085f8c46fc73c48157a49cd46ae0/packages/api-headless-cms-ddb-es/src/elasticsearch/templates/base.ts)
+* Page Builder Pages [template](https://github.com/webiny/webiny-js/blob/2f55b1d6aea2085f8c46fc73c48157a49cd46ae0/packages/api-page-builder-so-ddb-es/src/elasticsearch/templates/base.ts)
 
 Each of those templates define how the Elasticsearch index for that particular application will look like when it is created.
+
+<Alert type="info">
+  We do not store all the data into the Elasticsearch because there is no need for it (eg. Headless CMS Models and Groups).
+</Alert>
+
 <Alert type="warning">
   Elasticsearch index templates are inserted on the installation of each application.
 </Alert>
+
+### When Would You Use The Possibility To Change The Elasticsearch Index Template?
+
+Good example on when to change the default template, or add a new one, is when you are using a locale which is not supported by our default template, eg. Japanese.
+
+The Japanese Elasticsearch index template will look a lot different from our default one because of different text analyzers and mapping properties.
+
+There is official [Elasticsearch blog](https://www.elastic.co/blog/how-to-implement-japanese-full-text-search-in-elasticsearch) on how to implement Japanese full-text search.
 
 ## Available Template Plugins
 
@@ -84,7 +103,7 @@ Index name __MUST__ always be lowercase, and it cannot start with dash, undersco
 You can set the `ELASTICSEARCH_SHARED_INDEXES` environment variable to `true` to create a single index for all tenants for each application (or for each model in case of the Headless CMS), but we do not encourage it.
 
 You can also set the `ELASTIC_SEARCH_INDEX_PREFIX` environment variable to `true` to add a prefix to every index created.
-Use case for this would be for when you have multiple environment on a single Elasticsearch instance. You can prefix each environment indexes with, for example, `dev`, `prod`, `staging`, `test`, etc...
+Use case for this would be for when you have multiple environments on a single Elasticsearch instance. You can prefix each environment indexes with, for example, `dev`, `prod`, `staging`, `test`, etc...
 
 #### File Manager
 
