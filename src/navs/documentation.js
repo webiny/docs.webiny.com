@@ -174,6 +174,9 @@ export const documentationNav = [
             page(
                 "core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index-template"
             ),
+          page(
+            "core-development-concepts/extending-and-customizing/how-to-change-elasticsearch-index-name-to-contain-locale"
+          ),
         ]),
         section("CI/CD", [
             page("core-development-concepts/ci-cd/introduction"),
