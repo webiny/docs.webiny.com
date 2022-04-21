@@ -35,7 +35,7 @@ Some of the benefits of this approach are:
 
 - content models and content model groups get to be stored in version control
 - since everything is done via code, in some case we may receive additional flexibility
-- by default, defined content models and content model groups are available for all available locales
+- by default, defined content models and content model groups are available for all available locales and tenants
 - basically, only developers have the ability to perform changes on content models and content model groups
 
 In the following sections, we cover a couple of examples that show how to define content models and content model groups via plugins.
@@ -130,7 +130,7 @@ Want to learn how to create your own custom field type? Check out the [Create a 
 
 </Alert>
 
-Finally, note that both the **Product** content model and the **E-Commerce** content model group will be available for all existing locales. If you're interested in defining a content model only for a specific locale, check out the following example.
+Finally, note that both the **Product** content model and the **E-Commerce** content model group will be available for all existing locales and tenants. If you're interested in defining a content model only for a specific locale or tenant, check out the following example.
 
 ### Define a Content Model Only for a Specific Locale
 
@@ -168,6 +168,37 @@ Note that we've used the [`ContextPlugin`](https://github.com/webiny/webiny-js/b
 In Admin Area, user's current local is sent with every issued HTTP request, via the `x-i18n-locale` header.
 
 </Alert>
+
+### Define a Content Model Only for a Specific Tenant
+
+In this example, we show how we can define content models and content model groups only for a specific tenant, in our case, the `root`.
+
+```ts api/code/headlessCMS/src/plugins/models.ts
+import { CmsModelPlugin } from "@webiny/api-headless-cms/content/plugins/CmsModelPlugin";
+import { CmsGroupPlugin } from "@webiny/api-headless-cms/content/plugins/CmsGroupPlugin";
+import { ContextPlugin } from "@webiny/handler/plugins/ContextPlugin";
+import { CmsContext } from "@webiny/api-headless-cms/types";
+
+export default [
+    new ContextPlugin((context: CmsContext) => {
+        // Only register needed plugins if the current tenant is set to "root".
+        if (context.tenancy.getCurrentTenant().id !== "root") {
+            return;
+        }
+
+        context.plugins.register([
+            new CmsGroupPlugin({
+               ...
+            }),
+            new CmsModelPlugin({
+                ...
+            })
+        ]);
+    })
+];
+```
+
+As we can see, like in the previous example, we're again utilizing the [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/handler/src/plugins/ContextPlugin.ts#L7) first, in order to be able to access the dynamic `context` object, and the `context.tenancy.getCurrentTenant` method. Once we've determined that the `root` is the current tenant, we proceed by registering the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins.
 
 ## FAQ
 
