@@ -172,7 +172,7 @@ export const documentationNav = [
             ),
             page("core-development-concepts/extending-and-customizing/integrate-tailwindcss"),
             page(
-                "core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index-template"
+                "core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index"
             ),
             page(
                 "core-development-concepts/extending-and-customizing/how-to-change-elasticsearch-index-name-to-contain-locale"
