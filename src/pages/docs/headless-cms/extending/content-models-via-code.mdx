@@ -29,7 +29,7 @@ The most straightforward way to define content models and content model groups w
 
 ### Using Plugins
 
-And although we can get pretty far by defining content models and content model groups via the Admin Area, on the other hand, we can also do this within our application code, by registering one or more [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins. Once defined, content models and content model groups can be then used via the Admin Area in the same way as if they were created regularly, via the Content Model Editor.
+And although we can get pretty far by defining content models and content model groups via the Admin Area, on the other hand, we can also do this within our application code, by registering one or more [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins. Once defined, content models and content model groups can be then used via the Admin Area in the same way as if they were created regularly, via the Content Model Editor.
 
 Some of the benefits of this approach are:
 
@@ -43,84 +43,116 @@ In the following sections, we cover a couple of examples that show how to define
 ## Examples
 
 ### Basic Example
+In this example, we will explore how to define a simple **Product** content model, that belongs to the **E-Commerce** content model group.
 
-In this example, we show how we can define a simple **Product** content model, that belongs to the **E-Commerce** content model group. Both plugins can be defined within a single file, in our case, [`api/code/headlessCMS/src/plugins/models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/headlessCMS/src/plugins/models.ts):
+#### Create Content Model Group and Content Model Plugins
+We will create the content group and content model by defining the `CmsGroupPlugin` and `CmsModelPlugin` plugins, respectively.
+Both plugins can be defined within a single file.  
+Let's create a [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/headlessCMS/src/plugins/models.ts) file in the `api/code/headlessCMS/src/plugins` directory.
 
 ```ts api/code/headlessCMS/src/plugins/models.ts
-import { CmsModelPlugin } from '@webiny/api-headless-cms/content/plugins/CmsModelPlugin'
-import { CmsGroupPlugin } from '@webiny/api-headless-cms/content/plugins/CmsGroupPlugin'
+import { CmsModelPlugin } from "@webiny/api-headless-cms/content/plugins/CmsModelPlugin"
+import { CmsGroupPlugin } from "@webiny/api-headless-cms/content/plugins/CmsGroupPlugin"
 
 export default [
   // Defines a new "E-Commerce" content models group.
   new CmsGroupPlugin({
-    id: 'ecommerce',
-    name: 'E-Commerce',
-    slug: 'e-commerce',
-    icon: 'fas/shopping-cart',
+    id: "ecommerce",
+    name: "E-Commerce",
+    slug: "e-commerce",
+    icon: "fas/shopping-cart"
   }),
 
   // Defines a new "Product" content model.
   new CmsModelPlugin({
-    name: 'Product',
-    modelId: 'product',
+    name: "Product",
+    modelId: "product",
     group: {
-      id: 'ecommerce',
-      name: 'E-Commerce',
+      id: "ecommerce",
+      name: "E-Commerce"
     },
     fields: [
       {
-        id: 'name',
-        fieldId: 'name',
-        type: 'text',
-        label: 'Product Name',
-        helpText: 'A short product name',
-        renderer: { name: 'text-input' },
+        id: "productName",
+        fieldId: "productName",
+        type: "text",
+        label: "Product Name",
+        helpText: "A short product name",
+        renderer: { name: "text-input" },
         validation: [
           {
-            name: 'required',
-            message: 'Value is required.',
+            name: "required",
+            message: "Value is required."
           },
         ],
       },
       {
-        id: 'sku',
-        fieldId: 'sku',
-        type: 'text',
-        label: 'SKU',
-        placeholderText: 'SKU = Stock Keeping Unit',
-        renderer: { name: 'text-input' },
+        id: "productSKU",
+        fieldId: "productSKU",
+        type: "text",
+        label: "SKU",
+        placeholderText: "SKU = Stock Keeping Unit",
+        renderer: { name: "text-input" }
       },
       {
-        id: 'price',
-        fieldId: 'price',
-        type: 'number',
-        label: 'Price',
-        renderer: { name: 'text-input' },
-      },
+        id: "productPrice",
+        fieldId: "productPrice",
+        type: "number",
+        label: "Price",
+        renderer: { name: "text-input" }
+      }
     ],
-    layout: [['name'], ['sku', 'price']],
-    titleFieldId: 'name',
+    layout: [["productName"], ["productSKU", "productPrice"]],
+    titleFieldId: "productName"
   }),
 ]
 ```
 
-<Alert type="info">
-
-Do note that you will also need to import the newly created [`api/code/headlessCMS/src/plugins/models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/headlessCMS/src/plugins/models.ts) file and register the created plugins in the [`api/code/headlessCMS/src/index.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/headlessCMS/src/index.ts#L42) entrypoint file.
-
+#### How to Define Field ID's
+<Alert type="danger">
+When defining content models via the code, the field identifiers are not scoped within a model.
+The id attribute must be unique across all your models that are defined via the code.
 </Alert>
 
-Once registered, we should end up with the following two items in our Admin Area main menu:
+As a general rule, our suggestion is to prefix the `id` attribute with the model name.
+For example, if you have a model with an `id` of "product" and that model contains a field with an `id` value of "name".
+Instead of just calling it "name", set the `id` to "productName".
+
+#### Register the Plugins
+As a next step, we will register the content model group and content model plugin in the Headless CMS application.
+Let's make the following changes in `api/code/headlessCMS/src/index.ts` file:
+
+```diff-js api/code/headlessCMS/src/index.ts
+(...)
+
+// Import the content model group and content model
++ import eCommerceGroupAndModels from "./plugins/models";
+
+export default [
+     // Rest of the plugins
+     (...)
+     createContentHeadlessCmsGraphQL({ debug }),
+    scaffoldsPlugins(),
++   eCommerceGroupAndModels
+];
+```
+Once plugins are registered successfully, we should be able to see the following two items in our Admin Area main menu:
 
 ![Product and E-Commerce Items in the Admin Area Main Menu](./assets/content-models-plugins/basics-plugins-work.png)
 
-As shown in the example, the [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) receives a [`CmsContentModel`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/types.ts#L282) object upon instantiation. It lets us define all of the content model's properties, like its name, ID (`modelId`), a content model group to which it belongs to, and most importantly, all of the fields that it consists of.
+<Alert type="success">
 
-All of the fields of a single content model are defined via the [`fields`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/types.ts#L327) property, which is an array of [`CmsContentModelField`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/types.ts#L99) objects. Note that some of the properties that we need to define for each field are simpler than others, for example `label` or `placeholderText`. On the other hand, properties like `type`, `renderer.name`, and `validation.name` contain values that actually reference other registered plugins. In case an invalid reference was provided, an error will be thrown and you will have to make corrections.
+With the [`webiny watch`](/docs/how-to-guides/use-watch-command/) command up and running, the performed application code changes should be automatically rebuilt and redeployed into the cloud.
+
+</Alert>
+
+As shown in the example, the [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) receives a [`CmsContentModel`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) object upon instantiation. It lets us define all of the content model's properties, like its name, ID (`modelId`), a content model group to which it belongs to, and most importantly, all of the fields that it consists of.
+
+All of the fields of a single content model are defined via the [`fields`](https://github.com/webiny/webiny-js/blob/c3d4955bf74e7ffdb9628867e3b23cdfe64ea8dc/packages/api-headless-cms/src/types.ts#L345) property, which is an array of [`CmsModelField`](https://github.com/webiny/webiny-js/blob/c3d4955bf74e7ffdb9628867e3b23cdfe64ea8dc/packages/api-headless-cms/src/types.ts#L109) objects. Note that some of the properties that we need to define for each field are simpler than others, for example `label` or `placeholderText`. On the other hand, properties like `type`, `renderer.name`, and `validation.name` contain values that actually reference other registered plugins. In case an invalid reference was provided, an error will be thrown and you will have to make corrections.
 
 <Alert type="info">
 
-All available [field types (`type`)](https://github.com/webiny/webiny-js/tree/v5.21.0/packages/api-headless-cms/src/content/plugins/graphqlFields), [field renderers (`renderer.name`)](https://github.com/webiny/webiny-js/tree/v5.21.0/packages/app-headless-cms/src/admin/plugins/fieldRenderers), and [field validators (`validators.name`)](https://github.com/webiny/webiny-js/tree/v5.21.0/packages/api-headless-cms/src/content/plugins/validators) can be found in our GitHub repository.
+All available [field types (`type`)](https://github.com/webiny/webiny-js/tree/v5.25.0/packages/api-headless-cms/src/content/plugins/graphqlFields), [field renderers (`renderer.name`)](https://github.com/webiny/webiny-js/tree/v5.25.0/packages/app-headless-cms/src/admin/plugins/fieldRenderers), and [field validators (`validators.name`)](https://github.com/webiny/webiny-js/tree/v5.25.0/packages/api-headless-cms/src/content/plugins/validators) can be found in our GitHub repository.
 
 </Alert>
 
@@ -130,7 +162,104 @@ Want to learn how to create your own custom field type? Check out the [Create a 
 
 </Alert>
 
-Finally, note that both the **Product** content model and the **E-Commerce** content model group will be available for all existing locales and tenants. If you're interested in defining a content model only for a specific locale or tenant, check out the following example.
+Finally, note that both the **Product** content model and the **E-Commerce** content model group will be available for all existing locales and tenants. If you're interested in defining a content model only for a specific locale or tenant, check out the examples below.
+
+### Advanced Example
+
+In the example above, we created a simple model. Now let’s take this further and create a little more advanced model.
+We will see how to create a reference field and add multiple validations to a field.
+
+Let's start by creating a category model, which will have a name field with unique and required validation.
+Later, we will refer to this category model from the product model.
+
+#### Category Model with Multiple Validations
+
+As discussed earlier, we need to define a `CmsModelPlugin` plugin to create a model.
+Add the following code to the [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/headlessCMS/src/plugins/models.ts) file that we created earlier.
+
+```ts api/code/headlessCMS/src/plugins/models.ts
+    // Defines a new "Category" content model.
+    new CmsModelPlugin({
+      name: "Category",
+      modelId: "category",
+      group: {
+        id: "ecommerce",
+        name: "E-Commerce"
+      },
+      fields: [
+        {
+          id: "categoryName",
+          fieldId: "categoryName",
+          type: "text",
+          label: "Category Name",
+          renderer: { name: "text-input" },
+          validation: [
+            {
+              name: "required",
+              message: "Value is required.",
+            },
+            {
+              name: "unique",
+              message: "Field value must be unique."
+            }
+          ]
+        }
+      ],
+      layout: [["categoryName"]],
+      titleFieldId: "categoryName"
+    })
+```
+
+Here you can see we added the `required` and `unique` validation for the category name field.
+You can explore all the available [field validators](https://github.com/webiny/webiny-js/tree/v5.25.0/packages/api-headless-cms/src/content/plugins/validators) in our GitHub repository.
+
+
+#### Add Category Reference Field in the Product Model
+
+Now let's use the Category Model as a reference field in the Product model.
+We will update the Product model that we created earlier. The `ref` field type is used to create the reference field.
+
+```diff-js api/code/headlessCMS/src/plugins/models.ts
+export default [
+  (...)
+  fields: [
+     (...)
+     {
+       id: "productPrice",
+       fieldId: "productPrice",
+       type: "number",
+       label: "Price",
+       renderer: { name: "text-input" },
+     },
++    {
++      id: "productCategory",
++      fieldId: "productCategory",
++      type: "ref",
++      label: "Category",
++      renderer: { "name": "ref-input" },
++      "settings": {
++        "models": [
++          {
++            "modelId": "category"
++          }
++        ]
++      }
++    }
+  ],
+
+  // Add productCategory field in the layout
++ layout: [["productName"], ["productSKU", "productPrice"], ["productCategory"]],
+  titleFieldId: "productName"
+  (...)
+]
+```
+
+With the [`webiny watch`](/docs/how-to-guides/use-watch-command/) command up and running,
+the performed application code changes should be automatically rebuilt and redeployed into the cloud.
+And you should be able to see the following Product model.
+
+![Product Model](./assets/content-models-plugins/product-model.png)
+
 
 ### Define a Content Model Only for a Specific Locale
 
