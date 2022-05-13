@@ -175,6 +175,12 @@ export const documentationNav = [
                 "core-development-concepts/extending-and-customizing/create-a-package-in-webiny-project"
             ),
             page("core-development-concepts/extending-and-customizing/integrate-tailwindcss"),
+            page(
+                "core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index"
+            ),
+            page(
+                "core-development-concepts/extending-and-customizing/how-to-change-elasticsearch-index-name-to-contain-locale"
+            ),
         ]),
         section("CI/CD", [
             page("core-development-concepts/ci-cd/introduction"),
@@ -261,6 +267,10 @@ export const documentationNav = [
     collapsable("Release Notes", [
         page("release-notes/upgrade-webiny"),
         section("Release Notes", [
+            collapsable("5.26.0", [
+                page("release-notes/5.26.0/changelog"),
+                page("release-notes/5.26.0/upgrade-guide"),
+            ]),
             collapsable("5.25.0", [
                 page("release-notes/5.25.0/changelog"),
                 page("release-notes/5.25.0/upgrade-guide"),
