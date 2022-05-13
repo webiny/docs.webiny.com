@@ -94,20 +94,20 @@ export default function App({ Component, pageProps, router }) {
                 <meta
                     key="twitter:image"
                     name="twitter:image"
-                    content={`https://www.webiny.com/docs${socialCardLarge}`}
+                    content={`https://www.webiny.com${socialCardLarge}`}
                 />
                 <meta key="twitter:creator" name="twitter:creator" content="@WebinyCMS" />
                 <meta
                     key="og:url"
                     property="og:url"
-                    content={`https://www.webiny.com/docs${router.pathname}`}
+                    content={`https://www.webiny.com${router.pathname}`}
                 />
                 <meta key="og:type" property="og:type" content="article" />
                 <meta key="og:description" property="og:description" content={description} />
                 <meta
                     key="og:image"
                     property="og:image"
-                    content={`https://www.webiny.com/docs${socialCardLarge}`}
+                    content={`https://www.webiny.com${socialCardLarge}`}
                 />
                 <link
                     rel="alternate"
