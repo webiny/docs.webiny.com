@@ -39,9 +39,9 @@ export const documentationNav = [
             page("headless-cms/extending/extend-graphql-api"),
             page("headless-cms/extending/render-rich-text-content"),
         ]),
-        section('Integrations', [
-          page('headless-cms/integrations/nextjs'),
-          page('headless-cms/integrations/gatsby'),
+        section("Integrations", [
+            page("headless-cms/integrations/nextjs"),
+            page("headless-cms/integrations/gatsby"),
         ]),
         section("References", [
             page("headless-cms/references/lifecycle-events"),
@@ -267,6 +267,10 @@ export const documentationNav = [
     collapsable("Release Notes", [
         page("release-notes/upgrade-webiny"),
         section("Release Notes", [
+            collapsable("5.27.0", [
+                page("release-notes/5.27.0/changelog"),
+                page("release-notes/5.27.0/upgrade-guide"),
+            ]),
             collapsable("5.26.0", [
                 page("release-notes/5.26.0/changelog"),
                 page("release-notes/5.26.0/upgrade-guide"),
@@ -279,15 +283,15 @@ export const documentationNav = [
                 page("release-notes/5.24.0/changelog"),
                 page("release-notes/5.24.0/upgrade-guide"),
             ]),
-            collapsable("5.23.1", [
-                page("release-notes/5.23.1/changelog"),
-                page("release-notes/5.23.1/upgrade-guide"),
-            ]),
-            collapsable("5.23.0", [
-                page("release-notes/5.23.0/changelog"),
-                page("release-notes/5.23.0/upgrade-guide"),
-            ]),
             collapsable("Older Releases", [
+                collapsable("5.23.1", [
+                    page("release-notes/5.23.1/changelog"),
+                    page("release-notes/5.23.1/upgrade-guide"),
+                ]),
+                collapsable("5.23.0", [
+                    page("release-notes/5.23.0/changelog"),
+                    page("release-notes/5.23.0/upgrade-guide"),
+                ]),
                 collapsable("5.22.1", [
                     page("release-notes/5.22.1/changelog"),
                     page("release-notes/5.22.1/upgrade-guide"),
