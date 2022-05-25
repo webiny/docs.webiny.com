@@ -7,55 +7,14 @@ export default (props) => {
 
     const openLightbox = useCallback(() => {
         if (props.lightbox === false) {
-            return;
+            // return;
         }
 
         setState(true);
     }, []);
 
     return (
-        <div
-            style={{
-                display: "flex",
-                justifyContent: "center",
-                margin: "20px 0",
-                flexDirection: "column",
-            }}
-        >
-            <img onClick={openLightbox} alt={props.alt || props.title} src={props.src} />
-
-            {props.canEnlarge !== false && (
-                <div
-                    onClick={openLightbox}
-                    style={{
-                        textAlign: "center",
-                        marginTop: 5,
-                        fontSize: "80%",
-                        color: "var(--ifm-toc-link-color)",
-                    }}
-                >
-                    (click to enlarge)
-                </div>
-            )}
-            {isOpen && (
-                <Lightbox
-                    mainSrc={props.src}
-                    onCloseRequest={() => setState(false)}
-                    imageTitle={props.title || props.alt}
-                />
-            )}
-        </div>
-    );
-
-    return (
-        <div
-            style={{
-                display: "flex",
-                justifyContent: "center",
-                margin: "20px 0",
-                flexDirection: "column",
-            }}
-        >
+        <div className={"image-container"}>
             <img
                 onClick={openLightbox}
                 style={{ display: "block", cursor: "pointer", margin: "auto", ...props.style }}
@@ -65,13 +24,14 @@ export default (props) => {
                 alt={props.alt || props.title}
                 src={props.src}
             />
+            <span className={"caption"}>{props.alt || props.title}</span>
+
             {props.canEnlarge !== false && (
                 <div
                     onClick={openLightbox}
                     style={{
                         textAlign: "center",
-                        marginTop: 5,
-                        fontSize: "80%",
+                        fontSize: "70%",
                         color: "var(--ifm-toc-link-color)",
                     }}
                 >
