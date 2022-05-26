@@ -158,7 +158,7 @@ export function NavItems() {
 export function Header({ navIsOpen, onNavToggle }) {
     /*
   let [isOpen, setIsOpen] = useState(false)
-  
+
   const openDialog = () => {
     return setIsOpen(!isOpen)
   }
@@ -184,7 +184,7 @@ export function Header({ navIsOpen, onNavToggle }) {
                             />
                         </svg>
                     </button>
-                    <Link href="/docs/webiny/introduction">
+                    <Link href="/docs/get-started/install-webiny">
                         <a
                             className="flex-none w-[1.5925rem] lg:pr-[8.3875rem] lg:border-r border-border dark:border-dark-grey overflow-hidden lg:w-auto"
                             onContextMenu={(e) => {
