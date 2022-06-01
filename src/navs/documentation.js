@@ -392,4 +392,5 @@ export const documentationNav = [
   ]),
   */
     collapsable("Webiny Telemetry", [page("webiny-telemetry/webiny-telemetry")]),
+    collapsable("Write with Webiny", [page("write-with-webiny/write-with-webiny")]),
 ];
