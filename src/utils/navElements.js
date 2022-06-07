@@ -1,14 +1,4 @@
-import { importAll } from "@/utils/importAll";
-
-export function createPageList(files, base) {
-    return importAll(files).reduce((acc, cur) => {
-        let slug = cur.fileName.substr(2).replace(/\.mdx$/, "");
-        return {
-            ...acc,
-            [slug]: { ...cur.module.default, link: `/${base}/${slug}` },
-        };
-    }, {});
-}
+import { createPageList } from "@/utils/createPageList";
 
 export const page = (mdxName) => {
     const pages = createPageList(
