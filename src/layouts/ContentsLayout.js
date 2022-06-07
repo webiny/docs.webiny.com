@@ -244,7 +244,7 @@ export function ContentsLayout({ children, meta, classes, tableOfContents }) {
     let { prev, next } = usePrevNext();
 
     return (
-        <div className="container max-w-3xl mx-auto mt-[5.25rem] md:mt-[5.875rem] mb-[1.875rem] md:mb-[3.75rem] xl:pt-10 xl:max-w-[53.6875rem] xl:ml-0 xl:mr-[15.5rem] 2xl:mr-[22rem] xl:px-10 xl:border border-neutral-200 dark:border-dark-grey rounded-[0.625rem]">
+        <div className="container max-w-3xl mx-auto mt-[5.25rem] md:mt-[5.875rem] mb-[1.875rem] md:mb-[3.75rem] xl:pt-10 xl:max-w-[100%] xl:mr-0 xl:w-[calc(100%-245px)] xl:ml-0 xl:px-10 xl:border 2xl:max-w-[53.6875rem] border-neutral-200 dark:border-dark-grey rounded-[0.625rem]">
             <PageHeader title={meta.title} description={meta.description} parents={parents} />
             <ContentsContext.Provider value={{ registerHeading, unregisterHeading }}>
                 <div
@@ -314,7 +314,7 @@ export function ContentsLayout({ children, meta, classes, tableOfContents }) {
             </Footer>
 
             <div
-                className={`fixed z-20 top-[4.15rem] bottom-0 right-[max(0px,calc(50%-48.5rem))] 2xl:right-[max(0px,calc(50%-50rem))] w-[19.5rem] 2xl:w-[22rem] pl-[4.3125rem] pr-[1.8125rem] overflow-y-auto hidden xl:block ${scroll}`}
+                className={`fixed z-20 top-[4.15rem] bottom-0 right-[max(0px,calc(50%-48.5rem))] 3xl:right-[max(0px,calc(50%-50rem))] w-[19.5rem] 3xl:w-[22rem] pl-[4.3125rem] pr-[1.8125rem] overflow-y-auto hidden xl:block ${scroll}`}
             >
                 {toc.length > 0 && (
                     <div className="border-l-2 border-orange pl-5 pt-[0.3125rem] pb-2.5 mt-[1.725rem]">
