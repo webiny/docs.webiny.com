@@ -17,6 +17,7 @@ import { Alert } from '@/components/Alert'
 Although the Page Builder application comes with a plethora of ready-made page elements, at one point in time, you might need to create your own to satisfy your specific requirements.
 To achieve that, we can utilize a couple of simple plugins, which is what we'll cover in this short tutorial.
 
+
 ## What We'll Build
 
 We’ll create a new page element that allows content creators to embed content using an `iframe`.
@@ -25,6 +26,9 @@ Here's what the final result will look like:
 ![Iframe page element](./assets/create-a-page-element/iframe-end.png)
 
 <Alert type="info">
+
+The IFrame element is now available out of the box from the [`5.26.0` release](https://www.webiny.com/docs/release-notes/5.26.0/changelog#new-i-frame-page-element-2319).
+You can still follow this tutorial to create custom IFrame elements and get insights on how to create a new Page Element element. 
 
 The full code example used in this tutorial is available in our [webiny-examples](https://github.com/webiny/webiny-examples/tree/master/iframe-page-element) GitHub repository.
 
@@ -72,9 +76,9 @@ Let's get started with scaffolding initial folders and files for our page elemen
   "license": "MIT",
   "dependencies": {
     "@emotion/styled": "10.0.27",
-    "@webiny/app-page-builder": "5.14.0",
-    "@webiny/ui": "5.14.0",
-    "@webiny/validation": "5.14.0",
+    "@webiny/app-page-builder": "5.26.0",
+    "@webiny/ui": "5.26.0",
+    "@webiny/validation": "5.26.0",
     "classnames": "^2.2.6",
     "emotion": "10.0.27",
     "react": "^16.14.0"
@@ -166,11 +170,12 @@ Create [`index.tsx`](https://github.com/webiny/webiny-examples/tree/master/ifram
 ```tsx apps/extensions/pb-element-iframe/admin/index.tsx
 import React from 'react'
 import styled from '@emotion/styled'
-import { PbEditorPageElementPlugin, DisplayMode } from '@webiny/app-page-builder/types'
+import { PbEditorPageElementPlugin, DisplayMode, PbEditorPageElementAdvancedSettingsPlugin } from '@webiny/app-page-builder/types'
 import { createInitialPerDeviceSettingValue } from '@webiny/app-page-builder/editor/plugins/elementSettings/elementSettingsUtils'
 
-import { ReactComponent as IFrameIcon } from './assets/create-a-page-element/iframe-icon.svg'
+import { ReactComponent as IFrameIcon } from './assets/iframe-icon.svg'
 import IframeEditor from './components/iframeEditor'
+import IFrameSettings from "./iframeSettings";
 
 const PreviewBox = styled('div')({
   textAlign: 'center',
@@ -185,13 +190,14 @@ const PreviewBox = styled('div')({
 export default () => {
   return [
     {
-      name: 'pb-editor-page-element-iframe',
+      name: 'pb-editor-page-element-iframe-custom',
       type: 'pb-editor-page-element',
-      elementType: 'iframe',
+
+      elementType: 'iframe-custom',
       toolbar: {
-        // We use `pb-editor-element-group-media` to put our plugin into the Media group.
-        title: 'iFrame',
-        group: 'pb-editor-element-group-media',
+        // We use `pb-editor-element-group-basic` to put our plugin into the Media group.
+        title: 'Custom iFrame',
+        group: 'pb-editor-element-group-basic',
         preview() {
           return (
             <PreviewBox>
@@ -203,8 +209,10 @@ export default () => {
       settings: [
         'pb-editor-page-element-settings-delete',
         'pb-editor-page-element-style-settings-height',
+        "pb-editor-page-element-style-settings-width"
       ],
       target: ['cell', 'block'],
+
       onCreate: 'open-settings',
       create(options) {
         /*
@@ -213,7 +221,7 @@ export default () => {
                     IFrameEditor component and in the element settings.
                 */
         return {
-          type: 'iframe',
+          type: 'iframe-custom',
           elements: [],
           data: {
             iframe: {
@@ -222,7 +230,7 @@ export default () => {
               height: 370,
             },
             settings: {
-              height: createInitialPerDeviceSettingValue({ value: '370px' }, DisplayMode.DESKTOP),
+              height: createInitialPerDeviceSettingValue({ value: '380px' }, DisplayMode.DESKTOP),
             },
           },
           ...options,
@@ -242,10 +250,18 @@ export default () => {
         return <img style={{ width, height }} alt={'iFrame'} />
       },
     } as PbEditorPageElementPlugin,
+
+    {
+      name: "pb-editor-page-element-advanced-settings-iframe-custom",
+      type: "pb-editor-page-element-advanced-settings",
+      elementType: 'iframe-custom',
+      render(props) {
+          return <IFrameSettings {...props}/>;
+      }
+    } as PbEditorPageElementAdvancedSettingsPlugin
+
   ]
 }
-
-export { default as iframeSettings } from './iframeSettings'
 ```
 
 <Alert type="info">
@@ -279,7 +295,8 @@ import React from 'react'
 import { css } from 'emotion'
 import styled from '@emotion/styled'
 import { ElementRoot } from '@webiny/app-page-builder/render/components/ElementRoot'
-import { ReactComponent as IFrameIcon } from '../assets/create-a-page-element/iframe-icon.svg'
+import { ReactComponent as IFrameIcon } from '../assets/iframe-icon.svg'
+import { PbEditorElement } from "@webiny/app-page-builder/types";
 
 const outerWrapper = css({
   boxSizing: 'border-box',
@@ -295,10 +312,13 @@ const PreviewBox = styled('div')({
   },
 })
 
-const IframeEditor = (props) => {
-  const { element } = props
+interface IFrameProps {
+    element: PbEditorElement;
+}
 
-  if (!element.data.iframe.url) {
+const IframeEditor: React.FC<IFrameProps> = ({ element }) => {
+
+  if (!element?.data?.iframe?.url) {
     return (
       <PreviewBox>
         <IFrameIcon />
@@ -351,21 +371,23 @@ import React from 'react'
 import { validation } from '@webiny/validation'
 import { Input } from '@webiny/ui/Input'
 import { Cell, Grid } from '@webiny/ui/Grid'
-import { PbEditorPageElementAdvancedSettingsPlugin } from '@webiny/app-page-builder/types'
 import {
   ButtonContainer,
   classes,
   SimpleButton,
 } from '@webiny/app-page-builder/editor/plugins/elementSettings/components/StyledComponents'
 import Accordion from '@webiny/app-page-builder/editor/plugins/elementSettings/components/Accordion'
+import { BindComponent } from "@webiny/form";
 
-export default {
-  name: 'pb-editor-page-element-advanced-settings-iframe',
-  type: 'pb-editor-page-element-advanced-settings',
-  elementType: 'iframe',
-  render({ Bind, submit }) {
+interface iFrameImagesSettingsProps {
+  Bind: BindComponent;
+  submit: () => void;
+}
+
+const IFrameSettings: React.FC<iFrameImagesSettingsProps> = props => {
+    const { Bind, submit } = props;
     return (
-      <Accordion title={'IFrame'} defaultValue={true}>
+      <Accordion title={'IFrame Source'} defaultValue={true}>
         <React.Fragment>
           <Bind name={'iframe.url'} validators={validation.create('required,url')}>
             <Input label={'URL'} description={'Enter an iFrame URL'} />
@@ -382,8 +404,10 @@ export default {
         </React.Fragment>
       </Accordion>
     )
-  },
-} as PbEditorPageElementAdvancedSettingsPlugin
+
+}
+
+export default IFrameSettings;
 ```
 
 As mentioned, this code will show the settings UI in sidebar and ask for the URL of the `iframe`, as shown below:
@@ -407,7 +431,7 @@ export default () =>
   ({
     name: 'pb-render-page-element-iframe',
     type: 'pb-render-page-element',
-    elementType: 'iframe',
+    elementType: 'iframe-custom',
     render({ element }) {
       return <IFrame element={element} />
     },
@@ -421,15 +445,21 @@ Create `iFrame.tsx` file in the `apps/extensions/pb-element-iframe/render/compon
 import React from 'react'
 import { css } from 'emotion'
 import { ElementRoot } from '@webiny/app-page-builder/render/components/ElementRoot'
+import { PbEditorElement } from "@webiny/app-page-builder/types";
 
 const outerWrapper = css({
   boxSizing: 'border-box',
 })
 
-const IFrame = ({ element }) => {
+interface IFrameProps {
+    element: PbEditorElement;
+}
+
+  const IFrame: React.FC<IFrameProps> = ({ element }) => {
+
   const { data } = element
   // If the user didn't enter a URL, let's show a simple message.
-  if (!data.iframe.url) {
+  if (!data?.iframe?.url) {
     return <div>IFrame URL is missing.</div>
   }
 
@@ -462,11 +492,10 @@ Let's make the following changes in `apps/admin/code/src/plugins/pageBuilder/edi
 (...)
 
 // Import the `iframe` element and it's settings
-+ import iframeElement, { iframeSettings } from "@extensions/pb-element-iframe/admin";
++ import iframeElement from "@extensions/pb-element-iframe/admin";
 
 export default [
 +    iframeElement(),
-+    iframeSettings,
      // Rest of the plugins
      (...)
 ];
