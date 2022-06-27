@@ -35,7 +35,7 @@ export function Heading({
     const LEVELS = {
         2: "top-[6.5rem]",
         3: "top-[6.3rem] md:top-[6.5rem]",
-        4: "top-[6.2rem]",
+        4: "top-[6.2rem]"
     };
 
     return (

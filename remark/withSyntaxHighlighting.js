@@ -1,6 +1,6 @@
 const { highlightCode, addImport } = require("./utils");
 
-const highlightNode = (node) => {
+const highlightNode = node => {
     let re = /(<[^>]+)\s+dark-([a-z-]+)="([^"]+)"([^>]*>)/gi;
 
     let lightCode = node.value.replace(
@@ -19,7 +19,7 @@ const highlightNode = (node) => {
             `<code class="language-${node.lang}">`,
             highlightCode(lightCode, node.lang),
             "</code>",
-            "</pre>",
+            "</pre>"
         ]
             .filter(Boolean)
             .join("");
@@ -32,7 +32,7 @@ const highlightNode = (node) => {
             `<code class="hidden dark:block language-${node.lang}">`,
             highlightCode(darkCode, node.lang),
             "</code>",
-            "</pre>",
+            "</pre>"
         ]
             .filter(Boolean)
             .join("");
@@ -42,14 +42,14 @@ const highlightNode = (node) => {
 };
 
 module.exports.withSyntaxHighlighting = () => {
-    return (tree) => {
+    return tree => {
         let preTree = { children: [] };
         let componentName;
 
-        tree.children = tree.children.flatMap((node) => {
+        tree.children = tree.children.flatMap(node => {
             if (node.type === "list" && node.ordered) {
-                node.children.map((child) =>
-                    child.children.map((innerChild) => {
+                node.children.map(child =>
+                    child.children.map(innerChild => {
                         if (innerChild.type === "code") {
                             innerChild = highlightNode(innerChild);
                         }
@@ -69,7 +69,7 @@ module.exports.withSyntaxHighlighting = () => {
                 return [
                     { type: "jsx", value: `<${componentName} filename="${node.meta}">` },
                     node,
-                    { type: "jsx", value: `</${componentName}>` },
+                    { type: "jsx", value: `</${componentName}>` }
                 ];
             }
 

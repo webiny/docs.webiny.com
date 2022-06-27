@@ -1,7 +1,7 @@
 const { addDefaultImport } = require("./utils");
 
 module.exports.withNextLinks = () => {
-    return (tree) => {
+    return tree => {
         const component = addDefaultImport(tree, "next/link", "Link");
 
         function walk(root) {
@@ -15,7 +15,7 @@ module.exports.withNextLinks = () => {
                         { type: "jsx", value: `<${component} href="${node.url}" passHref><a>` },
                         ...node.children,
                         { type: "jsx", value: `</a></${component}>` },
-                        ...root.children.slice(i + 1),
+                        ...root.children.slice(i + 1)
                     ];
                     i += node.children.length + 2;
                 } else {

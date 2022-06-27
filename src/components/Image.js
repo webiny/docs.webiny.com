@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import Lightbox from "react-image-lightbox";
 import classNames from "classnames";
 
-export default (props) => {
+export default props => {
     const [isOpen, setState] = useState(false);
 
     const openLightbox = useCallback(() => {
@@ -19,7 +19,7 @@ export default (props) => {
                 onClick={openLightbox}
                 style={{ display: "block", cursor: "pointer", margin: "auto", ...props.style }}
                 className={classNames(props.className, {
-                    ["no-shadow"]: props.shadow === false,
+                    ["no-shadow"]: props.shadow === false
                 })}
                 alt={props.alt || props.title}
                 src={props.src}
@@ -32,7 +32,7 @@ export default (props) => {
                     style={{
                         textAlign: "center",
                         fontSize: "70%",
-                        color: "var(--ifm-toc-link-color)",
+                        color: "var(--ifm-toc-link-color)"
                     }}
                 >
                     (click to enlarge)

@@ -20,7 +20,7 @@ const progress = new ProgressBar({
     size: 2,
     color: "#38bdf8",
     className: "bar-of-progress",
-    delay: 100,
+    delay: 100
 });
 
 // this fixes safari jumping to the bottom of the page
@@ -46,7 +46,7 @@ if (isBrowser) {
     }, 500);
 
     // Subsequent route changes
-    Router.onRouteChangeComplete = (_url) => {
+    Router.onRouteChangeComplete = _url => {
         // Webiny Telemetry System
         // trigger telemetry when changing routes
 
@@ -133,7 +133,7 @@ export default function App({ Component, pageProps, router }) {
                     <Header
                         hasNav={Boolean(Component.layoutProps?.Layout?.nav)}
                         navIsOpen={navIsOpen}
-                        onNavToggle={(isOpen) => setNavIsOpen(isOpen)}
+                        onNavToggle={isOpen => setNavIsOpen(isOpen)}
                     />
                 )}
                 <Layout {...layoutProps}>

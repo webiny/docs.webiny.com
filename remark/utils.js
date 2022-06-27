@@ -67,10 +67,10 @@ const PSEUDO_CLASSES = [
     "user-invalid",
     "valid",
     "visited",
-    "where",
+    "where"
 ];
 
-Prism.hooks.add("wrap", (env) => {
+Prism.hooks.add("wrap", env => {
     if (env.type === "atrule") {
         const content = env.content.replace(HTML_TAG, "");
         if (content.startsWith("@apply")) {
@@ -78,7 +78,7 @@ Prism.hooks.add("wrap", (env) => {
         }
     } else if (env.type === "pseudo-class") {
         if (!new RegExp(`^::?(${PSEUDO_CLASSES.join("|")})`).test(env.content)) {
-            env.classes = env.classes.filter((x) => x !== "pseudo-class");
+            env.classes = env.classes.filter(x => x !== "pseudo-class");
         }
     }
 });
@@ -107,7 +107,7 @@ module.exports.fixSelectorEscapeTokens = fixSelectorEscapeTokens;
 module.exports.addImport = function addImport(tree, mod, name) {
     tree.children.unshift({
         type: "import",
-        value: `import { ${name} as _${name} } from '${mod}'`,
+        value: `import { ${name} as _${name} } from '${mod}'`
     });
     return `_${name}`;
 };
@@ -115,7 +115,7 @@ module.exports.addImport = function addImport(tree, mod, name) {
 module.exports.addImportImage = function addImportImage(tree, mod, name) {
     tree.children.unshift({
         type: "import",
-        value: `import _${name} from '${mod}'`,
+        value: `import _${name} from '${mod}'`
     });
     return `_${name}`;
 };
@@ -123,7 +123,7 @@ module.exports.addImportImage = function addImportImage(tree, mod, name) {
 module.exports.addDefaultImport = function addImport(tree, mod, name) {
     tree.children.unshift({
         type: "import",
-        value: `import _${name} from '${mod}'`,
+        value: `import _${name} from '${mod}'`
     });
     return `_${name}`;
 };
@@ -131,7 +131,7 @@ module.exports.addDefaultImport = function addImport(tree, mod, name) {
 module.exports.addExport = function addExport(tree, name, value) {
     tree.children.push({
         type: "export",
-        value: `export const ${name} = ${JSON.stringify(value)}`,
+        value: `export const ${name} = ${JSON.stringify(value)}`
     });
 };
 
@@ -139,7 +139,7 @@ function hasLineHighlights(code) {
     if (!/^>/m.test(code)) {
         return false;
     }
-    return code.split("\n").every((line) => line === "" || /^[> ] /.test(line));
+    return code.split("\n").every(line => line === "" || /^[> ] /.test(line));
 }
 
 module.exports.highlightCode = function highlightCode(code, prismLanguage) {
@@ -179,7 +179,7 @@ module.exports.highlightCode = function highlightCode(code, prismLanguage) {
     }
 
     function stringify(line, className) {
-        let empty = line.every((token) => token.empty);
+        let empty = line.every(token => token.empty);
 
         if (!className && empty) {
             return "\n";
@@ -191,13 +191,13 @@ module.exports.highlightCode = function highlightCode(code, prismLanguage) {
             if (i === 0) {
                 commonTypes.push(...token.types);
             } else {
-                commonTypes = commonTypes.filter((type) => token.types.includes(type));
+                commonTypes = commonTypes.filter(type => token.types.includes(type));
             }
         }
         if (commonTypes.length) {
             for (let i = 0; i < line.length; i++) {
                 let token = line[i];
-                token.types = token.types.filter((type) => !commonTypes.includes(type));
+                token.types = token.types.filter(type => !commonTypes.includes(type));
             }
         }
 
@@ -208,7 +208,7 @@ module.exports.highlightCode = function highlightCode(code, prismLanguage) {
         }
 
         return `<span class="${lineClassName}">${line
-            .map((token) =>
+            .map(token =>
                 token.types.length
                     ? `<span class="token ${token.types.join(" ")}">${token.content}</span>`
                     : token.content
@@ -270,7 +270,7 @@ function normalizeEmptyLines(line) {
         line.push({
             types: ["plain"],
             content: "",
-            empty: true,
+            empty: true
         });
     } else if (line.length === 1 && line[0].content === "") {
         line[0].empty = true;
@@ -365,7 +365,7 @@ module.exports.simplifyToken = function simplifyToken(token) {
     if (typeof token === "string") return token;
     return [
         token.type,
-        Array.isArray(token.content) ? token.content.map(simplifyToken) : token.content,
+        Array.isArray(token.content) ? token.content.map(simplifyToken) : token.content
     ];
 };
 

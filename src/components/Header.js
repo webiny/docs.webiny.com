@@ -187,7 +187,7 @@ export function Header({ navIsOpen, onNavToggle }) {
                     <Link href="/docs/get-started/install-webiny">
                         <a
                             className="flex-none w-[1.5925rem] lg:pr-[8.3875rem] lg:border-r border-border dark:border-dark-grey overflow-hidden lg:w-auto"
-                            onContextMenu={(e) => {
+                            onContextMenu={e => {
                                 e.preventDefault();
                                 Router.push("/brand");
                             }}
