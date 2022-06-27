@@ -185,17 +185,15 @@ export function Header({ navIsOpen, onNavToggle }) {
                         </svg>
                     </button>
                     <Link href="/docs/get-started/install-webiny">
-                        <a
-                            className="flex-none w-[1.5925rem] lg:pr-[8.3875rem] lg:border-r border-border dark:border-dark-grey overflow-hidden lg:w-auto"
-                            onContextMenu={(e) => {
-                                e.preventDefault();
-                                Router.push("/brand");
-                            }}
-                        >
+                        <a className="flex-none w-[1.5925rem] lg:pr-[8.3875rem] lg:border-r border-border dark:border-dark-grey overflow-hidden lg:w-auto">
                             <span className="sr-only">Webiny Docs home page</span>
                             <Logo className="w-auto h-[1.8025rem] lg:h-10" />
                         </a>
                     </Link>
+                    <select>
+                        <option value={"5.28.0"}>5.28.0</option>
+                        <option value={"5.29.0"}>5.29.0</option>
+                    </select>
                     <Featured />
                     <div className="relative hidden lg:flex items-center ml-auto">
                         <nav className="flex items-center h-[2.375rem] text-sm leading-6 font-semibold text-slate-700 dark:text-slate-200 border-l border-border dark:border-dark-grey ml-[1.875rem] pl-[1.875rem]">
