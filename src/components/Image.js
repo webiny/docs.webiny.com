@@ -6,18 +6,25 @@ export default props => {
     const [isOpen, setState] = useState(false);
 
     const openLightbox = useCallback(() => {
-        if (props.lightbox === false) {
-            // return;
+        if (!props.canEnlarge === false) {
+            return;
         }
 
         setState(true);
     }, []);
 
+    const imgStyle = {
+        display: "block",
+        cursor: props.canEnlarge !== false ? "pointer" : "initial",
+        margin: "auto",
+        ...props.style
+    };
+
     return (
         <div className={"image-container"}>
             <img
                 onClick={openLightbox}
-                style={{ display: "block", cursor: "pointer", margin: "auto", ...props.style }}
+                style={imgStyle}
                 className={classNames(props.className, {
                     ["no-shadow"]: props.shadow === false
                 })}
@@ -27,23 +34,25 @@ export default props => {
             <span className={"caption"}>{props.alt || props.title}</span>
 
             {props.canEnlarge !== false && (
-                <div
-                    onClick={openLightbox}
-                    style={{
-                        textAlign: "center",
-                        fontSize: "70%",
-                        color: "var(--ifm-toc-link-color)"
-                    }}
-                >
-                    (click to enlarge)
-                </div>
-            )}
-            {isOpen && (
-                <Lightbox
-                    mainSrc={props.src}
-                    onCloseRequest={() => setState(false)}
-                    imageTitle={props.title || props.alt}
-                />
+                <>
+                    <div
+                        onClick={openLightbox}
+                        style={{
+                            textAlign: "center",
+                            fontSize: "70%",
+                            color: "var(--ifm-toc-link-color)"
+                        }}
+                    >
+                        (click to enlarge)
+                    </div>
+                    {isOpen && (
+                        <Lightbox
+                            mainSrc={props.src}
+                            onCloseRequest={() => setState(false)}
+                            imageTitle={props.title || props.alt}
+                        />
+                    )}
+                </>
             )}
         </div>
     );
