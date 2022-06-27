@@ -99,48 +99,48 @@ export const documentationNav = [
 
     horizontalLine(),
 
-    collapsable("Custom App Tutorial", [
-        section("Tutorial Overview", [
-            page("custom-app-tutorial/overview/introduction"),
-            page("custom-app-tutorial/overview/get-started"),
-        ]),
-        section("Step 1: Create a GraphQL API", [
-            page("custom-app-tutorial/graphql-api/create-a-graphql-api"),
-        ]),
-        section("Step 2: Create a React App", [
-            page("custom-app-tutorial/react-application/introduction"),
-            page("custom-app-tutorial/react-application/layout"),
-            page("custom-app-tutorial/react-application/new-pin-modal-dialog"),
-            page("custom-app-tutorial/react-application/homepage"),
-            page("custom-app-tutorial/react-application/pin-details-page"),
-        ]),
-        section("Step 3: Security prep work", [
-            page("custom-app-tutorial/security-overview/introduction"),
-            page("custom-app-tutorial/security-overview/get-started"),
-        ]),
-        section("Step 4: Adding User Pools", [
-            page("custom-app-tutorial/adding-user-pools/adding-user-pool-and-user-pool-domain"),
-            page("custom-app-tutorial/adding-user-pools/adding-user-pool-client"),
-            page(
-                "custom-app-tutorial/adding-user-pools/adjusting-webiny-config-ts-configuration-file"
-            ),
-        ]),
-        section("Step 5: Securing React App", [
-            page("custom-app-tutorial/securing-react-application/initial-setup"),
-            page(
-                "custom-app-tutorial/securing-react-application/integrating-hosted-ui-authentication-flow"
-            ),
-        ]),
-        section("Step 6: Securing GraphQL API", [
-            page("custom-app-tutorial/securing-graphql-api/initial-setup"),
-            page(
-                "custom-app-tutorial/securing-graphql-api/implementing-authentication-and-authorization-checks"
-            ),
-        ]),
-        section("Wrapping it up", [page("custom-app-tutorial/wrapping-it-up/wrapping-it-up")]),
-    ]),
-
-    horizontalLine(),
+    // collapsable("Custom App Tutorial", [
+    //     section("Tutorial Overview", [
+    //         page("custom-app-tutorial/overview/introduction"),
+    //         page("custom-app-tutorial/overview/get-started"),
+    //     ]),
+    //     section("Step 1: Create a GraphQL API", [
+    //         page("custom-app-tutorial/graphql-api/create-a-graphql-api"),
+    //     ]),
+    //     section("Step 2: Create a React App", [
+    //         page("custom-app-tutorial/react-application/introduction"),
+    //         page("custom-app-tutorial/react-application/layout"),
+    //         page("custom-app-tutorial/react-application/new-pin-modal-dialog"),
+    //         page("custom-app-tutorial/react-application/homepage"),
+    //         page("custom-app-tutorial/react-application/pin-details-page"),
+    //     ]),
+    //     section("Step 3: Security prep work", [
+    //         page("custom-app-tutorial/security-overview/introduction"),
+    //         page("custom-app-tutorial/security-overview/get-started"),
+    //     ]),
+    //     section("Step 4: Adding User Pools", [
+    //         page("custom-app-tutorial/adding-user-pools/adding-user-pool-and-user-pool-domain"),
+    //         page("custom-app-tutorial/adding-user-pools/adding-user-pool-client"),
+    //         page(
+    //             "custom-app-tutorial/adding-user-pools/adjusting-webiny-config-ts-configuration-file"
+    //         ),
+    //     ]),
+    //     section("Step 5: Securing React App", [
+    //         page("custom-app-tutorial/securing-react-application/initial-setup"),
+    //         page(
+    //             "custom-app-tutorial/securing-react-application/integrating-hosted-ui-authentication-flow"
+    //         ),
+    //     ]),
+    //     section("Step 6: Securing GraphQL API", [
+    //         page("custom-app-tutorial/securing-graphql-api/initial-setup"),
+    //         page(
+    //             "custom-app-tutorial/securing-graphql-api/implementing-authentication-and-authorization-checks"
+    //         ),
+    //     ]),
+    //     section("Wrapping it up", [page("custom-app-tutorial/wrapping-it-up/wrapping-it-up")]),
+    // ]),
+    //
+    // horizontalLine(),
 
     collapsable("Core Development Concepts", [
         section("Basics", [
