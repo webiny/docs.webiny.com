@@ -163,10 +163,9 @@ export const documentationNav = [
 
         section("Scaffolding", [
             page("core-development-concepts/scaffolding/introduction"),
-            page("core-development-concepts/scaffolding/full-stack-application"),
-            page("core-development-concepts/scaffolding/graphql-api"),
+            page("core-development-concepts/scaffolding/extend-admin-area"),
             page("core-development-concepts/scaffolding/extend-graphql-api"),
-            page("core-development-concepts/scaffolding/react-application")
+            page("core-development-concepts/ci-cd/setup")
         ]),
 
         section("Extending and Customizing", [
