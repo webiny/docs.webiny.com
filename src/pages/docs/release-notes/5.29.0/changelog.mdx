@@ -5,6 +5,7 @@ description: See what's new in Webiny version 5.29.0.
 ---
 
 import { Alert } from "@/components/Alert"
+import loadingIdentityOverlay from "./loadingIdentityOverlay.gif";
 
 # Changes
 
@@ -12,11 +13,10 @@ This release contains lots of important upgrades, from developer experience, to 
 
 <Alert type={"info"}>
   
-  Note that some of these improvements are only available if you're creating a new project with Webiny 5.29.0. If you're just upgrading from earlier versions, your project will only partially benefit from all the cool stuff that's included in this release. 
-  <br/><br/>
-  Also note that there's currently no way to completely migrate earlier versions of projects to the new project architecture (new Pulumi, less files, etc.). However, you'll still be getting all the current and future business logic upgrades and fixes, because the business logic is not connected to the architecture itself.
+  Note that some of these improvements are only available if you're creating a new project with Webiny 5.29.0. If you're just upgrading from earlier versions, your project will remain mostly unchanged. 
   
 </Alert>
+
 
 ## Webiny Control Panel
 
@@ -24,22 +24,37 @@ This release contains lots of important upgrades, from developer experience, to 
 
 ## Prerendering Service
 
+Prerendering Service is a complex engine running in the background to prerender and deliver static pages to your website visitors, and it's finally received a lot of love. Driven by feedback from the community, and issues reported by our multi-tenant users, Prerendering Service has finally received a good amount of necessary upgrades.  
+
 ### Migrate to Event Driven Architecture ([#2469](https://github.com/webiny/webiny-js/pull/2469))
- - event driven (no cron jobs, less Lambda invocations, immediate re-render)
- - new database records
- - simpler programmatic usage
- - throw 400 when domain can't be mapped to a tenant
- - MT system with just 1 tenant doesn't require a custom domain!
+
+Until this release, the Prerendering Service used a cron job to check if there are any tasks that need processing (every 5 minutes, by default). With the migration to event-driven approach, we now use Event Buses and SQS Queues to issue and process prerendering jobs immediately, in a faster, and more scalable manner. 
+
+The internals of the Prerendering Service were rewritten to play nicer with parallel rendering, juggle less data to and from the database, and handle different tenancy setups in a robust way. Database records were also redesigned to optimize for various access patterns.
+
+ Regarding the programmatic usage of the Prerendering Service, it is now greatly simplified, and detached from any infrastructure-related information (like bucket names, Cloudfront distribution IDs, etc.). You simply specify paths to render, and can optionally tag your pages for custom logic. There's now also an ability to issue full website re-render, but exclude certain pages, if necessary.
+
+  <Alert type="info" title="How does this affect my existing system?">
+    
+    Your database records will be upgraded automatically upon the first deploy of your system to your AWS account.
+    
+  </Alert>
+
+### Tenant Routing in Multi-Tenant Systems
+
+Thanks to some of our users that run multi-tenant systems, we were able to get useful insights into various request handling flows, and improve tenant routing. The two most important improvements related to tenant routing are:
+1) Running a multi-tenant system, while only having the `root` tenant, will now properly route all requests _even without having a custom domain_ configured. A custom domain becomes mandatory only when you have more than 1 tenant in your system.
+2) Tenant router will not return a `400 Bad Request` response if it's unable to map the request to one of the tenants. Previously, it let the request travel to the origin (the S3 bucket), which caused all kinds of confusion and difficult to understand behaviors.  
 
 ## Brand New Project Setup
 
-With this release, we're introducing a brand new project setup, which, we believe, will be huge step forward in making Webiny as easy to grasp and use as possible! 
+With this release, we're introducing a brand new project setup, which, we believe, will be a huge step forward in making Webiny as easy to grasp and use as possible! 
 
 The following are the most import changes the new setup brings.
 
 <Alert type="warning" title="Can I Use This?">
 
-Before continuing, note that the new project setup is available only for newly created projects, created with Webiny version **5.29.0** or greater.
+Before continuing, note that the new project setup is _only_ available for new projects created with Webiny version **5.29.0** or greater.
 
 </Alert>
 
@@ -51,9 +66,9 @@ When it comes to existing Webiny projects, at the moment, there isn't an upgrade
 
 ### Removed Unnecessary Files and Folders
 
-Prior to this release, once a new Webiny project has been created, developers would immediately be presented (or intimidated) with a lot of different folders and files. For example, if we were to look into the [`api`](https://github.com/webiny/webiny-js/tree/v5.28.0/api/code) folder ([the API project application](/docs/architecture/api/introduction)), we would be able to find five different folders which contain application code for 14 different AWS Lambda functions. Together, these functions form Webiny's GraphQL APIs.
+Prior to this release, once a new Webiny project has been created, developers would immediately be presented with (or intimidated by) lots of different folders and files. For example, if we were to look into the [`api`](https://github.com/webiny/webiny-js/tree/v5.28.0/api/code) folder ([the API project application](/docs/architecture/api/introduction)), we would be able to find five different folders which contain application code for 14 different AWS Lambda functions. Together, these functions form Webiny's GraphQL APIs.
 
-And while this approach does give developers the ability to customize every aspect of Webiny, in practice, we've seen the vast majority of these are not really something developer's are concerned with. When talking about the [`api`](https://github.com/webiny/webiny-js/tree/v5.28.0/api/code) folder, almost always, the only two folders in which developers are making some changes are [`api/code/graphql`](https://github.com/webiny/webiny-js/tree/v5.28.0/api/code/graphql) and [`api/code/headlessCms`](https://github.com/webiny/webiny-js/tree/v5.28.0/api/code/headlessCms).
+And while this approach does give developers the ability to customize every aspect of Webiny, in practice, we've learned that the  majority of these are not really something developers are concerned with. When talking about the [`api`](https://github.com/webiny/webiny-js/tree/v5.28.0/api/code) folder, almost always, the only two folders developers change are [`api/code/graphql`](https://github.com/webiny/webiny-js/tree/v5.28.0/api/code/graphql) and [`api/code/headlessCms`](https://github.com/webiny/webiny-js/tree/v5.28.0/api/code/headlessCms).
 
 <Alert type="info" title="Project Applications">
 
@@ -61,12 +76,12 @@ The [`api/code/graphql`](https://github.com/webiny/webiny-js/tree/v5.28.0/api/co
 
 </Alert>
 
-With this, and a couple of other use cases mind, we've decided to drastically cut down on the total number of files and folders that are included in every Webiny project. This includes:
+With this, and a couple of other use cases in mind, we've decided to drastically cut down on the total number of files and folders that are included in every Webiny project. This includes:
 
 1. Instead of 14, the `api` folder now includes only 2 AWS Lambda functions: Main GraphQL API and Headless CMS GraphQL API.
-2. We've removed `code` folders that were located in [`api`](https://github.com/webiny/webiny-js/tree/v5.28.0/api), [`apps/admin`](https://github.com/webiny/webiny-js/tree/v5.28.0/apps/admin) and [`apps/website`](https://github.com/webiny/webiny-js/tree/v5.28.0/apps/website) folders. They were simply redundant and causing unnecessary nesting of folders.
+2. We've removed `code` folders that were located in [`api`](https://github.com/webiny/webiny-js/tree/v5.28.0/api), [`apps/admin`](https://github.com/webiny/webiny-js/tree/v5.28.0/apps/admin) and [`apps/website`](https://github.com/webiny/webiny-js/tree/v5.28.0/apps/website) folders. They were simply redundant and causing unnecessary nesting.
 3. Pulumi infrastructure code is now also abstracted away from developers (more on this in the [Pulumi Infrastructure Code Replaced With Pulumi Apps](/docs/release-notes/5.29.0/changelog#pulumi-infrastructure-code-replaced-with-pulumi-apps)).
-4. The [`babel.node.js`](https://github.com/webiny/webiny-js/blob/v5.28.0/.babel.node.js) and [`babel.react.js`](https://github.com/webiny/webiny-js/blob/v5.28.0/.babel.react.js) Babel configuration files (located in project root) were also removed from the project.
+4. The [`.babel.node.js`](https://github.com/webiny/webiny-js/blob/v5.28.0/.babel.node.js) and [`.babel.react.js`](https://github.com/webiny/webiny-js/blob/v5.28.0/.babel.react.js) Babel configuration files (located in project root) were also removed from the project. These are now imported from `@webiny/project-utils` package.
 
 ### Faster Deployments
 
@@ -93,7 +108,7 @@ Learn more about project applications and project organization in general, in th
 
 ### Introduced the New Core Project Application
 
-With this release, we are introducing the new [Core](https://github.com/webiny/webiny-js/tree/v5/apps/core) project application, whose main purpose is to define and encapsulate the stateful cloud infrastructure resources. These are your [Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html) and [Amazon Elasticsearch](https://aws.amazon.com/opensearch-service/) databases, [Amazon S3](https://aws.amazon.com/s3/) for storing files, and also [Amazon Cognito](https://aws.amazon.com/cognito/) developer pools for storing developer information.
+With this release, we are introducing the new [Core](https://github.com/webiny/webiny-js/tree/v5/apps/core) project application, whose main purpose is to define and encapsulate the stateful cloud infrastructure resources. These are your [Amazon DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Introduction.html) and [Amazon Elasticsearch](https://aws.amazon.com/opensearch-service/) databases, [Amazon S3](https://aws.amazon.com/s3/) for storing files, [Amazon Cognito](https://aws.amazon.com/cognito/) for user information, and also [Amazon EventBridge](https://aws.amazon.com/eventbridge/) which we've introduced with this release, to manage events via event buses.
 
 The [API project application](/docs/architecture/api/introduction) still exists, but, from now on, it strictly defines the stateless resources responsible for hosting your project's GraphQL APIs. These include [Amazon API Gateway](https://aws.amazon.com/api-gateway/), [Amazon Cloudfront](Front/latest/DeveloperGuide/Introduction.html), and multiple [AWS Lambda](https://aws.amazon.com/lambda/) functions.  
   
@@ -108,11 +123,6 @@ The main purpose of a Pulumi app is to define and encapsulate Pulumi infrastruct
 Essentially, for new Webiny projects, this enabled us to replace multiple files and folders that contained Pulumi infrastructure code (`pulumi` folders) with a single import statement and a function call made within the already existing `webiny.application.ts` files. For example, if we were to look into the [`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5/apps/website/webiny.application.ts) file, we'd be able to see the following:
 
 ```ts
-/**
- * For more information on the Website project application, please see:
- * https://www.webiny.com/docs/key-topics/cloud-infrastructure/website/introduction
- */
-
 import { createWebsiteApp } from "@webiny/serverless-cms-aws";
 
 export default createWebsiteApp();
@@ -121,11 +131,6 @@ export default createWebsiteApp();
 Apart from ensuring our **Website** project application is deployed correctly, the `createWebsiteApp` function also exposes the `pulumi` parameter, which, as mentioned, enables us to perform further customizations to existing cloud infrastructure resources or even introduce new ones. For example, with the following code, we're updating the description of the Cloudfront distribution that's deployed as part of the Website project application:     
 
 ```ts
-/**
- * For more information on the Website project application, please see:
- * https://www.webiny.com/docs/key-topics/cloud-infrastructure/website/introduction
- */
-
 import { createWebsiteApp } from "@webiny/serverless-cms-aws";
 
 export default createWebsiteApp({
@@ -135,22 +140,33 @@ export default createWebsiteApp({
     );
   }
 });
-
 ```
 
-Finally, what about TypeScript support? Well, we're glad to report that full TypeScript support is included! With the help of a modern code editor, developers should be able to easily see all of the cloud infrastructure resources (and respective configuration parameters) that are included in the underlying Pulumi app. 
+This approach also allows us to build different setups based on the environment you're deploying, or features you want to use, without having exact copies of files (like we did until now). Internally, Pulumi apps now support modules (logical chunks of infrastructure), which are used to compose the entire app. These modules can be enabled and configured based on the parameters you pass to application factories (e.g., `createWebsiteApp`) .
+
+Finally, what about TypeScript support? Well, we're glad to report that full TypeScript support is included! With the help of a modern code editor, developers should be able to easily see all the cloud infrastructure resources (and respective configuration parameters) that are included in the underlying Pulumi app. 
 
 ### Easier Maintenance and Upgrades
 
-Last, but certainly not the least...
-
 As mentioned at the beginning, we believe the new project setup will be a huge step forward in making Webiny as easy to use and grasp as possible. But that's not all!
 
-The fact that the vast majority of the application and infrastructure code has now been abstracted away from developers also brings extra benefits in terms of maintenance and project upgrades. 
+The fact that the vast majority of the application and infrastructure code has now been abstracted away from developers also brings extra benefits in terms of maintenance and project upgrades, both for you, but also for the core Webiny team! This means far less codemods and time wasted, and also more confidence when shipping new versions with infrastructure/application code improvements.
 
-Ultimately, what this means is that, in the future, users can expect much less complex project upgrade procedures and faster bug fixes from the Webiny team! 
+Ultimately, what this means is that users can expect much simpler project upgrade procedures and faster bug fixes from the Webiny team! 
 
 ## Security
 
-### disable auth when loading your own developer ([#2489](https://github.com/webiny/webiny-js/pull/2489))
-### add a loading overlay while loading identity ([#2490](https://github.com/webiny/webiny-js/pull/2490))
+The following fixes are slightly less epic, but no less important!
+
+### Disable Authorization When Loading Own Cognito User ([#2489](https://github.com/webiny/webiny-js/pull/2489))
+
+There was an issue with getting and updating your own user account via the GraphQL API, if the security group your user belonged to didn't have permissions for managing admin users. This is fixed by disabling authorization for the duration of the `getUser` SDK call, since, naturally, we have to allow querying of our own data. Once the data is returned, authorization is turned back on.
+
+Shout out goes to our community member [Alan Lam](https://github.com/wllam44) for reporting this issue! 🙌 
+
+
+### Add a Loading Overlay While Loading Identity ([#2490](https://github.com/webiny/webiny-js/pull/2490))
+
+This one belongs to the "small annoyances" department. The issue was only visible for Lambda function cold starts, when issuing a `Login` mutation. The login form would still be visible as if you're logged out, while in fact, you're authenticated against Cognito, but Webiny is in the process of loading your identity information. Hitting a cold start would look like nothing is happening, and you're supposed to log in again. From now on, a shiny new loading overlay will be visible for the duration of the GraphQL query.
+
+<Image src={loadingIdentityOverlay} title={"Loading Identity Overlay"}/> 
