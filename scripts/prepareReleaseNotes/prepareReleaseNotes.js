@@ -20,19 +20,19 @@ const [latestVersion] = semverSort.desc(releasedVersions);
         {
             name: "fromVersion",
             default: latestVersion,
-            message: "Please type latest (currently released) version:",
+            message: "Please type latest (currently released) version:"
         },
         {
             name: "toVersion",
             default: semver.inc(latestVersion, "minor"),
-            message: "Please type new (to be released) version:",
+            message: "Please type new (to be released) version:"
         },
         {
             name: "createPr",
             type: "confirm",
             default: true,
-            message: `Would you like to create a PR immediately?`,
-        },
+            message: `Would you like to create a PR immediately?`
+        }
     ]);
 
     const newFilesPath = path.join(releaseNotesFolderPath, args.toVersion);
@@ -45,12 +45,12 @@ const [latestVersion] = semverSort.desc(releasedVersions);
     const codeReplacements = [
         {
             find: "{VERSION_FROM}",
-            replaceWith: args.fromVersion,
+            replaceWith: args.fromVersion
         },
         {
             find: "{VERSION_TO}",
-            replaceWith: args.toVersion,
-        },
+            replaceWith: args.toVersion
+        }
     ];
     replaceInPath(path.join(newFilesPath, "/**/*.*"), codeReplacements);
 
@@ -65,7 +65,7 @@ const [latestVersion] = semverSort.desc(releasedVersions);
                 "checkout",
                 "-b",
                 `webiny-${args.toVersion}`,
-                "origin/master",
+                "origin/master"
             ]);
             console.log(result.stdout);
         }
@@ -75,7 +75,7 @@ const [latestVersion] = semverSort.desc(releasedVersions);
                 "push",
                 "-b",
                 `webiny-${args.toVersion}`,
-                "origin/master",
+                "origin/master"
             ]);
             console.log(result.stdout);
         }

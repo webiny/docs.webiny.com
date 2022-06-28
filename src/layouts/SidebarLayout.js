@@ -133,7 +133,7 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
                                 "stroke-dark-blue dark:stroke-white": depth === 0,
                                 "stroke-light-grey-3 dark:stroke-light-grey-4":
                                     (!showMenu && depth > 0 && !isActiveChild) ||
-                                    (!isActiveChild && showMenu && depth > 0),
+                                    (!isActiveChild && showMenu && depth > 0)
                             })}
                         />
                     </div>
@@ -146,7 +146,7 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
                             (!showMenu && depth > 0 && !isActiveChild) ||
                             (!isActiveChild && showMenu && depth > 0),
                         "text-dark-blue dark:text-light-grey font-semibold text-nav-directory":
-                            depth === 0,
+                            depth === 0
                     })}
                 >
                     {title}
@@ -158,7 +158,7 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
                     clsx({
                         "ml-[20px] ": depth > 0,
                         "transform max-h-[1500px] opacity-1 overflow-visible": showMenu,
-                        "max-h-0 transform opacity-0 overflow-hidden": !showMenu,
+                        "max-h-0 transform opacity-0 overflow-hidden": !showMenu
                     })
                 }
             >
@@ -184,7 +184,7 @@ const Page = forwardRef(({ title, link, isActive, depth = 0 }, ref) => {
                     "font-semibold text-nav-directory": depth === 0,
                     "my-[7px] text-nav-link": depth > 0,
                     "text-dark-blue dark:text-white": depth === 0 && !isActive,
-                    "text-dark-blue dark:text-light-grey-2": depth > 0 && !isActive,
+                    "text-dark-blue dark:text-light-grey-2": depth > 0 && !isActive
                 }
             )}
         >
@@ -208,7 +208,7 @@ const Section = forwardRef(({ title, subElements = [], isActiveChild, depth = 0 
                         "section-title mt-[10px] mb-[5px] uppercase text-dark-grey font-semibold text-nav-subdirectory dark:text-light-grey-2":
                             !isActiveChild,
                         "section-title-active mt-[10px] mb-[5px] uppercase text-dark-grey font-semibold text-nav-subdirectory dark:text-light-grey":
-                            isActiveChild,
+                            isActiveChild
                     })}
                 >
                     {title}
@@ -216,7 +216,7 @@ const Section = forwardRef(({ title, subElements = [], isActiveChild, depth = 0 
             </li>
             <ul
                 className={clsx({
-                    "parent-list border-l border-slate-100 dark:border-dark-grey": depth > 0,
+                    "parent-list border-l border-slate-100 dark:border-dark-grey": depth > 0
                 })}
             >
                 {subElements.sort().map((navElement, index) => (
@@ -243,7 +243,7 @@ function Nav({ nav, mobile = false }) {
                 setIsActive(navItem.links);
 
                 const isActiveChild = navItem.links.some(
-                    (link) => link.isActive || link.isActiveChild
+                    link => link.isActive || link.isActiveChild
                 );
 
                 navItem.isActiveChild = isActiveChild;
@@ -316,7 +316,7 @@ export function SidebarLayout({
     setNavIsOpen,
     nav,
     sidebar,
-    layoutProps: { allowOverflow = true } = {},
+    layoutProps: { allowOverflow = true } = {}
 }) {
     return (
         <SidebarContext.Provider value={{ nav, navIsOpen, setNavIsOpen }}>

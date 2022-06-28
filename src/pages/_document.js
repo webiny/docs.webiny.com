@@ -55,7 +55,7 @@ export default class Document extends NextDocument {
                     document.documentElement.classList.remove('dark')
                   }
                 } catch (_) {}
-              `,
+              `
                         }}
                     />
 
@@ -95,7 +95,7 @@ export default class Document extends NextDocument {
                   )
                       heap[p[o]] = n(p[o]);
               });
-              `,
+              `
                         }}
                     />
 
@@ -110,7 +110,7 @@ export default class Document extends NextDocument {
                   } 
                   gtag('js', new Date()); 
                   gtag('config', 'GTM-5TG2W9G'); 
-              `,
+              `
                         }}
                     />
                 </Head>

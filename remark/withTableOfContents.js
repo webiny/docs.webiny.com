@@ -2,7 +2,7 @@ const { addImport, addExport } = require("./utils");
 const slugify = require("@sindresorhus/slugify");
 
 module.exports.withTableOfContents = () => {
-    return (tree) => {
+    return tree => {
         const component = addImport(tree, "@/components/Heading", "Heading");
         const contents = [];
 
@@ -12,7 +12,7 @@ module.exports.withTableOfContents = () => {
             if (node.type === "heading" && [2, 3, 4].includes(node.depth)) {
                 let level = node.depth;
                 let title = node.children
-                    .map((children) => {
+                    .map(children => {
                         if (children.type === "link") {
                             return children.children[0].value;
                         } else {
@@ -22,9 +22,9 @@ module.exports.withTableOfContents = () => {
                     .join("");
                 let slug = slugify(title);
 
-                let allOtherSlugs = contents.flatMap((entry) => [
+                let allOtherSlugs = contents.flatMap(entry => [
                     entry.slug,
-                    ...entry.children.map(({ slug }) => slug),
+                    ...entry.children.map(({ slug }) => slug)
                 ]);
                 let slugIndex = 1;
                 while (allOtherSlugs.indexOf(slug) > -1) {
@@ -36,7 +36,7 @@ module.exports.withTableOfContents = () => {
 
                 let props = {
                     level,
-                    id: slug,
+                    id: slug
                 };
 
                 if (tree.children[nodeIndex + 1]) {
@@ -64,14 +64,14 @@ module.exports.withTableOfContents = () => {
                         ) +
                         node.children
                             .slice(1)
-                            .map((n) => n.value)
+                            .map(n => n.value)
                             .join("");
                 } else {
                     node.value = `<${component} ${stringifyProps(props)}>${node.children
-                        .map((children) => {
+                        .map(children => {
                             if (children.type === "link") {
                                 const linkProps = {
-                                    href: children.url,
+                                    href: children.url
                                 };
                                 return `<a ${stringifyProps(linkProps)}>${
                                     children.children[0].value

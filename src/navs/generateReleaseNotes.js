@@ -17,9 +17,9 @@ export const generateReleaseNotes = () => {
                     ...(acc[version] || {}),
                     [type]: {
                         title: pages[slug].title,
-                        link: pages[slug].link,
-                    },
-                },
+                        link: pages[slug].link
+                    }
+                }
             };
         }
         return acc;
@@ -39,7 +39,7 @@ export const generateReleaseNotes = () => {
                 changeLog
                     ? { type: "page", title: changeLog.title, link: changeLog.link }
                     : undefined,
-                upgrade ? { type: "page", title: upgrade.title, link: upgrade.link } : undefined,
+                upgrade ? { type: "page", title: upgrade.title, link: upgrade.link } : undefined
             ].filter(Boolean)
         );
     }
@@ -48,7 +48,7 @@ export const generateReleaseNotes = () => {
         page("release-notes/upgrade-webiny"),
         section("Release Notes", [
             ...versions.slice(0, 5).map(generateMenuItems),
-            collapsable("Older Releases", [...versions.slice(5).map(generateMenuItems)]),
-        ]),
+            collapsable("Older Releases", [...versions.slice(5).map(generateMenuItems)])
+        ])
     ]);
 };

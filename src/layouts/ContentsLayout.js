@@ -1,4 +1,12 @@
-import { forwardRef, useState, useEffect, createContext, Fragment, useCallback, useContext } from "react";
+import {
+    forwardRef,
+    useState,
+    useEffect,
+    createContext,
+    Fragment,
+    useCallback,
+    useContext
+} from "react";
 import { useRouter } from "next/router";
 import { usePrevNext } from "@/hooks/usePrevNext";
 import Link from "next/link";
@@ -38,7 +46,7 @@ function TableOfContents({ tableOfContents, currentSection }) {
         return section.children.findIndex(isActive) > -1;
     }
 
-    let pageHasSubsections = (section) => section.children.length > 0;
+    let pageHasSubsections = section => section.children.length > 0;
 
     return (
         <ul className="text-nav-link not-prose font-roboto">
@@ -55,7 +63,7 @@ function TableOfContents({ tableOfContents, currentSection }) {
                             {section.title}
                         </a>
                     </li>
-                    {section.children.map((subsection) => (
+                    {section.children.map(subsection => (
                         <Fragment key={subsection.slug}>
                             <li className="ml-2.5 mt-5">
                                 <a
@@ -72,7 +80,7 @@ function TableOfContents({ tableOfContents, currentSection }) {
                                     {subsection.title}
                                 </a>
                             </li>
-                            {subsection?.children.map((item) => (
+                            {subsection?.children.map(item => (
                                 <li className="ml-5 mt-5" key={item.slug}>
                                     <a
                                         href={`#${item.slug}`}
@@ -166,11 +174,11 @@ function useTableOfContents(tableOfContents) {
     let [headings, setHeadings] = useState([]);
 
     const registerHeading = useCallback((id, top) => {
-        setHeadings((headings) => [...headings.filter((h) => id !== h.id), { id, top }]);
+        setHeadings(headings => [...headings.filter(h => id !== h.id), { id, top }]);
     }, []);
 
-    const unregisterHeading = useCallback((id) => {
-        setHeadings((headings) => headings.filter((h) => id !== h.id));
+    const unregisterHeading = useCallback(id => {
+        setHeadings(headings => headings.filter(h => id !== h.id));
     }, []);
 
     useEffect(() => {
@@ -198,7 +206,7 @@ function useTableOfContents(tableOfContents) {
         }
         window.addEventListener("scroll", onScroll, {
             capture: true,
-            passive: true,
+            passive: true
         });
         onScroll();
         return () => window.removeEventListener("scroll", onScroll, true);
@@ -235,7 +243,7 @@ export function ContentsLayout({ children, meta, classes, tableOfContents }) {
     const router = useRouter();
     const toc = [
         ...(classes ? [{ title: "Quick reference", slug: "class-reference", children: [] }] : []),
-        ...tableOfContents,
+        ...tableOfContents
     ];
 
     const parents = getParentNav(useContext(SidebarContext).nav);
@@ -255,9 +263,7 @@ export function ContentsLayout({ children, meta, classes, tableOfContents }) {
                         components={{
                             Heading,
                             Image,
-                            ol: (props) => (
-                                <ol {...props} style={{ "--start": props.start ?? 1 }} />
-                            ),
+                            ol: props => <ol {...props} style={{ "--start": props.start ?? 1 }} />,
                             a: forwardRef((props, _) => {
                                 if (props.href.startsWith("http")) {
                                     return (
@@ -292,7 +298,7 @@ export function ContentsLayout({ children, meta, classes, tableOfContents }) {
                                         return <Link href={props.href}>{props.children}</Link>;
                                     }
                                 }
-                            }),
+                            })
                         }}
                     >
                         {children}

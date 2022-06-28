@@ -63,7 +63,7 @@ const DangerIcon = (
     </svg>
 );
 
-const getIconByType = (type) => {
+const getIconByType = type => {
     if (type === "info") {
         return InfoIcon;
     }
@@ -78,7 +78,7 @@ const getIconByType = (type) => {
     }
 };
 
-const getBgByType = (type) => {
+const getBgByType = type => {
     if (type === "info") {
         return "info-box bg-purple dark:bg-dark-theme-purple";
     }

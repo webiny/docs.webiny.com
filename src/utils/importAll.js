@@ -1,6 +1,6 @@
 export function importAll(r) {
-    return r.keys().map((fileName) => ({
+    return r.keys().map(fileName => ({
         fileName,
-        module: r(fileName),
+        module: r(fileName)
     }));
 }

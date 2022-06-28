@@ -8,7 +8,7 @@ export function InputFooter({ className }) {
 
     return (
         <form
-            onSubmit={(event) => {
+            onSubmit={event => {
                 event.preventDefault();
 
                 fetch(
@@ -18,8 +18,8 @@ export function InputFooter({ className }) {
                     {
                         method: "GET",
                         headers: {
-                            "Content-Type": "application/x-www-form-urlencoded",
-                        },
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        }
                     }
                 );
 

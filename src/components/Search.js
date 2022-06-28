@@ -27,7 +27,7 @@ export function SearchProvider({ children }) {
     }, [setIsOpen]);
 
     const onInput = useCallback(
-        (e) => {
+        e => {
             setIsOpen(true);
             setInitialQuery(e.key);
         },
@@ -44,7 +44,7 @@ export function SearchProvider({ children }) {
         isOpen,
         onOpen,
         onClose,
-        onInput,
+        onInput
     });
 
     return (
@@ -61,7 +61,7 @@ export function SearchProvider({ children }) {
                     isOpen,
                     onOpen,
                     onClose,
-                    onInput,
+                    onInput
                 }}
             >
                 {children}
@@ -80,10 +80,10 @@ export function SearchProvider({ children }) {
                             navigate({ suggestionUrl }) {
                                 setIsOpen(false);
                                 router.push(suggestionUrl);
-                            },
+                            }
                         }}
                         hitComponent={Hit}
-                        transformItems={(items) => {
+                        transformItems={items => {
                             return items.map((item, index) => {
                                 // We transform the absolute URL into a relative URL to
                                 // leverage Next's preloading.
@@ -111,7 +111,7 @@ export function SearchProvider({ children }) {
                                         items[0].type === "lvl1" &&
                                         index !== 0,
                                     __is_first: () => index === 1,
-                                    __is_last: () => index === items.length - 1 && index !== 0,
+                                    __is_last: () => index === items.length - 1 && index !== 0
                                 };
                             });
                         }}
@@ -131,7 +131,7 @@ function Hit({ hit, children }) {
                     "DocSearch-Hit--Parent": hit.__is_parent?.(),
                     "DocSearch-Hit--FirstChild": hit.__is_first?.(),
                     "DocSearch-Hit--LastChild": hit.__is_last?.(),
-                    "DocSearch-Hit--Child": hit.__is_child?.(),
+                    "DocSearch-Hit--Child": hit.__is_child?.()
                 })}
             >
                 {children}

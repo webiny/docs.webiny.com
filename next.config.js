@@ -10,17 +10,16 @@ const minimatch = require("minimatch");
 const { withImages, unwrapImages } = require("./remark/withImages");
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
-    enabled: process.env.ANALYZE === "true",
+    enabled: process.env.ANALYZE === "true"
 });
 const defaultConfig = require("tailwindcss/resolveConfig")(require("tailwindcss/defaultConfig"));
-const dlv = require("dlv");
 
 const fallbackLayouts = {
-    "src/pages/docs/**/*": ["@/layouts/DocumentationLayout", "DocumentationLayout"],
+    "src/pages/docs/**/*": ["@/layouts/DocumentationLayout", "DocumentationLayout"]
 };
 
 const fallbackDefaultExports = {
-    "src/pages/{docs,components}/**/*": ["@/layouts/ContentsLayout", "ContentsLayout"],
+    "src/pages/{docs,components}/**/*": ["@/layouts/ContentsLayout", "ContentsLayout"]
 };
 
 const fallbackGetStaticProps = {};
@@ -29,7 +28,7 @@ module.exports = withBundleAnalyzer({
     swcMinify: true,
     pageExtensions: ["js", "jsx", "mdx"],
     images: {
-        disableStaticImages: true,
+        disableStaticImages: true
     },
     webpack(config, options) {
         if (!options.dev && options.isServer) {
@@ -49,10 +48,10 @@ module.exports = withBundleAnalyzer({
                     loader: "file-loader",
                     options: {
                         publicPath: "/_next",
-                        name: "static/media/[name].[hash].[ext]",
-                    },
-                },
-            ],
+                        name: "static/media/[name].[hash].[ext]"
+                    }
+                }
+            ]
         });
 
         config.resolve.alias["defaultConfig$"] = require.resolve("tailwindcss/defaultConfig");
@@ -60,7 +59,7 @@ module.exports = withBundleAnalyzer({
             test: require.resolve("tailwindcss/defaultConfig"),
             use: createLoader(function (_source) {
                 return `export default ${JSON.stringify(defaultConfig)}`;
-            }),
+            })
         });
 
         config.module.rules.push({
@@ -68,16 +67,16 @@ module.exports = withBundleAnalyzer({
             use: [
                 {
                     loader: "@svgr/webpack",
-                    options: { svgoConfig: { plugins: { removeViewBox: false } } },
+                    options: { svgoConfig: { plugins: { removeViewBox: false } } }
                 },
                 {
                     loader: "file-loader",
                     options: {
                         publicPath: "/_next",
-                        name: "static/media/[name].[hash].[ext]",
-                    },
-                },
-            ],
+                        name: "static/media/[name].[hash].[ext]"
+                    }
+                }
+            ]
         });
 
         let mdx = [
@@ -90,9 +89,9 @@ module.exports = withBundleAnalyzer({
                         withSyntaxHighlighting,
                         withNextLinks,
                         withSmartQuotes,
-                        unwrapImages,
-                    ],
-                },
+                        unwrapImages
+                    ]
+                }
             },
             createLoader(function (source) {
                 let pathSegments = this.resourcePath.split(path.sep);
@@ -101,7 +100,7 @@ module.exports = withBundleAnalyzer({
                         ? pathSegments[pathSegments.length - 2]
                         : pathSegments[pathSegments.length - 1].replace(/\.mdx$/, "");
                 return source + `\n\nexport const slug = '${slug}'`;
-            }),
+            })
         ];
 
         config.module.rules.push({
@@ -187,114 +186,14 @@ module.exports = withBundleAnalyzer({
                         typeof fields === "undefined"
                             ? body.replace(/<!--excerpt-->.*<!--\/excerpt-->/s, "")
                             : "",
-                        metaExport,
+                        metaExport
                     ]
                         .filter(Boolean)
                         .join("\n\n");
-                }),
-            ],
+                })
+            ]
         });
 
         return config;
-    },
-});
-
-function normalizeProperties(input) {
-    if (typeof input !== "object") return input;
-    if (Array.isArray(input)) return input.map(normalizeProperties);
-    return Object.keys(input).reduce((newObj, key) => {
-        let val = input[key];
-        let newVal = typeof val === "object" ? normalizeProperties(val) : val;
-        newObj[key.replace(/([a-z])([A-Z])/g, (m, p1, p2) => `${p1}-${p2.toLowerCase()}`)] = newVal;
-        return newObj;
-    }, {});
-}
-
-function getUtilities(plugin, { includeNegativeValues = false } = {}) {
-    if (!plugin) return {};
-    const utilities = {};
-
-    function addUtilities(utils) {
-        utils = Array.isArray(utils) ? utils : [utils];
-        for (let i = 0; i < utils.length; i++) {
-            for (let prop in utils[i]) {
-                for (let p in utils[i][prop]) {
-                    if (p.startsWith("@defaults")) {
-                        delete utils[i][prop][p];
-                    }
-                }
-                utilities[prop] = normalizeProperties(utils[i][prop]);
-            }
-        }
     }
-
-    plugin({
-        addBase: () => {},
-        addDefaults: () => {},
-        addComponents: () => {},
-        corePlugins: () => true,
-        prefix: (x) => x,
-        addUtilities,
-        theme: (key, defaultValue) => dlv(defaultConfig.theme, key, defaultValue),
-        matchUtilities: (matches, { values, supportsNegativeValues } = {}) => {
-            if (!values) return;
-
-            let modifierValues = Object.entries(values);
-
-            if (includeNegativeValues && supportsNegativeValues) {
-                let negativeValues = [];
-                for (let [key, value] of modifierValues) {
-                    let negatedValue = require("tailwindcss/lib/util/negateValue").default(value);
-                    if (negatedValue) {
-                        negativeValues.push([`-${key}`, negatedValue]);
-                    }
-                }
-                modifierValues.push(...negativeValues);
-            }
-
-            let result = Object.entries(matches).flatMap(([name, utilityFunction]) => {
-                return modifierValues
-                    .map(([modifier, value]) => {
-                        let declarations = utilityFunction(value, {
-                            includeRules(rules) {
-                                addUtilities(rules);
-                            },
-                        });
-
-                        if (!declarations) {
-                            return null;
-                        }
-
-                        return {
-                            [require("tailwindcss/lib/util/nameClass").default(name, modifier)]:
-                                declarations,
-                        };
-                    })
-                    .filter(Boolean);
-            });
-
-            for (let obj of result) {
-                for (let key in obj) {
-                    let deleteKey = false;
-                    for (let subkey in obj[key]) {
-                        if (subkey.startsWith("@defaults")) {
-                            delete obj[key][subkey];
-                            continue;
-                        }
-                        if (subkey.includes("&")) {
-                            result.push({
-                                [subkey.replace(/&/g, key)]: obj[key][subkey],
-                            });
-                            deleteKey = true;
-                        }
-                    }
-
-                    if (deleteKey) delete obj[key];
-                }
-            }
-
-            addUtilities(result);
-        },
-    });
-    return utilities;
-}
+});
