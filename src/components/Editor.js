@@ -27,7 +27,7 @@ function TabBar({ primary, secondary = [], showTabMarkers = true, children }) {
                     <div
                         key={name}
                         className={clsx("px-4 py-1 border-r border-slate-200/5", className, {
-                            italic: !open,
+                            italic: !open
                         })}
                     >
                         {name}

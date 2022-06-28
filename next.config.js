@@ -10,17 +10,16 @@ const minimatch = require("minimatch");
 const { withImages, unwrapImages } = require("./remark/withImages");
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
-    enabled: process.env.ANALYZE === "true",
+    enabled: process.env.ANALYZE === "true"
 });
 const defaultConfig = require("tailwindcss/resolveConfig")(require("tailwindcss/defaultConfig"));
-const dlv = require("dlv");
 
 const fallbackLayouts = {
-    "src/pages/docs/**/*": ["@/layouts/DocumentationLayout", "DocumentationLayout"],
+    "src/pages/docs/**/*": ["@/layouts/DocumentationLayout", "DocumentationLayout"]
 };
 
 const fallbackDefaultExports = {
-    "src/pages/{docs,components}/**/*": ["@/layouts/ContentsLayout", "ContentsLayout"],
+    "src/pages/{docs,components}/**/*": ["@/layouts/ContentsLayout", "ContentsLayout"]
 };
 
 const fallbackGetStaticProps = {};
@@ -29,7 +28,7 @@ module.exports = withBundleAnalyzer({
     swcMinify: true,
     pageExtensions: ["js", "jsx", "mdx"],
     images: {
-        disableStaticImages: true,
+        disableStaticImages: true
     },
     webpack(config, options) {
         if (!options.dev && options.isServer) {
@@ -49,10 +48,10 @@ module.exports = withBundleAnalyzer({
                     loader: "file-loader",
                     options: {
                         publicPath: "/_next",
-                        name: "static/media/[name].[hash].[ext]",
-                    },
-                },
-            ],
+                        name: "static/media/[name].[hash].[ext]"
+                    }
+                }
+            ]
         });
 
         config.resolve.alias["defaultConfig$"] = require.resolve("tailwindcss/defaultConfig");
@@ -60,7 +59,7 @@ module.exports = withBundleAnalyzer({
             test: require.resolve("tailwindcss/defaultConfig"),
             use: createLoader(function (_source) {
                 return `export default ${JSON.stringify(defaultConfig)}`;
-            }),
+            })
         });
 
         config.module.rules.push({
@@ -68,16 +67,16 @@ module.exports = withBundleAnalyzer({
             use: [
                 {
                     loader: "@svgr/webpack",
-                    options: { svgoConfig: { plugins: { removeViewBox: false } } },
+                    options: { svgoConfig: { plugins: { removeViewBox: false } } }
                 },
                 {
                     loader: "file-loader",
                     options: {
                         publicPath: "/_next",
-                        name: "static/media/[name].[hash].[ext]",
-                    },
-                },
-            ],
+                        name: "static/media/[name].[hash].[ext]"
+                    }
+                }
+            ]
         });
 
         let mdx = [
@@ -90,9 +89,9 @@ module.exports = withBundleAnalyzer({
                         withSyntaxHighlighting,
                         withNextLinks,
                         withSmartQuotes,
-                        unwrapImages,
-                    ],
-                },
+                        unwrapImages
+                    ]
+                }
             },
             createLoader(function (source) {
                 let pathSegments = this.resourcePath.split(path.sep);
@@ -101,7 +100,7 @@ module.exports = withBundleAnalyzer({
                         ? pathSegments[pathSegments.length - 2]
                         : pathSegments[pathSegments.length - 1].replace(/\.mdx$/, "");
                 return source + `\n\nexport const slug = '${slug}'`;
-            }),
+            })
         ];
 
         config.module.rules.push({
@@ -187,14 +186,14 @@ module.exports = withBundleAnalyzer({
                         typeof fields === "undefined"
                             ? body.replace(/<!--excerpt-->.*<!--\/excerpt-->/s, "")
                             : "",
-                        metaExport,
+                        metaExport
                     ]
                         .filter(Boolean)
                         .join("\n\n");
-                }),
-            ],
+                })
+            ]
         });
 
         return config;
-    },
+    }
 });
