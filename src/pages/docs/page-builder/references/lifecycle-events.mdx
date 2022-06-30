@@ -240,7 +240,7 @@ new ContextPlugin<PbContext>(async (context) => {
     if (category.name.match(/b/) === null) {
       return
     }
-    throw new Error(`You are not allowed to delete a category with charcter "b" in its name.`)
+    throw new Error(`You are not allowed to delete a category with character "b" in its name.`)
   })
 })
 ```
@@ -952,13 +952,298 @@ new ContextPlugin<PbContext>(async (context) => {
 })
 ```
 
+## Block Categories
+
+### onBeforeBlockCategoryCreate
+
+This event is triggered before new block category is stored into the database.
+
+#### Event arguments
+
+| Property      | Description                                       |
+| ------------- | ------------------------------------------------- |
+| blockCategory | Block Category object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onBeforeBlockCategoryCreate.subscribe(async ({ blockCategory }) => {
+    /**
+     * For example, all block category names have to start with "BLOCK:" string an be in UPPERCASE.
+     * You can check name for that condition and add prefix if it is missing.
+     */
+    blockCategory.name = blockCategory.name.toUpperCase()
+    if (!blockCategory.name.startsWith("BLOCK:")) {
+      blockCategory.name = "BLOCK:" + blockCategory.name
+    }
+  })
+})
+```
+
+### onAfterBlockCategoryCreate
+
+This event is triggered after new block category is stored into the database.
+
+#### Event arguments
+
+| Property      | Description                            |
+| ------------- | -------------------------------------- |
+| blockCategory | Block Category object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onAfterBlockCategoryCreate.subscribe(async ({ blockCategory }) => {
+    await storeBlockCategoryToAnotherSystem({ blockCategory })
+  })
+})
+```
+
+### onBeforeBlockCategoryUpdate
+
+This event is triggered before existing block category is updated and stored.
+
+#### Event arguments
+
+| Property      | Description                                                |
+| ------------- | ---------------------------------------------------------- |
+| original      | Block Category object which was received from the database |
+| blockCategory | Block Category object which is going to be stored          |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onBeforeBlockCategoryUpdate.subscribe(async ({ original, blockCategory }) => {
+    /**
+     * For example, you do not want to allow block category slug changes.
+     */
+    if (original.slug === blockCategory.slug) {
+      return
+    }
+    throw new Error(`You are not allowed to change the block category slug.`)
+  })
+})
+```
+
+### onAfterBlockCategoryUpdate
+
+This event is triggered after existing block category is updated and stored.
+
+#### Event arguments
+
+| Property      | Description                                                |
+| ------------- | ---------------------------------------------------------- |
+| original      | Block Category object which was received from the database |
+| blockCategory | Block Category object which is going to be stored          |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onAfterBlockCategoryUpdate.subscribe(async ({ original, blockCategory }) => {
+    await storeBlockCategoryToAnotherSystem({ original, blockCategory })
+  })
+})
+```
+
+### onBeforeBlockCategoryDelete
+
+This event is triggered before block category is deleted from the database.
+
+#### Event arguments
+
+| Property      | Description                                        |
+| ------------- | -------------------------------------------------- |
+| blockCategory | Block Category object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onBeforeBlockCategoryDelete.subscribe(async ({ blockCategory }) => {
+    /**
+     * For example, we do not want to allow certain category with a name "All Advertisement Blocks" to be deleted.
+     */
+    if (blockCategory.name !== "All Advertisement Blocks") {
+      return
+    }
+    throw new Error(`You are not allowed to delete a block category with name "All Advertisement Blocks".`)
+  })
+})
+```
+
+### onAfterBlockCategoryDelete
+
+This event is triggered after block category is deleted from the database.
+
+#### Event arguments
+
+| Property      | Description                             |
+| ------------- | --------------------------------------- |
+| blockCategory | Block Category object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onAfterBlockCategoryDelete.subscribe(async ({ blockCategory }) => {
+    await deleteBlockCategoryFromAnotherSystem({ blockCategory })
+  })
+})
+```
+
+## Page Blocks
+
+### onBeforePageBlockCreate
+
+This event is triggered before new page block is stored into the database.
+
+#### Event arguments
+
+| Property  | Description                                   |
+| --------- | --------------------------------------------- |
+| pageBlock | Page Block object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onBeforePageBlockCreate.subscribe(async ({ pageBlock }) => {
+    /**
+     * For example, all page block names have to be in UPPERCASE.
+     * You can check name and convert it if needed.
+     */
+    if (pageBlock.name !== pageBlock.name.toUpperCase()) {
+      pageBlock.name = pageBlock.name.toUpperCase()
+    }
+  })
+})
+```
+
+### onAfterPageBlockCreate
+
+This event is triggered after new page block is stored into the database.
+
+#### Event arguments
+
+| Property  | Description                        |
+| --------- | ---------------------------------- |
+| pageBlock | Page Block object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onAfterPageBlockCreate.subscribe(async ({ pageBlock }) => {
+    await storePageBlockToAnotherSystem({ pageBlock })
+  })
+})
+```
+
+### onBeforePageBlockUpdate
+
+This event is triggered before existing page block is updated and stored.
+
+#### Event arguments
+
+| Property  | Description                                            |
+| --------- | ------------------------------------------------------ |
+| original  | Page Block object which was received from the database |
+| pageBlock | Page Block object which is going to be stored          |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onBeforePageBlockUpdate.subscribe(async ({ original, pageBlock }) => {
+    /**
+     * For example, you do not want to allow block category changes.
+     */
+    if (original.blockCategory === pageBlock.blockCategory) {
+      return
+    }
+    throw new Error(`You are not allowed to change the page block category.`)
+  })
+})
+```
+
+### onAfterPageBlockUpdate
+
+This event is triggered after existing page block is updated and stored.
+
+#### Event arguments
+
+| Property  | Description                                            |
+| --------- | ------------------------------------------------------ |
+| original  | Page Block object which was received from the database |
+| pageBlock | Page Block object which is going to be stored          |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onAfterPageBlockUpdate.subscribe(async ({ original, pageBlock }) => {
+    await storePageBlockToAnotherSystem({ original, pageBlock })
+  })
+})
+```
+
+### onBeforePageBlockDelete
+
+This event is triggered before page block is deleted from the database.
+
+#### Event arguments
+
+| Property  | Description                                    |
+| --------- | ---------------------------------------------- |
+| pageBlock | Page Block object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onBeforePageBlockDelete.subscribe(async ({ pageBlock }) => {
+    /**
+     * For example, we do not want to allow certain block with a name "Heading" to be deleted.
+     */
+    if (pageBlock.name !== "Heading") {
+      return
+    }
+    throw new Error(`You are not allowed to delete a page block with name "Heading".`)
+  })
+})
+```
+
+### onAfterPageBlockDelete
+
+This event is triggered after page block is deleted from the database.
+
+#### Event arguments
+
+| Property  | Description                         |
+| --------- | ----------------------------------- |
+| pageBlock | Page Block object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<PbContext>(async (context) => {
+  context.pageBuilder.onAfterPageBlockDelete.subscribe(async ({ pageBlock }) => {
+    await deletePageBlockFromAnotherSystem({ pageBlock })
+  })
+})
+```
+
+## Registering Lifecycle Event Subscriptions
+
 <Alert type="danger">
 
 Please, be aware that you can change what ever you want on the object before it is stored into the database, so be careful with changing the data.
 
 </Alert>
-
-## Registering Lifecycle Event Subscriptions
 
 For the subscriptions (your code) to be run, you must register it in the `createHandler` in the `api/code/graphql/src/index.ts` file.
 
