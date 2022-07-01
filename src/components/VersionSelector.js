@@ -35,25 +35,20 @@ export const VersionSelector = ({ version: currentVersion }) => {
     };
 
     return (
-        <>
-            <div className="h-5 bg-white dark:bg-dark-theme"></div>
-            <div className={"w-full pr-5 h-[37px]"}>
-                <select
-                    value={currentVersion}
-                    onChange={onChange}
-                    className={
-                        "w-full text-sm rounded-md ring-1 ring-slate-900/10 " +
-                        "shadow-sm py-1.5 pl-2 pr-3 hover:ring-slate-300 dark:bg-dark-grey-2 dark:highlight-white/5 " +
-                        "dark:hover:bg-slate-700 mr-[15px] h-[36px]"
-                    }
-                >
-                    {versions.allVersions.map(version => (
-                        <option key={version} value={version}>
-                            {version}
-                        </option>
-                    ))}
-                </select>
-            </div>
-        </>
+        <select
+            value={currentVersion}
+            onChange={onChange}
+            className={
+                "w-full text-sm rounded-md ring-1 ring-slate-900/10 " +
+                "shadow-sm py-1.5 pl-2 pr-3 hover:ring-slate-300 dark:bg-dark-grey-2 dark:highlight-white/5 " +
+                "dark:hover:bg-slate-700 h-[36px]"
+            }
+        >
+            {versions.allVersions.map(version => (
+                <option key={version} value={version}>
+                    {version}
+                </option>
+            ))}
+        </select>
     );
 };
