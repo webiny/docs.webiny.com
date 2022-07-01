@@ -189,7 +189,6 @@ export function Header({ navIsOpen, onNavToggle }) {
                             className="flex-none w-[1.5925rem] lg:pr-[8.3875rem] lg:border-r border-border dark:border-dark-grey overflow-hidden lg:w-auto"
                             onContextMenu={e => {
                                 e.preventDefault();
-                                Router.push("/brand");
                             }}
                         >
                             <span className="sr-only">Webiny Docs home page</span>

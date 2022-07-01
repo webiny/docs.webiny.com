@@ -1,3 +1,4 @@
+import { ViewLatestVersion } from "@/components/ViewLatestVersion";
 import {
     forwardRef,
     useState,
@@ -13,8 +14,7 @@ import Link from "next/link";
 import { MDXProvider } from "@mdx-js/react";
 import externalLinkIcon from "@/img/external-link.svg";
 import Image from "@/components/Image";
-
-import { SidebarLayout, SidebarContext } from "@/layouts/SidebarLayout";
+import { SidebarContext } from "@/layouts/SidebarLayout";
 import { PageHeader } from "@/components/PageHeader";
 import { getParentNav } from "@/utils/getParentNav";
 import { Footer } from "@/components/Footer";
@@ -215,31 +215,8 @@ function useTableOfContents(tableOfContents) {
     return { currentSection, registerHeading, unregisterHeading };
 }
 
-export function ContentsLayoutOuter({ children, layoutProps, ...props }) {
-    const { currentSection, registerHeading, unregisterHeading } = useTableOfContents(
-        layoutProps.tableOfContents
-    );
-
-    return (
-        <SidebarLayout
-            sidebar={
-                <div className="mb-8">
-                    <TableOfContents
-                        tableOfContents={layoutProps.tableOfContents}
-                        currentSection={currentSection}
-                    />
-                </div>
-            }
-            {...props}
-        >
-            <ContentsContext.Provider value={{ registerHeading, unregisterHeading }}>
-                {children}
-            </ContentsContext.Provider>
-        </SidebarLayout>
-    );
-}
-
-export function ContentsLayout({ children, meta, classes, tableOfContents }) {
+export function ContentsLayout({ children, ...props }) {
+    const { version, meta, classes, tableOfContents } = props;
     const router = useRouter();
     const toc = [
         ...(classes ? [{ title: "Quick reference", slug: "class-reference", children: [] }] : []),
@@ -253,6 +230,7 @@ export function ContentsLayout({ children, meta, classes, tableOfContents }) {
 
     return (
         <div className="container max-w-3xl mx-auto mt-[5.25rem] md:mt-[5.875rem] mb-[1.875rem] md:mb-[3.75rem] xl:pt-10 xl:max-w-[100%] xl:mr-0 xl:w-[calc(100%-245px)] xl:ml-0 xl:px-10 xl:border 2xl:max-w-[53.6875rem] border-neutral-200 dark:border-dark-grey rounded-[0.625rem]">
+            {version === "latest" ? null : <ViewLatestVersion />}
             <PageHeader title={meta.title} description={meta.description} parents={parents} />
             <ContentsContext.Provider value={{ registerHeading, unregisterHeading }}>
                 <div

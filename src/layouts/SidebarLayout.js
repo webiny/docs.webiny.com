@@ -1,3 +1,4 @@
+import { VersionSelector } from "@/components/VersionSelector";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { createContext, forwardRef, useEffect, useRef, useState } from "react";
@@ -316,7 +317,7 @@ export function SidebarLayout({
     setNavIsOpen,
     nav,
     sidebar,
-    layoutProps: { allowOverflow = true } = {}
+    layoutProps: { allowOverflow = true, version } = {}
 }) {
     return (
         <SidebarContext.Provider value={{ nav, navIsOpen, setNavIsOpen }}>
@@ -325,9 +326,7 @@ export function SidebarLayout({
                     <div
                         className={`hidden lg:block fixed z-20 inset-0 top-[4.15rem] right-auto w-[20.875rem] pb-10 pl-[18px] overflow-y-auto border-r border-neutral-200 dark:border-[#36383a] ${scroll}`}
                     >
-                        {
-                            //here goes search
-                        }
+                        <VersionSelector version={version}/>
                         <SearchButton />
                         <Nav nav={nav}>{sidebar}</Nav>
                     </div>

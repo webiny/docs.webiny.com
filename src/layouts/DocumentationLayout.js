@@ -3,12 +3,14 @@ import { getParentNav } from "@/utils/getParentNav";
 import { useRouter } from "next/router";
 
 import { Title } from "@/components/Title";
-import { documentationNav } from "@/navs/documentation";
+import { navigation } from "@/navs/navigation";
 
 export function DocumentationLayout(props) {
     let router = useRouter();
 
-    const parents = getParentNav(props.layoutProps.Layout.nav);
+    const version = props.layoutProps.version || "latest";
+    const versionNav = navigation[version] || [];
+    const parents = getParentNav(versionNav);
 
     let parent = "";
     if (parents !== null) {
@@ -24,9 +26,7 @@ export function DocumentationLayout(props) {
                 title={props.layoutProps.meta.metaTitle || props.layoutProps.meta.title}
                 description={props.layoutProps.description}
             />
-            <SidebarLayout nav={documentationNav} {...props} />
+            <SidebarLayout nav={versionNav} {...props} />
         </>
     );
 }
-
-DocumentationLayout.nav = documentationNav;

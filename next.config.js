@@ -99,7 +99,18 @@ module.exports = withBundleAnalyzer({
                     pathSegments[pathSegments.length - 1] === "index.mdx"
                         ? pathSegments[pathSegments.length - 2]
                         : pathSegments[pathSegments.length - 1].replace(/\.mdx$/, "");
-                return source + `\n\nexport const slug = '${slug}'`;
+
+                const pagePath = this.resourcePath.split("/pages").pop().replace(".mdx", "");
+                const part = pagePath.split("/")[2]; // /docs/5.29/something -> ["", "docs", "5.29", "something"]
+                const version = part.includes(".") ? part : "latest";
+
+                const newExports = [
+                    `export const slug = '${slug}';`,
+                    `export const version = '${version}';`,
+                    `export const pagePath = '${pagePath}';`
+                ];
+
+                return source + "\n\n" + newExports.join("\n\n");
             })
         ];
 

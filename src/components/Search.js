@@ -218,7 +218,7 @@ export function SearchButton({ children, ...props }) {
         return (
             <div className="sticky z-10 top-[-1px] overflow-hidden -ml-[5px] pointer-events-none mr-[15px] invisible lg:visible">
                 <div className="h-5 bg-white dark:bg-dark-theme"></div>
-                <div className="bg-white dark:bg-dark-theme relative pointer-events-auto px-[15px]">
+                <div className="bg-white dark:bg-dark-theme relative pointer-events-auto px-[5px]">
                     <button
                         ref={searchButtonRef}
                         onClick={handleClick}
