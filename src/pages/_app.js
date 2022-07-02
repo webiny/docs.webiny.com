@@ -76,6 +76,10 @@ export default function App({ Component, pageProps, router }) {
         : {};
     const showHeader = router.pathname !== "/";
     const meta = Component.layoutProps?.meta || {};
+
+    // Construct a fixed canonical link
+    const canonicalPath = Component.layoutProps?.canonicalPath;
+
     const description =
         meta.metaDescription || meta.description || "Documentation for the Webiny CMS.";
 
@@ -127,6 +131,9 @@ export default function App({ Component, pageProps, router }) {
                     title="JSON Feed"
                     href="/feeds/feed.json"
                 />
+                {canonicalPath ? (
+                    <link rel="canonical" href={"https://docs.webiny.com" + canonicalPath} />
+                ) : null}
             </Head>
             <SearchProvider>
                 {showHeader && (

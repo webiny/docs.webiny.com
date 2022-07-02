@@ -7,6 +7,8 @@ const { withTableOfContents } = require("./remark/withTableOfContents");
 const { withSyntaxHighlighting } = require("./remark/withSyntaxHighlighting");
 const { withNextLinks } = require("./remark/withNextLinks");
 const minimatch = require("minimatch");
+const versions = require("./src/data/versions.json");
+const pages = require("./src/data/pages.json");
 const { withImages, unwrapImages } = require("./remark/withImages");
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
@@ -23,6 +25,28 @@ const fallbackDefaultExports = {
 };
 
 const fallbackGetStaticProps = {};
+
+const getCanonicalPath = (version, pagePath) => {
+    const [, ...allVersions] = versions.allVersions;
+    // First we check the latest version of pages.
+    const possibleLatestPath = pagePath.replace(`/${version}/`, "/");
+    const latestPage = pages.latest.find(page => page.path === possibleLatestPath);
+    if (latestPage) {
+        return latestPage.path;
+    }
+
+    // Now we can search in older versions.
+    // `allVersions` are already sorted in descending order, so the first match is what we need.
+    const regex = new RegExp(pagePath.replace(/\//g, "\\/").replace(version, "\\d+.\\d+.x"));
+    for (const version of allVersions) {
+        const page = pages[version].find(page => regex.test(page.path));
+        if (page) {
+            return page.path;
+        }
+    }
+
+    return pagePath;
+};
 
 module.exports = withBundleAnalyzer({
     swcMinify: true,
@@ -103,11 +127,14 @@ module.exports = withBundleAnalyzer({
                 const pagePath = this.resourcePath.split("/pages").pop().replace(".mdx", "");
                 const part = pagePath.split("/")[2]; // /docs/5.29/something -> ["", "docs", "5.29", "something"]
                 const version = part.includes(".") ? part : "latest";
+                const canonicalPath =
+                    version === "latest" ? pagePath : getCanonicalPath(version, pagePath);
 
                 const newExports = [
                     `export const slug = '${slug}';`,
                     `export const version = '${version}';`,
-                    `export const pagePath = '${pagePath}';`
+                    `export const pagePath = '${pagePath}';`,
+                    `export const canonicalPath = '${canonicalPath}';`
                 ];
 
                 return source + "\n\n" + newExports.join("\n\n");
