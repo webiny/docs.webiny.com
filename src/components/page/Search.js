@@ -74,7 +74,7 @@ export function SearchProvider({ children }) {
                         initialQuery={initialQuery}
                         initialScrollY={window.scrollY}
                         searchParameters={{
-                            facetFilters: ["language:en", `version:${version}`]
+                            facetFilters: [["language:en"], [`version:${version}`]]
                         }}
                         placeholder="Search..."
                         onClose={onClose}
