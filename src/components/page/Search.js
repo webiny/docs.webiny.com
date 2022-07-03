@@ -9,8 +9,8 @@ import clsx from "clsx";
 import { useActionKey } from "@/hooks/useActionKey";
 
 const INDEX_NAME = "webiny-js";
-const API_KEY = "dd52f562d0728dab8423289926b5d055";
-const APP_ID = "BH4D9OD16A";
+const API_KEY = "2546465e46871091a6fd8f2c1272f318";
+const APP_ID = "U08KX3NZNH";
 
 const SearchContext = createContext();
 
