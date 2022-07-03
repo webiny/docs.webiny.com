@@ -1,7 +1,8 @@
+import { usePage } from "@/hooks/usePage";
+import { useVersions } from "@/hooks/useVersions";
 import { useRouter } from "next/router";
-import versions from "@/data/versions.json";
 
-const createNewPath = (path, currentVersion, newVersion) => {
+const createNewPath = (versions, path, currentVersion, newVersion) => {
     const latestVersion = versions.latestVersion;
 
     if (currentVersion === "latest" && newVersion !== latestVersion) {
@@ -41,12 +42,14 @@ const wrapper = [
     "after:border-x-[5px]"
 ].join(" ");
 
-export const VersionSelector = ({ version: currentVersion }) => {
+export const VersionSelector = () => {
+    const versions = useVersions();
+    const page = usePage();
     const { pathname, push } = useRouter();
 
     const onChange = e => {
         const value = e.target.value;
-        const newPath = createNewPath(pathname, currentVersion, value);
+        const newPath = createNewPath(versions, pathname, page.version, value);
 
         push(newPath);
     };
@@ -54,7 +57,7 @@ export const VersionSelector = ({ version: currentVersion }) => {
     return (
         <div className={wrapper}>
             <select
-                value={currentVersion}
+                value={page.version}
                 onChange={onChange}
                 className={
                     "w-full appearance-none text-sm rounded-md ring-1 ring-slate-900/10 " +

@@ -1,16 +1,13 @@
+import "focus-visible";
+import Router from "next/router";
+import { NavigationProvider } from "@/components/page/Navigation";
+import { Page } from "@/components/page/Page";
+import { PageProvider } from "@/components/page/PageProvider";
+import ProgressBar from "@badrap/bar-of-progress";
+import { ResizeObserver } from "@juggle/resize-observer";
+import { WTS } from "wts/src/web";
 import "../css/fonts.css";
 import "../css/main.css";
-import "focus-visible";
-import { useState, useEffect, Fragment } from "react";
-import { Header } from "@/components/Header";
-import { Title } from "@/components/Title";
-import Router from "next/router";
-import ProgressBar from "@badrap/bar-of-progress";
-import Head from "next/head";
-import socialCardLarge from "@/img/webiny-social-share.jpg";
-import { ResizeObserver } from "@juggle/resize-observer";
-import { SearchProvider } from "@/components/Search";
-const { WTS } = require("wts/src/web");
 
 if (typeof window !== "undefined" && !("ResizeObserver" in window)) {
     window.ResizeObserver = ResizeObserver;
@@ -56,97 +53,12 @@ if (isBrowser) {
     };
 }
 
-export default function App({ Component, pageProps, router }) {
-    let [navIsOpen, setNavIsOpen] = useState(false);
-
-    useEffect(() => {
-        if (!navIsOpen) return;
-        function handleRouteChange() {
-            setNavIsOpen(false);
-        }
-        Router.events.on("routeChangeComplete", handleRouteChange);
-        return () => {
-            Router.events.off("routeChangeComplete", handleRouteChange);
-        };
-    }, [navIsOpen]);
-
-    const Layout = Component.layoutProps?.Layout || Fragment;
-    const layoutProps = Component.layoutProps?.Layout
-        ? { layoutProps: Component.layoutProps, navIsOpen, setNavIsOpen }
-        : {};
-    const showHeader = router.pathname !== "/";
-    const meta = Component.layoutProps?.meta || {};
-
-    // Construct a fixed canonical link
-    const canonicalPath = Component.layoutProps?.canonicalPath;
-
-    const description =
-        meta.metaDescription || meta.description || "Documentation for the Webiny CMS.";
-
-    if (router.pathname.startsWith("/examples/")) {
-        return <Component {...pageProps} />;
-    }
-
+export default function App({ Component, pageProps }) {
     return (
-        <>
-            <Title suffix="Webiny Docs">{meta.metaTitle || meta.title}</Title>
-            <Head>
-                <meta key="twitter:card" name="twitter:card" content="summary_large_image" />
-                <meta key="twitter:site" name="twitter:site" content="@WebinyCMS" />
-                <meta key="twitter:description" name="twitter:description" content={description} />
-                <meta name="description" content={description} />
-                <meta
-                    key="twitter:image"
-                    name="twitter:image"
-                    content={`https://www.webiny.com${socialCardLarge}`}
-                />
-                <meta key="twitter:creator" name="twitter:creator" content="@WebinyCMS" />
-                <meta
-                    key="og:url"
-                    property="og:url"
-                    content={`https://www.webiny.com${router.pathname}`}
-                />
-                <meta key="og:type" property="og:type" content="article" />
-                <meta key="og:description" property="og:description" content={description} />
-                <meta
-                    key="og:image"
-                    property="og:image"
-                    content={`https://www.webiny.com${socialCardLarge}`}
-                />
-                <link
-                    rel="alternate"
-                    type="application/rss+xml"
-                    title="RSS 2.0"
-                    href="/feeds/feed.xml"
-                />
-                <link
-                    rel="alternate"
-                    type="application/atom+xml"
-                    title="Atom 1.0"
-                    href="/feeds/atom.xml"
-                />
-                <link
-                    rel="alternate"
-                    type="application/json"
-                    title="JSON Feed"
-                    href="/feeds/feed.json"
-                />
-                {canonicalPath ? (
-                    <link rel="canonical" href={"https://docs.webiny.com" + canonicalPath} />
-                ) : null}
-            </Head>
-            <SearchProvider>
-                {showHeader && (
-                    <Header
-                        hasNav={Boolean(Component.layoutProps?.Layout?.nav)}
-                        navIsOpen={navIsOpen}
-                        onNavToggle={isOpen => setNavIsOpen(isOpen)}
-                    />
-                )}
-                <Layout {...layoutProps}>
-                    <Component {...pageProps} />
-                </Layout>
-            </SearchProvider>
-        </>
+        <NavigationProvider>
+            <PageProvider Component={Component} pageProps={pageProps}>
+                <Page />
+            </PageProvider>
+        </NavigationProvider>
     );
 }

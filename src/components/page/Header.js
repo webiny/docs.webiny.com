@@ -1,10 +1,11 @@
-import Link from "next/link";
-import { SearchButton } from "@/components/Search";
-import Router from "next/router";
-import { Logo } from "@/components/Logo";
+import { useNavigation } from "@/components/page/Navigation";
 import { Dialog } from "@headlessui/react";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import clsx from "clsx";
+import { SearchButton } from "./Search";
+import Router from "next/router";
+import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Header.module.css";
 
@@ -155,20 +156,13 @@ export function NavItems() {
     );
 }
 
-export function Header({ navIsOpen, onNavToggle }) {
-    /*
-  let [isOpen, setIsOpen] = useState(false)
-
-  const openDialog = () => {
-    return setIsOpen(!isOpen)
-  }
-  */
-
+export function Header() {
+    const { toggleNavigation } = useNavigation();
     return (
         <>
             <div className="fixed top-0 z-40 w-full bg-smoke/90 backdrop-blur backdrop-opacity-80 supports-backdrop-blur:bg-white/95 flex-none transition-colors duration-500 lg:z-50 dark:bg-dark-grey-2 shadow-[0_1px_0_rgb(229,229,229)] dark:shadow-[0_1px_0_rgb(78,78,78)]">
                 <div className="relative flex items-center h-[3.375rem] lg:h-16 pl-[0.875rem] md:pl-8 pr-[] md:pr-8">
-                    <button className="lg:hidden mr-5" onClick={() => onNavToggle(!navIsOpen)}>
+                    <button className="lg:hidden mr-5" onClick={toggleNavigation}>
                         <svg
                             width="22"
                             height="17"

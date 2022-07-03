@@ -1,25 +1,16 @@
-import { VersionSelector } from "@/components/VersionSelector";
-import { ViewLatestVersion } from "@/components/ViewLatestVersion";
-import {
-    forwardRef,
-    useState,
-    useEffect,
-    createContext,
-    Fragment,
-    useCallback,
-    useContext
-} from "react";
+import { mdxComponents } from "@/components/mdxComponents";
+import { usePage } from "@/hooks/usePage";
+import { VersionSelector } from "@/components/page/VersionSelector";
+import { ViewLatestVersion } from "@/components/page/ViewLatestVersion";
+import { useState, useEffect, createContext, Fragment, useCallback, useContext } from "react";
 import { useRouter } from "next/router";
 import { usePrevNext } from "@/hooks/usePrevNext";
 import Link from "next/link";
 import { MDXProvider } from "@mdx-js/react";
-import externalLinkIcon from "@/img/external-link.svg";
-import Image from "@/components/Image";
 import { SidebarContext } from "@/layouts/SidebarLayout";
-import { PageHeader } from "@/components/PageHeader";
+import { PageHeader } from "@/components/page/PageHeader";
 import { getParentNav } from "@/utils/getParentNav";
-import { Footer } from "@/components/Footer";
-import { Heading } from "@/components/Heading";
+import { Footer } from "@/components/page/Footer";
 
 import clsx from "clsx";
 
@@ -217,7 +208,8 @@ function useTableOfContents(tableOfContents) {
 }
 
 export function ContentsLayout({ children, ...props }) {
-    const { version, meta, classes, tableOfContents } = props;
+    const { classes, tableOfContents } = props;
+    const { title, description } = usePage();
     const router = useRouter();
     const toc = [
         ...(classes ? [{ title: "Quick reference", slug: "class-reference", children: [] }] : []),
@@ -232,65 +224,20 @@ export function ContentsLayout({ children, ...props }) {
     return (
         <div className="container max-w-3xl mx-auto mt-[5.25rem] md:mt-[5.875rem] mb-[1.875rem] md:mb-[3.75rem] xl:pt-10 xl:max-w-[100%] xl:mr-0 xl:w-[calc(100%-245px)] xl:ml-0 xl:px-10 xl:border 2xl:max-w-[53.6875rem] border-neutral-200 dark:border-dark-grey rounded-[0.625rem]">
             <div className={"flex lg:hidden w-full pb-5"}>
-                <VersionSelector version={version} />
+                <VersionSelector />
             </div>
-            {version === "latest" ? null : <ViewLatestVersion />}
-            <PageHeader title={meta.title} description={meta.description} parents={parents} />
+            <ViewLatestVersion />
+            <PageHeader title={title} description={description} parents={parents} />
             <ContentsContext.Provider value={{ registerHeading, unregisterHeading }}>
                 <div
                     id="content"
                     className="relative z-20 prose md:prose-md prose-slate mt-8 dark:prose-dark"
                 >
-                    <MDXProvider
-                        components={{
-                            Heading,
-                            Image,
-                            ol: props => <ol {...props} style={{ "--start": props.start ?? 1 }} />,
-                            a: forwardRef((props, _) => {
-                                if (props.href.startsWith("http")) {
-                                    return (
-                                        <a target="_blank" href={props.href}>
-                                            {props.children}{" "}
-                                            <img
-                                                className="inline w-[12px] m-0"
-                                                src={externalLinkIcon}
-                                            />
-                                        </a>
-                                    );
-                                } else {
-                                    if (typeof props.children === "object") {
-                                        if (props.children.props.originalType == "inlineCode") {
-                                            return (
-                                                <code>
-                                                    <Link href={props.href}>
-                                                        {props.children.props.children}
-                                                    </Link>
-                                                </code>
-                                            );
-                                        } else if (props.children.props.originalType == "img") {
-                                            return (
-                                                <a target={"_blank"} href={props.href}>
-                                                    <img src={props.href} />
-                                                </a>
-                                            );
-                                        } else {
-                                            return <Link href={props.href}>{props.children}</Link>;
-                                        }
-                                    } else {
-                                        return <Link href={props.href}>{props.children}</Link>;
-                                    }
-                                }
-                            })
-                        }}
-                    >
-                        {children}
-                    </MDXProvider>
+                    <MDXProvider components={mdxComponents}>{children}</MDXProvider>
                 </div>
             </ContentsContext.Provider>
 
-            {/*
-      <WasThisArticleHelpful className="xl:hidden" />
-      */}
+            {/* <WasThisArticleHelpful className="xl:hidden" /> */}
             <Footer previous={prev} next={next}>
                 <Link
                     href={`https://github.com/tailwindlabs/tailwindcss.com/edit/master/src/pages${router.pathname}.mdx`}
@@ -309,9 +256,7 @@ export function ContentsLayout({ children, ...props }) {
                         <TableOfContents tableOfContents={toc} currentSection={currentSection} />
                     </div>
                 )}
-                {/*
-        <WasThisArticleHelpful />
-        */}
+                {/* <WasThisArticleHelpful /> */}
             </div>
         </div>
     );

@@ -1,3 +1,4 @@
+import { usePage } from "@/hooks/usePage";
 import { SidebarLayout } from "@/layouts/SidebarLayout";
 import { getParentNav } from "@/utils/getParentNav";
 import { useRouter } from "next/router";
@@ -7,8 +8,7 @@ import { navigation } from "@/navs/navigation";
 
 export function DocumentationLayout(props) {
     let router = useRouter();
-
-    const version = props.layoutProps.version || "latest";
+    const { version } = usePage();
     const versionNav = navigation[version] || [];
     const parents = getParentNav(versionNav);
 
@@ -21,11 +21,7 @@ export function DocumentationLayout(props) {
 
     return (
         <>
-            <Title
-                suffix={suffix}
-                title={props.layoutProps.meta.metaTitle || props.layoutProps.meta.title}
-                description={props.layoutProps.description}
-            />
+            <Title suffix={suffix} />
             <SidebarLayout nav={versionNav} {...props} />
         </>
     );

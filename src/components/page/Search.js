@@ -1,3 +1,4 @@
+import { usePage } from "@/hooks/usePage";
 import { useState, useCallback, useRef, createContext, useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
@@ -14,6 +15,7 @@ const APP_ID = "BH4D9OD16A";
 const SearchContext = createContext();
 
 export function SearchProvider({ children }) {
+    const { version } = usePage();
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [initialQuery, setInitialQuery] = useState(null);
@@ -71,6 +73,9 @@ export function SearchProvider({ children }) {
                     <DocSearchModal
                         initialQuery={initialQuery}
                         initialScrollY={window.scrollY}
+                        searchParameters={{
+                            facetFilters: ["language:en", `version:${version}`]
+                        }}
                         placeholder="Search..."
                         onClose={onClose}
                         indexName={INDEX_NAME}

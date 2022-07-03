@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { InputFooter } from "@/components/InputFooter";
+import { InputFooter } from "./InputFooter";
 
 const ArrowIcon = (
     <svg width="6" height="11" viewBox="0 0 6 11" fill="none" xmlns="http://www.w3.org/2000/svg">
