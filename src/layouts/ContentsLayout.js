@@ -229,12 +229,12 @@ export function ContentsLayout({ children, ...props }) {
             <ViewLatestVersion />
             <PageHeader title={title} description={description} parents={parents} />
             <ContentsContext.Provider value={{ registerHeading, unregisterHeading }}>
-                <div
+                <article
                     id="content"
                     className="relative z-20 prose md:prose-md prose-slate mt-8 dark:prose-dark"
                 >
                     <MDXProvider components={mdxComponents}>{children}</MDXProvider>
-                </div>
+                </article>
             </ContentsContext.Provider>
 
             {/* <WasThisArticleHelpful className="xl:hidden" /> */}
