@@ -1,10 +1,13 @@
+import { useNavigation } from "@/components/page/Navigation";
+import { usePage } from "@/hooks/usePage";
+import { VersionSelector } from "@/components/page/VersionSelector";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { createContext, forwardRef, useEffect, useRef, useState } from "react";
 import { useIsomorphicLayoutEffect } from "@/hooks/useIsomorphicLayoutEffect";
 import clsx from "clsx";
 import { Dialog } from "@headlessui/react";
-import { SearchButton } from "@/components/Search";
+import { SearchButton } from "@/components/page/Search";
 
 import { scroll } from "./SidebarLayout.module.css";
 
@@ -267,6 +270,9 @@ function Nav({ nav, mobile = false }) {
             // because of the css animations where certain sidebar nav elements need to expand, we need to offset the execution
             // of this code until those animations are done so we can correctly calculate the placement of items on the screen
             setTimeout(() => {
+                if (!scrollRef.current) {
+                    return;
+                }
                 const scrollable = nearestScrollableContainer(scrollRef.current);
 
                 const scrollRect = scrollable.getBoundingClientRect();
@@ -310,24 +316,19 @@ function Wrapper({ allowOverflow, children }) {
     return <div className={allowOverflow ? undefined : "overflow-hidden"}>{children}</div>;
 }
 
-export function SidebarLayout({
-    children,
-    navIsOpen,
-    setNavIsOpen,
-    nav,
-    sidebar,
-    layoutProps: { allowOverflow = true } = {}
-}) {
+export function SidebarLayout({ children, nav, sidebar }) {
+    const { version } = usePage();
+    const navigation = useNavigation();
     return (
-        <SidebarContext.Provider value={{ nav, navIsOpen, setNavIsOpen }}>
-            <Wrapper allowOverflow={allowOverflow}>
+        <SidebarContext.Provider value={{ nav }}>
+            <Wrapper allowOverflow={true}>
                 <div className="max-w-[96.993rem] 3xl:max-w-[104rem] mx-auto pl-4 sm:pl-6 md:pl-8 3xl:pl-[5.43rem] pr-4 sm:pr-6 md:pr-8">
                     <div
                         className={`hidden lg:block fixed z-20 inset-0 top-[4.15rem] right-auto w-[20.875rem] pb-10 pl-[18px] overflow-y-auto border-r border-neutral-200 dark:border-[#36383a] ${scroll}`}
                     >
-                        {
-                            //here goes search
-                        }
+                        <div className={"flex w-full pt-5 pr-5 pb-1"}>
+                            <VersionSelector version={version} />
+                        </div>
                         <SearchButton />
                         <Nav nav={nav}>{sidebar}</Nav>
                     </div>
@@ -336,15 +337,15 @@ export function SidebarLayout({
             </Wrapper>
             <Dialog
                 as="div"
-                open={navIsOpen}
-                onClose={() => setNavIsOpen(false)}
+                open={navigation.isOpen}
+                onClose={navigation.closeNavigation}
                 className="fixed z-50 inset-0 overflow-y-auto lg:hidden"
             >
                 <Dialog.Overlay className="fixed inset-0 bg-black/20 backdrop-blur-sm dark:bg-slate-900/80" />
                 <div className="relative bg-white w-[21.25rem] max-w-[calc(100%-3rem)] p-6 dark:bg-dark-grey-2 overflow-scroll h-full">
                     <button
                         type="button"
-                        onClick={() => setNavIsOpen(false)}
+                        onClick={navigation.closeNavigation}
                         className="absolute z-10 top-5 right-5 w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none"
                     >
                         <span className="sr-only">Close navigation</span>

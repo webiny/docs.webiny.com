@@ -1,6 +1,8 @@
+import { usePage } from "@/hooks/usePage";
 import Head from "next/head";
 
-export function Title({ suffix, title, description }) {
+export function Title({ suffix }) {
+    const { title } = usePage();
     let titleWithSuffix = title + (suffix.trim().startsWith("|") ? "" : " - ") + suffix;
 
     return (
