@@ -104,15 +104,16 @@ export default class Document extends NextDocument {
                         type="text/javascript"
                         dangerouslySetInnerHTML={{
                             __html: `
-                  window.dataLayer = window.dataLayer || []; 
+                  window.dataLayer = window.dataLayer || [];
                   function gtag(){
                       dataLayer.push(arguments);
-                  } 
-                  gtag('js', new Date()); 
-                  gtag('config', 'GTM-5TG2W9G'); 
+                  }
+                  gtag('js', new Date());
+                  gtag('config', 'GTM-5TG2W9G');
               `
                         }}
                     />
+                    <script defer src="https://banquet-golden-years.webiny.com/script.js"></script>
                 </Head>
                 <body className="antialiased text-slate-500 dark:text-slate-400 dark:bg-dark-theme">
                     <Main />
