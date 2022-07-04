@@ -65,7 +65,7 @@ function injectVersion(rootPath, version) {
     await writeJsonFile(path.join(process.cwd(), "src/data/pages.json"), pages);
 
     // Save sitemap
-    await writeSitemap();
+    await writeAlgoliaSitemap();
 
     async function addPagesToCatalog(path, version) {
         const urlRegExp = new RegExp("(/docs/.*).mdx");
@@ -86,7 +86,7 @@ function injectVersion(rootPath, version) {
         });
     }
 
-    async function writeSitemap() {
+    async function writeAlgoliaSitemap() {
         const xml = `<?xml version="1.0" encoding="UTF-8"?>
   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     ${sitemap
@@ -100,6 +100,6 @@ function injectVersion(rootPath, version) {
         )
         .join("\n    ")}
   </urlset>`;
-        await fs.writeFile(__dirname + "/../public/sitemap.xml", xml);
+        await fs.writeFile(__dirname + "/../public/algolia-sitemap.xml", xml);
     }
 })();
