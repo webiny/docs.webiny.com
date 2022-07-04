@@ -101,5 +101,20 @@ function injectVersion(rootPath, version) {
         .join("\n    ")}
   </urlset>`;
         await fs.writeFile(__dirname + "/../public/algolia-sitemap.xml", xml);
+
+        const template = `
+        import React from 'react'
+
+class Sitemap extends React.Component {
+  static async getInitialProps({ res }) {
+    res.setHeader('Content-Type', 'text/xml')
+    res.write(\`${xml}\`)
+    res.end()
+  }
+}
+
+export default Sitemap
+        `;
+        await fs.writeFile(__dirname + "/../src/pages/docs/algolia-sitemap.xml.js", template);
     }
 })();
