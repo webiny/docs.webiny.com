@@ -226,16 +226,15 @@ export function ContentsLayout({ children, ...props }) {
             <div className={"flex lg:hidden w-full pb-5"}>
                 <VersionSelector />
             </div>
-            <ViewLatestVersion />
-            <PageHeader title={title} description={description} parents={parents} />
-            <ContentsContext.Provider value={{ registerHeading, unregisterHeading }}>
-                <article
-                    id="content"
-                    className="relative z-20 prose md:prose-md prose-slate mt-8 dark:prose-dark"
-                >
-                    <MDXProvider components={mdxComponents}>{children}</MDXProvider>
-                </article>
-            </ContentsContext.Provider>
+            <article>
+                <ViewLatestVersion />
+                <PageHeader title={title} description={description} parents={parents} />
+                <div className={"relative z-20 prose md:prose-md prose-slate mt-8 dark:prose-dark"}>
+                    <ContentsContext.Provider value={{ registerHeading, unregisterHeading }}>
+                        <MDXProvider components={mdxComponents}>{children}</MDXProvider>
+                    </ContentsContext.Provider>
+                </div>
+            </article>
 
             {/* <WasThisArticleHelpful className="xl:hidden" /> */}
             <Footer previous={prev} next={next}>
