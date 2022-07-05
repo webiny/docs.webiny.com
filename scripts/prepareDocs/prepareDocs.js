@@ -10,7 +10,6 @@ import _rimraf from "rimraf";
 import writeJsonFile from "write-json-file";
 import { allVersions } from "../detectVersions";
 import { renderNavigation } from "@/docs/utils/renderNavigation";
-import { Version } from "@/docs/utils/navigation";
 
 const rimraf = util.promisify(_rimraf);
 
@@ -93,6 +92,7 @@ function injectVersion(rootPath, version) {
     await writeAlgoliaSitemap();
 
     async function generateNavigation() {
+        const { Version } = await import("@/docs/utils/navigation");
         let pages = [];
         const navigation = {};
         for (const realVersion of allVersions) {
