@@ -1,5 +1,5 @@
 import React from "react";
-import { Collapsable, Section, Page, Separator } from "docs/src/docs/utils/navigation";
+import { Collapsable, Section, Page, Separator } from "@/docs/utils/navigation";
 import { Navigation as SharedNavigation } from "../shared/navigation";
 
 export const Navigation = () => {

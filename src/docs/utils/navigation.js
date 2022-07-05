@@ -1,8 +1,8 @@
 import React from "react";
 import { Property, useParentProperty } from "@webiny/properties";
 import { createContext, useContext } from "react";
-import allPages from "docs/src/data/mdxFiles.json";
-import versions from "docs/src/data/versions.json";
+import allPages from "@/data/mdxFiles.json";
+import versions from "@/data/versions.json";
 
 const VersionContext = createContext(null);
 

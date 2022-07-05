@@ -9,8 +9,8 @@ import util from "util";
 import _rimraf from "rimraf";
 import writeJsonFile from "write-json-file";
 import { allVersions } from "../detectVersions";
-import { renderNavigation } from "docs/src/docs/utils/renderNavigation";
-import { Version } from "docs/src/docs/utils/navigation";
+import { renderNavigation } from "@/docs/utils/renderNavigation";
+import { Version } from "@/docs/utils/navigation";
 
 const rimraf = util.promisify(_rimraf);
 
@@ -29,7 +29,6 @@ function injectVersion(rootPath, version) {
 
 (async () => {
     const [latestVersion, ...versions] = allVersions;
-    const sitemap = [];
 
     await writeJsonFile(path.join(process.cwd(), "src/data/versions.json"), {
         latestVersion,

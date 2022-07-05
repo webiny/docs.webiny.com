@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import mdxFiles from "docs/src/data/mdxFiles.json";
-import { Page, Collapsable, Section, useVersion } from "docs/src/docs/utils/navigation";
+import mdxFiles from "@/data/mdxFiles.json";
+import { Page, Collapsable, Section, useVersion } from "@/docs/utils/navigation";
 import { rcompare, valid } from "semver";
 
 export const Navigation = () => {
