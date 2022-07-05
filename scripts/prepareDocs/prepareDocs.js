@@ -30,6 +30,7 @@ function injectVersion(rootPath, version) {
 (async () => {
     const [latestVersion, ...versions] = allVersions;
 
+    console.log("Writing file " + path.join(process.cwd(), "src/data/versions.json"));
     await writeJsonFile(path.join(process.cwd(), "src/data/versions.json"), {
         latestVersion,
         allVersions
@@ -48,6 +49,7 @@ function injectVersion(rootPath, version) {
             version: folder === latestVersion ? "latest" : folder
         };
     });
+    console.log("Writing file " + path.join(process.cwd(), "src/data/mdxFiles.json"));
     await writeJsonFile(path.join(process.cwd(), "src/data/mdxFiles.json"), allPages);
 
     // Write navigation
@@ -84,6 +86,7 @@ function injectVersion(rootPath, version) {
         return { ...acc, [page.version]: [...(acc[page.version] || []), page] };
     }, {});
 
+    console.log("Writing file " + path.join(process.cwd(), "src/data/pages.json"));
     await writeJsonFile(path.join(process.cwd(), "src/data/pages.json"), pages);
 
     // Save sitemap
@@ -117,6 +120,7 @@ function injectVersion(rootPath, version) {
             }, []);
             pages = pages.concat(...data.catalog);
         }
+        console.log("Writing file " + path.join(process.cwd(), "src/data/navigation.json"));
         await writeJsonFile(path.join(process.cwd(), "src/data/navigation.json"), navigation);
         return pages;
     }
@@ -135,6 +139,7 @@ function injectVersion(rootPath, version) {
         )
         .join("\n    ")}
   </urlset>`;
+        console.log("Writing file " + path.join(process.cwd(), "public/algolia-sitemap.xml"));
         await fs.writeFile(path.join(process.cwd(), "public/algolia-sitemap.xml"), xml);
     }
 })();
