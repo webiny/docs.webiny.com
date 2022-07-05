@@ -97,3 +97,39 @@ const plugin = new ContextPlugin<MailerContext>(async(context) => {
 });
 
 ```
+
+## Usage
+
+For example, let's say you want to send an e-mail when user creates an entry in the `Person` model.
+You would want to subscribe to the `onAfterEntryCreate` event and send an e-mail only when added entry to that certain model.
+
+```typescript
+const plugin = new ContextPlugin<MailerContext>(async(context) => {
+  context.cms.onAfterEntryCreate.subscribe(async ({entry, model}) => {
+      if (model.modelId !== "person"){
+          return;
+      }
+      try {
+          const response = await context.mailer.send({
+              data: {
+                  to: ["me@test.local"],
+                  from: "webiny@test.local",
+                  subject: `A new entry in the ${model.name} model was created`,
+                  text: `A new entry in the ${model.name} was created. ID of the entry is ${entry.id}`,
+                  html: `<h2>A new entry in the ${model.name}</h2>
+                  <p>Entry ID is ${entry.id}, url is ${createEntryUrl(entry)}</p>`
+              }
+          });
+          if (response.result) {
+              return;
+          } else if (!response.error) {
+              console.log("E-mail was not sent, but there is no error in the response.");
+              return;
+          }
+          console.log(response.error)
+      } catch(ex) {
+          console.log(ex.message);
+      }
+  });
+});
+```
