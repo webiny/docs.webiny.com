@@ -6,7 +6,6 @@ import pMap from "p-map";
 import frontMatter from "front-matter";
 import { replaceInPath } from "replace-in-path";
 import util from "util";
-import ncpBase from "ncp";
 import _rimraf from "rimraf";
 import writeJsonFile from "write-json-file";
 import { allVersions } from "../detectVersions";
@@ -14,7 +13,6 @@ import { renderNavigation } from "docs/src/docs/utils/renderNavigation";
 import { Version } from "docs/src/docs/utils/navigation";
 
 const rimraf = util.promisify(_rimraf);
-const ncp = util.promisify(ncpBase.ncp);
 
 const sourceDocsPath = folder => path.join(process.cwd(), "src/docs", folder || "");
 const targetDocsPath = folder => path.join(process.cwd(), "src/pages/docs", folder || "");
