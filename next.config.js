@@ -48,6 +48,50 @@ const getCanonicalPath = (version, pagePath) => {
     return pagePath;
 };
 
+/**
+ * This plugin rewrites asset paths to simulate inheritance. This means that assets are not duplicated, but instead,
+ * if several versions of the article are identical, they will all reference the same asset (image, video, etc.).
+ */
+class PageAssetsInheritance {
+    constructor() {
+        this.pages = Object.values(pages).flat();
+    }
+    apply(resolver) {
+        const target = resolver.ensureHook("resolve");
+        resolver
+            .getHook("before-resolve")
+            .tapAsync("ResolveFallback", (request, resolveContext, callback) => {
+                if (this.isApplicable(request)) {
+                    const obj = Object.assign({}, request, {
+                        request: path.join(
+                            this.getSourceDirectory(request.context.issuer),
+                            request.request
+                        )
+                    });
+
+                    resolver.doResolve(target, obj, null, resolveContext, callback);
+                } else {
+                    return callback();
+                }
+            });
+    }
+
+    isApplicable(request) {
+        const isMdx = request.context?.issuer?.endsWith(".mdx");
+        if (!isMdx) {
+            return false;
+        }
+
+        return request.request.startsWith("./") || request.request.startsWith("../");
+    }
+
+    getSourceDirectory(issuer) {
+        const fullPath = issuer.replace(process.cwd() + "/src/pages", "").replace(".mdx", "");
+        const page = this.pages.find(page => page.fullPath === fullPath);
+        return path.dirname(page.sourceFile);
+    }
+}
+
 module.exports = withBundleAnalyzer({
     swcMinify: true,
     pageExtensions: ["js", "jsx", "mdx"],
@@ -63,6 +107,8 @@ module.exports = withBundleAnalyzer({
                 return entries;
             };
         }
+
+        config.resolve.plugins = [...(config.resolve.plugins || []), new PageAssetsInheritance()];
 
         config.module.rules.push({
             test: /\.(png|jpe?g|gif|webp|avif|mp4)$/i,

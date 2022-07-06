@@ -34,7 +34,7 @@ export default Arrow;
 export const SidebarContext = createContext();
 
 /**
- * Find the nearst scrollable ancestor (or self if scrollable)
+ * Find the nearest scrollable ancestor (or self if scrollable)
  *
  * Code adapted and simplified from the smoothscroll polyfill
  *
@@ -68,12 +68,12 @@ function nearestScrollableContainer(el) {
 }
 
 const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
-    const { type, title, link, links, isActive, isActiveChild } = element;
+    const { type, title, link, items, isActive, isActiveChild } = element;
 
     if (type === "collapsable") {
         return (
             <Collapsable
-                subElements={links}
+                subElements={items}
                 isActiveChild={isActiveChild}
                 title={title}
                 ref={ref}
@@ -85,14 +85,14 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
     } else if (type === "section") {
         return (
             <Section
-                subElements={links}
+                subElements={items}
                 isActiveChild={isActiveChild}
                 title={title}
                 ref={ref}
                 depth={depth}
             />
         );
-    } else if (type === "horizontal-line") {
+    } else if (type === "separator") {
         return <HorizontalLine />;
     } else {
         return null;
@@ -124,7 +124,11 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
                 onClick={() => setShowMenu(!showMenu)}
                 className="root-element relative flex items-center cursor-pointer h-[30px] mt-[5px] mb-[3px]"
             >
-                <div className={`${depth === 0 ? "absolute left-[-15px] top-[9px]" : "mr-[10px]"}`}>
+                <div
+                    className={`${
+                        depth === 0 ? "absolute left-[-15px] top-[9px]" : "ml-[15px] mr-[12px]"
+                    }`}
+                >
                     <div
                         className={
                             "transition-all transform duration-300 " + (showMenu ? "rotate-90" : "")
@@ -134,9 +138,7 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
                         <Arrow
                             className={clsx({
                                 "stroke-dark-blue dark:stroke-white": depth === 0,
-                                "stroke-light-grey-3 dark:stroke-light-grey-4":
-                                    (!showMenu && depth > 0 && !isActiveChild) ||
-                                    (!isActiveChild && showMenu && depth > 0)
+                                "stroke-light-grey-3 dark:stroke-light-grey-4": true
                             })}
                         />
                     </div>
@@ -159,7 +161,7 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
                 className={
                     "transition-all duration-300 " +
                     clsx({
-                        "ml-[20px] ": depth > 0,
+                        "ml-[18px] ": depth > 0,
                         "transform max-h-[1500px] opacity-1 overflow-visible": showMenu,
                         "max-h-0 transform opacity-0 overflow-hidden": !showMenu
                     })
@@ -198,11 +200,9 @@ const Page = forwardRef(({ title, link, isActive, depth = 0 }, ref) => {
         </li>
     );
 });
+
 // second level section
 const Section = forwardRef(({ title, subElements = [], isActiveChild, depth = 0 }, ref) => {
-    // sort sub elements by title attribute
-    //subElements.sort((a, b) => (a.title > b.title) ? 1 : -1);
-
     return (
         <>
             <li className="flex items-center">
@@ -230,7 +230,7 @@ const Section = forwardRef(({ title, subElements = [], isActiveChild, depth = 0 
     );
 });
 
-function Nav({ nav, mobile = false }) {
+function Nav({ nav }) {
     const router = useRouter();
     const activeItemRef = useRef();
     const previousActiveItemRef = useRef();
@@ -243,9 +243,9 @@ function Nav({ nav, mobile = false }) {
 
                 navItem.isActive = isActive;
             } else if (navItem.type === "collapsable" || navItem.type === "section") {
-                setIsActive(navItem.links);
+                setIsActive(navItem.items);
 
-                const isActiveChild = navItem.links.some(
+                const isActiveChild = navItem.items.some(
                     link => link.isActive || link.isActiveChild
                 );
 
@@ -288,7 +288,9 @@ function Nav({ nav, mobile = false }) {
         }
     }, [router.pathname]);
 
-    setIsActive(nav);
+    if (nav) {
+        setIsActive(nav);
+    }
 
     return (
         <nav
@@ -359,9 +361,7 @@ export function SidebarLayout({ children, nav, sidebar }) {
                             />
                         </svg>
                     </button>
-                    <Nav nav={nav} mobile={true}>
-                        {sidebar}
-                    </Nav>
+                    <Nav nav={nav}>{sidebar}</Nav>
                 </div>
             </Dialog>
         </SidebarContext.Provider>

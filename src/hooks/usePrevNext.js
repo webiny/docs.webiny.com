@@ -7,7 +7,7 @@ function flatPages(links, pages = []) {
         if (link.type === "page") {
             pages.push(link);
         } else if (link.type === "collapsable" || link.type === "section") {
-            flatPages(link.links, pages);
+            flatPages(link.items, pages);
         }
     }
     return pages;
