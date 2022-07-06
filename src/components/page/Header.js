@@ -1,4 +1,5 @@
 import { useNavigation } from "@/components/page/Navigation";
+import { usePage } from "@/hooks/usePage";
 import { Dialog } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -158,6 +159,15 @@ export function NavItems() {
 
 export function Header() {
     const { toggleNavigation } = useNavigation();
+    const page = usePage();
+
+    const url = "/docs/{version}/get-started/install-webiny";
+
+    const homepage = url.replace(
+        "/{version}/",
+        page.version === "latest" ? "/" : `/${page.version}/`
+    );
+
     return (
         <>
             <div className="fixed top-0 z-40 w-full bg-smoke/90 backdrop-blur backdrop-opacity-80 supports-backdrop-blur:bg-white/95 flex-none transition-colors duration-500 lg:z-50 dark:bg-dark-grey-2 shadow-[0_1px_0_rgb(229,229,229)] dark:shadow-[0_1px_0_rgb(78,78,78)]">
@@ -178,7 +188,7 @@ export function Header() {
                             />
                         </svg>
                     </button>
-                    <Link href="/docs/get-started/install-webiny">
+                    <Link href={homepage}>
                         <a
                             className="flex-none w-[1.5925rem] lg:pr-[8.3875rem] lg:border-r border-border dark:border-dark-grey overflow-hidden lg:w-auto"
                             onContextMenu={e => {

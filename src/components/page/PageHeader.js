@@ -1,4 +1,4 @@
-export function PageHeader({ title, description, parents }) {
+export function PageHeader({ title, description, parents = null }) {
     if (!title && !description) return null;
 
     let parent = "";
