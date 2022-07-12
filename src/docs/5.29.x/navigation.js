@@ -13,6 +13,12 @@ export const Navigation = () => {
                 <Section title={"Core Architecture"} before={"API Architecture"}>
                     <Page link={"architecture/core/overview"} />
                 </Section>
+                <Section title={"Admin Area Architecture"}>
+                    <Page link={"architecture/admin/introduction"} remove />
+                </Section>
+              <Section title={"Website Architecture"}>
+                <Page link={"architecture/website/introduction"} remove />
+              </Section>
                 <Section title={"API Architecture"}>
                     <Page link={"architecture/api/introduction"} remove />
                     <Page link={"architecture/api/overview-vpc-default"} remove />
