@@ -1,3 +1,4 @@
+import { green, gray, blue } from "chalk";
 import React from "react";
 import fs from "fs-extra";
 import globby from "globby";
@@ -26,11 +27,11 @@ function injectVersion(rootPath, version) {
     replaceInPath(path.join(rootPath, "/**/*.mdx"), codeReplacements);
 }
 
-(async () => {
+export async function prepareDocs() {
+    info(`Generating versioned docs...`);
     const [latestVersion, ...versions] = allVersions;
 
-    console.log("Writing file " + path.join(process.cwd(), "src/data/versions.json"));
-    await writeJsonFile(path.join(process.cwd(), "src/data/versions.json"), {
+    await writeJsonAndLog("src/data/versions.json", {
         latestVersion,
         allVersions
     });
@@ -48,11 +49,20 @@ function injectVersion(rootPath, version) {
             version: folder === latestVersion ? "latest" : folder
         };
     });
-    console.log("Writing file " + path.join(process.cwd(), "src/data/mdxFiles.json"));
-    await writeJsonFile(path.join(process.cwd(), "src/data/mdxFiles.json"), allPages);
 
-    // Write navigation
-    const catalog = await generateNavigation();
+    await writeJsonAndLog("src/data/mdxFiles.json", allPages);
+
+    // Generate navigation
+    const navigation = {};
+    let catalog = [];
+    for (const realVersion of allVersions) {
+        // nav = { version, navigation, pages }
+        const nav = await generateNavigation(realVersion);
+        navigation[nav.version] = nav.navigation;
+        catalog = catalog.concat(...nav.pages);
+    }
+
+    await writeJsonAndLog("src/data/navigation.json", navigation);
 
     // Delete everything from the target directory
     await rimraf(targetDocsPath());
@@ -66,7 +76,6 @@ function injectVersion(rootPath, version) {
         await fs.copy(page.sourceFile, targetDocsPath(page.relativePath + ".mdx"));
     }
     injectVersion(targetDocsPath(), "latest");
-    // await addPagesToCatalog(targetDocsPath(), "latest");
 
     // Copy pages for all the other versions
     for (const version of versions) {
@@ -77,7 +86,6 @@ function injectVersion(rootPath, version) {
             await fs.copy(page.sourceFile, targetDocsPath(page.relativePath + ".mdx"));
         }
         injectVersion(targetPath, version);
-        // await addPagesToCatalog(targetDocsPath(version), version);
     }
 
     // Save pages catalog
@@ -85,48 +93,52 @@ function injectVersion(rootPath, version) {
         return { ...acc, [page.version]: [...(acc[page.version] || []), page] };
     }, {});
 
-    console.log("Writing file " + path.join(process.cwd(), "src/data/pages.json"));
-    await writeJsonFile(path.join(process.cwd(), "src/data/pages.json"), pages);
+    await writeJsonAndLog("src/data/pages.json", pages);
 
     // Save sitemap
-    await writeAlgoliaSitemap();
+    await writeAlgoliaSitemap(catalog);
 
-    async function generateNavigation() {
-        const { Version } = await import("@/docs/utils/navigation");
-        let pages = [];
-        const navigation = {};
-        for (const realVersion of allVersions) {
-            const isLatest = realVersion === latestVersion;
-            const version = isLatest ? "latest" : realVersion;
+    info(`Generated docs for the following versions:`);
+    allVersions.forEach(version => {
+        const latest = version === latestVersion ? ` (${blue("latest")})` : "";
+        console.log(`     ${version}${latest}`);
+    });
 
-            const { Navigation } = require(path.join(
-                process.cwd(),
-                "src/docs",
-                realVersion,
-                "navigation.js"
-            ));
+    info(`Docs are ready for building!`);
+}
 
-            const data = await renderNavigation(
-                <Version version={version}>
-                    <Navigation />
-                </Version>
-            );
-            navigation[version] = data.items.reduce((acc, item, index) => {
-                // Deduplicate separators
-                if (item.type === "separator" && data.items[index - 1].type === "separator") {
-                    return acc;
-                }
-                return [...acc, item];
-            }, []);
-            pages = pages.concat(...data.catalog);
+export async function generateNavigation(realVersion) {
+    const { Version } = await import("@/docs/utils/navigation");
+    const { latestVersion } = await import("@/data/versions.json");
+    const isLatest = realVersion === latestVersion;
+    const version = isLatest ? "latest" : realVersion;
+
+    const { Navigation } = require(path.join(
+        process.cwd(),
+        "src/docs",
+        realVersion,
+        "navigation.js"
+    ));
+
+    const data = await renderNavigation(
+        <Version version={version}>
+            <Navigation />
+        </Version>
+    );
+
+    const navigation = data.items.reduce((acc, item, index) => {
+        // Deduplicate separators
+        if (item.type === "separator" && data.items[index - 1].type === "separator") {
+            return acc;
         }
-        console.log("Writing file " + path.join(process.cwd(), "src/data/navigation.json"));
-        await writeJsonFile(path.join(process.cwd(), "src/data/navigation.json"), navigation);
-        return pages;
-    }
+        return [...acc, item];
+    }, []);
 
-    async function writeAlgoliaSitemap() {
-        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    return { version, navigation, pages: data.catalog };
+}
+
+export async function writeAlgoliaSitemap(catalog) {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     ${catalog
         .map(
@@ -139,7 +151,25 @@ function injectVersion(rootPath, version) {
         )
         .join("\n    ")}
   </urlset>`;
-        console.log("Writing file " + path.join(process.cwd(), "public/algolia-sitemap.xml"));
-        await fs.writeFile(path.join(process.cwd(), "public/algolia-sitemap.xml"), xml);
-    }
-})();
+    await writeAndLog("public/algolia-sitemap.xml", xml);
+}
+
+export function logFileWrite(file) {
+    info(`Writing ${green(file.replace(process.cwd(), ""))}`);
+}
+
+export function info(text) {
+    console.log(`${gray("INFO")} ${text}`);
+}
+
+export async function writeAndLog(file, data) {
+    const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
+    logFileWrite(targetFile);
+    await fs.writeFile(file, data);
+}
+
+export async function writeJsonAndLog(file, data) {
+    const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
+    logFileWrite(targetFile);
+    await writeJsonFile(targetFile, data);
+}

@@ -12,4 +12,6 @@ require("@babel/register")({
         ]
     ]
 });
-require("./prepareDocs/prepareDocs");
+
+const { prepareDocs } = require("./versionedDocs/prepareDocs");
+prepareDocs();
