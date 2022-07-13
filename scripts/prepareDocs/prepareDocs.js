@@ -139,7 +139,7 @@ function injectVersion(rootPath, version) {
         )
         .join("\n    ")}
   </urlset>`;
-        console.log("Writing file " + path.join(process.cwd(), "public/algolia-sitemap.xml"));
-        await fs.writeFile(path.join(process.cwd(), "public/algolia-sitemap.xml"), xml);
+        console.log("Writing file " + path.join(process.cwd(), "public/algolia/sitemap.xml"));
+        await fs.writeFile(path.join(process.cwd(), "public/algolia/sitemap.xml"), xml);
     }
 })();
