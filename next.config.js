@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs-extra");
 const querystring = require("querystring");
 const { createLoader } = require("simple-functional-loader");
 const frontMatter = require("front-matter");
@@ -60,13 +61,10 @@ class PageAssetsInheritance {
         const target = resolver.ensureHook("resolve");
         resolver
             .getHook("before-resolve")
-            .tapAsync("ResolveFallback", (request, resolveContext, callback) => {
+            .tapAsync("ResolveFallback", async (request, resolveContext, callback) => {
                 if (this.isApplicable(request)) {
                     const obj = Object.assign({}, request, {
-                        request: path.join(
-                            this.getSourceDirectory(request.context.issuer),
-                            request.request
-                        )
+                        request: await this.resolveRequest(request)
                     });
 
                     resolver.doResolve(target, obj, null, resolveContext, callback);
@@ -85,10 +83,30 @@ class PageAssetsInheritance {
         return request.request.startsWith("./") || request.request.startsWith("../");
     }
 
-    getSourceDirectory(issuer) {
+    getSourcePage(issuer) {
         const fullPath = issuer.replace(process.cwd() + "/src/pages", "").replace(".mdx", "");
-        const page = this.pages.find(page => page.fullPath === fullPath);
-        return path.dirname(page.sourceFile);
+        return this.pages.find(page => page.fullPath === fullPath);
+    }
+
+    async resolveRequest(request) {
+        const { allVersions } = versions;
+        const page = this.getSourcePage(request.context.issuer);
+        const possibleVersions = allVersions.slice(allVersions.indexOf(page.version));
+        // Try resolving every version, starting with the current page version.
+        // Versions are ordered in descending order by default, so there's no need to reorder manually.
+        for (const version of possibleVersions) {
+            const pageDir = path.dirname(
+                path.join(process.cwd(), "src", "docs", version, page.relativePath)
+            );
+
+            const assetPath = path.join(pageDir, request.request);
+
+            if (await fs.pathExists(assetPath)) {
+                return assetPath;
+            }
+        }
+
+        return request.request;
     }
 }
 
