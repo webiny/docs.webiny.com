@@ -1,5 +1,4 @@
 const path = require("path");
-const fs = require("fs-extra");
 const querystring = require("querystring");
 const { createLoader } = require("simple-functional-loader");
 const frontMatter = require("front-matter");
@@ -11,6 +10,7 @@ const minimatch = require("minimatch");
 const versions = require("./src/data/versions.json");
 const pages = require("./src/data/pages.json");
 const { withImages, unwrapImages } = require("./remark/withImages");
+const { AssetResolver } = require("./AssetResolver");
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
     enabled: process.env.ANALYZE === "true"
@@ -49,67 +49,6 @@ const getCanonicalPath = (version, pagePath) => {
     return pagePath;
 };
 
-/**
- * This plugin rewrites asset paths to simulate inheritance. This means that assets are not duplicated, but instead,
- * if several versions of the article are identical, they will all reference the same asset (image, video, etc.).
- */
-class PageAssetsInheritance {
-    constructor() {
-        this.pages = Object.values(pages).flat();
-    }
-    apply(resolver) {
-        const target = resolver.ensureHook("resolve");
-        resolver
-            .getHook("before-resolve")
-            .tapAsync("ResolveFallback", async (request, resolveContext, callback) => {
-                if (this.isApplicable(request)) {
-                    const obj = Object.assign({}, request, {
-                        request: await this.resolveRequest(request)
-                    });
-
-                    resolver.doResolve(target, obj, null, resolveContext, callback);
-                } else {
-                    return callback();
-                }
-            });
-    }
-
-    isApplicable(request) {
-        const isMdx = request.context?.issuer?.endsWith(".mdx");
-        if (!isMdx) {
-            return false;
-        }
-
-        return request.request.startsWith("./") || request.request.startsWith("../");
-    }
-
-    getSourcePage(issuer) {
-        const fullPath = issuer.replace(process.cwd() + "/src/pages", "").replace(".mdx", "");
-        return this.pages.find(page => page.fullPath === fullPath);
-    }
-
-    async resolveRequest(request) {
-        const { allVersions } = versions;
-        const page = this.getSourcePage(request.context.issuer);
-        const possibleVersions = allVersions.slice(allVersions.indexOf(page.version));
-        // Try resolving every version, starting with the current page version.
-        // Versions are ordered in descending order by default, so there's no need to reorder manually.
-        for (const version of possibleVersions) {
-            const pageDir = path.dirname(
-                path.join(process.cwd(), "src", "docs", version, page.relativePath)
-            );
-
-            const assetPath = path.join(pageDir, request.request);
-
-            if (await fs.pathExists(assetPath)) {
-                return assetPath;
-            }
-        }
-
-        return request.request;
-    }
-}
-
 module.exports = withBundleAnalyzer({
     swcMinify: true,
     pageExtensions: ["js", "jsx", "mdx"],
@@ -126,7 +65,7 @@ module.exports = withBundleAnalyzer({
             };
         }
 
-        config.resolve.plugins = [...(config.resolve.plugins || []), new PageAssetsInheritance()];
+        config.resolve.plugins = [...(config.resolve.plugins || []), new AssetResolver()];
 
         config.module.rules.push({
             test: /\.(png|jpe?g|gif|webp|avif|mp4)$/i,
