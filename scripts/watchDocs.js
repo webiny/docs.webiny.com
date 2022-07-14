@@ -61,7 +61,7 @@ const urlRegExp = new RegExp("(/docs/.*).mdx");
 async function updateFrontMatter(file, version) {
     const pages = await loadJsonFile(pagesDataJson);
     const pagePath = file.match(urlRegExp)[1];
-    const pageIndex = pages[version].findIndex(p => p.path === pagePath);
+    const pageIndex = pages[version].findIndex(p => p.fullPath === pagePath);
     if (pageIndex < 0) {
         console.log("Failed to update page data! Page was not found in the catalog.");
         return;

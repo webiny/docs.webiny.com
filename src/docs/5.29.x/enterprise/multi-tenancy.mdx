@@ -3,13 +3,11 @@ title: Setup Multi-Tenancy
 description: Learn how to configure multi-tenancy in your Webiny project
 ---
 
-import { Alert } from "@/components/Alert"
+import { Alert } from "@/components/Alert";
 
 <Alert type="info" title="Can I use this?">
 
-** Webiny Enterprise or Webiny Business license is required to use this feature.**
-
-This feature is available since Webiny **v5.19.0**.
+** A Webiny Control Panel account is required to use this feature.**
 
 </Alert>
 
@@ -22,248 +20,85 @@ This feature is available since Webiny **v5.19.0**.
 
 ## Overview
 
-There are several steps involved in enabling multi-tenancy:
+There are a few steps involved in enabling multi-tenancy:
 
-- adding an environment variable used at build time
-- importing a Tenant Manager module to be able to manage tenants
-- adding a Lambda@Edge function to the Pulumi configuration
+- connecting your project to Webiny Control Panel
 - creating a certificate in AWS ACM, and linking it with CloudFront distribution
 
-Cloudfront will be used for TLS termination, and AWS ACM for certificate management. Customers may use other 3rd party CDNs for those steps. If that’s the case, please get in touch so we can support you through the setup.
+Cloudfront will be used for TLS termination, and AWS ACM for certificate management. Customers may use other 3rd party CDNs for those steps. If that’s the case, please get in touch, so we can support you through the setup.
 
 The following sections guide you through the process in a step-by-step manner.
 
 ## 1) Prepare the Project
 
-Your project needs to be at version `5.19.0` to use this feature.
-Please follow the [upgrade guide](../release-notes/upgrade-webiny) to upgrade your project to the appropriate version.
-
-Alternatively, you can create a new `>=5.19.0` project, by running:
+Your project needs to be created starting with version `5.29.0` to use this feature.
+You can use an existing project, or create a new one by running:
 
 ```shell
 npx create-webiny-project my-project
 ```
 
-## 2) Add New Dependencies
+## 2) Connect Your Project with Webiny Control Panel
 
-We need to add several new packages to the project.
-
-Add Tenant Manager module dependency to the GraphQL API dependencies:
+To connect your project with Webiny Control Panel, run the following command:
 
 ```shell
-yarn workspace api-graphql add @webiny/api-tenant-manager
+yarn webiny login
 ```
 
-Add Tenant Manager module dependency to the Admin app dependencies:
+TODO
 
-```shell
-yarn workspace admin add @webiny/app-tenant-manager
-```
+## 3) Create a Certificate in AWS ACM
 
-Add a package with custom AWS components for Pulumi to the root package.json:
+<Alert type="info" title="Please note">
 
-```shell
-yarn add @webiny/pulumi-aws
-```
+Configuration of a custom domain is optional. If you just want to have a multi-tenant GraphQL API,
+a custom domain is not required. If so, you can skip to [project
+deployment](#5-deploy-your-project). However, if you want to build websites for each tenant, you will have
+to setup custom domains.
 
-## 3) Import Tenant Manager
-
-Open `api/cod2222e/graphql/src/index.ts`, and import the Tenant Manager plugin:
-
-```ts
-import tenantManager from "@webiny/api-tenant-manager";
-```
-
-Then, add the plugin to the Lambda handler, below `securityPlugins`. See an example in the image below:
-
-![Enable Tenant Manager plugin.](./assets/multi-tenancy/import-tenant-manager-api.png)
-
-Now we need to enable the Tenant Manager module in the Admin app. In your `apps/admin/src/App.tsx`, add the following:
-
-```diff-tsx apps/admin/src/App.tsx
-import React from "react";
-import { Admin } from "@webiny/app-serverless-cms";
-import { Cognito } from "@webiny/app-admin-users-cognito";
-+ import { TenantManager } from "@webiny/app-tenant-manager";
-import "./App.scss";
-
-export const App = () => {
-  return (
-    <Admin>
-      <Cognito />
-+     <TenantManager />
-    </Admin>
-  );
-};
-```
-
-## 4) Set Environment Variable
-
-Open `.env` in the root of your project, and add a new ENV variable:
-
-```yaml
-# Enable multi-tenancy
-WEBINY_MULTI_TENANCY=true
-```
-
-This variable will be picked up by the build process for both the API functions, as well as React applications, and multi-tenancy logic will be enabled in the applicable apps.
-
-## 5) Create a Certificate in AWS ACM
+</Alert>
 
 Before we modify the infrastructure setup, and deploy the project, we'll need to have a valid certificate in AWS ACM. Go to https://console.aws.amazon.com/acm/home?region=us-east-1#/certificates/request and request a new certificate, or import an existing one.
 
-Once the domains in the certificate are verified, we can proceed to the Pulumi configuration. For more information on creating certificates and validating hostnames, please go to [What Is AWS Certificate Manager? - AWS Certificate Manager](https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html)
+Once the domains in the certificate are verified, we can proceed to Webiny configuration. For more information on creating certificates and validating hostnames, please go to [What Is AWS Certificate Manager? - AWS Certificate Manager](https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html)
 
-## 6) Configure `website` Infrastructure
+## 4) Configure `website` Infrastructure
 
-To handle request routing, we need to have a Lambda@Edge function, which will map each request to an appropriate tenant, and rewrite the request to the appropriate folder in the S3 bucket, where the prerendered page snapshots are stored.
+To configure the `website` app with your custom domain(s), navigate to `apps/website/webiny.application.ts` and modify it to look like this:
 
-> NOTE: we only want to modify the `delivery` distribution, as that's the one that will be hit by visitors, and serve prerendered content.
+```ts apps/website/webiny.application.ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws";
 
-There are several changes we need to do on the CloudFront distribution:
-
-- enable `Host` header forwarding
-- add a Lambda function association for `origin-request` event
-- assign the ACM certificate you created in step 5)
-- add custom domain aliases
-
-Open `apps/website/pulumi/delivery.ts` and add the following changes:
-
-```diff-ts apps/website/pulumi/delivery.ts
-import * as aws from "@pulumi/aws";
-+ import * as pulumi from "@pulumi/pulumi";
-+ import { WebsiteTenantRouter } from "@webiny/pulumi-aws";
-
-class Delivery {
-  bucket: aws.s3.Bucket;
-  cloudfront: aws.cloudfront.Distribution;
-  constructor({ appS3Bucket }: { appS3Bucket: aws.s3.Bucket }) {
-    this.bucket = new aws.s3.Bucket("delivery", {
-      acl: "public-read",
-      forceDestroy: true,
-      website: {
-        indexDocument: "index.html",
-        errorDocument: "_NOT_FOUND_PAGE_/index.html"
-      }
-    });
-
-+   const websiteRouter = new WebsiteTenantRouter("website-router");
-
-    this.cloudfront = new aws.cloudfront.Distribution("delivery", {
-      enabled: true,
-      waitForDeployment: false,
-      origins: [
-        {
-          originId: this.bucket.arn,
-          domainName: this.bucket.websiteEndpoint,
-          customOriginConfig: {
-            originProtocolPolicy: "http-only",
-            httpPort: 80,
-            httpsPort: 443,
-            originSslProtocols: ["TLSv1.2"]
-          }
-        },
-        {
-          originId: appS3Bucket.arn,
-          domainName: appS3Bucket.websiteEndpoint,
-          customOriginConfig: {
-            originProtocolPolicy: "http-only",
-            httpPort: 80,
-            httpsPort: 443,
-            originSslProtocols: ["TLSv1.2"]
-          }
-        }
-      ],
-      orderedCacheBehaviors: [
-        {
-          compress: true,
-          allowedMethods: ["GET", "HEAD", "OPTIONS"],
-          cachedMethods: ["GET", "HEAD", "OPTIONS"],
-          forwardedValues: {
-            cookies: {
-              forward: "none"
-            },
-            headers: [],
-            queryString: false
-          },
-          pathPattern: "/static/*",
-          viewerProtocolPolicy: "allow-all",
-          targetOriginId: appS3Bucket.arn,
-          // MinTTL <= DefaultTTL <= MaxTTL
-          minTtl: 0,
-          defaultTtl: 2592000, // 30 days
-          maxTtl: 2592000
-        }
-      ],
-      defaultRootObject: "index.html",
-      defaultCacheBehavior: {
-        compress: true,
-        targetOriginId: this.bucket.arn,
-        viewerProtocolPolicy: "redirect-to-https",
-        allowedMethods: ["GET", "HEAD", "OPTIONS"],
-        cachedMethods: ["GET", "HEAD", "OPTIONS"],
-        forwardedValues: {
-          cookies: { forward: "none" },
-          queryString: true,
-+         headers: ["Host"]
-        },
-        // MinTTL <= DefaultTTL <= MaxTTL
-        minTtl: 0,
-        defaultTtl: 30,
-        maxTtl: 30,
-+       lambdaFunctionAssociations: [
-+         {
-+           eventType: "origin-request",
-+           includeBody: false,
-+           lambdaArn: pulumi.interpolate`${websiteRouter.originRequest.qualifiedArn}`
-+         }
-+       ]
-      },
-+     customErrorResponses: [
-+       {
-+         errorCode: 404,
-+         responseCode: 404,
-+         responsePagePath: "/_NOT_FOUND_PAGE_/index.html"
-+       }
-+     ],
-      priceClass: "PriceClass_100",
-      restrictions: {
-        geoRestriction: {
-          restrictionType: "none"
-        }
-      },
-+     aliases: ["custom.domain.com", "*.saas.com"],
-+     viewerCertificate: {
-+       acmCertificateArn:
-+         "arn:aws:acm:us-east-1:656932293860:certificate/eb47f296-39c3-44df-a04e-339e17f25f4f",
-+       sslSupportMethod: "sni-only"
-+     }
-    });
+export default createWebsiteApp({
+  domains() {
+    return {
+      domains: ["my.domain.com"],
+      sslSupportMethod: "sni-only",
+      acmCertificateArn:
+        "arn:aws:acm:us-east-1:111111111111:certificate/5931d8b4-a39b-4a3a-a4e7-f5bbdd78d599"
+    };
   }
-}
-
-export default Delivery;
+});
 ```
 
-For the `acmCertificateArn`, use the ARN of the certificate you created in step 5).
+For the `acmCertificateArn`, use the ARN of the certificate you created in step 3).
 
-For `aliases`, enter the custom domains supported by your certificate. You can use wildcards to support multiple subdomains.
+For `domains`, enter the custom domains supported by your certificate. You can use wildcards to support multiple subdomains.
 
-## 7) Deploy Your Project
+<Alert type="info" title="Recommendation">
+
+Every tenant _must_ have a corresponding custom domain to enable Webiny to route website requests correctly. Usually we recommend having a wildcard domain, like `*.domain.com`, and have each tenant use a subdomain, like `tenant1.domain.com`. This setup is then easily managed using, for example, CloudFlare, to route real tenant domains to your internal ones.
+
+</Alert>
+
+## 5) Deploy Your Project
 
 Now it's time to deploy the entire project. We need to deploy everything: `api`, `admin`, and `website`. The easiest way to do all 3 at once, is by running the following:
 
 ```shell
 yarn webiny deploy --env=dev
 ```
-
-<Alert type="danger" title="Important">
-
-Don't forget to CNAME your custom domain to the CloudFront distribution of the `website` application.
-
-To find your CloudFront website domain, run `yarn webiny info --env=dev` and look for the `Website URL`.
-
-</Alert>
 
 ## 8) Configure Custom Domains For Tenants
 
