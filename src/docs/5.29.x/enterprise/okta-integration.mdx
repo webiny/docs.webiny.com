@@ -78,7 +78,7 @@ You need to update two files, one for the `graphql` Lambda function and one for 
 <TabsComponent>
   <TabsItem title="Main GraphQL API">
 
-```diff-ts api/graphql/src/security.ts
+```diff-ts apps/api/graphql/src/security.ts
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { createTenancyContext, createTenancyGraphQL } from "@webiny/api-tenancy";
 import { createStorageOperations as tenancyStorageOperations } from "@webiny/api-tenancy-so-ddb";
@@ -185,7 +185,7 @@ export default ({ documentClient }: { documentClient: DocumentClient }) => [
   </TabsItem>
   <TabsItem title="Headless CMS API">
 
-```diff-ts api/headlessCMS/src/security.ts
+```diff-ts apps/api/headlessCMS/src/security.ts
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { createTenancyContext } from "@webiny/api-tenancy";
 import { createStorageOperations as tenancyStorageOperations } from "@webiny/api-tenancy-so-ddb";
@@ -274,7 +274,7 @@ export default ({ documentClient }: { documentClient: DocumentClient }) => [
   </TabsItem>
 </TabsComponent>  
 
-The last thing to do is to define the `OKTA_ISSUER` environment variable, and pass it to the Pulumi configuration.
+The last thing to do is to define the `OKTA_ISSUER` environment variable.
 
 In your project directory, open the `.env` file, and define the `OKTA_ISSUER` variable, using your authorization server URI. You can find this URI in the Okta dashboard, by navigating to **Security -> API**.
 
@@ -282,51 +282,7 @@ In your project directory, open the `.env` file, and define the `OKTA_ISSUER` va
 OKTA_ISSUER=https://dev-123456.oktapreview.com/oauth2/default
 ```
 
-This will ensure that, when Pulumi starts the deploy process, this environment variable is present in `process.env`.
-
-Now we need to pass it to the GraphQL API and Headless CMS API Lambda functions. Open `api/pulumi/dev/index.ts` and add the `OKTA_ISSUER` key to environment variable definitions, as shown below:
-
-```diff-ts api/pulumi/dev/index.ts
-const api = new Graphql({
-  env: {
-    COGNITO_REGION: String(process.env.AWS_REGION),
-    COGNITO_USER_POOL_ID: cognito.userPool.id,
-    DB_TABLE: dynamoDb.table.name,
-+   OKTA_ISSUER: process.env.OKTA_ISSUER,
-    PRERENDERING_RENDER_HANDLER: prerenderingService.functions.render.arn,
-    PRERENDERING_FLUSH_HANDLER: prerenderingService.functions.flush.arn,
-    PRERENDERING_QUEUE_ADD_HANDLER: prerenderingService.functions.queue.add.arn,
-    PRERENDERING_QUEUE_PROCESS_HANDLER: prerenderingService.functions.queue.process.arn,
-    S3_BUCKET: fileManager.bucket.id,
-    IMPORT_PAGES_CREATE_HANDLER: pageBuilder.functions.importPages.create.arn,
-    EXPORT_PAGES_PROCESS_HANDLER: pageBuilder.functions.exportPages.process.arn,
-    DEBUG,
-    WEBINY_LOGS_FORWARD_URL
-  },
-  primaryDynamodbTable: dynamoDb.table,
-  bucket: fileManager.bucket,
-  cognitoUserPool: cognito.userPool
-});
-
-const headlessCms = new HeadlessCMS({
-  env: {
-    COGNITO_REGION: String(process.env.AWS_REGION),
-    COGNITO_USER_POOL_ID: cognito.userPool.id,
-    DB_TABLE: dynamoDb.table.name,
-    S3_BUCKET: fileManager.bucket.id,
-+   OKTA_ISSUER: process.env.OKTA_ISSUER,
-    DEBUG,
-    WEBINY_LOGS_FORWARD_URL
-  },
-  primaryDynamodbTable: dynamoDb.table
-});
-```
-
-<Alert type="info" title="IMPORTANT">
-
-Definition of this environment variable on Lambda functions has to be repeated for all infrastructure stacks you're using in your project. If you're also using the `prod` stack, make sure you also add these variables in the respective Lambda functions in the `prod` stack configuration, such as `api/pulumi/prod/index.ts` and all the other stacks you might have created yourself.
-
-</Alert>
+This will ensure that, when Pulumi starts the deploy process, this environment variable is present in `process.env`, and it will be assigned to your Lambda functions.
 
 ## 4) Configure Admin App
 
@@ -336,7 +292,6 @@ Open `apps/admin/src/App.tsx` and replace the Cognito plugin with Okta plugin:
 import React from "react";
 import { Admin } from "@webiny/app-serverless-cms";
 + import { Okta } from "@webiny/app-admin-okta";
-import { TenantManager } from "@webiny/app-tenant-manager";
 import "./App.scss";
 
 + import { oktaFactory, rootAppClientId } from "./okta";
@@ -345,7 +300,6 @@ export const App = () => {
   return (
     <Admin>
 +     <Okta factory={oktaFactory} rootAppClientId={rootAppClientId} />
-      <TenantManager />
     </Admin>
   );
 };
