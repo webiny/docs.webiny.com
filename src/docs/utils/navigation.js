@@ -78,6 +78,7 @@ export const Page = ({ title, link, remove, before, after }) => {
     const relativePath = version === "latest" ? `/${link}` : `/${version}/${link}`;
 
     const id = `page.${link}`;
+    const versionedId = `page.${link}.${version}`;
     const afterId = after ? `page.${after}` : undefined;
     const beforeId = before ? `page.${before}` : undefined;
 
@@ -96,7 +97,7 @@ export const Page = ({ title, link, remove, before, after }) => {
                 <Property id={`${id}.link`} name={"link"} value={`/docs${relativePath}`} />
             </Property>
             {/* This section will create a new object in the root property called "catalog" */}
-            <Property name={"catalog"} array root>
+            <Property id={versionedId} name={"catalog"} array root remove={remove}>
                 <Property name={"sourceFile"} value={page.file} />
                 <Property name={"sourceVersion"} value={page.version} />
                 <Property name={"relativePath"} value={relativePath} />
