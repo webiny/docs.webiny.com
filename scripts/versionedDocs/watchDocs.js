@@ -88,6 +88,7 @@ async function promoteFileToVersion(file, version) {
 const urlRegExp = new RegExp("(/docs/.*).mdx");
 
 async function updateFrontMatter(file, version) {
+    version = version === versions.latestVersion ? "latest" : version;
     const pages = await loadJsonFile(pagesDataJson);
     const pagePath = file.match(urlRegExp)[1];
     const pageIndex = pages[version].findIndex(p => p.fullPath === pagePath);

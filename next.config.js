@@ -10,6 +10,7 @@ const minimatch = require("minimatch");
 const versions = require("./src/data/versions.json");
 const pages = require("./src/data/pages.json");
 const { withImages, unwrapImages } = require("./remark/withImages");
+const { withTitleCaseHeadings } = require("./remark/withTitleCaseHeadings");
 const { AssetResolver } = require("./AssetResolver");
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
@@ -111,6 +112,7 @@ module.exports = withBundleAnalyzer({
                 loader: "@mdx-js/loader",
                 options: {
                     remarkPlugins: [
+                        withTitleCaseHeadings,
                         withImages,
                         withTableOfContents,
                         withSyntaxHighlighting,
