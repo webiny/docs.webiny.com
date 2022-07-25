@@ -151,7 +151,7 @@ export async function writeAlgoliaSitemap(catalog) {
         )
         .join("\n    ")}
   </urlset>`;
-    await writeAndLog("public/algolia-sitemap.xml", xml);
+    await writeAndLog("public/algolia/sitemap.xml", xml);
 }
 
 export function logFileWrite(file) {
