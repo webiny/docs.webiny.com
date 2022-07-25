@@ -18,15 +18,6 @@ import { scroll } from "./SidebarLayout.module.css";
 export const ContentsContext = createContext();
 
 function TableOfContents({ tableOfContents, currentSection }) {
-    let sidebarContext = useContext(SidebarContext);
-    let isMainNav = Boolean(sidebarContext);
-
-    function closeNav() {
-        if (isMainNav) {
-            sidebarContext.setNavIsOpen(false);
-        }
-    }
-
     function isActive(section) {
         if (section.slug === currentSection) {
             return true;
@@ -46,7 +37,6 @@ function TableOfContents({ tableOfContents, currentSection }) {
                     <li>
                         <a
                             href={`#${section.slug}`}
-                            onClick={closeNav}
                             className={`block font-semibold ${index > 0 ? "mt-5" : ""} ${
                                 isActive(section) ? "text-orange" : "text-dark-blue dark:text-white"
                             }`}
@@ -59,7 +49,6 @@ function TableOfContents({ tableOfContents, currentSection }) {
                             <li className="ml-2.5 mt-5">
                                 <a
                                     href={`#${subsection.slug}`}
-                                    onClick={closeNav}
                                     className={clsx(
                                         "",
                                         isActive(subsection) && section.slug !== subsection.slug
@@ -75,7 +64,6 @@ function TableOfContents({ tableOfContents, currentSection }) {
                                 <li className="ml-5 mt-5" key={item.slug}>
                                     <a
                                         href={`#${item.slug}`}
-                                        onClick={closeNav}
                                         className={
                                             isActive(item)
                                                 ? "text-orange"
