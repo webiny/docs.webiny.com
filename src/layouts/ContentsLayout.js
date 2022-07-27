@@ -3,7 +3,6 @@ import { usePage } from "@/hooks/usePage";
 import { VersionSelector } from "@/components/page/VersionSelector";
 import { ViewLatestVersion } from "@/components/page/ViewLatestVersion";
 import { useState, useEffect, createContext, Fragment, useCallback, useContext } from "react";
-import { useRouter } from "next/router";
 import { usePrevNext } from "@/hooks/usePrevNext";
 import Link from "next/link";
 import { MDXProvider } from "@mdx-js/react";
@@ -129,25 +128,25 @@ const DislikeIcon = (
     </svg>
 );
 
-function WasThisArticleHelpful({ className }) {
-    return (
-        <div
-            className={`mt-[3.75rem] xl:mt-[2,5625rem] mb-6 grid justify-items-center xl:justify-items-start text-dark-blue dark:text-white font-roboto ${className}`}
-        >
-            <div className="text-sidebar-right-title font-bold">Was this article helpful?</div>
-            <div className="flex mt-[1.1875rem]">
-                <button className="h-9 w-[4.0625rem] border border-neutral-200 hover:border-orange rounded flex items-center justify-center font-semibold text-sm leading-6 mr-2.5">
-                    <div className="mr-[0.375rem]">{LikeIcon}</div>
-                    Yes
-                </button>
-                <button className="h-9 w-[4.0625rem] border border-neutral-200 hover:border-orange rounded flex items-center justify-center font-semibold text-sm leading-6">
-                    <div className="mr-[0.375rem]">{DislikeIcon}</div>
-                    No
-                </button>
-            </div>
-        </div>
-    );
-}
+// function WasThisArticleHelpful({ className }) {
+//     return (
+//         <div
+//             className={`mt-[3.75rem] xl:mt-[2,5625rem] mb-6 grid justify-items-center xl:justify-items-start text-dark-blue dark:text-white font-roboto ${className}`}
+//         >
+//             <div className="text-sidebar-right-title font-bold">Was this article helpful?</div>
+//             <div className="flex mt-[1.1875rem]">
+//                 <button className="h-9 w-[4.0625rem] border border-neutral-200 hover:border-orange rounded flex items-center justify-center font-semibold text-sm leading-6 mr-2.5">
+//                     <div className="mr-[0.375rem]">{LikeIcon}</div>
+//                     Yes
+//                 </button>
+//                 <button className="h-9 w-[4.0625rem] border border-neutral-200 hover:border-orange rounded flex items-center justify-center font-semibold text-sm leading-6">
+//                     <div className="mr-[0.375rem]">{DislikeIcon}</div>
+//                     No
+//                 </button>
+//             </div>
+//         </div>
+//     );
+// }
 
 function useTableOfContents(tableOfContents) {
     let [currentSection, setCurrentSection] = useState(tableOfContents[0]?.slug);
@@ -198,7 +197,6 @@ function useTableOfContents(tableOfContents) {
 export function ContentsLayout({ children, ...props }) {
     const { classes, tableOfContents } = props;
     const { title, description } = usePage();
-    const router = useRouter();
     const toc = [
         ...(classes ? [{ title: "Quick reference", slug: "class-reference", children: [] }] : []),
         ...tableOfContents
@@ -226,9 +224,7 @@ export function ContentsLayout({ children, ...props }) {
 
             {/* <WasThisArticleHelpful className="xl:hidden" /> */}
             <Footer previous={prev} next={next}>
-                <Link
-                    href={`https://github.com/tailwindlabs/tailwindcss.com/edit/master/src/pages${router.pathname}.mdx`}
-                >
+                <Link href={`https://github.com/webiny/docs.webiny.com`}>
                     <a className="hover:text-slate-900 dark:hover:text-slate-400">
                         Edit this page on GitHub
                     </a>
@@ -243,7 +239,6 @@ export function ContentsLayout({ children, ...props }) {
                         <TableOfContents tableOfContents={toc} currentSection={currentSection} />
                     </div>
                 )}
-                {/* <WasThisArticleHelpful /> */}
             </div>
         </div>
     );

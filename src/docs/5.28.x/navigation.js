@@ -138,7 +138,6 @@ export const Navigation = () => {
                     <Page link={"core-development-concepts/scaffolding/extend-admin-area"} />
                     <Page link={"core-development-concepts/scaffolding/extend-graphql-api"} />
                     <Page link={"core-development-concepts/scaffolding/full-stack-application"} />
-                    <Page link={"core-development-concepts/ci-cd/setup"} />
                 </Section>
 
                 <Section title={"Extending and Customizing"}>

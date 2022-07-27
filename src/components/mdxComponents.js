@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import { Heading } from "./Heading";
 import Image from "./Image";
 import { Alert } from "./Alert";
+import { Video } from "./Video";
 import externalLinkIcon from "@/img/external-link.svg";
 import Link from "next/link";
 
@@ -9,6 +10,7 @@ export const mdxComponents = {
     Heading,
     Alert,
     Image,
+    Video,
     ol: props => <ol {...props} style={{ "--start": props.start ?? 1 }} />,
     a: forwardRef((props, _) => {
         if (props.href.startsWith("http")) {

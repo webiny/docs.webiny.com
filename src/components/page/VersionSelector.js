@@ -45,19 +45,21 @@ const wrapper = [
 export const VersionSelector = () => {
     const versions = useVersions();
     const page = usePage();
-    const { pathname, push } = useRouter();
+    const { asPath, push } = useRouter();
 
     const onChange = e => {
         const value = e.target.value;
-        const newPath = createNewPath(versions, pathname, page.version, value);
+        const newPath = createNewPath(versions, asPath, page.version, value);
 
         push(newPath);
     };
 
+    const selected = page.version === "latest" ? versions.latestVersion : page.version;
+
     return (
         <div className={wrapper}>
             <select
-                value={page.version}
+                value={selected}
                 onChange={onChange}
                 className={
                     "w-full appearance-none text-sm rounded-md ring-1 ring-slate-900/10 " +

@@ -10,6 +10,7 @@ const minimatch = require("minimatch");
 const versions = require("./src/data/versions.json");
 const pages = require("./src/data/pages.json");
 const { withImages, unwrapImages } = require("./remark/withImages");
+const { withTitleCaseHeadings } = require("./remark/withTitleCaseHeadings");
 const { AssetResolver } = require("./AssetResolver");
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
@@ -18,11 +19,11 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 const defaultConfig = require("tailwindcss/resolveConfig")(require("tailwindcss/defaultConfig"));
 
 const fallbackLayouts = {
-    "src/pages/docs/**/*": ["@/layouts/DocumentationLayout", "DocumentationLayout"]
+    "src/pages/**/*.mdx": ["@/layouts/DocumentationLayout", "DocumentationLayout"]
 };
 
 const fallbackDefaultExports = {
-    "src/pages/{docs,components}/**/*": ["@/layouts/ContentsLayout", "ContentsLayout"]
+    "src/pages/docs/**/*.mdx": ["@/layouts/ContentsLayout", "ContentsLayout"]
 };
 
 const fallbackGetStaticProps = {};
@@ -111,6 +112,7 @@ module.exports = withBundleAnalyzer({
                 loader: "@mdx-js/loader",
                 options: {
                     remarkPlugins: [
+                        withTitleCaseHeadings,
                         withImages,
                         withTableOfContents,
                         withSyntaxHighlighting,
@@ -129,6 +131,9 @@ module.exports = withBundleAnalyzer({
 
                 const pagePath = this.resourcePath.split("/pages").pop().replace(".mdx", "");
                 const part = pagePath.split("/")[2]; // /docs/5.29/something -> ["", "docs", "5.29", "something"]
+                if (!part) {
+                    return source;
+                }
                 const version = part.includes(".") ? part : "latest";
                 const canonicalPath =
                     version === "latest" ? pagePath : getCanonicalPath(version, pagePath);

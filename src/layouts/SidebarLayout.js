@@ -329,7 +329,7 @@ export function SidebarLayout({ children, nav, sidebar }) {
                         className={`hidden lg:block fixed z-20 inset-0 top-[4.15rem] right-auto w-[20.875rem] pb-10 pl-[18px] overflow-y-auto border-r border-neutral-200 dark:border-[#36383a] ${scroll}`}
                     >
                         <div className={"flex w-full pt-5 pr-5 pb-1"}>
-                            <VersionSelector version={version} />
+                            <VersionSelector />
                         </div>
                         <SearchButton />
                         <Nav nav={nav}>{sidebar}</Nav>
