@@ -10,7 +10,7 @@ export const Navigation = () => {
             {/* Add new items. */}
             <Collapsable title={"Core Development Concepts"}>
                 <Section title={"Basics"}>
-                    <Page link={"core-development-concepts/basics/routes"} />
+                    <Page link={"core-development-concepts/basics/routes-and-events"} />
                 </Section>
             </Collapsable>
         </>
