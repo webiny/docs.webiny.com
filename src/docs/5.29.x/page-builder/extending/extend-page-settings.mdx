@@ -42,7 +42,7 @@ The following code takes care of all the things described above.
 j
 ```ts apps/api/graphql/src/plugins/pageSettings.ts
 import { GraphQLSchemaPlugin } from '@webiny/handler-graphql/plugins'
-import { PagePlugin } from '@webiny/api-page-builder/plugins/PagePlugin'
+import { ContextPlugin } from "@webiny/handler";
 import { PbContext, OnBeforePageUpdateTopicParams } from '@webiny/api-page-builder/types'
 
 // Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
@@ -92,6 +92,25 @@ The code above can be placed in the `api/graphql/src/plugins/pageSettings.ts` fi
 
 </Alert>
 
+```js apps/api/graphql/src/index.ts
+
+// ...
+
+// my password field custom plugin
+import passwordFieldPageSettingsPlugin from "./plugins/pageSettings";
+
+export const handler = createHandler({
+    plugins: [
+        // ...
+        // add this at the end of the plugins array list
+        passwordFieldPageSettingsPlugin
+    ],
+    http: { debug }
+});
+
+```
+
+
 With this plugin, once you redeploy the API project application, your GraphQL schema will contain the new `password` field:
 
 ![New Password Field in the Schema](./assets/extend-page-settings/schema.png)
@@ -139,6 +158,20 @@ export default [
     `,
   }),
 ]
+```
+
+And then, make sure to import your new UI plugin:
+
+```js apps/admin/src/plugins/pageBuilder/editorPlugins.tsx
+//...
+import pageSettings from "./pageSettings";
+
+export default [
+    // Page settings
+    pageSettingsPlugins,
+    pageSettings, // your plugin
+];
+
 ```
 
 After your application rebuilds, the new field will be rendered in the settings view. Using this technique, you can add as many fields as you need. You can also hook into other page settings views, using their corresponding classes: `SocialSettingsView` and `SEOSettingsView`.
