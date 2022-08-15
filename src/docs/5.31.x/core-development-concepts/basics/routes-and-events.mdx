@@ -67,7 +67,7 @@ This handler works as the Raw handler does, only it expects [DynamoDBEventHandle
 
 Adding new routes is quite simple, but you need to add them via both Pulumi code and the RoutePlugin.
 
-The Pulumi code goes into `apps/api/webiny.application.ts`. You must add the new route there, check out the example where we are adding [POST]/webiny route. 
+The Pulumi code goes into `apps/api/webiny.application.ts`. You must add the new route there, check out the example where we are adding `[POST]/webiny` route.
 ```typescript
 import { createApiApp } from "@webiny/serverless-cms-aws";
 import { ApiGraphql } from "@webiny/pulumi-aws";
@@ -76,10 +76,13 @@ export default createApiApp({
     pulumi: app => {
         const graphQLModule = app.getModule(ApiGraphql);
 
-        app.resources.apiGateway.addRoute("/webiny", {
+        graphQLModule.addRoute({
+            // name must be in kebab-case
+            name: "webiny",
+            // path must start with /
             path: "/webiny",
-            method: "POST",
-            function: graphQLModule.functions.graphql.output.arn
+            // all http methods allowed + any
+            method: "POST"
         });
     }
 });
@@ -122,7 +125,7 @@ export const handler = createHandler({
 The idea behind all our predefined event handlers is to handle events which are not of API Gateway Event type.
 
 And yes, you can catch API Gateway event like this, but there is no point since we have a handler specifically designed for that.
-Of course, feel free to use what ever is available and can help them to achieve your goal.
+Of course, feel free to use what ever is available and can help you to achieve your goal.
 
 Let's say you created a part of code which sends out an SQS message, and you want to have a Lambda which handles that message.
 
