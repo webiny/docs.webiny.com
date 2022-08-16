@@ -12,15 +12,20 @@ import { Alert } from "@/components/Alert";
 
 </Alert>
 
-## About
-For the 5.31.0 version of Webiny we have refactored our handler package (`@webiny/handler`) to use [fastify](https://github.com/fastify/fastify).
-This enables us to give our users the possibility to add different routes and events handling.
-
-<Alert type="warning">
-  Note that while you can define multiple routes per handler, you can define only a single event per handler.
+<Alert type="danger">
+  To add custom routes, your project must have been created with &gt;=5.29.0 version of Webiny due to core changes in Pulumi that we cannot transfer to the &lt;=5.29.0 versions.
 </Alert>
 
-This also enables us to have a consistent `request` and `reply` (formerly response in our system) methods throughout the system, which are quite well documented and powerful.
+## About
+For the 5.31.0 version of Webiny we have refactored our handler package (`@webiny/handler`) to use [fastify](https://github.com/fastify/fastify).
+Fastify has quite extensive [documentation](https://www.fastify.io/docs/latest/), so feel free to check it out if you need to modify our default behaviors.
+
+Fastify enables us to:
+* add the possibility to add new routes and event handling
+* consistent `request` and `reply` (formerly response in our system) methods throughout the system
+* a lot of request lifecycle events for users to hook into
+* 
+
 
 The new `@webiny/handler` package does not know how to handle incoming Lambda requests, that is left to the `@webiny/handler-aws` package, which exports a few handler possibilities:
 
@@ -32,7 +37,7 @@ The new `@webiny/handler` package does not know how to handle incoming Lambda re
 - DynamoDB handler
 
 <Alert type="info">
-  This will also enable us to implement different Cloud service at some point more easily.
+  This will also enable us to implement different cloud service at some point more easily.
 </Alert>
 
 ### Why All The Different Handlers?
@@ -62,6 +67,10 @@ This handler works as the Raw handler does, only it expects [SQSEventHandler](ht
 #### DynamoDB Handler
 This handler works as the Raw handler does, only it expects [DynamoDBEventHandler](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler-aws/src/dynamodb/plugins/DynamoDBEventHandler.ts) plugin.
 
+
+<Alert type="warning">
+  You can define multiple routes per handler, but you can define only a single event per handler.
+</Alert>
 
 ## Adding New Routes
 
@@ -120,16 +129,21 @@ export const handler = createHandler({
 });
 ```
 
+<Alert type="warning">
+  Security checks will be done as on the /graphql endpoint. If you need customizations, feel free to add them
+</Alert>
+
 ## Add And Handle Events
 
 The idea behind all our predefined event handlers is to handle events which are not of API Gateway Event type.
 
-And yes, you can catch API Gateway event like this, but there is no point since we have a handler specifically designed for that.
+Yes, you can catch API Gateway event like this, but there is no point since we have a handler specifically designed for that.
 Of course, feel free to use what ever is available and can help you to achieve your goal.
 
-Let's say you created a part of code which sends out an SQS message, and you want to have a Lambda which handles that message.
 
 ### Example
+Let's say you created a part of code which sends out an SQS message, and you want to have a Lambda which handles that message.
+
 Good example would be if you want to run some calculation, asynchronously, from our GraphQL Lambda.
 You would insert an SQS Message and in turn it would trigger a Lambda which you have defined. That lambda should have code similar to this:
 
@@ -146,6 +160,10 @@ const handler = createHandler({
           
           // maybe store that result into the database?
           await storeResult(result);
+          
+          return reply.send({
+              ok: true
+          });
       })
   ]
 })
@@ -154,3 +172,11 @@ const handler = createHandler({
 <Alert type="warning">
   Note that we do not actually check if the event really is an SQS event. It is expected that you initialize correct handler for event you are expecting.
 </Alert>
+
+
+### Event Handler Response
+When handling an event, you can either return the `reply` object or something else, what ever you like.
+Basically, when you return the `reply`, a standard [APIGatewayProxyResult](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/aws-lambda/trigger/api-gateway-proxy.d.ts#L135) is created out of the data, headers and cookies you sent.
+When you return anything else other than the `reply`, it is returned as the result of the handler, and the Lambda itself.
+
+For example, you can send plain text or object to get the response of the Lambda without need to parse the `APIGatewayProxyResult`.
