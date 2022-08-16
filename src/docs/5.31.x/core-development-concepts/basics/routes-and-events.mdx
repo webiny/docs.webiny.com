@@ -51,7 +51,7 @@ This is the same procedure being used in the `@fastify/aws-lambda` package.
 The difference is that our Raw handler can return either [APIGatewayProxyResult](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/aws-lambda/trigger/api-gateway-proxy.d.ts#L135) or what ever is directly sent from the [EventPlugin](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler/src/plugins/EventPlugin.ts).
 
 For this handler to work it requires at most one [EventPlugin](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler/src/plugins/EventPlugin.ts) to be defined. If more, or none, are defined - an error will be thrown.
-```typescript
+```ts
 import { createRawHandler, createRawEventHandler } from "@webiny/handler-aws";
 
 const handler = createRawHandler({
@@ -67,7 +67,7 @@ const handler = createRawHandler({
 
 #### S3 Handler
 This handler works as the Raw handler does, only it expects [S3EventHandler](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler-aws/src/s3/plugins/S3EventHandler.ts) plugin.
-```typescript
+```ts
 import { createS3Handler, createS3EventHandler } from "@webiny/handler-aws";
 
 const handler = createS3Handler({
@@ -81,7 +81,7 @@ const handler = createS3Handler({
 
 #### EventBridge Handler
 This handler works as the Raw handler does, only it expects [EventBridgeEventHandler](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler-aws/src/eventBridge/plugins/EventBridgeEventHandler.ts) plugin.
-```typescript
+```ts
 import { createEventBridgeHandler, createEventBridgeEventHandler } from "@webiny/handler-aws";
 
 const handler = createEventBridgeHandler({
@@ -97,7 +97,7 @@ const handler = createEventBridgeHandler({
 
 #### SQS Handler
 This handler works as the Raw handler does, only it expects [SQSEventHandler](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler-aws/src/sqs/plugins/SQSEventHandler.ts) plugin.
-```typescript
+```ts
 import { createSQSHandler, createSQSEventHandler } from "@webiny/handler-aws";
 
 const handler = createSQSHandler({
@@ -113,7 +113,7 @@ const handler = createSQSHandler({
 
 #### DynamoDB Handler
 This handler works as the Raw handler does, only it expects [DynamoDBEventHandler](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler-aws/src/dynamodb/plugins/DynamoDBEventHandler.ts) plugin.
-```typescript
+```ts
 import { createDynamoDBHandler, createDynamoDBEventHandler } from "@webiny/handler-aws";
 
 const handler = createDynamoDBHandler({
@@ -137,7 +137,7 @@ const handler = createDynamoDBHandler({
 Adding new routes is quite simple, but you need to add them via both Pulumi code and the RoutePlugin.
 
 The Pulumi code goes into `apps/api/webiny.application.ts`. You must add the new route there, check out the example where we are adding `[POST]/webiny` route.
-```typescript
+```ts
 import { createApiApp } from "@webiny/serverless-cms-aws";
 import { ApiGraphql } from "@webiny/pulumi-aws";
 
@@ -150,7 +150,7 @@ export default createApiApp({
             name: "webiny",
             // path must start with /
             path: "/webiny",
-            // all http methods allowed + any
+            // all http methods allowed + ANY to catch all requests
             method: "POST"
         });
     }
@@ -158,16 +158,16 @@ export default createApiApp({
 
 ```
 
-Next thing you need to do is to add it into the `apps/api/graphql/src/index.ts` file via the `RoutePlugin`:
+Next thing you need to do is to add it into the `apps/api/graphql/src/index.ts` file via the `RoutePlugin` or `createApiGatewayRoute` method:
 
-```typescript
+```ts apps/api/graphql/src/index.ts
 // ... other imports
-import { RoutePlugin } from "@webiny/handler-aws";
+import { createApiGatewayHandler as createHandler, createApiGatewayRoute } from "@webiny/handler-aws";
 
 export const handler = createHandler({
     plugins: [
         // ... other plugins
-        new RoutePlugin(({ onPost }) => {
+        createApiGatewayRoute(({ onPost }) => {
             onPost("/webiny", async (request, reply) => {
                 // we can log the whole request body
                 console.log(request.body);
@@ -190,10 +190,10 @@ export const handler = createHandler({
 ```
 
 <Alert type="warning">
-  Security checks will be done as on the /graphql endpoint. If you need customizations, feel free to add them
+  Security checks will be done as on the <strong>/graphql</strong> endpoint. If you need customizations, feel free to add them.
 </Alert>
 
-## Add And Handle Events
+## Adding Event Handler
 
 The idea behind all our predefined event handlers is to handle events which are not of API Gateway Event type.
 
@@ -207,13 +207,12 @@ Let's say you created a part of code which sends out an SQS message, and you wan
 Good example would be if you want to run some calculation, asynchronously, from our GraphQL Lambda.
 You would insert an SQS Message and in turn it would trigger a Lambda which you have defined. That lambda should have code similar to this:
 
-```typescript
-// createEventHandler is a function which constructs SQSEventHandler class - you can use which ever you like more
-import { createHandler, createEventHandler, SQSEventHandler } from "@webiny/handler-aws/sqs";
+```ts
+import { createSQSHandler, createSQSEventHandler } from "@webiny/handler-aws";
 
-const handler = createHandler({
+const handler = createSQSHandler({
   plugins: [
-      createEventHandler(async({request, reply, event, context, lambdaContext}) => {
+      createSQSEventHandler(async({request, reply, event, context, lambdaContext}) => {
           // "context" variable is the same as in our system - of course, if you loaded all the plugins as we do
           // because it is an sqs event, you know the type of the "event" variable and you can handle it from there
           const result = await someHeavyCalculation(event);
