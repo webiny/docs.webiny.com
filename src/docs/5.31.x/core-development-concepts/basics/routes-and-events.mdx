@@ -127,10 +127,71 @@ const handler = createDynamoDBHandler({
 })
 ```
 
-
 <Alert type="warning">
   You can define multiple routes per handler, but you can define only a single event per handler.
 </Alert>
+
+### Difference Between `createHandler` and `createEventHandler`
+There are two methods of defining the event handling:
+* `createHandler`
+* `createEventHandler`
+
+#### What Is the `createHandler` Method?
+This method creates the base of Webiny system. It will initialize `fastify`, context and everything which is defined by plugins that were passed on.
+
+We have built-in methods for different types of events:
+- API Gateway
+  
+`createApiGatewayHandler` if imported from `@webiny/handler-aws` or `createHandler` if imported from `@webiny/handler-aws/gateway`
+- Raw handler
+
+`createRawHandler` if imported from `@webiny/handler-aws` or `createHandler` if imported from `@webiny/handler-aws/raw`
+- EventBridge handler
+
+`createEventBridgeHandler` if imported from `@webiny/handler-aws` or `createHandler` if imported from `@webiny/handler-aws/eventBridge`
+- SQS handler
+
+`createSQSHandler` if imported from `@webiny/handler-aws` or `createHandler` if imported from `@webiny/handler-aws/sqs`
+- S3 handler
+
+`createS3Handler` if imported from `@webiny/handler-aws` or `createHandler` if imported from `@webiny/handler-aws/s3`
+- DynamoDB handler
+
+`createDynamoDBHandler` if imported from `@webiny/handler-aws` or `createHandler` if imported from `@webiny/handler-aws/dynamodb`
+
+
+Depending on your preferences, you can import which ever you like. We import methods from the root of the `@webiny/handler-aws`. 
+
+#### What Is the `createEventHandler` Method?
+This method creates the handler of received event. At this point while Webiny system is ready - all passed plugins are applied, security checks are done, etc...
+
+We have built-in methods for different types of events:
+- API Gateway
+
+`createApiGatewayRoute` if imported from `@webiny/handler-aws` or `createRoute` if imported from `@webiny/handler-aws/gateway`
+- Raw handler
+
+`createRawEventHandler` if imported from `@webiny/handler-aws` or `createEventHandler` if imported from `@webiny/handler-aws/raw`
+- EventBridge handler
+
+`createEventBridgeEventHandler` if imported from `@webiny/handler-aws` or `createEventHandler` if imported from `@webiny/handler-aws/eventBridge`
+- SQS handler
+
+`createSQSEventHandler` if imported from `@webiny/handler-aws` or `createEventHandler` if imported from `@webiny/handler-aws/sqs`
+- S3 handler
+
+`createS3EventHandler` if imported from `@webiny/handler-aws` or `createEventHandler` if imported from `@webiny/handler-aws/s3`
+- DynamoDB handler
+
+`createDynamoDBEventHandler` if imported from `@webiny/handler-aws` or `createEventHandler` if imported from `@webiny/handler-aws/dynamodb`
+
+Notice that all event handlers, except one for API Gateway, are named `createEventHandler` (or `createSomethingEventHandler` when importing from root).
+
+We hope that name would indicate the amount of `event handlers` you can define, so:
+- route - multiple
+- event - single
+
+
 
 ## Adding New Routes
 
@@ -216,6 +277,7 @@ import { createSQSHandler, createSQSEventHandler } from "@webiny/handler-aws";
 
 const handler = createSQSHandler({
   plugins: [
+      // other plugins
       createSQSEventHandler(async({request, reply, event, context, lambdaContext}) => {
           // "context" variable is the same as in our system - of course, if you loaded all the plugins as we do
           // because it is an sqs event, you know the type of the "event" variable and you can handle it from there
