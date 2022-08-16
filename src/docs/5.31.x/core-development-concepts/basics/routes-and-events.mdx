@@ -21,10 +21,10 @@ For the 5.31.0 version of Webiny we have refactored our handler package (`@webin
 Fastify has quite extensive [documentation](https://www.fastify.io/docs/latest/), so feel free to check it out if you need to modify our default behaviors.
 
 Fastify enables us to:
-* add the possibility to add new routes and event handling
-* consistent `request` and `reply` (formerly response in our system) methods throughout the system
-* a lot of request lifecycle events for users to hook into
-* 
+* add the possibility to add new [routes](https://www.fastify.io/docs/latest/Reference/Routes/) and event handling
+* consistent [`request`](https://www.fastify.io/docs/latest/Reference/Request/) and [`reply`](https://www.fastify.io/docs/latest/Reference/Reply/) (formerly response in our system) methods throughout the system
+* a lot of request [lifecycle events](https://www.fastify.io/docs/latest/Reference/Lifecycle/) for users to hook into
+* implement some other cloud service, at some point, more easily
 
 
 The new `@webiny/handler` package does not know how to handle incoming Lambda requests, that is left to the `@webiny/handler-aws` package, which exports a few handler possibilities:
@@ -36,9 +36,6 @@ The new `@webiny/handler` package does not know how to handle incoming Lambda re
 - S3 handler
 - DynamoDB handler
 
-<Alert type="info">
-  This will also enable us to implement different cloud service at some point more easily.
-</Alert>
 
 ### Why All The Different Handlers?
 Well, the API Gateway handler and the Raw handler are actually only ones that are really required. Others are here to help with typings and some checks.
@@ -54,18 +51,81 @@ This is the same procedure being used in the `@fastify/aws-lambda` package.
 The difference is that our Raw handler can return either [APIGatewayProxyResult](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/aws-lambda/trigger/api-gateway-proxy.d.ts#L135) or what ever is directly sent from the [EventPlugin](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler/src/plugins/EventPlugin.ts).
 
 For this handler to work it requires at most one [EventPlugin](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler/src/plugins/EventPlugin.ts) to be defined. If more, or none, are defined - an error will be thrown.
+```typescript
+import { createRawHandler, createRawEventHandler } from "@webiny/handler-aws";
+
+const handler = createRawHandler({
+  plugins: [
+      createRawEventHandler(async({event, context}) => {
+          const result = await transformRawEventIntoSomethingUseable(event);
+          
+          await pushToSQS(event);
+      })
+  ]
+})
+```
 
 #### S3 Handler
 This handler works as the Raw handler does, only it expects [S3EventHandler](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler-aws/src/s3/plugins/S3EventHandler.ts) plugin.
+```typescript
+import { createS3Handler, createS3EventHandler } from "@webiny/handler-aws";
+
+const handler = createS3Handler({
+  plugins: [
+      createS3EventHandler(async({event, context}) => {
+          await deleteFileFromDynamoDb({context, event});
+      })
+  ]
+})
+```
 
 #### EventBridge Handler
 This handler works as the Raw handler does, only it expects [EventBridgeEventHandler](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler-aws/src/eventBridge/plugins/EventBridgeEventHandler.ts) plugin.
+```typescript
+import { createEventBridgeHandler, createEventBridgeEventHandler } from "@webiny/handler-aws";
+
+const handler = createEventBridgeHandler({
+  plugins: [
+      createEventBridgeEventHandler(async({event, context}) => {
+          const result = doSomethingWithEventBridgeEvent({context, event});
+          
+          await storeResultIntoDynamoDB(result);
+      })
+  ]
+})
+```
 
 #### SQS Handler
 This handler works as the Raw handler does, only it expects [SQSEventHandler](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler-aws/src/sqs/plugins/SQSEventHandler.ts) plugin.
+```typescript
+import { createSQSHandler, createSQSEventHandler } from "@webiny/handler-aws";
+
+const handler = createSQSHandler({
+  plugins: [
+      createSQSEventHandler(async({event, context}) => {
+          const result = doSomethingWithSQSEvent({context, event});
+          
+          await triggerAnotherLambda(result);
+      })
+  ]
+})
+```
 
 #### DynamoDB Handler
 This handler works as the Raw handler does, only it expects [DynamoDBEventHandler](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler-aws/src/dynamodb/plugins/DynamoDBEventHandler.ts) plugin.
+```typescript
+import { createDynamoDBHandler, createDynamoDBEventHandler } from "@webiny/handler-aws";
+
+const handler = createDynamoDBHandler({
+  plugins: [
+      createDynamoDBEventHandler(async({event, context}) => {
+          const result = doSomethingWithDynamoDBEvent({context, event});
+          
+          await transferResultToAnotherService(result);
+      })
+  ]
+})
+```
 
 
 <Alert type="warning">
