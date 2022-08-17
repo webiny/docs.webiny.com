@@ -4,6 +4,9 @@ title: Webiny 5.31.0 Changelog
 description: See what's new in Webiny version 5.31.0.
 ---
 
+import privateBuckets from "./assets/private-buckets.png";
+import largeFile from "./assets/large-file-redirect.png";
+
 ## Core
 
 ### Use Fastify To Handle Lambda Invocations [#2546](https://github.com/webiny/webiny-js/pull/2546)
@@ -17,31 +20,65 @@ To find out more about the new handlers, read our [Routes and Events](/docs/core
 
 ### Make all S3 buckets private [#2558](https://github.com/webiny/webiny-js/pull/2558)
 
+For many users, this will be a long-awaited feature. All Webiny S3 buckets are now configured to be private. CloudFront now uses **OriginAccessIdentity** to request files from S3. With this approach, S3 bucket webhosting has to be turned off, and to replace some features provided by it, we had to add a Cloudfront Function to the website delivery distribution, to take care of website routing.
+
+<Image src={privateBuckets} title={"All buckets are private"} />
+
+<Alert type="warning" title={"Important"}>
+  Projects created before Webiny 5.29.0 release will not be automatically upgraded, and will not
+  benefit from this feature. However, all projects created with Webiny 5.29.0 and greater, will
+  automatically have their infrastructure reconfigured to private buckets, once they upgrade to
+  5.31.0.
+</Alert>
+
+### Upgrade to React 17 [#2561](https://github.com/webiny/webiny-js/pull/2561)
+
+We've finally upgraded to React 17! 🎉 The upgrade process will update your package.json dependencies to resolve to React 17, so you shouldn't need to do anything manually. 
 
 ## File Manager
 
 ### Handle download of large files [#2577](https://github.com/webiny/webiny-js/pull/2577)
 
+We've improved the logic for handling of large files within the File Manager `download` Lambda function. File Manager now supports files of unlimited size. If files are too large to be served directly from a Lambda function, a 301 redirect will be issued to a presigned URL, with temporary credentials to allow the browser to access the file in the private bucket.
+
+<Image src={largeFile} title={"Request is redirected to a presigned URL"} />
 
 ## Website
 
 ### Assign proper Lambda execution roles in `prod` setup [#2585](https://github.com/webiny/webiny-js/pull/2585)
 
+Some Lambda functions related to Prerendering Service, in the production setup, were not configured correctly in regard to their execution roles and VPC. These are now fixed, and you can deploy your project using `--env=prod`, and have it running successfully in a VPC.
+
+Shout out for goes to [ian-lmry](https://github.com/ian-lmry) for reporting this issue! 🙌
+
 ### Disable cache control on website preview index.html [#2575](https://github.com/webiny/webiny-js/pull/2575)
 
+This was a very peculiar bug to debug, since it had to do with browser cache and puppeteer 😩 The problem is that, when the `website` app is deployed, all static assets would get the `Cache-Control` headers set on every S3 bucket object, including the `index.html`, which doesn't include the content hash in the file name. This would cause puppeteer to always load the old, cached, application. This means that your deployed code changes wouldn't be immediately visible.
+
+With this release, the `index.html` file on the website preview URL is no longer cached, so all deployed code changes are immediately visible on the app preview URL, and the Prerendering Service also loads the latest version of the website app.
+
+Shout out goes to [pikkolojoe](https://github.com/pikkolojoe) for spotting and reporting this bug! ❤️
 
 ## Development
 
 ### Add support for custom React apps [#2569](https://github.com/webiny/webiny-js/pull/2569)
 
+We've added new utilities to quickly spin up custom React apps, build, deploy, and link them to existing infrastructure. Under the hood, the infrastructure is configured for you in form of a Cloudfront distribution and a private S3 bucket, with the complete deployment process, and file upload plugins preconfigured.
+
+The documentation article is in the works, and will be published shortly.
+
 ### Use `puppeteer-core` to skip chromium download [#2587](https://github.com/webiny/webiny-js/pull/2587)
 
-### Set GODEBUG variable for M1 [#2581](https://github.com/webiny/webiny-js/pull/2581)
+Several users reported issues with the installation of `puppeteer` library on Apple M1 processors. Since we don't really need the chromium binary on our local machines, we replaced the `puppeteer` package with `puppeteer-core`, which doesn't download chromium at all. This makes the installation faster and eliminates the possibility of binary incompatibilities across various operating systems and hardware architectures.
+
+### Set GODEBUG variable for Apple M1 [#2581](https://github.com/webiny/webiny-js/pull/2581)
+
+Terraform (used internally by Pulumi), has [some issues](https://yaleman.org/post/2021/2021-01-01-apple-m1-terraform-and-golang/) with Apple M1 processors, and the fix is to set the `GODEBUG` environment variable to a specific value in your terminal of choice. To automate this fix for all our users, we now set this variable automatically whenever we're executing the Pulumi CLI.
 
 ### CI/CD Scaffold Improvements ([#2586](https://github.com/webiny/webiny-js/pull/2586))
 
-For this release, we've also revisited the existing [CI/CD scaffold](/docs/{version}/core-development-concepts/ci-cd/setup), which sets up essential CI/CD workflows for your Webiny project. 
+For this release, we've also revisited the existing [CI/CD scaffold](/docs/{version}/core-development-concepts/ci-cd/setup), which sets up essential CI/CD workflows for your Webiny project.
 
-The main improvement we've implemented is the ability to use the scaffold with any type of a GitHub account and repository. Previously, the scaffold only worked with public repositories and private repositories under a GitHub Enterprise account. 
+The main improvement we've implemented is the ability to use the scaffold with any type of a GitHub account and repository. Previously, the scaffold only worked with public repositories and private repositories under a GitHub Enterprise account.
 
-The scaffold's [documentation]((/docs/{version}/core-development-concepts/ci-cd/setup)) has also been updated, so make sure to check it out if you'll be giving the scaffold another chance.
+The scaffold's [documentation](<(/docs/{version}/core-development-concepts/ci-cd/setup)>) has also been updated, so make sure to check it out if you'll be giving the scaffold another chance.
