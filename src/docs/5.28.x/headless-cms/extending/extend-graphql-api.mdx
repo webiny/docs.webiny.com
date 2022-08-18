@@ -3,9 +3,9 @@ title: Extend the GraphQL API
 description: Learn how to extend the Headless CMS-related GraphQL types and operations.
 ---
 
-import { Alert } from '@/components/Alert'
-import myPostsModel from './assets/extend-graphql-api/my-posts-model.png'
-import myPostsQuery from './assets/extend-graphql-api/my-posts-query.png'
+import { Alert } from "@/components/Alert";
+import myPostsModel from "./assets/extend-graphql-api/my-posts-model.png";
+import myPostsQuery from "./assets/extend-graphql-api/my-posts-query.png";
 
 <Alert type="success" title="What you'll learn">
 
@@ -36,14 +36,14 @@ The `createdBy` field is automatically assigned to every content entry and it re
 Creating the new `listMyPosts` query can be achieved via a single [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugin.
 
 ```ts api/code/headlessCMS/src/plugins/posts.ts
-import { GraphQLSchemaPlugin } from '@webiny/handler-graphql/plugins'
-import { ListResponse } from '@webiny/handler-graphql/responses'
-import { CmsEntry, CmsEntryMeta } from '@webiny/api-headless-cms/types'
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
+import { ListResponse } from "@webiny/handler-graphql/responses";
+import { CmsEntry, CmsEntryMeta } from "@webiny/api-headless-cms/types";
 
 // Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
 // plugin. Apart from making your application code type-safe, it will also make the
 // interaction with the `context` object significantly easier.
-import { Context } from '~/types'
+import { Context } from "~/types";
 
 export default [
   new GraphQLSchemaPlugin<Context>({
@@ -59,31 +59,28 @@ export default [
     resolvers: {
       Query: {
         listMyPosts: async (_, args: { id: string }, context) => {
-          const { security, cms } = context
+          const { security, cms } = context;
 
           // Retrieve the `post` model.
-          const model = await cms.getModel('post')
+          const model = await cms.getModel("post");
 
           // Use the `cms.listLatestEntries` method to fetch latest entries for the currently
           // logged in user. Note that you could also use the `listPublished` method here instead
           // of `cms.listLatestEntries`, if a list of published posts is what you need.
-          const response: [CmsEntry[], CmsEntryMeta] = await cms.listLatestEntries(
-            model,
-            {
-              where: {
-                // Retrieving the currently logged in user is as easy
-                // as calling the `security.getIdentity` method.
-                createdBy: security.getIdentity().id,
-              },
+          const response: [CmsEntry[], CmsEntryMeta] = await cms.listLatestEntries(model, {
+            where: {
+              // Retrieving the currently logged in user is as easy
+              // as calling the `security.getIdentity` method.
+              createdBy: security.getIdentity().id
             }
-          )
+          });
 
-          return new ListResponse(...response)
-        },
-      },
-    },
-  }),
-]
+          return new ListResponse(...response);
+        }
+      }
+    }
+  })
+];
 ```
 
 <Alert type="info">

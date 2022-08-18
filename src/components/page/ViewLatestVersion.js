@@ -11,12 +11,12 @@ export const ViewLatestVersion = () => {
     }
 
     return (
-      <div className={"mb-10"}>
-        <Alert type={"warning"} title={"Warning"}>
-            You&apos;re browsing the documentation for an old version of Webiny. Consider upgrading
-            your project to Webiny{" "}
-            <Link href={"/docs/get-started/install-webiny"}>{versions.latestVersion}</Link>.
-        </Alert>
-      </div>
+        <div className={"mb-10"}>
+            <Alert type={"warning"} title={"Warning"}>
+                You&apos;re browsing the documentation for an old version of Webiny. Consider
+                upgrading your project to Webiny{" "}
+                <Link href={"/docs/get-started/install-webiny"}>{versions.latestVersion}</Link>.
+            </Alert>
+        </div>
     );
 };

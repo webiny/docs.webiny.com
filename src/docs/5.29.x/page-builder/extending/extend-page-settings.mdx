@@ -3,7 +3,7 @@ title: Extend Page Settings
 description: Learn how to extend page settings by introducing new fields to it.
 ---
 
-import { Alert } from '@/components/Alert'
+import { Alert } from "@/components/Alert";
 
 <Alert type="info" title="Can I Use This?">
 
@@ -40,26 +40,27 @@ But GraphQL is just a router, and page settings have some strict validation rule
 
 The following code takes care of all the things described above.
 j
+
 ```ts apps/api/graphql/src/plugins/pageSettings.ts
-import { GraphQLSchemaPlugin } from '@webiny/handler-graphql/plugins'
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
 import { ContextPlugin } from "@webiny/handler";
-import { PbContext, OnBeforePageUpdateTopicParams } from '@webiny/api-page-builder/types'
+import { PbContext, OnBeforePageUpdateTopicParams } from "@webiny/api-page-builder/types";
 
 // Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
 // plugin. Apart from making your application code type-safe, it will also make the
 // interaction with the `context` object significantly easier.
-import { Context } from '~/types'
+import { Context } from "~/types";
 
 // We need this interface for the event subscription below.
 // It will enable you to have proper autocomplete on your new fields.
 interface CustomEventParams extends OnBeforePageUpdateTopicParams {
-  page: OnBeforePageUpdateTopicParams['page'] & {
+  page: OnBeforePageUpdateTopicParams["page"] & {
     settings: {
       general: {
-        password: string
-      }
-    }
-  }
+        password: string;
+      };
+    };
+  };
 }
 
 export default [
@@ -73,17 +74,17 @@ export default [
       extend input PbGeneralPageSettingsInput {
         password: String
       }
-    `,
+    `
   }),
   // Subscribe to the page update event using the ContextPlugin.
   new ContextPlugin<PbContext>(({ pageBuilder }) => {
     // We are passing a custom event type to allow us to use the new `password` field.
     pageBuilder.onBeforePageUpdate.subscribe<CustomEventParams>(({ page, input }) => {
       // Explicitly assign the field value from GraphQL input to the data that is used to update the page.
-      page.settings.general.password = input.settings.general.password
-    })
-  }),
-]
+      page.settings.general.password = input.settings.general.password;
+    });
+  })
+];
 ```
 
 <Alert type="info">
@@ -93,23 +94,20 @@ The code above can be placed in the `api/graphql/src/plugins/pageSettings.ts` fi
 </Alert>
 
 ```js apps/api/graphql/src/index.ts
-
 // ...
 
 // my password field custom plugin
 import passwordFieldPageSettingsPlugin from "./plugins/pageSettings";
 
 export const handler = createHandler({
-    plugins: [
-        // ...
-        // add this at the end of the plugins array list
-        passwordFieldPageSettingsPlugin
-    ],
-    http: { debug }
+  plugins: [
+    // ...
+    // add this at the end of the plugins array list
+    passwordFieldPageSettingsPlugin
+  ],
+  http: { debug }
 });
-
 ```
-
 
 With this plugin, once you redeploy the API project application, your GraphQL schema will contain the new `password` field:
 
@@ -126,27 +124,27 @@ Use the [`webiny watch`](../../core-development-concepts/basics/watch-command) c
 The view class responsible for the general settings is the `GeneralSettingsView` class. To modify it, we need to hook into it using the `UIViewPlugin` plugin. We also need to add the new field to the `PbGetPage` GraphQL query operation, which loads the page data.
 
 ```tsx apps/admin/src/plugins/pageSettings.ts
-import { gql } from 'graphql-tag'
-import { AddQuerySelectionPlugin } from '@webiny/app/plugins/AddQuerySelectionPlugin'
-import { UIViewPlugin } from '@webiny/app-admin/ui/UIView'
-import { GeneralSettingsView } from '@webiny/app-page-builder/editor/ui/views/GeneralSettingsView'
-import { InputElement } from '@webiny/app-admin/ui/elements/form/InputElement'
+import { gql } from "graphql-tag";
+import { AddQuerySelectionPlugin } from "@webiny/app/plugins/AddQuerySelectionPlugin";
+import { UIViewPlugin } from "@webiny/app-admin/ui/UIView";
+import { GeneralSettingsView } from "@webiny/app-page-builder/editor/ui/views/GeneralSettingsView";
+import { InputElement } from "@webiny/app-admin/ui/elements/form/InputElement";
 
 export default [
   // Add an input field for the password
-  new UIViewPlugin(GeneralSettingsView, (view) => {
+  new UIViewPlugin(GeneralSettingsView, view => {
     view.addField(
-      new InputElement('password', {
-        name: 'settings.general.password',
-        label: 'Password',
-        description: 'If set, the page will be protected by this password on the frontend.',
+      new InputElement("password", {
+        name: "settings.general.password",
+        label: "Password",
+        description: "If set, the page will be protected by this password on the frontend."
       })
-    )
+    );
   }),
   // Add a selection to outgoing `GetPage` GraphQL operation
   new AddQuerySelectionPlugin({
-    operationName: 'PbGetPage',
-    selectionPath: 'pageBuilder.getPage.data',
+    operationName: "PbGetPage",
+    selectionPath: "pageBuilder.getPage.data",
     addSelection: gql`
       {
         settings {
@@ -155,9 +153,9 @@ export default [
           }
         }
       }
-    `,
-  }),
-]
+    `
+  })
+];
 ```
 
 And then, make sure to import your new UI plugin:
@@ -167,11 +165,10 @@ And then, make sure to import your new UI plugin:
 import pageSettings from "./pageSettings";
 
 export default [
-    // Page settings
-    pageSettingsPlugins,
-    pageSettings, // your plugin
+  // Page settings
+  pageSettingsPlugins,
+  pageSettings // your plugin
 ];
-
 ```
 
 After your application rebuilds, the new field will be rendered in the settings view. Using this technique, you can add as many fields as you need. You can also hook into other page settings views, using their corresponding classes: `SocialSettingsView` and `SEOSettingsView`.
@@ -191,12 +188,12 @@ This step is optional. If you're writing custom queries and are executing the Gr
 Website application doesn't know about the plugin we've added in the Admin Area application. If you want this new field to be automatically queried with the rest of the page data, you need to add a plugin, just like in the Admin Area app.
 
 ```ts apps/website/src/plugins/pageSettings.ts
-import { gql } from 'graphql-tag'
-import { AddQuerySelectionPlugin } from '@webiny/app/plugins/AddQuerySelectionPlugin'
+import { gql } from "graphql-tag";
+import { AddQuerySelectionPlugin } from "@webiny/app/plugins/AddQuerySelectionPlugin";
 
 export default new AddQuerySelectionPlugin({
-  operationName: 'PbGetPublishedPage',
-  selectionPath: 'pageBuilder.getPublishedPage.data',
+  operationName: "PbGetPublishedPage",
+  selectionPath: "pageBuilder.getPublishedPage.data",
   addSelection: gql`
     {
       settings {
@@ -205,8 +202,8 @@ export default new AddQuerySelectionPlugin({
         }
       }
     }
-  `,
-})
+  `
+});
 ```
 
 <Alert type="info">
@@ -232,12 +229,12 @@ The following example demonstrates how you should handle the `DateTime` fields i
 new PagePlugin<CustomPage>({
   beforeUpdate({ inputData, updateData }) {
     // Convert the Date object to ISO string.
-    const eventStartISO = inputData.settings.general.eventStart.toISOString()
+    const eventStartISO = inputData.settings.general.eventStart.toISOString();
 
     // Now you can safely assign the value which will be stored to the database.
-    updateData.settings.general.eventStart = eventStartISO
-  },
-})
+    updateData.settings.general.eventStart = eventStartISO;
+  }
+});
 ```
 
 ## Add New Fields to `listPublishedPages` Query
@@ -253,13 +250,13 @@ You also need to extend the `PbPageListItem` GraphQL type, which is returned fro
 The following example shows how you can add the new `password` field into the ES index, so that it becomes available in the `listPublishedPages` query:
 
 ```ts Add Data To Elasticsearch Index and GraphQL Schema
-import { GraphQLSchemaPlugin } from '@webiny/handler-graphql/plugins'
-import { IndexPageDataPlugin } from '@webiny/api-page-builder/plugins/IndexPageDataPlugin'
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
+import { IndexPageDataPlugin } from "@webiny/api-page-builder/plugins/IndexPageDataPlugin";
 
 // Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
 // plugin. Apart from making your application code type-safe, it will also make the
 // interaction with the `context` object significantly easier.
-import { Context } from '~/types'
+import { Context } from "~/types";
 
 export default [
   new GraphQLSchemaPlugin<Context>({
@@ -267,7 +264,7 @@ export default [
       extend type PbPageListItem {
         password: String
       }
-    `,
+    `
   }),
 
   // Add the new `password` field to the data going into ES index.
@@ -275,9 +272,9 @@ export default [
     // `data` represents the current page's data that will be stored in Elasticsearch.
     // You can store your custom data anywhere on the object. It doesn't need to follow the actual settings structure
     // of the original `page` object, as this data is for `list` operations only.
-    data.password = page.settings.general.password
-  }),
-]
+    data.password = page.settings.general.password;
+  })
+];
 ```
 
 With these plugins in place, you can now access the `password` field on the `listPublishedPages` query:

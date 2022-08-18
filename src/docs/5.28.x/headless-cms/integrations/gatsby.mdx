@@ -2,7 +2,8 @@
 title: Building a Frontend with GatsbyJS
 description: Learn how to build a frontend for Webiny Headless CMS with Gatsby
 ---
-import { Alert } from '@/components/Alert'
+
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="What you'll learn">
 
@@ -16,7 +17,7 @@ import { Alert } from '@/components/Alert'
 
 In this article we'll learn how to integrate a GatsbyJS application that uses Webiny as a Headless CMS. We'll go through the following:
 
-1. Getting started with Webiny 
+1. Getting started with Webiny
 2. Setting up a GatsbyJS project
 3. Fetching data
 4. Rendering data using Gatsby's data layer
@@ -24,7 +25,7 @@ In this article we'll learn how to integrate a GatsbyJS application that uses We
 
 ## Getting started with Webiny
 
-Webiny works really well as a headless CMS with [GatsbyJS](http://gatsbyjs.com), 
+Webiny works really well as a headless CMS with [GatsbyJS](http://gatsbyjs.com),
 
 The easiest way to get started is to use the [official starter](https://github.com/webiny/gatsby-starter-webiny), but we're going to walk through a similar custom implementation here.
 
@@ -39,7 +40,7 @@ For this tutorial, we're going to assume you have already done the following:
 1. [Set up your AWS credentials locally](https://www.webiny.com/docs/infrastructure/aws/configure-aws-credentials)
 2. [Deployed a Webiny instance to a `dev` environment](https://www.webiny.com/docs/core-development-concepts/basics/project-deployment)
 
-Once you have an app up and running, click into the "Headless CMS" app in the sidebar, click on *models*.
+Once you have an app up and running, click into the "Headless CMS" app in the sidebar, click on _models_.
 
 ![Sidebar - Headless CMS Models](./assets/nextjs-starter/nextjs-tutorial-models.png)
 
@@ -92,12 +93,13 @@ Once you've done one of these, add a new file `.env` to the project root. Gatsby
 
 </Alert>
 
-Add the API endpoint URL (maybe call it `WEBINY_API_URL`), and the API token (maybe as `WEBINY_API_TOKEN`). 
+Add the API endpoint URL (maybe call it `WEBINY_API_URL`), and the API token (maybe as `WEBINY_API_TOKEN`).
 
 ```bash .env.local
 WEBINY_API_TOKEN=<your-url-here>
 WEBINY_API_URL=<your-token-here>
 ```
+
 Make sure you don't commit this file to your project's git repository otherwise anyone could gain access to your API. You can do that by adding it to the `.gitignore` file.
 
 ![Environment variables set up in the project root](./assets/nextjs-starter/environment-variables.png)
@@ -156,21 +158,21 @@ To create pages, we need to modify the `gatsby-node.js` file so that it fetches 
 To do that, we will need to import `path` and `gatsby-source-filesystem`, and export a function named `createPages` like so:
 
 ```javascript gatsby-node.js
-const path = require(`path`)
-const { createFilePath } = require(`gatsby-source-filesystem`)
+const path = require(`path`);
+const { createFilePath } = require(`gatsby-source-filesystem`);
 
 exports.createPages = async ({ graphql, actions, reporter }) => {
-  const { createPage } = actions
+  const { createPage } = actions;
 
   // Define a template for blog post
-  const blogPost = path.resolve(`./src/templates/blog-post.js`)
+  const blogPost = path.resolve(`./src/templates/blog-post.js`);
 
   // Get all blog posts sorted by created date
   const result = await graphql(
     `
       query Posts {
         webiny {
-          listPosts(sort:createdOn_DESC) {
+          listPosts(sort: createdOn_DESC) {
             data {
               id
               title
@@ -187,56 +189,45 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
         }
       }
     `
-  )
+  );
 
   if (result.errors) {
-    reporter.panicOnBuild(
-      `There was an error loading your blog posts`,
-      result.errors
-    )
-    return
+    reporter.panicOnBuild(`There was an error loading your blog posts`, result.errors);
+    return;
   }
 
-  const posts = result.data.webiny.listPosts.data
+  const posts = result.data.webiny.listPosts.data;
 
   // Create blog posts pages
   if (posts.length > 0) {
     posts.forEach((post, index) => {
-
       createPage({
         path: post.slug,
         component: blogPost,
         context: {
           id: post.id,
           createdOn: post.createdOn,
-          slug: post.slug,
-        },
-      })
-    })
+          slug: post.slug
+        }
+      });
+    });
   }
-}
+};
 ```
 
 The final step is to create a template for your created nodes and pass the data to the component:
 
 ```jsx /src/templates/blog-post.js
-
 export default BlogPostTemplate = ({ data, location }) => {
-  const post = data.webiny.getPost.data
+  const post = data.webiny.getPost.data;
 
-  return (
-    <h1>{post.title}</h1>
-  )
-}
+  return <h1>{post.title}</h1>;
+};
 
 export const pageQuery = graphql`
-  query PostBySlug(
-      $slug: String
-      $id: ID
-      $createdOn: Webiny_DateTime
-    ) {
+  query PostBySlug($slug: String, $id: ID, $createdOn: Webiny_DateTime) {
     webiny {
-      getPost(where: {slug: $slug}) {
+      getPost(where: { slug: $slug }) {
         data {
           id
           title
@@ -251,9 +242,9 @@ export const pageQuery = graphql`
           }
         }
       }
-    } 
+    }
   }
-`
+`;
 ```
 
 If this is successful you should be able to start your development server and see pages rendered with URL paths that correspond to your posts.
@@ -266,7 +257,7 @@ For more information about creating pages from data, [see the Gatsby documentati
 
 ## Rendering rich text fields
 
-You may have noticed that we chose a `rich-text` field for the **body** of the post. You can copy the code from below  into a new component:
+You may have noticed that we chose a `rich-text` field for the **body** of the post. You can copy the code from below into a new component:
 
 ```jsx /src/components/rich-text-renderer.jsx
 import React from "react";
@@ -274,231 +265,211 @@ import classNames from "classnames";
 import { OutputBlockData as BaseOutputBlockData } from "@editorjs/editorjs";
 
 interface OutputBlockData extends BaseOutputBlockData {
-    data: {
-        className?: string;
-        textAlign?: string;
-        text: string;
-        caption?: string;
-        file?: string;
-        level: number;
-        items: string[];
-        style: string;
-    };
+  data: {
+    className?: string,
+    textAlign?: string,
+    text: string,
+    caption?: string,
+    file?: string,
+    level: number,
+    items: string[],
+    style: string
+  };
 }
 
 interface RenderParagraphProps {
-    style: {
-        [key: string]: string;
-    };
-    className: string;
+  style: {
+    [key: string]: string
+  };
+  className: string;
 }
 const renderParagraph = (block: OutputBlockData): React.ReactElement => {
-    const props: RenderParagraphProps = { style: {}, className: "" };
+  const props: RenderParagraphProps = { style: {}, className: "" };
 
-    if (block.data.textAlign) {
-        props.style["textAlign"] = block.data.textAlign;
-    }
-    if (block.data.className) {
-        props.className = block.data.className;
-    }
-    return (
-        <p
-            {...props}
-            className={classNames("rte-block-paragraph", props.className)}
-            dangerouslySetInnerHTML={{ __html: block.data.text }}
-        />
-    );
+  if (block.data.textAlign) {
+    props.style["textAlign"] = block.data.textAlign;
+  }
+  if (block.data.className) {
+    props.className = block.data.className;
+  }
+  return (
+    <p
+      {...props}
+      className={classNames("rte-block-paragraph", props.className)}
+      dangerouslySetInnerHTML={{ __html: block.data.text }}
+    />
+  );
 };
 
 const renderDelimiter = () => {
-    return <div className="rte-block-delimiter" />;
+  return <div className="rte-block-delimiter" />;
 };
 
 interface RenderHeaderProps {
-    style: {
-        [key: string]: string;
-    };
-    className: string;
+  style: {
+    [key: string]: string
+  };
+  className: string;
 }
 
 const renderHeader = (block: OutputBlockData) => {
-    const props: RenderHeaderProps = { style: {}, className: "" };
+  const props: RenderHeaderProps = { style: {}, className: "" };
 
-    if (block.data.textAlign) {
-        props.style["textAlign"] = block.data.textAlign;
-    }
-    if (block.data.className) {
-        props.className = block.data.className;
-    }
+  if (block.data.textAlign) {
+    props.style["textAlign"] = block.data.textAlign;
+  }
+  if (block.data.className) {
+    props.className = block.data.className;
+  }
 
-    switch (block.data.level) {
-        case 1:
-            return (
-                <h1
-                    {...props}
-                    className={classNames(
-                        props.className,
-                        "rte-block-heading rte-block-heading--h1"
-                    )}
-                    dangerouslySetInnerHTML={{ __html: block.data.text }}
-                />
-            );
+  switch (block.data.level) {
+    case 1:
+      return (
+        <h1
+          {...props}
+          className={classNames(props.className, "rte-block-heading rte-block-heading--h1")}
+          dangerouslySetInnerHTML={{ __html: block.data.text }}
+        />
+      );
 
-        case 2:
-            return (
-                <h2
-                    {...props}
-                    className={classNames(
-                        props.className,
-                        "rte-block-heading rte-block-heading--h2"
-                    )}
-                    dangerouslySetInnerHTML={{ __html: block.data.text }}
-                />
-            );
+    case 2:
+      return (
+        <h2
+          {...props}
+          className={classNames(props.className, "rte-block-heading rte-block-heading--h2")}
+          dangerouslySetInnerHTML={{ __html: block.data.text }}
+        />
+      );
 
-        case 3:
-            return (
-                <h3
-                    {...props}
-                    className={classNames(
-                        props.className,
-                        "rte-block-heading rte-block-heading--h3"
-                    )}
-                    dangerouslySetInnerHTML={{ __html: block.data.text }}
-                />
-            );
+    case 3:
+      return (
+        <h3
+          {...props}
+          className={classNames(props.className, "rte-block-heading rte-block-heading--h3")}
+          dangerouslySetInnerHTML={{ __html: block.data.text }}
+        />
+      );
 
-        case 4:
-            return (
-                <h4
-                    {...props}
-                    className={classNames(
-                        props.className,
-                        "rte-block-heading rte-block-heading--h4"
-                    )}
-                    dangerouslySetInnerHTML={{ __html: block.data.text }}
-                />
-            );
+    case 4:
+      return (
+        <h4
+          {...props}
+          className={classNames(props.className, "rte-block-heading rte-block-heading--h4")}
+          dangerouslySetInnerHTML={{ __html: block.data.text }}
+        />
+      );
 
-        case 5:
-            return (
-                <h5
-                    {...props}
-                    className={classNames(
-                        props.className,
-                        "rte-block-heading rte-block-heading--h5"
-                    )}
-                    dangerouslySetInnerHTML={{ __html: block.data.text }}
-                />
-            );
+    case 5:
+      return (
+        <h5
+          {...props}
+          className={classNames(props.className, "rte-block-heading rte-block-heading--h5")}
+          dangerouslySetInnerHTML={{ __html: block.data.text }}
+        />
+      );
 
-        case 6:
-            return (
-                <h6
-                    {...props}
-                    className={classNames(
-                        props.className,
-                        "rte-block-heading rte-block-heading--h6"
-                    )}
-                    dangerouslySetInnerHTML={{ __html: block.data.text }}
-                />
-            );
-        default:
-            return null;
-    }
+    case 6:
+      return (
+        <h6
+          {...props}
+          className={classNames(props.className, "rte-block-heading rte-block-heading--h6")}
+          dangerouslySetInnerHTML={{ __html: block.data.text }}
+        />
+      );
+    default:
+      return null;
+  }
 };
 
 function renderImage(block: OutputBlockData) {
-    return <img className={"rte-block-image"} alt={block.data.caption} src={block.data.file} />;
+  return <img className={"rte-block-image"} alt={block.data.caption} src={block.data.file} />;
 }
 
 function renderList(block: OutputBlockData) {
-    switch (block.data.style) {
-        case "unordered":
-            return (
-                <ul className={"rte-block-list"}>
-                    {block.data.items.map((text, i) => (
-                        <li key={i}>{text}</li>
-                    ))}
-                </ul>
-            );
+  switch (block.data.style) {
+    case "unordered":
+      return (
+        <ul className={"rte-block-list"}>
+          {block.data.items.map((text, i) => (
+            <li key={i}>{text}</li>
+          ))}
+        </ul>
+      );
 
-        case "ordered":
-            return (
-                <ol className={"rte-block-list"}>
-                    {block.data.items.map((text, i) => (
-                        <li key={i}>{text}</li>
-                    ))}
-                </ol>
-            );
-        default:
-            return null;
-    }
+    case "ordered":
+      return (
+        <ol className={"rte-block-list"}>
+          {block.data.items.map((text, i) => (
+            <li key={i}>{text}</li>
+          ))}
+        </ol>
+      );
+    default:
+      return null;
+  }
 }
 
 function renderQuote(block: OutputBlockData) {
-    return (
-        <blockquote className={"rte-block-blockquote"}>
-            <p>{block.data.text}</p>
-        </blockquote>
-    );
+  return (
+    <blockquote className={"rte-block-blockquote"}>
+      <p>{block.data.text}</p>
+    </blockquote>
+  );
 }
 
 const defaultRenderers: Record<string, RichTextBlockRenderer> = {
-    delimiter: renderDelimiter,
-    header: renderHeader,
-    image: renderImage,
-    list: renderList,
-    paragraph: renderParagraph,
-    quote: renderQuote
+  delimiter: renderDelimiter,
+  header: renderHeader,
+  image: renderImage,
+  list: renderList,
+  paragraph: renderParagraph,
+  quote: renderQuote
 };
 
 export interface RichTextBlockRenderer {
-    (block: OutputBlockData): React.ReactNode;
+  (block: OutputBlockData): React.ReactNode;
 }
 
 interface RichTextRendererProps {
-    data: OutputBlockData[];
-    renderers?: Record<string, RichTextBlockRenderer>;
+  data: OutputBlockData[];
+  renderers?: Record<string, RichTextBlockRenderer>;
 }
 
 export const RichTextRenderer: React.FC<RichTextRendererProps> = props => {
-    // Combine default renderers with custom renderers
-    const renderers = Object.assign({}, defaultRenderers, props.renderers);
+  // Combine default renderers with custom renderers
+  const renderers = Object.assign({}, defaultRenderers, props.renderers);
 
-    return (
-        <React.Fragment>
-            {props.data.map((block, index) => {
-                const renderer = renderers[block.type];
-                if (!renderer) {
-                    return null;
-                }
+  return (
+    <React.Fragment>
+      {props.data.map((block, index) => {
+        const renderer = renderers[block.type];
+        if (!renderer) {
+          return null;
+        }
 
-                const node = renderer(block);
-                if (React.isValidElement(node)) {
-                    return React.cloneElement(node, { key: index });
-                }
+        const node = renderer(block);
+        if (React.isValidElement(node)) {
+          return React.cloneElement(node, { key: index });
+        }
 
-                return null;
-            })}
-        </React.Fragment>
-    );
+        return null;
+      })}
+    </React.Fragment>
+  );
 };
 ```
 
- And use that in your template like this:
+And use that in your template like this:
 
 ```jsx /src/templates/blog-post.js
 // import the renderer
-import { RichTextRenderer } from '../components/rich-text-renderer'
+import { RichTextRenderer } from "../components/rich-text-renderer";
 
 export default BlogPostTemplate = ({ data, location }) => {
-  const post = data.webiny.getPost.data
+  const post = data.webiny.getPost.data;
 
-  return (
-    <RichTextRenderer content={post.body} />
-  )
-}
+  return <RichTextRenderer content={post.body} />;
+};
 ```
 
 <Alert type="info">

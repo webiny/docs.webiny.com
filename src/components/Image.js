@@ -26,7 +26,7 @@ export default props => {
                 onClick={openLightbox}
                 style={imgStyle}
                 className={classNames(props.className, {
-                    ["no-shadow"]: props.shadow === false
+                    "no-shadow": props.shadow === false
                 })}
                 alt={props.alt || props.title}
                 src={props.src}

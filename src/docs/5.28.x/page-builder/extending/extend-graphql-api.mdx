@@ -3,7 +3,7 @@ title: Extend GraphQL API
 description: Learn how to extend the Page Builder-related GraphQL types and operations.
 ---
 
-import { Alert } from '@/components/Alert'
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="What you'll learn">
 
@@ -24,17 +24,17 @@ In this example, we'll add a new `special` boolean field to the central `PbPage`
 It all starts with the [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10), which we'll need to register within our GraphQL API's application code. Once we have that, optionally, we might want to register the [`IndexPageDataPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/plugins/IndexPageDataPlugin.ts#L14) plugin, which will enable us to get the value of the new `special` field also while listing pages.
 
 ```ts api/code/graphql/src/plugins/pages.ts
-import { GraphQLSchemaPlugin } from '@webiny/handler-graphql/plugins'
-import { IndexPageDataPlugin } from '@webiny/api-page-builder/plugins/IndexPageDataPlugin'
-import { Page } from '@webiny/api-page-builder/types'
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
+import { IndexPageDataPlugin } from "@webiny/api-page-builder/plugins/IndexPageDataPlugin";
+import { Page } from "@webiny/api-page-builder/types";
 
 // Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
 // plugin. Apart from making your application code type-safe, it will also make the
 // interaction with the `context` object significantly easier.
-import { Context } from '~/types'
+import { Context } from "~/types";
 
 interface ExtendedPage extends Page {
-  special: boolean
+  special: boolean;
 }
 
 export default [
@@ -55,7 +55,7 @@ export default [
       extend input PbUpdatePageInput {
         special: Boolean
       }
-    `,
+    `
   }),
 
   // This step is only required if you're using DynamoDB + ElasticSearch setup and you want
@@ -65,9 +65,9 @@ export default [
   new IndexPageDataPlugin<ExtendedPage>(({ data, page }) => {
     // `data` represents the current page's data that will be stored in ElasticSearch.
     // Let's modify it, by adding the value of the new `special` flag to it.
-    data.special = page.special
-  }),
-]
+    data.special = page.special;
+  })
+];
 ```
 
 <Alert type="info">
@@ -221,14 +221,14 @@ Let's say we wanted to extend our GraphQL schema with the custom `duplicatePage`
 We can achieve this with a single [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugin.
 
 ```ts api/code/graphql/src/plugins/pages.ts
-import { GraphQLSchemaPlugin } from '@webiny/handler-graphql/plugins'
-import { PbContext } from '@webiny/api-page-builder/types'
-import { Response, ErrorResponse, NotFoundResponse } from '@webiny/handler-graphql/responses'
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql/plugins";
+import { PbContext } from "@webiny/api-page-builder/types";
+import { Response, ErrorResponse, NotFoundResponse } from "@webiny/handler-graphql/responses";
 
 // Make sure to import the `Context` interface and pass it to the `GraphQLSchemaPlugin`
 // plugin. Apart from making your application code type-safe, it will also make the
 // interaction with the `context` object significantly easier.
-import { Context } from '~/types'
+import { Context } from "~/types";
 
 export default [
   new GraphQLSchemaPlugin<Context>({
@@ -244,35 +244,35 @@ export default [
       PbMutation: {
         duplicatePage: async (_, args: { id: string }, context: PbContext) => {
           // Retrieve the original page. If it doesn't exist, immediately exit.
-          const pageToDuplicate = await context.pageBuilder.pages.get(args.id)
+          const pageToDuplicate = await context.pageBuilder.pages.get(args.id);
           if (!pageToDuplicate) {
-            return new NotFoundResponse('Page not found.')
+            return new NotFoundResponse("Page not found.");
           }
 
           try {
             // We only need the `id` of the newly created page.
-            const newPage = await context.pageBuilder.pages.create(pageToDuplicate.category)
+            const newPage = await context.pageBuilder.pages.create(pageToDuplicate.category);
 
             // Set data that will be assigned to the newly created page.
             const data = {
               title: `Copy of ${pageToDuplicate.title}`,
               path: `${pageToDuplicate.path}-copy-${new Date().getTime()}`,
               content: pageToDuplicate.content,
-              settings: pageToDuplicate.settings,
-            }
+              settings: pageToDuplicate.settings
+            };
 
             // Finally, update the newly created page.
-            const updatedNewPage = await context.pageBuilder.pages.update(newPage.id, data)
+            const updatedNewPage = await context.pageBuilder.pages.update(newPage.id, data);
 
-            return new Response(updatedNewPage)
+            return new Response(updatedNewPage);
           } catch (e) {
-            return new ErrorResponse(e)
+            return new ErrorResponse(e);
           }
-        },
-      },
-    },
-  }),
-]
+        }
+      }
+    }
+  })
+];
 ```
 
 <Alert type="info">

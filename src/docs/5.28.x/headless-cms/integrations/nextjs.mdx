@@ -2,7 +2,8 @@
 title: Building a Frontend with NextJS
 description: Learn how to build a frontend for Webiny Headless CMS with NextJS
 ---
-import { Alert } from '@/components/Alert'
+
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="What you'll learn">
 
@@ -16,12 +17,11 @@ import { Alert } from '@/components/Alert'
 
 In this article we'll learn how to integrate a NextJS application that uses Webiny as a Headless CMS. We'll go through the following:
 
-1. Getting started with Webiny 
+1. Getting started with Webiny
 2. Setting up a NextJS project
 3. Fetching data
 4. Rendering Webiny's rich text field
 5. Using NextJS preview mode
-
 
 ## Getting started with Webiny
 
@@ -40,7 +40,7 @@ For this tutorial, we're going to assume you have already done the following:
 1. [Set up your AWS credentials locally](https://www.webiny.com/docs/infrastructure/aws/configure-aws-credentials)
 2. [Deployed a Webiny instance to a `dev` environment](https://www.webiny.com/docs/core-development-concepts/basics/project-deployment)
 
-Once you have an app up and running, click into the "HeadlessCMS" app in the sidebar, click on *models*.
+Once you have an app up and running, click into the "HeadlessCMS" app in the sidebar, click on _models_.
 
 ![Sidebar - Headless CMS Models](./assets/nextjs-starter/nextjs-tutorial-models.png)
 
@@ -80,7 +80,7 @@ Save the API token and the Token itself will be revealed. You can use the same A
 
 ## Set up a NextJS project
 
-You can [follow the "Getting Started" page on the NextJS site](https://nextjs.org/docs/getting-started), or run `npx create-next-app nextjs-blog-webiny --example "https://github.com/webiny/nextjs-starter-webiny/tree/master"` to spin up a basic project. 
+You can [follow the "Getting Started" page on the NextJS site](https://nextjs.org/docs/getting-started), or run `npx create-next-app nextjs-blog-webiny --example "https://github.com/webiny/nextjs-starter-webiny/tree/master"` to spin up a basic project.
 
 Once you've done one of these, add a new file `.env.local` to the project root. NextJS will look for environment variables in that location.
 
@@ -90,7 +90,7 @@ Once you've done one of these, add a new file `.env.local` to the project root. 
 
 </Alert>
 
-Add the API endpoint URL (maybe call it `NEXT_PUBLIC_WEBINY_API_URL`), and the API token (maybe as `WEBINY_API_SECRET`). 
+Add the API endpoint URL (maybe call it `NEXT_PUBLIC_WEBINY_API_URL`), and the API token (maybe as `WEBINY_API_SECRET`).
 
 ```bash .env.local
 NEXT_PUBLIC_WEBINY_API_URL=<your-url-here>
@@ -103,31 +103,31 @@ Make sure you don't commit this file to your project's git repository otherwise 
 
 ## Fetching data
 
-Once you have your `.env.local` file set up in the project root, you can try to connect to the API so that we can fetch our content. 
+Once you have your `.env.local` file set up in the project root, you can try to connect to the API so that we can fetch our content.
 
 Create a new folder in the root directory called `lib`, and within that a new file called `api.js`. Add this code which will allow us to use JavaScript's `fetch` function with the GraphQL API:
 
 ```js /lib/api.js
-async function fetchAPI(query, { variables } = {} ) {
+async function fetchAPI(query, { variables } = {}) {
   const res = await fetch(process.env.NEXT_PUBLIC_WEBINY_API_URL, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.WEBINY_API_SECRET}`
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.WEBINY_API_SECRET}`
     },
     body: JSON.stringify({
       query,
-      variables,
-    }),
-  })
+      variables
+    })
+  });
 
-  const json = await res.json()
+  const json = await res.json();
   if (json.errors) {
-    console.error(json.errors)
-    throw new Error('Failed to fetch API')
+    console.error(json.errors);
+    throw new Error("Failed to fetch API");
   }
 
-  return json.data
+  return json.data;
 }
 ```
 
@@ -151,10 +151,11 @@ export async function getAllPostsWithSlug() {
         }
       }
     }
-  `)
-  return data.listPosts.data
+  `);
+  return data.listPosts.data;
 }
 ```
+
 <Alert type="info">
 
 There's [more information about using GraphQL here](https://www.webiny.com/docs/headless-cms/basics/using-graphql-api).
@@ -166,7 +167,6 @@ Here's a more detailed query which uses variables and sorting to fetch multiple 
 ```js /lib/api.js
 export async function getPostBySlug(slug) {
   const data = await fetchAPI(
-
     `
       query PostBySlug( $PostsGetWhereInput: PostsGetWhereInput!) {
         post: getPosts( where: $PostsGetWhereInput ) {
@@ -202,16 +202,16 @@ export async function getPostBySlug(slug) {
         }
       }
     `,
-      {
-        variables: {
-          PostsGetWhereInput:{
-            slug: slug
-          }
+    {
+      variables: {
+        PostsGetWhereInput: {
+          slug: slug
         }
-      },
-      preview
-  )
-  return data
+      }
+    },
+    preview
+  );
+  return data;
 }
 ```
 
@@ -221,18 +221,18 @@ To create static pages, create a file in the **/posts/** directory called **[slu
 
 ```js /pages/posts/[slug].js
 export async function getStaticPaths() {
-  const allPosts = await getAllPostsWithSlug()
+  const allPosts = await getAllPostsWithSlug();
 
   return {
-    paths: allPosts.map((post) => {
+    paths: allPosts.map(post => {
       return {
         params: {
-          slug: `/posts/${post.slug}`,
-        },
-      }
+          slug: `/posts/${post.slug}`
+        }
+      };
     }),
-    fallback: true,
-  }
+    fallback: true
+  };
 }
 ```
 
@@ -242,18 +242,18 @@ To get data for each statically generated page add the following to the bottom o
 
 ```js /pages/posts/[slug].js
 export async function getStaticProps(context) {
-  const { params } = context
-  const data = await getPostBySlug(params.slug)
+  const { params } = context;
+  const data = await getPostBySlug(params.slug);
 
   return {
     props: {
       preview,
       post: {
-        ...data.post.data,
+        ...data.post.data
       },
       morePosts: data?.morePosts
-    },
-  }
+    }
+  };
 }
 ```
 
@@ -261,9 +261,7 @@ Now you will be able to access `props.post` in the render and build out your UI:
 
 ```jsx /pages/posts/[slug].js
 export default function Post({ post, morePosts, preview }) {
-  return (
-    <h1>{post.title}</h1>
-  )
+  return <h1>{post.title}</h1>;
 }
 ```
 
@@ -285,10 +283,10 @@ Once the package is installed, you can use it as you would any other component:
 
 ```jsx /pages/posts/[slug].js
 // import the renderer
-import { RichTextRenderer } from '@webiny/react-rich-text-renderer'
+import { RichTextRenderer } from "@webiny/react-rich-text-renderer";
 
 // in your render function
-<RichTextRenderer data={content} />
+<RichTextRenderer data={content} />;
 ```
 
 It's entirely possible to make your own renderer. If you open that package you'll see how we have done it, you can copy that code and modify it as you wish.
@@ -299,14 +297,13 @@ It's entirely possible to make your own renderer. If you open that package you'l
 
 </Alert>
 
-
 ## Using NextJS preview mode
 
 NextJS provides an API for previewing content that hasn't been published yet, and is in a "Draft" state. For more information, [see the documentation on NextJS website](https://nextjs.org/docs/advanced-features/preview-mode). Here's how to use Preview mode with Webiny.
 
 Webiny has a separate API for **published** and **draft** content. Although we can use the same API token to connect to both APIs, we need to fetch from the correct API endpoint.
 
-Because we checked **preview** when we set up the API keys, our NextJS app will be authorised to fetch data from this endpoint too. 
+Because we checked **preview** when we set up the API keys, our NextJS app will be authorised to fetch data from this endpoint too.
 
 In your Webiny instance, go to **API Playground** and choose **Headless CMS - Preview API** on the tabs at the top of the main window.
 
@@ -321,30 +318,28 @@ NEXT_PUBLIC_WEBINY_PREVIEW_API_URL=<your-url-here>
 
 First, we're going to extract whether the user has `preview` mode enabled from the `getStaticProps()` function:
 
-
 ```js /pages/posts/[slug].js
 export async function getStaticProps(context) {
-  const { params, preview } = context
-  const data = await getPostBySlug(params.slug, preview)
+  const { params, preview } = context;
+  const data = await getPostBySlug(params.slug, preview);
 
   return {
     props: {
       preview,
       post: {
-        ...data.post.data,
+        ...data.post.data
       },
       morePosts: data?.morePosts
-    },
-  }
+    }
+  };
 }
 ```
 
 Now we can pass that variable to our `fetchAPI()` function
 
-```js  /lib/api.js
+```js /lib/api.js
 export async function getPostBySlug(slug, preview) {
   const data = await fetchAPI(
-
     `
       query PostBySlug( $PostsGetWhereInput: PostsGetWhereInput!) {
         post: getPosts( where: $PostsGetWhereInput ) {
@@ -380,44 +375,46 @@ export async function getPostBySlug(slug, preview) {
         }
       }
     `,
-      {
-        variables: {
-          PostsGetWhereInput:{
-            slug: slug
-          }
+    {
+      variables: {
+        PostsGetWhereInput: {
+          slug: slug
         }
-      },
-      preview
-  )
-  return data
+      }
+    },
+    preview
+  );
+  return data;
 }
 ```
 
 Next modify your `fetchAPI` function to add the `preview` parameter:
 
 ```js /pages/posts/[slug].js
-async function fetchAPI(query, { variables } = {}, preview ) {
- const url = preview ? process.env.NEXT_PUBLIC_WEBINY_PREVIEW_API_URL : process.env.NEXT_PUBLIC_WEBINY_API_URL
- 
+async function fetchAPI(query, { variables } = {}, preview) {
+  const url = preview
+    ? process.env.NEXT_PUBLIC_WEBINY_PREVIEW_API_URL
+    : process.env.NEXT_PUBLIC_WEBINY_API_URL;
+
   const res = await fetch(url, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.WEBINY_API_SECRET}`
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.WEBINY_API_SECRET}`
     },
     body: JSON.stringify({
       query,
-      variables,
-    }),
-  })
+      variables
+    })
+  });
 
-  const json = await res.json()
+  const json = await res.json();
   if (json.errors) {
-    console.error(json.errors)
-    throw new Error('Failed to fetch API')
+    console.error(json.errors);
+    throw new Error("Failed to fetch API");
   }
 
-  return json.data
+  return json.data;
 }
 ```
 

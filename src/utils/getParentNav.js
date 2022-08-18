@@ -7,9 +7,9 @@ export function getParentNav(nav) {
     let parents = null;
     nav.forEach((element, index, array) => {
         if (element.hasOwnProperty("links")) {
-            element.links.forEach((innerSection) => {
+            element.links.forEach(innerSection => {
                 if (innerSection.hasOwnProperty("links")) {
-                    innerSection.links.forEach((innerLink) => {
+                    innerSection.links.forEach(innerLink => {
                         if (innerLink.link === router.pathname) {
                             parents = [innerSection, element];
                         }

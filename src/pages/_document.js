@@ -113,7 +113,11 @@ export default class Document extends NextDocument {
               `
                         }}
                     />
-                    <script defer site="MZFYOTYQ" src="https://banquet-golden-years.webiny.com/script.js"></script>
+                    <script
+                        defer
+                        site="MZFYOTYQ"
+                        src="https://banquet-golden-years.webiny.com/script.js"
+                    ></script>
                 </Head>
                 <body className="antialiased text-slate-500 dark:text-slate-400 dark:bg-dark-theme">
                     <Main />
