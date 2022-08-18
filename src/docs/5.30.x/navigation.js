@@ -13,6 +13,10 @@ export const Navigation = () => {
                     <Page link={"overview/features/mailer"} />
                 </Section>
             </Collapsable>
+            <Collapsable title={"Webiny Control Panel"} after={"Webiny Enterprise"}>
+                <Page link={"wcp/overview"} />
+                <Page link={"wcp/link-a-project"} />
+            </Collapsable>
         </>
     );
 };
