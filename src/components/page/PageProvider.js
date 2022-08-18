@@ -1,5 +1,6 @@
 import { useVersions } from "@/hooks/useVersions";
 import { useRouter } from "next/router";
+import titleCase from "titlecase";
 import { createContext, Fragment, useContext } from "react";
 
 const PageContext = createContext();
@@ -27,7 +28,7 @@ export const PageProvider = ({ Component, children }) => {
         Layout: layoutProps.Layout || Fragment,
         version,
         canonicalPath: layoutProps.canonicalPath || "",
-        title: layoutProps?.meta?.title || "",
+        title: titleCase(layoutProps?.meta?.title || ""),
         description: layoutProps?.meta?.description || "",
         algoliaVersions
     };
