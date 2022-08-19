@@ -8,8 +8,9 @@ import { Title } from "@/components/Title";
 import socialCardLarge from "@/img/webiny-social-share.jpg";
 
 export const Page = () => {
-    const { Article, Layout, title, description, ...page } = usePage();
+    const { Article, Layout, title, description, shareCard, ...page } = usePage();
     const router = useRouter();
+    const socialShareCard = shareCard ? shareCard : socialCardLarge
     return (
         <>
             <Title suffix="Webiny Docs">{title}</Title>
@@ -21,7 +22,7 @@ export const Page = () => {
                 <meta
                     key="twitter:image"
                     name="twitter:image"
-                    content={`https://www.webiny.com${socialCardLarge}`}
+                    content={`https://www.webiny.com${socialShareCard}`}
                 />
                 <meta key="twitter:creator" name="twitter:creator" content="@WebinyCMS" />
                 <meta
@@ -34,7 +35,7 @@ export const Page = () => {
                 <meta
                     key="og:image"
                     property="og:image"
-                    content={`https://www.webiny.com${socialCardLarge}`}
+                    content={`https://www.webiny.com${socialShareCard}`}
                 />
                 <meta name="docsearch:language" content="en" />
                 <meta name="docsearch:version" content={page.algoliaVersions} />

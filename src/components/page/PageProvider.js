@@ -30,7 +30,8 @@ export const PageProvider = ({ Component, children }) => {
         canonicalPath: layoutProps.canonicalPath || "",
         title: titleCase(layoutProps?.meta?.title || ""),
         description: layoutProps?.meta?.description || "",
-        algoliaVersions
+        algoliaVersions,
+        shareCard: layoutProps?.meta?.shareCard
     };
 
     return <PageContext.Provider value={context}>{children}</PageContext.Provider>;
