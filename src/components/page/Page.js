@@ -13,7 +13,7 @@ export const Page = () => {
 
     console.log(`shareCard: `, shareCard)
 
-    const socialShareCard = shareCard ? `https://www.webiny.com/images/${shareCard}` : `https://www.webiny.com/docs${socialCardLarge}`
+    const socialShareCard = shareCard ? `https://www.webiny.com/images/${shareCard}` : `https://www.webiny.com${socialCardLarge}`
 
     return (
         <>
