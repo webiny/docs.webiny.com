@@ -10,7 +10,11 @@ import socialCardLarge from "@/img/webiny-social-share.jpg";
 export const Page = () => {
     const { Article, Layout, title, description, shareCard, ...page } = usePage();
     const router = useRouter();
-    const socialShareCard = shareCard ? `https://www.webiny.com/docs${shareCard}` : `https://www.webiny.com${socialCardLarge}`
+
+    console.log(`shareCard: `, shareCard)
+
+    const socialShareCard = shareCard ? `https://www.webiny.com/images/${shareCard}` : `https://www.webiny.com/docs${socialCardLarge}`
+
     return (
         <>
             <Title suffix="Webiny Docs">{title}</Title>
