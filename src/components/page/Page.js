@@ -11,8 +11,6 @@ export const Page = () => {
     const { Article, Layout, title, description, shareCard, ...page } = usePage();
     const router = useRouter();
 
-    console.log(`shareCard: `, shareCard)
-
     const socialShareCard = shareCard ? `https://www.webiny.com/images/${shareCard}` : `https://www.webiny.com${socialCardLarge}`
 
     return (
