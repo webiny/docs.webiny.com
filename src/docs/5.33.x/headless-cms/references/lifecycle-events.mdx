@@ -1,0 +1,1201 @@
+---
+title: Lifecycle Events
+description: Learn about Headless CMS lifecycle events, how they work and how to subscribe to a lifecycle event.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="danger" title="Deprecation of lifecycle events created before 5.33.0">
+In the 5.33.0 we changed the property names which define the lifecycle events in the Headless CMS.
+Old ones are still available, but marked as deprecated, and they will be removed in 5.35.0.
+</Alert>
+
+<Alert type="success" title="What you'll learn">
+
+- what are lifecycle events
+- how lifecycle events work
+- how to subscribe to a lifecycle event
+
+</Alert>
+
+<Alert type="info">
+
+Lifecycle events using publish/subscribe pattern replace the hook plugins starting from version 5.18.0.
+
+</Alert>
+
+## Overview
+
+In our Headless CMS we provide lifecycle events available for you to hook into.
+
+With the lifecycle events you can hook into a number of different operations.
+
+For example, when using [DynamoDB + Elasticsearch](https://github.com/webiny/webiny-js/blob/next/packages/api-headless-cms-ddb-es/src/index.ts#L111) as storage layer, we use the `onSystemBeforeInstall` to insert the template for Elasticsearch index.
+
+## System
+
+### onSystemBeforeInstall
+
+This event is triggered before the installation of the Headless CMS and insertion of initial "Ungrouped" group.
+
+#### Event arguments
+
+| Property | Description              |
+| -------- | ------------------------ |
+| tenant   | ID of the current tenant |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onSystemBeforeInstall.subscribe(async ({ tenant }) => {
+    await notifyAnotherSystemThatHeadlessCmsIsGettingInstalled({ tenant });
+  });
+});
+```
+
+### onSystemAfterInstall
+
+This event is triggered after the installation of the Headless CMS.
+
+#### Event arguments
+
+| Property | Description              |
+| -------- | ------------------------ |
+| tenant   | ID of the current tenant |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onSystemAfterInstall.subscribe(async ({ tenant }) => {
+    await notifyAnotherSystemThatHeadlessCmsWasInstalled({ tenant });
+  });
+});
+```
+
+<Alert type="info">
+
+Please note that in between `onSystemBeforeInstall` and `onSystemAfterInstall` we create a default CmsGroup named "Ungrouped" and, because of that, there are events `onGroupBeforeCreate` and `onGroupAfterCreate` being run.
+
+</Alert>
+
+## Groups
+
+### onGroupBeforeCreate
+
+This event is triggered before new group is stored into the database.
+
+#### Event arguments
+
+| Property | Description                              |
+| -------- | ---------------------------------------- |
+| group    | Group object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onGroupBeforeCreate.subscribe(async ({ group }) => {
+    /**
+     * For example, you do not want the group name to contain the character "a".
+     * You can check for that character here and throw an error. Or remove it.
+     */
+    if (group.name.match(/a/) === null) {
+      return;
+    }
+    group.name = group.name.replace(/a/g, "");
+  });
+});
+```
+
+### onGroupAfterCreate
+
+This event is triggered after new group is stored into the database.
+
+#### Event arguments
+
+| Property | Description                   |
+| -------- | ----------------------------- |
+| group    | Group object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onGroupAfterCreate.subscribe(async ({ group }) => {
+    /**
+     * For example, notify another system that group was created.
+     */
+    await notifyAnotherSystemAboutGroupCreate({ group });
+  });
+});
+```
+
+### onGroupBeforeUpdate
+
+This event is triggered before group is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                      |
+| -------- | ------------------------------------------------ |
+| original | Group object which is received from the database |
+| group    | Group object which is going to be stored         |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onGroupBeforeUpdate.subscribe(async ({ original, group }) => {
+    /**
+     * For example, we are not allowing group slug to be changed.
+     */
+    if (original.slug === group.slug) {
+      return;
+    }
+    throw new Error(`Changing of group slug value is not allowed.`);
+  });
+});
+```
+
+### onGroupAfterUpdate
+
+This event is triggered before group is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                      |
+| -------- | ------------------------------------------------ |
+| original | Group object which is received from the database |
+| group    | Group object which was stored                    |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onGroupAfterUpdate.subscribe(async ({ original, group }) => {
+    /**
+     * For example, notify another system that group was updated.
+     */
+    await notifyAnotherSystemAboutGroupUpdate({ original, group });
+  });
+});
+```
+
+### onGroupBeforeDelete
+
+This event is triggered before group is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| group    | Group object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onGroupBeforeDelete.subscribe(async ({ group }) => {
+    /**
+     * For example, we are not allowing group with slug "ungroupped" to be deleted.
+     */
+    if (group.slug !== "ungroupped") {
+      return;
+    }
+    throw new Error(`Deleting group with slug "ungroupped" is not allowed.`);
+  });
+});
+```
+
+### onGroupAfterDelete
+
+This event is triggered after group is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                    |
+| -------- | ------------------------------ |
+| group    | Group object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onGroupAfterDelete.subscribe(async ({ group }) => {
+    /**
+     * For example, notify another system that group was deleted.
+     */
+    await notifyAnotherSystemAboutGroupDelete({ group });
+  });
+});
+```
+
+## Model
+
+### onModelBeforeCreate
+
+This event is triggered before new model is stored into the database.
+
+#### Event arguments
+
+| Property | Description                              |
+| -------- | ---------------------------------------- |
+| model    | Model object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onModelBeforeCreate.subscribe(async ({ model }) => {
+    /**
+     * For example, you do not want the modelId to be any of the reserved IDs you might think of.
+     */
+    if (reservedIdList.include(model.modelId) === false) {
+      return;
+    }
+    throw new Error(`Model ID "${model.modelId}" is reserved.`);
+  });
+});
+```
+
+### onModelAfterCreate
+
+This event is triggered before new model is stored into the database.
+
+#### Event arguments
+
+| Property | Description                              |
+| -------- | ---------------------------------------- |
+| model    | Model object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onModelAfterCreate.subscribe(async ({ model }) => {
+    /**
+     * For example, you want to notify another system about new model.
+     */
+    await notifyAnotherSystemAboutNewModel({ model });
+  });
+});
+```
+
+### onModelBeforeCreateFrom
+
+This event is triggered before newly cloned model is stored into the database.
+
+#### Event arguments
+
+| Property | Description                                         |
+| -------- | --------------------------------------------------- |
+| original | Model object from which we are creating a new model |
+| model    | Model object which is going to be stored            |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onModelBeforeCreateFrom.subscribe(async ({ original, model }) => {
+    /**
+     * For example, you want to clone only to another locale.
+     */
+    if (original.locale !== model.locale) {
+      return;
+    }
+    throw new Error(`Model "${model.modelId}" cannot be cloned into same locale.`);
+  });
+});
+```
+
+### onModelAfterCreateFrom
+
+This event is triggered after newly cloned model is stored into the database.
+
+#### Event arguments
+
+| Property | Description                                         |
+| -------- | --------------------------------------------------- |
+| original | Model object from which we are creating a new model |
+| model    | Model object which was stored                       |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onModelAfterCreateFrom.subscribe(async ({ original, model }) => {
+    /**
+     * For example, notify another system about cloned model.
+     */
+    await notifyAnotherSystemAboutClonedModel({ original, model });
+  });
+});
+```
+
+### onModelBeforeUpdate
+
+This event is triggered before model is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                           |
+| -------- | ----------------------------------------------------- |
+| original | Model object from which we received from the database |
+| model    | Model object which is going to be stored              |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onModelBeforeUpdate.subscribe(async ({ model }) => {
+    /**
+     * For example, you want to leave all fields unlocked on all the models (you should never do that, of course, but you can if you want to).
+     */
+    model.lockedFields = [];
+  });
+});
+```
+
+### onModelAfterUpdate
+
+This event is triggered after model is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                           |
+| -------- | ----------------------------------------------------- |
+| original | Model object from which we received from the database |
+| model    | Model object which was stored                         |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onModelAfterUpdate.subscribe(async ({ original, model }) => {
+    /**
+     * For example, you want to notify another system about model update.
+     */
+    await notifyAnotherSystemAboutModelUpdate({ original, model });
+  });
+});
+```
+
+### onModelBeforeDelete
+
+This event is triggered before model is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| model    | Model object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onModelBeforeDelete.subscribe(async ({ model }) => {
+    /**
+     * For example, you do not want to allow deletion of any model.
+     */
+    throw new Error("Models cannot be deleted!");
+  });
+});
+```
+
+### onModelAfterDelete
+
+This event is triggered after model is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                    |
+| -------- | ------------------------------ |
+| model    | Model object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onModelAfterDelete.subscribe(async ({ model }) => {
+    /**
+     * For example, you want to notify another system about deleted model.
+     */
+    await notifyAnotherSystemAboutDeletedModel({ model });
+  });
+});
+```
+
+## Entry
+
+<Alert type="info">
+
+Note that `storageEntry`, `originalStorageEntry`, `latestStorageEntry` and `publishedStorageEntry` are objects derived from the `entry` object which we want to store into the database.
+Those new objects have `StorageTransformPlugin` run on them to prepare them to be stored. To find out why we use `StorageTransformPlugin`, read about it in this [article](./storage-transform-plugin).
+
+</Alert>
+
+### onEntryBeforeCreate
+
+This event is triggered before entry is stored into the database.
+
+#### Event arguments
+
+| Property | Description                              |
+| -------- | ---------------------------------------- |
+| input    | Raw user input                           |
+| entry    | Entry object which is going to be stored |
+| model    | Model this entry belongs to              |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryBeforeCreate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, your entry has a "slug" field, which must be unique. So we check if it is.
+     */
+    const manager = await context.cms.getModelManager(model);
+
+    const existing = await manager.listLatest({
+      where: {
+        slug: entry.values.slug
+      },
+      limit: 1
+    });
+    if (existing.length === 0) {
+      return;
+    }
+    throw new Error(`Entry with slug "${entry.values.slug}" already exists.`);
+  });
+});
+```
+
+### onEntryAfterCreate
+
+This event is triggered after entry is stored into the database.
+
+#### Event arguments
+
+| Property | Description                   |
+| -------- | ----------------------------- |
+| input    | Raw user input                |
+| entry    | Entry object which was stored |
+| model    | Model this entry belongs to   |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryAfterCreate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about new entry.
+     */
+    await notifyAnotherSystemAboutNewEntry({ model, entry });
+  });
+});
+```
+
+### onEntryBeforeCreateRevision
+
+This event is triggered before a new entry is created from originating entry and is stored into the database.
+
+#### Event arguments
+
+| Property | Description                                        |
+| -------- | -------------------------------------------------- |
+| input    | Raw user input                                     |
+| original | Original entry which we received from the database |
+| entry    | Entry object which is going to be stored           |
+| model    | Model this entry belongs to                        |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryBeforeCreateRevision.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, your entry has a "slug" field, which must be unique, but not within the entryId constraint.
+     */
+    const manager = await context.cms.getModelManager(model);
+
+    const existing = await manager.listLatest({
+      where: {
+        entryId_not: entry.entryId,
+        slug: entry.values.slug
+      },
+      limit: 1
+    });
+    if (existing.length === 0) {
+      return;
+    }
+    throw new Error(`Entry with slug "${entry.values.slug}" already exists.`);
+  });
+});
+```
+
+### onEntryAfterCreateRevision
+
+This event is triggered after a new entry is created from originating entry and is stored into the database.
+
+#### Event arguments
+
+| Property     | Description                                          |
+| ------------ | ---------------------------------------------------- |
+| input        | Raw user input                                       |
+| original     | Original entry which we received from the database   |
+| storageEntry | Entry object prepared to be stored into the database |
+| entry        | Entry object which was stored                        |
+| model        | Model this entry belongs to                          |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryAfterCreateRevision.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about new entry.
+     */
+    await notifyAnotherSystemAboutNewEntryRevision({ model, entry });
+  });
+});
+```
+
+### onEntryBeforeUpdate
+
+This event is triggered before entry is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                        |
+| -------- | -------------------------------------------------- |
+| input    | Raw user input                                     |
+| original | Original entry which we received from the database |
+| entry    | Entry object which is going to be stored           |
+| model    | Model this entry belongs to                        |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryBeforeUpdate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, your entry has a "slug" field, which must be unique, but not within the entryId constraint.
+     */
+    const manager = await context.cms.getModelManager(model);
+
+    const existing = await manager.listLatest({
+      where: {
+        entryId_not: entry.entryId,
+        slug: entry.values.slug
+      },
+      limit: 1
+    });
+    if (existing.length === 0) {
+      return;
+    }
+    throw new Error(`Entry with slug "${entry.values.slug}" already exists.`);
+  });
+});
+```
+
+### onEntryAfterUpdate
+
+This event is triggered after entry is changed and stored into the database.
+
+#### Event arguments
+
+| Property     | Description                                          |
+| ------------ | ---------------------------------------------------- |
+| input        | Raw user input                                       |
+| original     | Original entry which we received from the database   |
+| storageEntry | Entry object prepared to be stored into the database |
+| entry        | Entry object which was stored                        |
+| model        | Model this entry belongs to                          |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryAfterUpdate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about updated entry.
+     */
+    await notifyAnotherSystemAboutEntryUpdate({ model, entry });
+  });
+});
+```
+
+### onEntryBeforeDelete
+
+This event is triggered before all entry revisions are deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| entry    | Entry object which is going to be deleted |
+| model    | Model this entry belongs to               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryBeforeDelete.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow entry with slug "index" to be deleted.
+     */
+    if (entry.values.slug !== "index") {
+      return;
+    }
+    throw new Error(`Cannot delete entry with slug "index". Not allowed!`);
+  });
+});
+```
+
+### onEntryAfterDelete
+
+This event is triggered after all entry revisions are deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| entry    | Entry object which is going to be deleted |
+| model    | Model this entry belongs to               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryAfterDelete.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about deleted entry.
+     */
+    await notifyAnotherSystemAboutDeletedEntry({ model, entry });
+  });
+});
+```
+
+### onEntryBeforeDeleteRevision
+
+This event is triggered before entry revision is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| entry    | Entry object which is going to be deleted |
+| model    | Model this entry belongs to               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryBeforeDeleteRevision.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow entry with version 1 to be deleted.
+     */
+    if (entry.version > 1) {
+      return;
+    }
+    throw new Error(`Cannot delete entry version 1. Not allowed!`);
+  });
+});
+```
+
+### onEntryAfterDeleteRevision
+
+This event is triggered after entry revision is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| entry    | Entry object which is going to be deleted |
+| model    | Model this entry belongs to               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryAfterDeleteRevision.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about deleted entry.
+     */
+    await notifyAnotherSystemAboutDeletedEntryRevision({ model, entry });
+  });
+});
+```
+
+### onEntryBeforePublish
+
+This event is triggered before entry is published.
+
+#### Event arguments
+
+| Property | Description                                 |
+| -------- | ------------------------------------------- |
+| entry    | Entry object which is going to be published |
+| model    | Model this entry belongs to                 |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryBeforePublish.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow entry with version 1 to be published.
+     */
+    if (entry.version > 1) {
+      return;
+    }
+    throw new Error(`Cannot publish entry version 1. Not allowed!`);
+  });
+});
+```
+
+### onEntryAfterPublish
+
+This event is triggered after entry is published.
+
+#### Event arguments
+
+| Property | Description                                 |
+| -------- | ------------------------------------------- |
+| entry    | Entry object which is going to be published |
+| model    | Model this entry belongs to                 |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryAfterPublish.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about published entry.
+     */
+    await notifyAnotherSystemAboutPublishedEntry({ model, entry });
+  });
+});
+```
+
+### onEntryBeforeUnpublish
+
+This event is triggered before entry is unpublished.
+
+#### Event arguments
+
+| Property | Description                                   |
+| -------- | --------------------------------------------- |
+| entry    | Entry object which is going to be unpublished |
+| model    | Model this entry belongs to                   |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryBeforeUnpublish.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow entry with version 1 to be unpublished.
+     */
+    if (entry.version > 1) {
+      return;
+    }
+    throw new Error(`Cannot unpublish entry version 1. Not allowed!`);
+  });
+});
+```
+
+### onEntryAfterUnpublish
+
+This event is triggered after entry is unpublished.
+
+#### Event arguments
+
+| Property | Description                                   |
+| -------- | --------------------------------------------- |
+| entry    | Entry object which is going to be unpublished |
+| model    | Model this entry belongs to                   |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryAfterUnpublish.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about unpublished entry.
+     */
+    await notifyAnotherSystemAboutUnpublishedEntry({ model, entry });
+  });
+});
+```
+
+### onEntryBeforeRequestChanges
+
+This event is triggered before request changes entry object is stored to the database.
+
+#### Event arguments
+
+| Property | Description                                           |
+| -------- | ----------------------------------------------------- |
+| entry    | Entry object which is going to be modified and stored |
+| model    | Model this entry belongs to                           |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryBeforeRequestChanges.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow to request changes on entry with version 1.
+     */
+    if (entry.version > 1) {
+      return;
+    }
+    throw new Error(`Cannot request changes on entry version 1. Not allowed!`);
+  });
+});
+```
+
+### onEntryAfterRequestChanges
+
+This event is triggered after request changes entry object is stored to the database.
+
+#### Event arguments
+
+| Property | Description                                           |
+| -------- | ----------------------------------------------------- |
+| entry    | Entry object which is going to be modified and stored |
+| model    | Model this entry belongs to                           |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryAfterRequestChanges.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about requested changes on entry.
+     */
+    await notifyAnotherSystemAboutRequestedChangesOnEntry({ model, entry });
+  });
+});
+```
+
+### onEntryBeforeRequestReview
+
+This event is triggered before request review entry object is stored to the database.
+
+#### Event arguments
+
+| Property | Description                                           |
+| -------- | ----------------------------------------------------- |
+| entry    | Entry object which is going to be modified and stored |
+| model    | Model this entry belongs to                           |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryBeforeRequestReview.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow to request review on entry with version 1.
+     */
+    if (entry.version > 1) {
+      return;
+    }
+    throw new Error(`Cannot request review on entry version 1. Not allowed!`);
+  });
+});
+```
+
+### onEntryAfterRequestReview
+
+This event is triggered after request review entry object is stored to the database.
+
+#### Event arguments
+
+| Property | Description                                           |
+| -------- | ----------------------------------------------------- |
+| entry    | Entry object which is going to be modified and stored |
+| model    | Model this entry belongs to                           |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  /**
+   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+   */
+  if (!context.cms) {
+    return;
+  }
+  context.cms.onEntryAfterRequestReview.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about requested review on entry.
+     */
+    await notifyAnotherSystemAboutRequestedReviewOnEntry({ model, entry });
+  });
+});
+```
+
+<Alert type="danger">
+
+Please, be aware that you can change what ever you want on the object before it is stored into the database, so be careful with changing the data.
+
+</Alert>
+
+## Registering Lifecycle Event Subscriptions
+
+### System Lifecycle Events
+
+For the subscriptions (your code) to be run, you must register it in the `createHandler` in the `api/code/graphql/src/index.ts` file.
+
+```typescript api/code/graphql/src/index.ts
+const handler = createHandler({
+  plugins: [
+    // ... rest of plugins
+    new ContextPlugin<PbContext>(async context => {
+      /**
+       * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+       */
+      if (!context.cms) {
+        return;
+      }
+      context.cms.onSystemBeforeInstall.subscribe(async ({ system }) => {
+        // do your magic here
+      });
+    })
+  ]
+});
+```
+
+### Group, Model And Entries Lifecycle Events
+
+For the subscriptions (your code) to be run, you must register it in the `createHandler` in the `api/code/headlessCMS/src/index.ts` file.
+
+```typescript api/code/headlessCMS/src/index.ts
+const handler = createHandler({
+  plugins: [
+    // ... rest of plugins
+    new ContextPlugin<PbContext>(async context => {
+      /**
+       * There is no context.cms on options request, so we skip adding lifecycle event subscription.
+       */
+      if (!context.cms) {
+        return;
+      }
+      context.cms.onEntryBeforeCreate.subscribe(async ({ entry }) => {
+        // do your magic here
+      });
+    })
+  ]
+});
+```
+
+<Alert type="warning">
+
+Please, be aware that the order of subscribing matters, so if you want some event subscription to be executed before some other one, add it first.
+
+</Alert>
+
+The check condition for `context.cms` will not be required starting with version 5.22.0.
