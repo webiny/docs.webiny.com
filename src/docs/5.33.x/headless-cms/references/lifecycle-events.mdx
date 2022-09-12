@@ -43,17 +43,12 @@ This event is triggered before the installation of the Headless CMS and insertio
 | Property | Description              |
 | -------- | ------------------------ |
 | tenant   | ID of the current tenant |
+| locale   | current locale           |
 
 #### How to subscribe to this event?
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onSystemBeforeInstall.subscribe(async ({ tenant }) => {
     await notifyAnotherSystemThatHeadlessCmsIsGettingInstalled({ tenant });
   });
@@ -69,19 +64,35 @@ This event is triggered after the installation of the Headless CMS.
 | Property | Description              |
 | -------- | ------------------------ |
 | tenant   | ID of the current tenant |
+| locale   | current locale           |
 
 #### How to subscribe to this event?
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onSystemAfterInstall.subscribe(async ({ tenant }) => {
     await notifyAnotherSystemThatHeadlessCmsWasInstalled({ tenant });
+  });
+});
+```
+
+### onSystemInstallError
+
+This event is triggered on Headless CMS installation error.
+
+#### Event arguments
+
+| Property | Description              |
+| -------- | ------------------------ |
+| tenant   | ID of the current tenant |
+| locale   | current locale           |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onSystemInstallError.subscribe(async ({ tenant }) => {
+    await notifyAnotherSystemThatHeadlessCmsWasNotInstalled({ tenant });
   });
 });
 ```
@@ -108,12 +119,6 @@ This event is triggered before new group is stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onGroupBeforeCreate.subscribe(async ({ group }) => {
     /**
      * For example, you do not want the group name to contain the character "a".
@@ -141,12 +146,6 @@ This event is triggered after new group is stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onGroupAfterCreate.subscribe(async ({ group }) => {
     /**
      * For example, notify another system that group was created.
@@ -171,12 +170,6 @@ This event is triggered before group is changed and stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onGroupBeforeUpdate.subscribe(async ({ original, group }) => {
     /**
      * For example, we are not allowing group slug to be changed.
@@ -204,12 +197,6 @@ This event is triggered before group is changed and stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onGroupAfterUpdate.subscribe(async ({ original, group }) => {
     /**
      * For example, notify another system that group was updated.
@@ -233,12 +220,6 @@ This event is triggered before group is deleted from the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onGroupBeforeDelete.subscribe(async ({ group }) => {
     /**
      * For example, we are not allowing group with slug "ungroupped" to be deleted.
@@ -265,17 +246,34 @@ This event is triggered after group is deleted from the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onGroupAfterDelete.subscribe(async ({ group }) => {
     /**
      * For example, notify another system that group was deleted.
      */
     await notifyAnotherSystemAboutGroupDelete({ group });
+  });
+});
+```
+
+### onGroupDeleteError
+
+This event is triggered on group delete error.
+
+#### Event arguments
+
+| Property | Description                    |
+| -------- | ------------------------------ |
+| group    | Group object which was going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupDeleteError.subscribe(async ({ group }) => {
+    /**
+     * For example, notify another system that group could not be deleted.
+     */
+    await notifyAnotherSystemAboutGroupDeleteError({ group });
   });
 });
 ```
@@ -296,12 +294,6 @@ This event is triggered before new model is stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onModelBeforeCreate.subscribe(async ({ model }) => {
     /**
      * For example, you do not want the modelId to be any of the reserved IDs you might think of.
@@ -328,12 +320,6 @@ This event is triggered before new model is stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onModelAfterCreate.subscribe(async ({ model }) => {
     /**
      * For example, you want to notify another system about new model.
@@ -358,12 +344,6 @@ This event is triggered before newly cloned model is stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onModelBeforeCreateFrom.subscribe(async ({ original, model }) => {
     /**
      * For example, you want to clone only to another locale.
@@ -391,12 +371,6 @@ This event is triggered after newly cloned model is stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onModelAfterCreateFrom.subscribe(async ({ original, model }) => {
     /**
      * For example, notify another system about cloned model.
@@ -421,12 +395,6 @@ This event is triggered before model is changed and stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onModelBeforeUpdate.subscribe(async ({ model }) => {
     /**
      * For example, you want to leave all fields unlocked on all the models (you should never do that, of course, but you can if you want to).
@@ -451,12 +419,6 @@ This event is triggered after model is changed and stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onModelAfterUpdate.subscribe(async ({ original, model }) => {
     /**
      * For example, you want to notify another system about model update.
@@ -480,12 +442,6 @@ This event is triggered before model is deleted from the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onModelBeforeDelete.subscribe(async ({ model }) => {
     /**
      * For example, you do not want to allow deletion of any model.
@@ -509,17 +465,34 @@ This event is triggered after model is deleted from the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onModelAfterDelete.subscribe(async ({ model }) => {
     /**
      * For example, you want to notify another system about deleted model.
      */
     await notifyAnotherSystemAboutDeletedModel({ model });
+  });
+});
+```
+
+### onModelDeleteError
+
+This event is triggered on model delete error.
+
+#### Event arguments
+
+| Property | Description                    |
+| -------- | ------------------------------ |
+| Model    | Model object which was going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelDeleteError.subscribe(async ({ model }) => {
+    /**
+     * For example, notify another system that model could not be deleted.
+     */
+    await notifyAnotherSystemAboutModelDeleteError({ model });
   });
 });
 ```
@@ -549,12 +522,6 @@ This event is triggered before entry is stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryBeforeCreate.subscribe(async ({ model, entry }) => {
     /**
      * For example, your entry has a "slug" field, which must be unique. So we check if it is.
@@ -591,12 +558,6 @@ This event is triggered after entry is stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryAfterCreate.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about new entry.
@@ -623,12 +584,6 @@ This event is triggered before a new entry is created from originating entry and
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryBeforeCreateRevision.subscribe(async ({ model, entry }) => {
     /**
      * For example, your entry has a "slug" field, which must be unique, but not within the entryId constraint.
@@ -668,12 +623,6 @@ This event is triggered after a new entry is created from originating entry and 
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryAfterCreateRevision.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about new entry.
@@ -700,12 +649,6 @@ This event is triggered before entry is changed and stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryBeforeUpdate.subscribe(async ({ model, entry }) => {
     /**
      * For example, your entry has a "slug" field, which must be unique, but not within the entryId constraint.
@@ -745,12 +688,6 @@ This event is triggered after entry is changed and stored into the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryAfterUpdate.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about updated entry.
@@ -775,12 +712,6 @@ This event is triggered before all entry revisions are deleted from the database
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryBeforeDelete.subscribe(async ({ model, entry }) => {
     /**
      * For example, you do not allow entry with slug "index" to be deleted.
@@ -808,12 +739,6 @@ This event is triggered after all entry revisions are deleted from the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryAfterDelete.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about deleted entry.
@@ -838,12 +763,6 @@ This event is triggered before entry revision is deleted from the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryBeforeDeleteRevision.subscribe(async ({ model, entry }) => {
     /**
      * For example, you do not allow entry with version 1 to be deleted.
@@ -871,12 +790,6 @@ This event is triggered after entry revision is deleted from the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryAfterDeleteRevision.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about deleted entry.
@@ -901,12 +814,6 @@ This event is triggered before entry is published.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryBeforePublish.subscribe(async ({ model, entry }) => {
     /**
      * For example, you do not allow entry with version 1 to be published.
@@ -934,12 +841,6 @@ This event is triggered after entry is published.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryAfterPublish.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about published entry.
@@ -964,12 +865,6 @@ This event is triggered before entry is unpublished.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryBeforeUnpublish.subscribe(async ({ model, entry }) => {
     /**
      * For example, you do not allow entry with version 1 to be unpublished.
@@ -997,12 +892,6 @@ This event is triggered after entry is unpublished.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryAfterUnpublish.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about unpublished entry.
@@ -1027,12 +916,6 @@ This event is triggered before request changes entry object is stored to the dat
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryBeforeRequestChanges.subscribe(async ({ model, entry }) => {
     /**
      * For example, you do not allow to request changes on entry with version 1.
@@ -1060,12 +943,6 @@ This event is triggered after request changes entry object is stored to the data
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryAfterRequestChanges.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about requested changes on entry.
@@ -1090,12 +967,6 @@ This event is triggered before request review entry object is stored to the data
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryBeforeRequestReview.subscribe(async ({ model, entry }) => {
     /**
      * For example, you do not allow to request review on entry with version 1.
@@ -1123,12 +994,6 @@ This event is triggered after request review entry object is stored to the datab
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  /**
-   * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-   */
-  if (!context.cms) {
-    return;
-  }
   context.cms.onEntryAfterRequestReview.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about requested review on entry.
