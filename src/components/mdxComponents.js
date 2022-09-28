@@ -24,13 +24,13 @@ export const mdxComponents = {
             );
         } else {
             if (typeof props.children === "object") {
-                if (props.children.props.originalType == "inlineCode") {
+                if (props.children.props.originalType === "inlineCode") {
                     return (
                         <code>
                             <Link href={props.href}>{props.children.props.children}</Link>
                         </code>
                     );
-                } else if (props.children.props.originalType == "img") {
+                } else if (props.children.props.originalType === "img") {
                     return (
                         <a target={"_blank"} href={props.href} rel={"noreferrer"}>
                             <img src={props.href} />
