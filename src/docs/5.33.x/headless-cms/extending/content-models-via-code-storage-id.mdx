@@ -38,4 +38,125 @@ Here are few examples how the `storageId` property value looks like this:
 
 We are basically joining the field `type` and the `id` properties, because it makes it easier to target the specific field types with custom mappings in the Elasticsearch system deployment.
 
-The `storageId`  value is immutable, and it should never change, no matter what.
+The `storageId` value should never change, no matter what - you will lose data otherwise.
+
+### Do I Need To Define the `storageId` When Defining the CMS Model Plugin?
+
+Simply, no, you should not define the `storageId` property as we generate that value automatically.  
+
+## Upgrading CMS Model Plugin Definitions
+
+<Alert type="info">
+  If your CMS Model plugins were created with v5.33.0 or later, you can skip this part.
+</Alert>
+
+For the existing definitions, prior to the v5.33.0, of the `CmsModelPlugin` you **MUST** add the `storageId` property to every field you have defined.
+We create a `storageId` automatically, but for your existing models you want to have the `storageId` values set to the existing `fieldId` value.
+
+So, for example, if you have a model defined:
+
+```typescript
+const myModel = new CmsModelPlugin({
+    modelId: "myModel",
+    fields: [
+        {
+            id: "id",
+            type: "number",
+            fieldId: "id",
+            label: "ID",
+            settings: {}
+        },
+        {
+            id: "title",
+            type: "text",
+            fieldId: "title",
+            label: "Title",
+            settings: {}
+        },
+        {
+            id: "myObjectField",
+            type: "object",
+            fieldId: "myObjectField",
+            label: "My Object Field",
+            settings: {
+                fields: [
+                    {
+                        id: "date",
+                        type: "datetime",
+                        fieldId: "date",
+                        label: "Date",
+                        settings: {
+                            type: "date"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    layout: [],
+    group: {
+        id: "group",
+        name: "Group"
+    },
+    name: "My Model",
+    description: "",
+    titleFieldId: "title"
+})
+```
+
+You will need to add the `storageId` property to each of the fields. Don't forget the nested fields in the `object` type field.
+
+```typescript
+new CmsModelPlugin({
+    modelId: "myModel",
+    fields: [
+        {
+            id: "id",
+            type: "number",
+            fieldId: "id",
+            label: "ID",
+            storageId: "id",// <-- MUST be set to "id"
+            settings: {}
+        },
+        {
+            id: "title",
+            type: "text",
+            fieldId: "title",
+            label: "Title",
+            storageId: "title",// <-- MUST be set to "title"
+            settings: {}
+        },
+        {
+            id: "myObjectField",
+            type: "object",
+            fieldId: "myObjectField",
+            label: "My Object Field",
+            storageId: "myObjectField", // <-- MUST be set to "myObjectField"
+            settings: {
+                fields: [
+                    {
+                        id: "date",
+                        type: "datetime",
+                        fieldId: "date",
+                        label: "Date",
+                        storageId: "date", // <-- MUST be set to "date"
+                        settings: {
+                            type: "date"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    layout: [],
+    group: {
+        id: "group",
+        name: "Group"
+    },
+    name: "My Model",
+    description: "",
+    titleFieldId: "title"
+})
+```
+
+If you forget to do this after the upgrade to the v5.33.0, you will not get any data back from your queries.
