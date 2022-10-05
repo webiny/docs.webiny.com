@@ -11,7 +11,9 @@ export const Page = () => {
     const { Article, Layout, title, description, shareCard, ...page } = usePage();
     const router = useRouter();
 
-    const socialShareCard = shareCard ? `https://www.webiny.com/images/${shareCard}` : `https://www.webiny.com${socialCardLarge}`
+    const socialShareCard = shareCard
+        ? `https://www.webiny.com/images/${shareCard}`
+        : `https://www.webiny.com${socialCardLarge}`;
 
     return (
         <>
@@ -21,11 +23,7 @@ export const Page = () => {
                 <meta key="twitter:site" name="twitter:site" content="@WebinyCMS" />
                 <meta key="twitter:description" name="twitter:description" content={description} />
                 <meta name="description" content={description} />
-                <meta
-                    key="twitter:image"
-                    name="twitter:image"
-                    content={socialShareCard}
-                />
+                <meta key="twitter:image" name="twitter:image" content={socialShareCard} />
                 <meta key="twitter:creator" name="twitter:creator" content="@WebinyCMS" />
                 <meta
                     key="og:url"
@@ -34,11 +32,7 @@ export const Page = () => {
                 />
                 <meta key="og:type" property="og:type" content="article" />
                 <meta key="og:description" property="og:description" content={description} />
-                <meta
-                    key="og:image"
-                    property="og:image"
-                    content={socialShareCard}
-                />
+                <meta key="og:image" property="og:image" content={socialShareCard} />
                 <meta name="docsearch:language" content="en" />
                 <meta name="docsearch:version" content={page.algoliaVersions} />
                 <link
