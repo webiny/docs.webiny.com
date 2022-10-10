@@ -6,9 +6,102 @@ description: See what's new in Webiny version 5.33.0.
 
 ## Headless CMS
 
-### CMS Model Field Aliases [#2611](https://github.com/webiny/webiny-js/pull/2611)
+### CMS Model Field Aliases ([#2611](https://github.com/webiny/webiny-js/pull/2611))
 
 Starting with the v5.33.0, we are allowing our users to change the `Field ID` (`fieldId`) property of the CMS Model Field definition, which serves as the field identifier in the GraphQL API and in the code.
 As the `fieldId` property is now changeable, we needed another property to identify the field in the database, so we introduced the `Storage ID` (`storageId`) property.
 
 If you have existing CMS Models defined via plugins, please read the **Upgrading CMS Model Plugin Definitions** of [this](/docs/headless-cms/extending/content-models-via-code-storage-id#upgrading-cms-model-plugin-definitions) article before you start the upgrade.
+
+
+## Development
+
+### No Longer Enforcing UTF8 Encoding During Deployment ([#2635](https://github.com/webiny/webiny-js/pull/2635))
+
+During the deployment of frontend React applications, all files that would get uploaded to an Amazon S3 bucket would get encoded to UTF8. This caused problems to users that wanted to included additional non-text files in their React applications, like images, videos, and other.
+
+From now on, no encoding is forced. This will make it possible for users to include any type of a file within their application.
+
+### Webiny CLI - Providing the WCP API Key No Longer Requires the User to Log In ([#2674](https://github.com/webiny/webiny-js/pull/2674))
+
+Prior to this PR, if a user wanted to link their project with a Webiny Control Panel (WCP) project using an API key, Webiny CLI would still ask the user to log in. 
+
+This should not happen. So, from now on, if an API key was provided, Webiny CLI won't ask the user to log in.   
+
+
+<Alert type="info" title="How To Upgrade?">
+
+To learn more about different methods of linking a Webiny project with Webiny Control Panel (WCP), please check out the [Link a project](/docs/wcp/link-a-project#ci-cd-environment) article.
+
+</Alert>
+
+                                                                                                                                                                                              
+### Webiny CLI - Deprecated `init` Command In Favor Of `link` ([#2675](https://github.com/webiny/webiny-js/pull/2675))
+
+We've deprecated the `webiny project init` Webiny CLI command in favor of `webiny project link`. 
+
+We believe that the latter is more in line with Webiny Control Panel (WCP)'s terminology and, ultimately, is simply clearer to the user.
+
+For backwards compatibility, we didn't remove the `webiny project init` Webiny CLI command just yet, but will probably do in one of the future releases. 
+
+
+
+### Cloud Infrastructure (Pulumi) Code - Conditional Return of Parameters ([#2669](https://github.com/webiny/webiny-js/pull/2669))
+
+Sometimes, within their cloud infrastructure (Pulumi) code, users have the need to either assign a value to a specific Pulumi app parameter, or leave it blank (`undefined`). 
+
+Let's consider the following example:
+
+```ts apps/website/webiny.application.ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteApp({
+    domains: () => {
+        const customDomainAliases = process.env["CUSTOM_WEBSITE_DOMAIN_ALIASES"];
+        const viewerCertificateArn = process.env["VIEWER_CERTIFICATE_ARN"];
+        const usingCustomDomain = customDomainAliases && viewerCertificateArn;
+
+        // If using a custom domain, return required object.
+        if (usingCustomDomain) {
+            const aliases = customDomainAliases.split(",");
+            return {
+                domains: aliases,
+                acmCertificateArn: viewerCertificateArn,
+                sslSupportMethod: "sni-only"
+            };
+        }
+
+        // If not using custom domains, don't do anything. Return `undefined`.
+        return undefined;
+    }
+});
+```
+
+In this example, if a custom domain is being used, we return the required object from the `domains` callback function. Otherwise, we return `undefined`, to simply signal no custom domain needs to be used.
+
+Previously this wasn't possible. The user had to return the required object as that was the return type of the `domains` callback function.
+ 
+Returning `undefined` is now allowed for all parameters, within all Pulumi apps (all `webiny.application.ts` files) in your Webiny project.
+
+--- 
+
+### Website App Config - Introduce previewDomains Config Param ([#2670](https://github.com/webiny/webiny-js/pull/2670))
+
+TODO
+
+### Webpack Config - Remove Environment Variables From DefinePlugin ([#2660](https://github.com/webiny/webiny-js/pull/2660))
+
+TODO
+
+### Add CmsContext In GraphQL Packages ([#2658](https://github.com/webiny/webiny-js/pull/2658))
+
+TODO
+
+### Enable Multi-tenancy If WEBINY_MULTI_TENANCY Environment Variable Is Present ([#2657](https://github.com/webiny/webiny-js/pull/2657))
+
+TODO
+
+### Core Pulumi App - Only Use AWSLambdaVPCAccessExecutionRole Policy If VPC Feature Is Enabled ([#2646](https://github.com/webiny/webiny-js/pull/2646))
+
+TODO
+
