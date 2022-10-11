@@ -1,4 +1,4 @@
-const { blue, green, red, gray } = require("chalk");
+const { red } = require("chalk");
 const path = require("path");
 const fs = require("fs-extra");
 const versions = require("./src/data/versions.json");
