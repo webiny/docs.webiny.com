@@ -5,6 +5,7 @@ description: See what's new in Webiny version 5.33.0.
 ---
 
 import debugAwsAuthErrors from "./assets/debug-aws-auth-errors.png";
+import cmsContext from "./assets/cms-context.png";
 
 ## Headless CMS
 
@@ -18,20 +19,20 @@ If you have existing CMS Models defined via plugins, please read the **Upgrading
 
 ## Development
 
-### No Longer Enforcing UTF8 Encoding During Deployment ([#2635](https://github.com/webiny/webiny-js/pull/2635))
+### No Longer Enforcing UTF8 Encoding While Deploying Admin and Website Apps ([#2635](https://github.com/webiny/webiny-js/pull/2635))
 
-During the deployment of frontend React applications, all files that would get uploaded to an Amazon S3 bucket would get encoded to UTF8. This caused problems to users that wanted to included additional non-text files in their React applications, like images, videos, and other.
+During the deployment of **Admin** and **Website** apps, all files that would get uploaded to an Amazon S3 bucket would get encoded to the UTF-8 encoding. This caused problems to users that wanted to included additional non-text files in their React applications, like images, videos, and other.
 
-From now on, no encoding is forced. This will make it possible for users to include any type of a file within their application.
+From now on, no encoding will be applied. This will make it possible for users to include any type of a file within their application.
 
 ### Webiny CLI - Providing the WCP API Key No Longer Requires the User to Log In ([#2674](https://github.com/webiny/webiny-js/pull/2674))
 
-Prior to this PR, if a user wanted to link their project with a Webiny Control Panel (WCP) project using an API key, Webiny CLI would still ask the user to log in. 
+Prior to this PR, if a user wanted to link their project with Webiny Control Panel (WCP) using an API key, Webiny CLI would still ask the user to log in. 
 
 This should not happen. So, from now on, if an API key was provided, Webiny CLI won't ask the user to log in.   
 
 
-<Alert type="info" title="How To Upgrade?">
+<Alert type="info" title="Linking a Webiny Project">
 
 To learn more about different methods of linking a Webiny project with Webiny Control Panel (WCP), please check out the [Link a project](/docs/wcp/link-a-project#ci-cd-environment) article.
 
@@ -42,16 +43,16 @@ To learn more about different methods of linking a Webiny project with Webiny Co
 
 We've deprecated the `webiny project init` Webiny CLI command in favor of `webiny project link`. 
 
-We believe that the latter is more in line with Webiny Control Panel (WCP)'s terminology and, ultimately, is simply clearer to the user.
+We believe that the latter is more in line with Webiny Control Panel (WCP)'s terminology and, ultimately, will be more clear for the user.
 
-For backwards compatibility, we didn't remove the `webiny project init` Webiny CLI command just yet, but will probably do in one of the future releases. 
+To preserve backwards compatibility, `webiny project init` Webiny CLI command hasn't been removed just yet (but will probably be removed in one of the future releases). 
 
 
-### Website Project Application - Introduce `previewDomains` Parameter ([#2670](https://github.com/webiny/webiny-js/pull/2670))
+### Website app - Introduce `previewDomains` Parameter ([#2670](https://github.com/webiny/webiny-js/pull/2670))
 
-On a couple of occasions, we've seen users have the need to specify a custom domain not only for the public-facing website, but also for the internal React application, used for prerendering purposes.
+On a couple of occasions, we've seen users have the need to specify a custom domain not only for their public-facing website (the **Website** app), but also for the internal React application, used for prerendering purposes.
 
-Using the newly introduced `previewDomains` parameter, the internal React application can now also be linked with a custom domain. It's as easy as doing the following:
+Using the newly introduced `previewDomains` parameter, the internal React application can now also be linked with a custom domain. For example:
 
 ```ts apps/website/webiny.application.ts
 import { createWebsiteApp } from "@webiny/serverless-cms-aws";
@@ -73,7 +74,7 @@ export default createWebsiteApp({
 
 ### Cloud Infrastructure (Pulumi) Code - Conditional Configuration ([#2669](https://github.com/webiny/webiny-js/pull/2669))
 
-On a couple of occasions, we've seen users having the need to conditionally apply different configurations within their project's cloud infrastructure (Pulumi) code. While this was possible prior to this release, it did require a bit of code restructuring in the `webiny.application.ts` file. But that is no longer the case.  
+On a couple of occasions, we've seen users have the need to conditionally apply different cloud infrastructure (Pulumi) configurations within different apps. While this was already possible prior to this release, it did require a bit of code restructuring in the `webiny.application.ts` file. But that is no longer the case.  
 
 The following example shows how users, depending on a condition, can easily apply different configurations within their project's cloud infrastructure (Pulumi) code.  
 
@@ -104,7 +105,7 @@ export default createWebsiteApp({
 
 In this example, we can see that if a custom domain is being used (set via environment variables), we return the required object from the `domains` callback function. Otherwise, we return `undefined`, to simply signal no custom domain needs to be used.
 
-<Alert type="info" title="How To Upgrade?">
+<Alert type="info" title="Available For All Apps">
 
 Returning `undefined` is now allowed for all parameters (all `webiny.application.ts` files) in your Webiny project.
 
@@ -116,29 +117,45 @@ While extending the default or Headless CMS GraphQL APIs, in your application co
 
 For this release, we've further improved the interface, by extending it with the missing `CmsContext`. This means that, from now on, when utilizing the Headless CMS functionality in your plugins, you should be able to receive type-safety and auto-complete functionality within your IDE.
 
-<Alert type="info" title="How To Upgrade?">
+The following example shows the introduced change in action.
+
+```ts apps/api/graphql/src/plugins/customContextPlugin.ts
+import { ContextPlugin } from "@webiny/api";
+
+// By passing the `Context` interface to the `ContextPlugin` plugin, we
+// receive type safety and auto-complete functionality from our IDE.
+import { Context } from "~/types";
+
+export const customContextPlugin = new ContextPlugin<Context>((context) => {
+    // Accessing the `context.cms` should now be type safe.
+    // context.cms.... 
+});
+
+```
+
+<Image src={cmsContext} title="Type-safety and Auto-Complete When Accessing the `cms` Context Property"/>
+
+<Alert type="info" title="Additional Information">
 
 In case you missed it, while creating new [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) and [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/handler/src/plugins/ContextPlugin.ts#L7) plugins, the `Context` interface helps us achieve type-safety and enriches the development experience by enabling auto-complete functionality within our IDE. The interface is exported from [`apps/api/graphql/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/graphql/src/types.ts) and [`apps/api/headlessCMS/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/headlessCMS/src/types.ts) files. 
 
 </Alert>
 
-
-
 ### Enable Multi-tenancy If `WEBINY_MULTI_TENANCY` Environment Variable Is Present ([#2657](https://github.com/webiny/webiny-js/pull/2657))
 
-At the moment, the multi-tenancy feature is enabled as soon as a Webiny project is linked with Webiny Control Panel (WCP). But, for backwards compatibility purposes, this can also be achieved by setting the  `WEBINY_MULTI_TENANCY` environment variable to `true`. 
+At the moment, the multi-tenancy feature is enabled as soon as a Webiny project is linked with Webiny Control Panel (WCP). Additionally, for older projects (versions 5.28.0 and lower), this can also be achieved by setting the  `WEBINY_MULTI_TENANCY` environment variable to `true`. 
 
-But, upon performing additional tests, we've noticed that this environment wasn't being taken into consideration upon deploying the **Website** project application. 
+But, upon performing additional tests, we've noticed that this environment wasn't being taken into consideration upon deploying the **Website** app. 
 
-This has now been addressed. If you're relying on the `WEBINY_MULTI_TENANCY` environment variable to enable multi-tenancy, the **Website** project application should now also work as expected.
+This has now been addressed. If you're relying on the `WEBINY_MULTI_TENANCY` environment variable to enable multi-tenancy, the **Website** app should now also work as expected.
 
 ### Only Use `AWSLambdaVPCAccessExecutionRole` Policy If VPC Feature Is Enabled ([#2646](https://github.com/webiny/webiny-js/pull/2646))
 
-Prior to this release, all AWS Lambda functions would receive the `AWSLambdaVPCAccessExecutionRole` IAM policy, even if the Webiny project hasn't been deployed with the VPC option enabled.
+Prior to this release, deployed AWS Lambda functions would receive the `AWSLambdaVPCAccessExecutionRole` managed IAM policy, even if the Webiny project hasn't been deployed with the VPC option enabled.
 
-This issue has been addressed. Upon doing a new deployment, you can expect to see your `AWSLambdaVPCAccessExecutionRole` IAM policies to be replaced with the basic `AWSLambdaBasicExecutionRole` IAM policy.
+This issue has been addressed. Upon doing a new deployment, you can expect to see your `AWSLambdaVPCAccessExecutionRole` managed IAM policies replaced with the base `AWSLambdaBasicExecutionRole` managed IAM policy.
 
-<Alert type="info" title="How To Upgrade?">
+<Alert type="info" title="Additional Information">
 
 With the VPC option enabled or with the production deployment mode, the `AWSLambdaVPCAccessExecutionRole` policy will still be used, as usual. 
 
