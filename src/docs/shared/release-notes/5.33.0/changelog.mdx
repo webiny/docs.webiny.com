@@ -4,6 +4,8 @@ title: Webiny 5.33.0 Changelog
 description: See what's new in Webiny version 5.33.0.
 ---
 
+import debugAwsAuthErrors from "./assets/debug-aws-auth-errors.png";
+
 ## Headless CMS
 
 ### CMS Model Field Aliases ([#2611](https://github.com/webiny/webiny-js/pull/2611))
@@ -45,12 +47,35 @@ We believe that the latter is more in line with Webiny Control Panel (WCP)'s ter
 For backwards compatibility, we didn't remove the `webiny project init` Webiny CLI command just yet, but will probably do in one of the future releases. 
 
 
+### Website Project Application - Introduce `previewDomains` Parameter ([#2670](https://github.com/webiny/webiny-js/pull/2670))
 
-### Cloud Infrastructure (Pulumi) Code - Conditional Return of Parameters ([#2669](https://github.com/webiny/webiny-js/pull/2669))
+On a couple of occasions, we've seen users have the need to specify a custom domain not only for the public-facing website, but also for the internal React application, used for prerendering purposes.
 
-Sometimes, within their cloud infrastructure (Pulumi) code, users have the need to either assign a value to a specific Pulumi app parameter, or leave it blank (`undefined`). 
+Using the newly introduced `previewDomains` parameter, the internal React application can now also be linked with a custom domain. It's as easy as doing the following:
 
-Let's consider the following example:
+```ts apps/website/webiny.application.ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws";
+import { tagResources } from "@webiny/pulumi-aws";
+
+export default createWebsiteApp({
+    // This was already supported in prior versions.
+    domains: { ... },
+    
+    // Use this to link the internal React application with a custom domain.
+    previewDomains: {
+        domains: ["example.com"],
+        acmCertificateArn: 'xyz:123:aws:...',
+        sslSupportMethod: "sni-only"
+    }
+});
+
+```
+
+### Cloud Infrastructure (Pulumi) Code - Conditional Configuration ([#2669](https://github.com/webiny/webiny-js/pull/2669))
+
+On a couple of occasions, we've seen users having the need to conditionally apply different configurations within their project's cloud infrastructure (Pulumi) code. While this was possible prior to this release, it did require a bit of code restructuring in the `webiny.application.ts` file. But that is no longer the case.  
+
+The following example shows how users, depending on a condition, can easily apply different configurations within their project's cloud infrastructure (Pulumi) code.  
 
 ```ts apps/website/webiny.application.ts
 import { createWebsiteApp } from "@webiny/serverless-cms-aws";
@@ -77,31 +102,55 @@ export default createWebsiteApp({
 });
 ```
 
-In this example, if a custom domain is being used, we return the required object from the `domains` callback function. Otherwise, we return `undefined`, to simply signal no custom domain needs to be used.
+In this example, we can see that if a custom domain is being used (set via environment variables), we return the required object from the `domains` callback function. Otherwise, we return `undefined`, to simply signal no custom domain needs to be used.
 
-Previously this wasn't possible. The user had to return the required object as that was the return type of the `domains` callback function.
- 
-Returning `undefined` is now allowed for all parameters, within all Pulumi apps (all `webiny.application.ts` files) in your Webiny project.
+<Alert type="info" title="How To Upgrade?">
 
---- 
+Returning `undefined` is now allowed for all parameters (all `webiny.application.ts` files) in your Webiny project.
 
-### Website App Config - Introduce previewDomains Config Param ([#2670](https://github.com/webiny/webiny-js/pull/2670))
+</Alert>
 
-TODO
+### Added `CmsContext` To the `Context` Interface ([#2658](https://github.com/webiny/webiny-js/pull/2658))
 
-### Webpack Config - Remove Environment Variables From DefinePlugin ([#2660](https://github.com/webiny/webiny-js/pull/2660))
+While extending the default or Headless CMS GraphQL APIs, in your application code, you might've already utilized the `Context` interface, exported from [`apps/api/graphql/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/graphql/src/types.ts) and [`apps/api/headlessCMS/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/headlessCMS/src/types.ts) files. 
 
-TODO
+For this release, we've further improved the interface, by extending it with the missing `CmsContext`. This means that, from now on, when utilizing the Headless CMS functionality in your plugins, you should be able to receive type-safety and auto-complete functionality within your IDE.
 
-### Add CmsContext In GraphQL Packages ([#2658](https://github.com/webiny/webiny-js/pull/2658))
+<Alert type="info" title="How To Upgrade?">
 
-TODO
+In case you missed it, while creating new [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) and [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/handler/src/plugins/ContextPlugin.ts#L7) plugins, the `Context` interface helps us achieve type-safety and enriches the development experience by enabling auto-complete functionality within our IDE. The interface is exported from [`apps/api/graphql/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/graphql/src/types.ts) and [`apps/api/headlessCMS/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/headlessCMS/src/types.ts) files. 
 
-### Enable Multi-tenancy If WEBINY_MULTI_TENANCY Environment Variable Is Present ([#2657](https://github.com/webiny/webiny-js/pull/2657))
+</Alert>
 
-TODO
 
-### Core Pulumi App - Only Use AWSLambdaVPCAccessExecutionRole Policy If VPC Feature Is Enabled ([#2646](https://github.com/webiny/webiny-js/pull/2646))
 
-TODO
+### Enable Multi-tenancy If `WEBINY_MULTI_TENANCY` Environment Variable Is Present ([#2657](https://github.com/webiny/webiny-js/pull/2657))
 
+At the moment, the multi-tenancy feature is enabled as soon as a Webiny project is linked with Webiny Control Panel (WCP). But, for backwards compatibility purposes, this can also be achieved by setting the  `WEBINY_MULTI_TENANCY` environment variable to `true`. 
+
+But, upon performing additional tests, we've noticed that this environment wasn't being taken into consideration upon deploying the **Website** project application. 
+
+This has now been addressed. If you're relying on the `WEBINY_MULTI_TENANCY` environment variable to enable multi-tenancy, the **Website** project application should now also work as expected.
+
+### Only Use `AWSLambdaVPCAccessExecutionRole` Policy If VPC Feature Is Enabled ([#2646](https://github.com/webiny/webiny-js/pull/2646))
+
+Prior to this release, all AWS Lambda functions would receive the `AWSLambdaVPCAccessExecutionRole` IAM policy, even if the Webiny project hasn't been deployed with the VPC option enabled.
+
+This issue has been addressed. Upon doing a new deployment, you can expect to see your `AWSLambdaVPCAccessExecutionRole` IAM policies to be replaced with the basic `AWSLambdaBasicExecutionRole` IAM policy.
+
+<Alert type="info" title="How To Upgrade?">
+
+With the VPC option enabled or with the production deployment mode, the `AWSLambdaVPCAccessExecutionRole` policy will still be used, as usual. 
+
+To learn more about different deployment modes, check out the [Deployment Modes](/docs/{version}/architecture/deployment-modes/introduction) article.
+
+</Alert>
+
+
+### Webiny CLI - Easier to Debug AWS-related Auth Errors ([#2677](https://github.com/webiny/webiny-js/pull/2677))
+
+Upon running the [`webiny deploy`](/docs/{version}/how-to-guides/deployment/deploy-your-project/) command, if a user experienced an AWS auth-related error, it was hard to debug it. Mainly because the actual underlying error wasn't printed in the terminal, even in the presence of the `--debug` flag. 
+
+That is no longer the case. From now on, by passing the `--debug` flag upon running the command, users will be able to see the actual underlying error and, hopefully, resolve the issue faster than before.  
+  
+<Image src={debugAwsAuthErrors} title="Debugging AWS Auth-related Errors" />
