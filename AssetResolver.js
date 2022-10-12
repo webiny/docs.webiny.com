@@ -1,4 +1,4 @@
-const { blue, green, red, gray } = require("chalk");
+const { red } = require("chalk");
 const path = require("path");
 const fs = require("fs-extra");
 const versions = require("./src/data/versions.json");
@@ -56,7 +56,7 @@ module.exports.AssetResolver = class AssetResolver {
             .concat("shared");
         // Try resolving every version, starting with the current page version.
         // Versions are ordered in descending order by default.
-        console.log(`Resolving asset "${blue(request.request)}" from "${blue(page.fullPath)}"`);
+        // console.log(`Resolving asset "${blue(request.request)}" from "${blue(page.fullPath)}"`);
         for (const version of possibleVersions) {
             const versionFreePath = page.relativePath.match(/\/(?:\d+\.\d+\.\w+\/)?(.*)/)[1];
             const pageDir = path.dirname(
@@ -66,10 +66,10 @@ module.exports.AssetResolver = class AssetResolver {
             const assetPath = path.join(pageDir, request.request);
 
             if (fs.pathExistsSync(assetPath)) {
-                console.log(`\t ✅ ${green(rootify(assetPath))}`);
+                // console.log(`\t ✅ ${green(rootify(assetPath))}`);
                 return assetPath;
             } else {
-                console.log(`\t - ${gray(rootify(assetPath))}`);
+                // console.log(`\t - ${gray(rootify(assetPath))}`);
             }
         }
 
