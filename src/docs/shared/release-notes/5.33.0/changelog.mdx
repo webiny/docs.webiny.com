@@ -1,0 +1,174 @@
+---
+id: changelog
+title: Webiny 5.33.0 Changelog
+description: See what's new in Webiny version 5.33.0.
+---
+
+import debugAwsAuthErrors from "./assets/debug-aws-auth-errors.png";
+import cmsContext from "./assets/cms-context.png";
+
+## Headless CMS
+
+### CMS Model Field Aliases ([#2611](https://github.com/webiny/webiny-js/pull/2611))
+
+Starting with the v5.33.0, we are allowing our users to change the `Field ID` (`fieldId`) property of the CMS Model Field definition, which serves as the field identifier in the GraphQL API and in the code.
+As the `fieldId` property is now changeable, we needed another property to identify the field in the database, so we introduced the `Storage ID` (`storageId`) property.
+
+If you have existing CMS Models defined via plugins, please read the **Upgrading CMS Model Plugin Definitions** of [this](/docs/headless-cms/extending/content-models-via-code-storage-id#upgrading-cms-model-plugin-definitions) article before you start the upgrade.
+
+## Development
+
+### No Longer Enforcing UTF8 Encoding While Deploying Admin and Website Apps ([#2635](https://github.com/webiny/webiny-js/pull/2635))
+
+During the deployment of **Admin** and **Website** apps, all files that would get uploaded to an Amazon S3 bucket would get encoded to the UTF-8 encoding. This caused problems to users that wanted to included additional non-text files in their React applications, like images, videos, and other.
+
+From now on, no encoding will be applied. This will make it possible for users to include any type of a file within their application.
+
+### Webiny CLI - Providing the WCP API Key No Longer Requires the User to Log In ([#2674](https://github.com/webiny/webiny-js/pull/2674))
+
+Prior to this PR, if a user wanted to link their project with Webiny Control Panel (WCP) using an API key, Webiny CLI would still ask the user to log in.
+
+This should not happen. So, from now on, if an API key was provided, Webiny CLI won't ask the user to log in.
+
+<Alert type="info" title="Linking a Webiny Project">
+
+To learn more about different methods of linking a Webiny project with Webiny Control Panel (WCP), please check out the [Link a project](/docs/wcp/link-a-project#ci-cd-environment) article.
+
+</Alert>
+
+### Webiny CLI - Deprecated `init` Command In Favor Of `link` ([#2675](https://github.com/webiny/webiny-js/pull/2675))
+
+We've deprecated the `webiny project init` Webiny CLI command in favor of `webiny project link`.
+
+We believe that the latter is more in line with Webiny Control Panel (WCP)'s terminology and, ultimately, will be more clear for the user.
+
+To preserve backwards compatibility, `webiny project init` Webiny CLI command hasn't been removed just yet (but will probably be removed in one of the future releases).
+
+### Website app - Introduce `previewDomains` Parameter ([#2670](https://github.com/webiny/webiny-js/pull/2670))
+
+On a couple of occasions, we've seen users have the need to specify a custom domain not only for their public-facing website (the **Website** app), but also for the internal React application, used for prerendering purposes.
+
+Using the newly introduced `previewDomains` parameter, the internal React application can now also be linked with a custom domain. For example:
+
+```ts apps/website/webiny.application.ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws";
+import { tagResources } from "@webiny/pulumi-aws";
+
+export default createWebsiteApp({
+    // This was already supported in prior versions.
+    domains: { ... },
+
+    // Use this to link the internal React application with a custom domain.
+    previewDomains: {
+        domains: ["example.com"],
+        acmCertificateArn: 'xyz:123:aws:...',
+        sslSupportMethod: "sni-only"
+    }
+});
+
+```
+
+### Cloud Infrastructure (Pulumi) Code - Conditional Configuration ([#2669](https://github.com/webiny/webiny-js/pull/2669))
+
+On a couple of occasions, we've seen users have the need to conditionally apply different cloud infrastructure (Pulumi) configurations within different apps. While this was already possible prior to this release, it did require a bit of code restructuring in the `webiny.application.ts` file. But that is no longer the case.
+
+The following example shows how users, depending on a condition, can easily apply different configurations within their project's cloud infrastructure (Pulumi) code.
+
+```ts apps/website/webiny.application.ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteApp({
+  domains: () => {
+    const customDomainAliases = process.env["CUSTOM_WEBSITE_DOMAIN_ALIASES"];
+    const viewerCertificateArn = process.env["VIEWER_CERTIFICATE_ARN"];
+    const usingCustomDomain = customDomainAliases && viewerCertificateArn;
+
+    // If using a custom domain, return required object.
+    if (usingCustomDomain) {
+      const aliases = customDomainAliases.split(",");
+      return {
+        domains: aliases,
+        acmCertificateArn: viewerCertificateArn,
+        sslSupportMethod: "sni-only"
+      };
+    }
+
+    // If not using custom domains, don't do anything. Return `undefined`.
+    return undefined;
+  }
+});
+```
+
+In this example, we can see that if a custom domain is being used (set via environment variables), we return the required object from the `domains` callback function. Otherwise, we return `undefined`, to simply signal no custom domain needs to be used.
+
+<Alert type="info" title="Available For All Apps">
+
+Returning `undefined` is now allowed for all parameters (all `webiny.application.ts` files) in your Webiny project.
+
+</Alert>
+
+### Added `CmsContext` To the `Context` Interface ([#2658](https://github.com/webiny/webiny-js/pull/2658))
+
+While extending the default or Headless CMS GraphQL APIs, in your application code, you might've already utilized the `Context` interface, exported from [`apps/api/graphql/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/graphql/src/types.ts) and [`apps/api/headlessCMS/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/headlessCMS/src/types.ts) files.
+
+For this release, we've further improved the interface, by extending it with the missing `CmsContext`. This means that, from now on, when utilizing the Headless CMS functionality in your plugins, you should be able to receive type-safety and auto-complete functionality within your IDE.
+
+The following example shows the introduced change in action.
+
+```ts apps/api/graphql/src/plugins/customContextPlugin.ts
+import { ContextPlugin } from "@webiny/api";
+
+// By passing the `Context` interface to the `ContextPlugin` plugin, we
+// receive type safety and auto-complete functionality from our IDE.
+import { Context } from "~/types";
+
+export const customContextPlugin = new ContextPlugin<Context>(context => {
+  // Accessing the `context.cms` should now be type safe.
+  // context.cms....
+});
+```
+
+<Image
+  src={cmsContext}
+  title="Type-safety and Auto-Complete When Accessing the `cms` Context Property"
+/>
+
+<Alert type="info" title="Additional Information">
+
+In case you missed it, while creating new [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) and [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/handler/src/plugins/ContextPlugin.ts#L7) plugins, the `Context` interface helps us achieve type-safety and enriches the development experience by enabling auto-complete functionality within our IDE. The interface is exported from [`apps/api/graphql/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/graphql/src/types.ts) and [`apps/api/headlessCMS/src/types.ts`](https://github.com/webiny/webiny-js/blob/v5.33.0/packages/cwp-template-aws/template/ddb/apps/api/headlessCMS/src/types.ts) files.
+
+</Alert>
+
+### Only Use `AWSLambdaVPCAccessExecutionRole` Policy If VPC Feature Is Enabled ([#2646](https://github.com/webiny/webiny-js/pull/2646))
+
+Prior to this release, deployed AWS Lambda functions would receive the `AWSLambdaVPCAccessExecutionRole` managed IAM policy, even if the Webiny project hasn't been deployed with the VPC option enabled.
+
+This issue has been addressed. Upon doing a new deployment, you can expect to see your `AWSLambdaVPCAccessExecutionRole` managed IAM policies replaced with the base `AWSLambdaBasicExecutionRole` managed IAM policy.
+
+<Alert type="info" title="Additional Information">
+
+With the VPC option enabled or with the production deployment mode, the `AWSLambdaVPCAccessExecutionRole` policy will still be used, as usual.
+
+To learn more about different deployment modes, check out the [Deployment Modes](/docs/architecture/deployment-modes/introduction) article.
+
+</Alert>
+
+### Webiny CLI - Easier to Debug AWS-related Auth Errors ([#2677](https://github.com/webiny/webiny-js/pull/2677))
+
+Upon running the [`webiny deploy`](/docs/how-to-guides/deployment/deploy-your-project/) command, if a user experienced an AWS auth-related error, it was hard to debug it. Mainly because the actual underlying error wasn't printed in the terminal, even in the presence of the `--debug` flag.
+
+That is no longer the case. From now on, by passing the `--debug` flag upon running the command, users will be able to see the actual underlying error and, hopefully, resolve the issue faster than before.
+
+<Image src={debugAwsAuthErrors} title="Debugging AWS Auth-related Errors" />
+
+### Only Forward the `Host` Header in the Website App with Multi-Tenancy Enabled ([#2663](https://github.com/webiny/webiny-js/pull/2663))
+
+There was an issue with Cloudfront configuration, when linking custom domains with the Admin app, or an API, which was caused by mistakenly configuring the `Host` header forwarding to the origin. This is now fixed, and the `Host` header is only forwarded when the system is configured for multi-tenancy, which deploys a Lambda@Edge function to route website requests to the corresponding tenants, using their custom domains.
+
+### Make FileManager Composable ([#2664](https://github.com/webiny/webiny-js/pull/2664))
+
+Webiny ships with a [File Manager](/docs/overview/applications/file-manager), an asset management application. On several occasions, we've received inquiries about the possibility to replace the default File Manager component with a custom implementation.
+
+This is now possible, and you can completely override the default File Manager renderer, to implement your own digital asset manager, or just make a better UI using the same underlying GraphQL API.
+
+To learn more, check out this article on [File Manager customization](/docs/file-manager/extending/create-a-custom-file-manager-renderer).
