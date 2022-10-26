@@ -800,7 +800,7 @@ new ContextPlugin<CmsContext>(async context => {
 });
 ```
 
-### onEntryBeforeDeleteRevision
+### onEntryRevisionBeforeDelete
 
 This event is triggered before an entry revision is deleted from the database.
 
@@ -815,7 +815,7 @@ This event is triggered before an entry revision is deleted from the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  context.cms.onEntryBeforeDeleteRevision.subscribe(async ({ model, entry }) => {
+  context.cms.onEntryRevisionBeforeDelete.subscribe(async ({ model, entry }) => {
     /**
      * For example, you do not allow entry with version 1 to be deleted.
      */
@@ -827,7 +827,7 @@ new ContextPlugin<CmsContext>(async context => {
 });
 ```
 
-### onEntryAfterDeleteRevision
+### onEntryRevisionAfterDelete
 
 This event is triggered after an entry revision is deleted from the database.
 
@@ -842,7 +842,7 @@ This event is triggered after an entry revision is deleted from the database.
 
 ```typescript
 new ContextPlugin<CmsContext>(async context => {
-  context.cms.onEntryAfterDeleteRevision.subscribe(async ({ model, entry }) => {
+  context.cms.onEntryRevisionAfterDelete.subscribe(async ({ model, entry }) => {
     /**
      * For example, notify another system about deleted entry.
      */
@@ -953,107 +953,6 @@ new ContextPlugin<CmsContext>(async context => {
 });
 ```
 
-### onEntryBeforeRequestChanges
-
-This event is triggered before a request changes entry object is stored to the database.
-
-#### Event arguments
-
-| Property | Description                                           |
-| -------- | ----------------------------------------------------- |
-| entry    | Entry object which is going to be modified and stored |
-| model    | Model this entry belongs to                           |
-
-#### How to subscribe to this event?
-
-```typescript
-new ContextPlugin<CmsContext>(async context => {
-  context.cms.onEntryBeforeRequestChanges.subscribe(async ({ model, entry }) => {
-    /**
-     * For example, you do not allow to request changes on entry with version 1.
-     */
-    if (entry.version > 1) {
-      return;
-    }
-    throw new Error(`Cannot request changes on entry version 1. Not allowed!`);
-  });
-});
-```
-
-### onEntryAfterRequestChanges
-
-This event is triggered after a request changes entry object is stored to the database.
-
-#### Event arguments
-
-| Property | Description                                           |
-| -------- | ----------------------------------------------------- |
-| entry    | Entry object which is going to be modified and stored |
-| model    | Model this entry belongs to                           |
-
-#### How to subscribe to this event?
-
-```typescript
-new ContextPlugin<CmsContext>(async context => {
-  context.cms.onEntryAfterRequestChanges.subscribe(async ({ model, entry }) => {
-    /**
-     * For example, notify another system about requested changes on entry.
-     */
-    await notifyAnotherSystemAboutRequestedChangesOnEntry({ model, entry });
-  });
-});
-```
-
-### onEntryBeforeRequestReview
-
-This event is triggered before a request review entry object is stored to the database.
-
-#### Event arguments
-
-| Property | Description                                           |
-| -------- | ----------------------------------------------------- |
-| entry    | Entry object which is going to be modified and stored |
-| model    | Model this entry belongs to                           |
-
-#### How to subscribe to this event?
-
-```typescript
-new ContextPlugin<CmsContext>(async context => {
-  context.cms.onEntryBeforeRequestReview.subscribe(async ({ model, entry }) => {
-    /**
-     * For example, you do not allow to request review on entry with version 1.
-     */
-    if (entry.version > 1) {
-      return;
-    }
-    throw new Error(`Cannot request review on entry version 1. Not allowed!`);
-  });
-});
-```
-
-### onEntryAfterRequestReview
-
-This event is triggered after a request review entry object is stored to the database.
-
-#### Event arguments
-
-| Property | Description                                           |
-| -------- | ----------------------------------------------------- |
-| entry    | Entry object which is going to be modified and stored |
-| model    | Model this entry belongs to                           |
-
-#### How to subscribe to this event?
-
-```typescript
-new ContextPlugin<CmsContext>(async context => {
-  context.cms.onEntryAfterRequestReview.subscribe(async ({ model, entry }) => {
-    /**
-     * For example, notify another system about requested review on entry.
-     */
-    await notifyAnotherSystemAboutRequestedReviewOnEntry({ model, entry });
-  });
-});
-```
 
 <Alert type="danger">
 
@@ -1072,12 +971,6 @@ const handler = createHandler({
   plugins: [
     // ... rest of plugins
     new ContextPlugin<PbContext>(async context => {
-      /**
-       * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-       */
-      if (!context.cms) {
-        return;
-      }
       context.cms.onSystemBeforeInstall.subscribe(async ({ system }) => {
         // do your magic here
       });
@@ -1095,12 +988,6 @@ const handler = createHandler({
   plugins: [
     // ... rest of plugins
     new ContextPlugin<PbContext>(async context => {
-      /**
-       * There is no context.cms on options request, so we skip adding lifecycle event subscription.
-       */
-      if (!context.cms) {
-        return;
-      }
       context.cms.onEntryBeforeCreate.subscribe(async ({ entry }) => {
         // do your magic here
       });
@@ -1115,4 +1002,3 @@ Please be aware that the order of subscribing does matter: if you want some even
 
 </Alert>
 
-The check condition for `context.cms` will not be required starting with version 5.22.0.
