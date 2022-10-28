@@ -54,7 +54,7 @@ We will create the content group and content model by defining the `CmsGroupPlug
 Both plugins can be defined within a single file.  
 Let's create a [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/headlessCMS/src/plugins/models.ts) file in the `api/code/headlessCMS/src/plugins` directory.
 
-```ts api/code/headlessCMS/src/plugins/models.ts
+```ts api/headlessCMS/src/plugins/models.ts
 import { CmsGroupPlugin, CmsModelPlugin } from "@webiny/api-headless-cms";
 
 export default [
@@ -62,6 +62,7 @@ export default [
   new CmsGroupPlugin({
     id: "ecommerce",
     name: "E-Commerce",
+    description: "E-Commerce content model group",
     slug: "e-commerce",
     icon: "fas/shopping-cart"
   }),
@@ -70,6 +71,7 @@ export default [
   new CmsModelPlugin({
     name: "Product",
     modelId: "product",
+    description: "Product content model",
     group: {
       id: "ecommerce",
       name: "E-Commerce"
@@ -90,8 +92,8 @@ export default [
         ]
       },
       {
-        id: "productSKU",
-        fieldId: "productSKU",
+        id: "productSku",
+        fieldId: "productSku",
         type: "text",
         label: "SKU",
         placeholderText: "SKU = Stock Keeping Unit",
@@ -105,7 +107,7 @@ export default [
         renderer: { name: "text-input" }
       }
     ],
-    layout: [["productName"], ["productSKU", "productPrice"]],
+    layout: [["productName"], ["productSku", "productPrice"]],
     titleFieldId: "productName"
   })
 ];
@@ -125,9 +127,9 @@ Instead of just calling it "name", set the `id` to "productName".
 #### Register the Plugins
 
 As a next step, we will register the content model group and content model plugin in the Headless CMS application.
-Let's make the following changes in `api/code/headlessCMS/src/index.ts` file:
+Let's make the following changes in `api/headlessCMS/src/index.ts` file:
 
-```diff-js api/code/headlessCMS/src/index.ts
+```diff-js api/headlessCMS/src/index.ts
 (...)
 
 // Import the content model group and content model
@@ -138,7 +140,7 @@ export default [
      (...)
      createContentHeadlessCmsGraphQL({ debug }),
     scaffoldsPlugins(),
-+   eCommerceGroupAndModels
++   ...eCommerceGroupAndModels
 ];
 ```
 
@@ -183,11 +185,12 @@ Later, we will refer to this category model from the product model.
 As discussed earlier, we need to define a `CmsModelPlugin` plugin to create a model.
 Add the following code to the [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/headlessCMS/src/plugins/models.ts) file that we created earlier.
 
-```ts api/code/headlessCMS/src/plugins/models.ts
+```ts api/headlessCMS/src/plugins/models.ts
 // Defines a new "Category" content model.
 new CmsModelPlugin({
   name: "Category",
   modelId: "category",
+  description: "Product category."
   group: {
     id: "ecommerce",
     name: "E-Commerce"
@@ -224,7 +227,7 @@ You can explore all the available [field validators](https://github.com/webiny/w
 Now let's use the Category Model as a reference field in the Product model.
 We will update the Product model that we created earlier. The `ref` field type is used to create the reference field.
 
-```diff-js api/code/headlessCMS/src/plugins/models.ts
+```diff-js api/headlessCMS/src/plugins/models.ts
 export default [
   (...)
   fields: [
@@ -253,7 +256,7 @@ export default [
   ],
 
   // Add productCategory field in the layout
-+ layout: [["productName"], ["productSKU", "productPrice"], ["productCategory"]],
++ layout: [["productName"], ["productSku", "productPrice"], ["productCategory"]],
   titleFieldId: "productName"
   (...)
 ]
@@ -269,7 +272,7 @@ And you should be able to see the following Product model.
 
 In this example, we show how we can define content models and content model groups only for a specific locale, in our case, the `en-US`.
 
-```ts api/code/headlessCMS/src/plugins/models.ts
+```ts api/headlessCMS/src/plugins/models.ts
 import { CmsGroupPlugin, CmsModelPlugin } from "@webiny/api-headless-cms";
 import { CmsContext } from "@webiny/api-headless-cms/types";
 import { ContextPlugin } from "@webiny/handler";
@@ -305,7 +308,7 @@ In Admin Area, user's current local is sent with every issued HTTP request, via 
 
 In this example, we show how we can define content models and content model groups only for a specific tenant, in our case, the `root`.
 
-```ts api/code/headlessCMS/src/plugins/models.ts
+```ts api/headlessCMS/src/plugins/models.ts
 import { CmsGroupPlugin, CmsModelPlugin } from "@webiny/api-headless-cms";
 import { CmsContext } from "@webiny/api-headless-cms/types";
 import { ContextPlugin } from "@webiny/handler";
