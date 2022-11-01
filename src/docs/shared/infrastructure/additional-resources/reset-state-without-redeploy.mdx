@@ -14,11 +14,16 @@ import { Alert } from "@/components/Alert";
 
 </Alert>
 
+<Alert type="info" title="OpenSearch Service and ElasticSearch">
+
+AWS uses OpenSearch as a service to manage ElasticSearch domains. In this article I have used the terms interchangeably.
+
+</Alert>
 
 
 ## Introduction
 
-It's not always feasible to destroy your Webiny instance one you've started to create entries. If you need to delete entries in the Headless CMS and effectively restore your instance to a previous state, you can follow along here.
+It's not always feasible to destroy your Webiny instance once you've started to create entries. If you need to delete entries in the Headless CMS and effectively restore your instance to a previous state, you can follow along here.
 
 <Alert type="warning" title="Read This Before you add your Data!">
 
@@ -28,15 +33,15 @@ You must follow along with this tutorial **before** you begin creating entries, 
 
 ## Prerequisites
 
-You need to have a deployed Webiny instance and have logged in to your AWS account. You also need you root user access key ID and secret.
+You need to have a deployed Webiny instance and have logged in to your AWS account. You also need your root user access key ID and secret.
 
 ## Step 1: Back up DynamoDB tables
 
 Once you've logged in to the AWS account where you deployed your Webiny instance, navigate to DynamoDB in the menu.
 
-![DDB tables in the AWS account area](./assets/reset-state-without-redeploy/1-ddb-tables.png)
+![DynamoDB tables in the AWS account area](./assets/reset-state-without-redeploy/1-ddb-tables.png)
 
-If you're not sure which ddb table is associated with which Webiny instance, you can navigate to **.pulumi/apps/core/.pulumi/stacks/{env}.json** to find the table `id`.
+If you're not sure which DynamoDB table is associated with which Webiny instance, you can navigate to **.pulumi/apps/core/.pulumi/stacks/{env}.json** to find the table `id`.
 
 ![Locating the ID of your DynamoDB table](./assets/reset-state-without-redeploy/3-ddb-table-find-ids.png)
 
@@ -46,20 +51,20 @@ Go into the table and click on "Create on-demand backup".
 
 If you only have a DynamoDB instance, you can skip the next step and go straight to "restoring DynamoDB tables from backup".
 
-## Step 2: Create ElasticSearch Snapshots
+## Step 2: Create OpenSearch Snapshots
 
-To follow the steps below you will need to get the domain endpoint of the ElasticSearch / OpenSearch. You can find this by navigating to the OpenSearch service dashboard for the region you deployed webiny to, opening up the domains menu item, clicking on the name of your ES domain, and copying the domain endpoint as shown in the screenshot below:
+To follow the steps below you will need to get the domain endpoint of the OpenSearch. You can find this by navigating to the OpenSearch Service dashboard for the region you deployed webiny to, opening up the domains menu item, clicking on the name of your domain, and copying the domain endpoint as shown in the screenshot below:
 
-![How to find the ElasticSearch / OpenSearch Service domain endpoint](./assets/reset-state-without-redeploy/3a-es-domain-arn.png)
+![How to find the OpenSearch Service domain endpoint](./assets/reset-state-without-redeploy/3a-es-domain-arn.png)
 
-The full details of how to create Snapshots are in this AWS Docs page, but we'll outline the steps you need specifically for a Webiny instance.
+The full details of how to create snapshots are in this AWS Docs page, but we'll outline the steps you need specifically for a Webiny instance.
 
 1. [Create an S3 bucket to store your snapshots](https://docs.aws.amazon.com/AmazonS3/latest/userguide/creating-bucket.html)
 2. [Create an IAM role to delegate permissions to OpenSearch Service](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html) (see also the table heading ["IAM role" on this page](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html) for the details of the policy you will need to create)
 3. Edit the trust relationship so that OpenSearch Service has the ability to assume the role ([see the section in the table titled "Edit the trust relationship" on this page](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html) for the details of the trust policy)
 4. Pass the role you created to the OpenSearch Service by attaching a policy to the role ([see the table heading "Permissions" on this page](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-snapshots.html) for the details of the policy you will need to add)
 
-Please follow the links above for more detail about how to achieve each step. Once you have completed these you should have a new role that looks like this:
+Please follow the links above for more details about how to achieve each step. Once you have completed these you should have a new role that looks like this:
 
 ![Snapshot role in the IAM dashboard](./assets/reset-state-without-redeploy/4-iam-role-permissions.png)
 
@@ -83,7 +88,7 @@ After a while you should be able to navigate to OpenSearch Service in your AWS a
 
 ![S3 bucket populated with indexes](./assets/reset-state-without-redeploy/7-s3-bucket-with-snapshot.png)
 
-Congratulations, you have successfully created a snapshot of your ElasticSearch / OpenSearch Service indexes.
+Congratulations, you have successfully created a snapshot of your OpenSearch Service indexes.
 
 ## Step 3: Restoring DynamoDB Tables from a backup
 
@@ -97,7 +102,7 @@ Rename it so that it will be the same name as the table.
 
 Click on "restore" and you will soon see the table has been restored from the backup.
 
-## Step 4: Restore ElasticSearch / OpenSearch indices from a Snapshot
+## Step 4: Restore OpenSearch indices from a Snapshot
 
 First, we need to delete existing indexes otherwise there will be errors when trying to restore from the snapshot. To do this you can make a `DELETE` request to your indexes:
 
@@ -107,7 +112,7 @@ If you don't remember what your snapshot is called, or you want to verify it has
 
 ![ElasticSearch get snapshots](./assets/reset-state-without-redeploy/11-es-get-snapshots.png)
 
-If it's there, we can restore our indexes by making a `POST` request to the `_restore` endpoint by appending with the name of that snapshot to the request:
+If it's there, we can restore our ElasticSearch indexes by making a `POST` request to the `_restore` endpoint by appending with the name of that snapshot to the request:
 
 ![ElasticSearch restore snapshot](./assets/reset-state-without-redeploy/12-es-restore-indexes.png)
 
