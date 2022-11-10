@@ -14,6 +14,14 @@ export function useVersion() {
     return useContext(VersionContext);
 }
 
+export const NavGroup = ({ type, children }) => {
+    return (
+        <Property id="groups" name={"groups"}>
+            <Property id={type} name={type}>{children}</Property>
+        </Property>
+    );
+};
+
 export const Collapsable = ({ title, children, remove, before, after }) => {
     const id = `collapsable.${title}`;
     const afterId = after ? `collapsable.${after}` : undefined;
