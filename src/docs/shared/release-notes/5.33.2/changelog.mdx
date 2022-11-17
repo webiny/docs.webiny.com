@@ -1,0 +1,35 @@
+---
+id: changelog
+title: Webiny 5.33.2 Changelog
+description: See what's new in Webiny version 5.33.2.
+---
+
+## GraphQL
+
+### Number Scalar Transform To Number Or Float ([#2765](https://github.com/webiny/webiny-js/pull/2765))
+
+We have fixed an issue where the `Number` scalar in our `@webiny/handler-graphql` package was producing a `string` instead of `number`.
+
+## Headless CMS
+
+### Initialize Model Mutation ([#2766](https://github.com/webiny/webiny-js/pull/2766))
+
+We added the `initializeModel` GraphQL mutation, which can be hooked into via the `onModelInitialize` lifecycle event.
+We had to add this because we needed a way to execute creation of the Elasticsearch index, with custom mappings, on the CMS content models created via the code.
+
+Basically, we add the subscription to the `onModelInitialize` lifecycle event, which creates custom the Elasticsearch index:
+
+```typescript
+cms.onModelInitialize.subscribe(async ({ model }) => {
+  await createElasticsearchIndex({
+    elasticsearch,
+    model,
+    plugins
+  });
+});
+```
+
+### Elasticsearch Body Modifier Plugin ([#2779](https://github.com/webiny/webiny-js/pull/2779))
+
+The `CmsEntryElasticsearchBodyModifierPlugin` did not have the `where` parameter passed into it, so we added it.
+This now allows users to access raw `where` object, received from the GraphQL.
