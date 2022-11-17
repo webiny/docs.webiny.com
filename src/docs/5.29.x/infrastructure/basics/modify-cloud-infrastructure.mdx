@@ -11,108 +11,121 @@ import { Alert } from "@/components/Alert";
 
 </Alert>
 
-<!-- ## The `destroy` command
+## Overview
 
-To make it a bit easier for users that are just testing Webiny or want to quickly destroy all of the deployed cloud infrastructure, Webiny CLI provides the `destroy` command, which destroys all of the cloud infrastructure, deployed by the three applications that are by default included in a Webiny project.
-
-To destroy all deployed cloud infrastructure, in your terminal of choice, and in your project root, execute the following command:
-
-```
-yarn webiny destroy
-```
-
-<Alert type="danger">
-
-Although this may seem as a convenient way to get rid of everything that was previously deployed, be cautious when using this command. Once cloud infrastructure is destroyed, in most cases, it cannot be brought back, which means you could potentially loose your data, files, and similar.
-
-</Alert>
-
-### Different environments
-The `destroy` command destroys the cloud infrastructure that was deployed into the `dev` environment by default. You can specify a different environment with the `--env` argument. For example, to destroy cloud infrastructure that was deployed into the `prod` environment, you can run the following command:
-
-```
-yarn webiny destroy --env prod
-```
--->
-
-## Introduction
-
-When Webiny is deployed, apart from the application code (for example your GraphQL API or Admin React application), it also deploys required of cloud infrastructure resources. And although the deployed resources are already configured in the best possible manner, there are still occasions where modifications might be needed, or the deployed cloud infrastructure needs to be expanded with additional resources. 
-
-
-This command lets you destroy cloud infrastructure previously deployed within a [project application](../../core-development-concepts/project-organization/project-applications-and-packages). <!-- This can be handy if you want to avoid completely destroying all cloud infrastructure that was deployed by the default project applications, which is what the shown `destroy` command does. -->
-
-As its first argument, the `destroy` command receives the path to the project application folder. You also need to specify the environment into which the cloud infrastructure was previously deployed, which is specified via the `--env` argument.
-
-<!-- Note that, unlike with the `destroy` command, the `--env` argument is not optional and it needs to be provided explicitly. -->
-
-The following destroy commands destroy cloud infrastructure deployed for four project applications, all previously deployed into the `dev` environment:
-
-```bash
-yarn webiny destroy apps/website --env dev
-yarn webiny destroy apps/admin --env dev
-yarn webiny destroy apps/api --env dev
-yarn webiny destroy apps/core --env dev
-```
-
-Note that the order of execution matters. In order to correctly and fully destroy your Webiny project's cloud infrastructure resources, the above commands should be executed in that exact order.
-
-## Debugging
-
-If you run into an error while running the `webiny destroy` command, to get additional information and logs about it, you can append the `--debug` argument. For example:
-
-```bash
-yarn webiny destroy apps/api --env dev --debug
-```
-
-This can significantly help in debugging underlying deployment ([Pulumi](../../infrastructure/pulumi-iac/iac-with-pulumi)) errors, since without it, in some cases the returned error report doesn't contain enough useful information. We've also seen cases in which the report would actually be misleading and even incorrect, making the debugging process much harder for the user.
-
-## FAQ
-
-### How do I destroy cloud infrastructure resources deployed into the `prod` environment? I'm receiving a warning about protected cloud infrastructure resources.
-
-When deploying into the `prod` environment, some of the cloud infrastructure resources that Webiny deploys for you as part of the [Core project application](/docs/{version}/architecture/core/overview) are marked as [protected](https://www.pulumi.com/docs/intro/concepts/resources/#protect).
-
-> The `protect` option marks a resource as protected. A protected resource cannot be deleted directly. Instead, you must first set `protect: false` and run `pulumi up`. Then you can delete the resource by removing the line of code or by running `pulumi destroy`. The default is to inherit this value from the parent resource, and `false` for resources without a parent.
+Users use the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command to deploy their Webiny project, into an [environment](/docs/{version}//core-development-concepts/basics/project-deployment#environments) of their choice. During the deployment, apart from building the actual applications, the Webiny CLI also ensures that a set of supporting cloud infrastructure resources is deployed. 
 
 <Alert type="info">
 
-Within a Webiny project, note that the `pulumi up` and `pulumi destroy` commands are run via the [`webiny deploy`](../../core-development-concepts/basics/project-deployment) and [`webiny destroy`](../../infrastructure/basics/destroy-cloud-infrastructure) commands, respectively.
+Read more about the cloud infrastructure resources that get deployed into your AWS account in our [Cloud Infrastructure](../../architecture/introduction) key topics section.
 
 </Alert>
 
-So, in order to destroy all cloud infrastructure resources deployed into the `prod` environment, we need to first pass `protect: false` upon calling the `createCoreApp` function in `apps/core/webiny.application.ts`:
+And although the deployed resources are already configured in the best possible manner, there are still occasions where modifications might be needed, or the deployed cloud infrastructure needs to be expanded with additional resources. 
 
-```ts
+To do this, we rely on four `webiny.application.ts` configuration files, located in each of the four project application folders in every Webiny project:
+
+1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts)
+2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts)
+3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts)
+4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts)
+
+Which `webiny.application.ts` config file needs to be changed depends on the nature of the change that needs to be made.
+
+For example, let's imagine we want to adjust the configuration of the Amazon S3 bucket that's deployed for storing files uploaded via Webiny File Manager. Since this bucket is deployed as part of the **Core** project application, naturally, we'd want to apply changes via the [`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts) configuration file. 
+
+The following example demonstrates how the bucket can be adjusted to enable [object versioning](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html), which essentially enables  keeping multiple variants of an object in the same bucket:
+
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
 import { createCoreApp } from "@webiny/serverless-cms-aws";
 
 export default createCoreApp({
-  protect: false
+    pulumi: app => {
+        const { fileManagerBucket } = app.resources;
+        fileManagerBucket.config.versioning({ enabled: true });
+    }
+});
+``` 
+
+As we can see, via the `pulumi` property, we've defined a relatively simple callback function that enables object versioning in two steps:
+1. references the relevant bucket via the `fileManagerBucket` const
+2. uses the reference to enable bucket versioning, via the `fileManagerBucket.config.versioning`
+
+Once the above code change has been made, all that is left to do is a redeploy by running the following command:
+
+```bash
+# Make sure to replace {env} with the actual name of the environment.
+yarn webiny deploy apps/core --env {env}
+```       
+
+With the deployment successfully completed, the object versioning should be enabled for your project (for all files that are uploaded via Webiny File Manager).
+
+<Alert type="info">
+
+When redeploying, make sure to redeploy the project application within which the changes were actually made. In the above example, we've made changes within the **Core** application's `webiny.application.ts` file, meaning the **Core** application needs to be redeployed in order to actually see the changes. 
+
+</Alert> 
+
+## Additional Examples
+
+In this section, we cover a couple of additional examples of modifying the Webiny cloud infrastructure.
+
+### Adding Tags to All Cloud Infrastructure Resources
+
+The following example shows how to apply tags to all cloud infrastructure resources deployed as part of the **Core** project application. Note that the same approach can be used for all four applications.
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { tagResources } from "@webiny/pulumi-aws";
+
+export default createCoreApp({
+    pulumi: app => {
+        tagResources({
+            // We are assigning Owner and Contact tags, whose values are read from environment variables. 
+            Owner: String(process.env["OWNER"]),
+            Contact: String(process.env["CONTACT"])
+        });
+    }
 });
 ```
 
-Once that's in place, run the [`webiny deploy`](../../core-development-concepts/basics/project-deployment) command to apply changes, and finally, run the [`webiny destroy`](../../infrastructure/basics/destroy-cloud-infrastructure) to destroy everything:
+### Adjusting Amazon Elasticsearch (OpenSearch) Configuration
 
-```bash
-# Removes the protection from mission-critical cloud infrastructure resources.
-yarn webiny deploy apps/core --env prod
+Amazon Elasticsearch (OpenSearch) is deployed as part of the **Core** project application. In order to make changes to it, we need to make changes in the `apps/core/webiny.application.ts` configuration file.
 
-# At this point, the protection has been removed. We can now run the destroy command.
-yarn webiny destroy apps/core --env prod
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { isResourceOfType } from "@webiny/pulumi";
+
+export default createCoreApp({
+    elasticSearch: true,
+
+    pulumi: app => {
+        app.onResource(resource => {
+            if (isResourceOfType(resource, aws.elasticsearch.Domain)) {
+                // Set the instance type.
+                resource.config.clusterConfig(() => {
+                    return {
+                        instanceType: "t3.small.elasticsearch"
+                    };
+                });
+
+                // Set Elasticsearch (OpenSearch) version.
+                resource.config.elasticsearchVersion("7.7");
+
+                // Change advanced options.
+                resource.config.advancedOptions({
+                    override_main_response_version: "false",
+                    "rest.action.multi.allow_explicit_index": "true"
+                });
+
+                resource.opts.ignoreChanges = ["advancedOptions", "tags"];
+            }
+        });
+    }
+});
 ```
-
-Once that has been destroyed, you can proceed with destroying the rest of the project applications, which do not contain any protected cloud infrastructure resources.
-
-```bash
-yarn webiny destroy apps/api --env prod
-yarn webiny destroy apps/admin --env prod
-yarn webiny destroy apps/website --env prod
-```
-
-## Troubleshooting
-
-### Destroying my project takes a long time to finish.
-
-We're aware of this fact, and this is mainly because of the [Amazon ElasticSearch Service](https://aws.amazon.com/elasticsearch-service/). While other cloud infrastructure resources get destroyed reasonably fast, this service can take anywhere from 15 to 30 minutes to destroy itself. In rare cases, we've even seen the service still present in user's account [for days](https://forums.aws.amazon.com/thread.jspa?threadID=233859).
-
-Unfortunately, this is a well-known issue for quite some time, and until the present, there haven't been any positive improvements.
