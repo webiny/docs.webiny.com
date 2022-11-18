@@ -1,19 +1,27 @@
 ---
 title: Modify Cloud Infrastructure
-description: Learn how to modify cloud infrastructure deployed by Webiny, using Pulumi.
+description: Learn how to modify cloud infrastructure resources deployed by Webiny.
 ---
 
 import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="What you’ll learn">
 
-- how to modify cloud infrastructure deployed by Webiny, using Pulumi
+- how to modify cloud infrastructure resources deployed by Webiny
 
 </Alert>
 
 ## Overview
 
-Users use the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command to deploy their Webiny project, into an [environment](/docs/{version}//core-development-concepts/basics/project-deployment#environments) of their choice. During the deployment, apart from building the actual applications, the [Webiny CLI](/docs/{version}/core-development-concepts/basics/webiny-cli) also ensures that a set of supporting cloud infrastructure resources is deployed.
+Users use the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command to deploy their Webiny project, into an [environment](/docs/{version}//core-development-concepts/basics/project-deployment#environments) of their choice. During the deployment, apart from building the actual project applications, the command also ensures that a set of required cloud infrastructure resources is deployed.
+
+
+
+<Alert type="info">
+
+To deploy necessary cloud infrastructure resources, by default, Webiny relies on Pulumi, a modern infrastructure as code framework. Find out more in the following [IaC with Pulumi](../../infrastructure/pulumi-iac/iac-with-pulumi) key topic.
+
+</Alert>
 
 <Alert type="info">
 
@@ -41,14 +49,18 @@ import * as aws from "@pulumi/aws";
 import { createCoreApp } from "@webiny/serverless-cms-aws";
 
 export default createCoreApp({
+  // By passing a callback function via the `pulumi` parameter, we gain the
+  // ability to modify project application's cloud infrastructure resources. 
   pulumi: app => {
+    // Cloud infrastructure resources can be referenced via the `app.resources` 
+    // object. We then use resources' `config` objects to apply modifications.
     const { fileManagerBucket } = app.resources;
     fileManagerBucket.config.versioning({ enabled: true });
   }
 });
 ```
 
-As we can see, via the `pulumi` property, we've defined a relatively simple callback function that enables object versioning in two steps:
+As we can see, using the `pulumi` parameter, we've passed a relatively simple callback function that enables object versioning in two steps:
 
 1. references the relevant bucket via the `fileManagerBucket` const
 2. uses the reference to enable bucket versioning, via the `fileManagerBucket.config.versioning`
@@ -70,9 +82,9 @@ When redeploying, make sure to redeploy the project application within which the
 
 ## Additional Examples
 
-In this section, we cover a couple of additional examples of modifying the Webiny cloud infrastructure.
+In this section, we cover a couple of additional examples of modifying cloud infrastructure resources that get deployed with every Webiny project.
 
-### Adding Tags to All Cloud Infrastructure Resources
+### Tagging Cloud Infrastructure Resources
 
 The following example shows how to apply tags to all cloud infrastructure resources deployed as part of the **Core** project application. Note that the same approach can be used for all four applications.
 
