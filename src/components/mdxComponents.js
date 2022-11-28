@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { Heading } from "./Heading";
-import Image from "./Image";
+import { Gallery, Image } from "./Image";
 import { Alert } from "./Alert";
 import { WhatYouWillLearn } from "./WhatYouWillLearn";
 import { Video } from "./Video";
@@ -12,6 +12,7 @@ export const mdxComponents = {
     Alert,
     WhatYouWillLearn,
     Image,
+    Gallery,
     Video,
     ol: props => <ol {...props} style={{ "--start": props.start ?? 1 }} />,
     a: forwardRef((props, _) => {
