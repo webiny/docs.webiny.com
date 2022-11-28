@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import Lightbox from "react-image-lightbox";
 import classNames from "classnames";
 
-export default props => {
+export const Image = props => {
     const [isOpen, setState] = useState(false);
 
     const openLightbox = useCallback(() => {
@@ -56,4 +56,8 @@ export default props => {
             )}
         </div>
     );
+};
+
+export const Gallery = props => {
+  return <div className={"webiny-gallery"}>{props.children}</div>;
 };
