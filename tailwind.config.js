@@ -344,6 +344,7 @@ module.exports = {
             h1: {
               fontSize: '3rem',
               lineHeight: '3.5rem',
+              marginTop: '0',
             },
             h2: {
               fontSize: '2.25rem',

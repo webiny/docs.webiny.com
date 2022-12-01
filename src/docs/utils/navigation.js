@@ -17,13 +17,16 @@ export function useVersion() {
 export const NavGroup = ({ type, children }) => {
     return (
         <Property id="groups" name={"groups"}>
-            <Property id={type} name={type}>{children}</Property>
+            <Property id={type} name={type}>
+                {children}
+            </Property>
         </Property>
     );
 };
 
 export const Collapsable = ({ title, children, remove, before, after }) => {
-    const id = `collapsable.${title}`;
+    const parent = useParentProperty();
+    const id = `${parent.id}.collapsable.${title}`;
     const afterId = after ? `collapsable.${after}` : undefined;
     const beforeId = before ? `collapsable.${before}` : undefined;
     return (

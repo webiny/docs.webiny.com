@@ -13,14 +13,10 @@ export function PageLayout({ children }) {
             <div className={"flex lg:hidden w-full pb-5"}>
                 <VersionSelector />
             </div>
-            <article>
+            <article className={"prose md:prose-md prose-slate"}>
                 <ViewLatestVersion />
                 <PageHeader title={title} description={description} />
-                <div
-                    className={
-                        "relative z-20 prose md:prose-md prose-slate mt-8 dark:prose-dark pb-10"
-                    }
-                >
+                <div className={"relative z-20 mt-8 dark:prose-dark pb-10"}>
                     <MDXProvider components={mdxComponents}>{children}</MDXProvider>
                 </div>
             </article>
