@@ -252,8 +252,16 @@ export const Navigation = () => {
                 <SharedNavigation />
             </NavGroup>
             <NavGroup type={"user-guides"}>
-                <Collapsable title={"User Guides"}>
+                <Collapsable title={"Getting Started"}>
                     <Page link={"user-guides/introduction"} />
+                    <Page title={"Glossary"} link={"user-guides/glossary"} />
+                </Collapsable>
+                <Collapsable title={"UG Headless CMS"}>
+                    <Page title={"Glossary"} link={"user-guides/headless-cms/glossary"} />
+                    <Page link={"user-guides/headless-cms/create-content-model"} />
+                </Collapsable>
+                <Collapsable title={"UG Page Builder"}>
+                    <Page link={"user-guides/page-builder/introduction"} />
                 </Collapsable>
             </NavGroup>
         </>
