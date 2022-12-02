@@ -20,7 +20,7 @@ export const NavigationProvider = ({ children }) => {
         return () => {
             Router.events.off("routeChangeComplete", handleRouteChange);
         };
-    }, [navIsOpen]);
+    }, [handleRouteChange, navIsOpen]);
 
     const context = {
         isOpen: navIsOpen,

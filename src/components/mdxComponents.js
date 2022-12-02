@@ -19,7 +19,7 @@ export const mdxComponents = {
         if (props.href.startsWith("http")) {
             return (
                 <a target="_blank" href={props.href} rel={"noreferrer"}>
-                    {props.children} <img className="inline w-[12px] m-0" src={externalLinkIcon} />
+                    {props.children} <img className="inline w-[12px] m-0" src={externalLinkIcon} alt="external link"/>
                 </a>
             );
         } else {
@@ -29,12 +29,6 @@ export const mdxComponents = {
                         <code>
                             <Link href={props.href}>{props.children.props.children}</Link>
                         </code>
-                    );
-                } else if (props.children.props.originalType === "img") {
-                    return (
-                        <a target={"_blank"} href={props.href} rel={"noreferrer"}>
-                            <img src={props.href} />
-                        </a>
                     );
                 } else {
                     return <Link href={props.href}>{props.children}</Link>;
