@@ -11,7 +11,7 @@ export const Image = props => {
         }
 
         setState(true);
-    }, []);
+    }, [props.canEnlarge]);
 
     const imgStyle = {
         display: "block",
