@@ -163,7 +163,7 @@ export function info(text) {
 }
 
 export async function writeAndLog(file, data) {
-    const targetFile = file?.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
+    const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
     logFileWrite(targetFile);
     await fs.writeFile(file, data);
 }
