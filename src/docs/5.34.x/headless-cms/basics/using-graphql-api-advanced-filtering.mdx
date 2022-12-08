@@ -13,18 +13,16 @@ import { Alert } from "@/components/Alert";
 </Alert>
 
 ## Overview
-In the 5.34.0 version of Webiny we introduced the `AND` and `OR` conditionals to help users filter the CMS entries.
 
+In the 5.34.0 version of Webiny we introduced the `AND` and `OR` conditionals to help users filter the CMS entries.
 
 Both `AND` and `OR` conditionals are arrays (lists) of the available filters, which depend on the model you are running the query for.
 
-
 <Alert type="warning">
 
-  At the moment, `AND` and `OR` conditionals are working only on the DynamoDB + Elasticsearch systems, as it is quite complex to implement it for the DynamoDB only systems.
+At the moment, `AND` and `OR` conditionals are working only on the DynamoDB + Elasticsearch systems, as it is quite complex to implement it for the DynamoDB only systems.
 
 </Alert>
-
 
 ## The `AND` Conditional
 
@@ -36,37 +34,30 @@ Also, when sending filters in the root of the `where` object, there is no need f
 
 ### Simple `AND` Examples
 
-
 #### Example #1
+
 In this example we are searching for articles which:
- * have a title with both `headless` and `cms` words in it
+
+- have a title with both `headless` and `cms` words in it
+
 ```graphql
 query {
-    listArticles(where: {
-        AND: [
-            {
-                title_contains: "headless"
-            },
-            {
-                title_contains: "cms"
-            }
-        ]
-    }) {
-        data {
-            id
-            title
-        }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+  listArticles(where: { AND: [{ title_contains: "headless" }, { title_contains: "cms" }] }) {
+    data {
+      id
+      title
     }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
 
@@ -75,39 +66,34 @@ This query will produce something like `(title_contains = "headless" AND title_c
 In our old GraphQL you could not do that, because you could send only one `title_contains` in the `where` object.
 
 #### Example #2
+
 Also, you can add a filter in the root level of the `where` object.
 
 In this example we are searching for articles which:
- * are in a category with ID `1`
- * have a title with both `headless` and `cms` words in it.
+
+- are in a category with ID `1`
+- have a title with both `headless` and `cms` words in it.
+
 ```graphql
 query {
-    listArticles(where: {
-        categoryId: 1,
-        AND: [
-            {
-                title_contains: "headless"
-            },
-            {
-                title_contains: "cms"
-            }
-        ]
-    }) {
-        data {
-            id
-            title
-        }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+  listArticles(
+    where: { categoryId: 1, AND: [{ title_contains: "headless" }, { title_contains: "cms" }] }
+  ) {
+    data {
+      id
+      title
     }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
 
@@ -115,93 +101,80 @@ This query will produce something like `(categoryId = 1 AND title_contains = "he
 
 ### Complex `AND` Examples
 
-
 #### Example #1
+
 In this example we are searching for articles which:
-* are in a category with ID `1`
-* have a title with both `headless` and `cms` words in it
-* are written by authors with IDs `5` or `6` or `7`
-* are created in `2022`
+
+- are in a category with ID `1`
+- have a title with both `headless` and `cms` words in it
+- are written by authors with IDs `5` or `6` or `7`
+- are created in `2022`
+
 ```graphql
 query {
-    listArticles(where: {
-        categoryId: 1,
-        AND: [
-            {
-                title_contains: "headless"
-            },
-            {
-                title_contains: "cms"
-            },
-            {
-                AND: [
-                    {
-                        author_in: [5, 6, 7]
-                    },
-                    {
-                        createdOn_between: ["2022-01-01", "2022-12-31"]
-                    }
-                ]
-            }
-        ]
-    }) {
-        data {
-            id
-            title
-        }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+  listArticles(
+    where: {
+      categoryId: 1
+      AND: [
+        { title_contains: "headless" }
+        { title_contains: "cms" }
+        { AND: [{ author_in: [5, 6, 7] }, { createdOn_between: ["2022-01-01", "2022-12-31"] }] }
+      ]
     }
+  ) {
+    data {
+      id
+      title
+    }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
 
 This query will produce something like `(categoryId = 1 AND title_contains = "headless" AND title_contains = "cms" AND (author_in = [5, 6, 7] AND createdOn_gte = "2022-01-01" AND createdOn_lte = "2022-12-31"))`.
 
 #### Example #2
+
 All of these filters can be written in the root of the `where` object (except `title_contains` - because there are multiple):
+
 ```graphql
 query {
-    listArticles(where: {
-        categoryId: 1,
-        AND: [
-            {
-                title_contains: "headless"
-            },
-            {
-                title_contains: "cms"
-            }
-        ],
-        author_in: [5, 6, 7],
-        createdOn_between: ["2022-01-01", "2022-12-31"]
-    }) {
-        data {
-            id
-            title
-        }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+  listArticles(
+    where: {
+      categoryId: 1
+      AND: [{ title_contains: "headless" }, { title_contains: "cms" }]
+      author_in: [5, 6, 7]
+      createdOn_between: ["2022-01-01", "2022-12-31"]
     }
+  ) {
+    data {
+      id
+      title
+    }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
 
 The query above will produce the same result as the previous one, where we have nested `AND` conditional.
-
 
 ## The `OR` Conditional
 
@@ -212,73 +185,61 @@ This conditional requires only a single filter to match.
 ### Simple `OR` Example
 
 #### Example #1
+
 In this example we are searching for articles which:
-* have a title with `headless` or `cms` words in it
+
+- have a title with `headless` or `cms` words in it
+
 ```graphql
 query {
-    listArticles(where: {
-        OR: [
-            {
-                title_contains: "headless"
-            },
-            {
-                title_contains: "cms"
-            }
-        ]
-    }) {
-        data {
-            id
-            title
-        }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+  listArticles(where: { OR: [{ title_contains: "headless" }, { title_contains: "cms" }] }) {
+    data {
+      id
+      title
     }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
 
 This query will produce something like `(title_contains = "headless" OR title_contains = "cms")`.
 
-
 #### Example #2
+
 In this example we are searching for articles which match any of the conditions:
-* have a title with `cms` word in it
-* have a title with `headless` word in it and are in category with ID `1`
+
+- have a title with `cms` word in it
+- have a title with `headless` word in it and are in category with ID `1`
+
 ```graphql
 query {
-    listArticles(where: {
-        OR: [
-            {
-                title_contains: "headless",
-                categoryId: 1
-            },
-            {
-                title_contains: "cms"
-            }
-        ]
-    }) {
-        data {
-            id
-            title
-        }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+  listArticles(
+    where: { OR: [{ title_contains: "headless", categoryId: 1 }, { title_contains: "cms" }] }
+  ) {
+    data {
+      id
+      title
     }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
 
@@ -291,224 +252,185 @@ We will cover the mixed `AND` and `OR` conditionals later in this article.
 ### Complex `OR` Example
 
 #### Example #1
+
 In this example we are searching for articles which match any of the conditions:
-* have a title with `headless` word in it
-* have a title with `cms` word in it
-* are in either category with ID `1` or `2`
+
+- have a title with `headless` word in it
+- have a title with `cms` word in it
+- are in either category with ID `1` or `2`
+
 ```graphql
 query {
-    listArticles(where: {
-        OR: [
-            {
-                title_contains: "headless"
-            },
-            {
-                title_contains: "cms"
-            },
-            {
-                OR: [
-                    {
-                        categoryId: 1
-                    },
-                    {
-                        categoryId: 2
-                    }
-                ]
-            }
-        ]
-    }) {
-        data {
-            id
-            title
-        }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+  listArticles(
+    where: {
+      OR: [
+        { title_contains: "headless" }
+        { title_contains: "cms" }
+        { OR: [{ categoryId: 1 }, { categoryId: 2 }] }
+      ]
     }
+  ) {
+    data {
+      id
+      title
+    }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
 
 This query will produce something like `(title_contains = "headless" OR title_contains = "cms" OR (categoryId = 1 OR categoryId = 2))`.
 
-You can notice that we could have actually written the query without the nested `OR` conditional, but to have an example we did it like this. 
+You can notice that we could have actually written the query without the nested `OR` conditional, but to have an example we did it like this.
 
 ## The Mix of `AND` and `OR` Conditionals
 
-
 ### Root Level `OR` Conditional With Nested `AND` and `OR` Conditionals
-In this example we are searching for articles which match any of the conditions:
-* have a title with `headless` word in it
-* have a title with `cms` word in it
-* have both `webiny` and `serverless` in the title and are created in `January of 2021` or `January of 2022`
 
+In this example we are searching for articles which match any of the conditions:
+
+- have a title with `headless` word in it
+- have a title with `cms` word in it
+- have both `webiny` and `serverless` in the title and are created in `January of 2021` or `January of 2022`
 
 ```graphql
 query {
-    listArticles(where: {
-        OR: [
+  listArticles(
+    where: {
+      OR: [
+        { title_contains: "headless" }
+        { title_contains: "cms" }
+        {
+          AND: [
+            { title_contains: "webiny" }
+            { title_contains: "serverless" }
             {
-                title_contains: "headless"
-            },
-            {
-                title_contains: "cms"
-            },
-            {
-                AND: [
-                    {
-                        title_contains: "webiny"
-                    },
-                    {
-                        title_contains: "serverless"
-                    },
-                    {
-                        OR: [
-                            {
-                                createdOn_between: ["2021-01-01", "2021-01-31"]
-                            },
-                            {
-                                createdOn_between: ["2022-01-01", "2022-01-31"]
-                            }
-                            
-                        ]
-                    }
-                ]
+              OR: [
+                { createdOn_between: ["2021-01-01", "2021-01-31"] }
+                { createdOn_between: ["2022-01-01", "2022-01-31"] }
+              ]
             }
-        ]
-    }) {
-        data {
-            id
-            title
+          ]
         }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+      ]
     }
+  ) {
+    data {
+      id
+      title
+    }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
+
 This query will produce something like `(title_contains = "headless" OR title_contains = "cms" OR (title_contains = "webiny" AND title_contains = "serverless" AND ((createdOn_gte = "2021-01-01" AND createdOn_lte = "2021-01-31") OR (createdOn_gte = "2022-01-01" AND createdOn_lte = "2022-01-31"))))`.
 
 ### Root Level `AND` Conditional With Nested `OR` and `AND` Conditionals
 
 In this example we are searching for articles which match all the conditions:
-* have a title with `headless` word in it
-* have a title with `cms` word in it
-* have any of the `webiny` or `serverless` in the title or are created in `January of 2021` or `January of 2022`
+
+- have a title with `headless` word in it
+- have a title with `cms` word in it
+- have any of the `webiny` or `serverless` in the title or are created in `January of 2021` or `January of 2022`
+
 ```graphql
 query {
-    listArticles(where: {
-        AND: [
+  listArticles(
+    where: {
+      AND: [
+        { title_contains: "headless" }
+        { title_contains: "cms" }
+        {
+          OR: [
+            { title_contains: "webiny" }
+            { title_contains: "serverless" }
             {
-                title_contains: "headless"
-            },
-            {
-                title_contains: "cms"
-            },
-            {
-                OR: [
-                    {
-                        title_contains: "webiny"
-                    },
-                    {
-                        title_contains: "serverless"
-                    },
-                    {
-                        AND: [
-                            {
-                                createdOn_between: ["2021-01-01", "2021-01-31"]
-                            },
-                            {
-                                createdOn_between: ["2022-01-01", "2022-01-31"]
-                            }
-                            
-                        ]
-                    }
-                ]
+              AND: [
+                { createdOn_between: ["2021-01-01", "2021-01-31"] }
+                { createdOn_between: ["2022-01-01", "2022-01-31"] }
+              ]
             }
-        ]
-    }) {
-        data {
-            id
-            title
+          ]
         }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+      ]
     }
+  ) {
+    data {
+      id
+      title
+    }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
 
 This query will produce something like `(title_contains = "headless" AND title_contains = "cms" AND (title_contains = "webiny" OR title_contains = "serverless" OR ((createdOn_gte = "2021-01-01" AND createdOn_lte = "2021-01-31") AND (createdOn_gte = "2022-01-01" AND createdOn_lte = "2022-01-31"))))`.
 
-
 ### Root Level `OR` and `AND` Conditionals
 
 In this example we are searching for articles which:
-* are written by author with ID `1` OR are in category with ID `2`
-* have a title with `headless` and `cms` words in it
+
+- are written by author with ID `1` OR are in category with ID `2`
+- have a title with `headless` and `cms` words in it
+
 ```graphql
 query {
-    listArticles(where: {
-        OR: [
-            {
-                author: 1
-            },
-            {
-                categoryId: 2
-            }
-        ],
-        AND: [
-            {
-                title_contains: "headless"
-            },
-            {
-                title_contains: "cms"
-            }
-        ]
-    }) {
-        data {
-            id
-            title
-        }
-        meta {
-            hasMoreItems
-            cursor
-            totalCount
-        }
-        error {
-          message
-          code
-          data
-        }
+  listArticles(
+    where: {
+      OR: [{ author: 1 }, { categoryId: 2 }]
+      AND: [{ title_contains: "headless" }, { title_contains: "cms" }]
     }
+  ) {
+    data {
+      id
+      title
+    }
+    meta {
+      hasMoreItems
+      cursor
+      totalCount
+    }
+    error {
+      message
+      code
+      data
+    }
+  }
 }
 ```
 
 This query will produce something like `((author = 1 OR categoryId = 2) AND (title_contains = "headless" AND title_contains = "cms"))`.
 
-
 <Alert type="info">
 
-  While users can nest `AND` and `OR` conditionals indefinitely, they need to be aware that it might result in performance issues.
+While users can nest `AND` and `OR` conditionals indefinitely, they need to be aware that it might result in performance issues.
 
 </Alert>
