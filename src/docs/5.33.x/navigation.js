@@ -18,6 +18,11 @@ export const Navigation = () => {
                     <Page link={"headless-cms/extending/content-models-via-code-storage-id"} />
                 </Section>
             </Collapsable>
+            <Collapsable title={"Performance & Load Benchmark"}>
+                <Section title={"Headless CMS"}>
+                    <Page link={"performance-and-load-benchmark/headless-cms/performance-tuning"} />
+                </Section>
+            </Collapsable>
         </>
     );
 };
