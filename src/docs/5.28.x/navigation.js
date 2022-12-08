@@ -10,6 +10,7 @@ export const Navigation = () => {
             </Collapsable>
             <Collapsable title={"Webiny Overview"}>
                 <Page link={"overview/introduction"} />
+                <Page link={"overview/pricing"} />
                 <Section title={"Applications"}>
                     <Page link={"overview/applications/admin"} />
                     <Page link={"overview/applications/apw"} />

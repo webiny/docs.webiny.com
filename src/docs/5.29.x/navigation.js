@@ -9,6 +9,24 @@ export const Navigation = () => {
             <BaseNavigation />
             {/* Add new items here. */}
 
+            <Collapsable title={"Infrastructure"}>
+                <Section title={"Basics"}>
+                    <Page
+                        link={"infrastructure/basics/modify-cloud-infrastructure"}
+                        after={"infrastructure/basics/destroy-cloud-infrastructure"}
+                    />
+                </Section>
+            </Collapsable>
+
+            <Collapsable title={"Core Development Concepts"}>
+                <Section title={"Scaffolding"}>
+                    <Page
+                        link={"core-development-concepts/scaffolding/full-stack-application"}
+                        remove
+                    />
+                </Section>
+            </Collapsable>
+
             <Collapsable title={"Architecture"}>
                 <Section title={"Core Architecture"} before={"API Architecture"}>
                     <Page link={"architecture/core/overview"} />

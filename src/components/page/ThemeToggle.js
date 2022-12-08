@@ -74,7 +74,7 @@ function useTheme() {
 }
 
 export function ThemeToggle() {
-    let [setting, setSetting] = useTheme(); // eslint-disable-line no-use-before-define
+    let [setting, setSetting] = useTheme(); // eslint-disable-line no-unused-vars
 
     return (
         <>

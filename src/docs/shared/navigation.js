@@ -6,6 +6,9 @@ import { rcompare, valid } from "semver";
 export const Navigation = () => {
     return (
         <>
+            <Collapsable title={"Infrastructure"} after={"Core Development Concepts"}>
+                <Page link={"infrastructure/additional-resources/reset-state-without-redeploy"} />
+            </Collapsable>
             <Collapsable title={"Performance & Load Benchmark"} after={"Architecture"}>
                 <Page link={"performance-and-load-benchmark/introduction"} />
                 <Section title={"Headless CMS"}>
@@ -17,6 +20,10 @@ export const Navigation = () => {
                 </Section>
             </Collapsable>
             <ReleaseNotes />
+            <Collapsable title={"Release Management"}>
+                <Page link={"release-management/branching-strategy"} />
+                <Page link={"release-management/unstable-releases"} />
+            </Collapsable>
             <Collapsable title={"Community Plugins"}>
                 <Page link={"community-plugins/introduction"} />
             </Collapsable>
