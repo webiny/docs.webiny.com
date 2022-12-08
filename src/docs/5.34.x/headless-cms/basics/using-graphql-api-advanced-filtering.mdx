@@ -342,7 +342,7 @@ You can notice that we could have actually written the query without the nested 
 ## The Mix of `AND` and `OR` Conditionals
 
 
-### Root Level `OR` Conditional
+### Root Level `OR` Conditional With Nested `AND` and `OR` Conditionals
 In this example we are searching for articles which match any of the conditions:
 * have a title with `headless` word in it
 * have a title with `cms` word in it
@@ -399,5 +399,116 @@ query {
     }
 }
 ```
-This query will produce something like `(title_contains = "headless" OR title_contains = "cms" OR (title_contains = "webiny" AND title_contains = "serverless" AND (createdOn_gte = "2021-01-01" AND createdOn_lte = "2021-01-31" OR createdOn_gte = "2022-01-01" AND createdOn_lte = "2022-01-31")))`.
+This query will produce something like `(title_contains = "headless" OR title_contains = "cms" OR (title_contains = "webiny" AND title_contains = "serverless" AND ((createdOn_gte = "2021-01-01" AND createdOn_lte = "2021-01-31") OR (createdOn_gte = "2022-01-01" AND createdOn_lte = "2022-01-31"))))`.
 
+### Root Level `AND` Conditional With Nested `OR` and `AND` Conditionals
+
+In this example we are searching for articles which match all the conditions:
+* have a title with `headless` word in it
+* have a title with `cms` word in it
+* have any of the `webiny` or `serverless` in the title or are created in `January of 2021` or `January of 2022`
+```graphql
+query {
+    listArticles(where: {
+        AND: [
+            {
+                title_contains: "headless"
+            },
+            {
+                title_contains: "cms"
+            },
+            {
+                OR: [
+                    {
+                        title_contains: "webiny"
+                    },
+                    {
+                        title_contains: "serverless"
+                    },
+                    {
+                        AND: [
+                            {
+                                createdOn_between: ["2021-01-01", "2021-01-31"]
+                            },
+                            {
+                                createdOn_between: ["2022-01-01", "2022-01-31"]
+                            }
+                            
+                        ]
+                    }
+                ]
+            }
+        ]
+    }) {
+        data {
+            id
+            title
+        }
+        meta {
+            hasMoreItems
+            cursor
+            totalCount
+        }
+        error {
+          message
+          code
+          data
+        }
+    }
+}
+```
+
+This query will produce something like `(title_contains = "headless" AND title_contains = "cms" AND (title_contains = "webiny" OR title_contains = "serverless" OR ((createdOn_gte = "2021-01-01" AND createdOn_lte = "2021-01-31") AND (createdOn_gte = "2022-01-01" AND createdOn_lte = "2022-01-31"))))`.
+
+
+### Root Level `OR` and `AND` Conditionals
+
+In this example we are searching for articles which:
+* are written by author with ID `1` OR are in category with ID `2`
+* have a title with `headless` and `cms` words in it
+```graphql
+query {
+    listArticles(where: {
+        OR: [
+            {
+                author: 1
+            },
+            {
+                categoryId: 2
+            }
+        ],
+        AND: [
+            {
+                title_contains: "headless"
+            },
+            {
+                title_contains: "cms"
+            }
+        ]
+    }) {
+        data {
+            id
+            title
+        }
+        meta {
+            hasMoreItems
+            cursor
+            totalCount
+        }
+        error {
+          message
+          code
+          data
+        }
+    }
+}
+```
+
+This query will produce something like `((author = 1 OR categoryId = 2) AND (title_contains = "headless" AND title_contains = "cms"))`.
+
+
+<Alert type="info">
+
+  While users can nest `AND` and `OR` conditionals indefinitely, they need to be aware that it might result in performance issues.
+
+</Alert>
