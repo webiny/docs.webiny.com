@@ -253,13 +253,19 @@ export const Navigation = () => {
             </NavGroup>
             <NavGroup type={"user-guides"}>
                 <Collapsable title={"Get Started"}>
-                    <Page link={"user-guides/introduction"} />
-                    <Page title={"Glossary"} link={"user-guides/glossary"} />
+                    <Page link={"user-guides/overview"} />
                 </Collapsable>
+                <Separator />
                 <Collapsable title={"Headless CMS"}>
-                    <Page title={"Glossary"} link={"user-guides/headless-cms/glossary"} />
-                    <Page link={"user-guides/headless-cms/create-content-model"} />
+                    <Section title={"Essentials"}>
+                        <Page title={"Glossary"} link={"user-guides/headless-cms/essentials/glossary"} />
+                        <Page link={"user-guides/headless-cms/essentials/create-content-model"} />
+                    </Section>
+                    <Section title={"Advance"}>
+                        <Page link={"user-guides/headless-cms/advance/sample-advance-page"} />
+                    </Section>
                 </Collapsable>
+                <Separator />
                 <Collapsable title={"Page Builder"}>
                     <Page link={"user-guides/page-builder/introduction"} />
                 </Collapsable>
