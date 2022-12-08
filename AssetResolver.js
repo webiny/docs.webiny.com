@@ -72,8 +72,8 @@ module.exports.AssetResolver = class AssetResolver {
                 // console.log(`\t - ${gray(rootify(assetPath))}`);
             }
         }
-
         console.log(`\t ❌ ${red(rootify(assetPath))}`);
+
 
         return request.request;
     }

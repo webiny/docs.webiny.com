@@ -1,0 +1,144 @@
+---
+title: Modify Cloud Infrastructure
+description: Learn how to modify cloud infrastructure resources deployed by Webiny.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you’ll learn">
+
+- how to modify cloud infrastructure resources deployed by Webiny
+
+</Alert>
+
+## Overview
+
+Users use the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command to deploy their Webiny project, into an [environment](/docs/{version}/core-development-concepts/basics/project-deployment#environments) of their choice. During the deployment, apart from building the actual project applications, the command also ensures that a set of required cloud infrastructure resources is deployed.
+
+
+
+<Alert type="info">
+
+To deploy necessary cloud infrastructure resources, by default, Webiny relies on Pulumi, a modern infrastructure as code framework. Find out more in the following [IaC with Pulumi](../../infrastructure/pulumi-iac/iac-with-pulumi) key topic.
+
+</Alert>
+
+<Alert type="info">
+
+Read more about the cloud infrastructure resources that get deployed into your AWS account in our [Cloud Infrastructure](../../architecture/introduction) key topics section.
+
+</Alert>
+
+And although the cloud infrastructure resources that Webiny deploys are already configured in the best possible manner, there are still cases where some modifications might be needed. In some cases even, the deployed cloud infrastructure needs to be expanded by introducing additional resources into the mix.
+
+To do this, we rely on four `webiny.application.ts` configuration files, located in each of the four project application folders in every Webiny project:
+
+1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts)
+2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts)
+3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts)
+4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts)
+
+Which `webiny.application.ts` config file needs to be changed depends on the nature of the change that needs to be made.
+
+For example, let's imagine we want to adjust the configuration of the Amazon S3 bucket that's deployed for storing files uploaded via Webiny File Manager. Since this bucket is deployed as part of the **Core** project application, naturally, we'd want to apply changes via the [`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts) configuration file.
+
+The following example demonstrates how the bucket can be adjusted to enable [object versioning](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html), which essentially enables keeping multiple variants of an object in the same bucket:
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+  // By passing a callback function via the `pulumi` parameter, we gain the
+  // ability to modify project application's cloud infrastructure resources. 
+  pulumi: app => {
+    // Cloud infrastructure resources can be referenced via the `app.resources` 
+    // object. We then use resources' `config` objects to apply modifications.
+    const { fileManagerBucket } = app.resources;
+    fileManagerBucket.config.versioning({ enabled: true });
+  }
+});
+```
+
+As we can see, using the `pulumi` parameter, we've passed a relatively simple callback function that enables object versioning in two steps:
+
+1. references the relevant bucket via the `fileManagerBucket` const
+2. uses the reference to enable bucket versioning, via the `fileManagerBucket.config.versioning`
+
+Once the above code change has been made, all that is left to do is a redeploy by running the following command:
+
+```bash
+# Make sure to replace {env} with the actual name of the environment.
+yarn webiny deploy apps/core --env {env}
+```
+
+With the deployment successfully completed, the object versioning should be enabled for your project (for all files that are uploaded via Webiny File Manager).
+
+<Alert type="info">
+
+When redeploying, make sure to redeploy the project application within which the changes were actually made. In the above example, we've made changes within the **Core** application's `webiny.application.ts` file, meaning the **Core** application needs to be redeployed in order to actually see the changes.
+
+</Alert>
+
+## Additional Examples
+
+In this section, we cover a couple of additional examples of modifying cloud infrastructure resources that get deployed with every Webiny project.
+
+### Tagging Cloud Infrastructure Resources
+
+The following example shows how to apply tags to all cloud infrastructure resources deployed as part of the **Core** project application. Note that the same approach can be used for all four applications.
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { tagResources } from "@webiny/pulumi-aws";
+
+export default createCoreApp({
+  pulumi: app => {
+    // We are assigning Owner and Contact tags, whose values 
+    // are read from runtime environment variables.
+    tagResources({
+      Owner: String(process.env["OWNER"]),
+      Contact: String(process.env["CONTACT"])
+    });
+  }
+});
+```
+
+### Adjusting Amazon Elasticsearch (OpenSearch) Configuration
+
+Amazon Elasticsearch (OpenSearch) is deployed as part of the **Core** project application. In order to make changes to it, we need to make changes in the `apps/core/webiny.application.ts` configuration file.
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { isResourceOfType } from "@webiny/pulumi";
+
+export default createCoreApp({
+  elasticSearch: true,
+
+  pulumi: app => {
+    app.onResource(resource => {
+      if (isResourceOfType(resource, aws.elasticsearch.Domain)) {
+        // Set the instance type.
+        resource.config.clusterConfig(() => {
+          return {
+            instanceType: "t3.small.elasticsearch"
+          };
+        });
+
+        // Set Elasticsearch (OpenSearch) version.
+        resource.config.elasticsearchVersion("7.7");
+
+        // Change advanced options.
+        resource.config.advancedOptions({
+          override_main_response_version: "false",
+          "rest.action.multi.allow_explicit_index": "true"
+        });
+
+        resource.opts.ignoreChanges = ["advancedOptions", "tags"];
+      }
+    });
+  }
+});
+```

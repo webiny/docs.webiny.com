@@ -30,6 +30,7 @@ export function Heading({
         return () => {
             context.unregisterHeading(id);
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [top, id, context?.registerHeading, context?.unregisterHeading]);
 
     const LEVELS = {
@@ -61,7 +62,7 @@ export function Heading({
                 </div>
             </a>
             {badge && (
-                <span className="ml-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium leading-4 bg-green-150 text-green-900">
+                <span className="inline-flex items-center px-3 py-1 ml-3 text-sm font-medium leading-4 text-green-900 rounded-full bg-green-150">
                     {badge}
                 </span>
             )}

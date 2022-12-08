@@ -40,6 +40,7 @@ export function SearchProvider({ children }) {
         if (isOpen) {
             onClose();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
 
     useDocSearchKeyboardEvents({
@@ -236,7 +237,7 @@ export function SearchButton({ children, ...props }) {
                             height="24"
                             fill="none"
                             aria-hidden="true"
-                            className="mr-3 flex-none"
+                            className="flex-none mr-3"
                         >
                             <path
                                 d="m19 19-3.5-3.5"
@@ -256,7 +257,7 @@ export function SearchButton({ children, ...props }) {
                             ></circle>
                         </svg>
                         Quick search...
-                        <span className="ml-auto pl-3 flex-none text-xs font-semibold">⌘K</span>
+                        <span className="flex-none pl-3 ml-auto text-xs font-semibold">⌘K</span>
                     </button>
                 </div>
                 <div className="h-5 bg-gradient-to-b from-white dark:from-dark-theme"></div>
