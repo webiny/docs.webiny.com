@@ -165,6 +165,7 @@ export function info(text) {
 export async function writeAndLog(file, data) {
     const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
     logFileWrite(targetFile);
+    await fs.ensureDir(path.dirname(file));
     await fs.writeFile(file, data);
 }
 

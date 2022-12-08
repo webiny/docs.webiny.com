@@ -24,7 +24,7 @@ export const mdxComponents = {
             );
         } else {
             if (typeof props.children === "object") {
-                if (props.children.props.originalType === "inlineCode") {
+                if (props?.children?.props?.originalType === "inlineCode") {
                     return (
                         <code>
                             <Link href={props.href}>{props.children.props.children}</Link>
