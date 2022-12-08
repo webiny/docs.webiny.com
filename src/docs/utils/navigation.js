@@ -26,7 +26,7 @@ export const NavGroup = ({ type, children }) => {
 
 export const Collapsable = ({ title, children, remove, before, after }) => {
     const parent = useParentProperty();
-    const id = `${parent.id}.collapsable.${title}`;
+    const id = `${parent?.id}.collapsable.${title}`;
     const afterId = after ? `collapsable.${after}` : undefined;
     const beforeId = before ? `collapsable.${before}` : undefined;
     return (
