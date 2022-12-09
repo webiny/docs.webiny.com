@@ -95,7 +95,7 @@ For any larger projects, we recommend you scale up your OpenSearch cluster to so
 
 To update your OpenSearch cluster configuration, you can follow this example: 
 
-```js apps/core/webiny.application.ts
+```ts apps/core/webiny.application.ts
 import * as aws from "@pulumi/aws";
 import { createCoreApp } from "@webiny/serverless-cms-aws";
 import { isResourceOfType } from "@webiny/pulumi";
@@ -109,7 +109,7 @@ export default createCoreApp({
         // Set the instance type and number of instances 
         resource.config.clusterConfig(() => {
           return {
-            instanceType: "t3.small.elasticsearch"
+            instanceType: "t3.small.elasticsearch",
             instanceCount: 2
           };
         });
@@ -146,7 +146,27 @@ PUT https://domain-name.region.es.amazonaws.com/source-index/_settings
 **Increase indexing buffer size**
 The indexing buffer size is set to be `10%` of the memory of your instance size. Meaning, if you have an instance with 10GB of RAM, the indexing buffer size will be 1GB. This is usually enough. However, in cases where you're importing large amounts of data into Webiny, you might want to temporarily increase this to something like `20%` by adjusting the `indices.memory.index_buffer_size` parameter.
 
-// not sure how to do this??
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { isResourceOfType } from "@webiny/pulumi";
+
+export default createCoreApp({
+    elasticSearch: true,
+    pulumi: app => {
+        app.onResource(resource => {
+            if (isResourceOfType(resource, aws.elasticsearch.Domain)) {
+                // Change advanced options.
+                resource.config.advancedOptions({
+                    "indices.memory.index_buffer_size": "20%"
+                });
+                
+            }
+        });
+    }
+});
+
+```
 
 
 
