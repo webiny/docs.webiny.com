@@ -134,6 +134,8 @@ The second part of tuning the OpenSearch is tweaking certain configuration param
 
 **Increase the refresh interval**
 Refresh is an operation that indexes the records and makes them available for searching. By default, this action is triggered every second on all records that received one search request in the last 30 seconds. This action is very costly, especially if you have ongoing indexing activities running on your cluster and it will hurt your indexing speed. We recommend increasing this to `30s` and then testing if you need to increase it more or decrease it. To make the change you need to modify `index.refresh_interval` parameter.
+
+There are two ways of setting the `index.refresh_interval`. First one is via the REST call to your Elasticsearch cluster, which is for the existing indexes:
 ```
 PUT https://domain-name.region.es.amazonaws.com/source-index/_settings
 {
@@ -143,30 +145,50 @@ PUT https://domain-name.region.es.amazonaws.com/source-index/_settings
 }
 ```
 
-**Increase indexing buffer size**
-The indexing buffer size is set to be `10%` of the memory of your instance size. Meaning, if you have an instance with 10GB of RAM, the indexing buffer size will be 1GB. This is usually enough. However, in cases where you're importing large amounts of data into Webiny, you might want to temporarily increase this to something like `20%` by adjusting the `indices.memory.index_buffer_size` parameter.
+The second one is for the indexes that are not yet created, and it is done via the `CmsEntryElasticsearchIndexPlugin`:
+```ts apps/api/headlessCMS/src/plugins/customConfiguration.ts
+import { getBaseConfiguration } from "@webiny/api-elasticsearch";
+import { CmsEntryElasticsearchIndexPlugin } from "@webiny/api-headless-cms-ddb-es";
 
-```ts apps/core/webiny.application.ts
-import * as aws from "@pulumi/aws";
-import { createCoreApp } from "@webiny/serverless-cms-aws";
-import { isResourceOfType } from "@webiny/pulumi";
-
-export default createCoreApp({
-    elasticSearch: true,
-    pulumi: app => {
-        app.onResource(resource => {
-            if (isResourceOfType(resource, aws.elasticsearch.Domain)) {
-                // Change advanced options.
-                resource.config.advancedOptions({
-                    "indices.memory.index_buffer_size": "20%"
-                });
-                
+export const customConfiguration = new CmsEntryElasticsearchIndexPlugin({
+    body: getBaseConfiguration(config => {
+        return {
+            ...config,
+            settings: {
+                ...config.settings,
+                index: {
+                    ...config.settings?.index,
+                    /**
+                     * If you are wondering why it's string:
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#index-refresh-interval-setting
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
+                     */
+                    refresh_interval: "30s"
+                }
             }
-        });
-    }
+        };
+    })
 });
-
 ```
+
+And then you need to register it in the `apps/api/headlessCMS/src/index.ts`.
+```ts apps/api/headlessCMS/src/index.ts
+export const handler = createHandler({
+    plugins: [
+        /**
+         * Find the createHeadlessCmsContext and add the customConfiguration plugin into the plugins array in createHeadlessCmsStorageOperations.
+         */
+        createHeadlessCmsContext({
+            storageOperations: createHeadlessCmsStorageOperations({
+                documentClient,
+                elasticsearch,
+                plugins: [createGzipCompression(), customConfiguration]// <--- here
+            })
+        }),
+    ]
+})
+```
+
 
 
 
