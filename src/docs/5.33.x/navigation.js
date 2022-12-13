@@ -17,6 +17,9 @@ export const Navigation = () => {
                 <Section title={"Extending functionality"}>
                     <Page link={"headless-cms/extending/content-models-via-code-storage-id"} />
                 </Section>
+                <Section title={"Integrations"}>
+                    <Page link={"headless-cms/integrations/integrations-list"} />
+                </Section>
             </Collapsable>
             <Collapsable title={"Performance & Load Benchmark"}>
                 <Section title={"Headless CMS"}>
