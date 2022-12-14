@@ -106,7 +106,7 @@ const articles = [
   {
     tech: "react",
     slug: "https://www.webiny.com/blog/todo-application-react-tailwind-webiny-headless-cms",
-    project: "CBuild a ToDo app with React, Tailwind and Webiny Headless CMS",
+    project: "Build a ToDo app with React, Tailwind and Webiny Headless CMS",
     description: "Create and destroy items on this ToDo list application using React and Tailwind with Webiny as a data source."
   },
   {
@@ -134,20 +134,10 @@ const articles = [
     description: "In this tutorial we will be building a Job Board Application, integrating Webiny CMS into a Vue.js frontend using GraphQL."
   },
   {
-    tech: "nuxtjs",
-    slug: "https://www.webiny.com/blog/build-photo-sharing-app-nuxt-webiny-headless-cms",
-    project: "Build a Photo Gallery app with Webiny and Nuxt"
-  },
-  {
     tech: "react",
     slug: "https://www.webiny.com/blog/build-job-board-react-graphql",
     project: "Build a Job Board with React and GraphQL",
     description: "In this tutorial, we will learn about the Webiny CMS and how we can use it in React by building a job board application."
-  },
-  {
-    tech: "vuejs",
-    project: "Create a Marketplace App with Vue.js and Pinia",
-    slug: "https://www.webiny.com/blog/create-marketplace-app-vuejs-pinia-webiny-headless-cms",
   },
   {
     tech: "svelte",
@@ -182,8 +172,8 @@ const BlogTile = ({
   description
 }) => {
   return (
-    <div className='p-4 border-2 border-black rounded-xl'>
-      <Link href={slug}><img className='my-2 transition ease-in-out w-60 hover:scale-[0.85]' src={technologies[tech].image} alt=""/></Link>
+    <div className='p-4 border-2 border-slate-500/50 rounded-xl'>
+      <Link href={slug}><img className='my-2 transition ease-in-out h-10 hover:scale-[0.85]' src={technologies[tech].image} alt=""/></Link>
       <div>
         <h4 style={{ marginTop: 'unset' }}>{project}</h4>
         <p>{description}</p>
@@ -195,7 +185,7 @@ const BlogTile = ({
 
 const IntegrationsGrid = () => {
   return (
-    <div className='grid grid-cols-2 gap-8'>
+    <div className='grid gap-8 md:grid-cols-2'>
       {articles.map(article => (
         <BlogTile key={article.link} { ...article } />
       ))}
