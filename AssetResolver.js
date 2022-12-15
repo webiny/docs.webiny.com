@@ -50,7 +50,7 @@ module.exports.AssetResolver = class AssetResolver {
     async resolveRequest(request) {
         const { allVersions, latestVersion } = versions;
         const page = this.getSourcePage(request.context.issuer);
-        const realVersion = page.version === "latest" ? latestVersion : page.version;
+        const realVersion = page?.version === "latest" ? latestVersion : page.version;
         const possibleVersions = allVersions
             .slice(allVersions.indexOf(realVersion))
             .concat("shared");
