@@ -254,6 +254,7 @@ export const Navigation = () => {
                         <Page title={"Glossary"} link={"user-guides/headless-cms/essentials/glossary"} />
                         <Page link={"user-guides/headless-cms/essentials/create-content-model"} />
                         <Page link={"user-guides/headless-cms/essentials/create-content-entry"} />
+                        <Page link={"user-guides/headless-cms/essentials/create-content-model-group"} />
                     </Section>
                     <Section title={"Advanced"}>
                         <Page link={"user-guides/headless-cms/advanced/sample-advance-page"} />
