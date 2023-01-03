@@ -262,7 +262,9 @@ export const Navigation = () => {
                 </Collapsable>
                 <Separator />
                 <Collapsable title={"Page Builder"}>
-                    <Page link={"user-guides/page-builder/introduction"} />
+                    <Section title={"Essentials"}>
+                        <Page title={"Glossary"} link={"user-guides/page-builder/essentials/glossary"} />
+                    </Section>
                 </Collapsable>
             </NavGroup>
         </>
