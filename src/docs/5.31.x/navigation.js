@@ -12,6 +12,13 @@ export const Navigation = () => {
                 <Section title={"Basics"}>
                     <Page link={"core-development-concepts/basics/routes-and-events"} />
                 </Section>
+                <Section title={"Extending and Customizing"}>
+                    <Page
+                        link={
+                            "core-development-concepts/extending-and-customizing/add-custom-route-to-existing-lambda"
+                        }
+                    />
+                </Section>
             </Collapsable>
         </>
     );
