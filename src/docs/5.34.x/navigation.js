@@ -13,6 +13,9 @@ export const Navigation = () => {
                     <Page link={"headless-cms/basics/using-graphql-api-advanced-filtering"} />
                 </Section>
             </Collapsable>
+            <Collapsable title={"Webiny Enterprise"}>
+                <Page link={"enterprise/auth0-integration"} />
+            </Collapsable>
         </>
     );
 };
