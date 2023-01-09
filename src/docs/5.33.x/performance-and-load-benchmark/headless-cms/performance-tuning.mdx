@@ -1,0 +1,421 @@
+---
+title: Performance Tuning
+description: How to tune Webiny Headless CMS performance for speed, reliability and scale.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you’ll learn">
+
+- what are the main components that can be tuned 
+- what things you should consider
+- best practices
+
+</Alert>
+
+## About
+
+Webiny, being built on top of a serverless infrastructure, takes the advantage of the auto-scale capabilities many of the serverless services provide out of the box, saving you time, and stress in having to manage this yourself. However, not all components scale well, and sometimes it's the interaction between the components that might need adjustments. In this article we want to provide you with a list of things you should consider in advance before putting large workloads on top of Webiny, to ensure your users have a great experience. 
+
+## Things to consider
+
+The main bottleneck we found when we stress-tested Webiny by inserting millions of records with thousands of user requests in parallel, is that it's the communication between DynamoDB and the OpenSearch cluster that should be tuned to match your traffic patterns. We say patterns because the tuning might differ if you're focused more on read operations than write operations, as well as the record sizes and frequency, many small-record writes, vs many big-record writes.
+
+In addition to the database side of things, the one additional item to consider is the burst capacity of Lambda functions - which is an AWS hard limit and cannot be changed. 
+
+In this article, we'll focus on tuning the OpenSearch cluster, the DynamoDB Stream configuration and the Lambda burst capacity. These are the only components you should tweak, while all others will handle and scale to your loads automatically. 
+
+### Lambda burst capacity
+
+It's important to get yourself familiarized with how Lambda functions scale. There are two parts to how they scale, the first is the "burst capacity". That's the most important one as that one **cannot be changed** and has a fixed value that depends on the AWS region where you deployed Webiny. The burst capacity determines the maximum amount of concurrent Lambda function executions for your initial period. That's like your 0 to 60 speed. 
+
+The key here is to pick the right AWS region as the burst capacity differs drastically between some regions. Here's the list of the current burst capacity values per AWS region:
+- **3000** – US West (Oregon), US East (N. Virginia), Europe (Ireland)
+- **1000** – Asia Pacific (Tokyo), Europe (Frankfurt), US East (Ohio)
+- **500** – Other Regions
+
+Once you are at the burst capacity, your functions will still scale in their concurrency, but at a slower pace, which is **500 additional instances each minute.** This is why it's important to pick a region with a higher burst capacity so that you have more room till you hit this 500 instances per minute threshold. 
+
+The last important factor to mention about scaling Lambda functions is that every AWS account gets a limit of 1,000 concurrent Lambda executions by default. This is counted across all of your Lambda functions inside a single AWS region. This limit can be increased by raising a request inside your [AWS Service Quotas Dashboard](https://console.aws.amazon.com/servicequotas/home)
+
+**References:**
+- https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html
+- https://docs.aws.amazon.com/lambda/latest/dg/burst-concurrency.html
+- https://aws.amazon.com/blogs/compute/understanding-aws-lambda-scaling-and-throughput/
+- https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html
+
+### DynamoDB Stream
+
+By default, in Webiny, all the API write requests only hit DynamoDB, regardless if you're using the DynamoDB-only instance, or the one with OpenSearch. This is because OpenSearch doesn't scale well when there's a big spike in write requests. Using DynamoDB to shield the OpenSearch cluster is a design decision that helps us scale Webiny to very large amounts of traffic. 
+
+The data records, once written inside DynamoDB, get copied to OpenSearch in the background through a DynamoDB Stream. Essentially DynamoDB will trigger a Lambda function and give it several last records that were written to DynamoDB, and then that Lambda function does a bulk-write request to OpenSearch. 
+
+This mechanism triggers with a delay, which is intentional. The delay is determined by configuring two parameters on DynamoDB Stream:
+- **Batch size** – The number of records to send to the function in each batch, up to 10,000. Lambda passes all of the records in the batch to the function in a single call, as long as the total size of the events doesn't exceed the payload limit for synchronous invocation (6 MB).
+- **Batch window** – Specify the maximum amount of time to gather records before invoking the function, in seconds.
+
+Whichever of the two parameters meets its condition first, will trigger the Stream and thus pass the data to the Lambda function which will sync it to OpenSearch. 
+
+The thing to consider here is how fast you need to read these records after they've been written. If you have low amounts of reads, you might need to wait until the Batch window expires before the sync process kicks in. On the other side, if you have a small `Batch size`, but a lot of writes, the sync process might kick in too many times and overwhelm your OpenSearch cluster. Tweaking this will depend on your traffic patterns and requirements. 
+
+By default, Webiny configures `Batch size` to 1,000 records and the `Batch window` to 1 second. For most use cases this is enough. In case you wish to modify this, here's an example code:
+
+```js apps/core/webiny.application.ts
+
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { isResourceOfType } from "@webiny/pulumi";
+
+// It's recommended our `staging` and `production` environments are  as similar
+// as possible. That's why `staging` is also listed as a production environment. 
+const PRODUCTION_ENVIRONMENTS = ["staging", "prod"];
+
+export default createCoreApp({
+    elasticSearch: true,
+    pulumi: app => {
+        // Let's apply configuration changes only for production-like environments (`staging` and `prod`).
+        const environment = app.params.run["env"];
+        if (!PRODUCTION_ENVIRONMENTS.includes(environment)) {
+            return;
+        }
+
+        app.onResource(resource => {
+            // Adjust DynamoDB -> Amazon Elasticsearch stream.
+            const isDynamoToElasticEventSourceMapping =
+                isResourceOfType(resource, aws.lambda.EventSourceMapping) &&
+                resource.name === "dynamo-to-elastic";
+
+            if (isDynamoToElasticEventSourceMapping) {
+                // Increase the batch size and batching window.
+                resource.config.batchSize(500);
+                resource.config.maximumBatchingWindowInSeconds(30);
+                return;
+            }
+        });
+    }
+});
+
+```
+
+**References:**
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.Lambda.html
+- https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.Lambda.BestPracticesWithDynamoDB.html
+- https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html#services-dynamodb-eventsourcemapping
+- https://github.com/webiny/webiny-js/blob/dev/packages/pulumi-aws/src/apps/core/CoreOpenSearch.ts#L212
+
+### Elasticsearch Cluster
+
+Finally, the last component to tune is the Elasticsearch cluster, which consists of two steps:
+
+1. correctly sizing the cluster
+2. updating the index refresh interval
+
+In the following text, we cover these two topics in more detail.
+
+#### Elasticsearch Cluster Size
+
+For production instances, we highly recommend having a multi-zone deployment. By default, if you deploy Webiny with `--env=prod` flag, Webiny will automatically create a cluster in 2 availability zones, where each zone has 1 instance that's a type of `t3.medium.search`, this should be suitable for small to medium size projects. For all other environments, we deploy a single `t3.small.elasticsearch` instance, which is only suitable for development purposes and shouldn't be used in production. 
+
+For any larger projects, we recommend you scale up your OpenSearch cluster to something with more capacity. You can look at our [Headless CMS benchmark](./write-benchmark) where we compare several different cluster configurations to get a sense of what might best suit your needs.
+
+To update your OpenSearch cluster configuration, you can follow this example: 
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { isResourceOfType } from "@webiny/pulumi";
+
+// It's recommended our `staging` and `production` environments are  as similar
+// as possible. That's why `staging` is also listed as a production environment. 
+const PRODUCTION_ENVIRONMENTS = ["staging", "prod"];
+
+export default createCoreApp({
+    elasticSearch: true,
+    pulumi: app => {
+        // Let's apply configuration changes only for production-like environments (`staging` and `prod`).
+        const environment = app.params.run["env"];
+        if (!PRODUCTION_ENVIRONMENTS.includes(environment)) {
+            return;
+        }
+
+        app.onResource(resource => {
+            // Adjust Amazon Elasticsearch domain.
+            const isElasticsearchDomain = isResourceOfType(resource, aws.elasticsearch.Domain);
+
+            if (isElasticsearchDomain) {
+                // Set the instance type and number of instances.
+                resource.config.clusterConfig(() => {
+                    return {
+                        instanceType: "t3.small.elasticsearch",
+                        instanceCount: 2
+                    };
+                });
+            }
+        });
+    }
+});
+```
+
+#### Updating Refresh Interval
+
+The second part of tuning the OpenSearch is tweaking certain configuration parameters of the service itself. At the moment, we recommend increasing the [refresh interval](https://www.elastic.co/guide/en/elasticsearch/reference/current/tune-for-indexing-speed.html#_unset_or_increase_the_refresh_interval), which is an operation that indexes the records and makes them available for searching. 
+
+By default, this action is triggered every second on all records that received one search request in the last 30 seconds. This action is very costly, especially if you have ongoing indexing activities running on your cluster and it will hurt your indexing speed. We recommend increasing this to `30s` and then testing if you need to increase it more or decrease it. To make the change you need to modify `index.refresh_interval` parameter.
+
+Depending on the existence od the target index, the refresh interval can be modified in two ways.
+
+
+
+##### **Non-existing Indexes**
+
+The following approach can be used when indexes do not yet exist (i.e. they will be created as users start to use Webiny). Because it consists of a couple of plugins which live in your application code, it can be considered as a more convenient way of adjusting the refresh interval.
+
+The following is a list of plugins we'll need to utilize:
+
+1. [`FileElasticsearchIndexPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.3/packages/api-file-manager-ddb-es/src/plugins/FileElasticsearchIndexPlugin.ts#L3)
+2. [`FormElasticsearchIndexPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.3/packages/api-form-builder-so-ddb-es/src/plugins/FormElasticsearchIndexPlugin.ts#L3)
+3. [`PageElasticsearchIndexPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.3/packages/api-page-builder-so-ddb-es/src/plugins/definitions/PageElasticsearchIndexPlugin.ts#L3)
+4. [`CmsEntryElasticsearchIndexPlugin`](https://github.com/webiny/webiny-js/blob/v5.33.3/packages/api-headless-cms-ddb-es/src/plugins/CmsEntryElasticsearchIndexPlugin.ts#L3)
+
+We register these plugins via the default GraphQL API (`apps/api/graphql`) and Headless CMS GraphQL API (`apps/api/headlessCMS`) application code. The following examples demonstrate how we can do that.
+
+###### **Default GraphQL API (`apps/api/graphql`)**
+
+Within the default GraphQL API's application code, we register the following three plugins.
+
+```ts apps/api/graphql/src/plugins/fileElasticsearchIndexPlugin.ts
+import { getBaseConfiguration } from "@webiny/api-elasticsearch";
+import { FileElasticsearchIndexPlugin } from "@webiny/api-file-manager-ddb-es/plugins/FileElasticsearchIndexPlugin";
+
+export const fileElasticsearchIndexPlugin = new FileElasticsearchIndexPlugin({
+    body: getBaseConfiguration(config => {
+        return {
+            ...config,
+            settings: {
+                ...config.settings,
+                index: {
+                    ...config.settings?.index,
+                    /**
+                     * For more information, check out the following:
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#index-refresh-interval-setting
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
+                     */
+                    refresh_interval: "30s"
+                }
+            }a
+        };
+    })
+});
+```
+
+```ts apps/api/graphql/src/plugins/formElasticsearchIndexPlugin.ts
+import { getBaseConfiguration } from "@webiny/api-elasticsearch";
+import { FormElasticsearchIndexPlugin } from "@webiny/api-form-builder-so-ddb-es/plugins/FormElasticsearchIndexPlugin";
+
+export const formElasticsearchIndexPlugin = new FormElasticsearchIndexPlugin({
+    body: getBaseConfiguration(config => {
+        return {
+            ...config,
+            settings: {
+                ...config.settings,
+                index: {
+                    ...config.settings?.index,
+                    /**
+                     * For more information, check out the following:
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#index-refresh-interval-setting
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
+                     */
+                    refresh_interval: "30s"
+                }
+            }
+        };
+    })
+});
+
+```
+
+```ts apps/api/graphql/src/plugins/pageElasticsearchIndexPlugin.ts
+import { getBaseConfiguration } from "@webiny/api-elasticsearch";
+import { PageElasticsearchIndexPlugin } from "@webiny/api-page-builder-so-ddb-es/plugins/definitions/PageElasticsearchIndexPlugin";
+
+export const pageElasticsearchIndexPlugin = new PageElasticsearchIndexPlugin({
+    body: getBaseConfiguration(config => {
+        return {
+            ...config,
+            settings: {
+                ...config.settings,
+                index: {
+                    ...config.settings?.index,
+                    /**
+                     * For more information, check out the following:
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#index-refresh-interval-setting
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
+                     */
+                    refresh_interval: "30s"
+                }
+            }
+        };
+    })
+});
+
+
+```
+
+Once we have these three plugins defined, we need to register them in the `apps/api/graphql/src/index.ts` entrypoint file:
+
+```diff-ts
+// For brevity, irrelevant lines of code have been removed.
+// (...)
+import { fileElasticsearchIndexPlugin } from "~/plugins/fileElasticsearchIndexPlugin";
+import { formElasticsearchIndexPlugin } from "~/plugins/formElasticsearchIndexPlugin";
+import { pageElasticsearchIndexPlugin } from "~/plugins/pageElasticsearchIndexPlugin";
+
+export const handler = createHandler({
+    plugins: [
+        // For brevity, irrelevant lines of code have been removed.
+        // (...)
+        fileManagerPlugins(),
+        fileManagerDynamoDbElasticStorageOperation(),
+        fileManagerS3(),
++       fileElasticsearchIndexPlugin,      
+        prerenderingServicePlugins({
+            eventBus: String(process.env.EVENT_BUS)
+        }),
+        createPageBuilderContext({
+            storageOperations: createPageBuilderStorageOperations({
+                documentClient,
+                elasticsearch: elasticsearchClient,
++               plugins: [createGzipCompression(), pageElasticsearchIndexPlugin]
+            })
+        }),
+        createPageBuilderGraphQL(),
+        pageBuilderPrerenderingPlugins(),
+        pageBuilderImportExportPlugins({
+            storageOperations: createPageBuilderImportExportStorageOperations({ documentClient })
+        }),
+        createFormBuilder({
+            storageOperations: createFormBuilderStorageOperations({
+                documentClient,
+                elasticsearch: elasticsearchClient,
++               plugins: [formElasticsearchIndexPlugin]
+            })
+        }),
+        createHeadlessCmsContext({
+            storageOperations: createHeadlessCmsStorageOperations({
+                documentClient,
+                elasticsearch: elasticsearchClient,
+                plugins: [createGzipCompression()]
+            })
+        }),
+        createHeadlessCmsGraphQL(),
+        createGzipCompression(),
+        createApwGraphQL(),
+        createApwPageBuilderContext({
+            storageOperations: createApwSaStorageOperations({ documentClient })
+        }),
+        scaffoldsPlugins()
+    ],
+    http: { debug }
+});
+
+```
+
+###### **Headless CMS GraphQL API (`apps/api/headlessCMS`)**
+
+Within the Headless CMS GraphQL API’s application code, we register the following plugin.
+
+```ts apps/api/headlessCMS/src/plugins/cmsEntryElasticsearchIndexPlugin.ts
+import { getBaseConfiguration } from "@webiny/api-elasticsearch";
+import { CmsEntryElasticsearchIndexPlugin } from "@webiny/api-headless-cms-ddb-es";
+
+export const cmsEntryElasticsearchIndexPlugin = new CmsEntryElasticsearchIndexPlugin({
+    body: getBaseConfiguration(config => {
+        return {
+            ...config,
+            settings: {
+                ...config.settings,
+                index: {
+                    ...config.settings?.index,
+                    /**
+                     * For more information, check out the following:
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#index-refresh-interval-setting
+                     * https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
+                     */
+                    refresh_interval: "30s"
+                }
+            }
+        };
+    })
+});
+
+```
+
+Once we have this plugin defined, we need to register it in the `apps/api/headlessCMS/src/index.ts` entrypoint file:
+
+```diff-ts apps/api/headlessCMS/src/index.ts
+// For brevity, irrelevant lines of code have been removed.
+// (...)
+import { cmsEntryElasticsearchIndexPlugin } from "~/plugins/cmsEntryElasticsearchIndexPlugin";
+
+export const handler = createHandler({
+    plugins: [
+        createWcpContext(),
+        logsPlugins(),
+        dbPlugins({
+            table: process.env.DB_TABLE,
+            driver: new DynamoDbDriver({ documentClient })
+        }),
+        securityPlugins({ documentClient }),
+        i18nPlugins(),
+        i18nDynamoDbStorageOperations(),
+        createHeadlessCmsContext({
+            storageOperations: createHeadlessCmsStorageOperations({
+                documentClient,
+                elasticsearch,
++               plugins: [createGzipCompression(), cmsEntryElasticsearchIndexPlugin]
+            })
+        }),
+        createHeadlessCmsGraphQL({ debug }),
+        createApwGraphQL(),
+        createApwHeadlessCmsContext({
+            storageOperations: createApwSaStorageOperations({ documentClient })
+        }),
+        scaffoldsPlugins()
+    ],
+    http: { debug }
+});
+
+```
+
+Once all the plugins have been defined and registered, the last step would be to redeploy your project.
+
+Note that, in case the refresh interval needs to be changed on an existing index, you'll need to follow the approach outlined in the following section.
+
+##### **Updating Existing Indexes**
+
+Existing indexes can be updated by issuing the following `PUT` HTTP request to your Elasticsearch cluster's remote REST API:
+
+```
+PUT https://domain-name.region.es.amazonaws.com/source-index/_settings
+{
+	"settings": {
+		"index.refresh_interval": "30s"
+	}
+}
+```
+
+But note that, in almost all cases, executing the above will result in an authentication error, which is to be expected. 
+
+There are multiple ways you can access the mentioned REST API. 
+
+One easy and straightforward way is to levearge the [`aws-es-kibana`](https://www.npmjs.com/package/aws-es-kibana) NPM module. Essentially, the module enables us to connect to [Kibana](https://www.elastic.co/kibana/), a visual interface tool that allows us to access our data, different settings, and, most importantly, developer tools. Via these tools, we're then able to issue the above shown HTTP request as an authenticated user. 
+
+For more information, please consult the [related documentation](https://www.elastic.co/guide/en/kibana/current/console-kibana.html).
+
+
+#### Additional References
+- https://github.com/webiny/webiny-js/blob/dev/packages/pulumi-aws/src/apps/core/CoreOpenSearch.ts#L48
+- https://aws.amazon.com/premiumsupport/knowledge-center/opensearch-indexing-performance/
+- https://www.elastic.co/guide/en/elasticsearch/reference/master/tune-for-indexing-speed.html
+- https://docs.aws.amazon.com/opensearch-service/latest/developerguide/bp.html
