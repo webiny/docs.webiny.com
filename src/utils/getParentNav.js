@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 
 export function getParentNav(nav) {
+    // eslint-disable-next-line
     let router = useRouter();
 
     // extract the parent group
