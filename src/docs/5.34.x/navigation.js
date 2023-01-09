@@ -10,6 +10,7 @@ export const Navigation = () => {
             {/* Add new items. */}
             <Collapsable title={"Headless CMS"}>
                 <Section title={"Basics"}>
+                    <Page link={"headless-cms/basics/using-graphql-api-filtering"} />
                     <Page link={"headless-cms/basics/using-graphql-api-advanced-filtering"} />
                 </Section>
             </Collapsable>
