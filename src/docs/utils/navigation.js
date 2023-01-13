@@ -85,7 +85,7 @@ const weightMap = {
     releaseNotes: 50
 };
 
-export const Page = ({ title, link, remove, before, after }) => {
+export const Page = ({ draft, title, link, remove, before, after }) => {
     const version = useContext(VersionContext);
     const page = findPage(version, link);
     if (!page) {
