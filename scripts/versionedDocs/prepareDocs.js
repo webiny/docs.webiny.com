@@ -168,11 +168,17 @@ export async function writeAndLog(file, data) {
     const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
     logFileWrite(targetFile);
     await fs.ensureDir(path.dirname(file));
-    await pRetry(() => fs.writeFile(file, data), { retries: 5 });
+    const writeFile = async () => {
+        await fs.writeFile(file, data);
+    };
+    await pRetry(writeFile, { retries: 5 });
 }
 
 export async function writeJsonAndLog(file, data) {
     const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
     logFileWrite(targetFile);
-    await pRetry(() => writeJsonFile(targetFile, data), { retries: 5 });
+    const writeFile = async () => {
+        await writeJsonFile(targetFile, data);
+    };
+    await pRetry(writeFile, { retries: 5 });
 }

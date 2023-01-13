@@ -14,6 +14,13 @@ export function useVersion() {
     return useContext(VersionContext);
 }
 
+export const Draft = ({ children }) => {
+    if (process.env.VERCEL_ENV === "production") {
+        return null;
+    }
+    return <>{children}</>;
+};
+
 export const NavGroup = ({ type, children }) => {
     return (
         <Property id="groups" name={"groups"}>
