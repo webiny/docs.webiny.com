@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import globby from "globby";
 import path from "path";
 import pMap from "p-map";
+import pRetry from "p-retry";
 import frontMatter from "front-matter";
 import { replaceInPath } from "replace-in-path";
 import util from "util";
@@ -161,11 +162,11 @@ export async function writeAndLog(file, data) {
     const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
     logFileWrite(targetFile);
     await fs.ensureDir(path.dirname(file));
-    await fs.writeFile(file, data);
+    await pRetry(() => fs.writeFile(file, data), { retries: 5 });
 }
 
 export async function writeJsonAndLog(file, data) {
     const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
     logFileWrite(targetFile);
-    await writeJsonFile(targetFile, data);
+    await pRetry(() => writeJsonFile(targetFile, data), { retries: 5 });
 }
