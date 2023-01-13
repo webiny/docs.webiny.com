@@ -1,3 +1,4 @@
+import pRetry from "p-retry";
 import { generateNavigation, info, writeJsonAndLog } from "./prepareDocs";
 import { blue } from "chalk";
 import { watch } from "chokidar";
@@ -54,8 +55,12 @@ async function handleNavigationChange() {
     const { generateNavigation } = await import("./prepareDocs");
     const navigation = {};
     for (const realVersion of versions.allVersions) {
-        const nav = await generateNavigation(realVersion);
-        navigation[nav.version] = nav.navigation;
+        const docsNavigation = path.join(process.cwd(), "src/docs", realVersion, "navigation.js");
+        const nav = await generateNavigation(realVersion, docsNavigation);
+        Object.keys(nav.navigation).forEach(group => {
+            navigation[group] = navigation[group] || {};
+            navigation[group][nav.version] = nav.navigation[group];
+        });
     }
     await writeJsonAndLog("src/data/navigation.json", navigation);
 }
@@ -94,7 +99,7 @@ async function updateFrontMatter(file, version) {
     const { attributes } = await frontMatter(await fs.readFile(file, "utf8"));
 
     pages[version][pageIndex] = { ...pages[version][pageIndex], ...attributes };
-    await writeJsonFile(pagesDataJson, pages);
+    await pRetry(() => writeJsonFile(pagesDataJson, pages), { retries: 5 });
 }
 
 async function copySourceToTarget(source, target) {
