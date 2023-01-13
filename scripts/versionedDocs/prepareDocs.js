@@ -53,8 +53,13 @@ export async function prepareDocs() {
     let catalog = [];
     for (const realVersion of allVersions) {
         // nav = { version, navigation, pages }
-        const nav = await generateNavigation(realVersion);
-        navigation[nav.version] = nav.navigation;
+        const docsNavigation = path.join(process.cwd(), "src/docs", realVersion, "navigation.js");
+        const nav = await generateNavigation(realVersion, docsNavigation);
+        Object.keys(nav.navigation).forEach(group => {
+            navigation[group] = navigation[group] || {};
+            navigation[group][nav.version] = nav.navigation[group];
+        });
+
         catalog = catalog.concat(...nav.pages);
     }
 
@@ -103,18 +108,13 @@ export async function prepareDocs() {
     info(`Docs are ready for building!`);
 }
 
-export async function generateNavigation(realVersion) {
+export async function generateNavigation(realVersion, navigationSource) {
     const { Version } = await import("@/docs/utils/navigation");
     const { latestVersion } = await import("@/data/versions.json");
     const isLatest = realVersion === latestVersion;
     const version = isLatest ? "latest" : realVersion;
 
-    const { Navigation } = require(path.join(
-        process.cwd(),
-        "src/docs",
-        realVersion,
-        "navigation.js"
-    ));
+    const { Navigation } = require(navigationSource);
 
     const data = await renderNavigation(
         <Version version={version}>
@@ -122,13 +122,19 @@ export async function generateNavigation(realVersion) {
         </Version>
     );
 
-    const navigation = data.items.reduce((acc, item, index) => {
-        // Deduplicate separators
-        if (item.type === "separator" && data.items[index - 1].type === "separator") {
-            return acc;
-        }
-        return [...acc, item];
-    }, []);
+    const navigation = Object.keys(data.groups).reduce((acc, group) => {
+        const { items } = data.groups[group];
+        return {
+            ...acc,
+            [group]: items.reduce((acc, item, index) => {
+                // Deduplicate separators
+                if (item.type === "separator" && items[index - 1].type === "separator") {
+                    return acc;
+                }
+                return [...acc, item];
+            }, [])
+        };
+    }, {});
 
     return { version, navigation, pages: data.catalog };
 }

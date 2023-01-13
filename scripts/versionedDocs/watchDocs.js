@@ -55,8 +55,12 @@ async function handleNavigationChange() {
     const { generateNavigation } = await import("./prepareDocs");
     const navigation = {};
     for (const realVersion of versions.allVersions) {
-        const nav = await generateNavigation(realVersion);
-        navigation[nav.version] = nav.navigation;
+        const docsNavigation = path.join(process.cwd(), "src/docs", realVersion, "navigation.js");
+        const nav = await generateNavigation(realVersion, docsNavigation);
+        Object.keys(nav.navigation).forEach(group => {
+            navigation[group] = navigation[group] || {};
+            navigation[group][nav.version] = nav.navigation[group];
+        });
     }
     await writeJsonAndLog("src/data/navigation.json", navigation);
 }
