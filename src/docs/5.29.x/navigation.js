@@ -7,8 +7,6 @@ export const Navigation = () => {
         <>
             {/* Inherit navigation from 5.28.x. */}
             <BaseNavigation />
-            {/* Add new items here. */}
-
             <NavGroup type={"docs"}>
                 <Collapsable title={"Infrastructure"}>
                     <Section title={"Basics"}>
