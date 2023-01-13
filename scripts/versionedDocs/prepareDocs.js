@@ -84,6 +84,10 @@ export async function prepareDocs() {
         const targetPath = targetDocsPath(version);
         // Copy shared pages first
         for (const page of versionPages) {
+            if (!page.relativePath) {
+                console.log(JSON.stringify(page, null, 2));
+                throw new Error(`Page doesn't have a "relativePath" set!`);
+            }
             await fs.copy(page.sourceFile, targetDocsPath(page.relativePath + ".mdx"));
         }
         injectVersion(targetPath, version);

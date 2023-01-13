@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigation as BaseNavigation } from "../5.33.x/navigation";
-import { Page, Section, Collapsable, NavGroup } from "@/docs/utils/navigation";
+import { Page, Section, Collapsable, NavGroup, Draft } from "@/docs/utils/navigation";
 
 export const Navigation = () => {
     return (
@@ -16,7 +16,9 @@ export const Navigation = () => {
                     </Section>
                 </Collapsable>
                 <Collapsable title={"Webiny Enterprise"}>
-                    <Page link={"enterprise/auth0-integration"} />
+                    <Draft>
+                        <Page link={"enterprise/auth0-integration"} />
+                    </Draft>
                 </Collapsable>
             </NavGroup>
         </>
