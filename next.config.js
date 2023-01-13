@@ -39,11 +39,14 @@ const getPageData = pagePath => {
         return null;
     }
 
-    const pickKeys = ["title", "version", "fullPath", "articleType", "description", "robots"];
+    const omitKeys = ["sourceFile"];
 
-    return pickKeys.reduce((data, key) => ({ ...data, [key]: page[key] }), {
-        canonicalPath
-    });
+    return Object.keys(page).reduce((newPage, key) => {
+        if (omitKeys.includes(key)) {
+            return newPage;
+        }
+        return { ...newPage, [key]: page[key] };
+    }, {});
 };
 
 const getCanonicalPath = (version, pagePath) => {
