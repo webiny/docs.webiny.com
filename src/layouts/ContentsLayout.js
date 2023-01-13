@@ -196,7 +196,9 @@ function useTableOfContents(tableOfContents) {
 
 export function ContentsLayout({ children, ...props }) {
     const { classes, tableOfContents } = props;
-    const { title, description } = usePage();
+    const {
+        page: { title, description }
+    } = usePage();
     const toc = [
         ...(classes ? [{ title: "Quick reference", slug: "class-reference", children: [] }] : []),
         ...tableOfContents

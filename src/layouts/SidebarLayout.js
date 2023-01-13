@@ -319,7 +319,6 @@ function Wrapper({ allowOverflow, children }) {
 }
 
 export function SidebarLayout({ children, nav, sidebar }) {
-    const { version } = usePage();
     const navigation = useNavigation();
     return (
         <SidebarContext.Provider value={{ nav }}>

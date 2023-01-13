@@ -10,7 +10,7 @@ const allPages = Object.values(pages).flat();
 
 export const Page404 = () => {
     const versions = useVersions();
-    const { version } = usePage();
+    const { page } = usePage();
     const router = useRouter();
 
     const isRoot = router.asPath === "/";
@@ -19,7 +19,7 @@ export const Page404 = () => {
         router.asPath
             .replace("/docs/", "/")
             .replace(/\//g, "\\/")
-            .replace(`${version}\\/`, "(?:\\d+\\.\\d+\\.[x|\\d+]\\/)?")
+            .replace(`${page.version}\\/`, "(?:\\d+\\.\\d+\\.[x|\\d+]\\/)?")
     );
 
     const alternatives = isRoot ? [] : allPages.filter(page => regex.test(page.relativePath));

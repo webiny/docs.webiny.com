@@ -1,3 +1,4 @@
+import pRetry from "p-retry";
 import { generateNavigation, info, writeJsonAndLog } from "./prepareDocs";
 import { blue } from "chalk";
 import { watch } from "chokidar";
@@ -94,7 +95,7 @@ async function updateFrontMatter(file, version) {
     const { attributes } = await frontMatter(await fs.readFile(file, "utf8"));
 
     pages[version][pageIndex] = { ...pages[version][pageIndex], ...attributes };
-    await writeJsonFile(pagesDataJson, pages);
+    await pRetry(() => writeJsonFile(pagesDataJson, pages), { retries: 5 });
 }
 
 async function copySourceToTarget(source, target) {

@@ -159,7 +159,7 @@ export function NavItems() {
 
 export function Header() {
     const { toggleNavigation } = useNavigation();
-    const page = usePage();
+    const { page } = usePage();
 
     const url = "/docs/{version}/get-started/install-webiny";
 
