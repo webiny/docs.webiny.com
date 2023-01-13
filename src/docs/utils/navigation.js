@@ -68,6 +68,12 @@ function findPage(version, link) {
     return findPage(prevVersion, link);
 }
 
+const weightMap = {
+    docs: 100,
+    userGuides: 100,
+    releaseNotes: 50
+};
+
 export const Page = ({ title, link, remove, before, after }) => {
     const version = useContext(VersionContext);
     const page = findPage(version, link);
@@ -81,6 +87,18 @@ export const Page = ({ title, link, remove, before, after }) => {
     const versionedId = `page.${link}.${version}`;
     const afterId = after ? `page.${after}` : undefined;
     const beforeId = before ? `page.${before}` : undefined;
+
+    const isUserGuide = relativePath.includes("/user-guides");
+    const isReleaseNotes = relativePath.includes("/release-notes/");
+
+    let weight;
+    if (isUserGuide) {
+        weight = weightMap.userGuides;
+    } else if (isReleaseNotes) {
+        weight = weightMap.releaseNotes;
+    } else {
+        weight = weightMap.docs;
+    }
 
     return (
         <>
@@ -105,6 +123,7 @@ export const Page = ({ title, link, remove, before, after }) => {
                 <Property name={"version"} value={version} />
                 <Property name={"title"} value={title || page.title} />
                 <Property name={"description"} value={page.description} />
+                <Property name={"weight"} value={weight} />
             </Property>
         </>
     );
