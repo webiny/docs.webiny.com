@@ -8,6 +8,7 @@ import loadJsonFile from "load-json-file";
 import frontMatter from "front-matter";
 import writeJsonFile from "write-json-file";
 import versions from "../detectVersions";
+import { codeReplacements } from "./codeReplacements";
 
 const root = process.cwd();
 const pagesDataJson = path.join(root, "src/data/pages.json");
@@ -53,7 +54,6 @@ async function handleNavigationChange() {
     const { generateNavigation } = await import("./prepareDocs");
     const navigation = {};
     for (const realVersion of versions.allVersions) {
-        // nav = { version, navigation, pages }
         const nav = await generateNavigation(realVersion);
         navigation[nav.version] = nav.navigation;
     }
@@ -61,13 +61,7 @@ async function handleNavigationChange() {
 }
 
 function injectVersion(filePath, version) {
-    const codeReplacements = [
-        {
-            find: "/{version}/",
-            replaceWith: version === "latest" ? "/" : `/${version}/`
-        }
-    ];
-    replaceInPath(filePath, codeReplacements);
+    replaceInPath(filePath, codeReplacements(version));
 }
 
 function fromSourceToTarget(source, version) {

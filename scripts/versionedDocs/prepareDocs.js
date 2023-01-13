@@ -10,6 +10,7 @@ import util from "util";
 import _rimraf from "rimraf";
 import writeJsonFile from "write-json-file";
 import { allVersions } from "../detectVersions";
+import { codeReplacements } from "./codeReplacements";
 import { renderNavigation } from "@/docs/utils/renderNavigation";
 
 const rimraf = util.promisify(_rimraf);
@@ -18,13 +19,7 @@ const sourceDocsPath = folder => path.join(process.cwd(), "src/docs", folder || 
 const targetDocsPath = folder => path.join(process.cwd(), "src/pages/docs", folder || "");
 
 function injectVersion(rootPath, version) {
-    const codeReplacements = [
-        {
-            find: "/{version}/",
-            replaceWith: version === "latest" ? "/" : `/${version}/`
-        }
-    ];
-    replaceInPath(path.join(rootPath, "/**/*.mdx"), codeReplacements);
+    replaceInPath(path.join(rootPath, "/**/*.mdx"), codeReplacements(version));
 }
 
 export async function prepareDocs() {
