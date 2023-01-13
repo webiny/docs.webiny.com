@@ -167,5 +167,5 @@ export async function writeAndLog(file, data) {
 export async function writeJsonAndLog(file, data) {
     const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
     logFileWrite(targetFile);
-    await writeJsonFile(targetFile, data);
+    await fs.writeJson(targetFile, data, { spaces: 2 });
 }
