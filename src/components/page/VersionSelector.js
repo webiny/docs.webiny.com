@@ -44,7 +44,7 @@ const wrapper = [
 
 export const VersionSelector = () => {
     const versions = useVersions();
-    const page = usePage();
+    const { page } = usePage();
     const { asPath, push } = useRouter();
 
     const onChange = e => {

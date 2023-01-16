@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
 import mdxFiles from "@/data/mdxFiles.json";
-import { Page, Collapsable, Section, useVersion } from "@/docs/utils/navigation";
+import { NavGroup, Page, Collapsable, Section, useVersion } from "@/docs/utils/navigation";
 import { rcompare, valid } from "semver";
 
 export const Navigation = () => {
     return (
-        <>
+        <NavGroup type={"docs"}>
             <Collapsable title={"Infrastructure"} after={"Core Development Concepts"}>
                 <Page link={"infrastructure/additional-resources/reset-state-without-redeploy"} />
             </Collapsable>
@@ -33,7 +33,7 @@ export const Navigation = () => {
             <Collapsable title={"Write with Webiny"}>
                 <Page link={"write-with-webiny/write-with-webiny"} />
             </Collapsable>
-        </>
+        </NavGroup>
     );
 };
 

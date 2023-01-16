@@ -6,9 +6,38 @@ description: See what's new in Webiny version 5.34.0.
 
 ## Page Builder
 
-### New Page Rendering Engine ([#2898](https://github.com/webiny/webiny-js/pull/2898))
+### Page Elements: A Brand New Page Rendering Engine ([#2898](https://github.com/webiny/webiny-js/pull/2898))
 
-✏️
+With this release, we are introducing a brand new page rendering engine called **Page Elements**!
+
+With it, we've made a complete overhaul of the way pages created with Webiny's Page Builder application are being rendered.
+
+The results are:
+
+- a drastic reduction of more than **80%** 🚀 of the total amount of HTML and CSS that is shipped to your website's visitors
+- significant improvements in both objective and perceived performance of your website
+- better SEO
+
+When it comes to development, the new rendering engine also brought the following:
+
+- easier development of custom page elements
+- minimized the chance of having visual differences when comparing a page rendered in the Page Builder's page editor and on the actual public website
+- drastically simplified the application code located in **Website** (`apps/website`) and **Theme** (`apps/theme`) folders
+
+<Alert type="info" title={"Backwards Compatibility"}>
+
+  For new Webiny projects, the new rendering engine will be enabled by default. No extra steps needed.
+
+  For existing projects, users have the option to migrate to the new rendering engine over time, once it's convenient
+  for them. Until then, their projects will still use the now *legacy* rendering engine, which we plan to support until the end of June 2022. After that, the legacy rendering engine will be considered deprecated and will receive no further support.
+
+</Alert>
+
+### Rendering Pages In External (non-Webiny) Projects
+
+One of the long-awaited features we've also introduced in this release is the ability to render pages created with Webiny's Page Builder application in external (non-Webiny) projects. For example, you can now render pages in a standalone [Next.js](https://nextjs.org/) application, with just a couple of initial setup steps.
+
+Be sure to check out the related documentation to learn more.
 
 ## Mailer
 
@@ -17,7 +46,6 @@ description: See what's new in Webiny version 5.34.0.
 The package `@webiny/api-mailer` was upgraded, so we can now define new transports and configure them more easily.
 
 To learn more about our `@webiny/api-mailer` package, please read this [article](/docs/overview/features/mailer).
-
 
 ### Mailer Transport Admin UI Settings ([#2732](https://github.com/webiny/webiny-js/pull/2732))
 
@@ -38,22 +66,103 @@ It does not matter if it is a multiple values object or just a single one, or ho
 
 Our only recommendation is not to filter really deeply nested objects in the DynamoDB only systems, as it will get slow.
 
-
 ## Development
 
-### App Aliases ([#2895](https://github.com/webiny/webiny-js/pull/2895))
+### Application Aliases ([#2895](https://github.com/webiny/webiny-js/pull/2895))
 
-✏️
+With this release, we've introduced a small but neat feature called _application aliases_.
+
+Application aliases make it a bit easier to run often used [Webiny CLI](/docs/{exact:5.34.x}/core-development-concepts/basics/webiny-cli) commands. For example, upon running the [`webiny deploy`](/docs/{exact:5.34.x}/core-development-concepts/basics/project-deployment) command, instead of typing the full path of the application, for example `apps/admin`, you can now just type `admin`:
+
+```bash
+# Using full path of the application:
+yarn webiny deploy apps/admin --env dev
+
+# Using application alias:
+yarn webiny deploy admin --env dev
+```
+
+The application aliases can be used with all project applications (**Core**, **API**, **Admin**, **Website**) and are also recognized by all Webiny CLI commands.
+
+<Alert type="info" title="Project Applications">
+
+  Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/{exact:5.34.x}/core-development-concepts/project-organization/project-applications) key topic.
+
+</Alert>
+
+For more information about this new feature, please visit the [Application Aliases](#) section of the existing [Webiny CLI](/docs/{exact:5.34.x}/core-development-concepts/basics/webiny-cli) article.
+
 
 ### Feature Flags ([#2897](https://github.com/webiny/webiny-js/pull/2897))
 
-✏️
+Another small but neat feature we've introduced with this release are _feature flags_.
+
+This feature can help developers in turning on and off features that might be still in experimental phase or are not yet ready to hit production.
+
+It all starts in the `webiny.project.ts` file, where you can now assign an object to the new `featureFlags` property, and, in it, have any values that might be important for your application. For example:
+
+```ts webiny.project.ts
+// ...
+
+export default {
+  template: "@webiny/cwp-template-aws@5.34.0",
+  name: "my-webiny-project",
+  cli: {
+    plugins: [
+      // ...
+    ]
+  },
+  // The `featureFlags` property:
+  featureFlags: {
+    mySimpleFeatureFlag: false,
+    myComplexFeatureFlag: { a: 1, b: 2 }
+  }
+};
+```
+
+Once defined, the `featureFlags` object can be easily accessed within both backend and frontend application code:
+
+```ts
+import { featureFlags } from "@webiny/feature-flags";
+
+// In your application code, you might have the following check:
+if (featureFlags.myComplexFeatureFlag.a === 1) {
+  return true;
+}
+
+return false;
+```
+
+To learn more about feature flags, please visit the related [Feature Flags](#) article.
 
 ### Environment Variables via `webiny.project.ts` ([#2896](https://github.com/webiny/webiny-js/pull/2896))
 
-✏️
+There are a couple of ways environment variables can be defined within your Webiny project. With this release, we've introduced one more that might work for some users in  specific use cases.
 
-## System Wide
+From now on, environment variables can also be defined via the `webiny.project.ts` file, via the new `env` property. For example:
+
+```ts webiny.project.ts
+// ...
+
+export default {
+  template: "@webiny/cwp-template-aws@5.34.0",
+  name: "my-webiny-project",
+  cli: {
+    plugins: [
+      // ...
+    ]
+  },
+  // The `featureFlags` property:
+  env: {
+    WEBINY_MY_ENV_VAR: "xyz",
+    REACT_APP_MY_OTHER_ENV_VAR: "abc"
+  }
+};
+```
+
+Note that the `WEBINY_` prefixed variables will be available in your backend (AWS Lambda) application code, and the `REACT_APP_` prefixed ones in your frontend (React) application code.
+
+For more information about this new feature, please visit the updated [Environment Variables](/docs/{exact:5.34.x}/core-development-concepts/basics/environment-variables) article.
 
 ### Lifecycle Events ([#2615](https://github.com/webiny/webiny-js/pull/2615))
 
@@ -61,9 +170,9 @@ Because there were some inconsistencies in the naming of the lifecycle events th
 
 All the lifecycle events follow, which use publish / subscribe pattern, now look something like this:
 
-* `onEntryBeforeCreate`
-* `onModelAfterCreate`
-* `onPageBeforeUpdate`
-* `onPageUpdateError` - note that this is a bit different, but there is no `before` or `after` when handling an error
+- `onEntryBeforeCreate`
+- `onModelAfterCreate`
+- `onPageBeforeUpdate`
+- `onPageUpdateError` - note that this is a bit different, but there is no `before` or `after` when handling an error
 
 All old lifecycle events work, but they are deprecated and will be removed in, probably, `5.36.0` version of Webiny,

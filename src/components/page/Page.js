@@ -8,21 +8,25 @@ import { Title } from "@/components/Title";
 import socialCardLarge from "@/img/webiny-social-share.jpg";
 
 export const Page = () => {
-    const { Article, Layout, title, description, shareCard, ...page } = usePage();
+    const { Article, Layout, page } = usePage();
     const router = useRouter();
 
-    const socialShareCard = shareCard
-        ? `https://www.webiny.com/images/${shareCard}`
+    const socialShareCard = page.shareCard
+        ? `https://www.webiny.com/images/${page.shareCard}`
         : `https://www.webiny.com${socialCardLarge}`;
 
     return (
         <>
-            <Title suffix="Webiny Docs">{title}</Title>
+            <Title suffix="Webiny Docs">{page.title}</Title>
             <Head>
                 <meta key="twitter:card" name="twitter:card" content="summary_large_image" />
                 <meta key="twitter:site" name="twitter:site" content="@WebinyCMS" />
-                <meta key="twitter:description" name="twitter:description" content={description} />
-                <meta name="description" content={description} />
+                <meta
+                    key="twitter:description"
+                    name="twitter:description"
+                    content={page.description}
+                />
+                <meta name="description" content={page.description} />
                 <meta key="twitter:image" name="twitter:image" content={socialShareCard} />
                 <meta key="twitter:creator" name="twitter:creator" content="@WebinyCMS" />
                 <meta
@@ -31,10 +35,13 @@ export const Page = () => {
                     content={`https://www.webiny.com${router.pathname}`}
                 />
                 <meta key="og:type" property="og:type" content="article" />
-                <meta key="og:description" property="og:description" content={description} />
+                <meta key="og:description" property="og:description" content={page.description} />
                 <meta key="og:image" property="og:image" content={socialShareCard} />
                 <meta name="docsearch:language" content="en" />
                 <meta name="docsearch:version" content={page.algoliaVersions} />
+                <meta name="docsearch:articleType" content={page.articleType} />
+                <meta name="docsearch:weight" content={page.weight} />
+                {page.robots ? <meta name="robots" content={page.robots} /> : null}
                 <link
                     rel="alternate"
                     type="application/rss+xml"
