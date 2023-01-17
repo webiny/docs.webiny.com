@@ -1,5 +1,5 @@
 import React from "react";
-import { Collapsable, Section, Page, Separator, NavGroup } from "@/docs/utils/navigation";
+import { Collapsable, Section, Page, Separator, NavGroup, Draft } from "@/docs/utils/navigation";
 import { Navigation as SharedNavigation } from "../shared/navigation";
 
 export const Navigation = () => {
@@ -252,37 +252,45 @@ export const Navigation = () => {
                 <Separator />
                 <SharedNavigation />
             </NavGroup>
-            <NavGroup type={"user-guides"}>
-                <Collapsable title={"Get Started"}>
-                    <Page link={"user-guides/overview"} />
-                </Collapsable>
-                <Separator />
-                <Collapsable title={"Headless CMS"}>
-                    <Section title={"Essentials"}>
-                        <Page
-                            title={"Glossary"}
-                            link={"user-guides/headless-cms/essentials/glossary"}
-                        />
-                        <Page link={"user-guides/headless-cms/essentials/create-content-model"} />
-                        <Page link={"user-guides/headless-cms/essentials/create-content-entry"} />
-                        <Page
-                            link={"user-guides/headless-cms/essentials/create-content-model-group"}
-                        />
-                    </Section>
-                    <Section title={"Advanced"}>
-                        <Page link={"user-guides/headless-cms/advanced/sample-advance-page"} />
-                    </Section>
-                </Collapsable>
-                <Separator />
-                <Collapsable title={"Page Builder"}>
-                    <Section title={"Essentials"}>
-                        <Page
-                            title={"Glossary"}
-                            link={"user-guides/page-builder/essentials/glossary"}
-                        />
-                    </Section>
-                </Collapsable>
-            </NavGroup>
+            <Draft>
+                <NavGroup type={"user-guides"}>
+                    <Collapsable title={"Get Started"}>
+                        <Page link={"user-guides/overview"} />
+                    </Collapsable>
+                    <Separator />
+                    <Collapsable title={"Headless CMS"}>
+                        <Section title={"Essentials"}>
+                            <Page
+                                title={"Glossary"}
+                                link={"user-guides/headless-cms/essentials/glossary"}
+                            />
+                            <Page
+                                link={"user-guides/headless-cms/essentials/create-content-model"}
+                            />
+                            <Page
+                                link={"user-guides/headless-cms/essentials/create-content-entry"}
+                            />
+                            <Page
+                                link={
+                                    "user-guides/headless-cms/essentials/create-content-model-group"
+                                }
+                            />
+                        </Section>
+                        <Section title={"Advanced"}>
+                            <Page link={"user-guides/headless-cms/advanced/sample-advance-page"} />
+                        </Section>
+                    </Collapsable>
+                    <Separator />
+                    <Collapsable title={"Page Builder"}>
+                        <Section title={"Essentials"}>
+                            <Page
+                                title={"Glossary"}
+                                link={"user-guides/page-builder/essentials/glossary"}
+                            />
+                        </Section>
+                    </Collapsable>
+                </NavGroup>
+            </Draft>
         </>
     );
 };
