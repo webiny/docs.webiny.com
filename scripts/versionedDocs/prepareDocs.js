@@ -74,6 +74,10 @@ export async function prepareDocs() {
     // Copy pages of the "latest" version.
     const latestPages = catalog.filter(p => p.version === "latest");
     for (const page of latestPages) {
+        if (!page.relativePath) {
+            console.log(JSON.stringify(page, null, 2));
+            throw new Error(`Page doesn't have a "relativePath" set!`);
+        }
         await fs.copy(page.sourceFile, targetDocsPath(page.relativePath + ".mdx"));
     }
     injectVersion(targetDocsPath(), "latest");
