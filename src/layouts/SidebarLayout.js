@@ -162,7 +162,7 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
                     "transition-all duration-300 " +
                     clsx({
                         "ml-[18px] ": depth > 0,
-                        "transform max-h-[1500px] opacity-1 overflow-visible": showMenu,
+                        "transform opacity-1 overflow-visible": showMenu,
                         "max-h-0 transform opacity-0 overflow-hidden": !showMenu
                     })
                 }

@@ -4,6 +4,13 @@ title: Webiny 5.34.0 Changelog
 description: See what's new in Webiny version 5.34.0.
 ---
 
+import formGenerics from "./assets/form-generics.png";
+import dynamicZone from "./assets/dynamic-zone.png";
+import validatorMessage from "./assets/validator-message.png";
+import formattedMessage from "./assets/formatted-message.png";
+import blockManager from "./assets/block-manager.png";
+import deployDiff from "./assets/pulumi-diff.png";
+
 ## Page Builder
 
 ### Page Elements: A Brand New Page Rendering Engine ([#2898](https://github.com/webiny/webiny-js/pull/2898))
@@ -26,10 +33,10 @@ When it comes to development, the new rendering engine also brought the followin
 
 <Alert type="info" title={"Backwards Compatibility"}>
 
-  For new Webiny projects, the new rendering engine will be enabled by default. No extra steps needed.
+For new Webiny projects, the new rendering engine will be enabled by default. No extra steps needed.
 
-  For existing projects, users have the option to migrate to the new rendering engine over time, once it's convenient
-  for them. Until then, their projects will still use the now *legacy* rendering engine, which we plan to support until the end of June 2022. After that, the legacy rendering engine will be considered deprecated and will receive no further support.
+For existing projects, users have the option to migrate to the new rendering engine over time, once it's convenient
+for them. Until then, their projects will still use the now _legacy_ rendering engine, which we plan to support until the end of June 2022. After that, the legacy rendering engine will be considered deprecated and will receive no further support.
 
 </Alert>
 
@@ -38,6 +45,12 @@ When it comes to development, the new rendering engine also brought the followin
 One of the long-awaited features we've also introduced in this release is the ability to render pages created with Webiny's Page Builder application in external (non-Webiny) projects. For example, you can now render pages in a standalone [Next.js](https://nextjs.org/) application, with just a couple of initial setup steps.
 
 Be sure to check out the related documentation to learn more.
+
+### Blocks Manager
+
+This is another powerful feature to streamline creation of your pages, and make the life of your content creators enjoyable. Blocks Manager allows you to build content blocks and reuse them across your pages. Updating blocks will automatically reflect on all page that use those blocks. We'll cover this new feature in details in the very near future, where you'll learn about everything it can do.
+
+<Image src={blockManager} title={"Blocks Manager"} />
 
 ## Mailer
 
@@ -53,6 +66,17 @@ To make the configuration of the Mailer transports easier, we added the Mailer S
 
 ## Headless CMS
 
+### Dynamic Zone Field ([#2862](https://github.com/webiny/webiny-js/pull/2862)) ([#2921](https://github.com/webiny/webiny-js/pull/2921))
+
+We're super excited to finally deliver the long awaited Dynamic Zone field! 🎉 We'll cover this topic extensively in the near future, but for the purpose of this changelog, we'll just say that a Dynamic Zone field allows you to define templates for your content, and validation rules for those templates. Then, while creating your content, you can decide which template you want to use from the predefined set of templates. This way you can define structure for your content writers, and have them use prebuilt content types.
+
+<Image src={dynamicZone} title={"Dynamic Zone Field"} />
+
+This field also pushed us to improve handling of field validators. Having a validator say "Invalid value" is one thing, but getting your validators to display user-friendly messages, which make sense for the given context and data type, is a whole new level of problems. We're now able to define validators, and inject dynamic values at runtime, to present meaningful messages to your content writers:
+
+<Image src={validatorMessage} title={"Configure Validation Message with Dynamic Values"} />
+<Image src={formattedMessage} title={"Validation Message Presented to Your Users"} shadow={false} />
+
 ### Advanced (Conditional AND / OR) Filtering ([#2800](https://github.com/webiny/webiny-js/pull/2800)) ([#2916](https://github.com/webiny/webiny-js/pull/2916))
 
 Users can now run the conditional (`AND` and `OR`) filtering in both DynamoDB and DynamoDB + Elasticsearch systems.
@@ -61,8 +85,7 @@ To find out more about the advanced filtering, read this [article](/docs/headles
 
 ### Nested Object Field Filtering ([#2853](https://github.com/webiny/webiny-js/pull/2853)) ([#2905](https://github.com/webiny/webiny-js/pull/2905))
 
-We added a possibility to filter entries by the values in the nested object field.
-It does not matter if it is a multiple values object or just a single one, or how deep the data is nested.
+We added a possibility to filter entries by values in the nested object field. It doesn't matter if it's a multiple values object or a single value one, or how deep the data is nested.
 
 Our only recommendation is not to filter really deeply nested objects in the DynamoDB only systems, as it will get slow.
 
@@ -86,12 +109,11 @@ The application aliases can be used with all project applications (**Core**, **A
 
 <Alert type="info" title="Project Applications">
 
-  Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/{exact:5.34.x}/core-development-concepts/project-organization/project-applications) key topic.
+Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/{exact:5.34.x}/core-development-concepts/project-organization/project-applications) key topic.
 
 </Alert>
 
 For more information about this new feature, please visit the [Application Aliases](#) section of the existing [Webiny CLI](/docs/{exact:5.34.x}/core-development-concepts/basics/webiny-cli) article.
-
 
 ### Feature Flags ([#2897](https://github.com/webiny/webiny-js/pull/2897))
 
@@ -137,7 +159,7 @@ To learn more about feature flags, please visit the related [Feature Flags](#) a
 
 ### Environment Variables via `webiny.project.ts` ([#2896](https://github.com/webiny/webiny-js/pull/2896))
 
-There are a couple of ways environment variables can be defined within your Webiny project. With this release, we've introduced one more that might work for some users in  specific use cases.
+There are a couple of ways environment variables can be defined within your Webiny project. With this release, we've introduced one more, one which might work for some users in specific use cases.
 
 From now on, environment variables can also be defined via the `webiny.project.ts` file, via the new `env` property. For example:
 
@@ -166,22 +188,36 @@ For more information about this new feature, please visit the updated [Environme
 
 ### Lifecycle Events ([#2615](https://github.com/webiny/webiny-js/pull/2615))
 
-Because there were some inconsistencies in the naming of the lifecycle events throughout the system, we changed those to be same everywhere.
-
-All the lifecycle events follow, which use publish / subscribe pattern, now look something like this:
+Because there were some inconsistencies in the naming of the lifecycle events throughout the system, we changed those to be the same everywhere. All lifecycle events, created through our publish/subscribe mechanism, now follow the same naming convention:
 
 - `onEntryBeforeCreate`
 - `onModelAfterCreate`
 - `onPageBeforeUpdate`
-- `onPageUpdateError` - note that this is a bit different, but there is no `before` or `after` when handling an error
+- `onPageUpdateError` - note that this is a bit different, there is no `before` or `after` when handling an error
 
-All old lifecycle events work, but they are deprecated and will be removed in, probably, `5.36.0` version of Webiny,
-
+All the old lifecycle events work, but they are deprecated and will be removed in one of the minor versions released in the future.
 
 ### Customizing the Error Output ([#2943](https://github.com/webiny/webiny-js/pull/2943))
 
-Until now, when some code error happened (for example: reading property of null value), users got the `500` error code with the `Internal Server Error` message.
+Until now, when some code error happened (for example: reading property of `null`), users got the `500` error code with the `Internal Server Error` message.
 
 By default, we now output the error `message`, `code` and `data` properties in the response, but users can modify that if they want to.
 
-To find out how to add your own error handler, please read this [article](/docs/core-development-concepts/extending-and-customizing/customizing-the-error-output).
+To find out how to add your own error handler, please read [this article](/docs/core-development-concepts/extending-and-customizing/customizing-the-error-output).
+
+### Infrastructure Deploy Preview
+
+Very often we need to see what changes will happen upon infrastructure deployment. Webiny does have a `--preview` flag, but it would only tell you that _something_ will change on the resource, but not what values exactly are being changed. 
+
+With this release, we've enabled a proper diff output, so you will know exactly what values are being changed:
+
+<Image src={deployDiff} title={"Deploy Preview with Diff"} />
+
+
+### React Forms Generics
+
+Webiny has its own package for building React forms, called `@webiny/forms`. With this release, we made it possible to pass generic data types to the `Form` component, callback types, etc. and get nice autocomplete.
+
+For example, passing a generic type to the `<Form>` element, will immediately tell you what default data you can pass to the form, and improve the quality of your code:
+
+<Image src={formGenerics} title={"Generic Form Data"} />

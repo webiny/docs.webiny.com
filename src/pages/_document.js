@@ -120,7 +120,6 @@ export default class Document extends NextDocument {
                     ></script>
                 </Head>
                 <body className="antialiased text-slate-500 dark:text-slate-400 dark:bg-dark-theme">
-                    Vercel env: {process.env.VERCEL_ENV}
                     <Main />
                     <NextScript />
                     <script> </script>
