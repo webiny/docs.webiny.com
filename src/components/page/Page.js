@@ -40,7 +40,7 @@ export const Page = () => {
                 <meta name="docsearch:language" content="en" />
                 <meta name="docsearch:version" content={page.algoliaVersions} />
                 <meta name="docsearch:articleType" content={page.articleType} />
-                <meta name="docsearch:weight" content={page.weight} />
+                <meta name="docsearch:articleWeight" content={page.articleWeight} />
                 {page.robots ? <meta name="robots" content={page.robots} /> : null}
                 <link
                     rel="alternate"

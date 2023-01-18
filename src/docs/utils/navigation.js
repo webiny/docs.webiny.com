@@ -149,7 +149,7 @@ export const Page = ({ title, link, remove, before, after }) => {
                 <Property name={"title"} value={title || page.title} />
                 <Property name={"description"} value={page.description} />
                 <Property name={"articleType"} value={articleType} />
-                <Property name={"weight"} value={weight} />
+                <Property name={"articleWeight"} value={weight} />
                 <Property name={"robots"} value={robots} />
             </Property>
         </>
