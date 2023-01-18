@@ -3,6 +3,7 @@ import { Heading } from "./Heading";
 import { Gallery, Image } from "./Image";
 import { Alert } from "./Alert";
 import { WhatYouWillLearn } from "./WhatYouWillLearn";
+import { CanIUseThis } from "./CanIUseThis";
 import { Video } from "./Video";
 import externalLinkIcon from "@/img/external-link.svg";
 import Link from "next/link";
@@ -11,6 +12,7 @@ export const mdxComponents = {
     Heading,
     Alert,
     WhatYouWillLearn,
+    CanIUseThis,
     Image,
     Gallery,
     Video,
@@ -19,7 +21,12 @@ export const mdxComponents = {
         if (props.href.startsWith("http")) {
             return (
                 <a target="_blank" href={props.href} rel={"noreferrer"}>
-                    {props.children} <img className="inline w-[12px] m-0" src={externalLinkIcon} alt="external link"/>
+                    {props.children}{" "}
+                    <img
+                        className="inline w-[12px] m-0"
+                        src={externalLinkIcon}
+                        alt="external link"
+                    />
                 </a>
             );
         } else {

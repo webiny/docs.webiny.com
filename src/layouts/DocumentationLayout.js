@@ -8,8 +8,9 @@ import { navigation } from "@/navs/navigation";
 
 export function DocumentationLayout(props) {
     let router = useRouter();
-    const { version } = usePage();
-    const versionNav = navigation[version] || [];
+    const { page } = usePage();
+    const versionNav = navigation[page.articleType][page.version] || [];
+
     const parents = getParentNav(versionNav);
 
     let parent = "";

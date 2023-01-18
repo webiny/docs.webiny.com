@@ -28,6 +28,27 @@ const fallbackDefaultExports = {
 
 const fallbackGetStaticProps = {};
 
+const getPageData = pagePath => {
+    // /docs/5.29/something -> ["", "docs", "5.29.x", "something"]
+    const part = pagePath.split("/")[2];
+    const version = part.includes(".") ? part : "latest";
+
+    const canonicalPath = version === "latest" ? pagePath : getCanonicalPath(version, pagePath);
+    const page = pages[version].find(page => page.fullPath === pagePath);
+    if (!page) {
+        return null;
+    }
+
+    const omitKeys = ["sourceFile"];
+
+    return Object.keys(page).reduce((newPage, key) => {
+        if (omitKeys.includes(key)) {
+            return newPage;
+        }
+        return { ...newPage, [key]: page[key] };
+    }, {});
+};
+
 const getCanonicalPath = (version, pagePath) => {
     const [, ...allVersions] = versions.allVersions;
     // First we check the latest version of pages.
@@ -130,19 +151,18 @@ module.exports = withBundleAnalyzer({
                         : pathSegments[pathSegments.length - 1].replace(/\.mdx$/, "");
 
                 const pagePath = this.resourcePath.split("/pages").pop().replace(".mdx", "");
-                const part = pagePath.split("/")[2]; // /docs/5.29/something -> ["", "docs", "5.29", "something"]
-                if (!part) {
+                const pageData = getPageData(pagePath);
+
+                if (!pageData) {
                     return source;
                 }
-                const version = part.includes(".") ? part : "latest";
-                const canonicalPath =
-                    version === "latest" ? pagePath : getCanonicalPath(version, pagePath);
 
+                /**
+                 * All exports will be assigned to `layoutProps` of the component used to render the page.
+                 */
                 const newExports = [
                     `export const slug = '${slug}';`,
-                    `export const version = '${version}';`,
-                    `export const pagePath = '${pagePath}';`,
-                    `export const canonicalPath = '${canonicalPath}';`
+                    `export const pageData = ${JSON.stringify(pageData)}`
                 ];
 
                 return source + "\n\n" + newExports.join("\n\n");

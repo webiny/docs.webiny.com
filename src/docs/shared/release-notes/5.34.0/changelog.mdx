@@ -1,0 +1,229 @@
+---
+id: changelog
+title: Webiny 5.34.0 Changelog
+description: See what's new in Webiny version 5.34.0.
+---
+
+import formGenerics from "./assets/form-generics.png";
+import dynamicZone from "./assets/dynamic-zone.png";
+import validatorMessage from "./assets/validator-message.png";
+import formattedMessage from "./assets/formatted-message.png";
+import blockManager from "./assets/block-manager.png";
+import deployDiff from "./assets/pulumi-diff.png";
+import pe from "./assets/pe.png";
+
+## Page Builder
+
+### Blocks Manager
+
+This is a powerful feature to streamline creation of your pages, and save a lot of timefor your content creators. Blocks Manager allows you to build content blocks and reuse them across your pages. Updating blocks will automatically reflect on all pages that use those blocks. We'll cover this new feature in details in the very near future, where you'll learn about everything it can do.
+
+<Image src={blockManager} title={"Blocks Manager"} />
+
+### Page Elements: A Brand New Page Rendering Engine ([#2898](https://github.com/webiny/webiny-js/pull/2898))
+
+<Image src={pe} title={"Page Elements: A Brand New Page Rendering Engine"} shadow={false}/>
+
+With this release, we are introducing a brand new page rendering engine called **Page Elements**!
+
+With it, we've made a complete overhaul of the way pages created with Webiny's Page Builder application are being rendered. The results are:
+
+- a drastic reduction of more than **80%** 🚀 of the total amount of HTML and CSS that is shipped to your website's visitors
+- significant improvements in both objective and perceived performance of your website
+- better SEO
+
+When it comes to development, the new rendering engine also brought the following:
+
+- easier development of custom page elements
+- minimized the chance of having visual differences when comparing a page rendered in the Page Builder's page editor and on the actual public website
+- drastically simplified the application code located in **Website** (`apps/website`) and **Theme** (`apps/theme`) folders
+
+For new Webiny projects, the new rendering engine is enabled by default. No extra steps needed!
+
+For existing projects, users have the option to migrate to the new rendering engine over time, once it's convenient
+for them. Until then, their projects will still use the now _legacy_ rendering engine, which we plan to support until the end of June 2022. After that, the legacy rendering engine will be considered deprecated and will receive no further support from the Webiny team.
+
+When it comes to the migration guide, this is something we plan to publish over the next following days. Stay tuned for more information on this topic. 
+
+At the end of the day, we're very excited about this next level in the Page Builder application's evolution and how the new rendering engine will enable Webiny users to provide the best possible experience to their website's visitors. 
+
+### Rendering Pages In External (non-Webiny) Projects
+
+One of the long-awaited features we've also introduced in this release is the ability to render pages created with Webiny's Page Builder application in external (non-Webiny) projects. For example, you can now render pages in a standalone [Next.js](https://nextjs.org/) application, with just a couple of initial setup steps!
+
+More documentation on this topic will be coming in the following days, so definitely stay tuned if you want to learn more.
+
+## Mailer
+
+### Default and Configurable Mailer Transports ([#2698](https://github.com/webiny/webiny-js/pull/2698))
+
+The package `@webiny/api-mailer` was upgraded, so we can now define new transports and configure them more easily.
+
+To learn more about our `@webiny/api-mailer` package, please read this [article](/docs/overview/features/mailer).
+
+### Mailer Transport Admin UI Settings ([#2732](https://github.com/webiny/webiny-js/pull/2732))
+
+To make the configuration of the Mailer transports easier, we added the Mailer Settings in the Admin UI.
+
+## Headless CMS
+
+### Dynamic Zone Field ([#2862](https://github.com/webiny/webiny-js/pull/2862)) ([#2921](https://github.com/webiny/webiny-js/pull/2921))
+
+We're super excited to finally deliver the long awaited Dynamic Zone field! 🎉 We'll cover this topic extensively in the near future, but for the purpose of this changelog, we'll just say that a Dynamic Zone field allows you to define templates for your content, and validation rules for those templates. Then, while creating your content, you can decide which template you want to use from the predefined set of templates. This way you can define structure for your content writers, and have them use prebuilt content types.
+
+<Image src={dynamicZone} title={"Dynamic Zone Field"} />
+
+This field also pushed us to improve handling of field validators. Having a validator say "Invalid value" is one thing, but getting your validators to display user-friendly messages, which make sense for the given context and data type, is a whole new level of problems. We're now able to define validators, and inject dynamic values at runtime, to present meaningful messages to your content writers:
+
+<Image src={validatorMessage} title={"Configure Validation Message with Dynamic Values"} />
+<Image src={formattedMessage} title={"Validation Message Presented to Your Users"} shadow={false} />
+
+### Advanced (Conditional AND / OR) Filtering ([#2800](https://github.com/webiny/webiny-js/pull/2800)) ([#2916](https://github.com/webiny/webiny-js/pull/2916))
+
+Users can now run the conditional (`AND` and `OR`) filtering in both DynamoDB and DynamoDB + Elasticsearch systems.
+
+To find out more about the advanced filtering, read this [article](/docs/headless-cms/basics/using-graphql-api-advanced-filtering).
+
+### Nested Object Field Filtering ([#2853](https://github.com/webiny/webiny-js/pull/2853)) ([#2905](https://github.com/webiny/webiny-js/pull/2905))
+
+We added a possibility to filter entries by values in the nested object field. It doesn't matter if it's a multiple values object or a single value one, or how deep the data is nested.
+
+Our only recommendation is not to filter really deeply nested objects in the DynamoDB only systems, as it will get slow.
+
+### Headless CMS Plugins Removed From the Admin App
+
+With this release, we're removing all the default Headless CMS plugins, located in the Admin app, from users' projects. These plugins are still loaded, but that's happening internally. The project upgrade script will take care of removing those default plugins from your source code, and all other plugins will remain intact.
+
+The overall philosophy we've adopted over the time is hiding as much boilerplate as possible from users, to make it easier to maintain and ship upgrades in the long run. Since it's impossible to do all at once, you'll see these small cleanup upgrades performed every quarter. At some point there will be no more boilerplate left, and all you'll have in your project are your custom plugins.
+
+## Development
+
+### Application Aliases ([#2895](https://github.com/webiny/webiny-js/pull/2895))
+
+With this release, we've introduced a small but neat feature called _application aliases_.
+
+Application aliases make it a bit easier to run often used [Webiny CLI](/docs/{exact:5.34.x}/core-development-concepts/basics/webiny-cli) commands. For example, upon running the [`webiny deploy`](/docs/{exact:5.34.x}/core-development-concepts/basics/project-deployment) command, instead of typing the full path of the application, for example `apps/admin`, you can now just type `admin`:
+
+```bash
+# Using full path of the application:
+yarn webiny deploy apps/admin --env dev
+
+# Using application alias:
+yarn webiny deploy admin --env dev
+```
+
+The application aliases can be used with all project applications (**Core**, **API**, **Admin**, **Website**) and are also recognized by all Webiny CLI commands.
+
+<Alert type="info" title="Project Applications">
+
+Learn more about project applications and project organization in general, in the [Project Applications and Packages](/docs/{exact:5.34.x}/core-development-concepts/project-organization/project-applications) key topic.
+
+</Alert>
+
+[//]: # (For more information about this new feature, please visit the [Application Aliases]&#40;#&#41; section of the existing [Webiny CLI]&#40;/docs/{exact:5.34.x}/core-development-concepts/basics/webiny-cli&#41; article.)
+
+### Feature Flags ([#2897](https://github.com/webiny/webiny-js/pull/2897))
+
+Another small but neat feature we've introduced with this release are _feature flags_.
+
+This feature can help developers in turning on and off features that might be still in experimental phase or are not yet ready to hit production.
+
+It all starts in the `webiny.project.ts` file, where you can now assign an object to the new `featureFlags` property, and, in it, have any values that might be important for your application. For example:
+
+```ts webiny.project.ts
+// ...
+
+export default {
+  template: "@webiny/cwp-template-aws@5.34.0",
+  name: "my-webiny-project",
+  cli: {
+    plugins: [
+      // ...
+    ]
+  },
+  // The `featureFlags` property:
+  featureFlags: {
+    mySimpleFeatureFlag: false,
+    myComplexFeatureFlag: { a: 1, b: 2 }
+  }
+};
+```
+
+Once defined, the `featureFlags` object can be easily accessed within both backend and frontend application code:
+
+```ts
+import { featureFlags } from "@webiny/feature-flags";
+
+// In your application code, you might have the following check:
+if (featureFlags.myComplexFeatureFlag.a === 1) {
+  return true;
+}
+
+return false;
+```
+
+[//]: # (To learn more about feature flags, please visit the related [Feature Flags]&#40;#&#41; article.)
+
+### Environment Variables via `webiny.project.ts` ([#2896](https://github.com/webiny/webiny-js/pull/2896))
+
+There are a couple of ways environment variables can be defined within your Webiny project. With this release, we've introduced one more, one which might work for some users in specific use cases.
+
+From now on, environment variables can also be defined via the `webiny.project.ts` file, via the new `env` property. For example:
+
+```ts webiny.project.ts
+// ...
+
+export default {
+  template: "@webiny/cwp-template-aws@5.34.0",
+  name: "my-webiny-project",
+  cli: {
+    plugins: [
+      // ...
+    ]
+  },
+  // The `featureFlags` property:
+  env: {
+    WEBINY_MY_ENV_VAR: "xyz",
+    REACT_APP_MY_OTHER_ENV_VAR: "abc"
+  }
+};
+```
+
+Note that the `WEBINY_` prefixed variables will be available in your backend (AWS Lambda) application code, and the `REACT_APP_` prefixed ones in your frontend (React) application code.
+
+[//]: # (For more information about this new feature, please visit the updated [Environment Variables]&#40;/docs/{exact:5.34.x}/core-development-concepts/basics/environment-variables&#41; article.)
+
+### Updated Lifecycle Events ([#2615](https://github.com/webiny/webiny-js/pull/2615))
+
+Because there were some inconsistencies in the naming of the lifecycle events throughout the system, we changed those to be the same everywhere. All lifecycle events, created through our publish/subscribe mechanism, now follow the same naming convention:
+
+- `onEntryBeforeCreate`
+- `onModelAfterCreate`
+- `onPageBeforeUpdate`
+- `onPageUpdateError` - note that this is a bit different, there is no `before` or `after` when handling an error
+
+All the old lifecycle events work, but they are deprecated and will be removed in one of the minor versions released in the future.
+
+### Customizing the Error Output ([#2943](https://github.com/webiny/webiny-js/pull/2943))
+
+Until now, when some code error happened (for example: reading property of `null`), users got the `500` error code with the `Internal Server Error` message.
+
+By default, we now output the error `message`, `code` and `data` properties in the response, but users can modify that if they want to.
+
+To find out how to add your own error handler, please read [this article](/docs/core-development-concepts/extending-and-customizing/customizing-the-error-output).
+
+### Infrastructure Deploy Preview
+
+Very often we need to see what changes will happen upon infrastructure deployment. Webiny does have a `--preview` flag, but it would only tell you that _something_ will change on the resource, but not what values exactly are being changed.
+
+With this release, we've enabled a proper diff output, so you will know exactly what values are being changed:
+
+<Image src={deployDiff} title={"Deploy Preview with Diff"} />
+
+### React Forms Generics
+
+Webiny has its own package for building React forms, called `@webiny/forms`. With this release, we made it possible to pass generic data types to the `Form` component, callback types, etc. and get nice autocomplete.
+
+For example, passing a generic type to the `<Form>` element, will immediately tell you what default data you can pass to the form, and improve the quality of your code:
+
+<Image src={formGenerics} title={"Generic Form Data"} />

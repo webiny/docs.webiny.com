@@ -50,7 +50,10 @@ module.exports.AssetResolver = class AssetResolver {
     async resolveRequest(request) {
         const { allVersions, latestVersion } = versions;
         const page = this.getSourcePage(request.context.issuer);
-        const realVersion = page.version === "latest" ? latestVersion : page.version;
+        if (!page) {
+            throw Error(`Unable to resolve page: ${request.context.issuer}`);
+        }
+        const realVersion = page?.version === "latest" ? latestVersion : page.version;
         const possibleVersions = allVersions
             .slice(allVersions.indexOf(realVersion))
             .concat("shared");
@@ -73,7 +76,6 @@ module.exports.AssetResolver = class AssetResolver {
             }
         }
         console.log(`\t ❌ ${red(rootify(assetPath))}`);
-
 
         return request.request;
     }

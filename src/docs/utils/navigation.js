@@ -14,8 +14,26 @@ export function useVersion() {
     return useContext(VersionContext);
 }
 
+export const Draft = ({ children }) => {
+    if (process.env.VERCEL_ENV === "production") {
+        return null;
+    }
+    return <>{children}</>;
+};
+
+export const NavGroup = ({ type, children }) => {
+    return (
+        <Property id="groups" name={"groups"}>
+            <Property id={type} name={type}>
+                {children}
+            </Property>
+        </Property>
+    );
+};
+
 export const Collapsable = ({ title, children, remove, before, after }) => {
-    const id = `collapsable.${title}`;
+    const parent = useParentProperty();
+    const id = `${parent?.id}.collapsable.${title}`;
     const afterId = after ? `collapsable.${after}` : undefined;
     const beforeId = before ? `collapsable.${before}` : undefined;
     return (
@@ -68,6 +86,12 @@ function findPage(version, link) {
     return findPage(prevVersion, link);
 }
 
+const weightMap = {
+    docs: 100,
+    userGuides: 100,
+    releaseNotes: 50
+};
+
 export const Page = ({ title, link, remove, before, after }) => {
     const version = useContext(VersionContext);
     const page = findPage(version, link);
@@ -75,12 +99,30 @@ export const Page = ({ title, link, remove, before, after }) => {
         console.log(`Couldn't find a page to render for link "${link}@${version}".`);
         return null;
     }
-    const relativePath = version === "latest" ? `/${link}` : `/${version}/${link}`;
 
     const id = `page.${link}`;
     const versionedId = `page.${link}.${version}`;
     const afterId = after ? `page.${after}` : undefined;
     const beforeId = before ? `page.${before}` : undefined;
+    const relativePath = version === "latest" ? `/${link}` : `/${version}/${link}`;
+    const articleType = relativePath.includes("/user-guides") ? "user-guides" : "docs";
+    const algoliaVersions = [version, version === "latest" ? versions.latestVersion : null].filter(
+        Boolean
+    );
+
+    const isUserGuide = relativePath.includes("/user-guides");
+    const isReleaseNotes = relativePath.includes("/release-notes/");
+
+    let weight;
+    if (isUserGuide) {
+        weight = weightMap.userGuides;
+    } else if (isReleaseNotes) {
+        weight = weightMap.releaseNotes;
+    } else {
+        weight = weightMap.docs;
+    }
+
+    const robots = isUserGuide ? "noindex" : "";
 
     return (
         <>
@@ -103,8 +145,12 @@ export const Page = ({ title, link, remove, before, after }) => {
                 <Property name={"relativePath"} value={relativePath} />
                 <Property name={"fullPath"} value={`/docs${relativePath}`} />
                 <Property name={"version"} value={version} />
+                <Property name={"algoliaVersions"} value={algoliaVersions} />
                 <Property name={"title"} value={title || page.title} />
                 <Property name={"description"} value={page.description} />
+                <Property name={"articleType"} value={articleType} />
+                <Property name={"weight"} value={weight} />
+                <Property name={"robots"} value={robots} />
             </Property>
         </>
     );

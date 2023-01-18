@@ -15,7 +15,7 @@ const APP_ID = "U08KX3NZNH";
 const SearchContext = createContext();
 
 export function SearchProvider({ children }) {
-    const { version } = usePage();
+    const { page } = usePage();
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [initialQuery, setInitialQuery] = useState(null);
@@ -40,7 +40,7 @@ export function SearchProvider({ children }) {
         if (isOpen) {
             onClose();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
 
     useDocSearchKeyboardEvents({
@@ -75,7 +75,11 @@ export function SearchProvider({ children }) {
                         initialQuery={initialQuery}
                         initialScrollY={window.scrollY}
                         searchParameters={{
-                            facetFilters: [["language:en"], [`version:${version}`]]
+                            facetFilters: [
+                                ["language:en"],
+                                [`version:${page.version}`],
+                                [`articleType:${page.articleType}`]
+                            ]
                         }}
                         placeholder="Search..."
                         onClose={onClose}

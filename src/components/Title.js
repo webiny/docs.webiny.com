@@ -2,8 +2,8 @@ import { usePage } from "@/hooks/usePage";
 import Head from "next/head";
 
 export function Title({ suffix }) {
-    const { title } = usePage();
-    let titleWithSuffix = title + (suffix.trim().startsWith("|") ? "" : " - ") + suffix;
+    const { page } = usePage();
+    let titleWithSuffix = page.title + (suffix.trim().startsWith("|") ? "" : " - ") + suffix;
 
     return (
         <Head>
