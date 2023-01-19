@@ -4,9 +4,6 @@ import Link from "next/link";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { DocSearchModal } from "@docsearch/react";
-import "@docsearch/css";
-
-import clsx from "clsx";
 import { useActionKey } from "@/hooks/useActionKey";
 
 const INDEX_NAME = "webiny-js";
