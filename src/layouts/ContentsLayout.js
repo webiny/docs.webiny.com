@@ -214,7 +214,7 @@ export function ContentsLayout({ children, ...props }) {
             <div className={"flex lg:hidden w-full pb-5"}>
                 <VersionSelector />
             </div>
-            <article className={"prose md:prose-md prose-slate"}>
+            <article className={"DocSearch-content prose md:prose-md prose-slate"}>
                 <ViewLatestVersion />
                 <PageHeader title={title} description={description} parents={parents} />
                 <div className={"relative z-20 mt-8 dark:prose-dark"}>
