@@ -48,13 +48,10 @@ const ReleaseNotes = () => {
                 if (valid(version)) {
                     return {
                         ...acc,
-                        [version]: {
-                            ...(acc[version] || {}),
-                            [type]: {
-                                title: page.title,
-                                link: page.path
-                            }
-                        }
+                        [version]: [
+                            ...(acc[version] || []),
+                            { type, title: page.title, link: page.path }
+                        ]
                     };
                 }
                 return acc;
@@ -68,13 +65,18 @@ const ReleaseNotes = () => {
     }, []);
 
     function MenuItem({ version }) {
-        const changeLog = releases[version].changelog;
-        const upgrade = releases[version]["upgrade-guide"];
+        const predefinedTypes = ["changelog", "upgrade-guide"];
+        const changeLog = releases[version].find(item => item.type === "changelog");
+        const upgrade = releases[version].find(item => item.type === "upgrade-guide");
+        const other = releases[version].filter(item => !predefinedTypes.includes(item.type));
 
         return (
             <Collapsable title={version}>
                 {changeLog ? <Page title={changeLog.title} link={changeLog.link} /> : null}
                 {upgrade ? <Page title={upgrade.title} link={upgrade.link} /> : null}
+                {other.map(item => (
+                    <Page key={item.link} title={item.title} link={item.link} />
+                ))}
             </Collapsable>
         );
     }
