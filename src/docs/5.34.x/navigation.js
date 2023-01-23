@@ -27,6 +27,11 @@ export const Navigation = () => {
                                 "core-development-concepts/extending-and-customizing/customizing-the-error-output"
                             }
                         />
+                        <Page
+                            link={
+                                "core-development-concepts/extending-and-customizing/intercepting-the-request"
+                            }
+                        />
                     </Section>
                 </Collapsable>
             </NavGroup>
