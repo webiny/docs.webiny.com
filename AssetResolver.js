@@ -1,6 +1,7 @@
 const { red } = require("chalk");
 const path = require("path");
 const fs = require("fs-extra");
+const pretry = require("p-retry");
 const versions = require("./src/data/versions.json");
 const pages = require("./src/data/pages.json");
 
@@ -23,7 +24,7 @@ module.exports.AssetResolver = class AssetResolver {
             .tapAsync("ResolveFallback", async (request, resolveContext, callback) => {
                 if (this.isApplicable(request)) {
                     const obj = Object.assign({}, request, {
-                        request: await this.resolveRequest(request)
+                        request: await pretry(() => this.resolveRequest(request), { retries: 5 })
                     });
 
                     resolver.doResolve(target, obj, null, resolveContext, callback);
