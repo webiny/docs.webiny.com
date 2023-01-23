@@ -28,7 +28,7 @@ import { createHandlerOnRequest } from "@webiny/handler";
 
 const handlerOnRequestPlugin = createHandlerOnRequest(async(request, reply) => {
   if (request.raw.path === "/testing") {
-    return false;
+    // do something for this path
   }
 });
 ```
@@ -56,8 +56,11 @@ Via the `HandlerOnRequestPlugin`, users can prevent our default behavior.
 
 The most simple answer would be: to output their own headers in the `OPTIONS` request.
 
-### How Can Users Prevent the Webiny Default Behavior To Be Executed?
+### How Can Users Prevent the Webiny Default Behavior on `OPTIONS` Request To Be Executed?
 
+To prevent the Webiny default behavior on `OPTIONS` request, user would need to add a simple plugin which returns `false` as the result.
+
+Here is an example of sending a custom header `myCustomHeader`:
 ```typescript
 import { createHandlerOnRequest } from "@webiny/handler";
 
@@ -68,7 +71,8 @@ const handlerOnRequestPlugin = createHandlerOnRequest(async(request, reply) => {
   reply
     .code(204)
     /**
-     * It is important to hijack() the reply, as it prevents all other Fastify lifecycle events to be executed. 
+     * It is important to hijack() the reply, as it prevents all other Fastify lifecycle events to be executed.
+     * Of course, if user wants all the events to be triggered, they should not hijack() the reply.
      */
     .hijack()
     .headers({
@@ -81,4 +85,13 @@ const handlerOnRequestPlugin = createHandlerOnRequest(async(request, reply) => {
   return false;
 });
 ```
+
+
+## Conclusion
+
+Simply, with the `HandlerOnRequestPlugin` user can, in the initial stage of the Fastify Request Lifecycle:
+* intercept the request and prevent it to go further down the lifecycle line
+* modify the Webiny default `OPTIONS` headers output to suit their own need
+* log the request to some outside service 
+
 
