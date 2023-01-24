@@ -70,14 +70,19 @@ const handlerOnRequestPlugin = createHandlerOnRequest(async(request, reply) => {
   }
   reply
     .code(204)
+    .headers({
+        myCustomHeader: "sending the custom headers"
+    })
+    /**
+     * There must be some output or the request will hang.
+     * Also, send must be just before the hijack(), otherwise all other method calls will not have any effect.
+    */
+    .send("")
     /**
      * It is important to hijack() the reply, as it prevents all other Fastify lifecycle events to be executed.
      * Of course, if user wants all the events to be triggered, they should not hijack() the reply.
      */
-    .hijack()
-    .headers({
-      myCustomHeader: "sending the custom headers"
-    });
+    .hijack();
   /**
    * It is important to return false in the end because it actually prevents
    * all other HandlerOnRequestPlugin to be ran, including the Webiny default behavior.
