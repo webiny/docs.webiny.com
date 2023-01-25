@@ -21,6 +21,9 @@ export const Navigation = () => {
                     </Draft>
                 </Collapsable>
                 <Collapsable title={"Core Development Concepts"}>
+                    <Section title={"Development"} after={"Project Organization"}>
+                        <Page link={"core-development-concepts/development/local-development"} />
+                    </Section>
                     <Section title={"Extending and Customizing"}>
                         <Page
                             link={
