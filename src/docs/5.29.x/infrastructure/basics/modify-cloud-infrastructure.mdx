@@ -203,6 +203,100 @@ export default createApiApp({
 
 </Alert>
 
+### Adding AWS Lambda Functions
+
+#### Creating a Cron Job
+
+In this example, we introduce a new AWS Lambda function which is triggered once every minute.
+
+Note that the code assumes the AWS Lambda function's code is located in the `apps/api/myCronJob` folder. The full code can be found in our [Examples GitHub  repository](https://github.com/webiny/webiny-examples/tree/master/extend-admin-area-security).
+
+```ts apps/api/webiny.application.ts
+import * as path from "path";
+import * as aws from "@pulumi/aws";
+import * as pulumi from "@pulumi/pulumi";
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+    pulumiResourceNamePrefix: "wby-",
+    pulumi({ params, paths }) {
+        const role = new aws.iam.Role("my-cron-job-fn-role", {
+            description: "My cron job Lambda function role.",
+            assumeRolePolicy: {
+                Version: "2012-10-17",
+                Statement: [
+                    {
+                        Action: "sts:AssumeRole",
+                        Principal: {
+                            Service: "lambda.amazonaws.com"
+                        },
+                        Effect: "Allow"
+                    }
+                ]
+            }
+        });
+
+        new aws.iam.RolePolicyAttachment(`my-cron-job-fn-role-basic-execution-policy-attachment`, {
+            role,
+            policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole
+        });
+
+        const policy = new aws.iam.Policy("my-cron-job-fn-policy", {
+            description: "My cron job Lambda function policy.",
+            policy: {
+                Version: "2012-10-17",
+                Statement: [
+                    {
+                        // Not recommended. Always use least-privilege principle.
+                        Effect: "Allow",
+                        Action: ["*"],
+                        Resource: ["*"]
+                    }
+                ]
+            }
+        });
+
+        new aws.iam.RolePolicyAttachment("my-cron-job-fn-role-policy-attachment", {
+            role: role.name,
+            policyArn: policy.arn
+        });
+
+        const simpleCronJobFunction = new aws.lambda.Function("my-cron-job-fn", {
+            runtime: "nodejs14.x",
+            handler: "handler.handler",
+            description: "A simple Lambda function that logs time (executed in my cron job).",
+            role: role.arn,
+            timeout: 30,
+            memorySize: 512,
+            code: new pulumi.asset.AssetArchive({
+                ".": new pulumi.asset.FileArchive(
+                    path.join(paths.workspace, "myCronJob/build")
+                )
+            })
+        });
+
+        const eventRule = new aws.cloudwatch.EventRule("my-cron-job-fn-event-rule", {
+            description: `My cron job rule.`,
+            scheduleExpression: "rate(1 minute)",
+            isEnabled: true
+        });
+
+        new aws.lambda.Permission("my-cron-job-fn-events-permission", {
+            action: "lambda:InvokeFunction",
+            function: simpleCronJobFunction.arn,
+            principal: "events.amazonaws.com",
+            sourceArn: eventRule.arn
+        });
+
+        new aws.cloudwatch.EventTarget("my-cron-job-fn-event-target", {
+            rule: eventRule.name,
+            arn: simpleCronJobFunction.arn
+        });
+    }
+});
+
+```
+
 ### Adjusting Amazon Elasticsearch (OpenSearch) Configuration
 
 Amazon Elasticsearch (OpenSearch) is deployed as part of the **Core** project application. In order to make changes to it, we need to make changes in the `apps/core/webiny.application.ts` configuration file.
