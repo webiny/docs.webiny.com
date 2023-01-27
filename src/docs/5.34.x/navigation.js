@@ -11,7 +11,7 @@ export const Navigation = () => {
             <NavGroup type={"docs"}>
                 <Collapsable title={"Headless CMS"}>
                     <Section title={"Basics"}>
-                        <Page link={"headless-cms/basics/using-graphql-api-filtering"} />
+                        <Page link={"headless-cms/basics/using-graphql-api-filtering"} remove/>
                         <Page link={"headless-cms/basics/using-graphql-api-advanced-filtering"} />
                     </Section>
                 </Collapsable>
