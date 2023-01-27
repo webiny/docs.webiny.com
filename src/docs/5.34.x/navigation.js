@@ -9,6 +9,11 @@ export const Navigation = () => {
             <BaseNavigation />
             {/* Add new items. */}
             <NavGroup type={"docs"}>
+                <Collapsable title={"Page Builder"}>
+                    <Section title={"Extending functionality"}>
+                        <Page link={"page-builder/extending/customize-an-existing-element"} remove/>
+                    </Section>
+                </Collapsable>
                 <Collapsable title={"Headless CMS"}>
                     <Section title={"Basics"}>
                         <Page link={"headless-cms/basics/using-graphql-api-filtering"} />
