@@ -12,6 +12,8 @@ export const Navigation = () => {
                 <Collapsable title={"Page Builder"}>
                     <Section title={"Extending functionality"}>
                         <Page link={"page-builder/extending/customize-an-existing-element"} remove/>
+                        <Page link={"page-builder/extending/create-a-page-element"} remove/>
+                        <Page link={"page-builder/extending/create-a-custom-page-element"}/>
                     </Section>
                 </Collapsable>
                 <Collapsable title={"Headless CMS"}>
