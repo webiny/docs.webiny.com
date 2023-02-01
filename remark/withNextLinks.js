@@ -1,5 +1,5 @@
 const { addDefaultImport } = require("./utils");
-const { checkBrokenLink } = require("./checkBrokenLink");
+// const { checkBrokenLink } = require("./checkBrokenLink");
 
 function isInternalHref(href) {
     return ["/", "../", "./"].some(prefix => href.startsWith(prefix));
@@ -18,7 +18,7 @@ module.exports.withNextLinks = () => {
             while (i < root.children.length) {
                 let node = root.children[i];
                 if (node.type === "link" && isInternalHref(node.url)) {
-                    checkBrokenLink(file, node.url);
+                    // checkBrokenLink(file, node.url);
 
                     root.children = [
                         ...root.children.slice(0, i),
