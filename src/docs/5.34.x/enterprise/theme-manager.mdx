@@ -103,31 +103,40 @@ The `name` property will be used by Webiny, and will be stored to the database w
 
 ## 5) Import and Configure Theme Manager in the Website App
 
-Now we need to enable the Theme Manager module in the Website app. In your `apps/website/src/App.tsx`, add the following:
+Now we need to enable the Theme Loader module in the Website app. In your `apps/website/src/App.tsx`, add the following:
 
 ```diff-tsx apps/website/src/App.tsx
 import React from "react";
 import { Website } from "@webiny/app-website";
-+ import { WebsiteThemeLoader } from "@webiny/app-theme-manager";
++ import { createThemeLoader } from "@webiny/app-theme-manager";
 
 + const themes = [
 +   {
 +     name: "default",
-+     label: "Default Theme",
 +     load: () => import("theme").then((m) => m.default),
-+   },
++   }
 + ];
 
++ const ThemeLoader = createThemeLoader({ themes });
+
 export const App: React.FC = () => {
-    return (
-+      <Website>
-+        <WebsiteThemeLoader themes={themes} />
-+      </Website>
-    );
++    return <Website providers={[ThemeLoader]} />;
 };
 ```
 
-Here, we're using the `WebsiteThemeLoader` component, and we're also passing it an array of themes like we did in the Admin app. On website render, `WebsiteThemeLoader` will make sure that the correct theme is loaded for the particular tenant.
+Here, we're using the `createThemeLoader` factory to create a theme provider, and we're passing it an array of themes like we did in the Admin app. On website render, `ThemeLoader` will make sure that the correct theme is loaded for the particular tenant.
+
+<Alert type="warning" title={"Disable existing theme import!"}>
+
+  With the above setup, your system is now ready to add more themes and switch between them. However, your original theme is still statically imported in your plugins (in both Admin and Website apps). 
+  
+  To remove static imports, simply remove the `theme` import statement and plugin registration from the following files:
+
+  - `apps/admin/src/plugins/index.ts`
+  - `apps/website/src/plugins/index.ts`  
+
+</Alert>
+
 
 ## 6) Adding More Themes
 
@@ -174,16 +183,16 @@ import { ThemeManager } from "@webiny/app-theme-manager";
 import "./App.scss";
 
 const themes = [
-  {
-    name: "default",
-    label: "Default Theme",
-    load: () => import("theme").then(m => m.default)
-  },
-+ {
-+   name: "theme-1",
-+   label: "Theme #1",
-+   load: () => import("theme-1").then(m => m.default)
-+ }
+    {
+      name: "default",
+      label: "Default Theme",
+      load: () => import("theme").then(m => m.default)
+    },
++   {
++     name: "theme-1",
++     label: "Theme #1",
++     load: () => import("theme-1").then(m => m.default)
++   }
 ];
 
 export const App = () => {
@@ -201,28 +210,24 @@ And we also need to add the new theme in the Website app:
 ```diff-tsx apps/website/src/App.tsx
 import React from "react";
 import { Website } from "@webiny/app-website";
-import { WebsiteThemeLoader } from "@webiny/app-theme-manager";
+import { createThemeLoader } from "@webiny/app-theme-manager";
 
 const themes = [
-  {
-    name: "default",
-    label: "Default Theme",
-    load: () => import("theme").then((m) => m.default),
-  },
-+  {
-+    name: "theme-1",
-+    load: () => import("theme-1").then((m) => m.default),
-+  },
+    {
+      name: "default",
+      load: () => import("theme").then((m) => m.default)
+    },
++   {
++     name: "theme-1",
++     load: () => import("theme-1").then((m) => m.default)
++   }
 ];
 
-export const App: React.FC = () => {
-    return (
-      <Website>
-        <WebsiteThemeLoader themes={themes} />
-      </Website>
-    );
-};
+const ThemeLoader = createThemeLoader({ themes });
 
+export const App: React.FC = () => {
+    return <Website providers={[ThemeLoader]} />;
+};
 ```
 
 Once the code changes are done, deploy your Admin and Website apps, by running:
