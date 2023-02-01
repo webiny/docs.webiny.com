@@ -9,6 +9,11 @@ export const Navigation = () => {
             <BaseNavigation />
             {/* Add new items. */}
             <NavGroup type={"docs"}>
+                <Collapsable title={"Webiny Overview"}>
+                    <Section title={"Features"}>
+                        <Page link={"overview/features/sso-and-custom-authenticators"} />
+                    </Section>
+                </Collapsable>
                 <Collapsable title={"Headless CMS"}>
                     <Section title={"Basics"}>
                         <Page link={"headless-cms/basics/using-graphql-api-filtering"} />
