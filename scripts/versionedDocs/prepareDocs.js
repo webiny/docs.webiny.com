@@ -113,6 +113,10 @@ export async function prepareDocs() {
     });
 
     info(`Docs are ready for building!`);
+    return new Promise(resolve => {
+        info(`Wait for 5 seconds for file system to cool down before proceeding...`);
+        setTimeout(resolve, 5000);
+    });
 }
 
 export async function generateNavigation(realVersion, navigationSource) {
