@@ -1,5 +1,5 @@
 import React from "react";
-import { Property, useParentProperty } from "@webiny/properties";
+import { Property, useParentProperty } from "@webiny/react-properties";
 import { createContext, useContext } from "react";
 import allPages from "@/data/mdxFiles.json";
 import versions from "@/data/versions.json";

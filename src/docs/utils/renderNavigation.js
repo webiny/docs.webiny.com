@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { JSDOM } from "jsdom";
 import debounce from "debounce";
-import { Properties, toObject } from "@webiny/properties";
+import { Properties, toObject } from "@webiny/react-properties";
 
 export async function renderNavigation(element) {
     return new Promise(resolve => {
