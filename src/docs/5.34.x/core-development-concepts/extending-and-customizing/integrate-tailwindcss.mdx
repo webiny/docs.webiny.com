@@ -1,0 +1,223 @@
+---
+title: Tailwind CSS
+description: Learn how to integrate tailwindcss in your Webiny project.
+---
+
+import { Alert } from "@/components/Alert";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+
+<WhatYouWillLearn>
+
+- how to integrate Tailwind CSS in your Webiny project
+
+</WhatYouWillLearn>
+
+## Overview
+
+[Tailwind CSS](https://tailwindcss.com/) is a popular utility-first CSS framework.
+It allows us to quickly build user interfaces with the help of a plethora of built-in CSS classes and without ever leaving our HTML.
+
+In this guide, we show how you can integrate Tailwind CSS into your Webiny project.
+
+## Setting Up Tailwind CSS
+
+### Install Tailwind CSS via Yarn
+
+Install `tailwindcss` package and its peer-dependencies using yarn, by running the following command from root of your project:
+
+```
+yarn add -D tailwindcss postcss autoprefixer
+```
+
+### Add Tailwind CSS to Webpack Configuration
+
+In this guide, we integrate Tailwind CSS with the React application that's located within the **Website** project application.
+But, you can use the same approach for other Webiny applications or a custom application for that matter.
+
+<Alert type="info">
+
+Learn more about project applications and packages in the [Project Applications and Packages](../../core-development-concepts/project-organization/project-applications-and-packages) key topic.
+
+</Alert>
+
+We need to add the Tailwind CSS to the `postcss` plugins inside the Webpack configuration of the application.
+
+```js apps/website/webiny.config.ts
+import { createWebsiteAppConfig } from "@webiny/serverless-cms-aws";
+// @ts-ignore `traverseLoaders` has no type declarations.
+import { traverseLoaders } from "@webiny/project-utils/traverseLoaders";
+import tailwindcss from "tailwindcss";
+
+export default createWebsiteAppConfig(({ config }) => {
+  /**
+   * Add a webpack config modifier.
+   */
+  config.webpack(config => {
+    /**
+     * Traverse all loaders, find `postcss-loader`, and overwrite plugins.
+     */
+    traverseLoaders(config.module?.rules, (loader: any) => {
+      /**
+       * `loader` can also be a string, so check for `.loader` property.
+       */
+      if (loader.loader && loader.loader.includes("postcss-loader")) {
+        loader.options.postcssOptions.plugins = [
+          ...loader.options.postcssOptions.plugins(),
+          tailwindcss()
+        ];
+      }
+    });
+
+    return config;
+  });
+});
+```
+
+We're using the [`traverseLoaders`](https://github.com/webiny/webiny-js/blob/next/packages/project-utils/traverseLoaders.js) helper function that we import from `@webiny/project-utils` package.
+It traverses all the loaders defined in `modules.rules` property of the Webpack configuration, and passes each one of them to your callback. You can then apply your modifications. In our case, we add Tailwind CSS plugins to the `postcss-loader`.
+
+Now that we have added Tailwind CSS to Webpack configuration, let's move on to the next step.
+
+### Create Your Tailwind CSS Configuration File
+
+Next, generate your `tailwind.config.js` file. From the root of your project run the following command:
+
+```
+npx tailwindcss init
+```
+
+This creates a minimal `tailwind.config.js` file at the root of your project. You need update the `content: []` to include paths to files you want Tailwind to process:
+
+```js tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./apps/theme/**/*.{scss,tsx}", "apps/website/{public,src}/*.{html,tsx}"],
+  theme: {
+    extend: {}
+  },
+  plugins: []
+};
+```
+
+<Alert type="info">
+
+We have created the `tailwind.config.js` file in the root of Webiny project as the fastest way to have a centralized config for all things Tailwind. If you need, you can create individual config files for Website and Admin apps in their respective root folders.
+
+</Alert>
+
+<Alert type="info">
+
+Learn more about configuring Tailwind in the [configuration documentation](https://tailwindcss.com/docs/configuration).
+
+</Alert>
+
+### Include Tailwind CSS in Your SCSS
+
+Now it's time to include the Tailwind CSS utilities in your styles.
+As most of the styles for Webiny applications are present in `apps/theme` package, we also include Tailwind CSS styles there.
+
+Open the `apps/theme/global.scss` file that exports all theme styles, and add Tailwind CSS imports at the bottom of the file:
+
+```scss apps/theme/global.scss
+(...)
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+```
+
+That's all! Now, start your **Website** `(apps/website)` app locally, by running:
+
+```
+yarn webiny watch apps/website --env dev
+```
+
+Or build it (which happens automatically for you when you deploy your application using `webiny deploy` command):
+
+```
+yarn webiny deploy apps/website --env {environment}
+```
+
+Tailwind CSS is ready to use in your Webiny project.
+
+### Use Tailwind CSS in Website App
+
+Now that we've completed the above steps, let's create a demo component, which will be part of our `Static` page layout:
+
+```tsx apps/theme/layouts/pages/Static/TailwindHeader.tsx
+import React from "react";
+
+export const TailwindHeader = () => {
+  return (
+    <div className="mt-12 -mb-12 bg-gray-50">
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
+        <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+          <span className="block">Ready to dive in?</span>
+          <span className="block text-purple-600">Start your free trial today.</span>
+        </h2>
+        <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+          <div className="inline-flex rounded-md shadow">
+            <a
+              href="#"
+              className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+            >
+              Get started
+            </a>
+          </div>
+          <div className="ml-3 inline-flex rounded-md shadow">
+            <a
+              href="#"
+              className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-purple-600 bg-white hover:bg-indigo-50"
+            >
+              Learn more
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+And now let's add it to the layout:
+
+```diff-tsx apps/theme/layouts/pages/Static.tsx
+import React from "react";
+(...)
++ import { TailwindHeader } from "./Static/TailwindHeader";
+(...)
+
+const Static: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    return (
+        <Layout>
+            <Global styles={globalStyles} />
+            <Header />
++           <TailwindHeader />
+            <main>{children}</main>
+            <Footer />
+        </Layout>
+    );
+};
+
+export default Static;
+```
+
+If we did everything correctly, we should be able to see the new section we just created, at the top of the page:
+
+![Website demo using tailwindcss](./assets/integrate-tailwindcss/tailwind-css-demo-website.png)
+
+<Alert type="warning" title={"Please note!"}>
+  **Webiny does not provide any guarantees in regards to Tailwind CSS!**
+
+This guide should get you started, but any issues with styles, or similar irregularities that might occur after following this guide, are not something we'll be providing support for. If you find better ways to use Tailwind CSS with Webiny, we'd be thrilled to see your contribution to our repository.
+
+</Alert>
+
+## FAQ
+
+### Can I include Tailwind CSS directives in Website `(app/website)` React application directly?
+
+Yes, you can include the directives directly in the main style file of your React application. For example,
+you can directly add the directives to `(apps/website/src/App.scss)` file for the **Website** application (you'll need to create it yourself).
+
+We chose to include it in the `apps/theme` package for this guide, because it's being used in all React apps of our project. As a result, we don't have to include these directives in every React application.
