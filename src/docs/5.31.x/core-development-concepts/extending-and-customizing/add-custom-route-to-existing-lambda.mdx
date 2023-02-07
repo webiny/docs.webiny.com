@@ -48,6 +48,33 @@ export default createApiApp({
 
 After these changes, feel free to deploy the api part of your project to test if new route is working. Use your favorite HTTP client to test it out.
 
+### Dynamic API Gateway Route
+
+To have a API Gateway route which accepts dynamic parameters, you must specify the parameter in the path, in our case the `{id}`.
+
+```typescript apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+import { ApiGraphql } from "@webiny/pulumi-aws";
+
+export default createApiApp({
+  pulumi: app => {
+    const graphQlModule = app.getModule(ApiGraphql);
+    // add custom POST route
+    graphQlModule.addRoute({
+      name: "my-custom-route-post",
+      path: "/my-custom-path/{id}",
+      method: "POST"
+    });
+    // add custom OPTIONS route
+    graphQlModule.addRoute({
+      name: "my-custom-route-options",
+      path: "/my-custom-path/{id}",
+      method: "OPTIONS"
+    });
+  }
+});
+```
+
 ## Adding a Route to the Handler
 
 After you added the route to the `API Gateway`, you can move onto creating a route in our existing handler.
@@ -86,6 +113,41 @@ export const handler = createHandler({
 });
 ```
 
+### Dynamic Webiny Handler Route
+
+To have a Fastify route which accepts dynamic parameters, you must specify the parameter in the path, in our case the `:id`.
+
+```typescript apps/api/graphql/src/index.ts
+// add the import somewhere at the top of the file or update the existing import from @webiny/handler-aws
+import { createApiGatewayRoute } from "@webiny/handler-aws";
+
+// existing handler
+export const handler = createHandler({
+    plugins: [
+        // at the end of the plugins array you need to create a new API Gateway route
+        createApiGatewayRoute(({ onPost, onOptions }) => {
+          onPost("/my-custom-path/:id", async (request, reply) => {
+              // the parameters are available on request.params object
+              const { id } = request.params;
+              return reply.send({
+                  id
+              });
+          });
+          onOptions("/my-custom-path/:id", async (request, reply) => {
+              const { id } = request.params;
+              return reply
+                  .headers({
+                      myCustomOptionHeader: "yes",
+                        id,
+                  })
+                  .send({})
+                  .hijack();
+          });
+      })
+    ]
+});
+```
+
 In the `createApiGatewayRoute` method callback, there are multiple properties available:
 
 * `onPost` - register a POST method route
@@ -99,7 +161,6 @@ In the `createApiGatewayRoute` method callback, there are multiple properties av
 * `context` - our Webiny internal context with all our applications attached to it
 
 The [`request`](https://www.fastify.io/docs/latest/Reference/Request/) and [`reply`](https://www.fastify.io/docs/latest/Reference/Reply/) objects are the original ones from the Fastify, so you can look into their documentation about what they contain and what you can use.
-
 
 <Alert type="info" title="Why only the graphql handler example?">
 
