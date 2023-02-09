@@ -29,9 +29,7 @@ export const Navigation = () => {
           </Section>
         </Collapsable>
         <Collapsable title={"Webiny Enterprise"}>
-          <Draft>
             <Page link={"enterprise/auth0-integration"} />
-          </Draft>
         </Collapsable>
         <Collapsable title={"Core Development Concepts"}>
           <Section title={"Development"} after={"Project Organization"}>
