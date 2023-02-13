@@ -126,7 +126,7 @@ For your sub-tenants, domain configuration is located in the tenant form:
 
 ## FAQ
 
-### I'm receiving a Pulumi error saying something about Cloudfront request headers.
+### I'm receiving a Pulumi error saying something about CloudFront request headers.
 
 You may occasionally run into an error that goes something like this:
 
@@ -174,3 +174,15 @@ Diagnostics:
 ```
 
 Go back to the CF distribution where that hostname is configured, remove it - if it's safe to do so - and re-run the webiny deploy command.
+
+### What if I want to serve all tenants from a wildcard domain or from a custom domain, without needing to make infrastructure changes or redeploy my project?
+
+Say you have the Webiny `website` app installed on `x.cloudfront.com`. To that CloudFront you need to add a wildcard certificate with a wildcard domain, say `*.example.com`.
+When you create a tenant inside Webiny, you need to give them an FQDN. Add one and make sure it matches the wildcard. Example: `foo.example.com`.
+This way when you create a new tenant with a custom domain, you don't need to make any updates to CloudFront.
+
+Say that the same tenant has a custom domain of `www.bar.com`. To support fully custom FQDN without any CloudFront changes, you need to do the next step. 
+
+On the DNS of `bar.com` add a CNAME to `foo.example.com` (has to match the wildcard domain on CloudFront) for the `www` entry. On the same CDN make sure to overwrite the forward host header so that the CDN sends `foo.example.com` as the host header to CloudFront when it goes forward. This way the Lambda@Edge function will receive `foo.example.com` as the hostname name and will be able to resolve it to the correct tenant, although the client requested `www.bar.com`. 
+
+**Note:** You will need to use a more advanced CDN for this, such as Fastly, Akamai, or a paid version of CloudFlaire as the ability to overwrite the forward host header is not supported in may other CDNs. 
