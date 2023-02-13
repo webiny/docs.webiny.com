@@ -1,9 +1,238 @@
 ---
 id: changelog
-title: Page Builder - Page Rendering Engine Migration 
+title: Page Builder - Page Rendering Engine Migration
 description: See what's new in Webiny version 5.34.0.
 ---
 
-The **Page Builder - Page Rendering Engine Migration** migration guide is currently a work in progress and it should be published in the following days!
+import pe from "./assets/pe.png";
+import wtwAfter from "./assets/page-builder-pe-rendering-engine-migration/wtw-after.png";
+import wtwBefore from "./assets/page-builder-pe-rendering-engine-migration/wtw-before.png";
+import apiTokenCreation from "./assets/page-builder-pe-rendering-engine-migration/api-token-creation.png";
 
-To stay informed, please keep an eye on our [`#announcements` community Slack channel](https://www.webiny.com/slack), where we'll post an announcement once the guide is up.
+<Alert type={"warning"}>
+
+Before starting with the migration, make sure you're using Webiny version 5.34.0 or greater. For more information on
+how to upgrade, please check the [Upgrade From 5.33.5 to 5.34.0](/docs/release-notes/5.34.0/upgrade-guide) article. Additionally, we also recommend you update your Webiny project to the latest 5.34.x version, which, at the time of writing this article, is [5.34.3](/docs/release-notes/5.34.2/changelog).
+</Alert>
+
+## Introduction
+
+<Image src={pe} title={"Page Elements: A Brand New Page Rendering Engine"} shadow={false} />
+
+With the [5.34.0 release](/docs/release-notes/5.34.0/changelog), we introduced a brand new page rendering engine called **Page Elements**. Essentially, the rendering engine provides faster page loads, better SEO score, better DX, and also the ability to render pages in external projects, like a standalone Next.js application.
+
+For new Webiny projects, the new rendering engine is enabled by default. No extra steps needed!
+
+For existing projects, users have the option to migrate to the new rendering engine over time, once it's convenient
+for them. This article provides a step-by-step instructions on how to do that.
+
+<Alert type={"info"}>
+
+Until users perform the migration, their existing projects will still use the now legacy rendering
+engine, which we plan to support until the end of June 2023. After that, the legacy rendering
+engine will be considered deprecated and will receive no further support from the Webiny team.
+
+</Alert>
+
+## Setting the Expectations
+
+Before we dive into the migration steps, let's set some expectations.
+
+The most important thing to be aware of is that there is no automatic migration that "just works".
+
+Sure, there are simpler steps to take, for example enabling the new rendering engine via a simple feature flag adjustment. But, on the other hand, all custom page elements that you previously had will need to be manually rewritten. This is because a couple changes that the new rendering engine introduced, mainly the way custom page elements work and are created, but also how the new theme works. We'll see how this works in the following sections.
+
+Furthermore, note that we'll also need to update our `theme` and `website` code. Although, in theory, you could adapt the existing code (the code that got shipped with every new <5.34.0 Webiny project), ultimately, we believe it's better to just start with the latest code for these two apps, and start adapting them. This is again because of the theme-related changes that were introduced, and also the fact that, when it comes to defining styles, new Webiny projects now almost exclusively rely on [Emotion](https://emotion.sh/) CSS-in-JS library.
+
+Finally, note that incremental migration is not possible. In other words, you cannot migrate page by page. This is because you cannot have both rendering engines working at the same time. It's either the old or the new one. That's why we recommend to perform the migration first on a non-production system, where you can try different things and break stuff. Once the existing page elements have been migrated, and the website overall looks good, then it's time to think about doing the actual migration, on a production system.
+
+Now that we're aware of these initial expectations, let's see how to actually perform the migration.
+
+## Migration Steps
+
+Apart from just outlining the migrating steps, whenever there's a chance, we'll also try to provide useful information and tips on some of the new concepts we'll encounter.
+
+### Enabling the New Page Rendering Engine
+
+To begin with the migration process, we first need to **remove** the `pbLegacyRenderingEngine` feature flag, located in project root's `webiny.project.ts` configuration file:
+
+```diff-ts
+export default {
+    name: "webiny-js",
+    cli: {
+        // Code removed for brevity
+    },
+    appAliases: {
+        core: "apps/core",
+        api: "apps/api",
+        admin: "apps/admin",
+        website: "apps/website"
+    },
+    featureFlags: {
+-        // Enforces usage of legacy PB page elements rendering engine.
+-        // To migrate to the latest one, please read:
+-        // https://www.webiny.com/docs/page-builder-rendering-upgrade
+-        pbLegacyRenderingEngine: true
+    }
+};
+```
+
+By removing this flag, we're instructing the Page Builder app to stop relying on the legacy rendering engine and use the new one.
+
+### Running the Upgrade Script
+
+The next step is to run the following `webiny upgrade` command:
+
+```bash
+yarn webiny upgrade 5.34.0/page-elements-migration
+```
+
+Once run, the upgrade script performs the following changes:
+
+1. Backups your **theme** (`apps/theme`) and **Website** app (`apps/website`) folders, by renaming them to `_backup_theme` and `_backup_website`, respectively.
+2. Injects the latest **theme** and **Website** app code.
+3. Runs `yarn` to ensure all needed dependencies are installed.
+
+### Importing the New `global.scss` File
+
+One final fix we need to perform before doing that is updating the import path located in our **Admin** app's `apps/admin/src/App.scss` file:
+
+```diff-scss apps/admin/src/App.scss
+// Webiny theme variables
+$webiny-theme-light-primary: #fa5723;
+$webiny-theme-light-secondary: #00ccb0;
+$webiny-theme-light-background: #f2f2f2;
+$webiny-theme-light-surface: #fff;
+$webiny-theme-light-on-primary: #ffffff;
+$webiny-theme-light-on-secondary: #ffffff;
+$webiny-theme-light-on-surface: #000000;
+$webiny-theme-light-on-background: rgba(212, 212, 212, 0.5);
+$webiny-theme-light-text-primary-on-background: rgba(0, 0, 0, 0.87);
+$webiny-theme-light-text-secondary-on-background: rgba(0, 0, 0, 0.54);
+$webiny-theme-light-text-hint-on-dark: rgba(255, 255, 255, 0.5);
+$webiny-theme-light-caret-down: url("data:image/svg+xml,%3Csvg%20width%3D%2210px%22%20height%3D%225px%22%20viewBox%3D%227%2010%2010%205%22%20version%3D%221.1%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20xmlns%3Axlink%3D%22http%3A%2F%2Fwww.w3.org%2F1999%2Fxlink%22%3E%0A%20%20%20%20%3Cpolygon%20id%3D%22Shape%22%20stroke%3D%22none%22%20fill%3D%22%23000000%22%20fill-rule%3D%22evenodd%22%20opacity%3D%220.54%22%20points%3D%227%2010%2012%2015%2017%2010%22%3E%3C%2Fpolygon%3E%0A%3C%2Fsvg%3E");
+$webiny-theme-typography-font-family: "Source Sans Pro";
+
+// Import theme styles
+- @import "~theme/styles.scss";
++ @import "~theme/global.scss";
+
+// Import admin app styles
+@import "~@webiny/app-serverless-cms/styles.scss";
+```
+
+The [`global.scss`](https://github.com/webiny/webiny-js/blob/v5.34.0/apps/theme/global.scss) is a new file and it is also the only SCSS file you'll find in your project. It has three purposes:
+
+1. applies base [reset.css](https://meyerweb.com/eric/tools/css/reset/) styles
+2. imports fonts
+3. imports styles needed for the `@webiny/react-rich-text-renderer` package to work correctly
+
+Any other styling is completely handled via the mentioned [Emotion](https://emotion.sh/) CSS-in-JS library.
+
+### Initial Testing and Results - Not What We Expected
+
+At this point, we should be able to start up our Admin app locally. As usual, this is done via the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) command:
+
+```bash
+yarn webiny watch` admin --env dev
+```
+
+<Alert type={"success"}>
+
+From Webiny version 5.34.0, upon running various Webiny CLI commands, users no longer need to type the full path of
+the project application. For more information, check out the
+[changelog](/docs/release-notes/5.34.0/changelog#application-aliases-2895).
+
+</Alert>
+
+And although at first it might not seem there's anything wrong, if we were to take a look at an existing page, we'd probably be surprised with the result, and not in a good way.
+
+The result might be something like the following:
+
+<Image src={wtwAfter} title={"Welcome To Webiny Page - After the Performed Migration Steps"} />
+
+Which is definitely different from what had before we performed the above migration steps:
+
+<Image src={wtwBefore} title={"Welcome To Webiny Page - Before the Performed Migration Steps"} />
+
+As we can see, the page is rendered and still looks somewhat like the page we expected to see. But, we can also see that typography and colors are incorrect.
+
+In order to tackle this, we'll need to adjust the main theme file and make it backwards compatible.
+
+### Adjusting the Theme File
+
+The visual differences we've seen above exist because of the theme-related changes that were introduced with the new rendering engine, which essentially broke the references to values defined in the theme.
+
+For example, if we were take a closer look at the actual data of an arbitrary page (more specifically, page's `content` property), with the old rendering engine, we might encounter the `var(--webiny-theme-color-primary)` value being set as a font color somewhere on a page.
+
+In case you didn't notice, this value is not an actual color, but a [CSS variable](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties), which is defined in the old [`apps/theme/pageBuilder/styles/variables.scss`](https://github.com/webiny/webiny-js/blob/v5.33.5/apps/theme/pageBuilder/styles/variables.scss) file.
+
+With the new rendering engine, this file is no longer relevant, because the theme-related values like colors, typography, and more, are all defined within the new [`apps/theme/theme.ts`](https://github.com/webiny/webiny-js/blob/v5.34.0/apps/theme/theme.ts) file, which is structured and used differently. If were to take a closer look, we'd see that the colors are now listed via the [`styles.colors`](https://github.com/webiny/webiny-js/blob/v5.34.0/apps/theme/theme.ts#L97) property, where each color is an actual color, and not a CSS variable, which was previously the case.
+
+Ultimately, all the different theme-related references that exist in existing pages, created with a previous version of Webiny, need to be updated so that they correctly reference the values defined within the new theme object. The only way to address this quickly is to do some backwards compatible adjustments.
+
+```diff-ts
+// Colors.
+export const colors = {
+    color1: "#fa5723", // Primary.
+    color2: "#00ccb0", // Secondary.
+    color3: "#0a0a0a", // Text primary.
+    color4: "#616161", // Text secondary.
+    color5: "#eaecec", // Background.
+    color6: "#ffffff", // White background.
++
++   // Backwards compatibility.
++   "var(--webiny-theme-color-primary)": "#fa5723",
++   "var(--webiny-theme-color-secondary)": "#00ccb0",
++   "var(--webiny-theme-color-background)": "#eaecec",
++   "var(--webiny-theme-color-surface)": "#ffffff",
++   "var(--webiny-theme-color-text-primary)": "#0a0a0a"
+};
+```
+
+```diff-ts
+// Typography.
+const headings = {
+    fontFamily: fonts.font2,
++   //color: colors.color3, // Commented out for backwards compatibility.
+    WebkitFontSmoothing: "antialiased"
+};
+```
+
+```diff-ts
+export const typography = {
+    heading1: { ...headings, fontWeight: "bold", fontSize: 48 },
+    heading2: { ...headings, fontSize: 36 },
+    heading3: { ...headings, fontSize: 30 },
+    heading4: { ...headings, fontSize: 24 },
+    heading5: { ...headings, fontSize: 20 },
+    heading6: { ...headings, fontSize: 18, lineHeight: "1.75rem" },
+    quote: {
+        ...paragraphs,
+        fontWeight: "bold",
+        fontSize: 22
+    },
+    list: { ...paragraphs, fontSize: 17 },
++
++    // Backwards compatibility.
++    // Paragraphs.
++    "webiny-pb-typography-body": { ...paragraphs, fontSize: 16.5 },
++    "webiny-pb-typography-description": {
++        ...paragraphs,
++        fontSize: 12.5,
++        letterSpacing: "0.45px",
++        lineHeight: "19px"
++    },
++
++    // Headings.
++    "webiny-pb-typography-heading": {
++        h1: { ...headings, fontWeight: "bold", fontSize: 48 },
++        h2: { ...headings, fontSize: 36 },
++        h3: { ...headings, fontSize: 30 },
++        h4: { ...headings, fontSize: 24 },
++        h5: { ...headings, fontSize: 20 },
++        h6: { ...headings, fontSize: 18, lineHeight: "1.75rem" }
++    }
+} as const; // https://github.com/emotion-js/emotion/issues/1373#issuecomment-498059774
+```
+### Custom Page Elements
