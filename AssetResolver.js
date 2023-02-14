@@ -1,6 +1,7 @@
-const { blue, green, red, gray } = require("chalk");
+const { red } = require("chalk");
 const path = require("path");
 const fs = require("fs-extra");
+const pretry = require("p-retry");
 const versions = require("./src/data/versions.json");
 const pages = require("./src/data/pages.json");
 
@@ -23,7 +24,7 @@ module.exports.AssetResolver = class AssetResolver {
             .tapAsync("ResolveFallback", async (request, resolveContext, callback) => {
                 if (this.isApplicable(request)) {
                     const obj = Object.assign({}, request, {
-                        request: await this.resolveRequest(request)
+                        request: await pretry(() => this.resolveRequest(request), { retries: 5 })
                     });
 
                     resolver.doResolve(target, obj, null, resolveContext, callback);
@@ -50,13 +51,16 @@ module.exports.AssetResolver = class AssetResolver {
     async resolveRequest(request) {
         const { allVersions, latestVersion } = versions;
         const page = this.getSourcePage(request.context.issuer);
-        const realVersion = page.version === "latest" ? latestVersion : page.version;
+        if (!page) {
+            throw Error(`Unable to resolve page: ${request.context.issuer}`);
+        }
+        const realVersion = page?.version === "latest" ? latestVersion : page.version;
         const possibleVersions = allVersions
             .slice(allVersions.indexOf(realVersion))
             .concat("shared");
         // Try resolving every version, starting with the current page version.
         // Versions are ordered in descending order by default.
-        console.log(`Resolving asset "${blue(request.request)}" from "${blue(page.fullPath)}"`);
+        // console.log(`Resolving asset "${blue(request.request)}" from "${blue(page.fullPath)}"`);
         for (const version of possibleVersions) {
             const versionFreePath = page.relativePath.match(/\/(?:\d+\.\d+\.\w+\/)?(.*)/)[1];
             const pageDir = path.dirname(
@@ -66,13 +70,12 @@ module.exports.AssetResolver = class AssetResolver {
             const assetPath = path.join(pageDir, request.request);
 
             if (fs.pathExistsSync(assetPath)) {
-                console.log(`\t ✅ ${green(rootify(assetPath))}`);
+                // console.log(`\t ✅ ${green(rootify(assetPath))}`);
                 return assetPath;
             } else {
-                console.log(`\t - ${gray(rootify(assetPath))}`);
+                // console.log(`\t - ${gray(rootify(assetPath))}`);
             }
         }
-
         console.log(`\t ❌ ${red(rootify(assetPath))}`);
 
         return request.request;

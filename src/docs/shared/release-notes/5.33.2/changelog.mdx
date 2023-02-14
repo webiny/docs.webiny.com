@@ -1,0 +1,56 @@
+---
+id: changelog
+title: Webiny 5.33.2 Changelog
+description: See what's new in Webiny version 5.33.2.
+---
+
+## GraphQL
+
+### Number Scalar Transform To Number Or Float ([#2765](https://github.com/webiny/webiny-js/pull/2765))
+
+We have fixed an issue where the `Number` scalar in our `@webiny/handler-graphql` package was producing a `string` instead of `number`.
+
+## Headless CMS
+
+### Initialize Model Mutation ([#2766](https://github.com/webiny/webiny-js/pull/2766))
+
+We added the `initializeModel` GraphQL mutation, which can be hooked into via the `onModelInitialize` lifecycle event.
+We had to add this because we needed a way to execute creation of the Elasticsearch index, with custom mappings, on the CMS content models created via the code.
+
+Basically, we add the subscription to the `onModelInitialize` lifecycle event, which creates custom the Elasticsearch index:
+
+```typescript
+cms.onModelInitialize.subscribe(async ({ model }) => {
+  await createElasticsearchIndex({
+    elasticsearch,
+    model,
+    plugins
+  });
+});
+```
+
+### Elasticsearch Body Modifier Plugin ([#2779](https://github.com/webiny/webiny-js/pull/2779))
+
+The `CmsEntryElasticsearchBodyModifierPlugin` did not have the `where` parameter passed into it, so we added it.
+This now allows users to access raw `where` object, received from the GraphQL.
+
+## Development
+
+### Updated "Deploy Webiny Project" CloudFormation Template ([#2773](https://github.com/webiny/webiny-js/pull/2773))
+
+In order to reflect the changes we've recently introduced in the cloud infrastructure that Webiny deploys, with this release, we've revisited the `DeployWebinyProject` [AWS CloudFormation template](/docs/{version}/infrastructure/aws/configure-aws-credentials#deploy-webiny-project-aws-cloud-formation-template) and updated the set of permissions it deploys. With these updates, users should now be able to use the template and expect their Webiny project to be fully deployed.
+
+<br/><br/>
+
+<Alert type="info" title="Already Used the Template?">
+
+In case you've already deployed the previous version of the `DeployWebinyProject` AWS CloudFormation template, we suggest you first destroy the deployed stack, via the AWS Console. Then, via the link to the [AWS CloudFormation template](/docs/{version}/infrastructure/aws/configure-aws-credentials#deploy-webiny-project-aws-cloud-formation-template), you again perform a fresh deploy.
+
+</Alert>
+
+
+<Alert type="info" title="More Information">
+
+In case you missed it, in order to deploy your Webiny project in a more controlled and secure manner, you can utilize our `DeployWebinyProject` [AWS CloudFormation template](/docs/{version}/infrastructure/aws/configure-aws-credentials#deploy-webiny-project-aws-cloud-formation-template). The template deploys necessary ([least-privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege)) set of permissions into your AWS account, which also automatically get linked with an Amazon IAM user of your choosing (the user you plan to use upon running deployments).
+
+</Alert>

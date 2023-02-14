@@ -134,7 +134,7 @@ The purpose of the `Plugins` component is to make sure that its children are ren
 
 <Alert type="success">
 
-You can mount as many `<Plugins>` elements as you need, anywhere in the app components hierarchy. The only important thing is that you _do_ mount it when you want to add one or more plugins to the app.
+You can mount as many Plugin elements as you need, anywhere in the app components hierarchy. The only important thing is that you _do_ mount it when you want to add one or more plugins to the app.
 
 </Alert>
 
@@ -228,6 +228,62 @@ There are many components exported from the `@webiny/app-serverless-cms` package
 Almost always, renderer components go with a parent component that provides a React Context to the renderer. For example, a `UserMenuItem` has a corresponding `UserMenuItemRenderer` component. The renderer component doesn't take any props; instead, it uses hooks to fetch the relevant data from React Context, provided by the `UserMenuItem` component. This approach drastically reduces prop drilling, and makes it easier to decouple logic from presentation. This topic will be covered in more details in a dedicated article.
 
 If you want to change the appearance (the renderer) of a certain component, always look for the `Renderer` part of it, and compose _that_ component.
+
+## Helper Functions
+
+Now that you know the low-level mechanisms, we can introduce the following utility functions to make the process easier and more straightforward.
+
+### `createComponentPlugin`
+
+This function takes a composable component and a HOC, and returns a new component which, when mounted, registers the HOC into the composition provider:
+
+```tsx
+import { createComponentPlugin, MenuItemRenderer } from "@webiny/app-serverless-cms";
+
+// Create a plugin for a composable component.
+const MyMenuItemPlugin = createComponentPlugin(MenuItemRenderer, Original => {
+  return function MyMenuItemRenderer(props) {
+    return <Original {...props} />;
+  };
+});
+
+// Mount the plugin in your Admin app.
+export const App = () => {
+  return (
+    <Admin>
+      <MyMenuItemPlugin />
+    </Admin>
+  );
+};
+```
+
+### `createProviderPlugin`
+
+This function creates a component which, when mounted, registers an admin app provider:
+
+```tsx
+import { createProviderPlugin } from "@webiny/app-serverless-cms";
+
+// Create an Admin provider plugin.
+const MyProviderPlugin = createProviderPlugin(PreviousProvider => {
+  return function MyProvider({ children }) {
+    return (
+      <MyContextProvider>
+        <PreviousProvider>{children}</PreviousProvider>
+      </MyContextProvider>
+    );
+  };
+});
+
+// Mount the plugin in your Admin app.
+export const App = () => {
+  return (
+    <Admin>
+      <MyProviderPlugin />
+    </Admin>
+  );
+};
+```
 
 ## Conclusion
 

@@ -14,12 +14,12 @@ function Featured() {
     return (
         <Link href="https://github.com/webiny/webiny-js">
             <a
-                className="ml-9 bg-white dark:bg-dark-grey-3 rounded-full py-2 px-3 hidden xl:flex items-center"
+                className="items-center hidden px-3 py-2 rounded-full ml-9 xl:flex"
                 target="_blank"
                 rel="noreferrer"
             >
-                <span className="text-nav-link dark:text-white ml-2">
-                    <span role="img">⭐️</span> If you like Webiny, help us out by giving us a star
+                <span className="ml-2 text-nav-link dark:text-white">
+                    <span role="img" aria-label="star">⭐️</span> If you like Webiny, help us out by giving us a star
                     on GitHub!
                 </span>
                 <svg
@@ -93,14 +93,14 @@ export function NavPopover({ display = "md:hidden", className, ...props }) {
                     )}
                 >
                     <div className={clsx(styles.whiteCorner, "dark:bg-dark-grey-2")}></div>
-                    <div className="flex justify-between pb-2 mb-3 mx-5 dark:text-white border-b border-border dark:border-dark-grey">
+                    <div className="flex justify-between pb-2 mx-5 mb-3 border-b dark:text-white border-border dark:border-dark-grey">
                         Dark Theme
                         <ThemeToggle />
                     </div>
-                    <ul className="space-y-5 px-5">
+                    <ul className="px-5 space-y-5">
                         <NavItems />
                     </ul>
-                    <div className="flex justify-between mt-5 py-2 px-11 border-t border-slate-200 dark:border-slate-200/10">
+                    <div className="flex justify-between py-2 mt-5 border-t px-11 border-slate-200 dark:border-slate-200/10">
                         <a>
                             <svg
                                 width="20"
@@ -159,7 +159,7 @@ export function NavItems() {
 
 export function Header() {
     const { toggleNavigation } = useNavigation();
-    const page = usePage();
+    const { page } = usePage();
 
     const url = "/docs/{version}/get-started/install-webiny";
 
@@ -172,7 +172,7 @@ export function Header() {
         <>
             <div className="fixed top-0 z-40 w-full bg-smoke/90 backdrop-blur backdrop-opacity-80 supports-backdrop-blur:bg-white/95 flex-none transition-colors duration-500 lg:z-50 dark:bg-dark-grey-2 shadow-[0_1px_0_rgb(229,229,229)] dark:shadow-[0_1px_0_rgb(78,78,78)]">
                 <div className="relative flex items-center h-[3.375rem] lg:h-16 pl-[0.875rem] md:pl-8 pr-[] md:pr-8">
-                    <button className="lg:hidden mr-5" onClick={toggleNavigation}>
+                    <button className="mr-5 lg:hidden" onClick={toggleNavigation}>
                         <svg
                             width="22"
                             height="17"
@@ -200,7 +200,7 @@ export function Header() {
                         </a>
                     </Link>
                     <Featured />
-                    <div className="relative hidden lg:flex items-center ml-auto">
+                    <div className="relative items-center hidden ml-auto lg:flex">
                         <nav className="flex items-center h-[2.375rem] text-sm leading-6 font-semibold text-slate-700 dark:text-slate-200 border-l border-border dark:border-dark-grey ml-[1.875rem] pl-[1.875rem]">
                             <ul className="flex space-x-8">
                                 <NavItems />
@@ -228,7 +228,7 @@ export function Header() {
                                 href="https://twitter.com/WebinyCMS"
                                 target="_blank"
                                 rel="noreferrer"
-                                className="ml-5 block text-slate-400 hover:text-slate-500 dark:hover:text-slate-300"
+                                className="block ml-5 text-slate-400 hover:text-slate-500 dark:hover:text-slate-300"
                             >
                                 <span className="sr-only">Webiny Docs on GitHub</span>
                                 <svg
@@ -252,7 +252,7 @@ export function Header() {
                     </div>
                     <SearchButton
                         type={"mobile"}
-                        className="ml-auto text-slate-500 -my-1 flex items-center justify-center hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 lg:invisible"
+                        className="flex items-center justify-center ml-auto -my-1 text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 lg:invisible"
                     />
                     <NavPopover className="ml-[1.3781rem] -my-1" display="lg:hidden" />
                 </div>

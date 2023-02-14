@@ -49,7 +49,7 @@ To completely deploy your project, simply run the following command in your term
 yarn webiny deploy
 ```
 
-This command deploys all of the three applications that are, by default, included in every Webiny project. It deploys them in the following order:
+This command deploys all of the four applications that are, by default, included in every Webiny project. It deploys them in the following order:
 
 1. **Core** (`./apps/core`) - defines core cloud infrastructure resources
 1. **API** (`./apps/api`) - your project's (GraphQL) HTTP API
@@ -75,14 +75,17 @@ yarn webiny deploy --env prod
 To deploy a specific project application, located within your Webiny project, simply append the path to the folder in which the project application resides, for example:
 
 ```bash
+yarn webiny deploy apps/core --env dev
 yarn webiny deploy apps/api --env dev
 yarn webiny deploy apps/admin --env dev
 yarn webiny deploy apps/website --env dev
 ```
 
-Note that when deploying a specific project application, the environment (`--env`) argument is not optional, it must always be set.
+Note that when deploying a specific project application, the environment (`--env`) parameter is not optional. It must always be provided.
 
-## List AWS Resources
+Also, note that the four project applications depend on each other. **Website** and **Admin** depend on **API**, and **API** depends on the **Core** project application. So, when performing a Webiny project deployment for the first time, if you choose to deploy project applications one by one, make sure to deploy them in the correct order, as shown in the list of commands above.
+
+## List Cloud Infrastructure Resources
 
 To list all cloud infrastructure resources deployed as part of a particular project application, you can run the following command:
 
@@ -94,7 +97,7 @@ For example, to list all cloud infrastructure resources deployed as part of the 
 application, deployed into the `dev` environment, you can run the following command:
 
 ```bash
-yarn webiny pulumi api --env dev -- stack --show-ids
+yarn webiny pulumi apps/api --env dev -- stack --show-ids
 ```
 
 Running the above command should produce the following output:
@@ -117,10 +120,16 @@ For more information on the `webiny pulumi` command, please visit the [Execute P
 
 <Alert type="success">
 
-By default, every Webiny project consists of three project applications: **API** (`api`), **Admin Area** (`apps/admin`), and **Website** (`apps/website`).
+By default, every Webiny project consists of four project applications: **Core** (`apps/api`), **API** (`apps/api`), **Admin Area** (`apps/admin`), and **Website** (`apps/website`).
 Read more about project organization in the [Project Organization](../../core-development-concepts/project-organization/project-applications-and-packages) key topics section.
 
 </Alert>
+
+## Modify Cloud Infrastructure
+
+Although the cloud infrastructure resources that Webiny deploys are already configured in the best possible manner, there are still cases where some modifications might be needed. In some cases even, the deployed cloud infrastructure needs to be expanded by introducing additional resources into the mix.
+
+To learn more, please check out the [Modify Cloud Infrastructure](/docs/5.29.x/infrastructure/basics/modify-cloud-infrastructure) article.
 
 ## Debugging
 
@@ -201,7 +210,7 @@ If you didn't install the Pulumi CLI manually by yourself, which is usually the 
 yarn webiny pulumi apps/website --env dev -- stack export
 
 # Export state files for the "api" project application ("prod" environment).
-yarn webiny pulumi api --env prod -- stack export
+yarn webiny pulumi apps/api --env prod -- stack export
 ```
 
 <Alert type="info">
@@ -213,3 +222,27 @@ Learn more about cloud infrastructure state files in the [Cloud Infrastructure S
 #### Another Deployment Currently in Progress
 
 In case of the latter, in which an active deployment currently exists, then you'll just need to wait for the first one to finish, and redeploy your project application. Although not that often, this is more possible to happen in your CI/CD workflows.
+
+### Failed to read Pulumi credentials file. Please re-run `pulumi login`.
+
+When deploying your project applications with the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command, on a couple of occasions, we've seen users receive the following error:
+
+> error: problem logging in: failed to read Pulumi credentials file. Please re-run `pulumi login` to reset your credentials file: invalid character '\x00' looking for beginning of value
+
+After some investigation, we've seen this error can happen because of an error in the `credentials.json` file, which is an internal Pulumi file that holds [Pulumi service-related](https://www.pulumi.com/docs/intro/pulumi-service/) credentials.
+
+If you're not using Pulumi service, then, most likely, you can safely delete this file, and everything should start working again.
+
+Depending on your operating system, the file can be found in the following paths.
+
+**Mac / Linux:**  
+
+```
+/Users/x/my-new-project/.webiny/pulumi-cli/darwin/pulumi/credentials.json
+```
+
+**Windows:**  
+
+```
+C:\my-new-project\.webiny\pulumi-cli\win32\pulumi\credentials.json
+```

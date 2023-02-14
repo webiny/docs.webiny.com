@@ -46,11 +46,13 @@ As its first argument, the `destroy` command receives the path to the project ap
 The following destroy commands destroy cloud infrastructure deployed for four project applications, all previously deployed into the `dev` environment:
 
 ```bash
-yarn webiny destroy apps/core --env dev
-yarn webiny destroy apps/api --env dev
-yarn webiny destroy apps/admin --env dev
 yarn webiny destroy apps/website --env dev
+yarn webiny destroy apps/admin --env dev
+yarn webiny destroy apps/api --env dev
+yarn webiny destroy apps/core --env dev
 ```
+
+Note that the order of execution matters. In order to correctly and fully destroy your Webiny project's cloud infrastructure resources, the above commands should be executed in that exact order.
 
 ## Debugging
 
@@ -105,6 +107,30 @@ yarn webiny destroy apps/website --env prod
 ```
 
 ## Troubleshooting
+
+### Upon destroying my Webiny project, I've received a "PreconditionFailed" error message. What can I do?
+
+On multiple occasions, we've seen users receive the following error upon destroying their Webiny project:
+
+```text
+  pulumi:pulumi:Stack (website-dev):
+    error: update failed
+ 
+  aws:cloudfront:Distribution (delivery):
+    error: deleting urn:pulumi:dev::website::aws:cloudfront/distribution:Distribution::delivery: 1 error occurred:
+        * CloudFront Distribution {DISTRIBUTION_ID} cannot be deleted: PreconditionFailed: The request failed because it didn't meet the preconditions in one or more request-header fields.
+        status code: 412, request id: {REQUEST_ID}
+```
+
+As we can see, the error is related to deleting an Amazon Cloudfront distribution that's deployed as part of the **Website** project application. 
+
+As mentioned in [this GitHub issue](https://github.com/pulumi/pulumi-aws/issues/308#issuecomment-415928729), this error can happen because of the fact that many operations within AWS silently mutate Cloudfront distributions' [ETAG](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html). This causes the subsequent update (delete) attempts to fail.
+
+Ultimately, this issue can be resolved by refreshing your Pulumi state files, by running the following command: 
+
+```bash
+yarn webiny pulumi apps/website --env dev -- refresh --skip-preview --yes
+```
 
 ### Destroying my project takes a long time to finish.
 

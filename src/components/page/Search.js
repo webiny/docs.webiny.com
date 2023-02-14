@@ -1,11 +1,9 @@
 import { usePage } from "@/hooks/usePage";
 import { useState, useCallback, useRef, createContext, useContext, useEffect } from "react";
-import { createPortal } from "react-dom";
 import Link from "next/link";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { DocSearchModal } from "@docsearch/react";
-import clsx from "clsx";
 import { useActionKey } from "@/hooks/useActionKey";
 
 const INDEX_NAME = "webiny-js";
@@ -14,8 +12,14 @@ const APP_ID = "U08KX3NZNH";
 
 const SearchContext = createContext();
 
+function replaceOrigin(url) {
+    const original = new URL(url);
+    original.hash = "";
+    return original.toString().replace(original.origin, window.location.origin);
+}
+
 export function SearchProvider({ children }) {
-    const { version } = usePage();
+    const { page } = usePage();
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [initialQuery, setInitialQuery] = useState(null);
@@ -40,6 +44,7 @@ export function SearchProvider({ children }) {
         if (isOpen) {
             onClose();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router]);
 
     useDocSearchKeyboardEvents({
@@ -68,61 +73,44 @@ export function SearchProvider({ children }) {
             >
                 {children}
             </SearchContext.Provider>
-            {isOpen &&
-                createPortal(
-                    <DocSearchModal
-                        initialQuery={initialQuery}
-                        initialScrollY={window.scrollY}
-                        searchParameters={{
-                            facetFilters: [["language:en"], [`version:${version}`]]
-                        }}
-                        placeholder="Search..."
-                        onClose={onClose}
-                        indexName={INDEX_NAME}
-                        apiKey={API_KEY}
-                        appId={APP_ID}
-                        navigator={{
-                            navigate({ suggestionUrl }) {
-                                setIsOpen(false);
-                                router.push(suggestionUrl);
+            {isOpen && (
+                <DocSearchModal
+                    initialQuery={initialQuery}
+                    initialScrollY={window.scrollY}
+                    searchParameters={{
+                        facetFilters: [
+                            ["language:en"],
+                            [`version:${page.version}`],
+                            [`articleType:${page.articleType}`]
+                        ]
+                    }}
+                    placeholder="Search..."
+                    onClose={onClose}
+                    indexName={INDEX_NAME}
+                    apiKey={API_KEY}
+                    appId={APP_ID}
+                    hitComponent={Hit}
+                    navigator={{
+                        navigate(item) {
+                            setInitialQuery(item.state.query);
+                            router.push(item.itemUrl);
+                            setIsOpen(false);
+                        }
+                    }}
+                    transformItems={items => {
+                        return items.map(item => {
+                            if (item.hierarchy?.lvl0) {
+                                item.hierarchy.lvl0 = item.hierarchy.lvl0.replace(/&amp;/g, "&");
                             }
-                        }}
-                        hitComponent={Hit}
-                        transformItems={items => {
-                            return items.map((item, index) => {
-                                // We transform the absolute URL into a relative URL to
-                                // leverage Next's preloading.
-                                const a = document.createElement("a");
-                                a.href = item.url;
 
-                                const hash = a.hash === "#header" ? "" : a.hash;
-
-                                if (item.hierarchy?.lvl0) {
-                                    item.hierarchy.lvl0 = item.hierarchy.lvl0.replace(
-                                        /&amp;/g,
-                                        "&"
-                                    );
-                                }
-
-                                return {
-                                    ...item,
-                                    url: `${a.pathname}${hash}`,
-                                    __is_result: () => true,
-                                    __is_parent: () =>
-                                        item.type === "lvl1" && items.length > 1 && index === 0,
-                                    __is_child: () =>
-                                        item.type !== "lvl1" &&
-                                        items.length > 1 &&
-                                        items[0].type === "lvl1" &&
-                                        index !== 0,
-                                    __is_first: () => index === 1,
-                                    __is_last: () => index === items.length - 1 && index !== 0
-                                };
-                            });
-                        }}
-                    />,
-                    document.body
-                )}
+                            return {
+                                ...item,
+                                url: replaceOrigin(item.url)
+                            };
+                        });
+                    }}
+                />
+            )}
         </>
     );
 }
@@ -130,17 +118,7 @@ export function SearchProvider({ children }) {
 function Hit({ hit, children }) {
     return (
         <Link href={hit.url}>
-            <a
-                className={clsx({
-                    "DocSearch-Hit--Result": hit.__is_result?.(),
-                    "DocSearch-Hit--Parent": hit.__is_parent?.(),
-                    "DocSearch-Hit--FirstChild": hit.__is_first?.(),
-                    "DocSearch-Hit--LastChild": hit.__is_last?.(),
-                    "DocSearch-Hit--Child": hit.__is_child?.()
-                })}
-            >
-                {children}
-            </a>
+            <a>{children}</a>
         </Link>
     );
 }
@@ -236,7 +214,7 @@ export function SearchButton({ children, ...props }) {
                             height="24"
                             fill="none"
                             aria-hidden="true"
-                            className="mr-3 flex-none"
+                            className="flex-none mr-3"
                         >
                             <path
                                 d="m19 19-3.5-3.5"
@@ -256,7 +234,7 @@ export function SearchButton({ children, ...props }) {
                             ></circle>
                         </svg>
                         Quick search...
-                        <span className="ml-auto pl-3 flex-none text-xs font-semibold">⌘K</span>
+                        <span className="flex-none pl-3 ml-auto text-xs font-semibold">⌘K</span>
                     </button>
                 </div>
                 <div className="h-5 bg-gradient-to-b from-white dark:from-dark-theme"></div>

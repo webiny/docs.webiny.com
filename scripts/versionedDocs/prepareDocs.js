@@ -10,6 +10,7 @@ import util from "util";
 import _rimraf from "rimraf";
 import writeJsonFile from "write-json-file";
 import { allVersions } from "../detectVersions";
+import { codeReplacements } from "./codeReplacements";
 import { renderNavigation } from "@/docs/utils/renderNavigation";
 
 const rimraf = util.promisify(_rimraf);
@@ -18,13 +19,7 @@ const sourceDocsPath = folder => path.join(process.cwd(), "src/docs", folder || 
 const targetDocsPath = folder => path.join(process.cwd(), "src/pages/docs", folder || "");
 
 function injectVersion(rootPath, version) {
-    const codeReplacements = [
-        {
-            find: "/{version}/",
-            replaceWith: version === "latest" ? "/" : `/${version}/`
-        }
-    ];
-    replaceInPath(path.join(rootPath, "/**/*.mdx"), codeReplacements);
+    replaceInPath(path.join(rootPath, "/**/*.mdx"), codeReplacements(version));
 }
 
 export async function prepareDocs() {
@@ -57,8 +52,13 @@ export async function prepareDocs() {
     let catalog = [];
     for (const realVersion of allVersions) {
         // nav = { version, navigation, pages }
-        const nav = await generateNavigation(realVersion);
-        navigation[nav.version] = nav.navigation;
+        const docsNavigation = path.join(process.cwd(), "src/docs", realVersion, "navigation.js");
+        const nav = await generateNavigation(realVersion, docsNavigation);
+        Object.keys(nav.navigation).forEach(group => {
+            navigation[group] = navigation[group] || {};
+            navigation[group][nav.version] = nav.navigation[group];
+        });
+
         catalog = catalog.concat(...nav.pages);
     }
 
@@ -73,6 +73,10 @@ export async function prepareDocs() {
     // Copy pages of the "latest" version.
     const latestPages = catalog.filter(p => p.version === "latest");
     for (const page of latestPages) {
+        if (!page.relativePath) {
+            console.log(JSON.stringify(page, null, 2));
+            throw new Error(`Page doesn't have a "relativePath" set!`);
+        }
         await fs.copy(page.sourceFile, targetDocsPath(page.relativePath + ".mdx"));
     }
     injectVersion(targetDocsPath(), "latest");
@@ -83,6 +87,10 @@ export async function prepareDocs() {
         const targetPath = targetDocsPath(version);
         // Copy shared pages first
         for (const page of versionPages) {
+            if (!page.relativePath) {
+                console.log(JSON.stringify(page, null, 2));
+                throw new Error(`Page doesn't have a "relativePath" set!`);
+            }
             await fs.copy(page.sourceFile, targetDocsPath(page.relativePath + ".mdx"));
         }
         injectVersion(targetPath, version);
@@ -105,20 +113,19 @@ export async function prepareDocs() {
     });
 
     info(`Docs are ready for building!`);
+    return new Promise(resolve => {
+        info(`Wait for 5 seconds for file system to cool down before proceeding...`);
+        setTimeout(resolve, 5000);
+    });
 }
 
-export async function generateNavigation(realVersion) {
+export async function generateNavigation(realVersion, navigationSource) {
     const { Version } = await import("@/docs/utils/navigation");
     const { latestVersion } = await import("@/data/versions.json");
     const isLatest = realVersion === latestVersion;
     const version = isLatest ? "latest" : realVersion;
 
-    const { Navigation } = require(path.join(
-        process.cwd(),
-        "src/docs",
-        realVersion,
-        "navigation.js"
-    ));
+    const { Navigation } = require(navigationSource);
 
     const data = await renderNavigation(
         <Version version={version}>
@@ -126,13 +133,19 @@ export async function generateNavigation(realVersion) {
         </Version>
     );
 
-    const navigation = data.items.reduce((acc, item, index) => {
-        // Deduplicate separators
-        if (item.type === "separator" && data.items[index - 1].type === "separator") {
-            return acc;
-        }
-        return [...acc, item];
-    }, []);
+    const navigation = Object.keys(data.groups).reduce((acc, group) => {
+        const { items } = data.groups[group];
+        return {
+            ...acc,
+            [group]: items.reduce((acc, item, index) => {
+                // Deduplicate separators
+                if (item.type === "separator" && items[index - 1].type === "separator") {
+                    return acc;
+                }
+                return [...acc, item];
+            }, [])
+        };
+    }, {});
 
     return { version, navigation, pages: data.catalog };
 }
@@ -165,11 +178,12 @@ export function info(text) {
 export async function writeAndLog(file, data) {
     const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
     logFileWrite(targetFile);
-    await fs.writeFile(file, data);
+    fs.ensureDirSync(path.dirname(file));
+    fs.writeFileSync(file, data);
 }
 
 export async function writeJsonAndLog(file, data) {
     const targetFile = file.startsWith(process.cwd()) ? file : path.join(process.cwd(), file);
     logFileWrite(targetFile);
-    await writeJsonFile(targetFile, data);
+    writeJsonFile.sync(targetFile, data);
 }
