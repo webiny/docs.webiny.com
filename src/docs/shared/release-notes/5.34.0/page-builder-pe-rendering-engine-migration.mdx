@@ -12,7 +12,10 @@ import apiTokenCreation from "./assets/page-builder-pe-rendering-engine-migratio
 <Alert type={"warning"}>
 
 Before starting with the migration, make sure you're using Webiny version 5.34.0 or greater. For more information on
-how to upgrade, please check the [Upgrade From 5.33.5 to 5.34.0](/docs/release-notes/5.34.0/upgrade-guide) article. Additionally, we also recommend you update your Webiny project to the latest 5.34.x version, which, at the time of writing this article, is [5.34.3](/docs/release-notes/5.34.2/changelog).
+how to upgrade, please check the [Upgrade From 5.33.5 to 5.34.0](/docs/release-notes/5.34.0/upgrade-guide) article.
+Additionally, we also recommend you update your Webiny project to the latest 5.34.x version, which, at the time of
+writing this article, is [5.34.3](/docs/release-notes/5.34.2/changelog).
+
 </Alert>
 
 ## Introduction
@@ -42,11 +45,12 @@ The most important fact to be aware of is that there is no automatic migration t
 
 Sure, there are simpler steps to take, for example enabling the new rendering engine via a simple feature flag adjustment. There's also no database migration involved.
 
-On the other hand, all custom page elements that you previously had will need to be manually migrated (rewritten). This is because a couple changes that the new rendering engine introduced, mainly the way custom page elements work and are created, but also how the new theme works. 
+On the other hand, all custom page elements that you previously had will need to be manually migrated (rewritten). This is because a couple changes that the new rendering engine introduced, mainly the way custom page elements work and are created, but also how the new theme works.
 
 <Alert type={"info"}>
 
-  With the new page rendering engine, for website styling, instead of [SASS](https://sass-lang.com/), new Webiny projects now almost exclusively rely on [Emotion](https://emotion.sh/) CSS-in-JS library.
+With the new page rendering engine, for website styling, instead of [SASS](https://sass-lang.com/), new Webiny
+projects now almost exclusively rely on [Emotion](https://emotion.sh/) CSS-in-JS library.
 
 </Alert>
 
@@ -58,19 +62,19 @@ Now that we're aware of these initial expectations, let's see how to actually pe
 
 ## Migration Steps
 
-In the following text, we show all the steps needed to perform the migration from the old page rendering engine to the new one. To do this, we are using a brand new  Webiny project, which was created with the 5.33.4 version (last 5.33.x version) and then migrated to the latest 5.34.3 (the latest version at the time of writing this guide). 
+In the following text, we show all the steps needed to perform the migration from the old page rendering engine to the new one. To do this, we are using a brand new Webiny project, which was created with the 5.33.4 version (last 5.33.x version) and then migrated to the latest 5.34.3 (the latest version at the time of writing this guide).
 
 This means the project has two default pages: **Welcome to Webiny** (home page) and **Not Found**. In this guide, we'll use the former to demonstrate how the steps we're making are affecting the actual page.
 
 The project also doesn't have any customizations, like custom typography, colors, or custom page elements. Depending on the level of customizations present in your project, additional work might be needed. But still, the steps shown in the following section will give a clue on what needs to be done.
 
-
 ### Enabling the New Page Rendering Engine
 
 <Alert type={"info"}>
 
-There's no need to run the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) command immediately. We'll highlight when that's needed in one of the following sections.
-  
+There's no need to run the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) command
+immediately. We'll highlight when that's needed in one of the following sections.
+
 </Alert>
 
 To begin with the migration process, we first need to **remove** the `pbLegacyRenderingEngine` feature flag, located in project root's `webiny.project.ts` configuration file:
@@ -109,8 +113,32 @@ yarn webiny upgrade --use-version 5.34.0/page-elements-migration
 Once run, the upgrade script performs the following changes:
 
 1. backups your **theme** (`apps/theme`) and **Website** app (`apps/website`) folders, by renaming them to `_backup_theme` and `_backup_website`, respectively
-2. injects the latest **theme** and **Website** app code
+2. generates the latest **theme** and **Website** app code
 3. runs `yarn` to ensure all needed dependencies are installed
+
+<Alert type={"danger"}>
+
+Note that the upgrade script recreates the `apps/theme` and `apps/website` from scratch, using [the latest
+code](https://github.com/webiny/webiny-upgrades/tree/main/5.34.0/page-elements-migration/apps).
+
+Apart from the React code, we also suggest double-checking the following.
+
+1.  [`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-upgrades/blob/main/5.34.0/page-elements-migration/apps/website/webiny.application.ts) - if you had any cloud infrastructure changes here, make sure to restore them. Also, if your project is not relying on the [`pulumiResourceNamePrefix`
+  parameter](https://www.webiny.com/docs/release-notes/5.33.4/changelog#introduced-prefixed-cloud-infrastructure-pulumi-resource-names-2858),
+  make sure to remove it.
+
+2.  [`apps/website/webiny.config.ts`](https://github.com/webiny/webiny-upgrades/blob/main/5.34.0/page-elements-migration/apps/website/webiny.config.ts) - if you had any application customizations here, for example Webpack or Babel customizations, also make sure to restore them.
+
+3.  [`apps/website/package.json`](https://github.com/webiny/webiny-upgrades/blob/main/5.34.0/page-elements-migration/apps/website/package.json) - if you had custom NPM dependencies installed, make sure to restore them.
+
+4. [`apps/theme/package.json`](https://github.com/webiny/webiny-upgrades/blob/main/5.34.0/page-elements-migration/apps/theme/package.json) - if you had custom NPM dependencies installed, make sure to restore them.
+  
+5. If you had [custom layouts](/docs/{exact:5.33.x}/page-builder/theming/layouts) for some of your pages, you also need to restore them and also register them via the [`apps/theme/index.ts`](https://github.com/webiny/webiny-upgrades/blob/main/5.34.0/page-elements-migration/apps/theme/index.ts) file.  
+  
+To be sure that you don't miss any of these, we also suggest double-checking the changes upon committing the changes
+to your code repository.
+
+</Alert>
 
 ### Importing the New `global.scss` File
 
@@ -160,8 +188,8 @@ yarn webiny watch admin --env dev
 
 From Webiny version 5.34.0, upon running various Webiny CLI commands, users no longer need to type the full path of
 the project application. That's why the above command passes `admin` as the application name, and not `apps/admin`.
-  
-  For more information, check out the [changelog](/docs/release-notes/5.34.0/changelog#application-aliases-2895).
+
+For more information, check out the [changelog](/docs/release-notes/5.34.0/changelog#application-aliases-2895).
 
 </Alert>
 
@@ -181,7 +209,8 @@ In order to tackle this, we'll need to perform a couple of theme-related adjustm
 
 <Alert type={"warning"}>
 
-  Another issue you might also encounter is your custom page elements not being rendered. This is something we'll cover in the [Custom Page Elements](#custom-page-elements) section of this guide. 
+Another issue you might also encounter is your custom page elements not being rendered. This is something we'll cover
+in the [Custom Page Elements](#custom-page-elements) section of this guide.
 
 </Alert>
 
@@ -189,7 +218,7 @@ In order to tackle this, we'll need to perform a couple of theme-related adjustm
 
 The visual differences we've seen above exist because of the theme-related changes that were introduced with the new rendering engine. Essentially, the existing pages still reference theme-related values (like colors and typography) from the old theme files, but those files are no longer in use. With the new rendering engine, there's only one single theme file that exist, and that's [`apps/theme/theme.ts`](https://github.com/webiny/webiny-js/blob/v5.34.0/apps/theme/theme.ts).
 
-To demonstrate the problem a bit further, as an example, if we were take a closer look at the actual data of an arbitrary page (more specifically, page's `content` property), with the old rendering engine, we might encounter the `var(--webiny-theme-color-primary)` value being set as the font color of a paragraph. 
+To demonstrate the problem a bit further, as an example, if we were take a closer look at the actual data of an arbitrary page (more specifically, page's `content` property), with the old rendering engine, we might encounter the `var(--webiny-theme-color-primary)` value being set as the font color of a paragraph.
 
 ```json
 {
@@ -214,6 +243,7 @@ To demonstrate the problem a bit further, as an example, if we were take a close
   "elements": []
 }
 ```
+
 The value is not an actual color, but a [CSS variable](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties), which, in an old project, is defined in the [`apps/theme/pageBuilder/styles/variables.scss`](https://github.com/webiny/webiny-js/blob/v5.33.5/apps/theme/pageBuilder/styles/variables.scss) file.
 
 But, as mentioned, since the old theme object is no longer being used, the value doesn't have any affect on the actual color of the font. All the theme-related values like colors, typography, and more, are defined within the new [`apps/theme/theme.ts`](https://github.com/webiny/webiny-js/blob/v5.34.0/apps/theme/theme.ts) file, which is structured and used differently. In it, we'd see that the colors are now listed via the [`styles.colors`](https://github.com/webiny/webiny-js/blob/v5.34.0/apps/theme/theme.ts#L97) property, where each color is an actual color, and not a CSS variable.
@@ -274,7 +304,9 @@ export const colors = {
 With these insertions in place, if a paragraph had its text color set to `var(--webiny-theme-color-primary)`, the new rendering engine is able to find the actual color within the `colors` section of the new theme object, thus the final rendering should be looking good.
 
 <Alert type={"info"}>
-If your project doesn't use the default set of colors defined with every new Webiny project, make sure to adapt the above color codes used in the above code example. Also, if there are additional custom colors defined in your project, we need to add them too. 
+  If your project doesn't use the default set of colors defined with every new Webiny project, make sure to adapt the
+  above color codes used in the above code example. Also, if there are additional custom colors defined in your project,
+  we need to add them too.
 
 </Alert>
 
@@ -329,11 +361,11 @@ export const typography = {
 As we can see, we've added three typography entries: `webiny-pb-typography-body`, `webiny-pb-typography-description`, and `webiny-pb-typography-heading` (which contains style definitions for all six levels of headings).
 
 <Alert type={"info"}>
-  
-  Like with the colors, if your project doesn't rely on the default typography, make sure to adapt the above styles defined in the above code example.
+
+Like with the colors, if your project doesn't rely on the default typography, make sure to adapt the above styles
+defined in the above code example.
 
 </Alert>
-
 
 One final change we need to make here is commenting out the following line from the `headings` object (otherwise the heading colors would not get applied correctly):
 
