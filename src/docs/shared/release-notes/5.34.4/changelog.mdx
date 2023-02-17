@@ -1,0 +1,67 @@
+---
+id: changelog
+title: Webiny 5.34.4 Changelog
+description: See what's new in Webiny version 5.34.4.
+---
+
+## Page Builder
+
+### Addressed Several Page Builder-related Issues ([#3007](https://github.com/webiny/webiny-js/pull/3007))
+
+With this release, we've again shipped a new batch of Page Builder-related fixes and improvements. The following are some of the more important ones.
+
+#### Theme Border Colors Now Applied Correctly
+
+Prior to this release, in the page editor, upon adding a colored border to an existing page element, if the selected color was defined via theme, it would not get applied correctly. Instead, the default black color would be used. 
+
+We've taken care of this, so you can expect theme (and non-theme) colors to be correctly applied to a page element's border. 
+
+#### Resolved Interactivity Issues On Animated Page Elements
+
+In the page editor, when a page element had an animation enabled, it would lose usual interactivity-related features. For example, users would not be able to type text into text-based page elements, nor drop page elements above or below the animated one. 
+
+Both interactions now work correctly when an element has animation enabled.
+
+#### Image Element Now Renders the Image Using `srcset`
+
+When used, the existing **image** page element now renders the actual image using the [`srcset` HTML attribute](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images), not `src`. This greatly improves the overall website performance because, depending on the user's device screen, browsers serve the image size that's considered to be most optimal.
+
+#### Page Title Correctly Saved When Pressing the Enter Key
+
+Prior to this PR, in the page editor, if a user pressed **Enter** key once they typed a new page title, the new title would not get saved, despite the fact that the user would get presented with a success message.
+
+This issue has now been addressed. 
+
+#### Elements Can Now Be Moved Up and Down On The Canvas (Drag and Drop)
+
+In the page editor, reordering existing page elements via drag and drop method now works correctly.
+
+## Development
+
+### Ability To Define Multiple Production Environments Via `webiny.application.ts`  ([#3014](https://github.com/webiny/webiny-js/pull/3014))
+
+Upon running the [`webiny deploy`](/docs/{exact:5.34.x}/core-development-concepts/basics/project-deployment) command, when `prod` is passed as the environment name, a Webiny project is deployed in the so-called [production deployment mode](https://www.webiny.com/docs/architecture/deployment-modes/production).
+
+But, if a user wanted to use the same mode for, say, `staging`, that would not be easily possible.
+
+That's why we're introducing the `productionEnvironments` parameter for all project applications, which can be utilized in their respective `webiny.application.ts` configuration files. For example:
+
+```ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+    pulumiResourceNamePrefix: "wby-",
+
+    // Treats provided environments as production environments, which
+    // are deployed in production deployment mode.
+    productionEnvironments: ["prod", "staging"]
+});
+
+```
+
+Note that when specifying additional production environments, they should be specified across all project applications, meaning:
+
+1. `apps/core/webiny.application.ts`
+2. `apps/api/webiny.application.ts`
+3. `apps/admin/webiny.application.ts`
+4. `apps/website/webiny.application.ts`
