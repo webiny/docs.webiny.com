@@ -271,9 +271,10 @@ export const Navigation = () => {
                                 link={"user-guides/headless-cms/essentials/create-content-entry"}
                             />
                             <Page
-                                link={
-                                    "user-guides/headless-cms/essentials/create-content-model-group"
-                                }
+                                link={"user-guides/headless-cms/essentials/create-content-model-group"}
+                            />
+                            <Page
+                                link={"user-guides/headless-cms/essentials/update-content-model"}
                             />
                         </Section>
                         <Section title={"Advanced"}>
