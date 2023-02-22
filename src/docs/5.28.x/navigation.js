@@ -276,7 +276,7 @@ export const Navigation = () => {
                                 }
                             />
                             <Page
-                                link={"user-guides/headless-cms/essentials/use-reference-field"}
+                                link={"user-guides/headless-cms/essentials/reference-field"}
                             />
                         </Section>
                         <Section title={"Advanced"}>
