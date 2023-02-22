@@ -268,6 +268,9 @@ export const Navigation = () => {
                                 link={"user-guides/headless-cms/essentials/create-content-model"}
                             />
                             <Page
+                                link={"user-guides/headless-cms/essentials/update-content-model"}
+                            />
+                            <Page
                                 link={"user-guides/headless-cms/essentials/create-content-entry"}
                             />
                             <Page
