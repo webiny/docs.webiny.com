@@ -281,6 +281,9 @@ export const Navigation = () => {
                             <Page
                                 link={"user-guides/headless-cms/essentials/add-validator-to-fields"}
                             />
+                            <Page
+                                link={"user-guides/headless-cms/essentials/reference-field"}
+                            />
                         </Section>
                         <Section title={"Advanced"}>
                             <Page link={"user-guides/headless-cms/advanced/sample-advance-page"} />
