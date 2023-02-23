@@ -241,7 +241,7 @@ export const Navigation = () => {
                         <Page link={"architecture/website/overview"} />
                         <Page link={"architecture/website/prerendering-pages"} />
                         <Page link={"architecture/website/serving-pages"} />
-                    </Section>
+                    </Section> 
                 </Collapsable>
                 <Separator />
                 <Collapsable title={"Webiny Enterprise"}>
@@ -286,6 +286,10 @@ export const Navigation = () => {
                             <Page
                                 title={"Glossary"}
                                 link={"user-guides/page-builder/essentials/glossary"}
+                            />
+                            <Page
+                                title={"Manage General Settings"}
+                                link={"user-guides/page-builder/essentials/manage-general-settings"}
                             />
                         </Section>
                     </Collapsable>
