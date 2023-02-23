@@ -1,0 +1,170 @@
+---
+title: Add custom button callback handler
+description: How to create a custom callback handler for button element
+---
+
+import { Alert } from "@/components/Alert";
+
+<!-- Include this when needed (e.g. when explaining a feature that was introduced in a specific Webiny version) -->
+
+<Alert type="info" title="Can I Use This?">
+
+This feature is available since Webiny **v5.29.0**.
+
+</Alert>
+
+<!-- Always include this section on top of the page. -->
+
+<Alert type="success" title="What You’ll Learn">
+
+- how to add a custom callback to button element.
+
+</Alert>
+
+## Overview
+
+By default, the **Button** element comes with 2 workings action types out of the box:
+
+- **Link**: useful to create a link to different web URL;
+- **Scroll to element**: in case you want to scroll to a specific element within the page.
+
+A third option is available, **Click handler**: this need a bit of work in order to function.
+
+In this tutorial, you will learn how we can add a custom button click handler, available to be used within the Page Builder.
+
+
+## Register a new plugin
+
+We need to register a new plugin for Page Builder and include it inside both `admin` and `website` packages.
+
+For this reason, we advise you to follow this tutorial and create a new `plugins` workspace.
+
+Head over the `apps/plugins` folder and register the new plugin and the related folder `button-click-handlers`.
+
+Save the `package.json` file:
+
+```json apps/plugins/button-click-handlers/package.json
+{
+  "name": "@custom/button-click-handlers"
+}
+```
+
+Create the `editor.ts` file, which is going to contain the button handlers:
+
+```ts apps/plugins/button-click-handlers/editor.ts
+// This is where we are going to register all our handlers
+export const buttonClickHandlers = [
+  ...
+];
+```
+
+Now, open the `apps/admin/src/plugins/pageBuilder/` folder where all the plugins related to the Page Builder app are located.
+
+As you can see there are two core sets of plugins:
+
+1. `editor` plugins: needed for Page Builder editor;
+2. `render` plugins: needed for Page Builder page preview and to render the actual page in the Website app.
+
+Import the click handlers code into both files:
+
+```ts apps/admin/src/plugins/pageBuilder/editor.ts
+...
+// Custom Page Builder plugins
+import { buttonClickHandlers } from "@custom/button-click-handlers/editor";
+
+export default [
+    
+  ...
+  // Custom Page Builder plugins
+  ...buttonClickHandlers
+];
+```
+
+At the end, head over to the `apps/website/src/plugins/pageBuilder.ts` file where all the plugins related to the Page Builder app are located.
+
+Import the click handlers code into the file:
+
+```ts apps/website/src/plugins/pageBuilder.ts
+...
+// Custom Page Builder plugins
+import { buttonClickHandlers } from "@custom/button-click-handlers/editor";
+
+export default [
+    
+  ...
+  // Custom Page Builder plugins
+  ...buttonClickHandlers
+];
+```
+
+## Register a button handler
+Now, we go back to our custom plugin file to register a new button handler. 
+
+This comes pretty easy: you just need to define a new plugin object with `type: pb-page-element-button-click-handler`, see the example here below:
+
+```ts apps/plugins/button-click-handlers/editor.ts
+export const buttonClickHandlers = [
+    // Register a simple click handler that doesn't depend on any variables.
+    {
+        type: "pb-page-element-button-click-handler",
+        name: "simple-handler",
+        title: "A Simple Handler",
+        // Once the button is clicked, we display a simple alert message.
+        handler: () => {
+            alert("I was clicked!");
+        }
+    }
+]
+```
+As you can see, the configuration object has the following properties: 
+
+- `type`: plugin type (`pb-page-element-button-click-handler`);
+- `name`: the plugin name, this must be unique;
+- `title`: shown in the Page Builder button configuration settings;
+- `handler`: to define your custom button handler.
+
+![Button handler inside page builder](./assets/customize-button-callback-handler/01-button-handler-simple.png)
+
+### Custom button handler with variables
+You might need to allow your admin user to set one or more custom variables values and pass them to the handler. 
+
+In this case, we just need to add a couple of more properties to our handler configuration object: 
+
+```ts apps/plugins/button-click-handlers/editor.ts
+import { PbButtonElementClickHandlerPlugin } from "@webiny/app-page-builder/types";
+
+export const buttonClickHandlers = [
+    // Register a click handler that depends on two variables (color and size).
+    {
+      type: "pb-page-element-button-click-handler",
+      name: "handler-with-variables",
+      title: "Handler With Variables",
+      // Here are the variables that users will be able to set via the
+      // button's "Action" settings (in the Page Builder editor).
+      variables: [
+        { name: "color", label: "My Color", defaultValue: "red" },
+        { name: "size", label: "My Size", defaultValue: "XXL" }
+      ],
+      // Once the button is clicked, we simply log the received variables.
+      handler: ({ variables }) => {
+        console.log(variables); // Logs { color, size } object.
+      }
+    } as PbButtonElementClickHandlerPlugin<{ color: string; type: string }>
+]
+```
+
+We are adding the following property:
+
+- `variables`: a list of allowed variables with name, label and default values. Those will be received by your custom handler.
+
+Now, your admin users are able to define custom values to predefined variables via the button's "Action" settings within the Page Builder.
+
+![Button handler with custom variables inside page builder](./assets//customize-button-callback-handler/02-button-handler-variables.png)
+
+
+## Conclusion
+
+Congratulations!
+
+You have added a new custom handler click to Page Builder button element.
+If you have further questions, feel free to [ask](https://www.webiny.com/slack/) for additional help.
