@@ -51,10 +51,10 @@ import { createCoreApp } from "@webiny/serverless-cms-aws";
 export default createCoreApp({
   // By passing a callback function via the `pulumi` parameter, we gain the
   // ability to modify project application's cloud infrastructure resources. 
-  pulumi: app => {
-    // Cloud infrastructure resources can be referenced via the `app.resources` 
+  pulumi: ({ resources  }) => {
+    // Cloud infrastructure resources can be referenced via the `resources` 
     // object. We then use resources' `config` objects to apply modifications.
-    const { fileManagerBucket } = app.resources;
+    const { fileManagerBucket } = resources;
     fileManagerBucket.config.versioning({ enabled: true });
   }
 });
@@ -94,7 +94,7 @@ import { createCoreApp } from "@webiny/serverless-cms-aws";
 import { tagResources } from "@webiny/pulumi-aws";
 
 export default createCoreApp({
-  pulumi: app => {
+  pulumi: () => {
     // We are assigning Owner and Contact tags, whose values 
     // are read from runtime environment variables.
     tagResources({
@@ -104,6 +104,12 @@ export default createCoreApp({
   }
 });
 ```
+
+<Alert type={"info"}>
+
+Note that the `tagResources` function applies tags only to resources that can actually be tagged. Full list of resources can be found [here](https://github.com/webiny/webiny-js/blob/dev/packages/pulumi-aws/src/utils/tagResources.ts#L25).
+
+</Alert>
 
 ### Modifying AWS IAM Roles 
 
@@ -309,8 +315,8 @@ import { isResourceOfType } from "@webiny/pulumi";
 export default createCoreApp({
   elasticSearch: true,
 
-  pulumi: app => {
-    app.onResource(resource => {
+  pulumi: ({ onResource }) => {
+    onResource(resource => {
       if (isResourceOfType(resource, aws.elasticsearch.Domain)) {
         // Set the instance type.
         resource.config.clusterConfig(() => {
@@ -333,4 +339,29 @@ export default createCoreApp({
     });
   }
 });
+```
+
+### Adjusting Amazon CloudFront Distribution Configuration
+
+A single Webiny project deploys four Amazon CloudFront distributions: one for [API](/docs/{version}/architecture/api/overview), one for [Admin](/docs/{version}/architecture/admin/overview), and two for [Website](/docs/{version}/architecture/website/overview) project application.
+
+Therefore, if there's a need to apply a change across all distributions, the change needs to be applied via the following three `webiny.application.ts` configuration files:
+
+1. [`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts)
+2. [`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts)
+3. [`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts)
+
+The following example demonstrates how we can adjust the TLS version for the distribution that's deployed as part of the API project application.
+
+```ts apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+    pulumi({ resources }) {
+        resources.cloudfront.config.viewerCertificate(config => {
+            return { ...config, minimumProtocolVersion: "TLSv1.2_2021" };
+        });
+    }
+});
+
 ```
