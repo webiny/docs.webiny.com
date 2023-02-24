@@ -1,6 +1,6 @@
 ---
 title: Add Custom Button Callback Handler
-description: How to create a custom callback handler for button element
+description: How to create a custom callback handler for button element.
 ---
 
 import { Alert } from "@/components/Alert";
@@ -23,7 +23,7 @@ This feature is available since Webiny **v5.19.0**.
 
 ## Overview
 
-By default, the **Button** element comes with 2 workings action types out of the box:
+By default, the **Button** element comes with 2 working action types out of the box:
 
 - **Link**: useful to create a link to different web URL;
 - **Scroll to element**: in case you want to scroll to a specific element within the page.
@@ -32,28 +32,68 @@ A third option is available, **Click handler**: this need a bit of work in order
 
 In this tutorial, you will learn how to add a custom button click handler, available to be used within the Page Builder.
 
-## Register a new plugin
+## Organization of Files
 
-You need to register a new plugin for Page Builder and include it inside both `admin` and `website` packages.
+Although you can place and organize the plugins in any way you prefer for your project, we recommend adopting the following organization.
 
-Those are the files within you need to register your plugin:
+When creating new plugin, it’s recommended to have all the needed files in a single shared folder. This is because the plugin will need to be imported both within the Admin Area (`apps/admin`) and Website (`apps/website) applications.
 
-- **Page Builder editor** plugins: `apps/admin/src/plugins/pageBuilder/editor.ts`
-- **Page Builder render** plugins: `apps/admin/src/plugins/pageBuilder/render.ts`
-- **Website Page Builder** plugins: `apps/website/src/plugins/pageBuilder.ts`
+With that in mind, for this tutorial, you will create the new `pb-button-click-handlers` folder in the `apps/extensions folder.
+
 
 <Alert type="info">
 
-If you are not familiar with how plugins work, read the following [article](../../core-development-concepts/basics/importing-plugins).
+By default, the `extensions` folder does not exist in the `apps` directory, so you’ll need to create it.
 
 </Alert>
 
-## Register a button handler
+### Scaffold Folder and File for Plugin
+
+- create a folder named `pb-button-click-handlers` inside `apps/extensions`
+- create a `package.json` file inside `apps/extensions/pb-button-click-handlers` with the following contents:
+
+```json apps/extensions/pb-button-click-handlers/package.json
+{
+    "name": "@extensions/pb-button-click-handlers"
+}
+```
+
+- add `"apps/extensions/*"` to workspaces packages inside `package.json` in project root, in case you haven't done it before already:
+
+```diff-js {project-root}/package.json
+(...)
+"workspaces": {
+  "packages": [
+    "apps/admin/code",
+    "apps/website/code"
+    // (...)
++    "apps/extensions/*"
+  ]
+// (...)
+}
+```
+
+- create `render.ts` file inside `apps/extensions/pb-button-click-handlers`: this is where all your custom handler plugins will be defined
+
+```ts apps/extensions/pb-button-click-handlers/editor.ts
+// This is where we are going to register all our handlers
+export const buttonClickHandlers = [
+  ...
+];
+```
+
+- import the click handler plugin into the following files:
+  - **Page Builder editor** plugins: `apps/admin/src/plugins/pageBuilder/editorPlugins.ts`
+  - **Page Builder render** plugins: `apps/admin/src/plugins/pageBuilder/renderPlugins.ts`
+  - **Website Page Builder** plugins: `apps/website/src/plugins/pageBuilder.ts`
+- link workspaces by running `yarn install` command from project root. After completion there will be a [symbolic link](https://en.wikipedia.org/wiki/Symbolic_link) of `pb-button-click-handlers` package in `node_modules`.
+
+## Register a Button Handler
 Now, go back to our custom plugin file to register a new button handler. 
 
 This comes pretty easy: you just need to define a new plugin object with `type: pb-page-element-button-click-handler`, see the example here below:
 
-```ts apps/plugins/button-click-handlers/editor.ts
+```ts apps/extensions/pb-button-click-handlers/editor.ts
 export const buttonClickHandlers = [
     // Register a simple click handler that doesn't depend on any variables.
     {
@@ -76,12 +116,12 @@ As you can see, the configuration object has the following properties:
 
 ![Button handler inside page builder](./assets/customize-button-callback-handler/01-button-handler-simple.png)
 
-### Custom button handler with variables
-You might need to allow your admin user to set one or more custom variables values and pass them to the handler. 
+### Custom Button Handler With Variables
+You might need to allow your admin user to set one or more custom values and pass them to the handler. 
 
 In this case, you just need to add a couple of more properties to our handler configuration object: 
 
-```ts apps/plugins/button-click-handlers/editor.ts
+```ts apps/extensions/pb-button-click-handlers/editor.ts
 import { PbButtonElementClickHandlerPlugin } from "@webiny/app-page-builder/types";
 
 export const buttonClickHandlers = [
