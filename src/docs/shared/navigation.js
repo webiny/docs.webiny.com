@@ -40,29 +40,33 @@ export const Navigation = () => {
 const ReleaseNotes = () => {
     const version = useVersion();
 
-    const releases = useMemo(() => {
-        return mdxFiles
-            .filter(page => page.path.includes("release-notes/"))
-            .reduce((acc, page) => {
-                const [version, type] = page.path.split("release-notes/").pop().split("/");
-                if (valid(version)) {
-                    return {
-                        ...acc,
-                        [version]: [
-                            ...(acc[version] || []),
-                            { type, title: page.title, link: page.path }
-                        ]
-                    };
-                }
-                return acc;
-            }, []);
-    }, [version]);
+    const releases = useMemo(
+        () => {
+            return mdxFiles
+                .filter(page => page.path.includes("release-notes/"))
+                .reduce((acc, page) => {
+                    const [version, type] = page.path.split("release-notes/").pop().split("/");
+                    if (valid(version)) {
+                        return {
+                            ...acc,
+                            [version]: [
+                                ...(acc[version] || []),
+                                { type, title: page.title, link: page.path }
+                            ]
+                        };
+                    }
+                    return acc;
+                }, []);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [version]
+    );
 
     const versions = useMemo(() => {
         return Object.keys(releases).sort((a, b) => {
             return rcompare(a, b);
         });
-    }, []);
+    }, [releases]);
 
     function MenuItem({ version }) {
         const predefinedTypes = ["changelog", "upgrade-guide"];

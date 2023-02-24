@@ -30,7 +30,7 @@ export function Heading({
         return () => {
             context.unregisterHeading(id);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [top, id, context?.registerHeading, context?.unregisterHeading]);
 
     const LEVELS = {
