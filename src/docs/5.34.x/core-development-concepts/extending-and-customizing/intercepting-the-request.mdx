@@ -1,5 +1,5 @@
 ---
-title: Intercepting the Request 
+title: Intercepting the Request
 description: Learn how to intercept the request in it's initial stage
 ---
 
@@ -20,13 +20,12 @@ It can be done via the [`HandlerOnRequestPlugin`](https://github.com/webiny/webi
 With this plugin you can do anything with the Fastify's [Request](https://www.fastify.io/docs/latest/Reference/Request/) object, even stop the request from being processed.
 To find out why you can stop the request from being processed, read about it in the [Fastify Lifecycle](https://www.fastify.io/docs/latest/Reference/Lifecycle/) and [Fastify Hooks](https://www.fastify.io/docs/latest/Reference/Hooks/) documentation.
 
-
 ## Creating and Registering the Plugin To Intercept the Request
 
 ```typescript
 import { createHandlerOnRequest } from "@webiny/handler";
 
-const handlerOnRequestPlugin = createHandlerOnRequest(async(request, reply) => {
+const handlerOnRequestPlugin = createHandlerOnRequest(async (request, reply) => {
   if (request.raw.path === "/testing") {
     // do something for this path
   }
@@ -61,22 +60,23 @@ The most simple answer would be: to output their own headers in the `OPTIONS` re
 To prevent the Webiny default behavior on `OPTIONS` request, user would need to add a simple plugin which returns `false` as the result.
 
 Here is an example of sending a custom header `myCustomHeader`, and prevent the Webiny default behavior, on `OPTIONS` request:
+
 ```typescript
 import { createHandlerOnRequest } from "@webiny/handler";
 
-const handlerOnRequestPlugin = createHandlerOnRequest(async(request, reply) => {
+const handlerOnRequestPlugin = createHandlerOnRequest(async (request, reply) => {
   if (request.method !== "OPTIONS") {
     return;
   }
   reply
     .code(204)
     .headers({
-        myCustomHeader: "sending the custom headers"
+      myCustomHeader: "sending the custom headers"
     })
     /**
      * There must be some output or the request will hang.
      * Also, send must be just before the hijack(), otherwise all other method calls will not have any effect.
-    */
+     */
     .send("")
     /**
      * It is important to hijack() the reply, as it prevents all other Fastify lifecycle events to be executed.
@@ -86,19 +86,18 @@ const handlerOnRequestPlugin = createHandlerOnRequest(async(request, reply) => {
   /**
    * It is important to return false in the end because it actually prevents
    * all other HandlerOnRequestPlugin to be ran, including the Webiny default behavior.
-   */  
+   */
   return false;
 });
 ```
 
-
 ## Conclusion
 
 Simply, with the `HandlerOnRequestPlugin` user can, in the initial stage of the Fastify Request Lifecycle:
-* intercept the request and prevent it to go further down the lifecycle line
-* modify the Webiny default `OPTIONS` headers output to suit their own need
-* log the request to some outside service 
 
+- intercept the request and prevent it to go further down the lifecycle line
+- modify the Webiny default `OPTIONS` headers output to suit their own need
+- log the request to some outside service
 
 <Alert type="warning">
 

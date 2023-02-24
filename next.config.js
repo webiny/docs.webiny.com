@@ -7,7 +7,7 @@ const { withTableOfContents } = require("./remark/withTableOfContents");
 const { withSyntaxHighlighting } = require("./remark/withSyntaxHighlighting");
 const { withNextLinks } = require("./remark/withNextLinks");
 const minimatch = require("minimatch");
-const versions = require("./src/data/versions.json");
+//const versions = require("./src/data/versions.json");
 const pages = require("./src/data/pages.json");
 const { withImages, unwrapImages } = require("./remark/withImages");
 const { withTitleCaseHeadings } = require("./remark/withTitleCaseHeadings");
@@ -33,7 +33,7 @@ const getPageData = pagePath => {
     const part = pagePath.split("/")[2];
     const version = part.includes(".") ? part : "latest";
 
-    const canonicalPath = version === "latest" ? pagePath : getCanonicalPath(version, pagePath);
+    //const canonicalPath = version === "latest" ? pagePath : getCanonicalPath(version, pagePath);
     const page = pages[version].find(page => page.fullPath === pagePath);
     if (!page) {
         return null;
@@ -49,6 +49,8 @@ const getPageData = pagePath => {
     }, {});
 };
 
+/**
+ * NOT USED
 const getCanonicalPath = (version, pagePath) => {
     const [, ...allVersions] = versions.allVersions;
     // First we check the latest version of pages.
@@ -71,6 +73,8 @@ const getCanonicalPath = (version, pagePath) => {
     return pagePath;
 };
 
+*/
+
 module.exports = withBundleAnalyzer({
     swcMinify: true,
     pageExtensions: ["js", "jsx", "mdx"],
@@ -82,8 +86,7 @@ module.exports = withBundleAnalyzer({
             let originalEntry = config.entry;
 
             config.entry = async () => {
-                let entries = { ...(await originalEntry()) };
-                return entries;
+                return { ...(await originalEntry()) };
             };
         }
 

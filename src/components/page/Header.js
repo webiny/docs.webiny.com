@@ -19,8 +19,10 @@ function Featured() {
                 rel="noreferrer"
             >
                 <span className="ml-2 text-nav-link dark:text-white">
-                    <span role="img" aria-label="star">⭐️</span> If you like Webiny, help us out by giving us a star
-                    on GitHub!
+                    <span role="img" aria-label="star">
+                        ⭐️
+                    </span>{" "}
+                    If you like Webiny, help us out by giving us a star on GitHub!
                 </span>
                 <svg
                     width="6"
