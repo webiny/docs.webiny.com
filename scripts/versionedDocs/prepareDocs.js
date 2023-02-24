@@ -73,10 +73,6 @@ export async function prepareDocs() {
     // Copy pages of the "latest" version.
     const latestPages = catalog.filter(p => p.version === "latest");
     for (const page of latestPages) {
-        if (!page.relativePath) {
-            console.log(JSON.stringify(page, null, 2));
-            throw new Error(`Page doesn't have a "relativePath" set!`);
-        }
         await fs.copy(page.sourceFile, targetDocsPath(page.relativePath + ".mdx"));
     }
     injectVersion(targetDocsPath(), "latest");
@@ -87,10 +83,6 @@ export async function prepareDocs() {
         const targetPath = targetDocsPath(version);
         // Copy shared pages first
         for (const page of versionPages) {
-            if (!page.relativePath) {
-                console.log(JSON.stringify(page, null, 2));
-                throw new Error(`Page doesn't have a "relativePath" set!`);
-            }
             await fs.copy(page.sourceFile, targetDocsPath(page.relativePath + ".mdx"));
         }
         injectVersion(targetPath, version);
@@ -113,10 +105,6 @@ export async function prepareDocs() {
     });
 
     info(`Docs are ready for building!`);
-    return new Promise(resolve => {
-        info(`Wait for 5 seconds for file system to cool down before proceeding...`);
-        setTimeout(resolve, 5000);
-    });
 }
 
 export async function generateNavigation(realVersion, navigationSource) {
