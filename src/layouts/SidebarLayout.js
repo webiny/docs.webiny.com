@@ -1,5 +1,5 @@
 import { useNavigation } from "@/components/page/Navigation";
-import { usePage } from "@/hooks/usePage";
+//import { usePage } from "@/hooks/usePage";
 import { VersionSelector } from "@/components/page/VersionSelector";
 import Link from "next/link";
 import { useRouter } from "next/router";

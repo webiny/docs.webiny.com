@@ -1,13 +1,13 @@
-const { red } = require("chalk");
+//const { red } = require("chalk");
 const path = require("path");
 const fs = require("fs-extra");
 const pretry = require("p-retry");
 const versions = require("./src/data/versions.json");
 const pages = require("./src/data/pages.json");
 
-function rootify(filePath) {
-    return filePath.replace(process.cwd(), "");
-}
+//function rootify(filePath) {
+//    return filePath.replace(process.cwd(), "");
+//}
 
 /**
  * This plugin rewrites asset paths to simulate inheritance. This means that assets are not duplicated, but instead,
@@ -76,7 +76,7 @@ module.exports.AssetResolver = class AssetResolver {
                 // console.log(`\t - ${gray(rootify(assetPath))}`);
             }
         }
-        console.log(`\t ❌ ${red(rootify(assetPath))}`);
+        console.log(`\t ❌ ${JSON.stringify(request.request)}`);
 
         return request.request;
     }

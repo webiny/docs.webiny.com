@@ -15,8 +15,6 @@ import { Alert } from "@/components/Alert";
 
 Users use the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command to deploy their Webiny project, into an [environment](/docs/{version}/core-development-concepts/basics/project-deployment#environments) of their choice. During the deployment, apart from building the actual project applications, the command also ensures that a set of required cloud infrastructure resources is deployed.
 
-
-
 <Alert type="info">
 
 To deploy necessary cloud infrastructure resources, by default, Webiny relies on Pulumi, a modern infrastructure as code framework. Find out more in the following [IaC with Pulumi](../../infrastructure/pulumi-iac/iac-with-pulumi) key topic.
@@ -50,9 +48,9 @@ import { createCoreApp } from "@webiny/serverless-cms-aws";
 
 export default createCoreApp({
   // By passing a callback function via the `pulumi` parameter, we gain the
-  // ability to modify project application's cloud infrastructure resources. 
-  pulumi: ({ resources  }) => {
-    // Cloud infrastructure resources can be referenced via the `resources` 
+  // ability to modify project application's cloud infrastructure resources.
+  pulumi: ({ resources }) => {
+    // Cloud infrastructure resources can be referenced via the `resources`
     // object. We then use resources' `config` objects to apply modifications.
     const { fileManagerBucket } = resources;
     fileManagerBucket.config.versioning({ enabled: true });
@@ -95,7 +93,7 @@ import { tagResources } from "@webiny/pulumi-aws";
 
 export default createCoreApp({
   pulumi: () => {
-    // We are assigning Owner and Contact tags, whose values 
+    // We are assigning Owner and Contact tags, whose values
     // are read from runtime environment variables.
     tagResources({
       Owner: String(process.env["OWNER"]),
@@ -111,7 +109,7 @@ Note that the `tagResources` function applies tags only to resources that can ac
 
 </Alert>
 
-### Modifying AWS IAM Roles 
+### Modifying AWS IAM Roles
 
 #### AWS Lambda - Default GraphQL API Function
 
@@ -122,47 +120,45 @@ import * as aws from "@pulumi/aws";
 import { createApiApp } from "@webiny/serverless-cms-aws";
 
 export default createApiApp({
-    pulumiResourceNamePrefix: "wby-",
-    pulumi: ({ resources }) => {
-        const policy = new aws.iam.Policy("ses-policy", {
-            description: "This policy enables access to Amazon SES.",
-            policy: {
-                Version: "2012-10-17",
-                Statement: [
-                    {
-                        Effect: "Allow",
-                        Action: ["ses:SendEmail"],
-                        Resource: [
-                            "arn:aws:ses:*:*:identity/*"
-                        ]
-                    }
-                ]
-            }
-        });
+  pulumiResourceNamePrefix: "wby-",
+  pulumi: ({ resources }) => {
+    const policy = new aws.iam.Policy("ses-policy", {
+      description: "This policy enables access to Amazon SES.",
+      policy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Action: ["ses:SendEmail"],
+            Resource: ["arn:aws:ses:*:*:identity/*"]
+          }
+        ]
+      }
+    });
 
-        new aws.iam.RolePolicyAttachment("graphql-role-ses-policy-attachment", {
-            role: resources.graphql.role.output.name,
-            policyArn: policy.arn
-        });
-    }
+    new aws.iam.RolePolicyAttachment("graphql-role-ses-policy-attachment", {
+      role: resources.graphql.role.output.name,
+      policyArn: policy.arn
+    });
+  }
 });
 ```
 
 <Alert type="info">
 
-  To learn more about the default GraphQL API and differences between it and the Headless CMS GraphQL API, please check out the [Introduction](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api#introduction) section of the [Extend GraphQL API](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api) article.
+To learn more about the default GraphQL API and differences between it and the Headless CMS GraphQL API, please check out the [Introduction](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api#introduction) section of the [Extend GraphQL API](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api) article.
 
 </Alert>
 
 <Alert type="info">
 
-  If you want to learn more about the main GraphQL API and how it works on the cloud infrastructure level, check out the [GraphQL Requests](/docs/{version}/architecture/api/graphql-requests) page of the [Cloud Infrastructure - API](/docs/{version}/architecture/api/overview) key topics section.
+If you want to learn more about the main GraphQL API and how it works on the cloud infrastructure level, check out the [GraphQL Requests](/docs/{version}/architecture/api/graphql-requests) page of the [Cloud Infrastructure - API](/docs/{version}/architecture/api/overview) key topics section.
 
 </Alert>
 
 #### AWS Lambda - Headless CMS GraphQL API Function
 
-The following example shows how you can modify the default AWS IAM role that's assigned to the AWS Lambda function that represents your Headless CMS GraphQL API (the one accessed via the `https://xyz.cloudfront.net/cms/{type}/{locale}` URL). 
+The following example shows how you can modify the default AWS IAM role that's assigned to the AWS Lambda function that represents your Headless CMS GraphQL API (the one accessed via the `https://xyz.cloudfront.net/cms/{type}/{locale}` URL).
 
 When compared to the example above, the only difference is that here we're targeting the `resources.headlessCms.role` role with the `aws.iam.RolePolicyAttachment`, instead of `resources.graphql.role` role.
 
@@ -171,41 +167,39 @@ import * as aws from "@pulumi/aws";
 import { createApiApp } from "@webiny/serverless-cms-aws";
 
 export default createApiApp({
-    pulumiResourceNamePrefix: "wby-",
-    pulumi: ({ resources }) => {
-        const policy = new aws.iam.Policy("ses-policy", {
-            description: "This policy enables access to Amazon SES.",
-            policy: {
-                Version: "2012-10-17",
-                Statement: [
-                    {
-                        Effect: "Allow",
-                        Action: ["ses:SendEmail"],
-                        Resource: [
-                            "arn:aws:ses:*:*:identity/*"
-                        ]
-                    }
-                ]
-            }
-        });
+  pulumiResourceNamePrefix: "wby-",
+  pulumi: ({ resources }) => {
+    const policy = new aws.iam.Policy("ses-policy", {
+      description: "This policy enables access to Amazon SES.",
+      policy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Action: ["ses:SendEmail"],
+            Resource: ["arn:aws:ses:*:*:identity/*"]
+          }
+        ]
+      }
+    });
 
-        new aws.iam.RolePolicyAttachment("graphql-role-ses-policy-attachment", {
-            role: resources.headlessCms.role.output.name,
-            policyArn: policy.arn
-        });
-    }
+    new aws.iam.RolePolicyAttachment("graphql-role-ses-policy-attachment", {
+      role: resources.headlessCms.role.output.name,
+      policyArn: policy.arn
+    });
+  }
 });
 ```
 
 <Alert type="info">
 
-  To learn more about the default GraphQL API and differences between it and the Headless CMS GraphQL API, please check out the [Introduction](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api#introduction) section of the [Extend GraphQL API](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api) article.
+To learn more about the default GraphQL API and differences between it and the Headless CMS GraphQL API, please check out the [Introduction](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api#introduction) section of the [Extend GraphQL API](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api) article.
 
 </Alert>
 
 <Alert type="info">
 
-  Learn more about the [Headless CMS GraphQL API](/docs/{version}/headless-cms/basics/graphql-api).
+Learn more about the [Headless CMS GraphQL API](/docs/{version}/headless-cms/basics/graphql-api).
 
 </Alert>
 
@@ -224,83 +218,80 @@ import * as pulumi from "@pulumi/pulumi";
 import { createApiApp } from "@webiny/serverless-cms-aws";
 
 export default createApiApp({
-    pulumiResourceNamePrefix: "wby-",
-    pulumi({ paths }) {
-        const role = new aws.iam.Role("my-cron-job-fn-role", {
-            description: "My cron job Lambda function role.",
-            assumeRolePolicy: {
-                Version: "2012-10-17",
-                Statement: [
-                    {
-                        Action: "sts:AssumeRole",
-                        Principal: {
-                            Service: "lambda.amazonaws.com"
-                        },
-                        Effect: "Allow"
-                    }
-                ]
-            }
-        });
+  pulumiResourceNamePrefix: "wby-",
+  pulumi({ paths }) {
+    const role = new aws.iam.Role("my-cron-job-fn-role", {
+      description: "My cron job Lambda function role.",
+      assumeRolePolicy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "sts:AssumeRole",
+            Principal: {
+              Service: "lambda.amazonaws.com"
+            },
+            Effect: "Allow"
+          }
+        ]
+      }
+    });
 
-        new aws.iam.RolePolicyAttachment(`my-cron-job-fn-role-basic-execution-policy-attachment`, {
-            role,
-            policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole
-        });
+    new aws.iam.RolePolicyAttachment(`my-cron-job-fn-role-basic-execution-policy-attachment`, {
+      role,
+      policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole
+    });
 
-        const policy = new aws.iam.Policy("my-cron-job-fn-policy", {
-            description: "My cron job Lambda function policy.",
-            policy: {
-                Version: "2012-10-17",
-                Statement: [
-                    {
-                        // Not recommended. Always use least-privilege principle.
-                        Effect: "Allow",
-                        Action: ["*"],
-                        Resource: ["*"]
-                    }
-                ]
-            }
-        });
+    const policy = new aws.iam.Policy("my-cron-job-fn-policy", {
+      description: "My cron job Lambda function policy.",
+      policy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            // Not recommended. Always use least-privilege principle.
+            Effect: "Allow",
+            Action: ["*"],
+            Resource: ["*"]
+          }
+        ]
+      }
+    });
 
-        new aws.iam.RolePolicyAttachment("my-cron-job-fn-role-policy-attachment", {
-            role: role.name,
-            policyArn: policy.arn
-        });
+    new aws.iam.RolePolicyAttachment("my-cron-job-fn-role-policy-attachment", {
+      role: role.name,
+      policyArn: policy.arn
+    });
 
-        const simpleCronJobFunction = new aws.lambda.Function("my-cron-job-fn", {
-            runtime: "nodejs14.x",
-            handler: "handler.handler",
-            description: "A simple Lambda function that logs time (executed in my cron job).",
-            role: role.arn,
-            timeout: 30,
-            memorySize: 512,
-            code: new pulumi.asset.AssetArchive({
-                ".": new pulumi.asset.FileArchive(
-                    path.join(paths.workspace, "myCronJob/build")
-                )
-            })
-        });
+    const simpleCronJobFunction = new aws.lambda.Function("my-cron-job-fn", {
+      runtime: "nodejs14.x",
+      handler: "handler.handler",
+      description: "A simple Lambda function that logs time (executed in my cron job).",
+      role: role.arn,
+      timeout: 30,
+      memorySize: 512,
+      code: new pulumi.asset.AssetArchive({
+        ".": new pulumi.asset.FileArchive(path.join(paths.workspace, "myCronJob/build"))
+      })
+    });
 
-        const eventRule = new aws.cloudwatch.EventRule("my-cron-job-fn-event-rule", {
-            description: `My cron job rule.`,
-            scheduleExpression: "rate(1 minute)",
-            isEnabled: true
-        });
+    const eventRule = new aws.cloudwatch.EventRule("my-cron-job-fn-event-rule", {
+      description: `My cron job rule.`,
+      scheduleExpression: "rate(1 minute)",
+      isEnabled: true
+    });
 
-        new aws.lambda.Permission("my-cron-job-fn-events-permission", {
-            action: "lambda:InvokeFunction",
-            function: simpleCronJobFunction.arn,
-            principal: "events.amazonaws.com",
-            sourceArn: eventRule.arn
-        });
+    new aws.lambda.Permission("my-cron-job-fn-events-permission", {
+      action: "lambda:InvokeFunction",
+      function: simpleCronJobFunction.arn,
+      principal: "events.amazonaws.com",
+      sourceArn: eventRule.arn
+    });
 
-        new aws.cloudwatch.EventTarget("my-cron-job-fn-event-target", {
-            rule: eventRule.name,
-            arn: simpleCronJobFunction.arn
-        });
-    }
+    new aws.cloudwatch.EventTarget("my-cron-job-fn-event-target", {
+      rule: eventRule.name,
+      arn: simpleCronJobFunction.arn
+    });
+  }
 });
-
 ```
 
 ### Adjusting Amazon Elasticsearch (OpenSearch) Configuration
@@ -357,11 +348,10 @@ The following example demonstrates how we can adjust the TLS version for the dis
 import { createApiApp } from "@webiny/serverless-cms-aws";
 
 export default createApiApp({
-    pulumi({ resources }) {
-        resources.cloudfront.config.viewerCertificate(config => {
-            return { ...config, minimumProtocolVersion: "TLSv1.2_2021" };
-        });
-    }
+  pulumi({ resources }) {
+    resources.cloudfront.config.viewerCertificate(config => {
+      return { ...config, minimumProtocolVersion: "TLSv1.2_2021" };
+    });
+  }
 });
-
 ```
