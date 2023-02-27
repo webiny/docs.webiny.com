@@ -1,0 +1,76 @@
+---
+id: removing-the-headless-cms-lambda-function
+title: Removing the Headless CMS Lambda Function
+description: Steps to remove the Headless CMS Lambda function from your project.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type={"warning"}>
+
+Before starting with the migration, make sure you're using Webiny version 5.35.0 or greater.
+
+</Alert>
+
+## Introduction
+
+<Alert type="danger">
+
+With the [5.35.0 release](/docs/release-notes/5.35.0/changelog), we've removed the Headless CMS Lambda Function, and it is a breaking change, although quite simple one to fix.
+
+</Alert>
+
+## Prerequisites
+
+<Alert type="danger">
+
+For this to work, you will need to have the new project setup, which is available since the `5.29.0` version.
+
+If you do not have the new project setup, you should not be upgrading to the `5.35.0` version.
+
+</Alert>
+
+To learn how to upgrade to a new project setup, please read this article.
+
+## What's Changed?
+
+Starting with the `5.35.0` release, there is only a single Lambda Function which handles the requests - the one called GraphQL (`apps/api/graphql`).
+
+We removed the Headless CMS Lambda Function from both the new project codebase and the Pulumi deployment code.
+
+## What Is the Reason for This Change?
+
+The reason behind this is to simplify the deployment and development process for our users, and us, as well.
+
+Now there is no need to import plugins in two locations, as everything is contained within the `GraphQL` Lambda Function, and all the applications are available on the `context` object.
+
+## Why Is There No Automated Upgrade?
+
+We cannot do the upgrade automatically for users, because the probability for some error to happen is very high, as they probably have a lot of customizations.
+This should not be a problem for most of our users, but if there are any - we are available for help on our [Community Slack](https://webiny-community.slack.com/).
+
+## How to Migrate?
+
+Although this is a breaking change, it is quite simple to fix.
+
+There are a few steps which you need to follow:
+
+- move your custom code and imported plugins from the `apps/api/headlessCMS/src/index.ts` to the `apps/api/graphql/src/index.ts`
+- move your custom code and imported plugins from the `apps/api/headlessCMS/src/index.ts` to the `apps/api/graphql/src/security.ts`
+- if you are using the import `import { ApiHeadlessCMS } from "@webiny/pulumi-aws"` in the `apps/api/webiny.application.ts`, point it to the `import { ApiGraphql } from "@webiny/pulumi-aws"`, and change the code accordingly
+
+## What About the `graphql` and `cms` Routes?
+
+The `/graphql` and `/cms` routes remain the same, as we internally map routes to the Lambda function, so users do not need to worry about those.
+
+Due to this change, in both `/graphql` and `/cms` routes, all the applications are available on the `context` object.
+
+## Cleanup
+
+After you have migrated all your plugins and code, deployed and tested the project, feel free to delete the `apps/api/headless/CMS` folder.
+
+## Conclusion
+
+As this was a breaking change, we did not feel it was necessary to release a new major version of Webiny, as it is a simple change in the code which fixes the code breaking.
+
+If you have any questions, feel free to reach out to us on our [Community Slack](https://webiny-community.slack.com/).
