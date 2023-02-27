@@ -31,10 +31,10 @@ And although the cloud infrastructure resources that Webiny deploys are already 
 
 To do this, we rely on four `webiny.application.ts` configuration files, located in each of the four project application folders in every Webiny project:
 
-1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts)
-2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts)
-3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts)
-4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts)
+1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts))
+2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts))
+3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts))
+4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts))
 
 Which `webiny.application.ts` config file needs to be changed depends on the nature of the change that needs to be made.
 
@@ -109,6 +109,50 @@ Note that the `tagResources` function applies tags only to resources that can ac
 
 </Alert>
 
+### Retrieving the Deployment Environment
+
+Upon running the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command, we specify the environment into which we want to deploy our project (or a specific project application). In more complex cases, we may need to retrieve the environment in order to conditionally apply different configuration to our cloud infrastructure.
+
+The following example shows how we can read the environment into which the application is being deployed.
+
+```diff-ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+  pulumiResourceNamePrefix: "wby-",
+  pulumi: ({ params }) => {
++   // We can retrieve the environment name via "run" parameters.
++   const { env } = params.run;
++   if (env === "prod") {
++     // Apply additional configuration.
++   } 
+  }
+});
+```
+
+Note that, in the above example, we've made the changes within the Core application's [`webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts) configuration file, but the same works with other applications as well.
+
+Furthermore, this approach can also be used with other parameters, not just `pulumi`. For example, we can use the same approach when defining the resource name prefix.
+
+```diff-ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+-    pulumiResourceNamePrefix: "wby-",
++    pulumiResourceNamePrefix: ({ params }) => {
++        // We can retrieve the environment name via "run" parameters.
++        const { env } = params.run;
++        if (env === "prod") {
++            // Let's add the "prod" into the prefix.
++            return "wby-prod-";
++        }
++
++        // Not production? Just return the default prefix.
++        return "wby-";
++    }
+});
+```
+
 ### Defining Multiple Production Environments
 
 Upon running the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command, when `prod` is passed as the environment name, a Webiny project is deployed in the so-called [production deployment mode](https://www.webiny.com/docs/architecture/deployment-modes/production).
@@ -129,15 +173,10 @@ export default createCoreApp({
 
 Note that when specifying additional production environments, they should be specified across all project applications, meaning:
 
-1. `apps/core/webiny.application.ts`
-2. `apps/api/webiny.application.ts`
-3. `apps/admin/webiny.application.ts`
-4. `apps/website/webiny.application.ts`
-
-1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts)
-2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts)
-3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts)
-4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts)
+1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts))
+2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts))
+3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts))
+4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts))
 
 ### Modifying AWS IAM Roles
 
