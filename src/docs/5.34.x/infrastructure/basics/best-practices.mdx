@@ -1,0 +1,115 @@
+---
+title: Infrastructure Best Practices
+description: Learn what are some of the core best practices when it comes to managing the infrastructure for your Webiny instances. 
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you’ll learn">
+
+- Learn what are some of the core best practices when it comes to managing the infrastructure for your Webiny instances. 
+
+</Alert>
+
+## Protected vs Un-protected deployment modes
+
+Webiny comes with two main deployment modes, the `production` and the `development`. By default, we deploy the `production` deployment modes to the `prod` environment and the `development` deployment modes for all other environments. 
+
+<Alert type="info">
+
+You can learn more about the differences between these two deployment modes in [this article here](../../architecture/deployment-modes/introduction).
+
+</Alert>
+
+One core difference you need to be aware of between the two deployment modes is that the `production` mode marks resources such as the DynamoDB, S3, Cognito and OpenSearch cluster as `protected`. This prevents the accidental deletion of those resources. 
+
+Other resources are not marked as `protected` meaning that making any changes to them, or issuing the `delete` command will delete those resources and you won't be able to restore them. 
+
+In case you  wish to mark the resources as protected in all environments, you can do this like so: 
+
+```js apps/core/webiny.application.ts
+
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+    protect: true
+});
+
+```
+
+<Alert type="info">
+
+In case you wish to mark resources as protected only inside specific environments, such as `staging`, `qa` and similar, you can do that by programmatically defining the `protected` flag based on the name of the environment that's currently being deployed. [See this example here](./modify-cloud-infrastructure#retrieving-the-deployment-environment)
+
+</Alert>
+
+<Alert type="info">
+
+Only the `core` app has the `protected` flag. Other environments don't have any stateful resources so they can be deleted and easily recreated by redeploying them. The `core` app holds all the stateful resources such as DynamoDB, S3, Cognito and OpenSearch cluster.
+
+</Alert>
+
+
+## How to deploy changes safely
+
+If you're making any modifications to your cloud infrastructure programmatically by adding changes to `webiny.application.ts` file, those changes can in certain cases have a destructive effect as AWS needs to tear down the current resource and create a new one to apply the changes. 
+
+In certain cases, it might be hard to determine if the change will be destructive or not and if you're performing this change in an environment that's not marked as `protected` you might lose some of your data. 
+
+We highly encourage users to run the deploy command with the `--preview` flag when making such changes. The preview flag will display a list of resources that will be added, modified or removed. This way you can check ahead of time if the change will potentially be destructive for your environment. 
+
+```terminal
+yarn webiny deploy apps/api --env dev --preview
+```
+
+<Alert type="info">
+
+Learn more about how to preview changes in [this article here](./preview-deployments).
+
+</Alert>
+
+
+## How to make modifications to your infrastructure, and what to avoid
+
+Changes to the cloud infrastructure should only be made programmatically by modifying the `webiny.application.ts` file. Any changes made outside this file, for example by modifying the resources via the AWS console will be reverted to the state matching inside `webiny.application.ts` file, that's the best case, in the worst case, your resource might be flagged for deletion if the change can't be applied incrementally. 
+
+So as a best practice, do not make any changes to the resources outside your project, that includes anything from changing cluster sizes, changing resource names, or even just adding a simple tag to a resource, instead apply your changes programmatically. 
+
+<Alert type="info">
+
+[Click here](./modify-cloud-infrastructure) to learn how to modify your cloud infrastructure the right way.
+
+</Alert>
+
+
+
+## Store your state files
+
+Every project once deployed will create what's called infrastructure state files. Those files are very important as they tell us what AWS resources are linked to a specific project environment. Losing those files can lock you out from being able to make changes to your project, so it's very important to keep them stored safely. 
+
+<Alert type="info">
+
+Webiny provides several options to store your state files. [Learn more about them in this article here.](../../core-development-concepts/ci-cd/cloud-infrastructure-state-files)
+
+</Alert>
+
+## Organising your AWS account
+
+We highly recommend you use AWS organizations to manage your AWS accounts. We also recommend you keep your production environment isolated inside its own AWS account. As an added best practice, every long-lived environment should sit in its own AWS account, and every developer working on the project should work within their own AWS account. 
+
+Such separation of accounts will make individual AWS accounts much cleaner. It will be easier to find the needed resources, debug issues and retrieve logs, as well as reduce any potential risk of accidentally deleting or modifying the wrong resources. 
+
+## Tracking resources linked to your project
+
+Some projects can have large teams working on them, where there are many long-lived environments and even more individual development environments but spread across a few AWS accounts, where not everyone has their own individual account. 
+
+In such a setup, besides the increased risk or making accidental changes to the wrong resources, things can get messy just by having many Webiny projects deployed, where each project creates its own resources and then it can be hard to determine who's the owner of a specific resource and for which project the resource is used. 
+
+In such a case we recommend you implement a tagging system where you tag all resources so they are easier to identify. 
+
+<Alert type="info">
+
+To learn how to tag your resources, [check out this article](./modify-cloud-infrastructure#tagging-cloud-infrastructure-resources).
+
+</Alert>
