@@ -9,6 +9,14 @@ export const Navigation = () => {
             <BaseNavigation />
             {/* Add new items. */}
             <NavGroup type={"docs"}>
+                <Collapsable title={"Infrastructure"}>
+                    <Section title={"Basics"}>
+                        <Page
+                            link={"infrastructure/basics/best-practices"}
+                            after={"infrastructure/basics/build-and-deploy-hooks"}
+                        />
+                    </Section>
+                </Collapsable>
                 <Collapsable title={"Page Builder"}>
                     <Section title={"Extending functionality"}>
                         <Page
