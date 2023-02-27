@@ -59,5 +59,5 @@ export const Image = props => {
 };
 
 export const Gallery = props => {
-  return <div className={"webiny-gallery"}>{props.children}</div>;
+    return <div className={"webiny-gallery"}>{props.children}</div>;
 };

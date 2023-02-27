@@ -1,5 +1,5 @@
 import pRetry from "p-retry";
-import { generateNavigation, info, writeJsonAndLog } from "./prepareDocs";
+import { info, writeJsonAndLog } from "./prepareDocs";
 import { blue } from "chalk";
 import { watch } from "chokidar";
 import fs from "fs-extra";

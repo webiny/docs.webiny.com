@@ -9,9 +9,20 @@ export const Navigation = () => {
       <BaseNavigation />
       {/* Add new items. */}
       <NavGroup type={"docs"}>
+        <Collapsable title={"Infrastructure"}>
+          <Section title={"Basics"}>
+            <Page
+              link={"infrastructure/basics/best-practices"}
+              after={"infrastructure/basics/build-and-deploy-hooks"}
+            />
+          </Section>
+        </Collapsable>
         <Collapsable title={"Page Builder"}>
           <Section title={"Extending functionality"}>
-            <Page link={"page-builder/extending/customize-an-existing-element"} remove/>
+            <Page
+              link={"page-builder/extending/customize-an-existing-element"}
+              remove
+            />
           </Section>
         </Collapsable>
         <Collapsable title={"Webiny Overview"}>
@@ -21,7 +32,7 @@ export const Navigation = () => {
         </Collapsable>
         <Collapsable title={"Headless CMS"}>
           <Section title={"Basics"}>
-            <Page link={"headless-cms/basics/using-graphql-api-filtering"} remove/>
+            <Page link={"headless-cms/basics/using-graphql-api-filtering"} remove />
             <Page link={"headless-cms/basics/using-graphql-api-advanced-filtering"} />
           </Section>
           <Section title={"Extending functionality"}>
@@ -29,8 +40,8 @@ export const Navigation = () => {
           </Section>
         </Collapsable>
         <Collapsable title={"Webiny Enterprise"}>
-            <Page link={"enterprise/auth0-integration"} />
-            <Page link={"enterprise/use-existing-amazon-vpc"} />
+          <Page link={"enterprise/auth0-integration"} />
+          <Page link={"enterprise/use-existing-amazon-vpc"} />
         </Collapsable>
         <Collapsable title={"Core Development Concepts"}>
           <Section title={"Development"} after={"Project Organization"}>
