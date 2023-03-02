@@ -275,6 +275,9 @@ export const Navigation = () => {
                                     "user-guides/headless-cms/essentials/create-content-model-group"
                                 }
                             />
+                            <Page
+                                link={"user-guides/headless-cms/essentials/clone-content-model"}
+                            />
                         </Section>
                         <Section title={"Advanced"}>
                             <Page link={"user-guides/headless-cms/advanced/sample-advance-page"} />
