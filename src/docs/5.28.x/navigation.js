@@ -281,6 +281,7 @@ export const Navigation = () => {
                         </Section>
                         <Section title={"Advanced"}>
                             <Page link={"user-guides/headless-cms/advanced/sample-advance-page"} />
+                            <Page link={"user-guides/headless-cms/advanced/content-localization"} />
                         </Section>
                     </Collapsable>
                     <Separator />
