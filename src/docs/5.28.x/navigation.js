@@ -67,6 +67,7 @@ export const Navigation = () => {
                     <Section title={"Extending functionality"}>
                         <Page link={"page-builder/extending/create-a-page-element"} />
                         <Page link={"page-builder/extending/customize-an-existing-element"} />
+                        <Page link={"page-builder/extending/customize-button-callback-handler"} />
                         <Page link={"page-builder/extending/extend-graphql-api"} />
                         <Page link={"page-builder/extending/extend-page-settings"} />
                     </Section>
