@@ -51,8 +51,9 @@ module.exports.withSyntaxHighlighting = () => {
                 node.children.map(child =>
                     child.children.map(innerChild => {
                         if (innerChild.type === "code") {
-                            innerChild = highlightNode(innerChild);
+                            highlightNode(innerChild);
                         }
+                        return innerChild;
                     })
                 );
                 return node;
