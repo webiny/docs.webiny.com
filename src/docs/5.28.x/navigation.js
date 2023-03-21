@@ -279,6 +279,8 @@ export const Navigation = () => {
                                     "user-guides/headless-cms/essentials/create-content-model-group"
                                 }
                             />
+                            <Page link={"user-guides/headless-cms/essentials/content-entry-revisions"} />
+                            <Page link={"user-guides/headless-cms/essentials/clone-content-model"} />
                             <Page
                                 link={"user-guides/headless-cms/essentials/add-validator-to-fields"}
                             />
@@ -288,6 +290,8 @@ export const Navigation = () => {
                         </Section>
                         <Section title={"Advanced"}>
                             <Page link={"user-guides/headless-cms/advanced/sample-advance-page"} />
+                            <Page link={"user-guides/headless-cms/advanced/content-localization"} />
+                            <Page link={"user-guides/headless-cms/advanced/user-creation"} />
                         </Section>
                     </Collapsable>
                     <Separator />
