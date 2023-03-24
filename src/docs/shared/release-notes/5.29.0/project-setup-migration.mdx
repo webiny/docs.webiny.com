@@ -43,35 +43,29 @@ With the new project created, we can start moving different pieces of our old pr
 
 - custom frontend/backend (Page Builder, GraphQL API) plugins
 - different configurations (`yarn`, `.env`, `package.json`, …)
-- Pulumi state files
+- cloud infrastructure (Pulumi) state files
 
-Out of the mentioned pieces, we can immediately highlight Pulumi state files as the piece that will be the most crucial part of the whole migration.
+Out of the mentioned pieces, we can immediately highlight cloud infrastructure (Pulumi) state files as the piece that will be the most crucial part of the whole migration.
 
 With that being said, here are some additional migration-related notes to take into consideration.
 
 **Performing the Migration**
 
-Note that the document and the steps outline below assume the migration is done from a local machine / from a locally set up project, which has the ability to deploy into the target environment. These can be your regular dev environments, but also long-lived ones.
+Note that the document and the steps outline below assume the migration is done from a local machine / from a locally set up project, which has the ability to deploy into the target environment. These can be your regular development environments, but also long-lived ones.
 
 This is because, at Webiny, we aren’t familiar with internal protocols and CI/CD workflows that you might have in place. It will be up to you to analyse the steps that are presented in this document, and then try to accommodate them to your internal protocols / CI/CD workflows.
 
-<Alert type={"info"}>
-
-  For any questions, feel free to contact us via our [community Slack](https://www.webiny.com/slack).
-
-</Alert> 
-
 **Different Environments**
 
-The steps outlined in this document only cover the migration of a single environment, be it your ordinary development environment, or a long-lived one. If you have 5 environments to migrate, you will need to follow these steps five times, once for each environment.
+The steps outlined in this document only cover the migration of a single environment, be it your ordinary development environment, or a long-lived one. If you have five environments to migrate, you will need to follow these steps five times, once for each environment.
 
 **Deletion of Old Resources**
 
-Note that the migration will re-use some of the previously deployed cloud infrastructure resources, it will create new ones, but it will also leave some resources hanging. For example, when migrating the API project application, all of the AWS Lambda functions will be created from scratch, and the existing ones will not be deleted via Pulumi.
+Note that the migration will re-use some of the previously deployed cloud infrastructure resources, it will create new ones, but it will also leave some resources hanging. For example, when migrating the API project application, all of the AWS Lambda functions will be created from scratch, and the existing ones will not be deleted by Webiny (by Pulumi).
 
-If possible, after the migration, you should perform an analysis and try to determine which resources are no longer in use, and delete them. Doing this straight from the AWS Console will do.
+If possible, after the migration, you should perform an analysis and try to determine which resources are no longer in use, and delete them. Doing this straight from the [AWS Management Console](https://aws.amazon.com/console/) will do.
 
-We will try to mention some of these resources in the section which cover Pulumi state files and deployments.
+We will try to mention some of these resources in the section which cover cloud infrastructure (Pulumi) state files and deployments.
 
 
 ## Steps
@@ -104,7 +98,7 @@ For starters, we copy all the custom plugins we have in the old project. This in
 #### 2. `.env` Files
 
 
-If you’re migrating a local / dev-purposed project, then you’re most probably relying on the `.env` file. If so, make sure to copy the file into the new project. On the other hand, if you’re migrating a long-lived environment, environment variables should already be present in CI/CD provider’s secrets vault. In that case, this step can be ignored. 
+If you’re migrating a local / development-related project, then you’re most probably relying on the `.env` file. If so, make sure to copy the file into the new project. On the other hand, if you’re migrating a long-lived environment, environment variables should already be present in CI/CD provider’s secrets vault. In that case, this step can be ignored. 
 
 Then again, if you’re migrating a long-lived environment from a local machine, ensure all of the environment variables, that are usually assigned in a CI/CD workflow, are assigned locally.
 
@@ -157,7 +151,7 @@ The main difference is that, in the old project, we had three project applicatio
 - **Admin** (`apps/admin`)
 - **Website** (`apps/website`)
 
-In the new project, we now have four project apps, thus four sets of state files::
+In the new project, we now have four project apps, thus four sets of state files:
 
 - **Core** (`apps/core`)
 - **API** (`apps/api`)
@@ -182,22 +176,15 @@ In order to start with the Pulumi state files migration, we need to retrieve the
 
 Once retrieved, we will copy them into the new project. Let’s copy the retrieved Pulumi state files into the `.pulumi-old` folder.
 
-
 #### 3. Run The State Files Migration Script
 
-
-For this migration, we provided a migration scrip which can be downloaded [here](#)/
-
+For this migration, we provided a migration scrip which can be downloaded [here](https://github.com/webiny/webiny-upgrades/raw/main/5.29.0/migration.zip).
 
 Unzip the provided migration script into your `scripts/migration` folder, and, from your new project root, run the following:
 
-
 ```bash
-
 node scripts/migration/index.js --env xyz --old-pulumi-folder-path ./.pulumi-old --new-pulumi-folder-path ./.pulumi
-
 ```
-
 
 <Alert type={"info"}>
 
@@ -205,24 +192,17 @@ The command uses the `xyz` deployment environment name, so please update this wi
 
 </Alert>
 
-
 Once the script has completed the state files migration, we’re ready to start deploying our new Webiny project, application by application.
-
 
 #### 4. Redeploying the Project Apps
 
-
 We’ll be doing deployments in an application by application manner. We definitely do not want to just run `yarn webiny deploy`, as for each application, we want to preview the deployment, analyse the changes Pulumi will perform, and make sure all is in order.
-
 
 More on this in the following section.
 
-
 ##### **Core Application (`apps/core`)**
 
-
 Let’s preview the deployment by running the following command from our new project’s root:
-
 
 ```bash
 yarn webiny deploy apps/core --env xyz --preview
@@ -230,13 +210,11 @@ yarn webiny deploy apps/core --env xyz --preview
 # Once the above command has been run, for more info, we
 # can also directly run the following Pulumi command:
 yarn webiny pulumi apps/core --env xyz -- preview --show-sames --diff
-
 ```
 
 The result should be as similar as possible the following:
 
 <Image src={pulumiPreviewCore}/>
-
 
 As we can see, two create operations and one update operation will be performed.
 
