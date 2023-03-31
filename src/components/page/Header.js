@@ -224,8 +224,8 @@ export function Header() {
                             >
                                 <span className="sr-only">Webiny Website</span>
                                 <svg
-                                    width="36"
-                                    height="35"
+                                    width="35"
+                                    height="33"
                                     viewBox="0 0 24 24"
                                     className="fill-dark-blue dark:fill-white"
                                 >
