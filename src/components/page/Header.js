@@ -153,7 +153,7 @@ export function NavItems() {
         <>
             <li>
                 {page.articleType === "docs" ? (
-                    <Link href="/docs/user-guide">
+                    <Link href="/docs/user-guides">
                         <a className="text-nav-subdirectory dark:text-white">User Guides</a>
                     </Link>
                 ) : (
