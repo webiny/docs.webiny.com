@@ -44,10 +44,31 @@ passTheResult(result);
 The measurement is stored into an object with interface [BenchmarkMeasurement](https://github.com/webiny/webiny-js/blob/7d9d7bbf0dbbc6bfed114d1835114b3512e33ffa/packages/api/src/types.ts#L7).
 The properties are:
 * name - identifier of the measurement (`my code` in our example)
+* category - category of the measurement - default is `webiny`
 * start - the `Date` object created when the measurement started
 * end - the `Date` object created when the measurement ended
 * elapsed - difference, in milliseconds, from the end to start `Date` values
 * memory - difference, in bytes, from the end to the start of the memory measurement (collected via the `process.memoryUsage().heapUsed`)
+
+### Categorizing the Measurements
+
+You can set your own measurement category, as the default category is `webiny`:
+```typescript
+const result = await context.benchmark.measure({
+        name: "my code",
+        category: "my category"
+    }, async() => {
+    const innerResult = await doSomething();
+    
+    const processedInnerResult = await process(innerResult);
+    
+    return output(processedInnerResult);
+});
+// do something with that result
+passTheResult(result);
+```
+
+By setting the category, you can filter the measurements easily later. You can write anything you like in both the `category` and `name` properties.
 
 ## Enabling the Measurement
 
@@ -132,4 +153,10 @@ const handler = createHandler({
 });
 ```
 
-You can add multiple plugins which attach some `onOutput` method, and they will all be executed, from the last to the first added, if you do not break the cycle with the `BenchmarkOutputCallableResponse.BREAK`. 
+You can add multiple plugins which attach some `onOutput` method, and they will all be executed, from the last to the first added, if you do not break the cycle with the `BenchmarkOutputCallableResponse.BREAK`.
+
+Also, remember that we have measurement categories, and if you have set the category to your measurement point, you can filter out unnecessary measurements when having a custom output.
+
+## Conclusion
+
+The benchmark was initially intended as an internal tool to help us figure out how much of execution time is spent on some piece of code. We decided to attach it to the main `context` object, and have it documented, because it could help our users to figure out if and why the execution of their code is slow.
