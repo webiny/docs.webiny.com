@@ -128,12 +128,11 @@ If you want to know more about the Fastify hooks and lifecycles, there is quite 
 You can customize the output of the measurement logs, for example: send them to a service of your own liking.
 
 ```typescript
-import {BenchmarkOutputCallableResponse} from "@webiny/api/types"
 import {ContextPlugin} from "@webiny/handler-aws";
 
 
 const plugin = new ContextPlugin(async(context) => {
-    context.benchmark.onOutput(async(benchmark) => {
+    context.benchmark.onOutput(async({benchmark, stop}) => {
         const result = await sendToUserDefinedService(benchmark.measurements);
         if (!result) {
             console.log(`Could not send benchmark results to a user defined service.`);
@@ -141,7 +140,7 @@ const plugin = new ContextPlugin(async(context) => {
         /**
          * If you want to prevent the measurements to be sent to the Cloudwatch, you need to break the cycle. 
          */
-        return BenchmarkOutputCallableResponse.BREAK;
+        return stop();
     });
 });
 
@@ -149,11 +148,11 @@ const handler = createHandler({
     plugins: [
         // register the plugin in the end of the plugins array
         plugin
-    ],
+    ]
 });
 ```
 
-You can add multiple plugins which attach some `onOutput` method, and they will all be executed, from the last to the first added, if you do not break the cycle with the `BenchmarkOutputCallableResponse.BREAK`.
+You can add multiple plugins which attach some `onOutput` method, and they will all be executed, from the last to the first added, if you do not break the cycle with the `stop()`.
 
 Also, remember that we have measurement categories, and if you have set the category to your measurement point, you can filter out unnecessary measurements when having a custom output.
 
