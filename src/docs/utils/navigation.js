@@ -122,7 +122,7 @@ export const Page = ({ title, link, remove, before, after }) => {
         weight = weightMap.docs;
     }
 
-    const robots = isUserGuide ? "noindex" : "";
+    const robots = "";
 
     return (
         <>
