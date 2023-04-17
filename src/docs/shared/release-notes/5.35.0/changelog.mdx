@@ -48,7 +48,7 @@ import fbFieldIdValidator from './assets/fb-field-id-validator.png';
 ### Singular And Plural Model API Name ([#3111](https://github.com/webiny/webiny-js/pull/3111))
 
 We added the ability to define the singular and plural model API names for the Headless CMS models.
-Before the version 5.35.0, the API name was always created from the `modelId` property and for the plural, we used [pluralize](https://www.npmjs.com/package/pluralize) library, which did not create correct plural names languages other than the English.
+Before the version `5.35.0`, the API name was always created from the `modelId` property and for the plural, we used [pluralize](https://www.npmjs.com/package/pluralize) library, which did not create correct plural names for languages other than the English.
 
 The models created via the Admin UI will always need to have singular and plural API name defined, but the models created via the code will have the singular and plural API name only if they are set as not private.
 
@@ -57,7 +57,7 @@ The models created via the Admin UI will always need to have singular and plural
 For the singular and plural model API name functionality, we added a migration which will run after the first deploy.
 The migration updates all the models in all the tenants and locales.
 
-Because the handler code is deployed before the migration is executed, existing models do not have the `singularApiName` and `pluralApiName` properties defined, and for that case we have a fallback in the code - so your API does not fail until the migration is executed.
+Because the handler code is deployed before the migration is executed, existing models do not have the `singularApiName` and `pluralApiName` properties defined, and for that case we have a fallback in the code - so your API does not fail until the migration is executed. The code models should be updated by the users before the deployment.
 
 ### Detailed (Advanced) Admin UI Reference Field ([#2969](https://github.com/webiny/webiny-js/pull/2969))
 
@@ -79,6 +79,40 @@ We added the ability create a new model with the default fields defined. Default
 
 By the default, the checkbox defining the default fields creation is checked, but users can uncheck it if they do not want to create the default fields.
 <Image src={modelWithDefaultFields} title={"Model With Default Fields Checkbox"} />
+
+### Model Icon ([#3142](https://github.com/webiny/webiny-js/pull/3142))
+
+We added the possibility to add an icon when creating or editing a model. In the Admin UI there is an icon picker when creating or editing a model.
+For the code models, users will need to type in the icon pack identifier and the icon identifier, in form of `packId/iconId`. For example, a newspaper icon is `fas/newspaper`.
+
+We have a few icon packs by default: `@fortawesome/free-brands-svg-icons` (`fab`), `@fortawesome/free-solid-svg-icons` (`fas`) and `@fortawesome/free-regular-svg-icons` (`far`).
+
+
+### Disable Dynamic Zone in the Object Field ([#3160](https://github.com/webiny/webiny-js/pull/3160))
+
+We disabled the possibility to add the Dynamic Zone Field into the Object field. Unfortunately we need to do this, for the moment, as we need to implement structural changes in the Headless CMS for this to properly work.
+
+### GraphQL Schema Types `CmsCreatedBy` and `CmsOwnedBy` Replaced With `CmsIdentity` ([#2969](https://github.com/webiny/webiny-js/pull/2969))
+
+As part of the detailed reference field PR we removed the GraphQL types `CmsCreatedBy` and `CmsOwnedBy` in favor of the `CmsIdentity` type, because they represented the same data.
+
+### GraphQL Schema Cache ([#3201](https://github.com/webiny/webiny-js/pull/3201))
+When the user project did not contain any models in the database (created via the UI), GraphQL Schema cache did not work properly as the generated cache key was faulty.
+Now we generate a correct key, which is used to cache the GraphQL Schema until the next model change or next deployment of the code.
+
+### Code Content Model Without Validation ([#3187](https://github.com/webiny/webiny-js/pull/3187))
+The projects, which have a lot of the CMS Models created via the code, can get a slow API response due to the validation ran on every request.
+This PR introduces `noValidate` property on the [CmsModelPlugin](https://github.com/webiny/webiny-js/blob/3f51fbbbe103a6363d60ad9f591111aa70ae7377/packages/api-headless-cms/src/plugins/CmsModelPlugin.ts#L51), for both the API and Private models.
+
+When using the `noValidate` flag, users will must be extremely careful as we do not check anything they set in that code model.
+
+### Benchmark Measurement Points ([#3185](https://github.com/webiny/webiny-js/pull/3185))
+
+After adding the [Benchmark](#api-benchmark-3183) tool to our system, we added some benchmark points to the Headless CMS.
+
+This allows us, and our users, to figure out where is the bottleneck during the request, if there is one.
+Benchmark measurement points cover the GraphQL Schema generation and processing of the request body, at the top level.
+The measurements cover all our CMS GraphQL Queries and Mutations as well, as a part of processing the request body step.
 
 ## Page Builder
 
@@ -281,11 +315,18 @@ export const HeroSectionWithTheme = styled("div")(
 
 </Alert>
 
+
+### Input Validation With Zod Library ([#3167](https://github.com/webiny/webiny-js/pull/3167)) ([#3194](https://github.com/webiny/webiny-js/pull/3194))
+We replaced the Commodo validation (our custom package) with the Zod [library](https://github.com/colinhacks/zod). The validation is now a lot more strict and this is a preparation for the ability for users to customize the validation - not available yet.
+
+### Title and Path Maximum Length ([#3188](https://github.com/webiny/webiny-js/pull/3188))
+The Page Builder `title` and `path` properties are now set to be maximum of 500 characters.
+
 ### Website - Clicking on Links No Longer Does A Full Page Refresh ([#3215](https://github.com/webiny/webiny-js/pull/3215))
 
 Prior to this release, clicking on links rendered by **Pages List**, **Button**, and **Image** page elements would cause a full page refresh, making the UX for the website visitor not as good as it should be.
 
-This has now been addressed. Clicking on links rendered by these page elements will cause the following page to be rendered immediately, without a page refresh happening. 
+This has now been addressed. Clicking on links rendered by these page elements will cause the following page to be rendered immediately, without a page refresh happening.
 
 ### Website - Added Missing Tenant Error Message ([#3202](https://github.com/webiny/webiny-js/pull/3202))
 
@@ -299,13 +340,11 @@ To address this, we've added better error reporting and ensured users are aware 
 
 ### Page Editor - Addressed Canvas Width Indicator Issue ([#3216](https://github.com/webiny/webiny-js/pull/3216))
 
-The canvas width indicator displays the width of the canvas, which changes depending on the selected breakpoint (desktop, tablet, mobile-landscape, mobile-portrait). Due to an internal bug, the indicator would always report **100px** as the width, which was incorrect. 
+The canvas width indicator displays the width of the canvas, which changes depending on the selected breakpoint (desktop, tablet, mobile-landscape, mobile-portrait). Due to an internal bug, the indicator would always report **100px** as the width, which was incorrect.
 
 This has now been addressed, so the actual canvas width should now be displayed correctly.
 
 <Image src={editorCanvasWidth} title={"Page Editor - Canvas Width Indicator Now Works Correctly"} />
-
-
 
 ## Form Builder
 
@@ -457,6 +496,38 @@ isPrerendering() // true
 ```
 
 Except for the prerendering-related utility functions, these can be used within both Admin and Website applications.
+
+
+### API Benchmark ([#3183](https://github.com/webiny/webiny-js/pull/3183))
+
+We added the benchmark tool to the main `context` object. It is initialized by default, but it is not enabled.
+
+To find out more about our benchmark tool and how to enable it in your project, please read this [article](/docs/performance-and-load-benchmark/code).
+
+### Security `withoutAuthorization` Method ([#3176](https://github.com/webiny/webiny-js/pull/3176))
+
+There is now a `withoutAuthorization` method on the `context.security` object. It is intended to replace the `context.security.disableAuthorization()` and `context.security.enableAuthorization()` methods.
+
+The problem with the enable authorization method is that they enable the authorization without any checks. At some points authorization should not be enabled as it was disabled by the user a few levels up from the current code.
+
+The `withoutAuthorization` works in the way that it does disable the authorization, but does not enable it - if it was not already enabled when the disable part kicked in.
+
+This way users can nest the `context.security.withoutAuthorization()` calls without fear of authorization being enabled in the middle of the code execution.
+
+```typescript
+const result = await context.security.withoutAuthorization(async() => {
+    const params = {
+        myParam: 1,
+        anotherParam: 2
+    }
+    return userCustomCodeCallWhichNeedsToHaveAuthorizationDisabled(params);
+});
+```
+
+### Error Logs ([#3122](https://github.com/webiny/webiny-js/pull/3122))
+
+We now log errors via the `console.error` method, so they are properly marked in the Cloudwatch.
+
 
 ## Documentation
 
