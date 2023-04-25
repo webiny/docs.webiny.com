@@ -51,7 +51,9 @@ yarn webiny upgrade
 
 <Alert type="info">
   This script will create backups of some files, so make sure you review the changes, and manually
-  apply any changes you might have in those files to the new files.
+  apply any changes you might have in those files to the new files. 
+
+  For more information, please read the [Upgrade Command - Additional Notes](#upgrade-command-additional-notes) section below.
 </Alert>
 
 <Alert type="warning">
@@ -103,15 +105,19 @@ Environments](../../core-development-concepts/ci-cd/environments) key topic.
 
 </Alert>
 
-## Additional Information
+## Upgrade Command - Additional Notes
 
-### Website Theme Object
+The following sections explains some of the steps that the upgrade command performs. We recommend that you read through them to get familiar with the changes introduced in this release.
 
-The upgrade command will perform a couple of code level updates related to the central website theme object. The following sections will explain what changes are made, and how you can manually apply them if the upgrade command fails to do so.
+Note that there might be cases where the upgrade command will not be able to automatically apply the changes. In such cases, you will be prompted to manually apply the changes.
 
-#### `styles.typography` Object
+### Theme Object
 
-The first change is related to the `styles.typography` object, which was previously an object where keys represented the typography variant (heading1, heading2, etc.), and values were objects representing the actual typography styles. For example:
+The upgrade command will perform a couple of code level changes related to your website's theme object structure.
+
+#### `styles.typography`
+
+Prior to this release, within the theme object, the `styles.typography` property referenced an object where keys represented the typography variant (heading1, heading2, etc.), and values were objects representing the actual typography styles. For example:
 
 ```ts apps/theme/theme.ts
 {
@@ -130,9 +136,7 @@ The first change is related to the `styles.typography` object, which was previou
 }
 ```
 
-From now on, the `styles.typography` object is an object where keys represent the typography type (heading, paragraph, etc.), and values are arrays of objects, where each object represents a specific typography variant. Each typography variant is an object that consists of four properties: `id`, `name`, `tag`, and `styles`.
-
-For example:
+From now on, the `styles.typography` property references an object where keys represent the typography type (heading, paragraph, etc.), and values are arrays of objects, where each object represents a specific typography variant. Each typography variant is an object that consists of four properties: `id`, `name`, `tag`, and `styles`. For example:
 
 ```ts apps/theme/theme.ts
 {
@@ -183,11 +187,13 @@ For example:
 }
 ```
 
-The upgrade command will automatically update the `styles.typography` object in your `theme/theme.ts` file. Note that if you've added custom typography variants, the upgrade might not be able to update the `styles.typography` object correctly. In that case, you will need to manually update the `styles.typography` object in your `theme/theme.ts` file.
+The upgrade command will automatically update the `styles.typography` object in your `theme/theme.ts` file. But do note that if you've added custom typography variants, the upgrade might not be able to update the `styles.typography` object correctly. In that case, manual intervention will be required.
+
+The following warning message will be displayed if the upgrade command fails to update the `styles.typography` object: **Custom key {KEY_NAME} could not be migrated.**
 
 #### Accessing Typography Styles
 
-The second change is the way typography is accessed. Previously, you could access typography styles via the `styles.typography` object, and then by using the typography variant as a key, for example:
+The second change is related to the way typography styles are accessed. Previously, you could access typography styles via the `styles.typography` object, and then by using the typography variant as a key, for example:
 
 ```ts
 theme.styles.typography.heading1
@@ -235,7 +241,7 @@ Note that the upgrade command will try to detect legacy usages of the `theme` ob
 
 ### Default Form Layout Replaced
 
-Because of all of the website theme-related changes, but also new features that have been introduced to the Form Builder application, note that your default form layout will be backed up and completely replaced with the latest version of the layout. This means that if you have made any customizations to the default form layout, you will need to manually re-apply them to the new layout.
+Because of all of the theme object-related changes, and also [new improvements](/docs/release-notes/5.35.0/changelog#form-builder) that have been introduced to the Form Builder application, note that your default form layout will be backed up and completely replaced with the latest version of the layout. This means that if you have made any customizations to the default form layout, you will need to manually re-apply them to the new layout.
 
 ### Emotion 11
 
