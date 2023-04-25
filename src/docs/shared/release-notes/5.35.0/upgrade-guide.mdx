@@ -105,68 +105,11 @@ Environments](../../core-development-concepts/ci-cd/environments) key topic.
 
 ## Additional Information
 
-### Emotion 11
-
-With this release, we are [upgrading Emotion library](/docs/release-notes/5.35.0/changelog#emotion-11-3138) to version 11.
-
-Across multiple `package.json` files, the [upgrade command](#2-run-the-upgrade-command) will upgrade versions of all [`@emotion`](https://emotion.sh/docs/emotion-11) packages to version 11. It will also replace all usages of the [`@emotion/core`](https://www.npmjs.com/package/@emotion/core) package with the new [`@emotion/react`](https://www.npmjs.com/package/@emotion/react) ([`@emotion/core`](https://www.npmjs.com/package/@emotion/core) package is now deprecated).
-
-#### Custom Babel Plugins For Emotion
-
-Note that if you've been using custom Babel plugins for Emotion, you will need to manually update them to the latest version. 
-
-These are usually introduced via `webiny.config.ts` files. For example, if you had something like the following in either your `apps/admin/webiny.config.ts` or `apps/website/webiny.config.ts` files:
-
-```ts apps/admin/webiny.config.ts or apps/website/webiny.config.ts
-import { createWebsiteAppConfig } from "@webiny/serverless-cms-aws";
-
-export default createWebsiteAppConfig(({ config }) => {
-    config.babel(babelConfig => {
-        return {
-            ...babelConfig,
-            plugins: [...babelConfig.plugins, ["babel-plugin-emotion", { autoLabel: true }]]
-        };
-    });
-});
-```
-
-You will need to adjust it to the following:
-
-```diff-ts apps/admin/webiny.config.ts or apps/website/webiny.config.ts
-import { createWebsiteAppConfig } from "@webiny/serverless-cms-aws";
-
-export default createWebsiteAppConfig(({ config }) => {
-    config.babel(babelConfig => {
-        return {
-            ...babelConfig,
--           plugins: [...babelConfig.plugins, ["babel-plugin-emotion", { autoLabel: true }]]
-+           plugins: [...babelConfig.plugins, ["@emotion", { autoLabel: "always"}]]
-
-        };
-    });
-});
-```
- 
-In case of the above, note that the options for the [`@emotion/babel-plugin`](https://www.npmjs.com/package/@emotion/babel-plugin) are different from the ones for the [`babel-plugin-emotion`](https://www.npmjs.com/package/babel-plugin-emotion) plugin. You can find more information about the new plugin [here](https://emotion.sh/docs/emotion-11#babel-preset-and-babel-plugin).
-
-<Alert type={"info"}>
-
-  The [upgrade command](#2-run-the-upgrade-command) will try to detect usage of custom Babel plugins for Emotion. If detected, it will print the following message in terminal: **Warning: Found custom Emotion plugins in your project. Please make sure to update them to the latest version.**
-
-</Alert>
-
 ### Website Theme Object
 
 The upgrade command will perform a couple of code level updates related to the central website theme object. The following sections will explain what changes are made, and how you can manually apply them if the upgrade command fails to do so.
 
-#### Updated Theme Object Structure
-
-With this release, we are [updating the structure of the theme object](/docs/release-notes/5.35.0/changelog#updated-theme-object-structure-3138).
-
-<br/>
-<br/>
-
-##### **1. `styles.typography` Object**
+#### `styles.typography` Object
 
 The first change is related to the `styles.typography` object, which was previously an object where keys represented the typography variant (heading1, heading2, etc.), and values were objects representing the actual typography styles. For example:
 
@@ -242,7 +185,7 @@ For example:
 
 The upgrade command will automatically update the `styles.typography` object in your `theme/theme.ts` file. Note that if you've added custom typography variants, the upgrade might not be able to update the `styles.typography` object correctly. In that case, you will need to manually update the `styles.typography` object in your `theme/theme.ts` file.
 
-##### **2. Accessing Typography Styles**
+#### Accessing Typography Styles
 
 The second change is the way typography is accessed. Previously, you could access typography styles via the `styles.typography` object, and then by using the typography variant as a key, for example:
 
@@ -262,12 +205,8 @@ But, since this is a bit cumbersome, we've introduced a new utility function cal
 theme.styles.typography["headings"].stylesById["heading1"]
 ```
 
-
-
-
 The upgrade command will automatically update the `styles.typography` object in your `theme/theme.ts` file. But 
 if for some reason it fails to do so, you can manually update usage of the `styles.typography` object in your project.
-
 
 #### Theme Object Accessed Via Context Object
 
@@ -294,10 +233,54 @@ With the new version, the following changes should be made:
 
 Note that the upgrade command will try to detect legacy usages of the `theme` object and will try to adjust them automatically. However, if you have custom code that uses the `theme` object, you might need to make the necessary adjustments manually. You will notice this as, upon running the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command)  command against the Admin or the Website application, errors will be reported.
 
-#### Form Layot Upgraded completely
+### Default Form Layout Replaced
 
-### Other
+Because of all of the website theme-related changes, but also new features that have been introduced to the Form Builder application, note that your default form layout will be backed up and completely replaced with the latest version of the layout. This means that if you have made any customizations to the default form layout, you will need to manually re-apply them to the new layout.
 
-#### Warning: We couldn't map your custom key KEY_NAME to the new structure, please migrate manually.
+### Emotion 11
 
-If you're seeing **We Couldn't Map Your Custom Key {KEY_NAME} to the New Structure, Please Migrate manually.** warning,
+With this release, we are [upgrading Emotion library](/docs/release-notes/5.35.0/changelog#emotion-11-3138) to version 11.
+
+Across multiple `package.json` files, the [upgrade command](#2-run-the-upgrade-command) will upgrade versions of all [`@emotion`](https://emotion.sh/docs/emotion-11) packages to version 11. It will also replace all usages of the [`@emotion/core`](https://www.npmjs.com/package/@emotion/core) package with the new [`@emotion/react`](https://www.npmjs.com/package/@emotion/react) ([`@emotion/core`](https://www.npmjs.com/package/@emotion/core) package is now deprecated).
+
+Note that if you've been using custom Babel plugins for Emotion, you will need to manually update them to the latest version.
+
+These are usually introduced via `webiny.config.ts` files. For example, if you had something like the following in either your `apps/admin/webiny.config.ts` or `apps/website/webiny.config.ts` files:
+
+```ts apps/admin/webiny.config.ts or apps/website/webiny.config.ts
+import { createWebsiteAppConfig } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteAppConfig(({ config }) => {
+    config.babel(babelConfig => {
+        return {
+            ...babelConfig,
+            plugins: [...babelConfig.plugins, ["babel-plugin-emotion", { autoLabel: true }]]
+        };
+    });
+});
+```
+
+You will need to adjust it to the following:
+
+```diff-ts apps/admin/webiny.config.ts or apps/website/webiny.config.ts
+import { createWebsiteAppConfig } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteAppConfig(({ config }) => {
+    config.babel(babelConfig => {
+        return {
+            ...babelConfig,
+-           plugins: [...babelConfig.plugins, ["babel-plugin-emotion", { autoLabel: true }]]
++           plugins: [...babelConfig.plugins, ["@emotion", { autoLabel: "always"}]]
+
+        };
+    });
+});
+```
+
+In case of the above, note that the options for the [`@emotion/babel-plugin`](https://www.npmjs.com/package/@emotion/babel-plugin) are different from the ones for the [`babel-plugin-emotion`](https://www.npmjs.com/package/babel-plugin-emotion) plugin. You can find more information about the new plugin [here](https://emotion.sh/docs/emotion-11#babel-preset-and-babel-plugin).
+
+<Alert type={"info"}>
+
+  The [upgrade command](#2-run-the-upgrade-command) will try to detect usage of custom Babel plugins for Emotion. If detected, it will print the following message in terminal: **Warning: Found custom Emotion plugins in your project. Please make sure to update them to the latest version.**
+
+</Alert>
