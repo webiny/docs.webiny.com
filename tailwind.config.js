@@ -88,6 +88,10 @@ module.exports = {
                             fontSize: "1.375rem",
                             lineHeight: "1.625rem"
                         },
+                        h5: {
+                            fontWeight: 700,
+                            fontSize: "1rem",
+                        },
                         "h1 *, h2 *, h3 *, h4 *": {
                             fontSize: "inherit !important"
                         },
