@@ -24,6 +24,11 @@ export const Navigation = () => {
               remove
             />
           </Section>
+          <Section title={"Theming"}>
+            <Page link={"page-builder/theming/theme-object"} after={"page-builder/theming/introduction"}/>
+            <Page link={"page-builder/theming/colors"} remove />
+            <Page link={"page-builder/theming/elements"} remove />
+          </Section>
         </Collapsable>
         <Collapsable title={"Webiny Overview"}>
           <Section title={"Features"}>
