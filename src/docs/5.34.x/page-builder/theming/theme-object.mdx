@@ -20,9 +20,11 @@ import staticPageTemplate from "./images/static-page-template.png";
 
 The theme object defines different visual aspects of our website, for example the default set of colors, typography, breakpoints, and more.
 
-Apart from being used in the code by different page elements, the theme object is also integrated with different editors that are available in the Page Builder's application, like page or block editor. For example, colors or different typography options defined in the theme object are automatically picked up by these editors, enabling users to select them while building content and ensuring everything stays visually consistent.
+Apart from being used in the code by different page elements, the theme object is also integrated with different editors that are available in the Page Builder's application, like page or block editor. 
 
-<Image src={themeColorsInEditor} title={"Theme Colors"}/>
+For example, colors or different typography options defined in the theme object are automatically picked up by these editors, enabling users to select them while building content and ensuring everything stays visually consistent.
+
+<Image src={themeColorsInEditor} title={"Theme Colors Available In The Color Picker"}/>
 
 By default, the theme object is exported from the [`apps/theme/index.ts`](#) file, and it looks like the following:
 
@@ -107,7 +109,28 @@ const theme = createTheme({
         colors,
         typography,
         elements: {
-           // Code removed for brevity.
+            document: {
+                a: { color: colors.color1 },
+                b: { fontWeight: "bold" },
+                i: { fontStyle: "italic" }
+            },
+            button: {
+                default: buttons({ background: colors.color5, color: colors.color3 }),
+                primary: buttons({ background: colors.color1, color: colors.color6 }),
+                secondary: buttons({ background: colors.color2, color: colors.color6 }),
+                outlinePrimary: buttons({
+                    border: `2px solid ${colors.color1}`,
+                    color: colors.color1
+                }),
+                outlineSecondary: buttons({
+                    border: `2px solid ${colors.color2}`,
+                    color: colors.color2
+                }),
+                simple: buttons({
+                    color: colors.color1,
+                    "&:hover": { transform: "translateY(-1px)" }
+                })
+            }
         }
     }
 });
@@ -155,7 +178,7 @@ Like with colors, typography IDs don't follow any naming convention. Upon introd
 
 Respectively, the `styles.elements` object enables defining and overriding styles for new and existing page elements. Like with colors and typography, property names represent the IDs of page elements, and values respective CSS rules that define them visually.
 
-By default, the property contains styles for default `document`, `quote`, `button` and `list` page elements, but note that styles for custom ones can be added here as well.
+By default, the property contains styles for default [`document`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/theme.ts#L151-L155) and [`button`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/theme.ts#L163-L179) page elements, but note that styles for custom ones can be added here as well.
 
 <Alert type={"info"}>
   Although page elements can have their styles defined within one or more respective React components, in multi-theme projects, having all or just part of the element's styles defined here can make it easier to have different styles for different themes.
@@ -167,4 +190,61 @@ By default, the property contains styles for default `document`, `quote`, `butto
 
 </Alert>
 
-## Using the Theme Object
+## Accessing the Theme Object
+
+While styling [page layouts](/docs/{version}/page-builder/theming/layouts) or [custom page elements](/docs/{version}/page-builder/extending/create-a-page-element), the theme object can be accessed in order to use the styling rules defined in it. To access the theme object, we rely on Emotion's suggested approach, which is through the React context.
+
+The easiest way to access the theme object is via [styled components](https://emotion.sh/docs/styled), like in the following example:
+
+```tsx
+import * as React from "react";
+import styled from "@emotion/styled";
+
+const SomeDiv = styled.div`
+    background-color: ${props => props.theme.styles.colors["color5"]};
+    height: 100px;
+`;
+```
+
+As we can see, the `theme` object is available via the `props` argument of the styled component's template literal function. This means that we can access any of the theme object's properties, like `styles.colors`, `styles.typography` or `styles.elements`.
+
+Note that the theme object should not be accessed directly by importing it via the `@webiny/theme` package. This can lead to issues in multi-theme projects, where the theme object is not the same for all themes.
+
+### Custom Page Elements
+
+Theme can also be accessed when creating custom page elements, via the `useRenderer` React hook, like in the following example:
+
+```tsx
+import React from "react";
+import { createRenderer } from "~/createRenderer";
+import { useRenderer } from "~/hooks/useRenderer";
+
+export type CustomPageElementRenderer = ReturnType<typeof createCustomPageElement>;
+
+export const createCustomPageElement = () => {
+    return createRenderer(() => {
+        // Accessing the theme object via the useRenderer hook.
+        const { theme } = useRenderer();
+
+        return (
+            // Using color1 from the theme object.
+            <div style={{ color: theme.styles.colors["color1"] }} >
+                Custom page element.
+            </div>
+        );
+    });
+};
+
+```
+
+For more information on creating custom page elements, check out the [Create a Custom Page Element](/docs/{version}/page-builder/extending/create-a-page-element) article.
+
+## FAQ
+
+### When defining custom theme, should I create a copy of the theme or can I just override the values I need?
+
+In general, it depends on your needs and personal preference. There's nothing wrong with simply overriding the values you need.   
+
+### Is having multiple themes supported out of the box?
+
+Out of the box, every Webiny project starts with a single theme (the one located in the `apps/theme` folder. For a multi-theme setup, please take a look at the [Setup Theme Manager](/docs/{version}/enterprise/theme-manager) article.

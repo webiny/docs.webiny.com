@@ -25,6 +25,8 @@ For example, the **Static page** layout, that's by default included in every Web
 
 <Image src={staticPageTemplate} title={"Static Page Layout"} shadow={false}/>
 
+## React Components and Plugins
+
 On the code level, page layouts consist of one or more React components. For example, if we were to take a look at the `Static.tsx` file, located in the `apps/theme/layouts/pages` folder, we would see the following code:
 
 ```tsx apps/theme/layouts/pages/Static.tsx
@@ -73,10 +75,10 @@ export default Static;
 
 Essentially, the file exports a page layout React component, which renders the following:
 
-1. the page layout (notice extra components like `Layout` and `Header`)
+1. the actual page layout (notice extra components like `Layout` and `Header`)
 2. the page content created via Page Builder's page editor (passed via the `children` prop)
 
-Page layouts can be simple or complex, depending on your needs. For example, the `Static.tsx` file also contains `Header` and `Footer` components, which are used to render the header and footer of the page layout. 
+Depending on the requirements, page layouts can be simple or more complex. For example, the `Static.tsx` file also contains `Header` and `Footer` components, which are used to render the header and footer of the page layout. 
 
 Ultimately, all page layouts are registered via the [`PbPageLayoutPlugin`](#), plugin, which can be done within the `apps/theme/index.ts` file:
 
@@ -112,22 +114,38 @@ export default () => [
 ];
 ```
 
-The plugin is what actually makes the page layout visible in the Page Builder application and ultimately enables users to choose which layout they want to use for a specific page.
+The plugin is what actually makes the page layout visible in the Page Builder application and, ultimately, enables users to assign the layout to one or more pages and have their content rendered within it.
 
-Page layouts can be assigned to pages in two ways. The first way is by selecting a default page layout for a specific page category. For example, if we wanted to assign the **Static page** layout to all pages in the **Blogs** category, upon creating the category, we would select the **Static page** layout in the **Layout** field: 
+More on this in the following section.
+
+### Assigning Page Layouts to Pages
+
+Page layouts can be assigned to pages in two ways. 
+
+#### 1. Page Categories
+
+The first is by selecting a default page layout for a page category. For example, if we were to create a new **Blogs** category, and we selected the **Static page** layout in the **Layout** field, all pages created in the **Blogs** category would be rendered using the **Static page** layout. 
 
 <Image src={pageBuilderLayoutSelectCategory} title={"Theme Colors"}/>
 
-The second way is by selecting a page layout for a specific page. For example, if we wanted to assign the **Static page** layout to a specific page, we would select the **Static page** layout in the **Layout** field, located in the **Page Settings** tab:
+Note that the layout can be changed at any time, and the change will be reflected on all existing pages that use the layout. Additionally, the layout can be changed for individual pages, which will override the default layout set via the category. This is covered in the next section.
 
-<Image src={pageBuilderLayoutPageSettings} title={"Theme Colors"}/>
+#### 2. Page Settings
+
+Page layout can also be selected via page settings in the page editor. This enables us to override the default layout set via the category.
+
+This is achieved by selecting the desired layout in the **Layout** field, located in the **General Settings** tab in the page settings area.
+
+<Image src={pageBuilderLayoutPageSettings} title={"Selecting Page Layout via Page Settings"}/>
 
 
 ## Introducing New Page Layouts
 
-The **Static page** page layout shown above can be used for all pages, but it's also possible to introduce new layouts and use them for different pages. All that is needed is a React component like the one above, and a `PbPageLayoutPlugin` plugin that registers the layout, which can be done via the `apps/theme/pageBuilder/index.ts` file.
+If required, users can introduce additional page layouts into their project and use them with different pages. For example, let's imagine we wanted to introduce a completely blank layout, that doesn't render any header or footer. 
 
-For example, say we wanted to have a completely blank layout, that doesn't render any header or footer. We could create a new React component, and register it as a new layout via the `apps/theme/pageBuilder/index.ts` file:
+Like with the **Static page** layout, we would need to create a new page layout React component, and register it via the `PbPageLayoutPlugin` plugin.
+
+For the component, the following would be all that's required:
 
 ```tsx apps/theme/layouts/pages/Blank.tsx
 import React from "react";
@@ -140,7 +158,7 @@ const Blank: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 export default Blank;
 ```
 
-Then, we would register the new layout via the `apps/theme/pageBuilder/index.ts` file:
+And for the registration, we would need to add the following to the `apps/theme/index.ts` file:
 
 ```diff-ts apps/theme/index.ts
 import { PbPageLayoutPlugin } from "@webiny/app-page-builder";
@@ -181,18 +199,56 @@ export default () => [
 ];
 ```
 
-With the above code in place, we should be able to create a new page and select the **Blank page** layout:
+With the above code in place, we should be able to create pages and select the **Blank page** layout to be used.
 
+## Styling Page Layouts
 
+As mentioned in the [Introduction](/docs/{version}/page-builder/theming/introduction) section, Webiny relies on Emotion for all of the styling needs. This includes styling of page layouts. 
 
+If we were to take another look at the `apps/theme/layouts/pages/Static.tsx` file, we could notice the Emotion's [`Global`](https://emotion.sh/docs/globals) component being used to inject global styles into the page. We could also notice the usage of the [`@emotion/styled`](https://emotion.sh/docs/styled) package, which enables us to create styled components. In this case, the `Layout` component.
 
+```diff-tsx apps/theme/layouts/pages/Static.tsx
+import React from "react";
+import { Global, css } from "@emotion/react";
+import styled from "@emotion/styled";
+import { Header } from "./Static/Header";
+import { Footer } from "./Static/Footer";
 
-To learn more about layouts and how to compose one, have a look at the [layouts article](./layouts).
++ const globalStyles = css`
++     html {
++         scroll-behavior: smooth;
++     }
++ 
++     @media screen and (prefers-reduced-motion: reduce) {
++         html {
++             scroll-behavior: smooth;
++         }
++     }
++ `;
 
-## FAQ
++ const Layout = styled.div`
++     min-height: 100vh;
++     display: flex;
++     flex-direction: column;
++ 
++     footer {
++         margin-top: auto;
++     }
++ `;
 
-Should i adjust the theme directly or make a copy?
+const Static: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    return (
+        <Layout>
++           <Global styles={globalStyles} />
+            <Header />
+            {/* We render the actual page content via the "children" prop. */}
+            <main>{children}</main>
+            <Footer />
+        </Layout>
+    );
+};
 
-How to enable multi theme?
+export default Static;
+```
 
-Can I use `` css instead of objects?
+The `Header` and `Footer` components that are being rendered in the layout are also styled using Emotion.   
