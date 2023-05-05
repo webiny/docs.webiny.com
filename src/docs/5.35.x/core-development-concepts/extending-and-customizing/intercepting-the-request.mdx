@@ -1,0 +1,106 @@
+---
+title: Intercepting the Request
+description: Learn how to intercept the request in it's initial stage
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- how to intercept the request
+- what you can do with the request at this point
+
+</Alert>
+
+## Introduction
+
+In the `5.34.0` version we added a possibility for users to intercept the Fastify request in it's initial phase.
+It can be done via the [`HandlerOnRequestPlugin`](https://github.com/webiny/webiny-js/blob/16af8737377a9ae1dd6ac4ecffec5625726c814e/packages/handler/src/plugins/HandlerOnRequestPlugin.ts).
+
+With this plugin you can do anything with the Fastify's [Request](https://www.fastify.io/docs/latest/Reference/Request/) object, even stop the request from being processed.
+To find out why you can stop the request from being processed, read about it in the [Fastify Lifecycle](https://www.fastify.io/docs/latest/Reference/Lifecycle/) and [Fastify Hooks](https://www.fastify.io/docs/latest/Reference/Hooks/) documentation.
+
+## Creating and Registering the Plugin To Intercept the Request
+
+```typescript
+import { createHandlerOnRequest } from "@webiny/handler";
+
+const handlerOnRequestPlugin = createHandlerOnRequest(async (request, reply) => {
+  if (request.raw.path === "/testing") {
+    // do something for this path
+  }
+});
+```
+
+Of course, as with our other plugins, you must register it in the Lambda handler plugins array:
+
+```typescript apps/api/graphql/src/index.ts
+const handler = createHandler({
+  plugins: [
+    // ... other plugins
+    handlerOnRequestPlugin
+  ]
+});
+```
+
+## Intercepting the `OPTIONS` Request and Stopping the Request From Being Processed
+
+By default, Webiny intercepts the `OPTIONS` request and stop all of the Fastify lifecycles, after the `onRequest`, from being ran.
+We do this because we have no need to run all the code we usually run for, eg., `POST` request.
+You can see the code [here](https://github.com/webiny/webiny-js/blob/16af8737377a9ae1dd6ac4ecffec5625726c814e/packages/handler/src/fastify.ts#L283).
+
+Via the `HandlerOnRequestPlugin`, users can prevent our default behavior.
+
+### Why Would the User Prevent the Webiny Default Behavior?
+
+The most simple answer would be: to output their own headers in the `OPTIONS` request.
+
+### How Can Users Prevent the Webiny Default Behavior on `OPTIONS` Request To Be Executed?
+
+To prevent the Webiny default behavior on `OPTIONS` request, user would need to add a simple plugin which returns `false` as the result.
+
+Here is an example of sending a custom header `myCustomHeader`, and prevent the Webiny default behavior, on `OPTIONS` request:
+
+```typescript
+import { createHandlerOnRequest } from "@webiny/handler";
+
+const handlerOnRequestPlugin = createHandlerOnRequest(async (request, reply) => {
+  if (request.method !== "OPTIONS") {
+    return;
+  }
+  reply
+    .code(204)
+    .headers({
+      myCustomHeader: "sending the custom headers"
+    })
+    /**
+     * There must be some output or the request will hang.
+     * Also, send must be just before the hijack(), otherwise all other method calls will not have any effect.
+     */
+    .send("")
+    /**
+     * It is important to hijack() the reply, as it prevents all other Fastify lifecycle events to be executed.
+     * Of course, if user wants all the events to be triggered, they should not hijack() the reply.
+     */
+    .hijack();
+  /**
+   * It is important to return false in the end because it actually prevents
+   * all other HandlerOnRequestPlugin to be ran, including the Webiny default behavior.
+   */
+  return false;
+});
+```
+
+## Conclusion
+
+Simply, with the `HandlerOnRequestPlugin` user can, in the initial stage of the Fastify Request Lifecycle:
+
+- intercept the request and prevent it to go further down the lifecycle line
+- modify the Webiny default `OPTIONS` headers output to suit their own need
+- log the request to some outside service
+
+<Alert type="warning">
+
+Users must be careful on which path are they when executing the plugin code. Webiny has one built-in path: `/graphql`.
+
+</Alert>
