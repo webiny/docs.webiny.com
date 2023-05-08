@@ -15,6 +15,33 @@ import { Alert } from "@/components/Alert";
 
 ## Overview
 
+### Use Theme Object When Styling
+
+When styling custom page layouts or page elements, visual elements like colors, typography and others should always be defined by relying on the theme object and the values it holds. 
+
+For example, instead of defining the background color for a page element with a hard-coded value, we should rely on the `theme.styles.colors` object and the colors it holds. For example:
+
+```diff-tsx
+import * as React from "react";
+import styled from "@emotion/styled";
+
+const SomeDiv = styled.div`
+- background-color: #fff;
++ background-color: ${props => props.theme.styles.colors["color5"]};
+  height: 100px;
+`;
+```
+
+This way, we can easily change the color of the page element by simply changing the color value in the theme object.
+
+This is even more important when it comes to multi-theme projects, where we can have multiple theme objects, each holding different values for the same visual elements. In this case, we can easily switch between themes, without having to change the styling code.
+
+<Alert type={"info"}>
+
+  For a multi-theme setup, please take a look at the existing [Setup Theme Manager](/docs/{version}/enterprise/theme-manager) article.
+
+</Alert>
+
 ### Access Theme Object via React Context
 
 The theme object should always be accessed via React context. For example, when creating styled components:
@@ -102,6 +129,72 @@ export const HeroSectionWithTheme = styled("div")(
 );
 ```
 
+### Styling Custom Page Elements
+
+Most often, styles for [custom page elements](/docs/{version}/page-builder/extending/create-a-page-element) are introduced via one or more standalone [Emotion styled components](https://emotion.sh/docs/styled), included with the page element code.
+
+
+#### Using `styles.elements` Object To Style Custom Page Elements
+
+On top of the guidelines outlined in the [Use Theme Object When Styling](#use-theme-object-when-styling) section, in order to provide theme-specific styles for custom page elements, we can also leverage the theme object's [`styles.elements`](/docs/{version}/page-builder/theming/theme-object#page-elements) object.
+
+The following example shows how we can provide different styles for an imaginary `myCustomElement` custom page element for different themes.
+
+```diff-ts apps/theme/theme-light.ts
+// (...)
+
+// Theme object.
+const theme = createTheme({
+    breakpoints,
+    styles: {
+        colors,
+        typography,
+        elements: {
+            document: {
+                // (...)
+            },
++           myCustomElement: {
++               background: colors.color1,
++               border: `1px solid ${colors.color1}`,
++               borderRadius: 4,
++               color: colors.color6,
++           }
+            button: {
+                // (...)
+            }
+        }
+    }
+});
+```
+
+
+```diff-ts apps/theme/theme-dark.ts
+// (...)
+
+// Theme object.
+const theme = createTheme({
+    breakpoints,
+    styles: {
+        colors,
+        typography,
+        elements: {
+            document: {
+                // (...)
+            },
++           myCustomElement: {
++               background: colors.color2,
++               border: `1px solid ${colors.color2}`,
++               borderRadius: 14,
++               color: colors.color7,
++           }
+            button: {
+                // (...)
+            }
+        }
+    }
+});
+```
+
 ### Global Styles
 
 Sometimes we might need to insert global CSS rules like resets or font faces. There are a couple of ways to do this.
@@ -168,7 +261,7 @@ Alternatively, sometimes we may need to introduce global styles only on the page
 
 #### Global Document Styles
 
-Sometimes we may need to introduce global styles only on the page content (document) level. For example, by default, in the `styles.elements.document` object, we have the following styles that define how links, bold and italic text should look like:
+Sometimes we may need to introduce global styles only on the page content (document) level. For example, by default, in the `styles.elements.document` object, we have the following styles that define how [links](#), **bold** and *italic* text should look like:
 
 ```diff-ts apps/theme/theme.ts
 // (...)
