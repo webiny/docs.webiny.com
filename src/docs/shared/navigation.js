@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import mdxFiles from "@/data/mdxFiles.json";
-import { NavGroup, Page, Draft, Collapsable, Section, useVersion } from "@/docs/utils/navigation";
+import { NavGroup, Page, Collapsable, Section, useVersion } from "@/docs/utils/navigation";
 import { rcompare, valid } from "semver";
 
 export const Navigation = () => {
@@ -34,6 +34,10 @@ export const Navigation = () => {
             <Collapsable title={"Write with Webiny"}>
                 <Page link={"write-with-webiny/write-with-webiny"} />
             </Collapsable>
+
+
+          {/* Messages */}
+          <Page link={"messages/lambda-edge-warning"} />
         </NavGroup>
     );
 };
