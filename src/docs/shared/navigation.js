@@ -35,9 +35,8 @@ export const Navigation = () => {
                 <Page link={"write-with-webiny/write-with-webiny"} />
             </Collapsable>
 
-
           {/* Messages */}
-          <Page link={"messages/lambda-edge-warning"} />
+          <Page link={"messages/lambda-edge-warning"} hidden={true}/>
         </NavGroup>
     );
 };
