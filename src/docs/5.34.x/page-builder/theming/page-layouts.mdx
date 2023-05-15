@@ -1,0 +1,266 @@
+---
+title: Page Layouts
+description: Learn how to create and assign page layouts to pages created with Page Builder.
+---
+
+import { Alert } from "@/components/Alert";
+import staticPageTemplate from "./images/static-page-template.png";
+import pageBuilderLayoutSelectCategory from "./images/page-builder-layout-select-category.png";
+import pageBuilderLayoutPageSettings from "./images/page-builder-layout-select-page-settings.png";
+import pageBuilderSettingsIcon from "./images/page-builder-settings-icon.png";
+
+<!-- Always include this section on top of the page. -->
+
+<Alert type="success" title="What You’ll Learn">
+
+- how to create page layouts
+- how to assign page layouts to pages created with Page Builder
+
+</Alert>
+
+## Overview
+
+All pages created with Page Builder's page editor are rendered within a page layout.
+
+For example, the **Static page** layout, that's by default included in every Webiny project, renders pages in a relatively standard **header** → **content** → **footer** structure.
+
+<Image src={staticPageTemplate} title={"Static Page Layout"} shadow={false} />
+
+## React Components and Plugins
+
+On the code level, page layouts consist of one or more React components. For example, if we were to take a look at the [`Static.tsx`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/layouts/pages/Static.tsx) file, located in the [`apps/theme/layouts/pages`](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/layouts/pages) folder, we would see the following code:
+
+```tsx apps/theme/layouts/pages/Static.tsx
+import React from "react";
+import { Global, css } from "@emotion/react";
+import styled from "@emotion/styled";
+import { Header } from "./Static/Header";
+import { Footer } from "./Static/Footer";
+
+const globalStyles = css`
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media screen and (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+`;
+
+const Layout = styled.div`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  footer {
+    margin-top: auto;
+  }
+`;
+
+const Static: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <Layout>
+      <Global styles={globalStyles} />
+      <Header />
+      {/* We render the actual page content via the "children" prop. */}
+      <main>{children}</main>
+      <Footer />
+    </Layout>
+  );
+};
+
+export default Static;
+```
+
+Essentially, the file exports a page layout React component, which renders the following:
+
+1. the actual page layout (notice extra components like `Layout` and `Header`)
+2. the page content created via Page Builder's page editor (passed via the `children` prop)
+
+Depending on the requirements, page layouts can be simple or more complex. For example, the [`Static.tsx`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/layouts/pages/Static.tsx) file also contains `Header` and `Footer` components, which are used to render the header and footer of the page layout.
+
+Ultimately, all page layouts are registered via the [`PbPageLayoutPlugin`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/app-page-builder/src/plugins/PbPageLayoutPlugin.ts#L4-L12), plugin, which can be done within the [`apps/theme/index.ts`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/index.ts) entrypoint file:
+
+```diff-ts apps/theme/index.ts
+import { PbPageLayoutPlugin } from "@webiny/app-page-builder";
+import { FbFormLayoutPlugin } from "@webiny/app-form-builder";
+import { ThemePlugin } from "@webiny/app-website";
+
+// The central theme object which defines different visual aspects of your website,
+// for example the default set of colors, typography, breakpoints, and more.
+import theme from "./theme";
+
+// Default layouts used by Page Builder pages and Form Builder forms.
++ import StaticLayout from "./layouts/pages/Static";
+import DefaultFormLayout from "./layouts/forms/DefaultFormLayout";
+
+// Ultimately, theme and layouts need to be registered via their respective plugins.
+// To learn more, see: https://www.webiny.com/docs/page-builder/theming/introduction.
+export default () => [
+    new ThemePlugin(theme),
+
++   new PbPageLayoutPlugin({
++       name: "static",
++       title: "Static page",
++       component: StaticLayout
++   }),
+
+    new FbFormLayoutPlugin({
+        name: "default",
+        title: "Default form layout",
+        component: DefaultFormLayout
+    })
+];
+```
+
+The plugin is what actually makes the page layout visible in the Page Builder application and, ultimately, enables users to assign the layout to one or more pages and have their content rendered within it.
+
+More on this in the following section.
+
+### Assigning Page Layouts to Pages
+
+Page layouts can be assigned to pages in two ways.
+
+#### 1. Page Categories
+
+The first is by selecting a default page layout for a page category. For example, if we were to create a new **Blogs** category, and we selected the **Static page** layout in the **Layout** field, all pages created in the **Blogs** category would be rendered using the **Static page** layout.
+
+<Image src={pageBuilderLayoutSelectCategory} title={"Theme Colors"} />
+
+Note that the layout can be changed at any time, and the change will be reflected on all existing pages that use the layout. Additionally, the layout can be changed for individual pages, which will override the default layout set via the category. This is covered in the next section.
+
+#### 2. Page Settings
+
+Page layout can also be selected via page settings in the page editor. This enables us to override the default layout set via the category.
+
+This is achieved by selecting the desired layout in the **Layout** field, located in the **General Settings** tab in the page settings area.
+
+<Image src={pageBuilderLayoutPageSettings} title={"Selecting Page Layout via Page Settings"} />
+
+<Alert type={'info'}>
+
+Page settings can be accessed by clicking on the cogwheel icon, located in the top right corner of the page editor.
+
+<Image src={pageBuilderSettingsIcon} title={"Accessing Page Settings in the Page Editor"} />
+
+</Alert>
+
+## Introducing New Page Layouts
+
+If required, users can introduce additional page layouts into their project and use them with different pages. For example, let's imagine we wanted to introduce a completely blank layout, that doesn't render any header or footer.
+
+Like with the **Static page** layout, we would need to create a new page layout React component, and register it via the [`PbPageLayoutPlugin`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/app-page-builder/src/plugins/PbPageLayoutPlugin.ts#L4-L12) plugin.
+
+For the component, the following would be all the code that's required:
+
+```tsx apps/theme/layouts/pages/Blank.tsx
+import React from "react";
+
+const Blank: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Simply render the "children" prop, which contains the actual page content.
+  return children;
+};
+
+export default Blank;
+```
+
+And for the registration, we would need to add the following to the [`apps/theme/index.ts`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/index.ts#L18-L22) file:
+
+```diff-ts apps/theme/index.ts
+import { PbPageLayoutPlugin } from "@webiny/app-page-builder";
+import { FbFormLayoutPlugin } from "@webiny/app-form-builder";
+import { ThemePlugin } from "@webiny/app-website";
+
+// The central theme object which defines different visual aspects of your website,
+// for example the default set of colors, typography, breakpoints, and more.
+import theme from "./theme";
+
+// Default layouts used by Page Builder pages and Form Builder forms.
+import StaticLayout from "./layouts/pages/Static";
++ import BlankLayout from "./layouts/pages/Blank";
+import DefaultFormLayout from "./layouts/forms/DefaultFormLayout";
+
+// Ultimately, theme and layouts need to be registered via their respective plugins.
+// To learn more, see: https://www.webiny.com/docs/page-builder/theming/introduction.
+export default () => [
+    new ThemePlugin(theme),
+
+    new PbPageLayoutPlugin({
+        name: "static",
+        title: "Static page",
+        component: StaticLayout
+    }),
+
++   new PbPageLayoutPlugin({
++       name: "blank",
++       title: "Blank page",
++       component: StaticLayout
++   }),
+
+    new FbFormLayoutPlugin({
+        name: "default",
+        title: "Default form layout",
+        component: DefaultFormLayout
+    })
+];
+```
+
+With the above code in place, we should be able to create pages and select the **Blank page** layout to be used.
+
+## Styling Page Layouts
+
+As mentioned in the [Introduction](/docs/{version}/page-builder/theming/introduction) section, Webiny relies on Emotion for all of the styling needs. This includes styling of page layouts.
+
+If we were to take another look at the [`apps/theme/layouts/pages/Static.tsx`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/layouts/pages/Static.tsx) file, we could notice the Emotion's [`Global`](https://emotion.sh/docs/globals) component being used to inject global styles into the page. We could also notice the usage of the [`@emotion/styled`](https://emotion.sh/docs/styled) package, which enables us to create styled components. In this case, the `Layout` component.
+
+```diff-tsx apps/theme/layouts/pages/Static.tsx
+import React from "react";
+import { Global, css } from "@emotion/react";
+import styled from "@emotion/styled";
+import { Header } from "./Static/Header";
+import { Footer } from "./Static/Footer";
+
++ const globalStyles = css`
++     html {
++         scroll-behavior: smooth;
++     }
++
++     @media screen and (prefers-reduced-motion: reduce) {
++         html {
++             scroll-behavior: smooth;
++         }
++     }
++ `;
+
++ const Layout = styled.div`
++     min-height: 100vh;
++     display: flex;
++     flex-direction: column;
++
++     footer {
++         margin-top: auto;
++     }
++ `;
+
+const Static: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    return (
+        <Layout>
++           <Global styles={globalStyles} />
+            <Header />
+            {/* We render the actual page content via the "children" prop. */}
+            <main>{children}</main>
+            <Footer />
+        </Layout>
+    );
+};
+
+export default Static;
+```
+
+<Alert type={"info"}>
+
+The `Header` and `Footer` components that are being included in the layout are also styled using Emotion.
+
+</Alert>
