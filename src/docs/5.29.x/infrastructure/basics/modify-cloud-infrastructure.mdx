@@ -178,6 +178,53 @@ Note that when specifying additional production environments, they should be spe
 3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts))
 4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts))
 
+### Conditionally Using a Shared Elasticsearch Domain And Index Prefix
+
+```ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+// Here we're listing all environments that will use the shared ElasticSearch domain.
+const ENVIRONMENTS_USING_SHARED_ES_DOMAIN = ["staging", "prod"];
+
+export default createCoreApp({
+    pulumiResourceNamePrefix: "wby-",
+    elasticSearch: ({ params }) => {
+        const { env } = params.run;
+        if (ENVIRONMENTS_USING_SHARED_ES_DOMAIN.includes(env)) {
+            return {
+                domainName: "my-elastic-search-shared-domain",
+                indexPrefix: `${env}_`
+            };
+        }
+
+        return undefined;
+    }
+});
+```
+
+```ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+// Here we're listing all environments that will use the shared ElasticSearch domain.
+const ENVIRONMENTS_USING_SHARED_ES_DOMAIN = ["staging", "prod"];
+
+export default createCoreApp({
+    pulumiResourceNamePrefix: "wby-",
+    elasticSearch: ({ params }) => {
+        const { env } = params.run;
+        if (ENVIRONMENTS_USING_SHARED_ES_DOMAIN.includes(env)) {
+            return {
+                domainName: "my-elastic-search-shared-domain",
+                indexPrefix: `${env}_`
+            };
+        }
+
+        return undefined;
+    }
+});
+```
+
+
 ### Modifying AWS IAM Roles
 
 The following example demonstrates how we can modify the default AWS IAM role that's assigned to the AWS Lambda function that represents your GraphQL API (the one accessed via the `https://xyz.cloudfront.net/graphql` URL).
