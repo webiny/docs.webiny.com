@@ -88,6 +88,10 @@ export const Navigation = () => {
         <Collapsable title={"Page Builder"}>
           <Section title={"Essentials"}>
             <Page title={"Glossary"} link={"user-guides/page-builder/essentials/glossary"} />
+            <Page title={"Overview"} link={"user-guides/page-builder/essentials/overview"} />
+            <Page link={"user-guides/page-builder/essentials/create-page"} />
+            <Page link={"user-guides/page-builder/essentials/navigation-menu"} />
+            <Page link={"user-guides/page-builder/essentials/seo-and-social-sharing"} />
           </Section>
         </Collapsable>
       </NavGroup>
