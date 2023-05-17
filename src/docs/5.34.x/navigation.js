@@ -99,8 +99,9 @@ export const Navigation = () => {
             <Page title={"Overview"} link={"user-guides/page-builder/essentials/overview"} />
             <Page title={"Training Course"} link={"user-guides/page-builder/essentials/training-course"} />
             <Page link={"user-guides/page-builder/essentials/create-page"} />
-            <Page link={"user-guides/page-builder/essentials/navigation-menu"} />
+            <Page link={"user-guides/page-builder/essentials/create-a-page-block-from-figma-design"} />
             <Page link={"user-guides/page-builder/essentials/seo-and-social-sharing"} />
+            <Page link={"user-guides/page-builder/essentials/navigation-menu"} />
           </Section>
         </Collapsable>
       </NavGroup>
