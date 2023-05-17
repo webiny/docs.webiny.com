@@ -1,0 +1,434 @@
+---
+title: Define Content Models via Code
+description: Learn how to define content models and content model groups through code.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- how to define content models and content model groups via plugins
+
+</Alert>
+
+## Overview
+
+Content models and content model groups can be defined in two ways.
+
+### Via the Admin Area
+
+The most straightforward way to define content models and content model groups would be via the Admin Area application, via the Content Model Editor and the Content Model Groups module. This is especially suitable for users that are not developers, and just want to manage everything in a quick and easy way.
+
+![Defining Content Models and Content Model Groups via the Admin Area Application](./assets/content-models-plugins/content-models-group-editor.png)
+
+### Using Plugins
+
+And although we can get pretty far by defining content models and content model groups via the Admin Area, on the other hand, we can also do this within our application code, by registering one or more [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins. Once defined, content models and content model groups can be then used via the Admin Area in the same way as if they were created regularly, via the Content Model Editor.
+
+Some of the benefits of this approach are:
+
+- content models and content model groups get to be stored in version control
+- since everything is done via code, in some case we may receive additional flexibility
+- by default, defined content models and content model groups are available for all available locales and tenants
+- basically, only developers have the ability to perform changes on content models and content model groups
+
+In the following sections, we cover a couple of examples that show how to define content models and content model groups via plugins.
+
+## Examples
+
+<Alert type="success">
+
+Note that we **NEVER** set the `storageId` property value as it is created automatically out of the field `id` and `type` property values.
+
+To find out more about the `storageId` property, and understand why it exists, please read [this](/docs/headless-cms/extending/content-models-via-code-storage-id) article.
+
+</Alert>
+
+### Basic Example
+
+In this example, we will explore how to define a simple **Product** content model, that belongs to the **E-Commerce** content model group.
+
+#### Create Content Model Group and Content Model Plugins
+
+We will create the content group and content model by defining the `CmsGroupPlugin` and `CmsModelPlugin` plugins, respectively.
+Both plugins can be defined within a single file.  
+Let's create a [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/graphql/src/plugins/models.ts) file in the `apps/api/graphql/src/plugins` directory.
+
+```ts apps/api/graphql/src/plugins/models.ts
+import { CmsGroupPlugin, CmsModelPlugin } from "@webiny/api-headless-cms";
+
+export default [
+  // Defines a new "E-Commerce" content models group.
+  new CmsGroupPlugin({
+    id: "ecommerce",
+    name: "E-Commerce",
+    description: "E-Commerce content model group",
+    slug: "e-commerce",
+    icon: "fas/shopping-cart"
+  }),
+
+  // Defines a new "Product" content model.
+  new CmsModelPlugin({
+    name: "Product",
+    modelId: "product",
+    description: "Product content model",
+    group: {
+      id: "ecommerce",
+      name: "E-Commerce"
+    },
+    fields: [
+      {
+        id: "productName",
+        fieldId: "productName",
+        type: "text",
+        label: "Product Name",
+        helpText: "A short product name",
+        renderer: { name: "text-input" },
+        validation: [
+          {
+            name: "required",
+            message: "Value is required."
+          }
+        ]
+      },
+      {
+        id: "productSku",
+        fieldId: "productSku",
+        type: "text",
+        label: "SKU",
+        placeholderText: "SKU = Stock Keeping Unit",
+        renderer: { name: "text-input" }
+      },
+      {
+        id: "productPrice",
+        fieldId: "productPrice",
+        type: "number",
+        label: "Price",
+        renderer: { name: "text-input" }
+      }
+    ],
+    layout: [["productName"], ["productSku", "productPrice"]],
+    titleFieldId: "productName"
+  })
+];
+```
+
+#### How to Define Field ID's
+
+<Alert type="danger">
+  When defining content models via the code, the field identifiers are not scoped within a model.
+  The id attribute must be unique across all your models that are defined via the code.
+</Alert>
+
+As a general rule, our suggestion is to prefix the `id` attribute with the model name.
+For example, if you have a model with an `id` of "product" and that model contains a field with an `id` value of "name".
+Instead of just calling it "name", set the `id` to "productName".
+
+#### Register the Plugins
+
+As a next step, we will register the content model group and content model plugin in the Headless CMS application.
+Let's make the following changes in `apps/api/graphql/src/index.ts` file:
+
+```diff-js apps/api/graphql/src/index.ts
+(...)
+
+// Import the content model group and content model
++ import eCommerceGroupAndModels from "./plugins/models";
+
+export default [
+     // Rest of the plugins
+     (...)
+     createHeadlessCmsGraphQL({ debug }),
+    scaffoldsPlugins(),
++   ...eCommerceGroupAndModels
+];
+```
+
+Once plugins are registered successfully, we should be able to see the following two items in our Admin Area main menu:
+
+![Product and E-Commerce Items in the Admin Area Main Menu](./assets/content-models-plugins/basics-plugins-work.png)
+
+<Alert type="success">
+
+With the [`webiny watch`](/docs/core-development-concepts/basics/watch-command) command up and running, the performed application code changes should be automatically rebuilt and redeployed into the cloud.
+
+</Alert>
+
+As shown in the example, the [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) receives a [`CmsContentModel`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) object upon instantiation. It lets us define all of the content model's properties, like its name, ID (`modelId`), a content model group to which it belongs to, and most importantly, all of the fields that it consists of.
+
+All of the fields of a single content model are defined via the [`fields`](https://github.com/webiny/webiny-js/blob/c3d4955bf74e7ffdb9628867e3b23cdfe64ea8dc/packages/api-headless-cms/src/types.ts#L345) property, which is an array of [`CmsModelField`](https://github.com/webiny/webiny-js/blob/c3d4955bf74e7ffdb9628867e3b23cdfe64ea8dc/packages/api-headless-cms/src/types.ts#L109) objects. Note that some of the properties that we need to define for each field are simpler than others, for example `label` or `placeholderText`. On the other hand, properties like `type`, `renderer.name`, and `validation.name` contain values that actually reference other registered plugins. In case an invalid reference was provided, an error will be thrown and you will have to make corrections.
+
+<Alert type="info">
+
+All available [field types (`type`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/graphqlFields), [field renderers (`renderer.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/app-headless-cms/src/admin/plugins/fieldRenderers), and [field validators (`validators.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/validators) can be found in our GitHub repository.
+
+</Alert>
+
+<Alert type="success">
+
+Want to learn how to create your own custom field type? Check out the [Create a Custom Field Type](./custom-field-type) how-to guide.
+
+</Alert>
+
+Finally, note that both the **Product** content model and the **E-Commerce** content model group will be available for all existing locales and tenants. If you're interested in defining a content model only for a specific locale or tenant, check out the examples below.
+
+### Advanced Example
+
+In the example above, we created a simple model. Now let’s take this further and create a little more advanced model.
+We will see how to create a reference field and add multiple validations to a field.
+
+Let's start by creating a category model, which will have a name field with unique and required validation.
+Later, we will refer to this category model from the product model.
+
+#### Category Model with Multiple Validations
+
+As discussed earlier, we need to define a `CmsModelPlugin` plugin to create a model.
+Add the following code to the [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/graphql/src/plugins/models.ts) file that we created earlier.
+
+```ts apps/api/graphql/src/plugins/models.ts
+// Defines a new "Category" content model.
+new CmsModelPlugin({
+  name: "Category",
+  modelId: "category",
+  description: "Product category."
+  group: {
+    id: "ecommerce",
+    name: "E-Commerce"
+  },
+  fields: [
+    {
+      id: "categoryName",
+      fieldId: "categoryName",
+      type: "text",
+      label: "Category Name",
+      renderer: { name: "text-input" },
+      validation: [
+        {
+          name: "required",
+          message: "Value is required."
+        },
+        {
+          name: "unique",
+          message: "Field value must be unique."
+        }
+      ]
+    }
+  ],
+  layout: [["categoryName"]],
+  titleFieldId: "categoryName"
+});
+```
+
+Here you can see we added the `required` and `unique` validation for the category name field.
+You can explore all the available [field validators](https://github.com/webiny/webiny-js/tree/v5.26.0/packages/api-headless-cms/src/content/plugins/validators) in our GitHub repository.
+
+#### Add Category Reference Field in the Product Model
+
+Now let's use the Category Model as a reference field in the Product model.
+We will update the Product model that we created earlier. The `ref` field type is used to create the reference field.
+
+```diff-js apps/api/graphql/src/plugins/models.ts
+export default [
+  (...)
+  fields: [
+     (...)
+     {
+       id: "productPrice",
+       fieldId: "productPrice",
+       type: "number",
+       label: "Price",
+       renderer: { name: "text-input" },
+     },
++    {
++      id: "productCategory",
++      fieldId: "productCategory",
++      type: "ref",
++      label: "Category",
++      renderer: { name: "ref-input" },
++      settings: {
++        models: [
++          {
++            modelId: "category"
++          }
++        ]
++      }
++    }
+  ],
+
+  // Add productCategory field in the layout
++ layout: [["productName"], ["productSku", "productPrice"], ["productCategory"]],
+  titleFieldId: "productName"
+  (...)
+]
+```
+
+With the [`webiny watch`](/docs/core-development-concepts/basics/watch-command) command up and running,
+the performed application code changes should be automatically rebuilt and redeployed into the cloud.
+And you should be able to see the following Product model.
+
+![Product Model](./assets/content-models-plugins/product-model.png)
+
+### Define a Content Model Only for a Specific Locale
+
+In this example, we show how we can define content models and content model groups only for a specific locale, in our case, the `en-US`.
+
+```ts apps/api/graphql/src/plugins/models.ts
+import { CmsGroupPlugin, CmsModelPlugin } from "@webiny/api-headless-cms";
+import { CmsContext } from "@webiny/api-headless-cms/types";
+import { ContextPlugin } from "@webiny/handler";
+
+export default [
+    new ContextPlugin((context: CmsContext) => {
+        // Only register needed plugins if the current content locale is set to "en-US".
+        if (context.i18nContent.getLocale().code !== "en-US") {
+            return;
+        }
+
+        context.plugins.register([
+            new CmsGroupPlugin({
+               ...
+            }),
+            new CmsModelPlugin({
+                ...
+            })
+        ]);
+    })
+];
+```
+
+Note that we've used the [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/handler/src/plugins/ContextPlugin.ts#L7) first, in order to be able to access the dynamic `context` object, and the `context.i18nContent.getLocale` method. Once we've determined that the `en-US` is the current locale, we proceed by registering the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins, as seen in the previous example.
+
+<Alert type="success">
+
+In Admin Area, user's current local is sent with every issued HTTP request, via the `x-i18n-locale` header.
+
+</Alert>
+
+### Define a Content Model Only for a Specific Tenant
+
+In this example, we show how we can define content models and content model groups only for a specific tenant, in our case, the `root`.
+
+```ts apps/api/graphql/src/plugins/models.ts
+import { CmsGroupPlugin, CmsModelPlugin } from "@webiny/api-headless-cms";
+import { CmsContext } from "@webiny/api-headless-cms/types";
+import { ContextPlugin } from "@webiny/handler";
+
+export default [
+    new ContextPlugin((context: CmsContext) => {
+        // Only register needed plugins if the current tenant is set to "root".
+        if (context.tenancy.getCurrentTenant().id !== "root") {
+            return;
+        }
+
+        context.plugins.register([
+            new CmsGroupPlugin({
+               ...
+            }),
+            new CmsModelPlugin({
+                ...
+            })
+        ]);
+    })
+];
+```
+
+As we can see, like in the previous example, we're again utilizing the [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/handler/src/plugins/ContextPlugin.ts#L7) first, in order to be able to access the dynamic `context` object, and the `context.tenancy.getCurrentTenant` method. Once we've determined that the `root` is the current tenant, we proceed by registering the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins.
+
+## FAQ
+
+### Can content models (and groups) defined via plugins be edited via Admin Area?
+
+Content models and content model groups that were defined via plugins cannot be edited via Admin Area (via the Content Model Editor and Content Model Groups module). All of the changes need to be done within the application code.
+
+### How to set a default value of a field?
+
+You can set a default value to a field using the `defaultValue` property. Let's extend the [tutorial above](#create-content-model-group-and-content-model-plugins) and
+set the default value of the `Product Name` attribute.
+
+```diff-ts
+(...)
+fields: [
+  {
+    id: "productName",
+    fieldId: "productName",
+    type: "text",
+    label: "Product Name",
+    helpText: "A short product name",
+    renderer: { name: "text-input" },
++   settings: {
++       defaultValue: "You can set the default name of any product here"
++   }
+    validation: [
+      {
+        name: "required",
+        message: "Value is required."
+      }
+    ]
+  }
+(...)
+```
+
+In short, you will need to add `settings.defaultValue` property to define a default value to a field.
+
+### Are there any differences when it comes to security controls?
+
+When it comes to security, both ways of defining content models and content model groups have access to the same features and follow the same security-related built-in mechanisms. In other words, via the Security application, you can still decide which users have access to particular content models and content model groups that were defined via plugins, and which don't.
+
+### Can I convert a content model that was defined via Admin Area into a plugin (and vice-versa)?
+
+You can, but it will require a bit of manual work. For example, if you wanted to convert a content model that was defined via Admin Area into a plugin, you would have to find it directly in the database, and copy the data into your application code and try to fit it into the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) plugin.
+
+If you're doing this and require additional assistance, feel free to contact us over our community [Slack](https://www.webiny.com/slack).
+
+### What's the difference between the `id` and `fieldId` properties in the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) plugin?
+
+Both `id` and `fieldId` properties represent unique IDs of the field. We can assign any string value to them, but, for easier maintenance, we suggest you use a [camelCase](https://en.wikipedia.org/wiki/Camel_case) version of the actual name of the field. So, if the name of the field was **Author Name**, then we'd use `authorName` as the `id` and `fieldId`.
+
+There is a difference in how these two IDs are used internally within Headless CMS' application code, but this is more important when a content model is defined regularly, via the [Content Model Editor](#via-the-admin-area). In case where a content model is defined via a plugin, we can simply use the same value for both fields.
+
+<Alert type="info">
+
+Note that the `id` property must be unique throughout all the models.
+
+</Alert>
+
+### What are the values that I can pass to the `icon` property of the [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugin?
+
+When defining content model groups via Admin Area, we pick its icon via a simple drop-down menu:
+
+![Content Model Groups Form - Icon Selector](./assets/content-models-plugins/faq-icon-selector.png)
+
+On the other hand, when defining content model groups via a plugin, we need to specify the icon manually, by setting the same string value that would be set once an icon was picked from the above seen drop-down menu.
+
+By default, we include three free sets of Font Awesome icons (via the [Fort Awesome](https://fortawesome.com/) library): [regular](https://fortawesome.com/sets/font-awesome-5-regular), [solid](https://fortawesome.com/sets/font-awesome-5-solid), and [brands](https://fortawesome.com/sets/font-awesome-5-brands). So, when defining your plugin, simply use the icon code listed on the set's icons list page, prepended with the set code.
+
+Here are a couple of examples of specifying icons from solid, regular, and brands sets:
+
+- `fas/shopping-cart`
+- `fas/id-card-alt`
+- `far/address-book`
+- `far/copy`
+- `fab/aws`.
+- `fab/react`.
+
+## Immutable Code Definitions
+
+You can do what ever you want with the models via code. For that reason, there are things you need to be really careful about. We cannot prevent you from changing anything, so you need to be watchful for these pitfalls.
+
+You should **never** change `modelId` property of the model definition.
+
+There are also few field properties which must **never** change, if you want to keep your data.
+
+Properties are:
+
+- `id`
+- `storageId` - if you have created it manually
+- `type`
+- `multipleValues`
+- `predefinedValues` - you can add values but do not remove them
+
+Also, if you have defined anything in `settings` property of the field, be careful about these properties:
+
+- `settings.fields` - same rules apply as for the parent field
+- `settings.models` - you can add models but do not remove them
+- `settings.type`

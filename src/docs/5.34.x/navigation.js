@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigation as BaseNavigation } from "../5.33.x/navigation";
-import { Page, Section, Collapsable, NavGroup, Draft, Separator } from "@/docs/utils/navigation";
+import { Page, Section, Collapsable, NavGroup, Separator } from "@/docs/utils/navigation";
 
 export const Navigation = () => {
   return (
@@ -23,6 +23,14 @@ export const Navigation = () => {
               link={"page-builder/extending/customize-an-existing-element"}
               remove
             />
+          </Section>
+          <Section title={"Theming"}>
+            <Page link={"page-builder/theming/theme-object"} after={"page-builder/theming/introduction"}/>
+            <Page link={"page-builder/theming/page-layouts"} />
+            <Page link={"page-builder/theming/best-practices"} />
+            <Page link={"page-builder/theming/colors"} remove />
+            <Page link={"page-builder/theming/elements"} remove />
+            <Page link={"page-builder/theming/layouts"} remove />
           </Section>
         </Collapsable>
         <Collapsable title={"Webiny Overview"}>

@@ -11,6 +11,7 @@ export const Navigation = () => {
             </Collapsable>
             <Collapsable title={"Performance & Load Benchmark"} after={"Architecture"}>
                 <Page link={"performance-and-load-benchmark/introduction"} />
+                <Page link={"performance-and-load-benchmark/code"} />
                 <Section title={"Headless CMS"}>
                     <Page link={"performance-and-load-benchmark/headless-cms/write-benchmark"} />
                     <Page link={"performance-and-load-benchmark/headless-cms/read-benchmark"} />
@@ -33,6 +34,9 @@ export const Navigation = () => {
             <Collapsable title={"Write with Webiny"}>
                 <Page link={"write-with-webiny/write-with-webiny"} />
             </Collapsable>
+
+          {/* Messages */}
+          <Page link={"messages/lambda-edge-warning"} hidden={true}/>
         </NavGroup>
     );
 };
