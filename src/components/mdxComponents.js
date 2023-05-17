@@ -5,8 +5,9 @@ import { Alert } from "./Alert";
 import { WhatYouWillLearn } from "./WhatYouWillLearn";
 import { CanIUseThis } from "./CanIUseThis";
 import { Video } from "./Video";
-import externalLinkIcon from "@/img/external-link.svg";
 import Link from "next/link";
+import { ExternalLink } from "./ExternalLink";
+import { GithubRelease } from "./GithubRelease";
 
 export const mdxComponents = {
     Heading,
@@ -16,19 +17,12 @@ export const mdxComponents = {
     Image,
     Gallery,
     Video,
+    ExternalLink,
+    GithubRelease,
     ol: props => <ol {...props} style={{ "--start": props.start ?? 1 }} />,
     a: forwardRef((props, _) => {
         if (props.href.startsWith("http")) {
-            return (
-                <a target="_blank" href={props.href} rel={"noreferrer"}>
-                    {props.children}{" "}
-                    <img
-                        className="inline w-[12px] m-0"
-                        src={externalLinkIcon}
-                        alt="external link"
-                    />
-                </a>
-            );
+            return <ExternalLink {...props} />;
         } else {
             if (typeof props.children === "object") {
                 if (props?.children?.props?.originalType === "inlineCode") {
