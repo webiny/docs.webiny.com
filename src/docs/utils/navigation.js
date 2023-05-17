@@ -92,7 +92,7 @@ const weightMap = {
     releaseNotes: 50
 };
 
-export const Page = ({ title, link, remove, before, after }) => {
+export const Page = ({ title, link, remove, before, after, hidden = false }) => {
     const version = useContext(VersionContext);
     const page = findPage(version, link);
     if (!page) {
@@ -126,18 +126,20 @@ export const Page = ({ title, link, remove, before, after }) => {
 
     return (
         <>
-            <Property
-                id={id}
-                name={"items"}
-                array
-                remove={remove}
-                before={beforeId}
-                after={afterId}
-            >
-                <Property id={`${id}.type`} name={"type"} value={"page"} />
-                <Property id={`${id}.title`} name={"title"} value={title || page.title} />
-                <Property id={`${id}.link`} name={"link"} value={`/docs${relativePath}`} />
-            </Property>
+            {!hidden ? (
+                <Property
+                    id={id}
+                    name={"items"}
+                    array
+                    remove={remove}
+                    before={beforeId}
+                    after={afterId}
+                >
+                    <Property id={`${id}.type`} name={"type"} value={"page"} />
+                    <Property id={`${id}.title`} name={"title"} value={title || page.title} />
+                    <Property id={`${id}.link`} name={"link"} value={`/docs${relativePath}`} />
+                </Property>
+            ) : null}
             {/* This section will create a new object in the root property called "catalog" */}
             <Property id={versionedId} name={"catalog"} array root remove={remove}>
                 <Property name={"sourceFile"} value={page.file} />

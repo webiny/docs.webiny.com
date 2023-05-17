@@ -125,7 +125,7 @@ export default createCoreApp({
 +   const { env } = params.run;
 +   if (env === "prod") {
 +     // Apply additional configuration.
-+   } 
++   }
   }
 });
 ```
@@ -180,9 +180,7 @@ Note that when specifying additional production environments, they should be spe
 
 ### Modifying AWS IAM Roles
 
-#### AWS Lambda - Default GraphQL API Function
-
-The following example shows how you can modify the default AWS IAM role that's assigned to the AWS Lambda function that represents your default GraphQL API (the one accessed via the `https://xyz.cloudfront.net/graphql` URL).
+The following example demonstrates how we can modify the default AWS IAM role that's assigned to the AWS Lambda function that represents your GraphQL API (the one accessed via the `https://xyz.cloudfront.net/graphql` URL).
 
 ```ts
 import * as aws from "@pulumi/aws";
@@ -222,53 +220,6 @@ To learn more about the default GraphQL API and differences between it and the H
 <Alert type="info">
 
 If you want to learn more about the main GraphQL API and how it works on the cloud infrastructure level, check out the [GraphQL Requests](/docs/{version}/architecture/api/graphql-requests) page of the [Cloud Infrastructure - API](/docs/{version}/architecture/api/overview) key topics section.
-
-</Alert>
-
-#### AWS Lambda - Headless CMS GraphQL API Function
-
-The following example shows how you can modify the default AWS IAM role that's assigned to the AWS Lambda function that represents your Headless CMS GraphQL API (the one accessed via the `https://xyz.cloudfront.net/cms/{type}/{locale}` URL).
-
-When compared to the example above, the only difference is that here we're targeting the `resources.headlessCms.role` role with the `aws.iam.RolePolicyAttachment`, instead of `resources.graphql.role` role.
-
-```ts
-import * as aws from "@pulumi/aws";
-import { createApiApp } from "@webiny/serverless-cms-aws";
-
-export default createApiApp({
-  pulumiResourceNamePrefix: "wby-",
-  pulumi: ({ resources }) => {
-    const policy = new aws.iam.Policy("ses-policy", {
-      description: "This policy enables access to Amazon SES.",
-      policy: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Effect: "Allow",
-            Action: ["ses:SendEmail"],
-            Resource: ["arn:aws:ses:*:*:identity/*"]
-          }
-        ]
-      }
-    });
-
-    new aws.iam.RolePolicyAttachment("graphql-role-ses-policy-attachment", {
-      role: resources.headlessCms.role.output.name,
-      policyArn: policy.arn
-    });
-  }
-});
-```
-
-<Alert type="info">
-
-To learn more about the default GraphQL API and differences between it and the Headless CMS GraphQL API, please check out the [Introduction](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api#introduction) section of the [Extend GraphQL API](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api) article.
-
-</Alert>
-
-<Alert type="info">
-
-Learn more about the [Headless CMS GraphQL API](/docs/{version}/headless-cms/basics/graphql-api).
 
 </Alert>
 
