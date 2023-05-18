@@ -6,16 +6,18 @@ const externalIcon = {
     marginBottom: 4
 };
 
-export const ExternalLink = ({ href, children }) => {
+export const ExternalLink = ({ href, children, icon = true }) => {
     return (
         <a target="_blank" href={href} rel={"noreferrer"}>
             {children}
-            <img
-                className="inline w-[12px] m-0"
-                src={externalLinkIcon}
-                alt="external link"
-                style={externalIcon}
-            />
+            {icon ? (
+                <img
+                    className="inline w-[12px] m-0"
+                    src={externalLinkIcon}
+                    alt="external link"
+                    style={externalIcon}
+                />
+            ): null}
         </a>
     );
 };
