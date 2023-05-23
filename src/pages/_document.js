@@ -118,14 +118,6 @@ export default class Document extends NextDocument {
                         site="MZFYOTYQ"
                         src="https://banquet-golden-years.webiny.com/script.js"
                     ></script>
-
-                    <script
-                        src="https://widget.kapa.ai/kapa-widget.bundle.js"
-                        data-website-id="adf5b788-64b9-4dfb-8a26-3a193248da4e"
-                        data-project-name="Webiny"
-                        data-project-color="#EF5727"
-                        data-project-logo="https://avatars.githubusercontent.com/u/3808429?s=280&v=4"
-                    ></script>
                 </Head>
                 <body className="antialiased text-slate-500 dark:text-slate-400 dark:bg-dark-theme">
                     <Main />
