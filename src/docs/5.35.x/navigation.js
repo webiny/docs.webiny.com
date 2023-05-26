@@ -38,8 +38,13 @@ export const Navigation = () => {
                         <Page title={"Training Course"} link={"user-guides/page-builder/essentials/training-course"} />
                         <Page link={"user-guides/page-builder/essentials/create-page"} />
                         <Page link={"user-guides/page-builder/essentials/create-a-page-block-from-figma-design"} />
+                        <Page link={"user-guides/page-builder/essentials/website-settings"} />
                         <Page link={"user-guides/page-builder/essentials/seo-and-social-sharing"} />
                         <Page link={"user-guides/page-builder/essentials/navigation-menu"} />
+                        <Page link={"user-guides/page-builder/essentials/page-revisions"} />
+                    </Section>
+                    <Section title={"Advanced"}>
+                        <Page link={"user-guides/page-builder/advanced/user-creation"} />
                     </Section>
                 </Collapsable>
             </NavGroup>
