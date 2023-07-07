@@ -12,6 +12,6 @@ const allVersions = semver
     .map(v => v.replace(".0", ".x"));
 
 module.exports = {
-    allVersions: allVersions.slice(0, 2),
+    allVersions,
     latestVersion: allVersions[0]
 };

@@ -78,6 +78,9 @@ const getCanonicalPath = (version, pagePath) => {
 module.exports = withBundleAnalyzer({
     swcMinify: true,
     pageExtensions: ["js", "jsx", "mdx"],
+    experimental: {
+        esmExternals: false
+    },
     images: {
         disableStaticImages: true
     },
