@@ -8,30 +8,30 @@ function getImageFileName(url) {
     return fileName.split(".")[0];
 }
 
+function processImages(preTree, node, counter) {
+    if (node.type === "image") {
+        const localImage = !node.url.startsWith("http");
+
+        const src = localImage
+            ? addImportImage(preTree, node.url, "Image" + counter.counter++)
+            : `"${node.url}"`;
+
+        node.type = "jsx";
+        node.value = `<Image src={${src}} alt={"${node.alt || getImageFileName(src)}"}/>`;
+    } else if (node.children) {
+        node.children.map(nodeChild => processImages(preTree, nodeChild, counter));
+    }
+
+    return node;
+}
+
 module.exports.withImages = () => {
     return tree => {
-        let preTree = { children: [] };
-        let counter = 1;
-
-        function processImages(node) {
-            if (node.type === "image") {
-                const localImage = !node.url.startsWith("http");
-
-                const src = localImage
-                    ? addImportImage(preTree, node.url, "Image" + counter++)
-                    : `"${node.url}"`;
-
-                node.type = "jsx";
-                node.value = `<Image src={${src}} alt={"${node.alt || getImageFileName(src)}"}/>`;
-            } else if (node.children) {
-                node.children.map(nodeChild => processImages(nodeChild));
-            }
-
-            return node;
-        }
+        const preTree = { children: [] };
+        const counter = { counter: 1 };
 
         tree.children = tree.children.map(node => {
-            return processImages(node);
+            return processImages(preTree, node, counter);
         });
 
         tree.children = [...preTree.children, ...tree.children];
@@ -39,7 +39,7 @@ module.exports.withImages = () => {
 };
 
 const hasImages = node => {
-  return node.children.some(child => child.type === "jsx");
+    return node.children.some(child => child.type === "jsx");
 };
 
 module.exports.unwrapImages = () => {

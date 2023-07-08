@@ -51,9 +51,6 @@ const getPageData = pagePath => {
 module.exports = withBundleAnalyzer({
     swcMinify: true,
     pageExtensions: ["js", "jsx", "mdx"],
-    experimental: {
-        esmExternals: false
-    },
     images: {
         disableStaticImages: true
     },
@@ -64,16 +61,16 @@ module.exports = withBundleAnalyzer({
             const heapUsage = process.memoryUsage().heapUsed / 1024 / 1024;
             if (heapUsage > maxHeap) {
                 maxHeap = heapUsage;
-            }
 
-            process.stdout.write(
-                `\nHeap usage: ${green(heapUsage.toFixed(2) + " MB")}; Max heap usage: ${red(
-                    maxHeap.toFixed(2) + " MB"
-                )}`
-            );
+                process.stdout.write(
+                    `\n[${options.isServer ? "Server" : "Client"}] Heap usage: ${green(
+                        heapUsage.toFixed(2) + " MB"
+                    )}; Max heap usage: ${red(maxHeap.toFixed(2) + " MB")}`
+                );
+            }
         }, 1000);
 
-        process.on("exit", code => {
+        process.on("exit", () => {
             console.log(`Max heap usage: ${red(maxHeap.toFixed(2) + " MB")}`);
         });
 
@@ -85,10 +82,7 @@ module.exports = withBundleAnalyzer({
             };
         }
 
-        config.resolve.plugins = [
-            ...(config.resolve.plugins || []),
-            new AssetResolver()
-        ];
+        config.resolve.plugins = [...(config.resolve.plugins || []), new AssetResolver()];
 
         config.module.rules.push({
             test: /\.(png|jpe?g|gif|webp|avif|mp4)$/i,
@@ -131,7 +125,7 @@ module.exports = withBundleAnalyzer({
 
         let mdx = [
             {
-                loader: "@mdx-js/loader",
+                loader: require.resolve("./mdx.loader"),
                 options: {
                     remarkPlugins: [
                         withTitleCaseHeadings,
@@ -144,6 +138,9 @@ module.exports = withBundleAnalyzer({
                     ]
                 }
             },
+            createLoader(function (source) {
+                // Custom MDX loader
+            }),
             createLoader(function (source) {
                 let pathSegments = this.resourcePath.split(path.sep);
                 let slug =
