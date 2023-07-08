@@ -17,7 +17,7 @@ import { scroll } from "./SidebarLayout.module.css";
 
 export const ContentsContext = createContext();
 
-function TableOfContents({ tableOfContents, currentSection }) {
+function TableOfContents({ tableOfContents = [], currentSection }) {
     function isActive(section) {
         if (section.slug === currentSection) {
             return true;
@@ -198,7 +198,7 @@ function useTableOfContents(tableOfContents) {
 }
 
 export function ContentsLayout({ children, ...props }) {
-    const { classes, tableOfContents } = props;
+    const { classes, tableOfContents = [] } = props;
     const {
         page: { title, description }
     } = usePage();

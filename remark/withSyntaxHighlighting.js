@@ -1,42 +1,17 @@
 const { highlightCode, addImport } = require("./utils");
 
 const highlightNode = node => {
-    let re = /(<[^>]+)\s+dark-([a-z-]+)="([^"]+)"([^>]*>)/gi;
-
-    let lightCode = node.value.replace(
-        re,
-        (_match, before, _key, _value, after) => `${before}${after}`
-    );
-    let darkCode = node.value.replace(re, (_match, before, key, value, after) =>
-        `${before}${after}`.replace(new RegExp(`(\\s${key})="[^"]+"`), `$1="${value}"`)
-    );
-
     node.type = "html";
 
-    if (lightCode === darkCode) {
-        node.value = [
-            `<pre class="language-${node.lang}">`,
-            `<code class="language-${node.lang}">`,
-            highlightCode(lightCode, node.lang),
-            "</code>",
-            "</pre>"
-        ]
-            .filter(Boolean)
-            .join("");
-    } else {
-        node.value = [
-            `<pre class="language-${node.lang}">`,
-            `<code class="dark:hidden language-${node.lang}">`,
-            highlightCode(lightCode, node.lang),
-            "</code>",
-            `<code class="hidden dark:block language-${node.lang}">`,
-            highlightCode(darkCode, node.lang),
-            "</code>",
-            "</pre>"
-        ]
-            .filter(Boolean)
-            .join("");
-    }
+    node.value = [
+        `<pre class="language-${node.lang}">`,
+        `<code class="language-${node.lang}">`,
+        highlightCode(node.value, node.lang),
+        "</code>",
+        "</pre>"
+    ]
+        .filter(Boolean)
+        .join("");
 
     return node;
 };

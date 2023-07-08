@@ -1,4 +1,5 @@
 const path = require("path");
+const { red, green } = require("chalk");
 const querystring = require("querystring");
 const { createLoader } = require("simple-functional-loader");
 const frontMatter = require("front-matter");
@@ -7,7 +8,6 @@ const { withTableOfContents } = require("./remark/withTableOfContents");
 const { withSyntaxHighlighting } = require("./remark/withSyntaxHighlighting");
 const { withNextLinks } = require("./remark/withNextLinks");
 const minimatch = require("minimatch");
-//const versions = require("./src/data/versions.json");
 const pages = require("./src/data/pages.json");
 const { withImages, unwrapImages } = require("./remark/withImages");
 const { withTitleCaseHeadings } = require("./remark/withTitleCaseHeadings");
@@ -28,6 +28,7 @@ const fallbackDefaultExports = {
 
 const fallbackGetStaticProps = {};
 
+const omitKeys = ["sourceFile"];
 const getPageData = pagePath => {
     // /docs/5.29/something -> ["", "docs", "5.29.x", "something"]
     const part = pagePath.split("/")[2];
@@ -39,8 +40,6 @@ const getPageData = pagePath => {
         return null;
     }
 
-    const omitKeys = ["sourceFile"];
-
     return Object.keys(page).reduce((newPage, key) => {
         if (omitKeys.includes(key)) {
             return newPage;
@@ -48,32 +47,6 @@ const getPageData = pagePath => {
         return { ...newPage, [key]: page[key] };
     }, {});
 };
-
-/**
- * NOT USED
-const getCanonicalPath = (version, pagePath) => {
-    const [, ...allVersions] = versions.allVersions;
-    // First we check the latest version of pages.
-    const possibleLatestPath = pagePath.replace(`/${version}/`, "/");
-    const latestPage = pages.latest.find(page => page.path === possibleLatestPath);
-    if (latestPage) {
-        return latestPage.path;
-    }
-
-    // Now we can search in older versions.
-    // `allVersions` are already sorted in descending order, so the first match is what we need.
-    const regex = new RegExp(pagePath.replace(/\//g, "\\/").replace(version, "\\d+.\\d+.x"));
-    for (const version of allVersions) {
-        const page = pages[version].find(page => regex.test(page.path));
-        if (page) {
-            return page.path;
-        }
-    }
-
-    return pagePath;
-};
-
-*/
 
 module.exports = withBundleAnalyzer({
     swcMinify: true,
@@ -85,6 +58,25 @@ module.exports = withBundleAnalyzer({
         disableStaticImages: true
     },
     webpack(config, options) {
+        let maxHeap = 0;
+
+        setInterval(() => {
+            const heapUsage = process.memoryUsage().heapUsed / 1024 / 1024;
+            if (heapUsage > maxHeap) {
+                maxHeap = heapUsage;
+            }
+
+            process.stdout.write(
+                `\nHeap usage: ${green(heapUsage.toFixed(2) + " MB")}; Max heap usage: ${red(
+                    maxHeap.toFixed(2) + " MB"
+                )}`
+            );
+        }, 1000);
+
+        process.on("exit", code => {
+            console.log(`Max heap usage: ${red(maxHeap.toFixed(2) + " MB")}`);
+        });
+
         if (!options.dev && options.isServer) {
             let originalEntry = config.entry;
 
@@ -93,7 +85,10 @@ module.exports = withBundleAnalyzer({
             };
         }
 
-        config.resolve.plugins = [...(config.resolve.plugins || []), new AssetResolver()];
+        config.resolve.plugins = [
+            ...(config.resolve.plugins || []),
+            new AssetResolver()
+        ];
 
         config.module.rules.push({
             test: /\.(png|jpe?g|gif|webp|avif|mp4)$/i,
@@ -180,10 +175,6 @@ module.exports = withBundleAnalyzer({
             use: [
                 options.defaultLoaders.babel,
                 createLoader(function (source) {
-                    if (source.includes("/*START_META*/")) {
-                        const [meta] = source.match(/\/\*START_META\*\/(.*?)\/\*END_META\*\//s);
-                        return "export default " + meta;
-                    }
                     return (
                         source.replace(/export const/gs, "const") +
                         `\nMDXContent.layoutProps = layoutProps\n`
@@ -204,54 +195,32 @@ module.exports = withBundleAnalyzer({
                     let extra = [];
                     let resourcePath = path.relative(__dirname, this.resourcePath);
 
-                    if (!/^\s*export\s+(var|let|const)\s+Layout\s+=/m.test(source)) {
-                        for (let glob in fallbackLayouts) {
-                            if (minimatch(resourcePath, glob)) {
-                                extra.push(
-                                    `import { ${fallbackLayouts[glob][1]} as _Layout } from '${fallbackLayouts[glob][0]}'`,
-                                    "export const Layout = _Layout"
-                                );
-                                break;
-                            }
+                    for (let glob in fallbackLayouts) {
+                        if (minimatch(resourcePath, glob)) {
+                            extra.push(
+                                `import { ${fallbackLayouts[glob][1]} as _Layout } from '${fallbackLayouts[glob][0]}'`,
+                                "export const Layout = _Layout"
+                            );
+                            break;
                         }
                     }
 
-                    if (!/^\s*export\s+default\s+/m.test(source.replace(/```(.*?)```/gs, ""))) {
-                        for (let glob in fallbackDefaultExports) {
-                            if (minimatch(resourcePath, glob)) {
-                                extra.push(
-                                    `import { ${fallbackDefaultExports[glob][1]} as _Default } from '${fallbackDefaultExports[glob][0]}'`,
-                                    "export default _Default"
-                                );
-                                break;
-                            }
+                    for (let glob in fallbackDefaultExports) {
+                        if (minimatch(resourcePath, glob)) {
+                            extra.push(
+                                `import { ${fallbackDefaultExports[glob][1]} as _Default } from '${fallbackDefaultExports[glob][0]}'`,
+                                "export default _Default"
+                            );
+                            break;
                         }
                     }
 
-                    if (
-                        !/^\s*export\s+(async\s+)?function\s+getStaticProps\s+/m.test(
-                            source.replace(/```(.*?)```/gs, "")
-                        )
-                    ) {
-                        for (let glob in fallbackGetStaticProps) {
-                            if (minimatch(resourcePath, glob)) {
-                                extra.push(
-                                    `export { getStaticProps } from '${fallbackGetStaticProps[glob]}'`
-                                );
-                                break;
-                            }
-                        }
-                    }
-
-                    let metaExport;
-                    if (!/export\s+(const|let|var)\s+meta\s*=/.test(source)) {
-                        metaExport =
-                            typeof fields === "undefined"
-                                ? `export const meta = ${JSON.stringify(meta)}`
-                                : `export const meta = /*START_META*/${JSON.stringify(
-                                      meta || {}
-                                  )}/*END_META*/`;
-                    }
+                    let metaExport =
+                        typeof fields === "undefined"
+                            ? `export const meta = ${JSON.stringify(meta)}`
+                            : `export const meta = /*START_META*/${JSON.stringify(
+                                  meta || {}
+                              )}/*END_META*/`;
 
                     return [
                         ...(typeof fields === "undefined" ? extra : []),

@@ -38,11 +38,11 @@ module.exports.withImages = () => {
     };
 };
 
-module.exports.unwrapImages = () => {
-    const hasImages = node => {
-        return node.children.some(child => child.type === "jsx");
-    };
+const hasImages = node => {
+  return node.children.some(child => child.type === "jsx");
+};
 
+module.exports.unwrapImages = () => {
     return tree => {
         visit(tree, "paragraph", (node, index, parent) => {
             if (parent && typeof index === "number" && hasImages(node)) {
