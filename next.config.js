@@ -139,9 +139,6 @@ module.exports = withBundleAnalyzer({
                 }
             },
             createLoader(function (source) {
-                // Custom MDX loader
-            }),
-            createLoader(function (source) {
                 let pathSegments = this.resourcePath.split(path.sep);
                 let slug =
                     pathSegments[pathSegments.length - 1] === "index.mdx"
