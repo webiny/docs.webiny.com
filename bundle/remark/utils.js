@@ -71,6 +71,8 @@ const PSEUDO_CLASSES = [
     "where"
 ];
 
+const PSEUDO_CLASS_REGEX = new RegExp(`^::?(${PSEUDO_CLASSES.join("|")})`);
+
 Prism.hooks.add("wrap", env => {
     if (env.type === "atrule") {
         const content = env.content.replace(HTML_TAG, "");
@@ -78,7 +80,7 @@ Prism.hooks.add("wrap", env => {
             env.classes.push("atapply");
         }
     } else if (env.type === "pseudo-class") {
-        if (!new RegExp(`^::?(${PSEUDO_CLASSES.join("|")})`).test(env.content)) {
+        if (!PSEUDO_CLASS_REGEX.test(env.content)) {
             env.classes = env.classes.filter(x => x !== "pseudo-class");
         }
     }
@@ -363,22 +365,8 @@ function normalizeTokens(tokens) {
     return acc;
 }
 
-function simplifyToken(token) {
-    if (typeof token === "string") {
-        return token;
-    }
-
-    return [
-        token.type,
-        Array.isArray(token.content) ? token.content.map(simplifyToken) : token.content
-    ];
-}
-
 module.exports = {
-    normalizeTokens,
-    simplifyToken,
     highlightCode,
-    fixSelectorEscapeTokens,
     addDefaultImport,
     addExport,
     addImport,

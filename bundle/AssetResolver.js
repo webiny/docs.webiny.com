@@ -1,8 +1,8 @@
 const path = require("path");
 const fs = require("fs-extra");
 const pretry = require("p-retry");
-const versions = require("./src/data/versions.json");
-const pages = require("./src/data/pages.json");
+const versions = require("../src/data/versions.json");
+const pages = require("../src/data/pages.json");
 
 /**
  * This plugin rewrites asset paths to simulate inheritance. This means that assets are not duplicated, but instead,
