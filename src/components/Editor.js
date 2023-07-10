@@ -50,7 +50,7 @@ export function Editor({ title, lang, children }) {
 
     useEffect(() => {
         setCode(highlightCode(children, lang));
-    }, []);
+    }, [children, lang]);
 
     return (
         <section className="code-block mt-[1.875rem] lg:mt-[3.75rem] mb-[1.875rem] lg:mb-[3.75rem] first:mt-0 last:mb-0 bg-code-tab rounded-[0.625rem] shadow-lg overflow-hidden dark:ring-1 dark:ring-white/10 dark:ring-inset">
