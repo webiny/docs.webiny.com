@@ -1,15 +1,3 @@
-import Prism from "prismjs";
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-tsx";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-graphql";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-css";
-import "prismjs/components/prism-scss";
-
 import { mdxComponents } from "@/components/mdxComponents";
 import { usePage } from "@/hooks/usePage";
 import { VersionSelector } from "@/components/page/VersionSelector";
@@ -150,11 +138,6 @@ export function ContentsLayout({ children, ...props }) {
         ...(classes ? [{ title: "Quick reference", slug: "class-reference", children: [] }] : []),
         ...tableOfContents
     ];
-
-    useEffect(() => {
-        console.log("Run Prism");
-        Prism.highlightAll();
-    }, [title]);
 
     const parents = getParentNav(useContext(SidebarContext).nav);
 

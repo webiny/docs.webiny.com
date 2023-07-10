@@ -43,22 +43,20 @@ const mainMdxLoader = createLoader(mdxLoader);
 module.exports.createWebpackConfig = (config, options) => {
     let maxHeap = 0;
 
-    setInterval(() => {
-        const heapUsage = process.memoryUsage().heapUsed / 1024 / 1024;
-        if (heapUsage > maxHeap) {
-            maxHeap = heapUsage;
+    if (options.isServer) {
+        setInterval(() => {
+            const heapUsage = process.memoryUsage().heapUsed / 1024 / 1024;
+            if (heapUsage > maxHeap) {
+                maxHeap = heapUsage;
 
-            process.stdout.write(
-                `\n[${options.isServer ? "Server" : "Client"}] Max memory usage: ${red(
-                    maxHeap.toFixed(2) + " MB"
-                )}`
-            );
-        }
-    }, 1000);
+                process.stdout.write(`\nMax memory usage: ${red(maxHeap.toFixed(2) + " MB")}`);
+            }
+        }, 1000);
 
-    process.on("exit", () => {
-        console.log(`Max memory usage: ${red(maxHeap.toFixed(2) + " MB")}`);
-    });
+        process.on("exit", () => {
+            console.log(`Max memory usage: ${red(maxHeap.toFixed(2) + " MB")}`);
+        });
+    }
 
     if (!options.dev && options.isServer) {
         let originalEntry = config.entry;
@@ -141,10 +139,8 @@ module.exports.createWebpackConfig = (config, options) => {
         test: /\.mdx$/,
         use: [
             options.defaultLoaders.babel,
-            // createLoader(function (source) {
-            //     console.log(source);
-            //     return source;
-            // }),
+            // TODO: combine all mdx related loaders into 1, so we can cache the output,
+            // TODO: and skip processing the same content, when the client build is happening.
             createLoader(function (source) {
                 return (
                     source.replace(/export const/gs, "const") +

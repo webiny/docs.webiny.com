@@ -1,47 +1,28 @@
-const { addImport } = require("./utils");
-
-const highlightNode = node => {
-    node.type = "raw";
-
-    return node;
-};
+const visit = require("unist-util-visit");
 
 module.exports.withSyntaxHighlighting = () => {
     return tree => {
-        let preTree = { children: [] };
-        let componentName;
+        visit(tree, "code", (node, _, parent) => {
+            const index = parent.children.findIndex(child => child === node);
 
-        tree.children = tree.children.flatMap(node => {
-            if (node.type === "list" && node.ordered) {
-                node.children.map(child =>
-                    child.children.map(innerChild => {
-                        if (innerChild.type === "code") {
-                            highlightNode(innerChild);
-                        }
-                        return innerChild;
-                    })
-                );
-                return node;
-            }
+            const { lang, meta, value } = node;
 
-            if (node.type !== "code" || node.lang === null) {
-                return node;
-            }
-
-            node = highlightNode(node);
-
-            if (!componentName) {
-                componentName = addImport(preTree, "@/components/Editor", "Editor");
-            }
-            return [
+            const editor = [
                 {
                     type: "jsx",
-                    value: `<${componentName} filename="${node.meta || ""}" lang="${node.lang}">`
+                    value: `<Editor title="${meta || ""}" lang="${lang}">`
                 },
-                node,
-                { type: "jsx", value: `</${componentName}>` }
+                {
+                    type: "raw",
+                    value
+                },
+                { type: "jsx", value: `</Editor>` }
             ];
+
+            parent.children.splice(index, 1, ...editor);
+
+            // Do not traverse `node`, continue at the node *now* at `index`.
+            return [visit.SKIP, index];
         });
-        tree.children = [...preTree.children, ...tree.children];
     };
 };

@@ -1,4 +1,6 @@
+import React, { useEffect, useState } from "react";
 import clsx from "clsx";
+import { highlightCode } from "./codeHighlight";
 
 function TabBar({ primary, secondary = [], showTabMarkers = true, children }) {
     return (
@@ -43,13 +45,22 @@ function TabBar({ primary, secondary = [], showTabMarkers = true, children }) {
     );
 }
 
-export function Editor({ filename, lang, children }) {
+export function Editor({ title, lang, children }) {
+    const [code, setCode] = useState("");
+
+    useEffect(() => {
+        setCode(highlightCode(children, lang));
+    }, []);
+
     return (
         <section className="code-block mt-[1.875rem] lg:mt-[3.75rem] mb-[1.875rem] lg:mb-[3.75rem] first:mt-0 last:mb-0 bg-code-tab rounded-[0.625rem] shadow-lg overflow-hidden dark:ring-1 dark:ring-white/10 dark:ring-inset">
-            {filename ? <TabBar primary={{ name: filename }} showTabMarkers={false} /> : null}
+            {title ? <TabBar primary={{ name: title }} showTabMarkers={false} /> : null}
             <div className="children:my-0 children:!shadow-none children:bg-transparent children:rounded-none">
-                <pre>
-                    <code className={`language-${lang}`}>{children}</code>
+                <pre className={`language-${lang}`}>
+                    <code
+                        className={`language-${lang}`}
+                        dangerouslySetInnerHTML={{ __html: code }}
+                    />
                 </pre>
             </div>
         </section>
