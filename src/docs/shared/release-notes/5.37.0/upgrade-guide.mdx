@@ -4,8 +4,10 @@ description: Learn how to upgrade Webiny from 5.36.x to 5.37.0.
 ---
 
 import { Alert } from "@/components/Alert";
-
-import fmSettings from "./assets/fm-settings.png";
+import { AdditionalNotes } from "@/components/upgrade/AdditionalNotes";
+import hcmsFieldSettingWithFeatureFlag from "./assets/hcms-field-setting-feature-flag-set.png";
+import hcmsFieldSettingRemovedFeatureFlag from "./assets/hcms-field-settings-removed-flag.png";
+import hcmsRemoveFeatureFlag from "./assets/hcms-remove-feture-flag.png";
 
 <Alert type={"danger"}>
 
@@ -60,30 +62,59 @@ Proceed by redeploying your Webiny project:
 yarn webiny deploy --env {environment}
 ```
 
-### Additional Notes
+<AdditionalNotes />
 
-With this release, we significantly improved our file uploading capabilities, enabling support for files up to a whopping 5TB in size. 
-Remember to review the default **Maximum file upload size** limit you find within the File Manager Settings page (**Main Navigation -> Settings -> File Manager**).
+## Additional Notes
 
-<Image src={fmSettings} title={"File Manager Settings - Maximum file upload size"} />
+### Updating Your Custom API Plugins
 
-<Alert type="warning">
+As described in the changelog, there's now a new lifecycle event, [onTenantAfterInstall](./changelog#add-on-tenant-after-install-lifecycle-event-3377), which serves as a single, reliable place to hook into Webiny app installation for each tenant, and add things like initial data setup, etc. If you're currently using events like `pageBuilder.onSystemAfterInstall`, or `cms.onSystemAfterInstall`, we highly recommend updating your code to use the new event `tenancy.onTenantAfterInstall`.
 
-Make sure you deploy the entire system using the command shown above! You have to deploy all apps before using the
-system. Partial deploys may cause the upgrade to be applied incorrectly.
+The reason this is important to do is that, with the `5.37.0` release, we changed the order of app installation, and moved the Headless CMS app to be one of the first ones to be installed, because now File Manager depends on the Headless CMS. This change should only take a few moments to do, but it will make your system much more reliable, and future-proof.
 
+Simply look for the `AfterInstall` string in your custom plugins to find all references to the legacy events, and modify the code to look something like this:
+
+```ts
+new ContextPlugin(context => {
+  context.tenancy.onTenantAfterInstall.subscribe(() => {
+    // All of your existing logic goes here.
+  });
+});
+```
+
+### Legacy Rich Text Editor Support After the Upgrade
+
+After the upgrade to the new 5.37.0 version, we will still support the legacy editor.
+
+Here is how it works.
+
+- Legacy Rich Text editor will appear for the existing content.
+- For the new models, you can choose between the Legacy (EditorJs) and Lexical Rich Text editors. We **recommend** Lexical Editor to write your next content.
+- We use the feature flag **allowCmsLegacyRichTextInput** to support both editors.
+
+In the Rich Text field settings form, click the **Appearance tab** you will see this message:
+
+<Image
+  src={hcmsFieldSettingWithFeatureFlag}
+  title={"Support of the Legacy Rich Text editor after upgrade"}
+/>
+
+That means the **feature flag** is set in the project to support the Legacy Rich Text editor as option for the new models.
+**Remove the feature flag** and Lexical editor will be default editor for the Rich Text field (recommended).
+
+As shown in the screenshot, in the **root** of project open **webiny.project.ts** and remove the feature flag.
+
+<Image src={hcmsRemoveFeatureFlag} title={"Remove the feature flag"} />
+Now, after removing the feature flag, create a new model and drop the new Rich Text field. You can see
+now that Lexical Editor is the default option in the field settings.
+<Image
+  src={hcmsFieldSettingRemovedFeatureFlag}
+  title={"Lexical editor as default Rich Text field option in Headless CMS"}
+/>
+<Alert title={"After removing the feature flag..."} type={"info"}>
+  By removing the feature flag, the legacy Rich Text editor will no longer appear as a choice for
+  the new models and fields. Still, the legacy editor will appear for the existing content created
+  by this editor.
 </Alert>
 
-<Alert type="warning">
 
-As stated in the [Upgrade Webiny](../upgrade-webiny#pre-production-environments-first) section, we recommend that you
-first deploy your changes into one of your pre-production environments, like `dev` or `staging`.
-
-</Alert>
-
-<Alert type="info">
-
-Learn more about different deployment environments in the [CI/CD /
-Environments](../../core-development-concepts/ci-cd/environments) key topic.
-
-</Alert>
