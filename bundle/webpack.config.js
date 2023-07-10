@@ -142,10 +142,7 @@ module.exports.createWebpackConfig = (config, options) => {
             // TODO: combine all mdx related loaders into 1, so we can cache the output,
             // TODO: and skip processing the same content, when the client build is happening.
             createLoader(function (source) {
-                return (
-                    source.replace(/export const/gs, "const") +
-                    `\nMDXContent.layoutProps = layoutProps\n`
-                );
+                return `${source}\nMDXContent.layoutProps = layoutProps\n`;
             }),
             ...mdx,
             createLoader(function (source) {
