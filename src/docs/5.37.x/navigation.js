@@ -13,14 +13,14 @@ export const Navigation = () => {
                 <Section title={"Extending functionality"}>
                   <Page
                     link={"headless-cms/extending/render-lexical-rich-text-content"}
-                    after={"headless-cms/extending/render-rich-text-content"}/>
+                    after={"headless-cms/extending/render-rich-text-content"} />
                 </Section>
               </Collapsable>
-                <Collapsable title={"File Manager"}>
-                    <Section title={"Extending functionality"}>
-                        <Page link={"file-manager/extending/customizing-file-filters"} />
-                    </Section>
-                </Collapsable>
+              <Collapsable title={"File Manager"}>
+                <Section title={"Extending functionality"}>
+                  <Page link={"file-manager/extending/customizing-file-filters"} />
+                </Section>
+              </Collapsable>
             </NavGroup>
         </>
     );
