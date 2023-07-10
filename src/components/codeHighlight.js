@@ -1,7 +1,15 @@
-const Prism = require("prismjs");
-const loadLanguages = require("prismjs/components/");
-const redent = require("redent");
-loadLanguages();
+import Prism from "prismjs";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-tsx";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-graphql";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-yaml";
+import "prismjs/components/prism-css";
+import "prismjs/components/prism-scss";
+import redent from "redent";
 
 const HTML_TAG =
     /<\/?(?!\d)[^\s>\/=$<%]+(?:\s(?:\s*[^\s>\/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+(?=[\s>]))|(?=[\s/>])))+)?\s*\/?>/gi; // eslint-disable-line
@@ -71,6 +79,8 @@ const PSEUDO_CLASSES = [
     "where"
 ];
 
+const PSEUDO_CLASS_REGEX = new RegExp(`^::?(${PSEUDO_CLASSES.join("|")})`);
+
 Prism.hooks.add("wrap", env => {
     if (env.type === "atrule") {
         const content = env.content.replace(HTML_TAG, "");
@@ -78,7 +88,7 @@ Prism.hooks.add("wrap", env => {
             env.classes.push("atapply");
         }
     } else if (env.type === "pseudo-class") {
-        if (!new RegExp(`^::?(${PSEUDO_CLASSES.join("|")})`).test(env.content)) {
+        if (!PSEUDO_CLASS_REGEX.test(env.content)) {
             env.classes = env.classes.filter(x => x !== "pseudo-class");
         }
     }
@@ -103,47 +113,56 @@ function fixSelectorEscapeTokens(tokens) {
     }
 }
 
-module.exports.fixSelectorEscapeTokens = fixSelectorEscapeTokens;
-
-module.exports.addImport = function addImport(tree, mod, name) {
-    tree.children.unshift({
-        type: "import",
-        value: `import { ${name} as _${name} } from '${mod}'`
-    });
-    return `_${name}`;
-};
-
-module.exports.addImportImage = function addImportImage(tree, mod, name) {
-    tree.children.unshift({
-        type: "import",
-        value: `import _${name} from '${mod}'`
-    });
-    return `_${name}`;
-};
-
-module.exports.addDefaultImport = function addImport(tree, mod, name) {
-    tree.children.unshift({
-        type: "import",
-        value: `import _${name} from '${mod}'`
-    });
-    return `_${name}`;
-};
-
-module.exports.addExport = function addExport(tree, name, value) {
-    tree.children.push({
-        type: "export",
-        value: `export const ${name} = ${JSON.stringify(value)}`
-    });
-};
+const reg1 = /^>/m;
+const reg2 = /^[> ] /;
+const reg3 = /(?:^[+\- ] |^[+-]$)/gm;
 
 function hasLineHighlights(code) {
-    if (!/^>/m.test(code)) {
+    if (!reg1.test(code)) {
         return false;
     }
-    return code.split("\n").every(line => line === "" || /^[> ] /.test(line));
+    return code.split("\n").every(line => line === "" || reg2.test(line));
 }
 
-module.exports.highlightCode = function highlightCode(code, prismLanguage) {
+function stringify(line, className) {
+    let empty = line.every(token => token.empty);
+
+    if (!className && empty) {
+        return "\n";
+    }
+
+    let commonTypes = [];
+    for (let i = 0; i < line.length; i++) {
+        let token = line[i];
+        if (i === 0) {
+            commonTypes.push(...token.types);
+        } else {
+            commonTypes = commonTypes.filter(type => token.types.includes(type));
+        }
+    }
+    if (commonTypes.length) {
+        for (let i = 0; i < line.length; i++) {
+            let token = line[i];
+            token.types = token.types.filter(type => !commonTypes.includes(type));
+        }
+    }
+
+    const lineClassName = ["token", ...commonTypes, className].filter(Boolean).join(" ");
+
+    if (empty) {
+        return `<span class="${lineClassName}">\n</span>`;
+    }
+
+    return `<span class="${lineClassName}">${line
+        .map(token =>
+            token.types.length
+                ? `<span class="token ${token.types.join(" ")}">${token.content}</span>`
+                : token.content
+        )
+        .join("")}</span>`;
+}
+
+function highlightCode(code, prismLanguage) {
     const isDiff = prismLanguage.startsWith("diff-");
     const language = isDiff ? prismLanguage.substr(5) : prismLanguage;
     const grammar = Prism.languages[language];
@@ -152,10 +171,10 @@ module.exports.highlightCode = function highlightCode(code, prismLanguage) {
         return Prism.util.encode(code);
     }
 
-    let addedLines = [];
-    let removedLines = [];
+    const addedLines = [];
+    const removedLines = [];
     if (isDiff) {
-        code = code.replace(/(?:^[+\- ] |^[+-]$)/gm, (match, offset) => {
+        code = code.replace(reg3, (match, offset) => {
             let line = code.substr(0, offset).split("\n").length - 1;
             if (match.startsWith("+")) {
                 addedLines.push(line);
@@ -166,55 +185,16 @@ module.exports.highlightCode = function highlightCode(code, prismLanguage) {
         });
     }
 
-    let highlightedLines = [];
+    const highlightedLines = [];
 
     if (hasLineHighlights(code)) {
         let match;
-        let re = /^>/m;
-        while ((match = re.exec(code)) !== null) {
+        while ((match = reg1.exec(code)) !== null) {
             let line = code.substr(0, match.index).split("\n").length - 1;
             highlightedLines.push(line);
             code = code.substr(0, match.index) + " " + code.substr(match.index + 1);
         }
         code = redent(code);
-    }
-
-    function stringify(line, className) {
-        let empty = line.every(token => token.empty);
-
-        if (!className && empty) {
-            return "\n";
-        }
-
-        let commonTypes = [];
-        for (let i = 0; i < line.length; i++) {
-            let token = line[i];
-            if (i === 0) {
-                commonTypes.push(...token.types);
-            } else {
-                commonTypes = commonTypes.filter(type => token.types.includes(type));
-            }
-        }
-        if (commonTypes.length) {
-            for (let i = 0; i < line.length; i++) {
-                let token = line[i];
-                token.types = token.types.filter(type => !commonTypes.includes(type));
-            }
-        }
-
-        let lineClassName = ["token", ...commonTypes, className].filter(Boolean).join(" ");
-
-        if (empty) {
-            return `<span class="${lineClassName}">\n</span>`;
-        }
-
-        return `<span class="${lineClassName}">${line
-            .map(token =>
-                token.types.length
-                    ? `<span class="token ${token.types.join(" ")}">${token.content}</span>`
-                    : token.content
-            )
-            .join("")}</span>`;
     }
 
     if (isDiff || highlightedLines.length) {
@@ -259,7 +239,7 @@ module.exports.highlightCode = function highlightCode(code, prismLanguage) {
               (_, text) => `<span class="code-highlight bg-code-highlight">${text}</span>`
           )
         : code;
-};
+}
 
 // https://github.com/FormidableLabs/prism-react-renderer/blob/master/src/utils/normalizeTokens.js
 
@@ -350,7 +330,7 @@ function normalizeTokens(tokens) {
             }
         }
 
-        // Decreate the stack depth
+        // Decrease the stack depth
         stackIndex--;
         typeArrStack.pop();
         tokenArrStack.pop();
@@ -362,12 +342,6 @@ function normalizeTokens(tokens) {
     return acc;
 }
 
-module.exports.simplifyToken = function simplifyToken(token) {
-    if (typeof token === "string") return token;
-    return [
-        token.type,
-        Array.isArray(token.content) ? token.content.map(simplifyToken) : token.content
-    ];
+module.exports = {
+    highlightCode
 };
-
-module.exports.normalizeTokens = normalizeTokens;
