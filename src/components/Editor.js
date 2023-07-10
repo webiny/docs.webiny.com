@@ -45,18 +45,22 @@ function TabBar({ primary, secondary = [], showTabMarkers = true, children }) {
     );
 }
 
+const once = true;
+
 export function Editor({ title, lang, children }) {
     const [code, setCode] = useState("");
 
     useEffect(() => {
-        setCode(highlightCode(children, lang));
-    }, [children, lang]);
+        setTimeout(() => {
+            setCode(highlightCode(children, lang));
+        }, 20);
+    }, [once]);
 
     return (
         <section className="code-block mt-[1.875rem] lg:mt-[3.75rem] mb-[1.875rem] lg:mb-[3.75rem] first:mt-0 last:mb-0 bg-code-tab rounded-[0.625rem] shadow-lg overflow-hidden dark:ring-1 dark:ring-white/10 dark:ring-inset">
             {title ? <TabBar primary={{ name: title }} showTabMarkers={false} /> : null}
             <div className="children:my-0 children:!shadow-none children:bg-transparent children:rounded-none">
-                <pre className={`language-${lang}`}>
+                <pre className={`language-${lang}`} tabIndex={0}>
                     <code
                         className={`language-${lang}`}
                         dangerouslySetInnerHTML={{ __html: code }}
