@@ -107,34 +107,6 @@ module.exports.createWebpackConfig = (config, options) => {
         ]
     });
 
-    let mdx = [
-        mainMdxLoader,
-        createLoader(function (source) {
-            let pathSegments = this.resourcePath.split(path.sep);
-            let slug =
-                pathSegments[pathSegments.length - 1] === "index.mdx"
-                    ? pathSegments[pathSegments.length - 2]
-                    : pathSegments[pathSegments.length - 1].replace(/\.mdx$/, "");
-
-            const pagePath = this.resourcePath.split("/pages").pop().replace(".mdx", "");
-            const pageData = getPageData(pagePath);
-
-            if (!pageData) {
-                return source;
-            }
-
-            /**
-             * All exports will be assigned to `layoutProps` of the component used to render the page.
-             */
-            const newExports = [
-                `export const slug = '${slug}';`,
-                `export const pageData = ${JSON.stringify(pageData)}`
-            ];
-
-            return source + "\n\n" + newExports.join("\n\n");
-        })
-    ];
-
     config.module.rules.push({
         test: /\.mdx$/,
         use: [
@@ -142,9 +114,37 @@ module.exports.createWebpackConfig = (config, options) => {
             // TODO: combine all mdx related loaders into 1, so we can cache the output,
             // TODO: and skip processing the same content, when the client build is happening.
             createLoader(function (source) {
-                return `${source}\nMDXContent.layoutProps = layoutProps\n`;
+                // The `/* remove */` marker is added in the `removeExports.js` remark plugin.
+                const code = source.replace(/export const (.*?) \/\* remove \*\/ =/g, "const $1 =");
+                return code + `\nMDXContent.layoutProps = layoutProps\n`;
+
+                // return `${source}\nMDXContent.layoutProps = layoutProps\n`;
             }),
-            ...mdx,
+            mainMdxLoader,
+            createLoader(function (source) {
+                let pathSegments = this.resourcePath.split(path.sep);
+                let slug =
+                    pathSegments[pathSegments.length - 1] === "index.mdx"
+                        ? pathSegments[pathSegments.length - 2]
+                        : pathSegments[pathSegments.length - 1].replace(/\.mdx$/, "");
+
+                const pagePath = this.resourcePath.split("/pages").pop().replace(".mdx", "");
+                const pageData = getPageData(pagePath);
+
+                if (!pageData) {
+                    return source;
+                }
+
+                /**
+                 * All exports will be assigned to `layoutProps` of the component used to render the page.
+                 */
+                const newExports = [
+                    `export const slug = '${slug}';`,
+                    `export const pageData = ${JSON.stringify(pageData)}`
+                ];
+
+                return source + "\n\n" + newExports.join("\n\n");
+            }),
             createLoader(function (source) {
                 let { meta: fields } = querystring.parse(this.resourceQuery.substr(1));
                 let { attributes: meta, body } = frontMatter(source);
