@@ -1,5 +1,5 @@
 ---
-title: Webiny Lexical Editor Configuration API
+title: Lexical Editor Configuration API
 description: Introduction to Lexical Editor Configuration API.
 ---
 
@@ -12,17 +12,13 @@ import { Alert } from "@/components/Alert";
   - We will cover the how to use Lexical Configuration API to customize the Lexical editor in Page Builder and Headless CMS apps.
 </Alert>
 
-# Abstract
+## Introduction
 
 Webiny uses [Lexical Rich Text Editor](https://lexical.dev/) to allow users to create nicely formatted rich text content quickly. Lexical Editor is created by Meta, it’s open source and very customizable. Webiny utilizes the Lexical Editor in the Page Builder app and the Headless CMS app.
 
-# Technical Introduction
+## Lexical Editor and Page Builder
 
-The core implementation of the Lexical editor is in `[@webiny/lexical-editor package](https://github.com/webiny/webiny-js/tree/next/packages/lexical-editor)`. This package exposes plugins, nodes, and many other Lexical components. To learn more read the ***Lexical Components Catalog*** section.
-
-# Lexical Editor and Page Builder
-
-***Page Builder app*** has two components that are using the Lexical editor, the **Heading component,** and the **Paragraph component.**
+**Page Builder app** has two components that are using the Lexical editor, the **Heading component**, and the **Paragraph component**.
 
 From the image below we can see that the user can drag&drop these two components.
 
@@ -36,11 +32,11 @@ From the image below we can see that the user can drag&drop these two components
 
 The **Paragraph component** allow users to have more editing capabilities like inserting lists and quotes. Users can select only typography theme styles for paragraphs, lists, and quotes. When the user starts typing, Lexical Editor will create a `<p>` tag and apply the specified typography theme styles. Every new line is starting with a paragraph tag.
 
-# Lexical Editor Configuration API for Page Builder
+# Lexical Configuration for Page Builder
 
 To hook into the Lexical Editor in the **Page Builder app**, you need to import the Lexical configuration component from the `@webiny/app-page-builder` package.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/PbLexicalEditorPlugin.tsx
 import React from "react";
 import { LexicalEditorConfig } from "@webiny/app-page-builder";
 ...
@@ -55,30 +51,17 @@ In code example, we can see that `LexicalEditorConfig` has two more configuratio
 
 `Paragraph` - allows you to hook into the Lexical Editor configuration for **the Paragraph component.**
 
-<Alert type={"info"}>
-  If you are not familiar with Heading and Paragraph components from the **Page Builder** app please first read the **Lexical Editor and Page Builder** topic.
-</Alert>
-
 It’s important to note that these components are children to the root `LexicalEditorConfig`
 
 component. They need to be nested inside the root component.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/PbLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
 	<Heading.ToolbarAction name={"fontColor"} element={<button>PB</button>} />
 	<Paragraph.ToolbarAction name={"bold"} after={"italic"} element={<button>B</button>} />
 </LexicalEditorConfig>
 ```
-
-In the table below we can see the high-level configuration components.
-
-| Component | Description |
-| --- | --- |
-| LexicalEditorConfig | The root configuration component.  All configurations related to the Lexical Editor in the Page Builder app must be nested in this component. |
-| Heading | Configuration for the Lexical editor in the Heading component. |
-| Paragraph | Configuration for the in the Paragraph component. |
-
-**Heading** and **Paragraph** configuration components have the same API interface. You can configure three parts of the Lexical Editor:
+**Heading** and **Paragraph** share the configuration options. You can configure three parts of the Lexical Editor:
 
 - **ToolbarAction** - allows you to configure the actions in the toolbar
 - **Plugin** - allows you to configure the plugins
@@ -93,51 +76,52 @@ Access to the configuration options:
   <Paragraph.Node name={"newNode"} node={MyLexicalNode} />
 </LexicalEditorConfig>
 ```
-## Header configuration options
 
-| Component            | Props                                                                                  | Description                             |
-|----------------------|----------------------------------------------------------------------------------------|-----------------------------------------|
-| Header.ToolbarAction | name: string  element: React.Element  after: string  before: string  remove: boolean   | Add/remove/update Lexical actions.      |
-| Header.Plugin        | name: string  element: React.Element  after: string  before: string  remove: boolean   | Add/remove/update Lexical plugins.      |
-| Header.Node          | name: string  node: `Klass<LexicalNode>`  after: string  before: string  remove: boolean | Add/remove/update Lexical custom nodes. |                  |                                                                                      |                                    |
+All of this configuration options have the same role. They override, remove or add new functionality to the Lexical editor.
 
-## Paragraph configuration options
+- **ToolbarAction** and **Plugin** configuration interface.
 
-| Component            | Props                                                                                  | Description                             |
-|----------------------|----------------------------------------------------------------------------------------|-----------------------------------------|
-| Paragraph.ToolbarAction | name: string  element: React.Element  after: string  before: string  remove: boolean   | Add/remove/update Lexical actions.      |
-| Paragraph.Plugin        | name: string  element: React.Element  after: string  before: string  remove: boolean   | Add/remove/update Lexical plugins.      |
-| Paragraph.Node          | name: string  node: `Klass<LexicalNode>`  after: string  before: string  remove: boolean | Add/remove/update Lexical custom nodes. |                  |                                                                                      |                                    |
+| Prop | Type | Description |
+|---|---|---|
+| **name** | string | This prop is required to be specified. Trough the name  you specify the component you want to override or register  into lexical Editor. |
+| **element** | React.Element | Component you want to provide. |
+| **before** | string | Add your component before specified component name. |
+| **after** | string | Add your component after the specified component name. |
+
+- **Node** configuration interface.
+
+| Prop | Type | Description |
+|---|---|---|
+| **name** | string | This prop is required to be specified. Trough the name  you specify the component you want to override or register  into lexical Editor. |
+| **element** | `Klass<LexicalNode>` | Lexical node class you want to provide. |
+| **before** | string | Add your component before specified component name. |
+| **after** | string | Add your component after the specified component name. |
 
 <Alert type={"info"}>
-  When you update or add a new action, plugin, or node you must `name` it as a required prop. By this name, we track and manage configurations.
-  Webiny has names for all configuration options. Please check the **Lexical Components Catalog** topic.
+  Prop <b>name</b> it as a required prop. Webiny has names for all configuration options. 
+  Please check the <b>Lexical Components Catalog</b> topic at the end of this article.
 </Alert>
 
 ## Toolbar configuration
 
 In this section, we will cover configuration step by step and use the Header and Paragraph configuration API to customize the look and functionality of the Heading component.
 
-## Add a new toolbar action component
+## Add a new toolbar action
 
 To add a new custom toolbar action component register your component with a unique `name` and provide your custom action component in the `element` prop.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/PbLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
 	<Heading.ToolbarAction name={"myAction"} element={<button>MA</button>} />
   <Paragraph.ToolbarAction name={"newAction"} element={<button>MA</button>} />
 </LexicalEditorConfig>
 ```
 
-<Alert type={"info"}>
-  The action by default will be added at the end of the toolbar.
-</Alert>
+## Override existing action
 
-## Override existing action component
+To override the existing action component specify the action `name` of the existing Webiny toolbar action and provide your toolbar action component in the element prop.
 
-To override the existing action component specify the action `name` of the existing [Webiny toolbar action](https://www.notion.so/Webiny-Lexical-editor-API-446512d337524f239f004d361ddf01c4?pvs=21) and provide your toolbar action component in the element prop.
-
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/PbLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
 	<Heading.ToolbarAction name={"fontSize"} element={<button>MA</button>} />
 </LexicalEditorConfig>
@@ -147,7 +131,7 @@ To override the existing action component specify the action `name` of the exist
 
 To remove the toolbar action specify the Webiny toolbar action name, add the `remove` prop and the action will be removed.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/PbLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
 	<Paragraph.ToolbarAction name={"fontSize"} remove/>
 </LexicalEditorConfig>
@@ -161,7 +145,7 @@ To remove the toolbar action specify the Webiny toolbar action name, add the `re
 
 To change the order of the toolbar actions, first, you need to provide the `name` of the action you want to move. Next, add the `before` or `after` prop with the name of the component that is used as a reference to the preferred spot.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/PbLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
 	<Heading.ToolbarAction name={"fontSize"} after={"typography"}/>
   <Paragraph.ToolbarAction name={"fontSize"} before={"divider2"}/>
@@ -171,7 +155,7 @@ To change the order of the toolbar actions, first, you need to provide the `name
 
 The configuration of the plugins will follow the same approach as the toolbar actions so we will write a code example that will cover all actions.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/PbLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
    // Override the default Webiny link plugin with your custom link plugin
 	<Heading.Plugin name={"link"} element={<CustomFloatingLinkEditorPlugin />}/>
@@ -182,7 +166,7 @@ The configuration of the plugins will follow the same approach as the toolbar ac
   // Place your plugin after the font size plugin
   <Paragraph.Plugin name={"newPLugin"} element={<NewPlugin/>} after={"fontSize"} />
   // Place the existing plugin before your new plugin
-  <Paragraph.Plugin name={"link"} before={"newPLugin"} />
+  <Paragraph.Plugin name={"link"} before={"newPlugin"} />
 </LexicalEditorConfig>
 ```
 
@@ -194,7 +178,7 @@ Please check this Lexical documentation for more information about the nodes.
 
 Link: [https://lexical.dev/docs/concepts/nodes](https://lexical.dev/docs/concepts/nodes)
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/PbLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
   // Add a new node
   <Paragraph.Node name={"newNode"} node={NewNode} />
@@ -207,7 +191,7 @@ Link: [https://lexical.dev/docs/concepts/nodes](https://lexical.dev/docs/concept
 </LexicalEditorConfig>
 ```
 
-# Lexical Editor and Headless CMS
+## Lexical Editor and Headless CMS
 
 Webiny is using the Lexical Editor in Headless CMS to allow users to have fields with rich text content. Users can add headers, paragraphs, lists, quotes, style the content and add images.
 
@@ -219,13 +203,13 @@ Webiny is using the Lexical Editor in Headless CMS to allow users to have fields
 
 The image above shows the Lexical editor in the Headless CMS. Technically we have one configuration setup for the Lexical Editor covering the rich text editing field.
 
-# Lexical Editor Configuration API for Headless CMS
+## Lexical Configuration for Headless CMS
 
 To hook into the Lexical editor in the Headless CMS ******app, you need to import the Lexical configuration API from the `@webiny/app-headless-cms` package.
 
 First, we need to import the root configuration component `LexicalEditorConfig`.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/CmsLexicalEditorPlugin.tsx
 import React from "react";
 import { LexicalEditorConfig } from "@webiny/app-page-builder";
 ...
@@ -235,35 +219,13 @@ const { ToolbarAction, Plugin, Node } = LexicalEditorConfig;
 ```
 
 The difference in the API from the Page Builder app is that here we have only one Lexical Editor configuration.
-
 So the `LexicalEditorConfig` will export directly the ToolbarAction, Plugin, and Node.
-## API configuration options
 
-| Component | Props | Description |
-| --- | --- | --- |
-| LexicalEditorConfig | N/A | Root component that allows specifying all configurations for the lexical editor in the Headless CMS app. |
-| ToolbarAction | name: string
-element: React.Element
-after: string
-before: string
-remove: boolean | Access to toolbar actions.
-Add/remove/update lexical actions. |
-| Node | name: string
-element: `Klass<LexicalNode>`
-after: string
-before: string
-remove: boolean | Add/remove/update lexical nodes |
-| Plugin | name: string
-element: React.Element
-after: string
-before: string
-remove: boolean | Add/remove/update lexical plugins |
-
-## Toolbar configuration
+**Toolbar configuration**
 
 The configuration of the plugins will follow the same approach as the toolbar actions so we will write a code example that will cover all actions.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/CmsLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
    // Override the default font size action
 	<ToolbarAction name={"fontSize"} element={<button>MA</button>} />
@@ -278,11 +240,11 @@ The configuration of the plugins will follow the same approach as the toolbar ac
 </LexicalEditorConfig>
 ```
 
-## Plugin configuration
+**Plugin configuration**
 
 The configuration of the plugins will follow the same approach as the toolbar actions so we will write a code example that will cover all actions.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/CmsLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
    // Override the default Webiny link plugin with your custom link plugin
 	<Plugin name={"link"} element={<CustomFloatingLinkEditorPlugin />}/>
@@ -297,11 +259,11 @@ The configuration of the plugins will follow the same approach as the toolbar ac
 </LexicalEditorConfig>
 ```
 
-## Node configuration
+**Node configuration**
 
 Node configuration API has a `node` prop where you can add the custom node class. Other API configurations are very like the toolbar actions and plugins.
 
-```jsx
+```jsx apps/admin/plugins/lexicalEditorPlugins/CmsLexicalEditorPlugin.tsx
 <LexicalEditorConfig>
   // Add a new node
   <Node name={"newNode"} node={NewNode} />
@@ -313,15 +275,15 @@ Node configuration API has a `node` prop where you can add the custom node class
   <Node name={"newNode"} remove />
 </LexicalEditorConfig>
 ```
-# Lexical Components Catalog
+## Lexical Components Catalog
 
 In this section are have a list of specifications of the core Webiny components for the Lexical Editor that are configurable and exposed for developers.
 
 The table below presents a comprehensive list of toolbar action components utilized by Webiny and made accessible via the Lexical Configuration API in  `@webiny/app-page-builder` and `@webiny/app-headless-cms` package.
 
-## Lexical Toolbar Actions
+**Lexical Toolbar Actions**
 
-| Component | Toolbar Action API access name | Description |
+| Component | API Access name | Description |
 | --- | --- | --- |
 | FontSizeAction | fontSize | Set font size  |
 | FontColorAction | fontColor | Change the font color of the text |
@@ -336,23 +298,23 @@ The table below presents a comprehensive list of toolbar action components utili
 | LinkAction | link | Open a pop-up where the user can set the URL and convert the text to a link. |
 | QuoteAction | quote | Convert the selected text block to a quote. |
 
-## UI components
+**UI components**
 
 UI components are used to speed up the development and come with predefined CSS styles to match the Editor's desired look and functionality.
 
 Use these ***Dropdown*** and ***DropdownItem*** components to create a dropdown for your toolbar. Use the ***Divider*** component to separate toolbar actions.
 
-| Toolbar action component | API access name | Description |
+| Component | API Access name | Description |
 | --- | --- | --- |
 | Divider | divider{index} | The index is the number of the divider in order starting from 1 to n(number of the spot in order). |
 | Dropdown | N/A | Creates dropdown for the action |
 | DropDownItem | N/A | Dropdown item of the Dropdown menu, |
 
-## Lexical Plugins
+**Lexical Plugins**
 
 In the following table are listed all plugin components that are used by Webiny and exposed through the Lexical Configuration API in  `@webiny/app-page-builder` and `@webiny/app-headless-cms` package.
 
-| Component | Plugin API access name | Description |
+| Component | API access name | Description |
 | --- | --- | --- |
 | FontColorPlugin | fontColor | Apply font color to the text. |
 | ListPlugin | list | Format the bullet and numbered lists. |
@@ -363,7 +325,7 @@ In the following table are listed all plugin components that are used by Webiny 
 | ImagesPlugin | images | Insert and edit an image. |
 | QuotePlugin | quote | Format the selected text block to quote. This plugin will create quoteblock html tag.  |
 
-## Lexical Nodes
+**Lexical Nodes**
 
 The table below shows all core nodes that are used by Webiny in `@webiny/lexical-editor` package.
 
@@ -383,11 +345,11 @@ The table below shows all core nodes that are used by Webiny in `@webiny/lexical
 
 Core Lexical nodes by Webiny can’t be removed or updated with the configuration API.
 
-<Alert type={"info"}>
+<Alert type={"warning"}>
   When you create your custom nodes, be sure to not override the same node types from the table.
 </Alert>
 
-# Resources
+## Resources
 
 To learn more about how Lexical Editor works before starting with the custom configuration with the Webiny please check Facebook’s official website - [https://lexical.dev/](https://lexical.dev/).
 
