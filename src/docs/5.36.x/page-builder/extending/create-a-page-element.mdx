@@ -432,10 +432,75 @@ Creating custom page elements is certainly an interesting option when users need
 
 On the code level, this could be creating completely custom (renderer) React components, including needed external NPM libraries, or even issuing remote HTTP requests to external HTTP APIs in order to retrieve data from standalone external systems.
 
-On the other hand, custom page elements also add additional flexibility by allowing content creators to tweak elements' settings and, ultimately, allowing them to achieve more with just a single page element.
+On the other hand, custom page elements also add additional flexibility by allowing content creators to tweak elements' settings and, ultimately, help them achieve more with just a single page element.
 
 ## Additional Examples
 
 - [Cards Page Element](https://github.com/webiny/webiny-examples/tree/master/page-builder/cards-page-element)
 - [Pages as Modal Content](https://github.com/webiny/webiny-examples/tree/master/page-builder/pages-as-modals)
 - [Page Element With Child Elements](https://github.com/webiny/webiny-examples/tree/master/page-builder/element-with-child-elements)
+
+## Tips and Tricks
+
+### Control the style of the element wrapper
+
+In certain cases, you might need to control the style of the element wrapper. This is that orange box that shows around your custom element when you select it in the editor. Because your custom element is nested inside this element wrapper, it can affect the way your custom element is displayed, and you might need to make some adjustments to the styles of the wrapper itself.
+To do that, you can provide the `baseStyles` property inside the options of the `createRenderer` function. This property accepts an object with CSS properties, which will be applied to the element wrapper.
+
+```tsx
+import React from "react";
+import { createRenderer } from "@webiny/app-page-builder-elements";
+import MyCustomPlugin from "./components/MyCustomPlugin";
+
+export const RandomPlugin = createRenderer(() => {
+  return <MyCustomPlugin/>;
+}, {
+  // add min-height property to the element wrapper
+  baseStyles:{
+    minHeight: 2000,
+  }
+});
+```
+
+### Set default style property for your custom element
+
+In another case, you might need to set certain style properties of your custom element to specific values. For example, by default, if you drop in an element into the editor its height is set to `100%`. But what if you have a case where you want your specific element to say have a default height of `250px`, you can take the following approach. Inside `<PbEditorPageElementPlugin>` you can define the `data.settings` property and set the default value for the height property, or for any other property that you want to set.
+
+In this particular case, since the Page Builder controls the height property per device breakpoint you need to import both `createInitialPerDeviceSettingValue` and `DisplayMode` to correctly set the `height` property. 
+
+
+``` js
+import React from "react";
+import {
+    PbEditorPageElementPlugin,
+    DisplayMode,
+    PbEditorPageElementAdvancedSettingsPlugin
+} from "@webiny/app-page-builder/types";
+import { createInitialPerDeviceSettingValue } from "@webiny/app-page-builder/editor/plugins/elementSettings/elementSettingsUtils";
+
+export default [
+    {
+        name: "pb-editor-my-custom-element",
+        type: "pb-editor-page-element",
+
+        // ... trimmed for brevity
+        create(options) {
+            return {
+                type: "my-custom-element",
+                elements: [],
+                data: {
+                    settings: {
+                        // set height to 250px by default
+                        height: createInitialPerDeviceSettingValue(
+                            { value: "250px" },
+                            DisplayMode.DESKTOP
+                        )
+                    }
+                },
+                ...options
+            };
+        }
+    } as PbEditorPageElementPlugin,
+];
+
+```
