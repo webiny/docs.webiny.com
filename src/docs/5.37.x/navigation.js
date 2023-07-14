@@ -9,16 +9,26 @@ export const Navigation = () => {
             <BaseNavigation />
             {/* Add new items. */}
             <NavGroup type={"docs"}>
-              <Collapsable title={"Headless CMS"}>
-                <Section title={"Extending functionality"}>
-                  <Page link={"headless-cms/extending/customize-entry-list-filters"} after={"headless-cms/extending/custom-field-type"} />
-                  <Page link={"headless-cms/extending/customize-entry-editor-actions"} after={"headless-cms/extending/customize-entry-list-filters"} />
-                </Section>
-              </Collapsable>
+                <Collapsable title={"Headless CMS"}>
+                    <Section title={"Extending functionality"}>
+                        <Page
+                            link={"headless-cms/extending/customize-entry-list-filters"}
+                            after={"headless-cms/extending/custom-field-type"}
+                        />
+                        <Page
+                            link={"headless-cms/extending/customize-entry-editor-actions"}
+                            after={"headless-cms/extending/customize-entry-list-filters"}
+                        />
+                    </Section>
+                </Collapsable>
                 <Collapsable title={"File Manager"}>
                     <Section title={"Extending functionality"}>
                         <Page link={"file-manager/extending/customizing-file-filters"} />
                     </Section>
+                </Collapsable>
+
+                <Collapsable title={"Webiny Enterprise"}>
+                    <Page link={"enterprise/teams"} />
                 </Collapsable>
             </NavGroup>
         </>
