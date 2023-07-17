@@ -69,33 +69,24 @@ The code examples below are based on a content model called `Property` with the 
 
 To add a new filter, you need a regular React element to pass to the `Browser.Filter` component through the `element` prop. You must also include the `name` prop, which serves as a unique identifier, enabling further interactions, such as positioning, removing, and replacing.
 
-```diff-tsx apps/admin/src/App.tsx
-import React from "react";
-import { Admin } from "@webiny/app-serverless-cms";
-import { Cognito } from "@webiny/app-admin-users-cognito";
-+ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
-import "./App.scss";
+```tsx
+import { ContentEntryListConfig } from "@webiny/app-headless-cms";
 
-+ const { Browser } = ContentEntryListConfig;
+const { Browser } = ContentEntryListConfig;
 
-+ const DemoFilter = () => {
-+   return <span>Demo Filter</span>;
-+ }
+const DemoFilter = () => {
+  return <span>Demo Filter</span>;
+}
 
-export const App: React.FC = () => {
-    return (
-      <Admin>
-        <Cognito />
-+       <ContentEntryListConfig>
-+         <Browser.Filter
-+           name={"demo-filter"}
-+           element={<DemoFilter />}
-+           modelIds={["property"]}
-+         />
-+       </ContentEntryListConfig>
-      </Admin>
-    );
-};
+/* Register your custom filter. */
+<ContentEntryListConfig>
+  <Browser.Filter
+    name={"demo-filter"}
+    element={<DemoFilter />}
+    modelIds={["property"]}
+  />
+</ContentEntryListConfig>
+
 ```
 
 By declaring the `modelIds` prop, you can define in which Content Model Entry List you want to show your custom filter. If you exclude this prop, the filter will be registered for all models in the system.
@@ -106,44 +97,38 @@ In the example above, the next time you open your `property` content model brows
 
 Here's an example of how to create a filter that displays only "Deluxe" properties. We consider a property to be "Deluxe" if its price is over 1 million.
 
-```diff-tsx apps/admin/src/App.tsx
-import React from "react";
-import { Admin } from "@webiny/app-serverless-cms";
-import { Cognito } from "@webiny/app-admin-users-cognito";
-+ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
-+ import { useBind } from "@webiny/form";
-+ import { Switch } from "@webiny/ui/Switch";
-import "./App.scss";
+```tsx
+import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+import { useBind } from "@webiny/form";
+import { Switch } from "@webiny/ui/Switch";
 
-+ const { Browser } = ContentEntryListConfig;
+const { Browser } = ContentEntryListConfig;
 
-+ const DeluxeFilter = () => {
-+   const bind = useBind({
-+     name: "price_gt"
-+   });
-+ 
-+   const toggleFilter = () => {
-+     bind.onChange(bind.value ? undefined : 1000000);
-+   };
-+ 
-+   return <Switch {...bind} label={"Show deluxe properties only"} onChange={toggleFilter} />;
-+ };
+const DeluxeFilter = () => {
+  const bind = useBind({
+    name: "price_gt"
+  });
 
-export const App: React.FC = () => {
-    return (
-      <Admin>
-        <Cognito />
-+       <ContentEntryListConfig>
-+         <Browser.Filter
-+           name={"deluxe"}
-+           element={<DeluxeFilter />}
-+           modelIds={["property"]}
-+         />
-+       </ContentEntryListConfig>
-      </Admin>
-    );
+  const toggleFilter = () => {
+    bind.onChange(bind.value ? undefined : 1000000);
+  };
+
+  return <Switch {...bind} label={"Show deluxe properties only"} onChange={toggleFilter} />;
 };
+
+/* Register your custom filter. */
+<ContentEntryListConfig>
+  <Browser.Filter
+    name={"deluxe"}
+    element={<DeluxeFilter />}
+    modelIds={["property"]}
+  />
+</ContentEntryListConfig>
 ```
+
+<Alert type={"info"} title={"Using GraphQL API Filtering"}>
+You can write any filtering logic based on [Headless CMS's built-in GraphQL API filtering](/docs/headless-cms/basics/using-graphql-api-advanced-filtering).
+</Alert>
 
 Under the hood, filters are handled via a regular form component: this means we can hook into the form to set new filter values. We're using the `useBind` hook and give it a name. This `name` will become a key within the form data object, which will be passed to the GraphQL query. To unset a filter, we set `undefined`.
 
@@ -155,60 +140,52 @@ Sometimes, you need to implement filtering logic that is more complex than just 
 
 To correctly format our filters, we'll use the `Browser.FiltersToWhere` component to register our custom converter, allowing you to convert form data to a valid GraphQL query input. With this approach, you have full control over values that will be passed to the API when the user interacts with the filters UI.
 
-```diff-tsx apps/admin/src/App.tsx
-import React from "react";
-import { Admin } from "@webiny/app-serverless-cms";
-import { Cognito } from "@webiny/app-admin-users-cognito";
-+ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
-+ import { useBind } from "@webiny/form";
-+ import { Select } from "@webiny/ui/Select";
-import "./App.scss";
+```tsx
+import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+import { useBind } from "@webiny/form";
+import { Select } from "@webiny/ui/Select";
 
-+ export const FilterByPrice = () => {
-+   const bind = useBind({
-+     name: "price",
-+     defaultValue: "all",
-+     beforeChange(value, cb) {
-+       cb(value === "all" ? undefined : value);
-+     }
-+   });
-+ 
-+   const options = [
-+     { label: "All", value: "all" },
-+     { label: "> 500k", value: "gt:500000" },
-+     { label: "< 500k", value: "lt:500000" }
-+   ];
-+ 
-+   return <Select {...bind} placeholder={"Filter by price"} options={options} size="medium" />;
-+ };
+const { Browser } = ContentEntryListConfig;
 
-+ const convertFilters = ({ price, ...rest }: any) => {
-+   if (!price) {
-+     return rest;
-+   }
-+ 
-+   const [operator, value] = price.split(":");
-+   return { ...rest, [`price_${operator}`]: parseInt(value) };
-+ };
+export const FilterByPrice = () => {
+  const bind = useBind({
+    name: "price",
+    defaultValue: "all",
+    beforeChange(value, cb) {
+      cb(value === "all" ? undefined : value);
+    }
+  });
 
-export const App: React.FC = () => {
-    return (
-      <Admin>
-        <Cognito />
-+       <ContentEntryListConfig>
-+        <Browser.Filter 
-+          name={"price"} 
-+          element={<FilterByPrice />} 
-+          modelIds={["property"]} 
-+        />
-+        <Browser.FiltersToWhere 
-+          converter={convertFilters} 
-+          modelIds={["property"]} 
-+        />
-+      </ContentEntryListConfig>
-      </Admin>
-    );
+  const options = [
+    { label: "All", value: "all" },
+    { label: "> 500k", value: "gt:500000" },
+    { label: "< 500k", value: "lt:500000" }
+  ];
+
+  return <Select {...bind} placeholder={"Filter by price"} options={options} size="medium" />;
 };
+
+const convertFilters = ({ price, ...rest }: any) => {
+  if (!price) {
+    return rest;
+  }
+
+  const [operator, value] = price.split(":");
+  return { ...rest, [`price_${operator}`]: parseInt(value) };
+};
+
+/* Register your custom filter and the filters converter. */
+<ContentEntryListConfig>
+  <Browser.Filter 
+    name={"price"} 
+    element={<FilterByPrice />} 
+    modelIds={["property"]} 
+  />
+  <Browser.FiltersToWhere 
+    converter={convertFilters} 
+    modelIds={["property"]} 
+  />
+</ContentEntryListConfig>
 ```
 
 <Image src={hcmsDropdownFilter} title="Dropdown Filter in Action" />
