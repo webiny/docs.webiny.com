@@ -11,9 +11,11 @@ export const Navigation = () => {
             <NavGroup type={"docs"}>
               <Collapsable title={"Headless CMS"}>
                 <Section title={"Extending functionality"}>
-                  <Page
-                    link={"headless-cms/extending/render-lexical-rich-text-content"}
-                    after={"headless-cms/extending/render-rich-text-content"} />
+                  <Page link={"headless-cms/extending/render-rich-text-content"} remove />
+                </Section>
+                <Section title={"Integrations"}>
+                  <Page link={"headless-cms/integrations/legacy-render-rich-text-content"} />
+                  <Page link={"headless-cms/integrations/render-lexical-rich-text-content"} />
                 </Section>
               </Collapsable>
               <Collapsable title={"File Manager"}>
