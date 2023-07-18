@@ -59,18 +59,28 @@ Use one of these components to render a button that inherits UI rules and guidel
 import React from "react";
 import { Admin } from "@webiny/app-serverless-cms";
 import { Cognito } from "@webiny/app-admin-users-cognito";
-+ import { ContentEntryEditorConfig } from "@webiny/app-headless-cms";
++ import { ContentEntryEditorConfig, useContentEntry } from "@webiny/app-headless-cms";
++ import { useSnackbar } from "@webiny/app-admin";
 import "./App.scss";
 
 + // You can destructure child components to make the code more readable and easier to work with.
 + const { Actions } = ContentEntryEditorConfig;
 + const { useButtons } = Actions.ButtonAction;
 
-+ const DownloadPdfButton = () => {
++ const ButtonCopyJson = () => {
 +   // useButtons() exposes the button components also used internally: use these to keep the UI consistent.  
 +   const { ButtonPrimary } = useButtons();
++   // useContentEntry() provides helpful details about the currently selected entry.
++   const { entry } = useContentEntry();
++   // showSnackbar allows to provide a feedback to users.
++   const { showSnackbar } = useSnackbar();
 +   
-+   return <ButtonPrimary onAction={() => alert("Download as PDF")}>Save as PDF</ButtonPrimary>; 
++   const copyJson = () => {
++       navigator.clipboard.writeText(JSON.stringify(entry, null, 2));
++       showSnackbar("JSON data copied to clipboard.");
++   };
++
++   return <ButtonPrimary onAction={copyJson}>Copy JSON data</ButtonPrimary>;
 + }
 
 export const App: React.FC = () => {
@@ -79,8 +89,8 @@ export const App: React.FC = () => {
         <Cognito />
 +       <ContentEntryEditorConfig>
 +         <Actions.ButtonAction
-+           name={"download"}
-+           element={<DownloadPdfButton />} 
++           name={"copy-json"}
++           element={<ButtonCopyJson />} 
 +           modelIds={["car"]}
 +         />
 +       </ContentEntryEditorConfig>
@@ -109,7 +119,7 @@ To position your custom button before or after an existing button, you can use t
 
 ```tsx
 <ContentEntryEditorConfig>
-  <Actions.ButtonAction name={"download"} element={<DownloadPdfButton />} before={"save"} />
+  <Actions.ButtonAction name={"copy-json"} element={<ButtonCopyJson />} before={"save"} />
 </ContentEntryEditorConfig>
 ```
 
@@ -147,23 +157,32 @@ To help developers keep the UI consistent, you'll find a handy `useOptionsMenuIt
 import React from "react";
 import { Admin } from "@webiny/app-serverless-cms";
 import { Cognito } from "@webiny/app-admin-users-cognito";
-+ import { ReactComponent as DownloadIcon } from "@material-design-icons/svg/filled/download.svg";
-+ import { ContentEntryEditorConfig } from "@webiny/app-headless-cms";
++ import { ReactComponent as CopyIcon } from "@material-design-icons/svg/filled/content_copy.svg";
++ import { ContentEntryEditorConfig, useContentEntry } from "@webiny/app-headless-cms";
 import "./App.scss";
 
 + // You can destructure child components to make the code more readable and easier to work with.
 + const { Actions } = ContentEntryEditorConfig;
 + const { useOptionsMenuItem } = Actions.MenuItemAction;
 
-+ const DownloadPdfMenuItem = () => {
-+   // useOptionsMenuItem() exposes the menu item component, also used internally: use this to keep the UI consistent. 
++ const MenuItemCopyJson = () => {
++   // useOptionsMenuItem() exposes the menu item component, also used internally: use this to keep the UI consistent.
 +   const { OptionsMenuItem } = useOptionsMenuItem();
++   // useContentEntry() provides helpful details about the currently selected entry.
++   const { entry } = useContentEntry();
++   // showSnackbar allows to provide a feedback to users.
++   const { showSnackbar } = useSnackbar();
++
++   const copyJson = () => {
++       navigator.clipboard.writeText(JSON.stringify(entry, null, 2));
++       showSnackbar("JSON data copied to clipboard.");
++   };
 +   
 +   return (
 +       <OptionsMenuItem
-+           onAction={() => alert("Download as PDF")}
-+           label={"Download as PDF"}
-+           icon={<DownloadIcon />}
++           onAction={copyJson}
++           label={"Copy JSON data"}
++           icon={<CopyIcon />}
 +       />
 +   ); 
 + }
@@ -174,8 +193,8 @@ export const App: React.FC = () => {
        <Cognito />
 +      <ContentEntryEditorConfig>
 +        <Actions.MenuItemAction
-+          name={"download"}
-+          element={<DownloadPdfMenuItem />}
++          name={"copy-json"}
++          element={<MenuItemCopyJson />}
 +          modelIds={["car"]}
 +        />
 +      </ContentEntryEditorConfig>
@@ -204,7 +223,7 @@ To position your custom menu item before or after an existing menu item, you can
 
 ```tsx
 <ContentEntryEditorConfig>
-  <Actions.MenuItemAction name={"download"} element={<DownloadPdfMenuItem />} before={"delete"} />
+  <Actions.MenuItemAction name={"copy-json"} element={<MenuItemCopyJson />} before={"delete"} />
 </ContentEntryEditorConfig>
 ```
 
