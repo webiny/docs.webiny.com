@@ -56,7 +56,7 @@ export function Editor({ title, lang, children }) {
         if (isDiff) {
             setTimeout(() => {
                 setCode(highlightCode(children, lang));
-            }, 20);
+            }, 40);
         } else {
             setCode(highlightCode(children, lang));
         }
