@@ -23,7 +23,9 @@ export const Navigation = () => {
                 </Collapsable>
                 <Collapsable title={"File Manager"}>
                     <Section title={"Extending functionality"}>
-                        <Page link={"file-manager/extending/customizing-file-filters"} />
+                        <Page link={"file-manager/extending/customize-file-filters"} />
+                        <Page link={"file-manager/extending/customize-file-fields"} />
+                        <Page link={"file-manager/extending/customize-file-key"} />
                     </Section>
                 </Collapsable>
 
