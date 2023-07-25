@@ -5,6 +5,7 @@ const { withImages, unwrapImages } = require("./remark/withImages");
 const { withTableOfContents } = require("./remark/withTableOfContents");
 const { withSyntaxHighlighting } = require("./remark/withSyntaxHighlighting");
 const { withNextLinks } = require("./remark/withNextLinks");
+const { removeExports } = require("./remark/removeExports");
 
 const DEFAULT_RENDERER = `
 import React from 'react'
@@ -19,7 +20,7 @@ function mdxLoader(source) {
     const callback = this.async();
     const cacheKey = this.resourcePath.replace(process.cwd(), "");
 
-    if (cache.has(cacheKey)) {
+    if (cache.has(cacheKey) && process.env.NODE_ENV === "production") {
         // process.stdout.write(`\n[FROM CACHE] ${cacheKey}`);
         return callback(null, cache.get(cacheKey));
     }
@@ -34,7 +35,8 @@ function mdxLoader(source) {
                 withSyntaxHighlighting,
                 withNextLinks,
                 withSmartQuotes,
-                unwrapImages
+                unwrapImages,
+                removeExports
             ]
         });
     }
