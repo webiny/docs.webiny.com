@@ -1,11 +1,12 @@
 import { forwardRef } from "react";
+import Link from "next/link";
 import { Heading } from "./Heading";
 import { Gallery, Image } from "./Image";
 import { Alert } from "./Alert";
 import { WhatYouWillLearn } from "./WhatYouWillLearn";
 import { CanIUseThis } from "./CanIUseThis";
 import { Video } from "./Video";
-import Link from "next/link";
+import { Editor } from "./Editor";
 import { ExternalLink } from "./ExternalLink";
 import { GithubRelease } from "./GithubRelease";
 
@@ -15,6 +16,7 @@ export const mdxComponents = {
     WhatYouWillLearn,
     CanIUseThis,
     Image,
+    Editor,
     Gallery,
     Video,
     ExternalLink,

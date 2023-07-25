@@ -1,9 +1,9 @@
+import { MDXProvider } from "@mdx-js/react";
 import { mdxComponents } from "@/components/mdxComponents";
 import { usePage } from "@/hooks/usePage";
 import { VersionSelector } from "@/components/page/VersionSelector";
 import { ViewLatestVersion } from "@/components/page/ViewLatestVersion";
 import { PageHeader } from "@/components/page/PageHeader";
-import { MDXProvider } from "@mdx-js/react";
 
 export function PageLayout({ children }) {
     const { page } = usePage();
