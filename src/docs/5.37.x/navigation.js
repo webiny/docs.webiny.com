@@ -25,7 +25,7 @@ export const Navigation = () => {
                     <Section title={"Integrations"}>
                       <Page link={"headless-cms/integrations/legacy-render-rich-text-content"} />
                       <Page link={"headless-cms/integrations/render-lexical-rich-text-content"} />
-                  </Section>
+                    </Section>
                 </Collapsable>
                 <Collapsable title={"File Manager"}>
                     <Section title={"Extending functionality"}>
