@@ -51,9 +51,15 @@ export function Editor({ title, lang, children }) {
     const [code, setCode] = useState("");
 
     useEffect(() => {
-        setTimeout(() => {
+        const isDiff = lang.startsWith("diff-");
+
+        if (isDiff) {
+            setTimeout(() => {
+                setCode(highlightCode(children, lang));
+            }, 40);
+        } else {
             setCode(highlightCode(children, lang));
-        }, 20);
+        }
     }, [once]);
 
     return (
