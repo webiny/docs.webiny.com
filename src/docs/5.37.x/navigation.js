@@ -17,7 +17,7 @@ export const Navigation = () => {
         <Collapsable title={"Page Builder"}>
           <Section title={"Extending functionality"}>
             <Page
-              link={"page-builder/extending/lexical-editor-configuration-api"}
+              link={"page-builder/extending/lexical-editor"}
               after={"page-builder/extending/extend-page-settings"}
             />
           </Section>
