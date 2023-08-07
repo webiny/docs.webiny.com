@@ -50,10 +50,6 @@ The easiest way to discover existing actions is to use the React Dev Tools plugi
   style={{ width: 450 }}
 />
 
-<Alert type={"info"}>
-  You will access to the actions by <b>name</b>. Webiny has names for all configuration options.
-</Alert>
-
 ## Heading Element
 
 Heading element is used for adding headings. Heading element has its own actions, plugins and nodes, which are separated from the Paragraph element.
@@ -68,6 +64,44 @@ To add a new toolbar action, you need to use the `<Heading.ToolbarAction>` compo
 import React from "react";
 ...
 import { LexicalEditorConfig } from "@webiny/app-page-builder";
+// Imports for the custom toolbar action
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { FORMAT_TEXT_COMMAND } from "lexical";
+import { useRichTextEditor } from "~/hooks/useRichTextEditor";
+
+const MyCustomBoldActon = () => {
+  {
+    /* Access to native Lexical hooks */
+  }
+  const [editor] = useLexicalComposerContext();
+  const [isBold, setIsBold] = useState(false);
+  {
+    /* Check the selected text, nodes and toolbar state with useRichTextEditor hook */
+  }
+  const { textBlockSelection } = useRichTextEditor();
+  const isBoldSelected = !!textBlockSelection?.state?.bold;
+
+  const handleClick = () => {
+    editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
+    setIsBold(!isBold);
+  };
+
+  useEffect(() => {
+    setIsBold(isBoldSelected);
+  }, [isBoldSelected]);
+
+  return (
+    <button
+      onClick={() => handleClick()}
+      className={"popup-item spaced " + (isBold ? "active" : "")}
+      aria-label="Format text as bold"
+    >
+      <i className="format my-bold-icon" />
+    </button>
+  );
+};
+
+// Access to heading element
 const { Heading } = LexicalEditorConfig;
 
 export const App: React.FC = () => {
@@ -75,29 +109,29 @@ export const App: React.FC = () => {
     <Admin>
       <Cognito />
       <LexicalEditorConfig>
-        <Heading.ToolbarAction name={"myAction"} element={<MyNewCustomAction />} />
+        <Heading.ToolbarAction
+          name={"myCustomBoldActon"}
+          element={<MyCustomBoldActon />}
+        />
       </LexicalEditorConfig>
     </Admin>
   );
 };
 ```
+
 #### Replace Action
 To replace an existing action with a new action element, you need to reference the existing action by name, and pass a new element via the `element` prop:
 ```jsx apps/admin/src/App.tsx
 <LexicalEditorConfig>
-{/* Existing Webiny action */}
- <Heading.ToolbarAction name={"fontSize"} element={<MyFontSizeAction />} />
+  <Heading.ToolbarAction name={"bold"} element={<MyCustomBoldActon />} />
 </LexicalEditorConfig>
 ```
 
 #### Remove Action
-To remove an action, all you need to do is reference the action by name, and pass a `remove` prop to the `<Heading.ToolbarAction>` element:
+To remove an action, pass a `remove` prop to the `<Heading.ToolbarAction>` element:
 ```jsx apps/admin/src/App.tsx
 <LexicalEditorConfig>
-{/* Custom action */}
- <Heading.ToolbarAction name={"myCustomAction"} remove />
-{/* Existing Webiny action */}
- <Heading.ToolbarAction name={"fontSize"} remove />
+  <Heading.ToolbarAction name={"fontSize"} remove />
 </LexicalEditorConfig>
 ```
 
@@ -106,9 +140,13 @@ To position existing or new custom action you can use `before` or `after` props 
 ```jsx apps/admin/src/App.tsx
 <LexicalEditorConfig>
   {/* New action positioning */}
-  <Heading.ToolbarAction name={"myAction"} element={<MyFontSizeAction />} before={"bold"} />
+  <Heading.ToolbarAction
+    name={"myCustomBoldActon"}
+    element={<MyCustomBoldActon />}
+    before={"fontSize"}
+  />
   {/* Existing action positioning */}
-  <Heading.ToolbarAction name={"fontSize"} after={"bold"} />
+  <Heading.ToolbarAction name={"fontSize"} after={"myCustomBoldActon"} />
 </LexicalEditorConfig>;
 ```
 
@@ -136,7 +174,7 @@ Please read the [official docs](https://lexical.dev/docs/react/plugins) for more
 #### Add Plugin
 To add a new lexical plugin, you need to use the `<Heading.Plugin>` component and mount it within your Admin app.
 ```jsx apps/admin/src/App.tsx
- <Heading.Plugin name={"customLinkPopup"} element={<CustomLinkPopupPlugin />}/>
+<Heading.Plugin name={"customLinkPopup"} element={<CustomLinkPopupPlugin />} />
 ```
 
 #### Replace Plugin
