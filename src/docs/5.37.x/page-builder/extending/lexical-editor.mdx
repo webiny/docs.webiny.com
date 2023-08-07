@@ -139,7 +139,7 @@ To remove an action, pass a `remove` prop to the `<Heading.ToolbarAction>` eleme
 To position existing or new custom action you can use `before` or `after` props on the `<Heading.ToolbarAction>` element:
 ```jsx apps/admin/src/App.tsx
 <LexicalEditorConfig>
-  {/* To add new action after font size action */}
+  {/* Position your action after the font size action */}
   <Heading.ToolbarAction
     name={"myCustomBoldActon"}
     element={<MyCustomBoldActon />}
@@ -357,7 +357,6 @@ export class EmojiNode extends TextNode {
 }
 
 <Heading.Node name={"emojiNode"} node={EmojiNode} />;
-
 ```
 
 Please check the official [Lexical documentation](https://github.com/facebook/lexical/blob/main/packages/lexical-playground/src/nodes/EmojiNode.tsx) for full example. 
@@ -408,34 +407,42 @@ To customize the toolbar actions, you can utilize our configuration options. You
 To add a new toolbar action, you need to use the `<Paragraph.ToolbarAction>` component and mount it within your Admin app.
 ```jsx apps/admin/src/App.tsx
 import React from "react";
-...
 import { LexicalEditorConfig } from "@webiny/app-page-builder";
+
+// Access to paragraph element
 const { Paragraph } = LexicalEditorConfig;
 
-export const App: React.FC = () => {
-  return (
-    <Admin>
-      <Cognito />
-      <LexicalEditorConfig>
-        <Paragraph.ToolbarAction name={"myAction"} element={<MyNewCustomAction />} />
-      </LexicalEditorConfig>
-    </Admin>
-  );
+const MyCustomBoldActon = () => {
+  export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
+        <LexicalEditorConfig>
+          {/* Use the same MyCustomBoldActon component from the header element section */}
+          <Paragraph.ToolbarAction
+            name={"myCustomBoldActon"}
+            element={<MyCustomBoldActon />}
+          />
+        </LexicalEditorConfig>
+      </Admin>
+    );
+  };
 };
+
 ```
 #### Replace Action
 To replace an existing action with a new action element, you need to reference the existing action by name, and pass a new element via the `element` prop:
 ```jsx apps/admin/src/App.tsx
 <LexicalEditorConfig>
- <Paragraph.ToolbarAction name={"fontSize"} element={<MyFontSizeAction />} />
+  <Paragraph.ToolbarAction name={"bold"} element={<MyCustomBoldActon />} />
 </LexicalEditorConfig>
 ```
 
 #### Remove Action
-To remove an action, all you need to do is reference the action by name, and pass a remove prop to the `<Paragraph.ToolbarAction>` element:
+To remove an action, pass a remove prop to the `<Paragraph.ToolbarAction>` element:
 ```jsx apps/admin/src/App.tsx
 <LexicalEditorConfig>
- <Paragraph.ToolbarAction name={"fontSize"} remove />
+  <Paragraph.ToolbarAction name={"fontSize"} remove />
 </LexicalEditorConfig>
 ```
 
@@ -443,10 +450,14 @@ To remove an action, all you need to do is reference the action by name, and pas
 To position existing or new custom action you can use `before` or `after` props on the `<Paragraph.ToolbarAction>` element:
 ```jsx apps/admin/src/App.tsx
 <LexicalEditorConfig>
-  {/* New action positioning */}
-  <Paragraph.ToolbarAction name={"myAction"} element={<MyFontSizeAction />} before={"bold"} />
-  {/* Existing action positioning */}
-  <Heading.ToolbarAction name={"fontSize"} after={"bold"} />
+  {/* Position your action after the font size action */}
+  <Paragraph.ToolbarAction
+    name={"myCustomBoldActon"}
+    element={<MyCustomBoldActon />}
+    before={"fontSize"}
+  />
+  {/* Position the existing font size action after the new custom action */}
+  <Paragraph.ToolbarAction name={"fontSize"} after={"myCustomBoldActon"} />
 </LexicalEditorConfig>;
 ```
 
@@ -456,30 +467,39 @@ Please read the [official docs](https://lexical.dev/docs/react/plugins) for more
 #### Add Plugin
 To add a new lexical plugin, you need to use the `<Paragraph.Plugin>` component and mount it within your Admin app.
 ```jsx apps/admin/src/App.tsx
-  {/* Add a new plugin */}
-  <Paragraph.Plugin name={"newPLugin"} element={<NewPlugin/>} />
+{
+  /* Use the same CustomFloatingLinkEditorPlugin component from the header element section */
+}
+<Paragraph.Plugin
+  name={"customFloatingLinkEditor"}
+  element={<CustomFloatingLinkEditorPlugin />}
+/>;
 ```
+
+A custom form is created by our plugin in the floating link popup to enable users to edit links. You can refer to [our example](https://github.com/webiny/webiny-examples/tree/master/lexical-editor-configuration-api) for a step-by-step guide.
 
 #### Replace Plugin
 To replace an existing plugin with a new plugin, you need to reference the existing plugin by name, and pass a new element via the `element` prop:
 ```jsx apps/admin/src/App.tsx
- {/* Override the default Webiny link plugin with your custom link plugin */}
- <Paragraph.Plugin name={"link"} element={<CustomLinkEditorPlugin />} />
+<Paragraph.Plugin name={"link"} element={<CustomFloatingLinkEditorPlugin />} />
 ```
 
 #### Remove Plugin
-Sometimes you might want to remove a plugin. All you need to do is reference the plugin by name, and pass a `remove` prop to the `<Paragraph.Plugin>` element:
+To remove a plugin, pass a `remove` prop to the `<Paragraph.Plugin>` element:
 ```jsx apps/admin/src/App.tsx
- {/* Remove the plugin for the font size formatting */}
- <Paragraph.Plugin name={"fontSize"} remove />
+<Paragraph.Plugin name={"link"} remove />;
 ```
 #### Position Plugin
 To position existing or custom plugins you can use `before` or `after` props on the `<Paragraph.Plugin>` element:
 ```jsx apps/admin/src/App.tsx
-  {/* Place your plugin after the font size plugin */}
-  <Paragraph.Plugin name={"newPlugin"} element={<NewPlugin/>} after={"fontSize"} />
-  {/* Place the existing plugin before your new plugin */}
-  <Paragraph.Plugin name={"link"} before={"newPlugin"} />
+{/* To add new plugin after the font size plugin */}
+<Paragraph.Plugin
+  name={"newPlugin"}
+  element={<NewPlugin />}
+  after={"fontSize"}
+/>;
+{/* Position the existing plugin before your new plugin */}
+<Paragraph.Plugin name={"link"} before={"newPlugin"} />;
 ```
 
 
@@ -495,161 +515,27 @@ Please read the [official docs](https://lexical.dev/docs/concepts/nodes) for mor
 #### Add Node
 To add a new lexical node, you need to use the `<Paragraph.Node>` component and mount it within your Admin app. After, pass the node class via the `node` prop.
 ```jsx apps/admin/src/App.tsx
-<Paragraph.Node name={"newNode"} node={NewNode} />
+{/* Use the same EmojiNode class from the header element section */}
+<Paragraph.Node name={"emojiNode"} node={EmojiNode} />;
 ```
+
+Please check the official [Lexical documentation](https://github.com/facebook/lexical/blob/main/packages/lexical-playground/src/nodes/EmojiNode.tsx) for full example.
+
 #### Replace Node
 To replace your custom lexical node with a new node, you need to reference the existing node by name, and pass a new node class via the `node` prop:
 ```jsx apps/admin/src/App.tsx
-<Paragraph.Node name={"chatNode"} node={MyNewChatNode} />
+<Paragraph.Node name={"emojiNode"} node={MyExtendedEmojiNode} />;
 ```
 
 #### Remove Node
-To remove a lexical node, all you need to do is reference the plugin by name, and pass a `remove` prop to the `<Paragraph.Node>` element:
+To remove a lexical node, pass a `remove` prop to the `<Paragraph.Node>` element:
 ```jsx apps/admin/src/App.tsx
-{/* Remove your custom node */}
-<Paragraph.Node name={"myCustomNode"} remove />
+<Paragraph.Node name={"emojiNode"} remove />
 ```
 
 #### Position Node
 To position your nodes, you can use `before` or `after` props on the `<Paragraph.Node>` element:
 ```jsx apps/admin/src/App.tsx
-<Paragraph.Node name={"emojis"} node={EmojisPlugin} after={"newNode"} />;
-<Paragraph.Node name={"chatNode"} node={ChatNode} before={"emojis"} />;
+<Paragraph.Node name={"emojiNode"} node={EmojiNode} after={"newNode"} />;
+<Paragraph.Node name={"newNode"} node={NewNode} before={"myExtendedEmojiNode"} />;
 ```
-
-
-
-
-[//]: # (## Lexical Components Catalog)
-
-[//]: # ()
-[//]: # (In this section are have a list of specifications of the core Webiny components for the Lexical Editor that are configurable and exposed for developers.)
-
-[//]: # ()
-[//]: # (The table below presents a comprehensive list of toolbar action components utilized by Webiny and made accessible via the Lexical Configuration API in  `@webiny/app-page-builder` and `@webiny/app-headless-cms` package.)
-
-()
-(**Lexical Toolbar Actions**)
-
-[//]: # ()
-[//]: # (| Component | API Access name | Description |)
-
-[//]: # (| --- | --- | --- |)
-
-[//]: # (| FontSizeAction | fontSize | Set font size  |)
-
-[//]: # (| FontColorAction | fontColor | Change the font color of the text |)
-
-[//]: # (| TypographyAction | typography | Apply typography styles specified in the theme for the particular selected block of text. For example paragraph, header, list, etc. |)
-
-[//]: # (|  BoldAction | boldAction | Set bold to the selected text. |)
-
-[//]: # (| ItalicAction | italic | Set the italic style to the text. |)
-
-[//]: # (| UnderlineAction | underline | Set underline style to the text. |)
-
-[//]: # (| CodeHighlightAction | codeHighlight | Apply code highlight to the text. |)
-
-[//]: # (| NumberedListAction | numberedList | Convert the header or paragraph text block into a numbered list. |)
-
-[//]: # (| BulletListAction | bulletList | Convert the header or paragraph text block into a bullet list. |)
-
-[//]: # (| ImageAction | image | Open File Manager where the user can select and insert one image at a time.  |)
-
-[//]: # (| LinkAction | link | Open a pop-up where the user can set the URL and convert the text to a link. |)
-
-[//]: # (| QuoteAction | quote | Convert the selected text block to a quote. |)
-
-[//]: # ()
-[//]: # (**UI components**)
-
-[//]: # ()
-[//]: # (UI components are used to speed up the development and come with predefined CSS styles to match the Editor's desired look and functionality.)
-
-[//]: # ()
-[//]: # (Use these ***Dropdown*** and ***DropdownItem*** components to create a dropdown for your toolbar. Use the ***Divider*** component to separate toolbar actions.)
-
-[//]: # ()
-[//]: # (| Component | API Access name | Description |)
-
-[//]: # (| --- | --- | --- |)
-
-[//]: # (| Divider | divider{index} | The index is the number of the divider in order starting from 1 to n&#40;number of the spot in order&#41;. |)
-
-[//]: # (| Dropdown | N/A | Creates dropdown for the action |)
-
-[//]: # (| DropDownItem | N/A | Dropdown item of the Dropdown menu, |)
-
-[//]: # ()
-[//]: # (**Lexical Plugins**)
-
-[//]: # ()
-[//]: # (In the following table are listed all plugin components that are used by Webiny and exposed through the Lexical Configuration API in  `@webiny/app-page-builder` and `@webiny/app-headless-cms` package.)
-
-[//]: # ()
-[//]: # (| Component | API access name | Description |)
-
-[//]: # (| --- | --- | --- |)
-
-[//]: # (| FontColorPlugin | fontColor | Apply font color to the text. |)
-
-[//]: # (| ListPlugin | list | Format the bullet and numbered lists. |)
-
-[//]: # (| CodeHighlightPlugin | codeHighlight | Format code highlight. |)
-
-[//]: # (| TypographyPlugin | typography | Format and apply typography styles for the selected text block. |)
-
-[//]: # (| LinkPlugin | link | Format text to link. |)
-
-[//]: # (| FloatingLinkEditorPlugin | floatingLinkEditor | Manage the form and position of the floating pop-up window where the user can edit the links.  |)
-
-[//]: # (| ImagesPlugin | images | Insert and edit an image. |)
-
-[//]: # (| QuotePlugin | quote | Format the selected text block to quote. This plugin will create quoteblock html tag.  |)
-
-[//]: # ()
-[//]: # (**Lexical Nodes**)
-
-[//]: # ()
-[//]: # (The table below shows all core nodes that are used by Webiny in `@webiny/lexical-editor` package.)
-
-[//]: # ()
-[//]: # (| Node Class | Node type | Imported from Lexical framework | API access | Overrides the default Lexical node |)
-
-[//]: # (| --- | --- | --- | --- | --- |)
-
-[//]: # (| FontColorNode | font-color-node |  | No | No |)
-
-[//]: # (| ImageNode | image | No | No | No |)
-
-[//]: # (| ListNode | webiny-list | No | No | No |)
-
-[//]: # (| ListItemNode | webiny-listitem | No | No | No |)
-
-[//]: # (| CodeNode | code | Yes | No | No |)
-
-[//]: # (| HashtagNode | hashtag | Yes | No | No |)
-
-[//]: # (| CodeHighlightNode | code-highlight | Yes | No | No |)
-
-[//]: # (| TypographyElementNode | typography-el-node | No | No | No |)
-
-[//]: # (| ParagraphNode | paragraph-element | No | No | Yes |)
-
-[//]: # (| HeaderNode | header-element | No | No | Yes |)
-
-[//]: # (| QuoteNode | webiny-quote | No | No | Yes |)
-
-[//]: # ()
-[//]: # (Core Lexical nodes by Webiny can’t be removed or updated with the configuration API.)
-
-[//]: # ()
-[//]: # (<Alert type={"warning"}>)
-
-[//]: # (  When you create your custom nodes, be sure to not override the same node types from the table.)
-
-[//]: # (</Alert>)
-
-[//]: # ()
-[//]: # ()
-
