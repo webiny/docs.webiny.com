@@ -139,13 +139,13 @@ To remove an action, pass a `remove` prop to the `<Heading.ToolbarAction>` eleme
 To position existing or new custom action you can use `before` or `after` props on the `<Heading.ToolbarAction>` element:
 ```jsx apps/admin/src/App.tsx
 <LexicalEditorConfig>
-  {/* New action positioning */}
+  {/* To add new action after font size action */}
   <Heading.ToolbarAction
     name={"myCustomBoldActon"}
     element={<MyCustomBoldActon />}
     before={"fontSize"}
   />
-  {/* Existing action positioning */}
+  {/* Position the existing font size action after the new custom action */}
   <Heading.ToolbarAction name={"fontSize"} after={"myCustomBoldActon"} />
 </LexicalEditorConfig>;
 ```
@@ -174,29 +174,111 @@ Please read the [official docs](https://lexical.dev/docs/react/plugins) for more
 #### Add Plugin
 To add a new lexical plugin, you need to use the `<Heading.Plugin>` component and mount it within your Admin app.
 ```jsx apps/admin/src/App.tsx
-<Heading.Plugin name={"customLinkPopup"} element={<CustomLinkPopupPlugin />} />
+function CustomFloatingLinkEditor({
+  editor,
+  anchorElem,
+}: {
+  editor: LexicalEditor;
+  anchorElem: HTMLElement;
+}): JSX.Element {
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [isEditMode, setEditMode] = useState(false);
+  const [lastSelection, setLastSelection] = useState<
+    RangeSelection | GridSelection | NodeSelection | null
+  >(null);
+  const [showInputType, setShowInputType] =
+    useState<InputType>("custom-link-input");
+  ...
+  return (
+    <div ref={editorRef} className="custom-link-editor">
+      <>
+        <h1 className={"custom-link-title"}>My custom link form</h1>
+        {isEditMode ? (
+          <>
+            <LinkEditForm
+              showInputType={showInputType}
+              linkUrl={linkUrl}
+              lastSelection={lastSelection}
+              inputRef={inputRef}
+              setEditMode={setEditMode}
+              editor={editor}
+              setLinkUrl={setLinkUrl}
+            />
+          </>
+        ) : (
+          <>
+            <LinkPreviewForm
+              showPreviewForInputType={showInputType}
+              linkUrl={linkUrl}
+              setEditMode={setEditMode}
+              removeLink={removeLink}
+            />
+          </>
+        )}
+      </>
+    </div>
+  );
+}
+
+function useFloatingLinkEditorToolbar(
+  editor: LexicalEditor,
+  anchorElem: HTMLElement
+): JSX.Element | null {
+  const [activeEditor, setActiveEditor] = useState(editor);
+  const [isLink, setIsLink] = useState(false);
+  ...
+  return isLink
+    ? createPortal(
+        <CustomFloatingLinkEditor
+          editor={activeEditor}
+          anchorElem={anchorElem}
+        />,
+        anchorElem
+      )
+    : null;
+}
+
+function CustomFloatingLinkEditorPlugin({
+  anchorElem = document.body,
+}: {
+  anchorElem?: HTMLElement;
+}): JSX.Element | null {
+  const [editor] = useLexicalComposerContext();
+  return useFloatingLinkEditorToolbar(editor, anchorElem);
+}
+
+<Heading.Plugin
+  name={"customFloatingLinkEditor"}
+  element={<CustomFloatingLinkEditorPlugin />}
+/>;
 ```
+
+A custom form is created by our plugin in the floating link popup to enable users to edit links. You can refer to [our example](https://github.com/webiny/webiny-examples/tree/master/lexical-editor-configuration-api) for a step-by-step guide.
 
 #### Replace Plugin
 To replace an existing plugin with a new plugin, you need to reference the existing plugin by name, and pass a new element via the `element` prop:
 ```jsx apps/admin/src/App.tsx
- {/* Override the default Webiny link plugin with your custom link plugin */}
- <Heading.Plugin name={"link"} element={<CustomLinkEditorPlugin />}/>
+<Heading.Plugin name={"link"} element={<CustomFloatingLinkEditorPlugin />} />
 ```
 
 #### Remove Plugin
-Tto remove a plugin, all you need to do is reference the plugin by name, and pass a `remove` prop to the `<Heading.Plugin>` element:
+To remove a plugin, pass a `remove` prop to the `<Heading.Plugin>` element:
 ```jsx apps/admin/src/App.tsx
-  {/* Add a new plugin */}
-  <Heading.Plugin name={"link"} remove />
+<Heading.Plugin name={"link"} remove />;
 ```
 #### Position Plugin
 To position existing or custom plugins you can use `before` or `after` props on the `<Heading.Plugin>` element:
 ```jsx apps/admin/src/App.tsx
-  {/* Place your plugin after the font size plugin */}
-  <Heading.Plugin name={"newPlugin"} element={<NewPlugin/>} after={"fontSize"} />
-  {/* Place the existing plugin before your new plugin */}
-  <Heading.Plugin name={"link"} before={"newPlugin"} />
+{/* To add new plugin after the font size plugin */}
+<Heading.Plugin
+  name={"newPlugin"}
+  element={<NewPlugin />}
+  after={"fontSize"}
+/>;
+{/* Position the existing plugin before your new plugin */}
+<Heading.Plugin name={"link"} before={"newPlugin"} />;
 ```
 
 #### Built-in Plugins
@@ -224,26 +306,79 @@ Please read the [official docs](https://lexical.dev/docs/concepts/nodes) for mor
 #### Add Node
 To add a new lexical node, you need to use the `<Heading.Node>` component and mount it within your Admin app. After, pass the node class via the `node` prop.
 ```jsx apps/admin/src/App.tsx
-<Heading.Node name={"newNode"} node={NewNode} />
+import type { EditorConfig, SerializedTextNode, Spread } from "lexical";
+...
+import { TextNode } from "lexical";
+
+export type SerializedEmojiNode = Spread<
+  {
+    className: string;
+  },
+  SerializedTextNode
+>;
+
+export class EmojiNode extends TextNode {
+  __className: string;
+
+  static getType(): string {
+    return "emoji";
+  }
+
+  static clone(node: EmojiNode): EmojiNode {
+    return new EmojiNode(node.__className, node.__text, node.__key);
+  }
+
+  constructor(className: string, text: string, key?: NodeKey) {
+    super(text, key);
+    this.__className = className;
+  }
+
+  createDOM(config: EditorConfig): HTMLElement {
+    const dom = document.createElement("span");
+    const inner = super.createDOM(config);
+    dom.className = this.__className;
+    inner.className = "emoji-inner";
+    dom.appendChild(inner);
+    return dom;
+  }
+
+  static importJSON(serializedNode: SerializedEmojiNode): EmojiNode {
+    const node = $createEmojiNode(
+      serializedNode.className,
+      serializedNode.text
+    );
+    node.setFormat(serializedNode.format);
+    node.setDetail(serializedNode.detail);
+    node.setMode(serializedNode.mode);
+    node.setStyle(serializedNode.style);
+    return node;
+  }
+  ...
+}
+
+<Heading.Node name={"emojiNode"} node={EmojiNode} />;
+
 ```
+
+Please check the official [Lexical documentation](https://github.com/facebook/lexical/blob/main/packages/lexical-playground/src/nodes/EmojiNode.tsx) for full example. 
+
 #### Replace Node
 To replace your custom lexical node with a new node, you need to reference the existing node by name, and pass a new node class via the `node` prop:
 ```jsx apps/admin/src/App.tsx
-<Heading.Node name={"chatNode"} node={MyNewChatNode} />
+<Heading.Node name={"emojiNode"} node={MyExtendedEmojiNode} />;
 ```
 
 #### Remove Node
-To remove a lexical node, all you need to do is reference the plugin by name, and pass a `remove` prop to the `<Heading.Node>` element:
+To remove a lexical node, pass a `remove` prop to the `<Heading.Node>` element:
 ```jsx apps/admin/src/App.tsx
-{/* Remove your custom node */}
-<Heading.Node name={"myCustomNode"} remove />
+<Heading.Node name={"emojiNode"} remove />
 ```
 
 #### Position Node
 To position your nodes, you can use `before` or `after` props on the `<Heading.Node>` element:
 ```jsx apps/admin/src/App.tsx
-<Heading.Node name={"emojis"} node={EmojisPlugin} after={"newNode"} />;
-<Heading.Node name={"chatNode"} node={ChatNode} before={"emojis"} />;
+<Heading.Node name={"emojiNode"} node={EmojiNode} after={"newNode"} />;
+<Heading.Node name={"newNode"} node={NewNode} before={"myExtendedEmojiNode"} />;
 ```
 
 ### Built-in Nodes
