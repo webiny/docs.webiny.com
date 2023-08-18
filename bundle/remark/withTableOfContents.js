@@ -1,6 +1,21 @@
 const { addImport, addExport } = require("./utils");
 const slugify = require("@sindresorhus/slugify");
 
+const anchorRegex = /\{\#([a-z0-9\-]+)\}/i;
+
+function getAnchor(value) {
+    const match = value.toLowerCase().match(anchorRegex);
+    if (match) {
+        return match[1];
+    }
+
+    return null;
+}
+
+function removeAnchor(value) {
+    return value.replace(anchorRegex, "").trim();
+}
+
 module.exports.withTableOfContents = () => {
     return tree => {
         const component = addImport(tree, "@/components/Heading", "Heading");
@@ -20,7 +35,10 @@ module.exports.withTableOfContents = () => {
                         }
                     })
                     .join("");
-                let slug = slugify(title);
+
+                const customAnchor = getAnchor(title);
+                title = removeAnchor(title);
+                let slug = customAnchor ?? slugify(title);
 
                 let allOtherSlugs = contents.flatMap(entry => [
                     entry.slug,
@@ -28,7 +46,7 @@ module.exports.withTableOfContents = () => {
                 ]);
                 let slugIndex = 1;
                 while (allOtherSlugs.indexOf(slug) > -1) {
-                    slug = `${slugify(title)}-${slugIndex}`;
+                    slug = `${slug}-${slugIndex}`;
                     slugIndex++;
                 }
 
@@ -73,14 +91,14 @@ module.exports.withTableOfContents = () => {
                                 const linkProps = {
                                     href: children.url
                                 };
-                                return `<a ${stringifyProps(linkProps)}>${
+                                return `<a ${stringifyProps(linkProps)}>${removeAnchor(
                                     children.children[0].value
-                                }</a>`;
+                                )}</a>`;
                             }
                             if (children.type === "inlineCode") {
                                 return `<code>${children.value}</code>`;
                             } else {
-                                return children.value;
+                                return removeAnchor(children.value);
                             }
                         })
                         .join("")}</${component}>`;

@@ -28,10 +28,10 @@ function mdxLoader(source) {
     if (!compiler) {
         compiler = createCompiler({
             remarkPlugins: [
-                withTitleCaseHeadings,
-                withImages,
                 // TODO: use react-properties to register table of contents at runtime, instead of at build time.
+                withTitleCaseHeadings,
                 withTableOfContents,
+                withImages,
                 withSyntaxHighlighting,
                 withNextLinks,
                 withSmartQuotes,
