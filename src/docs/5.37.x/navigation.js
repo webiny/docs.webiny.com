@@ -19,6 +19,11 @@ export const Navigation = () => {
               link={"headless-cms/extending/customize-entry-editor-actions"}
               after={"headless-cms/extending/customize-entry-list-filters"}
             />
+            <Page link={"headless-cms/extending/render-rich-text-content"} remove />
+          </Section>
+          <Section title={"Integrations"}>
+            <Page link={"headless-cms/integrations/legacy-render-rich-text-content"} />
+            <Page link={"headless-cms/integrations/render-lexical-rich-text-content"} />
           </Section>
         </Collapsable>
         <Collapsable title={"File Manager"}>
