@@ -37,6 +37,7 @@ export const Navigation = () => {
 
           {/* Messages */}
           <Page link={"messages/lambda-edge-warning"} hidden={true}/>
+          <Page link={"messages/how-to-cloudwatch"} hidden={true}/>
         </NavGroup>
     );
 };
