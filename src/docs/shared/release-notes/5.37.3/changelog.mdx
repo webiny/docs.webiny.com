@@ -10,4 +10,22 @@ description: See what's new in Webiny version 5.37.3.
 
 ### ✍️ Improved ElasticSearch Service IAM Role Creation ([#3500](https://github.com/webiny/webiny-js/pull/3500)) ([#3503](https://github.com/webiny/webiny-js/pull/3503))
 
-✍️
+We've made a couple of improvements to the internal code that's dealing with the creation of the [IAM service-linked role for the Amazon ElasticSearch service](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/slr.html).
+
+First, the initial creation of the role would happen with both [database setups](/docs/{exact:5.37.x}/architecture/introduction#different-database-setups) - Amazon DynamoDB-only and Amazon DynamoDB + ElasticSearch. From now on, the creation of the IAM role will only happen with the latter database setup.
+
+Second, we've added additional logging to the role creation process, which will help users troubleshoot any issues that might arise.
+
+Finally, we've made sure that the creation of the IAM role happens immediately upon deploying the **Core** project application, enabling earlier detection of potential issues that may arise. 
+
+<Alert type="info">
+
+  Prior to this release, the creation of the IAM service-linked role would happen upon deploying the **API** project application, which is always deployed after the **Core** project application. 
+
+</Alert>
+
+### Fixed Deployment of the Website App With an Existing VPC ([#3505](https://github.com/webiny/webiny-js/pull/3505)
+
+When deploying a Webiny project into [an existing VPC](/docs/{version}/enterprise/use-existing-amazon-vpc) and with [multi-tenancy](/docs/{version}/enterprise/multi-tenancy) enabled, the deployment of the Website app would fail. More specifically, the deployment of the `website-router-origin-request` Lambda@Edge function would fail, because the underlying code was trying to assign VPC configuration to it, which is not allowed.
+
+This has now been addressed. The `website-router-origin-request` Lambda@Edge function is now deployed without VPC configuration.
