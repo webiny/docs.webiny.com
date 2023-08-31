@@ -1,0 +1,71 @@
+---
+id: changelog
+title: Webiny 5.37.3 Changelog
+description: See what's new in Webiny version 5.37.3.
+---
+
+import cliLogs from "./assets/cli-logs.png";
+
+<GithubRelease version={"5.37.3"} />
+
+## Deployments
+
+### Data Migrations
+
+We've made several improvements to our data migration process, which will make it easier for you to migrate your data from one Webiny version to another.
+
+#### Improve Access to Migration Logs ([#3508](https://github.com/webiny/webiny-js/pull/3508))
+
+Sometimes, data migrations can go wrong, and you need to quickly debug and understand what was the problem. Up until now, you had to dig through AWS CloudWatch logs and figure out the correct log stream to look at. It gets even trickier if you have a large team, and you development team doesn't have access to the AWS account that does the deployment from your CI. 
+
+To streamline this process, we now pull logs from AWS CloudWatch, while the migration Lambda function is running, and we print them to the CLI that is doing the deployment of your Webiny project. This means that the logs will be available in your CI logs. If you're deploying from your local machine, those logs will be printed to your terminal.
+
+On top of that, we also print an exact link to access the relevant AWS CloudWatch log stream, so you no longer need to dig through the console, to find the correct log stream.
+
+<Image src={cliLogs} title="Migration Logs Printed to the CLI"/>
+
+#### Missing `WEBINY_ELASTICSEARCH_INDEX_LOCALE` Environment Variable Causing Data Migrations to Fail  ([#3507](https://github.com/webiny/webiny-js/pull/3507))
+
+Webiny projects that use the **Amazon DynamoDB + Amazon ElasticSearch** [database setup](/docs/{exact:5.37.x}/architecture/introduction#different-database-setups) rely on the `WEBINY_ELASTICSEARCH_INDEX_LOCALE` [environment variable](/docs/{exact:5.37.x}/core-development-concepts/extending-and-customizing/how-to-change-elasticsearch-index-name-to-contain-locale) in order to define names of ElasticSearch indexes Webiny will create and use.
+
+When it comes to data migrations, ideally, they should not be affected by the absence of this environment variable. However, this was not the case, and the migration process would fail if the `WEBINY_ELASTICSEARCH_INDEX_LOCALE` environment variable was not present.
+
+With this release, we've addressed this issue. The migration process will now work as expected no matter if the `WEBINY_ELASTICSEARCH_INDEX_LOCALE` environment variable is present or not.
+
+
+### Improved Creation of the IAM Service-linked Role for the Amazon ElasticSearch Service ([#3500](https://github.com/webiny/webiny-js/pull/3500)) ([#3503](https://github.com/webiny/webiny-js/pull/3503))
+
+We've made a couple of improvements to the internal code that handles the initial creation of the [IAM service-linked role for the Amazon ElasticSearch service](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/slr.html).
+
+First, the initial creation of the role would happen with both [database setups](/docs/{exact:5.37.x}/architecture/introduction#different-database-setups) - **Amazon DynamoDB-only** and **Amazon DynamoDB + Amazon ElasticSearch**. From now on, the creation of the IAM role will only happen with the latter database setup.
+
+Second, we've made sure that the creation of the IAM role happens immediately upon deploying the **Core** project application, enabling earlier detection of potential issues. 
+
+<Alert type="info">
+
+  Prior to this release, the creation of the IAM service-linked role would happen upon deploying the **API** project application, which is always deployed after the **Core** project application. 
+
+</Alert>
+
+Finally, we've added additional logging to the role creation process, which will help users troubleshoot any issues that might arise.
+
+### Fixed Deployment of the Website App With an Existing VPC ([#3505](https://github.com/webiny/webiny-js/pull/3505)
+
+When deploying a Webiny project into [an existing VPC](/docs/{version}/enterprise/use-existing-amazon-vpc) and with [multi-tenancy](/docs/{version}/enterprise/multi-tenancy) enabled, the deployment of the Website app would fail. More specifically, the deployment of the `website-router-origin-request` Lambda@Edge function would fail, because the underlying code was trying to assign VPC configuration to it, which is not allowed.
+
+This has now been addressed. The `website-router-origin-request` Lambda@Edge function is now deployed without VPC configuration.
+
+### Missing Permission In "Deploy Webiny Project" CloudFormation Template ([#3509](https://github.com/webiny/webiny-js/pull/3509)) 
+
+In order to deploy a Webiny project in a more controlled and secure manner, users can utilize the **Deploy Webiny Project** AWS CloudFormation template. Via three IAM user groups, the template deploys necessary ([least-privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege)) set of permissions into a specified AWS account, which also automatically get linked with a designated Amazon IAM user.
+
+With this release, we've included one missing IAM permission into the template, which is required for Webiny projects that use the **Amazon DynamoDB + Amazon ElasticSearch** [database setup](/docs/{exact:5.37.x}/architecture/introduction#different-database-setups).
+
+<br/>
+<br/>
+
+<Alert type={"info"}>
+
+  Learn more about the **Deploy Webiny Project** AWS CloudFormation template in our [Configure AWS Credentials](/docs/{exact:5.37.x}/infrastructure/aws/configure-aws-credentials#deploy-webiny-project-aws-cloud-formation-template) article.
+  
+</Alert> 
