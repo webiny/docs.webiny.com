@@ -5,6 +5,7 @@ description: Learn how to render rich text content from Headless CMS.
 
 import Link from "next/link";
 import { Alert } from "@/components/Alert";
+import {CanIUseThis} from "@/components/CanIUseThis";
 
 <Alert type="warning">
   This document covers rendering of rich text content via the legacy Rich Text Editor, which was
@@ -128,8 +129,44 @@ Styles for default renderers are included in the package and you can import them
 
 If you don't want to use the default styles, skip this import and implement your own styling.
 
-## FAQ
+## HTML Sanitization
 
-### I'm not using React. How do I render this using other frameworks?
+<CanIUseThis title={"CAN I USE THIS?"} since={"5.37.2"} />
 
-The rendering implementation is really simple and straightforward. You can find the [full code in our repo](https://github.com/webiny/webiny-js/blob/next/packages/react-rich-text-renderer/src/index.tsx). Using that as a reference, you can quickly put together a renderer in the framework of your choice.
+In order to minimize the possibility of [cross-site scripting (XSS) attacks](https://en.wikipedia.org/wiki/Cross-site_scripting), the HTML that’s returned by the rich text editor is sanitized, which is done with the help of the [sanitize-html](https://www.npmjs.com/package/sanitize-html) library.
+
+### Sanitization configuration
+
+Use `configureSanitization` function to set your global sanitization preference.
+To provide sanitize configuration to specific component, use `sanitizationConfig` prop.
+
+```tsx myView.tsx
+import {
+  RichTextRenderer,
+  configureSanitization,
+} from "@webiny/react-rich-text-renderer";
+
+const globalSanitizaionConfig = {
+  allowedTags: ["b", "i", "em", "strong", "a"],
+  allowedAttributes: {
+    a: ["href"],
+  },
+  allowedIframeHostnames: ["www.youtube.com"],
+};
+
+// This is global configuration.
+configureSanitization(globalSanitizaionConfig);
+
+/*
+ * Set sanitization configuration options for specific component.
+ * Note: Provided configuration will override your global configuration options.
+ * */
+const sanitizationConfig = {
+  // change the configuration only for this option.
+  allowedIframeHostnames: ["www.webiny.com"],
+};
+
+<RichTextRenderer sanitizationConfig={sanitizationConfig} />;
+```
+
+Please check `sanitize-html` configuration options on their [GitHub page](https://github.com/apostrophecms/sanitize-html).
