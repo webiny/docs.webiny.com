@@ -2,11 +2,12 @@
 title: Accessing Amazon CloudWatch logs for AWS Lambda Functions
 
 [//]: # (No need for a description.)
-description: 
+description:
 ---
 
 import cwLogs from "./assets/cw-logs.png"
 import logsInsights from "./assets/logs-insights.png"
+import logsInsightsApiErrors from "./assets/logs-insights-api-errors.png"
 
 From time to time, for development purposes, developers might need to access runtime logs for one or more [AWS Lambda](https://aws.amazon.com/lambda/) functions that Webiny deploys. This guide shows how to access these logs. 
 
@@ -22,21 +23,11 @@ The first way of accessing logs is by using [CloudWatch Logs](https://docs.aws.a
 
 <Image src={cwLogs} alt="CloudWatch Logs" />
 
-## CloudWatch Logs Insights
+### Examples
 
-Another way of viewing logs is by using [CloudWatch Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html).
+#### GraphQL API
 
-CloudWatch Logs Insights enables you to interactively search and analyze your log data in Amazon CloudWatch Logs. You can perform queries to help you quickly and efficiently respond to operational issues. 
-
-CloudWatch Logs Insights can be accessed from the [CloudWatch Management Console](https://console.aws.amazon.com/cloudwatch/home). To access it, click on **Logs Insights** in the left-hand menu. You will be presented with a query editor via which you can then perform queries. 
-
-<Image src={logsInsights} alt="CloudWatch Logs Insights" />
-
-## FAQ
- 
-### In which log group can I see the logs for Webiny's GraphQL API?
-
-The log group you're looking for is called `/aws/lambda/{prefix}-graphql-{suffix}`, for example:
+If you need to access the logs for Webiny's GraphQL API, the log group you're looking for is called `/aws/lambda/{prefix}-graphql-{suffix}`, for example:
 
 ```
 /aws/lambda/wby-graphql-2c38a37
@@ -48,9 +39,9 @@ The log group you're looking for is called `/aws/lambda/{prefix}-graphql-{suffix
 
 </Alert>
 
-### In which log group can I see the data migrations-related logs?
+#### Data Migrations
 
-The log group you're looking for is called `/aws/lambda/{prefix}-data-migration-{suffix}`, for example:
+If you need to access data migrations-related logs, the log group you're looking for is called `/aws/lambda/{prefix}-data-migration-{suffix}`, for example:
 
 ```
 /aws/lambda/wby-data-migration-2c38a37
@@ -61,3 +52,38 @@ The log group you're looking for is called `/aws/lambda/{prefix}-data-migration-
   Type **data-migration** in the search bar to quickly find the log group.
 
 </Alert>
+
+
+## CloudWatch Logs Insights
+
+[CloudWatch Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html) enables you to interactively search and analyze your logs. Most importantly, the service allows you to search logs not only across multiple log streams, but also across multiple log groups. This is especially useful when you need to search logs for multiple functions at once.
+
+CloudWatch Logs Insights can be accessed from the [CloudWatch Management Console](https://console.aws.amazon.com/cloudwatch/home). To access it, click on **Logs Insights** in the left-hand menu. You will be presented with a query editor via which you can then perform queries. 
+
+<Image src={logsInsights} alt="CloudWatch Logs Insights" />
+
+### Examples
+
+#### GraphQL API Error Logs
+
+To access GraphQL API error logs, first, select the **graphql** AWS Lambda function's log group. You can do that by typing **graphql** in the search bar. Once you've selected the log group, select the time period you're interested in and use the following query:
+
+```text
+fields @timestamp, @message
+| filter @message like /ERROR/
+| sort @timestamp desc
+```
+
+<Image src={logsInsightsApiErrors} alt="GraphQL API Error Logs" />
+
+#### GraphQL API and Data Migrations Logs 
+
+To access all logs for GraphQL API and data migrations at the same time, first, select the **graphql** and **data-migration** AWS Lambda functions' log groups. You can do that by typing **graphql** and **data-migration** in the search bar.  Once you've selected the log groups, select the time period you're interested in and use the following query:
+
+```text
+fields @timestamp, @message
+| sort @timestamp desc
+```
+
+<Image src={logsInsights} alt="GraphQL API and Data Migrations Logs" />
+
