@@ -7,20 +7,22 @@ import { CanIUseThis } from "@/components/CanIUseThis";
 import { Image } from "@/components/Image";
 import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
 import cognitoGoogle from "./assets/cognito-google.png";
+import cognitoOutput from "./assets/core-output.png";
 
 <CanIUseThis since={"5.37.6"} />
 
 <WhatYouWillLearn>
 
-  - how to configure federated identity providers in the Admin app
-  
+- how to configure federated identity providers in the Admin app
+- what are the prerequisites necessary to enable federated providers
+
 </WhatYouWillLearn>
 
 ## Overview
 
 Out of the box, Webiny comes with an AWS Cognito setup to manage its admin users. There's a preconfigured Cognito User Pool dedicated to admin users. This user pool doesn't allow external users to sign-up, which means that new admin user accounts can only be created by a Webiny admin, from within the Admin app.
 
-In this article, we show the process of configuring your Webiny project to use one or more public identity providers (Google, Facebook, Apple, Amazon). In our example code, we'll be using Google as the identity provider.
+In this article, we show the process of configuring your Webiny project to use one or more public identity providers (Google, Facebook, Apple, Amazon).
 
 <Alert type="warning">
 
@@ -30,15 +32,13 @@ Custom `OIDC` providers are not supported at this point.
 
 <Image src={cognitoGoogle} title={"Using Google IdP to Sign Into the Admin App"} />
 
+## Prerequisites
+
+In this article, we're using Google as the identity provider of choice. To set up a Google Cloud project and obtain the `client_id` and `client_secret`, [follow the official documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-social-idp.html). In particular, see the **To register an app with Google** section.
+
 ## Configure AWS Infrastructure
 
 Cognito resources are part of the Core app, which is responsible for stateful resources (databases, user pools, S3 buckets, etc.). To configure Cognito to use federated identity providers, we need to modify the `webiny.application.ts` file of the `core` app. Webiny provides a utility to facilitate the configuration of infrastructure resources involved.
-
-<Alert type={"info"} title={"Configuring a Provider"}>
-
-In this example, we're using Google as our external IdP. To acquire `client_id` and `client_secret` (which are specific to Google), [follow the official documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-social-idp.html).
-
-</Alert>
 
 Once you have your `client_id` and `client_secret` ready, you can store them in your project's `.env` file, like so:
 
@@ -76,8 +76,7 @@ export default createCoreApp({
 
 <Alert type={"info"} title={"Multiple Identity Providers"}>
 
-You can add multiple identity providers to your Cognito user pool. Simply add more identity
-provider configs to the `identityProviders` array.
+You can add multiple identity providers to your Cognito user pool. Simply add more identity provider configs to the `identityProviders` array.
 
 </Alert>
 
@@ -94,6 +93,16 @@ Once the config of your identity provider is in place, you need to deploy your `
 ```shell
 yarn webiny deploy core --env=dev
 ```
+
+Once deployed, you need to whitelist your Cognito domain in your Google OAuth 2.0 Client ID, as described in the [official documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-social-idp.html) (see points **13-14** in the **To register an app with Google** section).
+
+To get the domain name, copy the value of `cognitoUserPoolDomain` output from the following command:
+
+```shell
+yarn webiny output core --env=dev
+```
+
+<Image src={cognitoOutput} title={"Core App Output"} />
 
 ## Configure GraphQL API
 
