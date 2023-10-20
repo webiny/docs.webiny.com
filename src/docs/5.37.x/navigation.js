@@ -47,6 +47,7 @@ export const Navigation = () => {
                 <Collapsable title={"Admin Area"}>
                     <Section title={"Extending functionality"}>
                         <Page link={"admin-area/extending/cognito-federation"} />
+                        <Page link={"admin-area/extending/graphql-request-batching"} />
                     </Section>
                 </Collapsable>
             </NavGroup>
