@@ -1,8 +1,8 @@
 const path = require("path");
 const fs = require("fs-extra");
 const pretry = require("p-retry");
-const versions = require("../src/data/versions.json");
-const pages = require("../src/data/pages.json");
+// const versions = require("../src/data/versions.json");
+// const pages = require("../src/data/pages.json");
 
 /**
  * This plugin rewrites asset paths to simulate inheritance. This means that assets are not duplicated, but instead,
@@ -10,7 +10,7 @@ const pages = require("../src/data/pages.json");
  */
 module.exports.AssetResolver = class AssetResolver {
     constructor() {
-        this.pages = Object.values(pages).flat();
+        this.pages = []; //Object.values(pages).flat();
     }
     apply(resolver) {
         const target = resolver.ensureHook("resolve");
@@ -30,8 +30,9 @@ module.exports.AssetResolver = class AssetResolver {
     }
 
     isApplicable(request) {
-        const isMdx = request.context?.issuer?.endsWith(".mdx");
-        if (!isMdx) {
+        const issuer = request.context?.issuer ?? "";
+        const isMdx = issuer.endsWith(".mdx");
+        if (!isMdx || issuer.includes("/handbook/")) {
             return false;
         }
 

@@ -1,10 +1,11 @@
+import { HandbookArticle } from "@/layouts/HandbookArticle";
+import { SidebarLayout } from "@/layouts/SidebarLayout";
 import { useRouter } from "next/router";
 import { usePage } from "@/hooks/usePage";
-import { VersionedSidebarLayout } from "@/layouts/SidebarLayout";
 import { getParentNav } from "@/utils/getParentNav";
 import { Title } from "@/components/Title";
 
-export function DocumentationLayout({ children, ...props }) {
+export function Layout({ children }) {
     let router = useRouter();
     const { page } = usePage();
 
@@ -21,9 +22,9 @@ export function DocumentationLayout({ children, ...props }) {
     return (
         <>
             <Title suffix={suffix} />
-            <VersionedSidebarLayout nav={page.navigation} {...props}>
-                {children}
-            </VersionedSidebarLayout>
+            <SidebarLayout nav={page.navigation}>
+                <HandbookArticle>{children}</HandbookArticle>
+            </SidebarLayout>
         </>
     );
 }

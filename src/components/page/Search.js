@@ -80,8 +80,8 @@ export function SearchProvider({ children }) {
                     searchParameters={{
                         facetFilters: [
                             ["language:en"],
-                            [`version:${page.version}`],
-                            [`articleType:${page.articleType}`]
+                            [`version:${page.docsearch.version}`],
+                            [`articleType:${page.docsearch.type}`]
                         ]
                     }}
                     placeholder="Search..."

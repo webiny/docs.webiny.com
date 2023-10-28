@@ -128,7 +128,7 @@ function useTableOfContents(tableOfContents) {
     return { currentSection, registerHeading, unregisterHeading };
 }
 
-export function ContentsLayout({ children, ...props }) {
+export function VersionedArticleLayout({ children, ...props }) {
     const { classes, tableOfContents = [] } = props;
     const {
         page: { title, description }

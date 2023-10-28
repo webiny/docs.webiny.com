@@ -4,9 +4,7 @@ import { DocumentationLayout } from "@/layouts/DocumentationLayout";
 import { PageLayout } from "@/layouts/PageLayout";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import pages from "@/data/pages.json";
-
-const allPages = Object.values(pages).flat();
+const allPages = []; // Object.values(pages).flat();
 
 export const Page404 = () => {
     const versions = useVersions();

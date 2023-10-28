@@ -1,5 +1,5 @@
-import versions from "@/data/versions.json";
+// import versions from "@/data/versions.json";
 
 export function useVersions() {
-    return versions;
+    return [];
 }

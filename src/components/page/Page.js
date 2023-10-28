@@ -8,7 +8,7 @@ import { Title } from "@/components/Title";
 import socialCardLarge from "@/img/webiny-social-share.jpg";
 
 export const Page = () => {
-    const { Article, Layout, page } = usePage();
+    const { MdxPage, Layout, page } = usePage();
     const router = useRouter();
 
     const socialShareCard = page.shareCard
@@ -38,9 +38,9 @@ export const Page = () => {
                 <meta key="og:description" property="og:description" content={page.description} />
                 <meta key="og:image" property="og:image" content={socialShareCard} />
                 <meta name="docsearch:language" content="en" />
-                <meta name="docsearch:version" content={page.algoliaVersions} />
-                <meta name="docsearch:articleType" content={page.articleType} />
-                <meta name="docsearch:articleWeight" content={page.articleWeight} />
+                <meta name="docsearch:version" content={page.docsearch.versions} />
+                <meta name="docsearch:articleType" content={page.docsearch.type} />
+                <meta name="docsearch:articleWeight" content={page.docsearch.weight} />
                 {page.robots ? <meta name="robots" content={page.robots} /> : null}
                 <link
                     rel="alternate"
@@ -60,6 +60,7 @@ export const Page = () => {
                     title="JSON Feed"
                     href="/feeds/feed.json"
                 />
+                {/* TODO: this is not generated anywhere?! */}
                 {page.canonicalPath ? (
                     <link rel="canonical" href={"https://docs.webiny.com" + page.canonicalPath} />
                 ) : null}
@@ -67,7 +68,7 @@ export const Page = () => {
             <SearchProvider>
                 <Header />
                 <Layout>
-                    <Article />
+                    <MdxPage />
                 </Layout>
             </SearchProvider>
         </>

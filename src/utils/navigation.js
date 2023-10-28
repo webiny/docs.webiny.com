@@ -122,28 +122,6 @@ export const Page = ({ title, link, remove, before, after, hidden = false }) => 
         Boolean
     );
 
-    // TODO: read from <NavGroup> context?
-    const isUserGuide = relativePath.includes("/user-guides");
-    const isHandbook = relativePath.includes("/handbook");
-    const isReleaseNotes = relativePath.includes("/release-notes/");
-
-    let weight;
-    let articleType = "docs";
-
-    if (isUserGuide) {
-        weight = weightMap.userGuides;
-        articleType = "user-guides";
-    } else if (isReleaseNotes) {
-        weight = weightMap.releaseNotes;
-    } else if (isHandbook) {
-        weight = weightMap.handbook;
-        articleType = "handbook";
-    } else {
-        weight = weightMap.docs;
-    }
-
-    const robots = "";
-
     return (
         <>
             {!hidden ? (
@@ -172,7 +150,6 @@ export const Page = ({ title, link, remove, before, after, hidden = false }) => 
                 <Property name={"description"} value={page.description} />
                 <Property name={"articleType"} value={articleType} />
                 <Property name={"articleWeight"} value={weight} />
-                <Property name={"robots"} value={robots} />
             </Property>
         </>
     );

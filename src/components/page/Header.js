@@ -170,7 +170,10 @@ export function Header() {
     const { toggleNavigation } = useNavigation();
     const { page } = usePage();
 
-    const url = "/docs/{version}/get-started/install-webiny";
+    // TODO: handle this via dedicated versioned/non-versioned components
+    const url = page.version
+        ? "/docs/{version}/get-started/install-webiny"
+        : "/docs/get-started/install-webiny";
 
     const homepage = url.replace(
         "/{version}/",
