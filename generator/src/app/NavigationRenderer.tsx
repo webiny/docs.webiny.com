@@ -6,22 +6,30 @@ import { JSDOM } from "jsdom";
 // @ts-ignore
 import debounce from "debounce";
 import { Properties, toObject, Property } from "@webiny/react-properties";
-import { INavigationRenderer, Navigation } from "../abstractions/IReactRenderer";
-import { NavigationPageProvider, PageProvider } from "../components/navigation";
+import { INavigationRenderer } from "../abstractions/INavigationRenderer";
+import { Navigation } from "./Navigation";
 
 export class NavigationRenderer implements INavigationRenderer {
-  async render(element: JSX.Element, pageProvider: NavigationPageProvider) {
+  private readonly rootDir: string;
+
+  constructor(rootDir: string) {
+    this.rootDir = rootDir;
+  }
+
+  async render(element: JSX.Element) {
     return new Promise<Navigation>(resolve => {
       const onChange = debounce((value: Property[]) => {
-        resolve(toObject(value));
+        resolve(new Navigation(toObject(value)));
       });
 
-      this.mount(
-        <Properties onChange={onChange}>
-          <PageProvider pageProvider={pageProvider}>{element}</PageProvider>
-        </Properties>
-      );
+      this.mount(<Properties onChange={onChange}>{element}</Properties>);
     });
+  }
+
+  async renderFromPath(): Promise<Navigation> {
+    this.flushRequireCache();
+    const { Navigation } = await import(`${this.rootDir}/navigation.js`);
+    return this.render(<Navigation />);
   }
 
   private mount(element: JSX.Element) {
@@ -32,5 +40,11 @@ export class NavigationRenderer implements INavigationRenderer {
     global["document"] = dom.window.document;
     const root = dom.window.document.getElementById("root");
     ReactDOM.render(element, root);
+  }
+
+  private flushRequireCache() {
+    Object.keys(require.cache)
+      .filter(file => file.endsWith(`${this.rootDir}/navigation.js`))
+      .forEach(key => delete require.cache[key]);
   }
 }

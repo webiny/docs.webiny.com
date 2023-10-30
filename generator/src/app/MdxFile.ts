@@ -1,5 +1,4 @@
 import frontMatter from "front-matter";
-import fs from "fs-extra";
 
 export interface FrontMatterAttributes {
   title: string;
@@ -8,20 +7,20 @@ export interface FrontMatterAttributes {
 }
 
 export class MdxFile {
-  private readonly filePath: string;
-  private readonly relativePath: string;
+  private readonly path: string;
+  private readonly body: string;
   private contents: string;
   private attributes: FrontMatterAttributes;
 
-  public static async create(filePath: string, relativePath: string) {
-    const mdxFile = new MdxFile(filePath, relativePath);
-    await mdxFile.initialize();
+  public static createFromString(path: string, body: string) {
+    const mdxFile = new MdxFile(path, body);
+    mdxFile.initialize();
     return mdxFile;
   }
 
-  private constructor(filePath: string, relativePath: string) {
-    this.filePath = filePath;
-    this.relativePath = relativePath;
+  private constructor(path: string, body: string) {
+    this.path = path;
+    this.body = body;
     this.contents = "";
     this.attributes = {
       title: "",
@@ -29,23 +28,34 @@ export class MdxFile {
     };
   }
 
-  private async initialize() {
-    const mdxContents = await fs.readFile(this.filePath, "utf8");
-    const { attributes, body } = frontMatter<FrontMatterAttributes>(mdxContents);
+  private initialize() {
+    const { attributes, body } = frontMatter<FrontMatterAttributes>(this.body);
     this.attributes = attributes;
     this.contents = body;
   }
 
-  getFilePath() {
-    return this.filePath;
+  /**
+   * Get full file body.
+   */
+  getBody() {
+    return this.body;
   }
 
-  getRelativePath() {
-    return this.relativePath;
-  }
-
+  /**
+   * Get MDX contents, without the `frontmatter` section.
+   */
   getContents() {
     return this.contents;
+  }
+
+  withContents(setter: (contents: string) => string) {
+    const newFile = MdxFile.createFromString(this.path, this.body);
+    newFile.contents = setter(this.contents);
+    return newFile;
+  }
+
+  getPath() {
+    return this.path;
   }
 
   getTitle() {

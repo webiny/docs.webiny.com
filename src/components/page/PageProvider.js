@@ -25,8 +25,6 @@ export const PageProvider = ({ Component, children }) => {
         }
     };
 
-    console.log(JSON.stringify(context.page, null, 2));
-
     return <PageContext.Provider value={context}>{children}</PageContext.Provider>;
 };
 

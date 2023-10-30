@@ -5,7 +5,7 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 
 module.exports = withBundleAnalyzer({
     swcMinify: true,
-    pageExtensions: ["js", "jsx", "mdx"],
+    pageExtensions: ["js", "jsx"],
     images: {
         disableStaticImages: true
     },

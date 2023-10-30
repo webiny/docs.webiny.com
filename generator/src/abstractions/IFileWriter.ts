@@ -1,3 +1,5 @@
+import { IFile } from "./IFile";
+
 export interface IFileWriter {
-  write(content: string, relativePath: string): Promise<void>;
+  write(file: IFile): Promise<void>;
 }

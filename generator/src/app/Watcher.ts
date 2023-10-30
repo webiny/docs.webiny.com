@@ -1,7 +1,7 @@
 import { IFileWriter } from "../abstractions/IFileWriter";
 import { IDocumentRootFactory } from "../abstractions/IDocumentRootFactory";
 
-export class Generator {
+export class Watcher {
   private documentRootFactory: IDocumentRootFactory;
   private fileWriter: IFileWriter;
 
@@ -12,11 +12,13 @@ export class Generator {
 
   async execute() {
     const documentRoots = this.documentRootFactory.getDocumentRoots();
-    const allFiles = await Promise.all(documentRoots.map(root => root.getFiles()));
-    const files = allFiles.flat();
 
-    for (const file of files) {
-      await this.fileWriter.write(file);
+    for (const documentRoot of documentRoots) {
+      documentRoot.watch(file => this.fileWriter.write(file));
     }
+
+    return new Promise(() => {
+      // This promise will never resolve until we stop the process.
+    });
   }
 }
