@@ -464,3 +464,40 @@ export default createApiApp({
   }
 });
 ```
+
+Following the above example, say we want to add additional and serve specific static files from  our `website` application, this can often be the case if you need to host files like a sitemap, domain validation files and similar. Adding those files to `website/public` folder will get them deployed to your S3 that's serving the `website` app, but the default CloudFront config won't allow you to access them. To fix this, you need to add a new configuration to your CloudFront distribution. The below example shows how to add a rule that allows you to serve any file uploaded inside `website/public/_static` folder. These files would then be accessible by visiting `https://your-domain.com/_static/your-file.txt`.
+
+```ts apps/website/webiny.application.ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteApp({
+    pulumiResourceNamePrefix: "wby-",
+    pulumi(app) {
+        app.resources.delivery.cloudfront.config.orderedCacheBehaviors(orderedCacheBehaviors => {
+            return [
+                ...orderedCacheBehaviors!,
+                {
+                    compress: true,
+                    allowedMethods: ["GET", "HEAD", "OPTIONS"],
+                    cachedMethods: ["GET", "HEAD", "OPTIONS"],
+                    forwardedValues: {
+                        cookies: {
+                            forward: "none"
+                        },
+                        headers: [],
+                        queryString: false
+                    },
+                    pathPattern: "/_static/*",
+                    viewerProtocolPolicy: "allow-all",
+                    targetOriginId: app.resources.app.origin.originId,
+                    // MinTTL <= DefaultTTL <= MaxTTL
+                    minTtl: 0,
+                    defaultTtl: 2592000, // 30 days
+                    maxTtl: 2592000
+                }
+            ];
+        });
+    }
+});
+```
+
