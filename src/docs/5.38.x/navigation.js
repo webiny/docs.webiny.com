@@ -17,14 +17,22 @@ export const Navigation = () => {
                         />
                     </Section>
                 </Collapsable>
-                <Collapsable title={"Webiny Enterprise"}>
-                    <Page link={"enterprise/teams"} remove />
-                    <Section title={"Advanced Access Control Layer (AACL)"}>
-                        <Page link={"enterprise/aacl/introduction"} />
-                        <Page link={"enterprise/aacl/teams"} />
-                        <Page link={"enterprise/aacl/folder-level-permissions"} />
-                    </Section>
-                </Collapsable>
+              <Collapsable title={"File Manager"}>
+                <Section title={"Extending functionality"}>
+                  <Page
+                    link={"file-manager/extending/customize-file-bulk-actions"}
+                    after={"headless-cms/extending/customize-file-filters"}
+                  />
+                </Section>
+              </Collapsable>
+              <Collapsable title={"Webiny Enterprise"}>
+                  <Page link={"enterprise/teams"} remove />
+                  <Section title={"Advanced Access Control Layer (AACL)"}>
+                      <Page link={"enterprise/aacl/introduction"} />
+                      <Page link={"enterprise/aacl/teams"} />
+                      <Page link={"enterprise/aacl/folder-level-permissions"} />
+                  </Section>
+              </Collapsable>
             </NavGroup>
             <NavGroup type={"user-guides"}>
                 <Collapsable title={"Headless CMS"}>
