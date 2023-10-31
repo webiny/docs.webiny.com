@@ -9,6 +9,14 @@ export const Navigation = () => {
             <BaseNavigation />
             {/* Add new items. */}
             <NavGroup type={"docs"}>
+                <Collapsable title={"Page Builder"}>
+                    <Section title={"Extending functionality"}>
+                        <Page
+                          link={"page-builder/extending/customize-page-bulk-actions"}
+                          before={"page-builder/extending/create-a-page-element"}
+                        />
+                    </Section>
+                </Collapsable>
                 <Collapsable title={"Headless CMS"}>
                     <Section title={"Extending functionality"}>
                         <Page
@@ -21,7 +29,7 @@ export const Navigation = () => {
                 <Section title={"Extending functionality"}>
                   <Page
                     link={"file-manager/extending/customize-file-bulk-actions"}
-                    after={"headless-cms/extending/customize-file-filters"}
+                    after={"file-manager/extending/customize-file-filters"}
                   />
                 </Section>
               </Collapsable>
