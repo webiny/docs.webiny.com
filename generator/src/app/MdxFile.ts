@@ -1,4 +1,5 @@
 import frontMatter from "front-matter";
+import { MdxData } from "../abstractions/IMdxFileFactory";
 
 export interface FrontMatterAttributes {
   title: string;
@@ -7,38 +8,16 @@ export interface FrontMatterAttributes {
 }
 
 export class MdxFile {
-  private readonly path: string;
-  private readonly body: string;
+  private readonly props: MdxData;
+  private readonly attributes: FrontMatterAttributes;
   private contents: string;
-  private attributes: FrontMatterAttributes;
 
-  public static createFromString(path: string, body: string) {
-    const mdxFile = new MdxFile(path, body);
-    mdxFile.initialize();
-    return mdxFile;
-  }
+  constructor(props: MdxData) {
+    this.props = props;
+    const { attributes, body } = frontMatter<FrontMatterAttributes>(props.rawBody);
 
-  private constructor(path: string, body: string) {
-    this.path = path;
-    this.body = body;
-    this.contents = "";
-    this.attributes = {
-      title: "",
-      description: ""
-    };
-  }
-
-  private initialize() {
-    const { attributes, body } = frontMatter<FrontMatterAttributes>(this.body);
     this.attributes = attributes;
     this.contents = body;
-  }
-
-  /**
-   * Get full file body.
-   */
-  getBody() {
-    return this.body;
   }
 
   /**
@@ -49,13 +28,18 @@ export class MdxFile {
   }
 
   withContents(setter: (contents: string) => string) {
-    const newFile = MdxFile.createFromString(this.path, this.body);
+    const Klass = Object.getPrototypeOf(this).constructor;
+    const newFile = new Klass(this.props);
     newFile.contents = setter(this.contents);
     return newFile;
   }
 
-  getPath() {
-    return this.path;
+  getAbsolutePath() {
+    return this.props.absolutePath;
+  }
+
+  getRelativePath() {
+    return this.props.relativePath;
   }
 
   getTitle() {
@@ -66,7 +50,18 @@ export class MdxFile {
     return this.attributes?.description ?? "";
   }
 
-  getAttributes() {
-    return this.attributes as FrontMatterAttributes;
+  getStats() {
+    return this.props.stats;
+  }
+
+  getDocsearch(): Record<string, any> {
+    return {};
+  }
+
+  getData(): Record<string, any> {
+    return {
+      title: this.getTitle(),
+      description: this.getDescription()
+    };
   }
 }

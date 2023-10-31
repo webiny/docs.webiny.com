@@ -1,28 +1,39 @@
 import fs from "fs-extra";
-import { MdxFile } from "./MdxFile";
+import { IMdxProcessor } from "../abstractions/IMdxProcessor";
+import { IMdxFileFactory } from "../abstractions/IMdxFileFactory";
+import { MdxFileCache } from "./MdxFileCache";
 
 export class MdxFileLoader {
-  private cache = new Map<string, { timeModified: number; mdxFile: MdxFile }>();
+  private cache: MdxFileCache;
+  private processor: IMdxProcessor;
+  private mdxFileFactory: IMdxFileFactory;
 
-  async load(filePath: string) {
-    const inCache = this.cache.get(filePath);
-    const timeModified = await this.getTimeModified(filePath);
-
-    if (inCache && inCache.timeModified === timeModified) {
-      return inCache.mdxFile;
-    }
-
-    const mdxFileContents = await fs.readFile(filePath, "utf8");
-    const mdxFile = MdxFile.createFromString(filePath, mdxFileContents);
-
-    this.cache.set(filePath, { timeModified, mdxFile });
-
-    return mdxFile;
+  constructor(cache: MdxFileCache, processor: IMdxProcessor, mdxFileFactory: IMdxFileFactory) {
+    this.cache = cache;
+    this.processor = processor;
+    this.mdxFileFactory = mdxFileFactory;
   }
 
-  private async getTimeModified(filePath: string) {
-    const stats = await fs.stat(filePath);
+  async load(filePath: string, relativePath: string) {
+    const cachedFile = await this.cache.get(filePath);
 
-    return stats.mtimeMs;
+    if (cachedFile) {
+      return cachedFile;
+    }
+
+    const rawBody = await fs.readFile(filePath, "utf8");
+
+    const rawMdxFile = this.mdxFileFactory.create({
+      absolutePath: filePath,
+      relativePath,
+      stats: await fs.stat(filePath),
+      rawBody
+    });
+
+    const processedMdxFile = await this.processor.processMdx(rawMdxFile);
+
+    await this.cache.set(filePath, processedMdxFile);
+
+    return processedMdxFile;
   }
 }

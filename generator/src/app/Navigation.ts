@@ -20,7 +20,7 @@ export class Navigation {
 
   setLink(path: string, link: string) {
     const modifiers = this.modifiers.get(path) || [];
-    modifiers.push(page => ({ ...page, link }));
+    modifiers.push(page => ({ ...page, link: link.replace(".mdx", "") }));
     this.modifiers.set(path, modifiers);
   }
 

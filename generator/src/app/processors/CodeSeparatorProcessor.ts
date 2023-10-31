@@ -1,8 +1,8 @@
-import { AbstractPageProcessor } from "./AbstractPageProcessor";
+import { AbstractMdxProcessor } from "./AbstractMdxProcessor";
 import { MdxFile } from "../MdxFile";
 
-export class CodeSeparatorProcessor extends AbstractPageProcessor {
-  override processMdx(mdxFile: MdxFile): MdxFile {
+export class CodeSeparatorProcessor extends AbstractMdxProcessor {
+  processMdx(mdxFile: MdxFile): MdxFile {
     return mdxFile.withContents(contents => {
       return [
         contents,

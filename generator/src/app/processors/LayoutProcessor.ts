@@ -1,16 +1,15 @@
-import { AbstractPageProcessor } from "./AbstractPageProcessor";
-import { IPage } from "../../abstractions/IPage";
+import { AbstractMdxProcessor } from "./AbstractMdxProcessor";
 import { MdxFile } from "../MdxFile";
 
-export class LayoutProcessor extends AbstractPageProcessor {
+export class LayoutProcessor extends AbstractMdxProcessor {
   private layoutImport: string;
 
-  constructor(page: IPage, layoutImport: string) {
-    super(page);
+  constructor(layoutImport: string) {
+    super();
     this.layoutImport = layoutImport;
   }
 
-  override processMdx(mdxFile: MdxFile): MdxFile {
+  processMdx(mdxFile: MdxFile): MdxFile {
     return mdxFile.withContents(contents => {
       return [
         contents,

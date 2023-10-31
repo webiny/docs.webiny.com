@@ -1,4 +1,4 @@
 export interface IFile {
   getRelativePath(): string;
-  getContents(): string;
+  getContents(): string | Promise<string>;
 }

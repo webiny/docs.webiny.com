@@ -103,6 +103,7 @@ interface PageProps {
 }
 
 export const Page = ({ title, link, remove, before, after, hidden = false }: PageProps) => {
+  const path = `${link}.mdx`;
   return (
     <>
       {!hidden ? (
@@ -110,10 +111,10 @@ export const Page = ({ title, link, remove, before, after, hidden = false }: Pag
           <Property id={`${link}.type`} name={"type"} value={"page"} />
           <Property id={`${link}.title`} name={"title"} value={title ?? null} />
           <Property id={`${link}.protectedTitle`} name={"protectedTitle"} value={Boolean(title)} />
-          <Property id={`${link}.path`} name={"path"} value={link} />
+          <Property id={`${link}.path`} name={"path"} value={path} />
         </Property>
       ) : null}
-      <Property id={`path.${link}`} name={"paths"} array root remove={remove} value={link} />
+      <Property id={`path.${link}`} name={"paths"} array root remove={remove} value={path} />
     </>
   );
 };

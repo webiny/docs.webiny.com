@@ -21,7 +21,7 @@ export class MdxCompiler {
   private compiler: any;
   private readonly remarkPlugins: RemarkPlugin[];
 
-  constructor() {
+  constructor(remarkPlugins: RemarkPlugin[] = []) {
     this.remarkPlugins = [
       // TODO: fix MDX strings within JSX elements (add a new plugin)
       withTitleCaseHeadings,
@@ -31,18 +31,15 @@ export class MdxCompiler {
       withNextLinks,
       withSmartQuotes,
       unwrapImages,
-      removeExports
+      removeExports,
+      ...remarkPlugins
     ];
-  }
-
-  addRemarkPlugin(remarkPlugin: RemarkPlugin) {
-    this.remarkPlugins.push(remarkPlugin);
   }
 
   async compile(mdxFile: MdxFile) {
     const options = {
       contents: mdxFile.getContents(),
-      path: mdxFile.getPath()
+      path: mdxFile.getAbsolutePath()
     };
 
     const compiler = this.getCompiler();

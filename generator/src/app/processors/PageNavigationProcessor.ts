@@ -1,4 +1,3 @@
-import { IFileProcessor } from "../../abstractions/IFileProcessor";
 import { IMdxProcessor } from "../../abstractions/IMdxProcessor";
 import { MdxFile } from "../MdxFile";
 

@@ -1,8 +1,8 @@
-import { AbstractPageProcessor } from "./AbstractPageProcessor";
+import { AbstractMdxProcessor } from "./AbstractMdxProcessor";
 import { MdxFile } from "../MdxFile";
 
-export class PageDataProcessor extends AbstractPageProcessor {
-  override processMdx(mdxFile: MdxFile): MdxFile {
+export class PageDataProcessor extends AbstractMdxProcessor {
+  processMdx(mdxFile: MdxFile): MdxFile {
     return mdxFile.withContents(contents => {
       return [
         contents,
@@ -10,7 +10,7 @@ export class PageDataProcessor extends AbstractPageProcessor {
         this.mdxComment(
           `Add page data export. It will be attached to "layoutProps" by mdx-loader.`
         ),
-        `export const pageData = ${JSON.stringify(this.page.getData(), null, 2)};`
+        `export const pageData = ${JSON.stringify(mdxFile.getData(), null, 2)};`
       ].join("\n");
     });
   }
