@@ -26,6 +26,13 @@ export const Navigation = () => {
                     </Section>
                 </Collapsable>
             </NavGroup>
+            <NavGroup type={"user-guides"}>
+                <Collapsable title={"Headless CMS"}>
+                    <Section title={"Advanced"}>
+                        <Page link={"user-guides/headless-cms/advanced/import-export-content-models"} />
+                    </Section>
+                </Collapsable>
+            </NavGroup>
         </>
     );
 };
