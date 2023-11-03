@@ -3,6 +3,7 @@ import { IFile } from "../abstractions/IFile";
 interface FileProps {
   contents: string;
   path: string;
+  sourcePath?: string;
 }
 
 export class File implements IFile {
@@ -16,7 +17,11 @@ export class File implements IFile {
     return this.props.contents;
   }
 
-  getRelativePath(): string {
+  getOutputPath(): string {
     return this.props.path;
+  }
+
+  getSourcePath(): string | undefined {
+    return this.props.sourcePath;
   }
 }

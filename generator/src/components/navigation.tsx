@@ -94,7 +94,8 @@ export const Section = ({ title, children, remove, before, after }: SectionProps
 };
 
 interface PageProps {
-  link: string;
+  link?: string;
+  file?: string;
   title?: string;
   hidden?: boolean;
   remove?: boolean;
@@ -102,19 +103,16 @@ interface PageProps {
   after?: string;
 }
 
-export const Page = ({ title, link, remove, before, after, hidden = false }: PageProps) => {
-  const path = `${link}.mdx`;
+export const Page = ({ title, link, file, remove, before, after, hidden = false }: PageProps) => {
+  const id = link || file;
+
   return (
-    <>
-      {!hidden ? (
-        <Property id={link} name={"items"} array remove={remove} before={before} after={after}>
-          <Property id={`${link}.type`} name={"type"} value={"page"} />
-          <Property id={`${link}.title`} name={"title"} value={title ?? null} />
-          <Property id={`${link}.protectedTitle`} name={"protectedTitle"} value={Boolean(title)} />
-          <Property id={`${link}.path`} name={"path"} value={path} />
-        </Property>
-      ) : null}
-      <Property id={`path.${link}`} name={"paths"} array root remove={remove} value={path} />
-    </>
+    <Property id={id} name={"items"} array remove={remove} before={before} after={after}>
+      <Property id={`${id}.type`} name={"type"} value={"page"} />
+      <Property id={`${id}.hidden`} name={"hidden"} value={hidden} />
+      {title ? <Property id={`${id}.title`} name={"title"} value={title} /> : null}
+      {link ? <Property id={`${id}.link`} name={"link"} value={link} /> : null}
+      {file ? <Property id={`${id}.file`} name={"file"} value={file} /> : null}
+    </Property>
   );
 };

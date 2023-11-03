@@ -13,8 +13,8 @@ export class SitemapFileWriter implements IMdxFileWriter {
 
   async output(mdxFile: MdxFile): Promise<IFile[]> {
     const filePath = `${this.relativeOutputPath}/${mdxFile
-      .getRelativePath()
-      .replace(".mdx", ".sitemap")}`;
+      .getOutputPath()
+      .withExtension("sitemap")}`;
 
     return [
       new File({

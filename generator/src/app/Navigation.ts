@@ -1,50 +1,128 @@
-import { NavigationPage, NavigationTree } from "../abstractions/INavigationRenderer";
+import { mdbid } from "@webiny/utils";
+import {
+  NavigationOutputData,
+  NavigationOutputPage,
+  NavigationPage,
+  NavigationTree
+} from "../abstractions/IReactRenderer";
+import { MdxFileLoader } from "./MdxFileLoader";
+import { MdxFile } from "./MdxFile";
 
-export type NavigationPageModifier = (page: NavigationPage) => NavigationPage;
+type WithId<T> = T & { id: string };
+
+const pageIsHidden = (page: any): boolean => {
+  if ("hidden" in page) {
+    return page.hidden;
+  }
+
+  return false;
+};
 
 export class Navigation {
-  private navigation: NavigationTree;
-  private modifiers = new Map<string, NavigationPageModifier[]>();
+  private mdxFileLoader: MdxFileLoader;
+  private navigationTree: NavigationTree;
+  private linkPrefix: string;
+  private mdxFiles: MdxFile[] = [];
+  private navigationData: NavigationOutputData = [];
 
-  constructor(navigation: NavigationTree) {
-    this.navigation = navigation;
+  private constructor(
+    mdxFileLoader: MdxFileLoader,
+    navigationTree: NavigationTree,
+    linkPrefix: string
+  ) {
+    this.mdxFileLoader = mdxFileLoader;
+    this.navigationTree = navigationTree;
+    this.linkPrefix = linkPrefix;
   }
 
-  getPaths() {
-    return this.navigation.paths;
+  static async create(
+    mdxFileLoader: MdxFileLoader,
+    navigationTree: NavigationTree,
+    linkPrefix: string
+  ) {
+    const navigation = new Navigation(mdxFileLoader, navigationTree, linkPrefix);
+    await navigation.initialize();
+    return navigation;
   }
 
-  getItems() {
-    return this.applyPageModifiers(this.navigation.items);
+  private async initialize() {
+    this.navigationData = await this.applyPageModifiers(this.navigationTree.items);
   }
 
-  setLink(path: string, link: string) {
-    const modifiers = this.modifiers.get(path) || [];
-    modifiers.push(page => ({ ...page, link: link.replace(".mdx", "") }));
-    this.modifiers.set(path, modifiers);
+  getMdxFiles() {
+    return this.mdxFiles;
   }
 
-  setTitle(path: string, title: string) {
-    const modifiers = this.modifiers.get(path) || [];
-    // `title` set in the `navigation.js` file has precedence over the `frontmatter` title.
-    modifiers.push(page => ({ ...page, title: page.protectedTitle ? page.title : title }));
-    this.modifiers.set(path, modifiers);
+  getNavigationData(): NavigationOutputData {
+    return this.navigationData;
   }
 
-  private applyPageModifiers(groups: NavigationTree["items"]) {
+  private async applyPageModifiers(groups: NavigationTree["items"]): Promise<NavigationOutputData> {
+    const promises: Promise<void>[] = [];
+    const map = new Map<string, NavigationOutputPage>();
+
+    const tempOutput = this.traversePages<NavigationPage, WithId<NavigationPage>>(groups, page => {
+      const id = mdbid();
+      promises.push(
+        new Promise(async resolve => {
+          const [resolvedPage, mdxFile] = await this.resolveLink(page);
+          map.set(id, resolvedPage);
+          if (mdxFile) {
+            this.mdxFiles.push(mdxFile);
+          }
+          resolve();
+        })
+      );
+
+      return {
+        id,
+        ...page
+      };
+    });
+
+    await Promise.all(promises);
+
+    return this.traversePages<WithId<NavigationPage>, NavigationOutputPage>(tempOutput, page => {
+      return map.get(page.id) as NavigationOutputPage;
+    });
+  }
+
+  private traversePages<TPageIn, TPageOut>(
+    groups: NavigationTree<TPageIn>["items"],
+    cb: (page: TPageIn) => TPageOut
+  ) {
     return groups.map(group => {
       return {
         ...group,
         items: group.items.map(section => {
           return {
             ...section,
-            items: section.items.map(page => {
-              const modifiers = this.modifiers.get(page.path) || [];
-              return modifiers.reduce((page, modifier) => modifier(page), page);
-            })
+            items: section.items.map(page => cb(page)).filter(page => !pageIsHidden(page))
           };
         })
       };
     });
+  }
+
+  private async resolveLink(
+    page: NavigationPage
+  ): Promise<[NavigationOutputPage, MdxFile | undefined]> {
+    const filePath = `${(page.file ?? page.link ?? "").replace(".mdx", "")}.mdx`;
+
+    const loadedFile = await this.mdxFileLoader.load(filePath);
+    const mdxFile = loadedFile.getFile();
+
+    const outputFileName = page.link ? page.link : mdxFile.getSlug();
+
+    mdxFile.setOutputPath(`${this.linkPrefix}/${outputFileName}`);
+
+    return [
+      {
+        type: page.type,
+        title: page.title || mdxFile.getTitle(),
+        link: `/${mdxFile.getOutputPath().withoutExtension()}`
+      },
+      loadedFile.isFromCache() ? undefined : mdxFile
+    ];
   }
 }

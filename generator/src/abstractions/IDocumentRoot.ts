@@ -5,6 +5,9 @@ export interface OnFile {
 }
 
 export interface IDocumentRoot {
-  getFiles(): Promise<IFile[]>;
+  generate(): Promise<IFile[]>;
+}
+
+export interface IDocumentRootWatcher {
   watch(onFile: OnFile): Promise<void>;
 }

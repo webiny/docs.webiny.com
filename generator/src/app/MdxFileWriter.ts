@@ -11,13 +11,14 @@ export class MdxFileWriter implements IMdxFileWriter {
   }
 
   async output(mdxFile: MdxFile): Promise<IFile[]> {
-    const mdxPath = `${this.relativeOutputPath}/${mdxFile.getRelativePath()}`;
+    const mdxPath = `${this.relativeOutputPath}/${mdxFile.getOutputPath().withExtension("mdx")}`;
 
     return [
       // Output an MDX file.
       new File({
         path: mdxPath,
-        contents: mdxFile.getContents()
+        contents: mdxFile.getContents(),
+        sourcePath: mdxFile.getAbsolutePath()
       })
     ];
   }

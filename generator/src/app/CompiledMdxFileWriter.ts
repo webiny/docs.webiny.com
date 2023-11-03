@@ -14,9 +14,7 @@ export class CompiledMdxFileWriter implements IMdxFileWriter {
   }
 
   async output(mdxFile: MdxFile): Promise<IFile[]> {
-    const filePath = `${this.relativeOutputPath}/${mdxFile
-      .getRelativePath()
-      .replace(".mdx", ".js")}`;
+    const filePath = `${this.relativeOutputPath}/${mdxFile.getOutputPath().withExtension("js")}`;
 
     return [
       new File({

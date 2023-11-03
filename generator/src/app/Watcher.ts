@@ -1,20 +1,18 @@
 import { IFileWriter } from "../abstractions/IFileWriter";
-import { IDocumentRootFactory } from "../abstractions/IDocumentRootFactory";
+import { IDocumentRootWatcher } from "../abstractions/IDocumentRoot";
 
 export class Watcher {
-  private documentRootFactory: IDocumentRootFactory;
+  private readonly watchers: IDocumentRootWatcher[];
   private fileWriter: IFileWriter;
 
-  constructor(documentRootFactory: IDocumentRootFactory, fileWriter: IFileWriter) {
-    this.documentRootFactory = documentRootFactory;
+  constructor(watchers: IDocumentRootWatcher[], fileWriter: IFileWriter) {
+    this.watchers = watchers;
     this.fileWriter = fileWriter;
   }
 
   async execute() {
-    const documentRoots = this.documentRootFactory.getDocumentRoots();
-
-    for (const documentRoot of documentRoots) {
-      documentRoot.watch(file => this.fileWriter.write(file));
+    for (const watcher of this.watchers) {
+      watcher.watch(file => this.fileWriter.write(file));
     }
 
     return new Promise(() => {

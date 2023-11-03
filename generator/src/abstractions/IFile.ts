@@ -1,4 +1,5 @@
 export interface IFile {
-  getRelativePath(): string;
+  getOutputPath(): string;
+  getSourcePath(): string | undefined;
   getContents(): string | Promise<string>;
 }

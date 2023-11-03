@@ -9,7 +9,7 @@ export const Navigation = () => {
             <Collapsable title={"Welcome!"}>
                 <Section title={"Introduction"}>
                     <Page link={"introduction"} />
-                    <Page link={"testing/cypress"} />
+                    <Page file={"cypress.mdx"} link={"i-really-want-this-specific-slug"}/>
                 </Section>
             </Collapsable>
         </Handbook>

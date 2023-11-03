@@ -12,7 +12,7 @@ export class Generator {
 
   async execute() {
     const documentRoots = this.documentRootFactory.getDocumentRoots();
-    const allFiles = await Promise.all(documentRoots.map(root => root.getFiles()));
+    const allFiles = await Promise.all(documentRoots.map(root => root.generate()));
     const files = allFiles.flat();
 
     for (const file of files) {

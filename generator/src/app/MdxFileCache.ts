@@ -20,6 +20,10 @@ export class MdxFileCache {
     this.cache.set(filePath, { timeModified, mdxFile });
   }
 
+  evict(filePath: string) {
+    this.cache.delete(filePath);
+  }
+
   private async getTimeModified(filePath: string) {
     const stats = await fs.stat(filePath);
 

@@ -3,7 +3,6 @@ import { MdxFile } from "../app/MdxFile";
 
 export type MdxData = {
   absolutePath: string;
-  relativePath: string;
   rawBody: string;
   stats: Stats;
 };
