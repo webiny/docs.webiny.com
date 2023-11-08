@@ -1,0 +1,110 @@
+---
+title: GraphQL Request Batching
+description: Learn how to configure the GraphQL client request batching in the Admin app.
+---
+
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+
+<CanIUseThis since={"5.37.6"} />
+
+<WhatYouWillLearn>
+
+- how to configure GraphQL client request batching
+
+</WhatYouWillLearn>
+
+## Overview
+
+Out of the box, Webiny configures its GraphQL client (Apollo Client) with a `BatchHttpLink`, meaning, it will batch GraphQL queries that are happening at the same time, and instead of sending multiple parallel HTTP request, it will combine all payloads into one HTTP request. On the GraphQL API side, Webiny unpacks the payload, processes each query individually, and then returns the response as one big payload. The GraphQL client then unpacks the response and distributes data to its requesters.
+
+This works well for the majority of projects. However, there are scenarios when you don't want batching to happen at all, or want to control how many requests are batched, how they're grouped, etc.
+
+This articles demonstrates how you can configure batching in our GraphQL client.
+
+## Configuration
+
+To configure batching, you need to provide a custom Apollo Client factory to the `<Admin>` component of our Admin app.
+
+```tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin, createApolloClient } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
+import "./App.scss";
+
+const apolloClientFactory: typeof createApolloClient = ({ uri }) => {
+  return createApolloClient({
+    uri,
+    batching: {
+      batchMax: 3,
+      batchInterval: 1000,
+      batchKey(operation) {
+        // Return a custom batch key
+        return "";
+      }
+    }
+  });
+};
+
+export const App: React.FC = () => {
+  return (
+    <Admin createApolloClient={apolloClientFactory}>
+      <Cognito />
+    </Admin>
+  );
+};
+```
+
+`batchMax` is a maximum number of requests that will be batched together.
+
+`batchInterval` is a maximum number of milliseconds the client will wait before sending the batched request to the API endpoint.
+
+`batchKey` allows you to generate a key based on which the client will group requests.
+
+## Custom Batch Key
+
+One of the scenarios that was reported to cause issues with batching, is overuse of reference fields in the Headless CMS content models. If you have, say, 20 ref fields, and you open a content entry form of an existing record, there will be 20 requests batched together and sent to the API. Depending on the complexity of the data model, this may or may not cause performance issues while these 20 queries are being individually processed by the Lambda function.
+
+The following example shows how you can control whether requests are batched, based on the `cms` request context which is set within our Headless CMS app, by all reference fields. When there are GraphQL queries sent from the reference field renderers, we assign a request context containing the current content model and current reference field. With this information, you can conditionally disable batching of reference field queries per-model.
+
+```tsx apps/admin/src/App.tsx Custom Batch Key
+import React from "react";
+import { Admin, createApolloClient } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
+import { CmsModel, CmsModelField } from "@webiny/app-headless-cms/types";
+import "./App.scss";
+
+const apolloClientFactory: typeof createApolloClient = ({ uri }) => {
+  return createApolloClient({
+    uri,
+    batching: {
+      batchKey(operation) {
+        const context = operation.getContext();
+
+        if (context["cms"]) {
+          const { model, field } = context["cms"] as {
+            model: CmsModel;
+            field: CmsModelField;
+          };
+
+          console.log(
+            `Disable batching of ${operation.operationName}`,
+            `${model.modelId}.${field.fieldId}`
+          );
+          return field.id;
+        }
+
+        return "";
+      }
+    }
+  });
+};
+
+export const App: React.FC = () => {
+  return (
+    <Admin createApolloClient={apolloClientFactory}>
+      <Cognito />
+    </Admin>
+  );
+};
+```
