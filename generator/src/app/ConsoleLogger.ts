@@ -48,7 +48,7 @@ export class ConsoleLogger implements ILogger {
   }
 
   private print(type: string, ...args: unknown[]) {
-    const prefix = [this.prefix, `[${this.getTimestamp()}]`, `${logColors[type](type)}: `]
+    const prefix = [this.prefix, `[${this.getTimestamp()}]`, `${logColors[type](type)} `]
       .filter(Boolean)
       .join(" ");
 
@@ -60,6 +60,7 @@ export class ConsoleLogger implements ILogger {
   }
 
   private getTimestamp() {
-    return new Date().toTimeString().split(" ").shift();
+    const time = new Date().toISOString().split("T").pop();
+    return time?.replace("Z", "");
   }
 }

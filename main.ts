@@ -1,10 +1,13 @@
 import path from "path";
-import { IDocumentRootFactory } from "./abstractions/IDocumentRootFactory";
-import { Generator } from "./app/Generator";
-import { FsFileWriter } from "./app/FsFileWriter";
-import { Watcher } from "./app/Watcher";
-import { MdxFileCache } from "./app/MdxFileCache";
-import { ConsoleLogger } from "./app/ConsoleLogger";
+import {
+  IDocumentRootFactory,
+  Generator,
+  FsFileWriter,
+  Watcher,
+  MdxFileCache,
+  ConsoleLogger
+} from "@webiny/docs-generator";
+
 import { HandbookDocumentRoot } from "./plugins/handbook/HandbookDocumentRoot";
 
 const outputRoot = path.resolve("src");

@@ -1,5 +1,4 @@
-import { IMdxFileFactory, MdxData } from "../../abstractions/IMdxFileFactory";
-import { MdxFile } from "../../app/MdxFile";
+import { IMdxFileFactory, MdxData, MdxFile } from "@webiny/docs-generator";
 import { HandbookMdxFile } from "./HandbookMdxFile";
 
 export class HandbookMdxFileFactory implements IMdxFileFactory {

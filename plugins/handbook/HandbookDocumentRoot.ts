@@ -1,36 +1,38 @@
-import { IDocumentRoot, IDocumentRootWatcher } from "../../abstractions/IDocumentRoot";
-import { MdxFileCache } from "../../app/MdxFileCache";
 import path from "path";
 import md5 from "md5";
-import { CompositeMdxProcessor } from "../../app/CompositeMdxProcessor";
-import { CodeSeparatorProcessor } from "../../app/processors/CodeSeparatorProcessor";
-import { LayoutProcessor } from "../../app/processors/LayoutProcessor";
-import { PageDataProcessor } from "../../app/processors/PageDataProcessor";
-import { DocsearchProcessor } from "../../app/processors/DocsearchProcessor";
-import { PageNavigationProcessor } from "../../app/processors/PageNavigationProcessor";
-import { MdxFileLoader } from "../../app/MdxFileLoader";
+import {
+  IDocumentRoot,
+  IDocumentRootWatcher,
+  MdxFileCache,
+  CompositeMdxProcessor,
+  CodeSeparatorProcessor,
+  LayoutProcessor,
+  PageDataProcessor,
+  DocsearchProcessor,
+  PageNavigationProcessor,
+  MdxFileLoader,
+  CompositeMdxFileWriter,
+  MdxFileWriter,
+  SitemapFileWriter,
+  CompiledMdxFileWriter,
+  MdxCompiler,
+  NavigationLoader,
+  NavigationWriter,
+  SimpleDocumentRoot,
+  DocumentRootWatcher
+} from "@webiny/docs-generator";
 import { HandbookMdxFileFactory } from "./HandbookMdxFileFactory";
-import { CompositeMdxFileWriter } from "../../app/CompositeMdxFileWriter";
-import { MdxFileWriter } from "../../app/MdxFileWriter";
-import { SitemapFileWriter } from "../../app/SitemapFileWriter";
-import { CompiledMdxFileWriter } from "../../app/CompiledMdxFileWriter";
-import { MdxCompiler } from "../../app/MdxCompiler";
-import { resolveSimpleAssets } from "../../app/mdxCompiler/remark/resolveSimpleAssets";
-import { NavigationLoader } from "../../app/NavigationLoader";
-import { NavigationWriter } from "../../app/NavigationWriter";
-import { SimpleDocumentRoot } from "../../app/SimpleDocumentRoot";
-import { DocumentRootWatcher } from "../../app/DocumentRootWatcher";
+import { remarkResolveAssets } from "./remarkResolveAssets";
 
 export class HandbookDocumentRoot {
   private readonly documentRoot: IDocumentRoot;
   private readonly documentRootWatcher: IDocumentRootWatcher;
 
   constructor(cache: MdxFileCache) {
-    // Handbook
-    const handbookRootDir = path.resolve("src/library/handbook");
+    const handbookRootDir = path.resolve("library/handbook");
     const handbookOutputDir = "pages";
     const handbookLinkPrefix = "/docs/handbook";
-    const handbookNavigationPath = `${handbookRootDir}/navigation.js`;
+    const handbookNavigationPath = `${handbookRootDir}/navigation.tsx`;
     const handbookNavigationOutputPath = `data/navigation.${md5(handbookRootDir).slice(-6)}.json`;
 
     const handbookProcessor = new CompositeMdxProcessor([
@@ -59,7 +61,7 @@ export class HandbookDocumentRoot {
       // Write sitemap XML file for each MDX file.
       new SitemapFileWriter(handbookOutputDir),
       // Write a JS file compiled from the MDX file.
-      new CompiledMdxFileWriter(handbookOutputDir, new MdxCompiler([resolveSimpleAssets()]))
+      new CompiledMdxFileWriter(handbookOutputDir, new MdxCompiler([remarkResolveAssets()]))
     ]);
 
     const navigationLoader = new NavigationLoader(

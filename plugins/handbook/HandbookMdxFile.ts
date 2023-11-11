@@ -1,4 +1,4 @@
-import { MdxFile } from "../../app/MdxFile";
+import { MdxFile } from "@webiny/docs-generator";
 
 export class HandbookMdxFile extends MdxFile {
   override getDocsearch() {
