@@ -14,6 +14,7 @@ import {
   PageNavigationProcessor,
   MdxFileLoader,
   CompositeMdxFileWriter,
+  FilteredMdxFileWriter,
   MdxFileWriter,
   SitemapFileWriter,
   CompiledMdxFileWriter,
@@ -31,22 +32,27 @@ import { remarkResolveAssets } from "./remarkResolveAssets";
 import { VersionedMdxFileLoader } from "./VersionedMdxFileLoader";
 import { VersionedAssetResolverFactory } from "./VersionedAssetResolverFactory";
 import { VersionedDocumentRoot } from "./VersionedDocumentRoot";
-import {VersionsFile} from "./VersionsFile";
+import { VersionsFile } from "./VersionsFile";
+import { Config } from "../Config";
+import { IMdxFileFilter } from "@webiny/docs-generator/src/abstractions/IMdxFileFilter";
+import { DocsMdxFile } from "./DocsMdxFile";
 
 export class DocsDocumentRoot {
   private readonly rootDir: string;
   private readonly mdxFileCache: MdxFileCache;
   private readonly documentRoot: IDocumentRoot;
+  private readonly config: Config;
   private readonly documentRootWatcher: IDocumentRootWatcher;
   private readonly versions: DocumentRootVersions;
 
-  constructor(cache: MdxFileCache, rootDir: string) {
+  constructor(config: Config, cache: MdxFileCache, rootDir: string) {
+    this.config = config;
     this.mdxFileCache = cache;
     this.rootDir = rootDir;
     this.versions = this.detectVersions();
 
     this.documentRoot = new VersionedDocumentRoot(
-      VersionsFile.create(this.versions, `data/docs.versions.json`),
+      this.getVersionsFile(),
       new CompositeDocumentRoot(
         this.versions.getVersions().map(version => {
           return this.createDocumentRoot(this.rootDir, version);
@@ -103,23 +109,49 @@ export class DocsDocumentRoot {
       new MdxFileLoader(rootDir, this.mdxFileCache, mdxProcessor, new DocsMdxFileFactory(version))
     );
 
-    const mdxFileWriter = new CompositeMdxFileWriter([
-      // Write the processed MDX file.
-      new MdxFileWriter(outputDir),
-      // Write sitemap XML file for each MDX file.
-      new SitemapFileWriter(outputDir),
-      // Write a JS file compiled from the MDX file.
-      new CompiledMdxFileWriter(
-        outputDir,
-        new MdxCompiler([
-          remarkResolveAssets(new VersionedAssetResolverFactory(rootDir, version, this.versions))
-        ])
-      )
-    ]);
+    const mdxFileWriter = new FilteredMdxFileWriter(
+      this.getMdxOutputFilters(),
+      new CompositeMdxFileWriter([
+        // Write the processed MDX file.
+        new MdxFileWriter(outputDir),
+        // Write sitemap XML file for each MDX file.
+        new SitemapFileWriter(outputDir),
+        // Write a JS file compiled from the MDX file.
+        new CompiledMdxFileWriter(
+          outputDir,
+          new MdxCompiler([
+            remarkResolveAssets(new VersionedAssetResolverFactory(rootDir, version, this.versions))
+          ])
+        )
+      ])
+    );
 
     const navigationLoader = new NavigationLoader(navigationPath, linkPrefix, mdxFileLoader);
     const navigationWriter = new NavigationWriter(navigationOutputPath, mdxFileWriter);
 
     return new DocumentRoot(navigationLoader, navigationWriter);
+  }
+
+  private getMdxOutputFilters(): IMdxFileFilter<DocsMdxFile>[] {
+    if (this.config.isDevMode()) {
+      return [
+        // If specific versions were configured, make sure the file matches one of those versions.
+        mdxFile => this.config.getVersionsToOutput().includes(mdxFile.getVersion().getValue()),
+        // By default, in dev mode, we only want to output the latest version.
+        mdxFile => mdxFile.getVersion().isLatest()
+      ];
+    }
+
+    // Output all files.
+    return [];
+  }
+
+  private getVersionsFile() {
+    const toOutput = this.config.getVersionsToOutput();
+    const filteredVersions = this.config.isDevMode()
+      ? this.versions.createWithFilter(v => toOutput.includes(v.getValue()))
+      : this.versions;
+
+    return VersionsFile.create(filteredVersions, `data/docs.versions.json`);
   }
 }

@@ -8,20 +8,44 @@ tsNode.register({
     dir: resolve(__dirname, "./generator")
 });
 
-const { Main } = require("./main");
+const { App, Config } = require("./docsConfig");
 
 (async () => {
-    const { watch, watchOnly } = yargs.argv;
+    const { watch, watchOnly, version } = yargs
+        .version(false)
+        .option("v", {
+            alias: "version",
+            describe: "Whitelist versions to build.",
+            type: "array",
+            default: []
+        })
+        .option("watch", {
+            default: false,
+            description: "Run generator and watch for changes.",
+            type: "boolean"
+        })
+        .option("watchOnly", {
+            default: false,
+            description: "Only watch for changes, without the initial generation.",
+            type: "boolean"
+        }).argv;
 
-    const main = new Main();
+    const config = Config.create({
+        devMode: process.env.NODE_ENV === "development",
+        outputVersions: version
+    });
+
+    console.log(config);
+
+    const app = new App(config);
 
     if (watchOnly) {
-        await main.watch();
+        await app.watch();
     }
 
-    await main.generate();
+    await app.generate();
     if (watch) {
-        await main.watch();
+        await app.watch();
     }
 
     process.exit();

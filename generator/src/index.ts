@@ -23,6 +23,7 @@ export * from "./app/MdxFile";
 export * from "./app/MdxFileCache";
 export * from "./app/MdxFileLoader";
 export * from "./app/MdxFileWriter";
+export * from "./app/FilteredMdxFileWriter";
 export * from "./app/SitemapFileWriter";
 export * from "./app/Navigation";
 export * from "./app/NavigationLoader";

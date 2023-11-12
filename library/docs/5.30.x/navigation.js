@@ -1,5 +1,5 @@
 import React from "react";
-import { Collapsable, NavGroup, Page, Section } from "@webiny/docs-generator";
+import { Collapsable, Page, Section } from "@webiny/docs-generator";
 import { Navigation as BaseNavigation } from "../5.29.x/navigation";
 
 export const Navigation = () => {

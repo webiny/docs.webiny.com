@@ -13,6 +13,10 @@ export class DocsMdxFile extends MdxFile {
     return new DocsMdxFile(this.props, this.version);
   }
 
+  getVersion() {
+    return this.version;
+  }
+
   getData(): Record<string, any> {
     return {
       ...super.getData(),

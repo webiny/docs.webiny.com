@@ -39,6 +39,15 @@ export class DocumentRootVersions {
     });
   }
 
+  createWithFilter(filter: (v: Version) => boolean) {
+    const filteredVersions = new Set(this.versions.filter(filter).map(v => v.getValue()));
+
+    // We always include the "latest" version.
+    filteredVersions.add(this.getLatest().getValue());
+
+    return new DocumentRootVersions(Array.from(filteredVersions.values()));
+  }
+
   getLatest() {
     // There will always be at least one version, so there will always be a "latest" version.
     return this.versions.find(version => version.isLatest()) as Version;

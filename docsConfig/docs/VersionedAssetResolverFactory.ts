@@ -39,10 +39,6 @@ class VersionedAssetResolver {
     const requestedAssetPath = path.join(dirname, assetPath);
 
     const resolvedAssetPath = this.tryResolve(this.version, requestedAssetPath);
-    
-    if(issuer.history[0].includes("headless-cms/extending/customize-entry-editor-actions")) {
-      console.log(resolvedAssetPath);
-    }
 
     if (!resolvedAssetPath) {
       console.error(
@@ -51,10 +47,6 @@ class VersionedAssetResolver {
           ""
         )}".`
       );
-
-      console.log(`requestedAssetPath: ${requestedAssetPath}`);
-      console.log(`Tried resolving using the following paths:`);
-      console.log(this.history.map(line => ` - ${line}`).join("\n"));
 
       throw Error(
         `Failed to resolve asset "${assetPath}" in "${issuer.history[0].replace(

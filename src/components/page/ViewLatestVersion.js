@@ -11,7 +11,7 @@ export const ViewLatestVersion = () => {
         return null;
     }
 
-    if (page.articleType === "docs") {
+    if (page.type === "docs") {
         return (
             <div className={"mb-10"}>
                 <Alert type={"warning"} title={"Warning"}>
