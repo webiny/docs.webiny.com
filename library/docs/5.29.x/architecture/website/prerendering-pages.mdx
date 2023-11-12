@@ -1,0 +1,57 @@
+---
+title: Prerendering Pages
+description: Learn how the prerendering service, hosted in the API project application, relies on the Website project application to perform page prerendering.
+---
+
+import { Alert } from "@/components/Alert";
+import websitePrerendering from "./assets/prerendering-pages/webiny_website_prerendering.png";
+
+<Alert type="success" title="What you’ll learn">
+
+- how the Prerendering Service (located in the **API** project application) utilizes **Website**'s cloud infrastructure resources in order to prerender your public website's pages and store their HTML and relevant metadata
+
+</Alert>
+
+## Diagram
+
+<Alert type="info">
+
+For brevity, the diagram doesn't include network-level cloud infrastructure resources, like region, VPC, availability zones, and so on. Check out the [Deployment Modes](../deployment-modes/introduction) section if you're interested in that aspect of the deployed cloud infrastructure.
+
+</Alert>
+
+<Alert type="info">
+
+Note that the Amazon DynamoDB and Amazon ElasticSearch databasesare deployed as part of the [Core](../core/overview) project application. Also, the GraphQL Handler AWS Lambda function is deployed as part of the [API](../api/overview) project application
+
+These are still included in the diagram, just so it's more clear to the reader.
+
+</Alert>
+
+<Image
+  src={websitePrerendering}
+  title="Webiny Cloud Infrastructure - Website - Prerendering"
+  shadow={false}
+/>
+
+## Description
+
+The diagram shows the process of prerendering pages published with the Page Builder application. Note the process also involves **Core** and **API** project applications.
+
+<Alert type="info">
+
+To learn more about the **Core** and **API** project applications' cloud infrastructure, check out the [Core](../../architecture/core/overview) and [API](../../architecture/api/overview) sections.
+
+</Alert>
+
+The flow consists of the following seven steps:
+
+1. A user first publishes a page from the Admin Area. This is a simple GraphQL request, issued by the browser, to the GraphQL API that's deployed as part of the **API** project application <diagram-letter>I</diagram-letter>.
+2. In the process, an Amazon EventBridge <diagram-letter>H</diagram-letter> event is emitted, which will be handled by the Subscribe <diagram-letter>E3</diagram-letter> AWS Lambda function.
+3. The Subscribe <diagram-letter>E3</diagram-letter> AWS Lambda function creates one or more Amazon SQS messages.
+4. Messages will be picked up by the Render <diagram-letter>E2</diagram-letter> AWS Lambda function, which is responsible for actual prerendering of pages. The process starts by issuing an HTTP request to the Amazon CloudFront distribution <diagram-letter>D</diagram-letter>.
+5. The request is forwarded to the Amazon S3 bucket <diagram-letter>C</diagram-letter>. This is where the actual React application is hosted, with all of its code and static assets.
+6. The mentioned Subscribe <diagram-letter>E3</diagram-letter> AWS Lambda function waits until the React application, served back via the Amazon CloudFront distribution <diagram-letter>D</diagram-letter>, has been completely rendered.
+7. Finally, the function stores the generated HTML and related metadata in the Amazon S3 bucket <diagram-letter>B</diagram-letter>. Additional metadata also gets stored in the Amazon DynamoDB <diagram-letter>G</diagram-letter> that's part of the **Core** project application.
+
+With these steps completed, the page is ready to be served to actual website visitors. Continue reading the [Serving Pages](serving-pages) section to learn more.

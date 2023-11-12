@@ -1,0 +1,60 @@
+---
+id: changelog
+title: Webiny 5.33.4 Changelog
+description: See what's new in Webiny version 5.33.4.
+---
+
+import lambdaFunctions from "./assets/lambdaFunctions.png";
+
+## Deployments
+
+### Improved "Deploy Webiny Project" AWS CloudFormation Template ([#2856](https://github.com/webiny/webiny-js/pull/2856))
+
+In case you missed it, in our previous [5.33.2](/docs/release-notes/5.33.2/changelog#updated-deploy-webiny-project-cloud-formation-template-2773) release, we've revisited our `DeployWebinyProject` [AWS CloudFormation template](/docs/{version}/infrastructure/aws/configure-aws-credentials#deploy-webiny-project-aws-cloud-formation-template) and updated the set of permissions it deploys through multiple Amazon IAM policies.
+
+But, we didn't stop there! With this release, we've taken it even further and ensured that the template and the list of permissions it includes fully follows the [Principle of least privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege), making it more secure and easier for organizations to adopt it.
+
+To quickly check out the changes, you can visit our [GitHub repository](https://github.com/webiny/webiny-js/blob/stable/docs/DEPLOY_WEBINY_PROJECT_CF_TEMPLATE.yaml).
+
+<Alert type="info" title="More Information">
+
+In case you missed it, in order to deploy your Webiny project in a more controlled and secure manner, you can utilize our `DeployWebinyProject` [AWS CloudFormation template](/docs/{version}/infrastructure/aws/configure-aws-credentials#deploy-webiny-project-aws-cloud-formation-template). The template deploys necessary ([least-privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege)) set of permissions into your AWS account, which also automatically get linked with an Amazon IAM user of your choosing (the user you plan to use upon running deployments).
+
+</Alert>
+
+### Introduced Prefixed Cloud Infrastructure (Pulumi) Resource Names ([#2858](https://github.com/webiny/webiny-js/pull/2858))
+
+In order to make it easier to distinguish between Webiny-related deployed cloud infrastructure resources and other resources you already might have in your AWS account, apart from the [default tags](/docs/{version}/core-development-concepts/basics/project-deployment#tagged-resources), we're now also prefixing every resource name with the `wby-` prefix. For example, if we were to take a look at the list of deployed AWS Lambda functions, we'd be able to see the following:
+
+<Image
+  title="Introduced Prefixed Cloud Infrastructure (Pulumi) Resource Names"
+  src={lambdaFunctions}
+/>
+
+Note that the prefix will only be applied for new Webiny projects, created with version **5.33.4** or greater.
+
+Still, if you'd like to adopt the same naming convention within an existing Webiny project, you can do that by utilizing the newly introduced `pulumiResourceNamePrefix` parameter, in your `webiny.application.ts` configuration files.
+
+<Alert type={"danger"}>
+  For existing projects that are already serving production workloads, we do not recommend
+  performing the below steps. Changing cloud infrastructure resource name can cause a complete
+  replacement of the resource, which might result in downtime or even a permanent data loss.
+</Alert>
+
+For example, in the `apps/core/webiny.application.ts` file, we'd need to perform the following addition:
+
+```diff-ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
++   pulumiResourceNamePrefix: "wby-"
+});
+```
+
+The exact same addition then needs to be made in the remaining three `webiny.application.ts` files:
+
+1. `apps/api/webiny.application.ts`
+2. `apps/admin/webiny.application.ts`
+3. `apps/website/webiny.application.ts`
+
+Once performed, the final step is to redeploy your Webiny project, as usual, via the [`webiny deploy`](/docs/core-development-concepts/basics/project-deployment) command.

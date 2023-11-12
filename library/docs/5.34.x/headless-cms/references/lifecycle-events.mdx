@@ -1,0 +1,1258 @@
+---
+title: Lifecycle Events
+description: Learn about Headless CMS lifecycle events, how they work and how to subscribe to a lifecycle event.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="danger" title="Deprecation of lifecycle events created before 5.34.0">
+  In the 5.34.0 we changed the property names which define the lifecycle events in the Headless CMS.
+  Old ones are still available, but are marked as deprecated. They will be removed in 5.35.0.
+</Alert>
+
+<Alert type="success" title="What you'll learn">
+
+- what are lifecycle events
+- how lifecycle events work
+- how to subscribe to a lifecycle event
+
+</Alert>
+
+<Alert type="info">
+
+Lifecycle events using publish/subscribe pattern replace the hook plugins starting from version 5.18.0.
+
+</Alert>
+
+## Overview
+
+In our Headless CMS we provide lifecycle events available for you to hook into.
+
+With the lifecycle events you can hook into a number of different operations. For example, when using [DynamoDB + Elasticsearch](https://github.com/webiny/webiny-js/blob/next/packages/api-headless-cms-ddb-es/src/index.ts#L111) as storage layer, we use the `onSystemBeforeInstall` to insert the template for Elasticsearch index.
+
+## System
+
+### onSystemBeforeInstall
+
+This event is triggered before the installation of the Headless CMS and insertion of initial "Ungrouped" group.
+
+#### Event arguments
+
+| Property | Description              |
+| -------- | ------------------------ |
+| tenant   | ID of the current tenant |
+| locale   | current locale           |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onSystemBeforeInstall.subscribe(async ({ tenant }) => {
+    await notifyAnotherSystemThatHeadlessCmsIsGettingInstalled({ tenant });
+  });
+});
+```
+
+### onSystemAfterInstall
+
+This event is triggered after the installation of the Headless CMS.
+
+#### Event arguments
+
+| Property | Description              |
+| -------- | ------------------------ |
+| tenant   | ID of the current tenant |
+| locale   | current locale           |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onSystemAfterInstall.subscribe(async ({ tenant }) => {
+    await notifyAnotherSystemThatHeadlessCmsWasInstalled({ tenant });
+  });
+});
+```
+
+### onSystemInstallError
+
+This event is triggered on Headless CMS installation error.
+
+#### Event arguments
+
+| Property | Description              |
+| -------- | ------------------------ |
+| tenant   | ID of the current tenant |
+| locale   | current locale           |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onSystemInstallError.subscribe(async ({ tenant }) => {
+    await notifyAnotherSystemThatHeadlessCmsWasNotInstalled({ tenant });
+  });
+});
+```
+
+<Alert type="info">
+
+Please note that in between `onSystemBeforeInstall` and `onSystemAfterInstall` we create a default CmsGroup named "Ungrouped" and, because of that, there are events `onGroupBeforeCreate` and `onGroupAfterCreate` being run.
+
+</Alert>
+
+## Groups
+
+### onGroupBeforeCreate
+
+This event is triggered before a new group is stored into the database.
+
+#### Event arguments
+
+| Property | Description                              |
+| -------- | ---------------------------------------- |
+| group    | Group object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupBeforeCreate.subscribe(async ({ group }) => {
+    /**
+     * For example, you do not want the group name to contain the character "a".
+     * You can check for that character here and throw an error. Or remove it.
+     */
+    if (group.name.match(/a/) === null) {
+      return;
+    }
+    group.name = group.name.replace(/a/g, "");
+  });
+});
+```
+
+### onGroupAfterCreate
+
+This event is triggered after a new group is stored into the database.
+
+#### Event arguments
+
+| Property | Description                   |
+| -------- | ----------------------------- |
+| group    | Group object which was stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupAfterCreate.subscribe(async ({ group }) => {
+    /**
+     * For example, notify another system that group was created.
+     */
+    await notifyAnotherSystemAboutGroupCreate({ group });
+  });
+});
+```
+
+### onGroupCreateError
+
+This event is triggered on group create error.
+
+#### Event arguments
+
+| Property | Description                                |
+| -------- | ------------------------------------------ |
+| group    | Group object which was going to be created |
+| error    | Error object                               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupCreateError.subscribe(async ({ group }) => {
+    /**
+     * For example, notify another system that group could not be created.
+     */
+    await notifyAnotherSystemAboutGroupCreateError({ group });
+  });
+});
+```
+
+### onGroupBeforeUpdate
+
+This event is triggered before a group is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                      |
+| -------- | ------------------------------------------------ |
+| original | Group object which is received from the database |
+| group    | Group object which is going to be stored         |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupBeforeUpdate.subscribe(async ({ original, group }) => {
+    /**
+     * For example, we are not allowing group slug to be changed.
+     */
+    if (original.slug === group.slug) {
+      return;
+    }
+    throw new Error(`Changing of group slug value is not allowed.`);
+  });
+});
+```
+
+### onGroupAfterUpdate
+
+This event is triggered before a group is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                      |
+| -------- | ------------------------------------------------ |
+| original | Group object which is received from the database |
+| group    | Group object which was stored                    |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupAfterUpdate.subscribe(async ({ original, group }) => {
+    /**
+     * For example, notify another system that group was updated.
+     */
+    await notifyAnotherSystemAboutGroupUpdate({ original, group });
+  });
+});
+```
+
+### onGroupUpdateError
+
+This event is triggered on group update error.
+
+#### Event arguments
+
+| Property | Description                                |
+| -------- | ------------------------------------------ |
+| original | Group object received from the database    |
+| group    | Group object which was going to be updated |
+| error    | Error object                               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupUpdateError.subscribe(async ({ group }) => {
+    /**
+     * For example, notify another system that group could not be updated.
+     */
+    await notifyAnotherSystemAboutGroupUpdateError({ group });
+  });
+});
+```
+
+### onGroupBeforeDelete
+
+This event is triggered before a group is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| group    | Group object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupBeforeDelete.subscribe(async ({ group }) => {
+    /**
+     * For example, we are not allowing group with slug "ungroupped" to be deleted.
+     */
+    if (group.slug !== "ungroupped") {
+      return;
+    }
+    throw new Error(`Deleting group with slug "ungroupped" is not allowed.`);
+  });
+});
+```
+
+### onGroupAfterDelete
+
+This event is triggered after a group is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                    |
+| -------- | ------------------------------ |
+| group    | Group object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupAfterDelete.subscribe(async ({ group }) => {
+    /**
+     * For example, notify another system that group was deleted.
+     */
+    await notifyAnotherSystemAboutGroupDelete({ group });
+  });
+});
+```
+
+### onGroupDeleteError
+
+This event is triggered on group delete error.
+
+#### Event arguments
+
+| Property | Description                                |
+| -------- | ------------------------------------------ |
+| group    | Group object which was going to be deleted |
+| error    | Error object                               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onGroupDeleteError.subscribe(async ({ group }) => {
+    /**
+     * For example, notify another system that group could not be deleted.
+     */
+    await notifyAnotherSystemAboutGroupDeleteError({ group });
+  });
+});
+```
+
+## Model
+
+### onModelBeforeCreate
+
+This event is triggered before a new model is stored into the database.
+
+#### Event arguments
+
+| Property | Description                              |
+| -------- | ---------------------------------------- |
+| input    | Users raw input data                     |
+| model    | Model object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelBeforeCreate.subscribe(async ({ model }) => {
+    /**
+     * For example, you do not want the modelId to be any of the reserved IDs you might think of.
+     */
+    if (reservedIdList.include(model.modelId) === false) {
+      return;
+    }
+    throw new Error(`Model ID "${model.modelId}" is reserved.`);
+  });
+});
+```
+
+### onModelAfterCreate
+
+This event is triggered before a new model is stored into the database.
+
+#### Event arguments
+
+| Property | Description                              |
+| -------- | ---------------------------------------- |
+| input    | Users raw input data                     |
+| model    | Model object which is going to be stored |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelAfterCreate.subscribe(async ({ model }) => {
+    /**
+     * For example, you want to notify another system about new model.
+     */
+    await notifyAnotherSystemAboutNewModel({ model });
+  });
+});
+```
+
+### onModelCreateError
+
+This event is triggered on model create error.
+
+#### Event arguments
+
+| Property | Description                                |
+| -------- | ------------------------------------------ |
+| input    | Users raw input data                       |
+| model    | Model object which was going to be created |
+| error    | thrown error                               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelCreateError.subscribe(async ({ model }) => {
+    /**
+     * For example, notify another system that model could not be created.
+     */
+    await notifyAnotherSystemAboutModelCreateError({ model });
+  });
+});
+```
+
+### onModelBeforeCreateFrom
+
+This event is triggered before a newly cloned model is stored into the database.
+
+#### Event arguments
+
+| Property | Description                                         |
+| -------- | --------------------------------------------------- |
+| original | Model object from which we are creating a new model |
+| model    | Model object which is going to be stored            |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelBeforeCreateFrom.subscribe(async ({ original, model }) => {
+    /**
+     * For example, you want to clone only to another locale.
+     */
+    if (original.locale !== model.locale) {
+      return;
+    }
+    throw new Error(`Model "${model.modelId}" cannot be cloned into same locale.`);
+  });
+});
+```
+
+### onModelAfterCreateFrom
+
+This event is triggered after a newly cloned model is stored into the database.
+
+#### Event arguments
+
+| Property | Description                                         |
+| -------- | --------------------------------------------------- |
+| original | Model object from which we are creating a new model |
+| model    | Model object which was stored                       |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelAfterCreateFrom.subscribe(async ({ original, model }) => {
+    /**
+     * For example, notify another system about cloned model.
+     */
+    await notifyAnotherSystemAboutClonedModel({ original, model });
+  });
+});
+```
+
+### onModelCreateFromError
+
+This event is triggered on model create from (clone) error.
+
+#### Event arguments
+
+| Property | Description                                |
+| -------- | ------------------------------------------ |
+| input    | Users raw input data                       |
+| original | Model which is being cloned                |
+| model    | Model object which was going to be created |
+| error    | thrown error                               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelCreateFromError.subscribe(async ({ model }) => {
+    /**
+     * For example, notify another system that model could not be created from existing model.
+     */
+    await notifyAnotherSystemAboutModelCreateFromError({ model });
+  });
+});
+```
+
+### onModelBeforeUpdate
+
+This event is triggered before a model is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                           |
+| -------- | ----------------------------------------------------- |
+| original | Model object from which we received from the database |
+| model    | Model object which is going to be stored              |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelBeforeUpdate.subscribe(async ({ model }) => {
+    /**
+     * For example, you want to leave all fields unlocked on all the models (you should never do that, of course, but you can if you want to).
+     */
+    model.lockedFields = [];
+  });
+});
+```
+
+### onModelAfterUpdate
+
+This event is triggered after a model is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                           |
+| -------- | ----------------------------------------------------- |
+| original | Model object from which we received from the database |
+| model    | Model object which was stored                         |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelAfterUpdate.subscribe(async ({ original, model }) => {
+    /**
+     * For example, you want to notify another system about model update.
+     */
+    await notifyAnotherSystemAboutModelUpdate({ original, model });
+  });
+});
+```
+
+### onModelUpdateError
+
+This event is triggered on model update error.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| input    | Users raw input data                      |
+| original | Model which is being updated              |
+| model    | Model object which was going to be stored |
+| error    | thrown error                              |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelUpdateError.subscribe(async ({ model }) => {
+    /**
+     * For example, notify another system that model could not be updated.
+     */
+    await notifyAnotherSystemAboutModelUpdateError({ model });
+  });
+});
+```
+
+### onModelBeforeDelete
+
+This event is triggered before a model is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| model    | Model object which is going to be deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelBeforeDelete.subscribe(async ({ model }) => {
+    /**
+     * For example, you do not want to allow deletion of any model.
+     */
+    throw new Error("Models cannot be deleted!");
+  });
+});
+```
+
+### onModelAfterDelete
+
+This event is triggered after a model is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                    |
+| -------- | ------------------------------ |
+| model    | Model object which was deleted |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelAfterDelete.subscribe(async ({ model }) => {
+    /**
+     * For example, you want to notify another system about deleted model.
+     */
+    await notifyAnotherSystemAboutDeletedModel({ model });
+  });
+});
+```
+
+### onModelDeleteError
+
+This event is triggered on model delete error.
+
+#### Event arguments
+
+| Property | Description                                |
+| -------- | ------------------------------------------ |
+| Model    | Model object which was going to be deleted |
+| error    | thrown error                               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onModelDeleteError.subscribe(async ({ model }) => {
+    /**
+     * For example, notify another system that model could not be deleted.
+     */
+    await notifyAnotherSystemAboutModelDeleteError({ model });
+  });
+});
+```
+
+## Entry
+
+<Alert type="info">
+
+Note that `storageEntry`, `originalStorageEntry`, `latestStorageEntry` and `publishedStorageEntry` are objects derived from the `entry` object which we want to store into the database.
+Those new objects have `StorageTransformPlugin` run on them to prepare them to be stored.
+
+</Alert>
+
+### onEntryBeforeCreate
+
+This event is triggered before an entry is stored into the database.
+
+#### Event arguments
+
+| Property | Description                              |
+| -------- | ---------------------------------------- |
+| input    | Raw user input                           |
+| entry    | Entry object which is going to be stored |
+| model    | Model this entry belongs to              |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryBeforeCreate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, your entry has a "slug" field, which must be unique. So we check if it is.
+     */
+    const manager = await context.cms.getModelManager(model);
+
+    const existing = await manager.listLatest({
+      where: {
+        slug: entry.values.slug
+      },
+      limit: 1
+    });
+    if (existing.length === 0) {
+      return;
+    }
+    throw new Error(`Entry with slug "${entry.values.slug}" already exists.`);
+  });
+});
+```
+
+### onEntryAfterCreate
+
+This event is triggered after an entry is stored into the database.
+
+#### Event arguments
+
+| Property | Description                   |
+| -------- | ----------------------------- |
+| input    | Raw user input                |
+| entry    | Entry object which was stored |
+| model    | Model this entry belongs to   |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryAfterCreate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about new entry.
+     */
+    await notifyAnotherSystemAboutNewEntry({ model, entry });
+  });
+});
+```
+
+### onEntryCreateError
+
+This event is triggered on entry create error.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| input    | Raw user input                            |
+| entry    | Entry object which was going to be stored |
+| model    | Model this entry belongs to               |
+| error    | thrown error                              |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryCreateError.subscribe(async ({ model, entry, error }) => {
+    /**
+     * For example, notify another system about new entry.
+     */
+    await notifyAnotherSystemAboutCreateError({ model, entry, error });
+  });
+});
+```
+
+### onEntryRevisionBeforeCreate
+
+This event is triggered before a new entry is created from originating entry and is stored into the database.
+
+#### Event arguments
+
+| Property | Description                                        |
+| -------- | -------------------------------------------------- |
+| input    | Raw user input                                     |
+| original | Original entry which we received from the database |
+| entry    | Entry object which is going to be stored           |
+| model    | Model this entry belongs to                        |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryRevisionBeforeCreate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, your entry has a "slug" field, which must be unique, but not within the entryId constraint.
+     */
+    const manager = await context.cms.getModelManager(model);
+
+    const existing = await manager.listLatest({
+      where: {
+        entryId_not: entry.entryId,
+        slug: entry.values.slug
+      },
+      limit: 1
+    });
+    if (existing.length === 0) {
+      return;
+    }
+    throw new Error(`Entry with slug "${entry.values.slug}" already exists.`);
+  });
+});
+```
+
+### onEntryRevisionAfterCreate
+
+This event is triggered after a new entry is created from originating entry and is stored into the database.
+
+#### Event arguments
+
+| Property     | Description                                          |
+| ------------ | ---------------------------------------------------- |
+| input        | Raw user input                                       |
+| original     | Original entry which we received from the database   |
+| storageEntry | Entry object prepared to be stored into the database |
+| entry        | Entry object which was stored                        |
+| model        | Model this entry belongs to                          |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryRevisionAfterCreate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about new entry.
+     */
+    await notifyAnotherSystemAboutNewEntryRevision({ model, entry });
+  });
+});
+```
+
+### onEntryCreateFromError
+
+This event is triggered on entry create from error.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| input    | Raw user input                            |
+| original | Original entry                            |
+| entry    | Entry object which was going to be stored |
+| model    | Model this entry belongs to               |
+| error    | thrown error                              |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryCreateFromError.subscribe(async ({ model, entry, error }) => {
+    /**
+     * For example, notify another system about create from.
+     */
+    await notifyAnotherSystemAboutCreateFromError({ model, entry, error });
+  });
+});
+```
+
+### onEntryBeforeUpdate
+
+This event is triggered before an entry is changed and stored into the database.
+
+#### Event arguments
+
+| Property | Description                                        |
+| -------- | -------------------------------------------------- |
+| input    | Raw user input                                     |
+| original | Original entry which we received from the database |
+| entry    | Entry object which is going to be stored           |
+| model    | Model this entry belongs to                        |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryBeforeUpdate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, your entry has a "slug" field, which must be unique, but not within the entryId constraint.
+     */
+    const manager = await context.cms.getModelManager(model);
+
+    const existing = await manager.listLatest({
+      where: {
+        entryId_not: entry.entryId,
+        slug: entry.values.slug
+      },
+      limit: 1
+    });
+    if (existing.length === 0) {
+      return;
+    }
+    throw new Error(`Entry with slug "${entry.values.slug}" already exists.`);
+  });
+});
+```
+
+### onEntryAfterUpdate
+
+This event is triggered after an entry is changed and stored into the database.
+
+#### Event arguments
+
+| Property     | Description                                          |
+| ------------ | ---------------------------------------------------- |
+| input        | Raw user input                                       |
+| original     | Original entry which we received from the database   |
+| storageEntry | Entry object prepared to be stored into the database |
+| entry        | Entry object which was stored                        |
+| model        | Model this entry belongs to                          |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryAfterUpdate.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about updated entry.
+     */
+    await notifyAnotherSystemAboutEntryUpdate({ model, entry });
+  });
+});
+```
+
+### onEntryUpdateError
+
+This event is triggered on entry update error.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| input    | Raw user input                            |
+| original | Original entry                            |
+| entry    | Entry object which was going to be stored |
+| model    | Model this entry belongs to               |
+| error    | thrown error                              |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryUpdateError.subscribe(async ({ model, entry, error }) => {
+    /**
+     * For example, notify another system about update error.
+     */
+    await notifyAnotherSystemAboutUpdateError({ model, entry, error });
+  });
+});
+```
+
+### onEntryBeforeDelete
+
+This event is triggered before all entry revisions are deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| entry    | Entry object which is going to be deleted |
+| model    | Model this entry belongs to               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryBeforeDelete.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow entry with slug "index" to be deleted.
+     */
+    if (entry.values.slug !== "index") {
+      return;
+    }
+    throw new Error(`Cannot delete entry with slug "index". Not allowed!`);
+  });
+});
+```
+
+### onEntryAfterDelete
+
+This event is triggered after all entry revisions are deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| entry    | Entry object which is going to be deleted |
+| model    | Model this entry belongs to               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryAfterDelete.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about deleted entry.
+     */
+    await notifyAnotherSystemAboutDeletedEntry({ model, entry });
+  });
+});
+```
+
+### onEntryDeleteError
+
+This event is triggered on entry delete error.
+
+#### Event arguments
+
+| Property | Description                                |
+| -------- | ------------------------------------------ |
+| entry    | Entry object which was going to be deleted |
+| model    | Model this entry belongs to                |
+| error    | thrown error                               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryDeleteError.subscribe(async ({ model, entry, error }) => {
+    /**
+     * For example, notify another system about delete error.
+     */
+    await notifyAnotherSystemAboutDeleteError({ model, entry, error });
+  });
+});
+```
+
+### onEntryRevisionBeforeDelete
+
+This event is triggered before an entry revision is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| entry    | Entry object which is going to be deleted |
+| model    | Model this entry belongs to               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryRevisionBeforeDelete.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow entry with version 1 to be deleted.
+     */
+    if (entry.version > 1) {
+      return;
+    }
+    throw new Error(`Cannot delete entry version 1. Not allowed!`);
+  });
+});
+```
+
+### onEntryRevisionAfterDelete
+
+This event is triggered after an entry revision is deleted from the database.
+
+#### Event arguments
+
+| Property | Description                               |
+| -------- | ----------------------------------------- |
+| entry    | Entry object which is going to be deleted |
+| model    | Model this entry belongs to               |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryRevisionAfterDelete.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about deleted entry.
+     */
+    await notifyAnotherSystemAboutDeletedEntryRevision({ model, entry });
+  });
+});
+```
+
+### onEntryRevisionDeleteError
+
+This event is triggered on entry delete error.
+
+#### Event arguments
+
+| Property | Description                                  |
+| -------- | -------------------------------------------- |
+| entry    | Entry revision which was going to be deleted |
+| model    | Model this entry belongs to                  |
+| error    | thrown error                                 |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryRevisionDeleteError.subscribe(async ({ model, entry, error }) => {
+    /**
+     * For example, notify another system about revision delete error.
+     */
+    await notifyAnotherSystemAboutRevisionDeleteError({ model, entry, error });
+  });
+});
+```
+
+### onEntryBeforePublish
+
+This event is triggered before an entry is published.
+
+#### Event arguments
+
+| Property | Description                                 |
+| -------- | ------------------------------------------- |
+| entry    | Entry object which is going to be published |
+| model    | Model this entry belongs to                 |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryBeforePublish.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow entry with version 1 to be published.
+     */
+    if (entry.version > 1) {
+      return;
+    }
+    throw new Error(`Cannot publish entry version 1. Not allowed!`);
+  });
+});
+```
+
+### onEntryAfterPublish
+
+This event is triggered after an entry is published.
+
+#### Event arguments
+
+| Property | Description                                 |
+| -------- | ------------------------------------------- |
+| entry    | Entry object which is going to be published |
+| model    | Model this entry belongs to                 |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryAfterPublish.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about published entry.
+     */
+    await notifyAnotherSystemAboutPublishedEntry({ model, entry });
+  });
+});
+```
+
+### onEntryPublishError
+
+This event is triggered on entry publishing error.
+
+#### Event arguments
+
+| Property | Description                                    |
+| -------- | ---------------------------------------------- |
+| entry    | Entry revision which was going to be published |
+| model    | Model this entry belongs to                    |
+| error    | thrown error                                   |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryPublishError.subscribe(async ({ model, entry, error }) => {
+    /**
+     * For example, notify another system about publishing error.
+     */
+    await notifyAnotherSystemAboutPublishError({ model, entry, error });
+  });
+});
+```
+
+### onEntryBeforeUnpublish
+
+This event is triggered before an entry is unpublished.
+
+#### Event arguments
+
+| Property | Description                                   |
+| -------- | --------------------------------------------- |
+| entry    | Entry object which is going to be unpublished |
+| model    | Model this entry belongs to                   |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryBeforeUnpublish.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, you do not allow entry with version 1 to be unpublished.
+     */
+    if (entry.version > 1) {
+      return;
+    }
+    throw new Error(`Cannot unpublish entry version 1. Not allowed!`);
+  });
+});
+```
+
+### onEntryAfterUnpublish
+
+This event is triggered after an entry is unpublished.
+
+#### Event arguments
+
+| Property | Description                                   |
+| -------- | --------------------------------------------- |
+| entry    | Entry object which is going to be unpublished |
+| model    | Model this entry belongs to                   |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryAfterUnpublish.subscribe(async ({ model, entry }) => {
+    /**
+     * For example, notify another system about unpublished entry.
+     */
+    await notifyAnotherSystemAboutUnpublishedEntry({ model, entry });
+  });
+});
+```
+
+### onEntryUnpublishError
+
+This event is triggered on entry unpublishing error.
+
+#### Event arguments
+
+| Property | Description                                      |
+| -------- | ------------------------------------------------ |
+| entry    | Entry revision which was going to be unpublished |
+| model    | Model this entry belongs to                      |
+| error    | thrown error                                     |
+
+#### How to subscribe to this event?
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryUnpublishError.subscribe(async ({ model, entry, error }) => {
+    /**
+     * For example, notify another system about unpublishing error.
+     */
+    await notifyAnotherSystemAboutUnpublishError({ model, entry, error });
+  });
+});
+```
+
+<Alert type="danger">
+
+Please, be aware that you can change what ever you want on the object before it is stored into the database, so be careful with changing the data.
+
+</Alert>
+
+## Registering Lifecycle Event Subscriptions
+
+### System Lifecycle Events
+
+For the subscriptions (your code) to be run, you must register it in the `createHandler` in the `api/code/graphql/src/index.ts` file.
+
+```typescript api/code/graphql/src/index.ts
+const handler = createHandler({
+  plugins: [
+    // ... rest of plugins
+    new ContextPlugin<PbContext>(async context => {
+      context.cms.onSystemBeforeInstall.subscribe(async ({ system }) => {
+        // do your magic here
+      });
+    })
+  ]
+});
+```
+
+### Group, Model And Entries Lifecycle Events
+
+For the subscriptions (your code) to be run, you must register it in the `createHandler` in the `api/code/headlessCMS/src/index.ts` file.
+
+```typescript api/code/headlessCMS/src/index.ts
+const handler = createHandler({
+  plugins: [
+    // ... rest of plugins
+    new ContextPlugin<PbContext>(async context => {
+      context.cms.onEntryBeforeCreate.subscribe(async ({ entry }) => {
+        // do your magic here
+      });
+    })
+  ]
+});
+```
+
+<Alert type="warning">
+
+Please be aware that the order of subscribing does matter: if you want some event subscription to be executed before some other one, add it first.
+
+</Alert>

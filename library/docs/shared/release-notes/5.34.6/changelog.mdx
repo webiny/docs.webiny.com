@@ -1,0 +1,67 @@
+---
+id: changelog
+title: Webiny 5.34.6 Changelog
+description: See what's new in Webiny version 5.34.6.
+---
+
+## Page Builder
+
+### Prerendering Service - More Reliable Rendering of Pages ([#3053](https://github.com/webiny/webiny-js/pull/3053))
+
+With this release, we've made a couple of optimizations within the page prerendering process, making the process more reliable. The increased reliability is mostly felt in cases where multiple pages are being prerendered or even the whole website.
+
+### Form Page Element - Improve `formId` Existence Check ([#3050](https://github.com/webiny/webiny-js/pull/3050))
+
+Within Page Builder's page editor, it a user dropped a form element onto a page but did not immediately select a form to be displayed, the related React component would throw an unhandled error, completely preventing the user from continuing to do any kind of work.
+
+This has now been addressed.
+
+## Deployment
+
+### Deploying Projects Into An Existing Amazon VPC (Enterprise) ([#2997](https://github.com/webiny/webiny-js/pull/2997)) ([#3058](https://github.com/webiny/webiny-js/pull/3058))
+
+A brand-new enterprise tier feature - the ability to deploy your Webiny project into an existing Amazon Virtual Private Cloud (Amazon VPC).
+
+For more information on this new feature, check out the related [Use Existing Amazon VPC](/docs/{exact:5.34.x}/enterprise/use-existing-amazon-vpc) article.
+
+### Improved Developer Experience When Working With Custom Domains  ([#3072](https://github.com/webiny/webiny-js/pull/3072))
+
+Prior to this release, if a Webiny project had custom domains configured, users would need to perform additional steps in order to actually bring them into their Admin and Website applications. If not done properly, one of the issues users might've encountered is the deployed Admin application interacting with the backend GraphQL API over the default Amazon Cloudfront distribution URL, and not the custom domain that was provided. 
+
+So, with this release, we're making the process of assigning custom domains more seamless, by ensuring custom domains are automatically picked up, where necessary. In the example above, once redeployed, the Admin application should immediately be interacting with the backend GraphQL API over the provided custom domain, and not over the default Amazon Cloudfront distribution's one.  
+
+### Resolved Amazon Cognito User Pool-related Issue  ([#3098](https://github.com/webiny/webiny-js/pull/3098))
+
+We've detected an Amazon Cognito user pool-related issue that would happen upon deploying the Core project application. The following is the report that the issue would produce:
+
+```bash
+aws:cognito:UserPool (wby-user-pool):
+    error: 1 error occurred:
+    	* updating urn:pulumi:dev::core::aws:cognito/userPool:UserPool::wby-user-pool: 1 error occurred:
+    	* updating Cognito User pool (eu-central-1_xyz): InvalidParameter: 1 validation error(s) found.
+    - minimum field size of 1, UpdateUserPoolInput.AccountRecoverySetting.RecoveryMechanisms.
+```
+
+To address this, we've added [the necessary defaults](https://github.com/webiny/webiny-js/blob/dev/packages/pulumi-aws/src/apps/core/CoreCognito.ts#L45-L47) to the underlying user pool resource configuration. 
+
+For all users that experienced this issue, deployment should start working correctly once their project has been upgraded. Otherwise, if the error persists, feel free to send us a message in our [community Slack](https://www.webiny.com/slack).
+
+## Webiny CLI
+
+### Introduced `webiny build` Command ([#3074](https://github.com/webiny/webiny-js/pull/3074))
+
+As the name itself suggests, the new [`webiny build`](/docs/{version}/core-development-concepts/basics/webiny-cli#common-commands) command enables users to simply build their project application. The command can be useful when a project application needs to be just built, and not also deployed, which was previously not possible. 
+
+### Improved Error Reporting When There's No Internal Workspace Folder ([#3075](https://github.com/webiny/webiny-js/pull/3075))
+
+Some Webiny CLI commands, like for example `webiny output` and `webiny pulumi`, require the targeted project application to be previously built.
+
+But, prior to this release, in case a user executed of these commands and the project application wasn't built, they would be presented with a vague and misleading error, preventing them to effectively debug the situation.
+
+So, with this release, we've improved the error message, ensuring that the user immediately understands what's wrong and what are the next steps.
+
+### Deploy Command - Always Execute Before/After Deploy Hooks  ([#3078](https://github.com/webiny/webiny-js/pull/3078))
+
+Prior to this release, executing the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command with the `--preview` flag would cause the pre-deployment and post-deployment hooks not to be executed. In some cases, this could affect the result of the preview results, making them different from the deployment that would eventually happen.
+
+With this release, mentioned hooks will get triggered, no matter if the command was executed with the `--preview` flag or without it. 

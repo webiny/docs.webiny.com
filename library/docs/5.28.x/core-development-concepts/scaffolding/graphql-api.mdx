@@ -1,0 +1,263 @@
+---
+title: GraphQL API
+description: Learn how to use the GraphQL API scaffold.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="info" title="Can I use this?">
+
+This feature is available since **v5.13.0**.
+
+</Alert>
+
+<Alert type="success" title="What you'll learn">
+
+- main features of the **GraphQL API** scaffold
+- how to continue developing on top of the created application code
+
+</Alert>
+
+## Overview
+
+The **GraphQL API** scaffold creates a new standalone GraphQL HTTP API, which can be utilized by your frontend applications (for example, applications created with the [React Application](../../core-development-concepts/scaffolding/full-stack-application) scaffold). Once created, you can immediately deploy it into your cloud (AWS) account and continue further development with just a couple of [Webiny CLI](../../core-development-concepts/basics/webiny-cli) commands.
+
+## Features
+
+### Clean Setup
+
+Except for the base application and cloud infrastructure code, the created GraphQL API does not contain any additional code or specific business logic. It's a _clean slate_ and you can start building on top of the created code in any way you prefer. You can also bring needed libraries, introduce new cloud infrastructure resources, and more.
+
+Be sure to check the [Development](#development) section below to learn more.
+
+### Simple Cloud Infrastructure
+
+Only a couple of cloud infrastructure resources need to be deployed in order to host a new GraphQL API, which is depicted by the following diagram:
+
+![Cloud Infrastructure Resources](./assets/graphql-api/new_graphql_api_scaffold.png)
+
+As shown, the scaffold also includes a single Amazon DynamoDB <diagram-letter>D</diagram-letter> table, which you can use for all of your GraphQL API's data storing and retrieval needs. Also, in case you need additional databases, you're free to include them.
+
+Furthermore, note that when [deploying](../../core-development-concepts/basics/project-deployment) into the `prod` (production) environment, the GraphQL Handler AWS Lambda <diagram-letter>C</diagram-letter> function will be deployed into a new [Amazon Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/). Down the line, doing this for cloud infrastructure resources can improve your GraphQL API's overall security posture.
+
+More information on different databases and this dual cloud infrastructure setup can be found in the [Development](../../core-development-concepts/scaffolding/full-stack-application#development) section below.
+
+<Alert type="info">
+
+During the scaffold's setup wizard, you will be asked if you want to immediately deploy the needed cloud infrastructure resources. If you decide not to do it, you can deploy it later, as usual, with the [`webiny deploy`](../../core-development-concepts/basics/project-deployment) command.
+
+</Alert>
+
+### Compatible With the Existing Extend GraphQL API Scaffold
+
+In order to speed up development, you can use the existing [Extend GraphQL API](../../core-development-concepts/scaffolding/extend-graphql-api) scaffold to quickly extend the created GraphQL API with new sets of essential CRUD GraphQL query and mutation operations.
+
+### Testing
+
+Except for the application and cloud infrastructure code, the scaffold also creates the necessary [Jest](../../core-development-concepts/basics/tools-and-libraries#testing) configuration and foundation for testing the GraphQL API functionality you'll be building. The already mentioned [Extend GraphQL API](../../core-development-concepts/scaffolding/extend-graphql-api) scaffolds takes advantage of this and immediately creates a couple of example tests you can use for reference.
+
+## Development
+
+### Usage
+
+In order to use this scaffold, from your project root, simply run the `webiny scaffold` command:
+
+```bash
+yarn webiny scaffold
+```
+
+Then, from the list of all available scaffolds, select **GraphQL API** and follow the on-screen instructions.
+
+### Essential Files and Folders
+
+The following are the most essential files and folders that are created during the scaffolding process.
+
+```bash New GraphQL API Folder (Some Files Removed for Brevity)
+├── code
+│   └── graphql
+│       ├── src                    # GraphQL API application code.
+│       │   ├── plugins            # All plugins go here.
+│       │   │   └── scaffolds
+│       │   │       └── index.ts
+│       │   ├── index.ts           # Application's entrypoint file.
+│       │   └── types.ts           # Global types.
+│       ├── jest.config.js         # Jest config file.
+│       ├── package.json           # Package's manifest file.
+│       ├── tsconfig.json          # TypeScript config file.
+│       └── webiny.config.ts       # Webiny config file (contains build scripts).
+├── pulumi                         # Cloud infrastructure code.
+│   ├── dev
+│   ├── prod
+│   └── index.ts              # Cloud infrastructure code entrypoint file.
+├── Pulumi.yaml               # Pulumi project file.
+├── tsconfig.json             # TypeScript configuration used with the Pulumi cloud infrastructure code.
+└── webiny.application.ts     # Project application's manifest file.
+```
+
+<Alert type="info">
+
+The path in which the new GraphQL API and all of its files and folders are created is specified in the scaffold's wizard.
+
+</Alert>
+
+#### [`code/graphql/src/`](https://github.com/webiny/webiny-js/tree/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/src)
+
+Contains the GraphQL API application code. This is where you'll be defining the GraphQL schema, resolver functions, business logic, authentication / authorization logic, writing tests, and potentially more.
+
+#### [`code/graphql/src/types.ts`](https://github.com/webiny/webiny-js/tree/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/src/types.ts)
+
+Contains global type definitions, that can be imported in different places in your application code.
+
+Once created, the file only exports the [`Context`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/src/types.ts#L9) interface, which defines the `context` object that you will often be using while creating GraphQL resolver functions. If you will be extending the `context` object, for example via custom [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/handler/src/plugins/ContextPlugin.ts#L7) plugins, an update to this interface should be made as well. By doing this, you and your team will benefit from improved type-safety and easier discovery process.
+
+#### [`code/graphql/src/plugins`](https://github.com/webiny/webiny-js/tree/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/src/plugins)
+
+This is where you'll be creating plugins, either manually or via other scaffolding utilities, for example via the [Extend GraphQL API](../../core-development-concepts/scaffolding/extend-graphql-api) scaffold.
+
+<Alert type="success">
+
+Do have in mind that every plugin (or a collection of plugins) you create also needs be imported and registered in the [`code/graphql/src/index.ts`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/src/index.ts#L11) entrypoint file.
+
+</Alert>
+
+#### [`code/graphql/jest.config.js`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/jest.config.js)
+
+The config for the [Jest](../../core-development-concepts/basics/tools-and-libraries#testing) testing framework. Feel free to adjust it to your needs.
+
+#### [`code/graphql/.babelrc.js`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/.babelrc.js)
+
+The config for the [Babel](../../core-development-concepts/basics/tools-and-libraries#building-code) JavaScript compiler. Feel free to adjust it to your needs.
+
+#### [`code/graphql/package.json`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/package.json)
+
+In case you missed it, every Webiny project is organized as a [monorepo](../../core-development-concepts/project-organization/monorepo-organization), which can consist of multiple packages. And this is the reason why the [`code/graphql/package.json`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/package.json) manifest file exists. It exists because the `code/graphql` folder represents a monorepo [workspace](https://classic.yarnpkg.com/en/docs/workspaces/).
+
+In most cases, this file will only be modified when new NPM packages are added.
+
+<Alert type="info">
+
+Learn more about the monorepo organization in the [Monorepo Organization](../../core-development-concepts/project-organization/monorepo-organization) key topic.
+
+</Alert>
+
+#### [`pulumi/`](https://github.com/webiny/webiny-js/tree/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi)
+
+This is the folder that contains all of the cloud infrastructure code. In it, we have the [`dev`](https://github.com/webiny/webiny-js/tree/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/dev) and [`prod`](https://github.com/webiny/webiny-js/tree/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/prod) folders, which represent the cloud infrastructure resources that will be deployed into development and production environments, respectively.
+
+If we were to compare the two, we'd find that the code located in the [`prod`](https://github.com/webiny/webiny-js/tree/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/prod) folder also deploys a new [Amazon Virtual Private Cloud (VPC)](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/prod/vpc.ts#L3) and that the single AWS Lambda function is [deployed into it](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/prod/graphql.ts#L87). Down the line, doing this for cloud infrastructure resources can improve our GraphQL API's overall security posture.
+
+Note that, by default, the cloud infrastructure code in the [`prod`](https://github.com/webiny/webiny-js/tree/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/prod) folder will only be used when deploying into the `prod` (production) environment. If you maybe wish to deploy the same into another environment, for example `staging`, you can set this in the [`pulumi/index.ts`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/index.ts#L8) entrypoint file.
+
+<Alert type="info">
+
+Learn more about Pulumi, the default infrastructure-as-code (IaC) framework Webiny relies on, in the [Infrastructure as code with Pulumi](../../infrastructure/pulumi-iac/iac-with-pulumi) key topic.
+
+</Alert>
+
+### Deployment
+
+Once you've completed the scaffold's wizard and the files have been created, in order to actually access the GraphQL API, you need to deploy it. This can be done as usual via the [`webiny deploy`](../../core-development-concepts/basics/project-deployment) command, or, even easier, if you're about to jump straight into coding, by running the [`webiny watch`](../../core-development-concepts/basics/watch-command) command. This command will not only deploy the changes, but also start a new watch session, which will automatically redeploy further application code changes, as you perform them (more on this below).
+
+In order to deploy your GraphQL API, you need to run the following command:
+
+```bash Deploying GraphQL API
+yarn webiny deploy {graphql-api-path} --env {env}
+```
+
+<Alert type="info">
+
+During the scaffold's setup wizard, you will be asked if you want to immediately deploy the needed cloud infrastructure resources. If you decide not to do it, you can deploy it later, as usual, with the [`webiny deploy`](../../core-development-concepts/basics/project-deployment) command.
+
+</Alert>
+
+### Development Using the Watch Command
+
+The most straightforward way to continue developing on top of the created code would be via the [`webiny watch`](../../core-development-concepts/basics/watch-command) command.
+
+In order to get started, from your project root, simply run the following command:
+
+```
+yarn webiny watch {graphql-api-path} --env {env}
+```
+
+With the new watch session initialized, every change you make in the code will automatically trigger a re-deploy of the code, enabling you to see the changes in the cloud almost immediately as you make them (every redeployment usually takes 2-4 seconds to complete).
+
+And although developers often choose this approach when developing smaller features, proof of concepts or applying quick fixes, for anything larger in scope, we recommend the new code to be tested via one or more different types of tests.
+
+<Alert type="success">
+
+To learn more about how to write different types of tests, we recommend you check out the [Writing and Running Tests](../../core-development-concepts/scaffolding/extend-graphql-api#writing-and-running-tests) section in the [Extend GraphQL API](../../core-development-concepts/scaffolding/extend-graphql-api) guide.
+
+</Alert>
+
+### Extending the GraphQL API
+
+The new GraphQL API can be extended in two ways.
+
+A more manual approach would be to create and register new [`GraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/handler-graphql/src/plugins/GraphQLSchemaPlugin.ts#L10) plugins, via which you define how you want to extend the GraphQL schema and all of the resolver functions. To learn more, take a look at the [Extend GraphQL API](../../core-development-concepts/extending-and-customizing/extend-graphql-api) guide.
+
+On the other hand, a much faster way of extending the GraphQL API would be to use the [Extend GraphQL API](../../core-development-concepts/scaffolding/extend-graphql-api) scaffold, which not only creates all of the boilerplate code, but also a set of essential GraphQL query and mutations, sets up the database connection, creates sample tests, and more.
+
+### Interacting with Amazon DynamoDB
+
+In order to interact with the deployed Amazon DynamoDB table, you can use any library, for example the official [DynamoDB Document Client](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/dynamodb-example-document-client.html) or maybe even [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox).
+
+Note that, when setting up your database client, the deployed table's Amazon resource name ([ARN](https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html)) can be read via the `DB_TABLE` environment variable, which is defined via the created [cloud infrastructure code](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/dev/index.ts#L22).
+
+<Alert type="info">
+
+By default, the [Extend GraphQL API](../../core-development-concepts/scaffolding/extend-graphql-api) scaffold relies on [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox) for all Amazon DynamoDB interactions.
+
+</Alert>
+
+## FAQ
+
+### How does security (authentication and authorization) work?
+
+Please note that, by default, the authentication and authorization logic isn't included in the created code. In other words, all of the created GraphQL query and mutation operations can be performed by anonymous (not logged-in) users, which is in most cases not the desired behavior.
+
+Luckily, with a couple of built-in utilities, this can be relatively easily added. Please check out the [existing tutorials](../../admin-area/new-app-tutorial/security) to learn how to implement these on your own.
+
+### Do I need to deploy the created GraphQL API in order to continue development?
+
+Yes, every change that you make needs to be deployed into the cloud, in order to actually see it in action. At the moment, the local-development option isn't supported.
+
+### For development purposes, into which environment should I deploy?
+
+You can use any name as the name of the environment, but common practice is to use `dev`, for example:
+
+```
+yarn webiny watch {react-application-path} --env dev
+```
+
+### Can I modify commands specified within the `webiny.config.ts` file?
+
+You certainly can. You can also add new commands, if need be.
+
+### How can I add new libraries to the created React application?
+
+In case you missed it, every Webiny project is organized as a [monorepo](../../core-development-concepts/project-organization/monorepo-organization), which can consist of multiple packages. This is the reason why the [`code/graphql/package.json`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/code/graphql/package.json) manifest file exists. It exists because the `code/graphql` folder represents a monorepo [workspace](https://classic.yarnpkg.com/en/docs/workspaces/).
+
+This is also the reason why we can't just run `yarn add xyz` from our project root. We need to specify to which monorepo workspace the new library needs to be added, which can be done via the [`yarn workspace {workspace-name} add {library-name}`](https://classic.yarnpkg.com/en/docs/cli/workspace/) command.
+
+So, let's say we wanted to add the [`dataloader`](https://www.npmjs.com/package/dataloader) library to our newly created GraphQL API that's created within the `graphql-api` folder. To add the library, we'd use the following command:
+
+```bash
+yarn workspace graphql-api add dataloader
+```
+
+Note that the name of the workspace is defined in the workspace's `package.json` file, via the `name` property (traditionally used to define the package name). In case of the `new-react-app` React application, that would be in `graphql-api/code/graphql/package.json` file.
+
+### I want to use a different database, how do I set it up?
+
+First of all, it's recommended you [remove the Amazon DynamoDB table](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/dev/index.ts#L16) that is already defined. After that, you should consult the [Pulumi documentation](https://www.pulumi.com/docs/) to see what are all of the available options and how your database can be defined in the existing cloud infrastructure code.
+
+Once that's in place, most probably, you will need to pass some sort of a connection string to the GraphQL Handler AWS Lambda <diagram-letter>C</diagram-letter> function. You can do that via environment variables, which can be set via the cloud infrastructure code in [`pulumi/dev/index.ts`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/dev/index.ts#L22) and [`pulumi/prod/index.ts`](https://github.com/webiny/webiny-js/blob/v5.13.0/packages/cli-plugin-scaffold-graphql-api/template/pulumi/prod/index.ts#L22).
+
+Finally, in your application code, make sure the values from set environment variables are correctly passed to your database client.
+
+<Alert type="info">
+
+At the moment, the [Extend GraphQL API](../../core-development-concepts/extending-and-customizing/extend-graphql-api) scaffold creates application code that's intended to work with Amazon DynamoDB. But, you can adapt the code to work with a different database, by manually replacing the [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox) with your client, and using it for all database interactions.
+
+</Alert>

@@ -8,29 +8,6 @@ export const Draft = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-export const NavGroup = ({ type, children }: { type: string; children: React.ReactNode }) => {
-  return (
-    <Property id="groups" name={"groups"}>
-      <Property id={type} name={type}>
-        {children}
-      </Property>
-    </Property>
-  );
-};
-
-export const Docs = ({ children }: { children: React.ReactNode }) => {
-  return <NavGroup type={"docs"}>{children}</NavGroup>;
-};
-
-export const UserGuides = ({ children }: { children: React.ReactNode }) => {
-  return <NavGroup type={"user-guides"}>{children}</NavGroup>;
-};
-
-export const Handbook = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
-  // return <NavGroup type={"handbook"}>{children}</NavGroup>;
-};
-
 interface CollapsableProps {
   title: string;
   children: React.ReactNode;

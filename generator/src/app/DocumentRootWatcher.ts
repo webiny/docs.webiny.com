@@ -22,8 +22,6 @@ export class DocumentRootWatcher implements IDocumentRootWatcher {
 
     const watcher = watch(paths, { cwd: this.watchRoot, disableGlobbing: true });
 
-    console.log(paths);
-
     watcher
       .on("change", async file => {
         this.cache.evict(file);

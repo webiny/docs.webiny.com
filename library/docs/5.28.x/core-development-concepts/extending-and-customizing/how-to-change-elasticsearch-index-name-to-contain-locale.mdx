@@ -1,0 +1,170 @@
+---
+title: How To Change Elasticsearch Index Name To Contain Locale
+description: Learn how to change Elasticsearch index name to contain locale code.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- how to how to change Elasticsearch index name to contain locale code.
+
+</Alert>
+
+<Alert type="danger">This article requires advanced knowledge of the Elasticsearch.</Alert>
+
+## Overview
+
+If you created you project with 5.26.0 or greater, this article is not for you.
+
+Prior to the 5.26.0 version of Webiny, we did not add locale code to the Elasticsearch index names of File Manager, Form Builder and Page Builder applications.
+
+In the 5.26.0 we added an environment variable `WEBINY_ELASTICSEARCH_INDEX_LOCALE` which serves as a feature flag to insert the locale code into each of the Elasticsearch index names created.
+
+### When Would You Need To Change The Elasticsearch Index Name To Contain Locale Code?
+
+Answers is actually quite simple: when you want to have different mappings for different locales, eg. Japanese.
+With old setup, all the data, in all locales, is stored in the same Elasticsearch index.
+
+With new setup, each of the tenant/locale combination has its own index, so you can have different mappings for different locales.
+
+## Steps On How To Change The Elasticsearch Index Name To Contain Locale Code
+
+There are different options on how to approach this problem. If you use one option, no need to use another.
+
+### Option 1: Renaming The Original Elasticsearch Index
+
+This will cover cloning the existing Elasticsearch index to another one (with name which contains the locale code).
+
+This will NOT change the Elasticsearch index mappings or settings for the new index.
+
+We will use the [Clone index API](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-clone-index.html).
+
+#### 1. Backup
+
+Make sure you do a backup the index you are cloning.
+
+#### 2. Update Your Environment Variables To Contain Feature Flag
+
+You need to set the `WEBINY_ELASTICSEARCH_INDEX_LOCALE` environment variable to `true`.
+
+<Alert type="danger">
+  Skip this step if your CI automatically deploys the code when environment variable changes.
+</Alert>
+
+#### 3. Lock Your Original Index
+
+This will produce errors on the input side, so make sure your users know not to touch anything, but this is required for clone to work.
+
+```
+POST root-page-builder
+{
+  "index.blocks.read_only": true
+}
+```
+
+#### 4. Figure Out The Name For Your New Elasticsearch Index
+
+The article [How To Customize Elasticsearch Index](/docs/{version}/core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index) contains the information on how we create the index names.
+
+##### **Page Builder Index Name Example**
+
+We will work with the tenant `root`, so the name of existing index is `root-page-builder`.
+The new Elasticsearch index name will contain the locale your system is on.
+Let's say if the system is on `en-GB` locale, then the new Elasticsearch index name would be `root-en-gb-page-builder`. Note that `GB` is in lower case - it is because the Elasticsearch does not support index names with upper case.
+
+#### 5. Execute The Cloning Process Via Kibana
+
+... or what ever tool you are using to access the Elasticsearch.
+
+**The action to be executed:**
+
+```
+POST root-page-builder/_clone/root-en-gb-page-builder
+```
+
+It might take a while to clone the original index, if you have a lot of data.
+The [Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-clone-index.html#monitor-cloning) has example on how to monitor the cloning process.
+
+#### 6. Verify That New Index Is Working And It Contains All The Data
+
+Use what ever tool or script you have at your disposal.
+
+#### 7. Repeat Previous Steps For All The Indexes
+
+You **MUST** repeat previous steps for of the indexes you have (except Headless CMS ones, of course) because the environment variable you add will affect all the applications.
+
+#### 8. Verify That Newly Created Elasticsearch Index Is Not Locked For Writing
+
+```
+POST root-en-gb-page-builder
+{
+  "index.blocks.read_only": false
+}
+```
+
+#### 9. Deploy The Code For Environment Variable To Have Effect
+
+... or set the required environment variable if you have skipped step 2.
+
+### Option 2: Add The Alias To The Original Elasticsearch Index
+
+<Alert type="warning">
+  Our preferred option is the first one as we will, probably, use Elasticsearch Index Aliases in
+  some later versions to extend the search capabilities. If you go with this option, use it at your
+  own risk of having issues with the system in later versions.
+</Alert>
+
+We will use the [Create or update alias API](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-add-alias.html).
+
+#### 1. Backup
+
+Make sure you do a backup the index you are changing.
+
+#### 2. Figure Out The Name For Your New Elasticsearch Index
+
+The article [How To Customize Elasticsearch Index](/docs/{version}/core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index) contains the information on how we create the index names.
+
+##### **Page Builder Index Name Example**
+
+We will work with the tenant `root`, so the name of existing index is `root-page-builder`.
+The new Elasticsearch index name will contain the locale your system is on.
+Let's say if the system is on `en-GB` locale, then the new Elasticsearch index name would be `root-en-gb-page-builder`. Note that `GB` is in lower case - it is because the Elasticsearch does not support index names with upper case.
+
+#### 3. Execute The Action To Create Index Alias Via Kibana
+
+... or what ever tool you are using to access the Elasticsearch directly.
+
+**The action to be executed:**
+
+```
+POST root-page-builder/_alias/root-en-gb-page-builder
+{
+  "filter": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "locale.keyword": "en-GB"
+          }
+        }
+      ]
+    }
+  },
+  "is_write_index": true
+}
+```
+
+Note that we filter the data which only contains locale in en-GB.
+
+By having the filter, we ensure that querying this alias fetches data only for the given locale.
+
+#### 7. Repeat Previous Steps For All The Indexes
+
+You **MUST** repeat previous steps for of the indexes you have (except Headless CMS ones, of course) because the environment variable you add will affect all the applications.
+
+#### 4. Update Your Environment Variables To Contain Feature Flag
+
+You need to set the `WEBINY_ELASTICSEARCH_INDEX_LOCALE` environment variable to `true`.
+
+#### 5. Deploy The Code For Environment Variable To Have Effect

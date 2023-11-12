@@ -5,7 +5,7 @@ import {
   NavigationPage,
   NavigationTree
 } from "../abstractions/IReactRenderer";
-import { MdxFileLoader } from "./MdxFileLoader";
+import { IMdxFileLoader } from "../abstractions/IMdxFileLoader";
 import { MdxFile } from "./MdxFile";
 
 type WithId<T> = T & { id: string };
@@ -19,14 +19,14 @@ const pageIsHidden = (page: any): boolean => {
 };
 
 export class Navigation {
-  private mdxFileLoader: MdxFileLoader;
+  private mdxFileLoader: IMdxFileLoader;
   private navigationTree: NavigationTree;
-  private linkPrefix: string;
+  private readonly linkPrefix: string;
   private mdxFiles: MdxFile[] = [];
   private navigationData: NavigationOutputData = [];
 
   private constructor(
-    mdxFileLoader: MdxFileLoader,
+    mdxFileLoader: IMdxFileLoader,
     navigationTree: NavigationTree,
     linkPrefix: string
   ) {
@@ -36,7 +36,7 @@ export class Navigation {
   }
 
   static async create(
-    mdxFileLoader: MdxFileLoader,
+    mdxFileLoader: IMdxFileLoader,
     navigationTree: NavigationTree,
     linkPrefix: string
   ) {
@@ -87,14 +87,22 @@ export class Navigation {
     });
   }
 
-  private traversePages<TPageIn, TPageOut>(
+  private traversePages<TPageIn extends NavigationPage, TPageOut>(
     groups: NavigationTree<TPageIn>["items"],
     cb: (page: TPageIn) => TPageOut
   ) {
     return groups.map(group => {
+      if (group.type === "separator") {
+        return group;
+      }
+
       return {
         ...group,
         items: group.items.map(section => {
+          if (section.type === "page") {
+            return cb(section);
+          }
+
           return {
             ...section,
             items: section.items.map(page => cb(page)).filter(page => !pageIsHidden(page))

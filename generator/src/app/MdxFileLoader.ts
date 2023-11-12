@@ -1,13 +1,10 @@
 import fs from "fs-extra";
+import * as path from "path";
 import { IMdxProcessor } from "../abstractions/IMdxProcessor";
 import { IMdxFileFactory } from "../abstractions/IMdxFileFactory";
+import { ICachedFile, IMdxFileLoader } from "../abstractions/IMdxFileLoader";
 import { MdxFileCache } from "./MdxFileCache";
 import { MdxFile } from "./MdxFile";
-
-export interface ICachedFile {
-  isFromCache(): boolean;
-  getFile(): MdxFile;
-}
 
 class FileFromCache implements ICachedFile {
   private readonly mdxFile: MdxFile;
@@ -41,27 +38,27 @@ class FileFromFileSystem implements ICachedFile {
   }
 }
 
-export class MdxFileLoader {
-  private readonly rootDir: string;
-  private cache: MdxFileCache;
+export class MdxFileLoader implements IMdxFileLoader {
+  protected readonly rootDir: string;
+  private mdxFileCache: MdxFileCache;
   private processor: IMdxProcessor;
   private mdxFileFactory: IMdxFileFactory;
 
   constructor(
     rootDir: string,
-    cache: MdxFileCache,
+    mdxFileCache: MdxFileCache,
     processor: IMdxProcessor,
     mdxFileFactory: IMdxFileFactory
   ) {
     this.rootDir = rootDir;
-    this.cache = cache;
+    this.mdxFileCache = mdxFileCache;
     this.processor = processor;
     this.mdxFileFactory = mdxFileFactory;
   }
 
   async load(filePath: string): Promise<ICachedFile> {
-    const pathWithRoot = `${this.rootDir}/${filePath}`;
-    const cachedFile = await this.cache.get(pathWithRoot);
+    const pathWithRoot = this.resolvePath(filePath);
+    const cachedFile = await this.mdxFileCache.get(pathWithRoot);
 
     if (cachedFile) {
       return new FileFromCache(cachedFile);
@@ -77,8 +74,16 @@ export class MdxFileLoader {
 
     const processedMdxFile = await this.processor.processMdx(rawMdxFile);
 
-    await this.cache.set(pathWithRoot, processedMdxFile);
+    await this.mdxFileCache.set(pathWithRoot, processedMdxFile);
 
     return new FileFromFileSystem(processedMdxFile);
+  }
+
+  private resolvePath(filePath: string) {
+    if (filePath.startsWith(this.rootDir)) {
+      return filePath;
+    }
+
+    return path.join(this.rootDir, filePath);
   }
 }

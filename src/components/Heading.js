@@ -1,5 +1,5 @@
 import { useEffect, useContext, useRef } from "react";
-import { ContentsContext } from "@/layouts/VersionedArticleLayout";
+import { ContentsContext } from "@/layouts/DocumentationArticle";
 import { useTop } from "@/hooks/useTop";
 import clsx from "clsx";
 

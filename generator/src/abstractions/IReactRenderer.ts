@@ -26,8 +26,12 @@ export interface NavigationCollapsable<TChild> {
   items: TChild[];
 }
 
+export interface NavigationSeparator {
+  type: "separator";
+}
+
 export type NavigationTree<TPage = NavigationPage> = {
-  items: NavigationCollapsable<NavigationSection<TPage>>[];
+  items: Array<NavigationCollapsable<NavigationSection<TPage> | TPage> | NavigationSeparator>;
 };
 
 export interface IReactRenderer<T> {
@@ -35,5 +39,6 @@ export interface IReactRenderer<T> {
 }
 
 export type NavigationOutputData = Array<
-  NavigationCollapsable<NavigationSection<NavigationOutputPage>>
+  | NavigationCollapsable<NavigationSection<NavigationOutputPage> | NavigationOutputPage>
+  | NavigationSeparator
 >;

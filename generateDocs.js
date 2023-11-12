@@ -5,7 +5,7 @@ const { resolve } = require("path");
 const yargs = require("yargs");
 
 tsNode.register({
-    dir: resolve(__dirname)
+    dir: resolve(__dirname, "./generator")
 });
 
 const { Main } = require("./main");

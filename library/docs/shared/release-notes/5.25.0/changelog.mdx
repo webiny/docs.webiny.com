@@ -1,0 +1,82 @@
+---
+id: changelog
+title: Webiny 5.25.0 Changelog
+description: See what's new in Webiny version 5.25.0.
+---
+
+# Changes
+
+## Code Upgrades
+
+### Turned On Strict TypeScript ([#2235](https://github.com/webiny/webiny-js/pull/2235))
+
+With this release, we turned on `strict` Typescript in our repository and increased TS to version to `4.5.5`. This was a really large rewrite of our code (~1500 files updated). We still have some TODOs left in the code, but the main part of the work is done.
+
+Existing user projects are not upgraded, because it would most certainly cause a lot of failed builds. Users can upgrade TS version themselves, and fix their local code in their projects. New user projects will be created with `strict` Typescript and the `4.5.5` version.
+
+We will upgrade to the latest Typescript (4.6.3, at the time of writing) as soon as `eslint` resolves some compatibility problems with it.
+
+### Switched To React Router V6 ([#2277](https://github.com/webiny/webiny-js/pull/2277))
+
+Due to some 3rd part dependency issues with TS types, we were forced to upgrade to React Router v6. User projects should not be affected, because we created wrappers around React Router v6 components and hooks, to make it work with our existing user project code without any changes to it.
+
+## New Features
+
+### Block Navigation From the CMS Entry Form on Unsaved Changes ([#2285](https://github.com/webiny/webiny-js/pull/2285))
+
+Prior to this release, while editing a CMS content entry, your changes would be lost if you navigated away from the form. With this release, you will no longer be able to accidentally navigate away, and you'll get a prompt to confirm or cancel navigation to another route.
+
+### Added GraphQL Methods To Fetch the Latest or Published CMS Entries via the Manage API ([#2266](https://github.com/webiny/webiny-js/pull/2266))
+
+Some users asked us to provide a way to query for `latest` and `published` entries via the Headless CMS `manage` API. By default, `manage` API is loading the `latest` content entry revisions. This PR adds an extra parameter to control the type of revision that will be returned. We also added status icons for the reference and multi-reference fields for each of the referenced entries.
+
+```graphql
+# get latest revision
+query GetArticle {
+  getArticle(entryId: "abc", status: latest) {
+    # ...
+  }
+}
+
+# get latest revision (`status` parameter defaults to "latest")
+query GetArticle {
+  getArticle(entryId: "abc") {
+    #...
+  }
+}
+
+# get published revision
+query GetArticle {
+  getArticle(entryId: "abc", status: published) {
+    # ...
+  }
+}
+```
+
+## Bugfixes
+
+### Fixed Error When Storing Multiple Reference Field in CMS Entry ([#2264](https://github.com/webiny/webiny-js/pull/2264))
+
+Prior to this release, if a new, optional multi-reference field was added to an existing content model, which already had content entries, and tried to save the existing entry without adding entries to this new ref field, a validation error was thrown. This is now fixed. This PR also includes a stricter CMS Entry GraphQL input check on array inputs.
+To turn this check off, set the `HEADLESS_CMS_GRAPHQL_INPUT_REQUIRE_ARRAY_ITEM` environmental variable to `false`.
+
+### Clear the GraphQL Scheme Cache After CMS Model Was Cloned ([#2288](https://github.com/webiny/webiny-js/pull/2288))
+
+This PR fixes an issue with schema cache invalidation when an existing content model is cloned.
+
+### Fix Debug Logging From Lambda to Browser Console ([#2301](https://github.com/webiny/webiny-js/pull/2301))
+
+This PR fixes the `@webiny/handler-graphql` package and its debug logging capabilities, so `console.log`s get properly forwarded to the browser's console. This means that every time you do a `console.log` somewhere in your GraphQL API, those logs will be grouped per GraphQL operation, and printed in your browser's dev tools.
+
+## Other
+
+### Source Map Support
+
+All of our packages will now have source maps generated. That will greatly help in debugging issues. We have also added source map support for all lambda functions.
+It's enabled by default, but you can disable it by adding `sourceMaps: false` to `createBuildFunction` inside your lambdas' `webiny.config.ts` files.
+
+### GraphQL Errors Include Stacktrace
+
+We've added a new stacktrace field (namely `stack`) to errors returned from GraphQL API for a better debugging experience.
+This behavior is optional and needs to be enabled by passing `DEBUG=true` environmental variable (for example to your `.env` file).
+For best experience it requires source maps to be enabled.

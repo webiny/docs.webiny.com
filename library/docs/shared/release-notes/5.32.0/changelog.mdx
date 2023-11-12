@@ -1,0 +1,74 @@
+---
+id: changelog
+title: Webiny 5.32.0 Changelog
+description: See what's new in Webiny version 5.32.0.
+---
+
+import watchCmdLogsBug from "./assets/watch-cmd-logs-bug.png";
+import dashboardWidgets from "./assets/dashboard-widgets.png";
+
+## Development
+
+### Watch Command - Removed Redundant Logs ([#2603](https://github.com/webiny/webiny-js/pull/2603))
+
+When running the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) command with the [logs forwarding option](/docs/{version}/core-development-concepts/basics/watch-command#enabling-logs-forwarding), except for the actual logs, developers would also receive the underlying local tunnel URL, over which the logs would get forwarded to the developer's machine.
+
+<Image src={watchCmdLogsBug} title={"Removed Redundant Logs"} />
+
+With this release, the redundant URL won't be appearing anymore.
+
+### Destroy Command Now Works Even If the Project Wasn't Previously Deployed
+
+With this release, we've fixed an issue with the [`webiny destroy`](/docs/{version}/infrastructure/basics/destroy-cloud-infrastructure) command, where, in order for it to work correctly, a Webiny project application had to be previously deployed.
+
+This is no longer the case. A Webiny project application doesn't need to be previously deployed in order for the command to work.
+
+Thanks goes to [@ryohei-kamiya](https://github.com/ryohei-kamiya) for discovering this issue! ❤️
+
+<Alert type="info" title="Project Applications">
+
+Learn more about project applications and project organization in general, in the [Project Applications and Packages](../../core-development-concepts/project-organization/project-applications-and-packages) key topic.
+
+</Alert>
+
+### CI/CD Scaffold - Workflow Files Are Now Correctly Deployed ([#2601](https://github.com/webiny/webiny-js/pull/2601))
+
+Prior to this release, upon using the [CI/CD scaffold](/docs/{version}/core-development-concepts/ci-cd/setup), the GitHub Actions workflow files would not be correctly generated in developer's GitHub repository.
+
+This has now been addressed. All the GitHub Actions workflow files should be generated correctly.
+
+### Watch Command - Introduced the `hook-before-watch` Lifecycle Event ([#2607](https://github.com/webiny/webiny-js/pull/2607))
+
+We've introduced the new `hook-before-watch` lifecycle event to the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) command.
+
+The [Build and Deploy Hooks](/docs/{version}/infrastructure/basics/build-and-deploy-hooks) has been updated to reflect this change, so check it out to learn more.
+
+### Ensure WCP-related Environment Variables Are Correctly Assigned With the Watch Command ([#2609](https://github.com/webiny/webiny-js/pull/2609))
+
+While using the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) command, we've noticed that the relevant Webiny Control Panel (WCP) environment variables would get removed from the previously deployed AWS Lambda functions, which causes the link between developer's Webiny project and WCP to be temporarily broken.
+
+This has now been addressed. The link between the Webiny project and WCP should stay persistent, no matter if the project has been deployed via the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command, or a developer is just doing development with the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) command.
+
+## Admin App
+
+### Improve Dashboard Widgets Rendering ([#2608](https://github.com/webiny/webiny-js/pull/2608))
+
+We've recently noticed that adding more widgets via plugins causes them all to be rendered in the same row, which eventually starts looking bad. In this release, we tweaked the layout in such a way that the widgets are nicely laid out in rows of 3 items, and all widgets within each row will be of the same size. The CTA button is now also always pinned to the bottom of the widget to have them all nicely aligned within each row.
+
+<Image src={dashboardWidgets} title={"Dashboard Widgets"} />
+
+### Register and Sort File Type Plugins in the Right Order ([#2605](https://github.com/webiny/webiny-js/pull/2605))
+
+Our File Manager supports custom file type renderers, as shown in [this tutorial](/docs/{version}/file-manager/extending/create-a-file-type-plugin). However, at some point in time, we switched to that `<Admin>` component, which configures the entire admin app, and we unknowingly caused a change in the order of plugins registration (defaults vs. user-made plugins), which affected the logic of picking the right file type renderer.
+
+With this release, we've fixed the order of plugins registration specifically for the File Manager, and also improved the decision-making logic within the File Manager itself.
+
+A big shout-out goes to [Marco Starker](https://github.com/DasRed) for contributing a solution!
+
+### Clear Apollo Cache When Content Model is Deleted ([#2602](https://github.com/webiny/webiny-js/pull/2602))
+
+This was a very peculiar bug with Apollo Client and Headless CMS content models, on the client side. If you deleted a content model, and then recreated a model with the same name (which results in the same `modelId`), you'd run into weird behavior and validation issues. This was caused by Apollo Client cache still containing the old content model. Note that "delete" is just a GraphQL mutation, and Apollo doesn't know if you actually deleted anything, or if you want to delete something from cache. So this is something we had to implement ourselves, and do a cleanup of all normalized cache data related to the deleted content model.
+
+Other entities in the system don't suffer from this issue, because they all have unique IDs, unlike content models, which have a `modelId`, a human-readable string, which can be recreated.
+
+This has now been addressed, and you can now safely delete and recreate content models with the same name.

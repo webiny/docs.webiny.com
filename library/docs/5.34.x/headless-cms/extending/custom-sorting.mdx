@@ -1,0 +1,168 @@
+---
+title: Custom Sorting
+description: Learn how to create custom sorting for user defined models
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- how to create custom sort enums
+- how to resolve custom sort in DynamoDB system
+- how to resolve custom sort in DynamoDB+Elasticsearch system
+
+</Alert>
+
+## Overview
+
+## Creating the New Sorter for the GraphQL Schema
+
+The first thing users need to do is to add a `CmsEntryFieldSortingPlugin`:
+
+```typescript apps/api/headlessCms/src/plugins/customSorterPlugin.ts
+// there is a class and a function so users can use whatever suits their way of writing code
+import {
+  CmsGraphQLSchemaSorterPlugin,
+  createCmsGraphQLSchemaSorterPlugin
+} from "@webiny/api-headless-cms";
+
+export const customSorterPlugin = createCmsGraphQLSchemaSorterPlugin(({ sorters, model }) => {
+  // we only want to add the sorter when generating a certain model GraphQL Schema
+  if (model.modelId !== "yourTargetModelId") {
+    return sorters;
+  }
+  return [...sorters, "myCustomSorting_ASC", "myCustomSorting_DESC"];
+});
+```
+
+And then add the plugin into the plugins array of the `createHandler()`:
+
+```typescript apps/api/headlessCms/src/index.ts
+const handler = createHandler({
+  plugins: [
+    // other plugins,
+    customSorterPlugin
+  ]
+});
+```
+
+## Creating the Sort Plugin To Handle New Custom Sorters
+
+### DynamoDB Systems
+
+As the sorting in the DynamoDB systems is basic, let's show the example on how to sort via a nested object value:
+
+```typescript apps/api/headlessCms/src/plugins/yourCustomSortPlugin.ts
+// there is a class and a function so users can use whatever suits their way of writing code
+import {
+  CmsEntryFieldSortingPlugin,
+  createCmsEntryFieldSortingPlugin
+} from "@webiny/api-headless-cms-ddb";
+
+const customSortingPlugin = createCmsEntryFieldSortingPlugin({
+  canUse: ({ fieldId, model }) => {
+    return model.modelId === "yourTargetModelId" && fieldId === "myCustomSorting";
+  },
+  createSort: ({ fields, order }) => {
+    // let's find the field we want to sort by
+    // you can find the field by joining all its parents fieldId + the fieldId you want to sort by via a dot (.)
+    // this is the information user must know (possibly they can create a finder for the field)
+    const fieldId = "nestedObject.anotherNestedObject.numberField"; // the fieldId is later on used in error report - if any
+    const field = fields[fieldId];
+    // we can create a field path via the built-in method
+    const valuePath = field.createPath({
+      field
+    });
+    // or manually
+    // note that all entry values are stored in the values object - thats why it is in the beginning of the string
+    const valuePath = `values.nestedObject.anotherNestedObject.numberField`;
+
+    return {
+      field,
+      fieldId,
+      valuePath,
+      reverse: order === "DESC"
+    };
+  }
+});
+```
+
+And then add the plugin into the plugins array of the `createHandler()`:
+
+```typescript apps/api/headlessCms/src/index.ts
+const handler = createHandler({
+  plugins: [
+    // other plugins,
+    customSortingPlugin
+  ]
+});
+```
+
+This plugin matches the `myCustomSorting` value from `myCustomSorting_ASC` and then it creates sort variables which are used in our built-in sorting, which uses `lodash.orderBy` library.
+Variables are:
+
+- field - check out the [interface](https://github.com/webiny/webiny-js/blob/59046097e7dc93bd9b256999a4056a31ceb0f2e9/packages/api-headless-cms-ddb/src/operations/entry/filtering/types.ts#L13)
+- fieldId - full path to the field in the `fields` object - it is used for error reporting if it happens
+- valuePath - full path to the field in the database record - it is used to get the value by which we are going to sort
+- reverse - in which order will the records go to the API response
+
+<Alert type="warning">
+
+Although we gave an example to sort by nested objects, please do not do that in production as it will get quite slow at some point.
+
+</Alert>
+
+### Elasticsearch Systems
+
+```typescript apps/api/headlessCms/src/plugins/yourCustomSortPlugin.ts
+// there is a class and a function so users can use whatever suits their way of writing code
+import {
+  CmsEntryElasticsearchBodyModifierPlugin,
+  createCmsEntryElasticsearchBodyModifierPlugin
+} from "@webiny/api-headless-cms-ddb-es";
+
+const customBodyModifier = createCmsEntryElasticsearchBodyModifierPlugin({
+  modelId: "yourTargetModelId",
+  modifyBody: ({ model, body, where }) => {
+    // as we filter the models by setting the modelId in the plugin configuration there is no need to do it again
+    // we need to check if there is a custom sorting in the body
+    // we always generate a object sorting, so if there is no myCustomSorting key - there is no custom sorting
+    if (!body.sort.myCustomSorting) {
+      return;
+    }
+    body.sort = {
+      _script: {
+        type: "number",
+        script: {
+          lang: "painless",
+          inline: "some script"
+        },
+        order: "asc"
+      }
+    };
+  }
+});
+```
+
+And then add the plugin into the plugins array of the `createHandler()`:
+
+```typescript apps/api/headlessCms/src/index.ts
+const handler = createHandler({
+  plugins: [
+    // other plugins,
+    customBodyModifier
+  ]
+});
+```
+
+With this plugin, we replace the sort completely as it would fail. There is no `myCustomSorting` field and the Elasticsearch query would fail when it would hit the server.
+
+<Alert type="info">
+
+Note that we used the `CmsEntryElasticsearchBodyModifierPlugin` in the example because we needed to replace whole `sort` object on the `body`. If you need to modify the sort (add or remove something), feel free to use the `CmsEntryElasticsearchSortModifierPlugin`.
+
+</Alert>
+
+## Conclusion
+
+While custom sorters are a powerful functionality, use them carefully as it might degrade the system performance - especially in the DynamoDB systems.

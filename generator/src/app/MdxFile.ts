@@ -1,7 +1,6 @@
 import { basename } from "path";
 import frontMatter from "front-matter";
 import { MdxData } from "../abstractions/IMdxFileFactory";
-import { file } from "brotli-size";
 
 export interface FrontMatterAttributes {
   title: string;
@@ -35,10 +34,10 @@ class FilePath {
 }
 
 export class MdxFile {
-  private readonly props: MdxData;
-  private readonly attributes: FrontMatterAttributes;
-  private readonly contents: string;
-  private outputPath = "";
+  protected readonly props: MdxData;
+  protected readonly attributes: FrontMatterAttributes;
+  protected readonly contents: string;
+  protected outputPath = "";
 
   constructor(props: MdxData) {
     this.props = props;
@@ -46,6 +45,11 @@ export class MdxFile {
 
     this.attributes = attributes;
     this.contents = body;
+  }
+
+  clone() {
+    const Klass = Object.getPrototypeOf(this).constructor;
+    return new Klass(this.props);
   }
 
   /**
@@ -56,8 +60,7 @@ export class MdxFile {
   }
 
   withContents(setter: (contents: string) => string) {
-    const Klass = Object.getPrototypeOf(this).constructor;
-    const newFile = new Klass(this.props);
+    const newFile = this.clone();
     newFile.contents = setter(this.contents);
     return newFile;
   }

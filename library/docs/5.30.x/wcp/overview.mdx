@@ -1,0 +1,129 @@
+---
+title: Overview
+description: Learn the structures of Webiny Control Panel
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="info" title="Can I use this?">
+
+Webiny Control Panel (WCP) is currently in beta.
+
+</Alert>
+
+<Alert type="success" title="What you'll learn">
+
+- how Webiny Control Panel project is structured
+- what are CI/CD environments
+- what are personal development environments
+- WCP users vs Webiny CMS users
+
+</Alert>
+
+## Overview
+
+Webiny Control Panel ("WCP") is a SaaS cloud-hosted application that's managed by Webiny and its goal is to increase the reliability of your self-hosted Webiny CMS project by providing tools for monitoring and observability. WCP is also responsible for managing your Webiny CMS license in case you wish to upgrade from Webiny Open-Source edition to Webiny Business or Webiny Enterprise tier.
+
+<Alert type="info" title="Webiny CMS Tiers">
+
+To learn more about the different Webiny CMS tiers, please referrer to our [pricing page](https://www.webiny.com/pricing/).
+
+</Alert>
+
+## Structure
+
+It's important to understand that WCP is a separate application to Webiny CMS. Webiny CMS is deployed by you on your own AWS cloud, while WCP is a cloud-hosted application managed by Webiny.
+
+Inside WCP things follow the following hierarchy:
+
+- Organization
+  - Project A
+    - License
+    - WCP Users
+    - CI/CD Environments
+  - Project ...N
+
+One organization can have many projects. Each project has a license. The license is what defines which add-ons and how many user seats a Webiny CMS instance can have. A project also has one or more WCP users, which are separate to your CMS users (more on this below). And there can be one or more CI/CD environments which are linked to the project.
+
+<Alert type="info" title="What's a Webiny CMS instance?">
+
+A single Webiny CMS project can be deployed into multiple CI/CD environments, like `production`, `development`, and so on. Also, each individual developer working on the same project will have one or more of their own deployments. Each individual deployment is called a Webiny CMS instance. So, one Webiny CMS project has one or more instances.
+
+</Alert>
+
+### Project License
+
+The project license defines which add-ons and how many Webiny CMS user seats you can have in your Webiny CMS instance.
+
+A license is retrieved by [linking your WCP project to your Webiny CMS instance](./link-a-project). Once the license is linked to a particular Webiny CMS instance, that instance will have the same limits on user seats and can access all the add-ons that license unlocks.
+
+In practice, a project usually is deployed into many environments, the environment is `production`, but often times there are additional environments like `development`, `qa`, `staging` and so on. Each environment has it's own Webiny CMS instance. Also, each developer working on a project will often times run a personal development environment with an instance of their own, or in some cases they might have multiple of these.
+
+WCP allows you to link a single license to as many long-lived environments (`production`, `development`, ...), which we call CI/CD environments, as you require. In addition to that, a WCP user, who is often times also a developer working on the project, they can have as many personal development environments as they need, and can link the same license. The license quotas are per-environment. For example, if you have a license with 10 user seats, and you have 5 personal development environments and 3 long-lived CI/CD environments, each of these Webiny CMS instance can have a maximum of 10 user seats individually.
+
+### WCP Users
+
+WCP users are separate from your Webiny CMS users. You can have as many WCP users as you need, and they are free of charge. WCP users do not have access to your Webiny CMS instances. Webiny CMS instances have their own independent user pools.
+
+A WCP user with an access to a specific WCP project can retrieve the license for that Webiny CMS project and use the license in their own personal development environment. Personal development environments are environments owned by individual developers working on the project. In order for the developers to work efficiently they need to have access to the same Webiny CMS add-ons as the production environment. By having them as part of the WCP project, they gain that access.
+
+<Alert type="info" title="Learn more">
+
+To learn how to retrieve a license inside your own personal development environment, [check this guide](/docs/wcp/link-a-project#personal-development-environment).
+
+</Alert>
+
+### CI/CD Environments
+
+Similarly to WCP users who require access to the Webiny CMS license to do their work, deploying your Webiny CMS instance through a CI/CD pipeline into different long-lived environments, be that for testing or QA, that CI/CD pipeline requires access to all the add-ons the license unlocks.
+
+Inside WCP project dashboard, you can create additional CI/CD environments and each will get its own **API key**. Inside your CI/CD pipeline you will use that **API key** to retrieve the license. The reason each CI/CD environment requires a separate **API key** is that the analytics data that your Webiny CMS instance sends back to WCP is per-environment and you don't want the `production` data to be mixed with say data from the `development` environment.
+
+Same as for WCP users, you can have as many CI/CD environments as you need, and they don't come with any extra cost.
+
+Every WCP project you create will have a CI/CD environment called `production` by default. You cannot delete this environment, and you need to use the **API key** that comes with this environment in your true `production` environment. You can only have one production environment per WCP project. See the limits section below for more details.
+
+<Alert type="info" title="Learn more">
+
+To learn how to retrieve a license inside CI/CD environment, [check this guide](/docs/wcp/link-a-project#ci-cd-environment).
+
+</Alert>
+
+## Limits
+
+Both CI/CD and personal development environments have a limit on the number of user seats. The limit is set by your project's license and it's per-environment.
+
+All environments, but with the exception of the `production` CI/CD environment have a soft-limit on 5,000 API calls per day.
+The `production` CI/CD environment license has no limit on the number of API calls.
+
+<Alert type="info" title="Increasing the API call limit">
+
+In case you require a higher API calls limit on non-production environments, please [contact us](mailto:support@webiny.com).
+
+</Alert>
+
+## ⚠Upgrading from the Open-Source edition
+
+When you upgrade from the Open-Source edition to the Business tier, your project will automatically upgrade to a multi-tenancy setup. This upgrade will affect how your API works.
+
+In the Open-Source edition you can access the API by pointing a request to the GraphQL endpoint and optionally providing an auth token.
+
+However, in a multi-tenancy setup, you also need to provide a header that identifies which tenant you are accessing, otherwise the API will fail with an error. To correct this, you must send a `x-tenant` header together with your GraphQL request. The value of `x-tenant` header needs to be either `root` to access the root tenant, or the tenant ID, which you can get from the Tenant Manager app in your admin area.
+
+## FAQ
+
+**What's the difference between a user in WCP and a user in Webiny CMS?**
+
+WCP is a separate application to your Webiny CMS instance. WCP users are free and are separate to the seat limit you have in your license. Only users inside your Webiny CMS instance are counted towards your user seat usage.
+
+**Do I need to have a WCP project if I want to use Webiny CMS?**
+
+If you only need features from Webiny Open-Source edition, you don't need to have a WCP project. However, if you wish to use features only available in Webiny Business or Webiny Enterprise tier, you will need to have a WCP account and a project.
+
+<Alert type="info" title="Webiny CMS Tiers">
+
+To learn more about the different Webiny CMS tiers, please referrer to our [pricing page](https://www.webiny.com/pricing/).
+
+</Alert>
+
+For more questions, ping us on our [community Slack](https://www.webiny.com/slack/), or drop us an [email](mailto:support@webiny.com).

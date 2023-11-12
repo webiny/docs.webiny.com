@@ -18,7 +18,7 @@ import {
   MdxCompiler,
   NavigationLoader,
   NavigationWriter,
-  SimpleDocumentRoot,
+  DocumentRoot,
   DocumentRootWatcher
 } from "@webiny/docs-generator";
 import { HandbookMdxFileFactory } from "./HandbookMdxFileFactory";
@@ -28,12 +28,11 @@ export class HandbookDocumentRoot {
   private readonly documentRoot: IDocumentRoot;
   private readonly documentRootWatcher: IDocumentRootWatcher;
 
-  constructor(cache: MdxFileCache) {
-    const handbookRootDir = path.resolve("library/handbook");
-    const handbookOutputDir = "pages";
-    const handbookLinkPrefix = "/docs/handbook";
-    const handbookNavigationPath = `${handbookRootDir}/navigation.tsx`;
-    const handbookNavigationOutputPath = `data/navigation.${md5(handbookRootDir).slice(-6)}.json`;
+  constructor(cache: MdxFileCache, rootDir: string) {
+    const outputDir = "pages";
+    const linkPrefix = "/docs/handbook";
+    const navigationPath = `${rootDir}/navigation.tsx`;
+    const navigationOutputPath = `data/navigation.${md5(rootDir).slice(-6)}.json`;
 
     const handbookProcessor = new CompositeMdxProcessor([
       // Add a separator before code generated via processors.
@@ -45,11 +44,11 @@ export class HandbookDocumentRoot {
       // Inject Algolia indexing data.
       new DocsearchProcessor(),
       // Inject navigation file import.
-      new PageNavigationProcessor(`@/${handbookNavigationOutputPath}`)
+      new PageNavigationProcessor(`@/${navigationOutputPath}`)
     ]);
 
     const mdxFileLoader = new MdxFileLoader(
-      handbookRootDir,
+      rootDir,
       cache,
       handbookProcessor,
       new HandbookMdxFileFactory()
@@ -57,21 +56,17 @@ export class HandbookDocumentRoot {
 
     const mdxFileWriter = new CompositeMdxFileWriter([
       // Write the processed MDX file.
-      new MdxFileWriter(handbookOutputDir),
+      new MdxFileWriter(outputDir),
       // Write sitemap XML file for each MDX file.
-      new SitemapFileWriter(handbookOutputDir),
+      new SitemapFileWriter(outputDir),
       // Write a JS file compiled from the MDX file.
-      new CompiledMdxFileWriter(handbookOutputDir, new MdxCompiler([remarkResolveAssets()]))
+      new CompiledMdxFileWriter(outputDir, new MdxCompiler([remarkResolveAssets()]))
     ]);
 
-    const navigationLoader = new NavigationLoader(
-      handbookNavigationPath,
-      handbookLinkPrefix,
-      mdxFileLoader
-    );
-    const navigationWriter = new NavigationWriter(handbookNavigationOutputPath, mdxFileWriter);
+    const navigationLoader = new NavigationLoader(navigationPath, linkPrefix, mdxFileLoader);
+    const navigationWriter = new NavigationWriter(navigationOutputPath, mdxFileWriter);
 
-    this.documentRoot = new SimpleDocumentRoot(navigationLoader, navigationWriter);
+    this.documentRoot = new DocumentRoot(navigationLoader, navigationWriter);
     this.documentRootWatcher = new DocumentRootWatcher(
       path.resolve("src"),
       cache,

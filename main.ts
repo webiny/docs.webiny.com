@@ -9,39 +9,76 @@ import {
 } from "@webiny/docs-generator";
 
 import { HandbookDocumentRoot } from "./plugins/handbook/HandbookDocumentRoot";
+import { DocsDocumentRoot } from "./plugins/docs/DocsDocumentRoot";
 
 const outputRoot = path.resolve("src");
 
 export class Main {
+  private readonly mdxFileCache: MdxFileCache;
+  private readonly logger: ConsoleLogger;
+
+  constructor() {
+    this.logger = new ConsoleLogger();
+    this.mdxFileCache = new MdxFileCache();
+  }
+
   async generate() {
-    const generator = new Generator(
-      new DocumentRootFactory(),
-      new FsFileWriter(outputRoot, new ConsoleLogger())
+    const generator = new GeneratorWithTiming(
+      this.logger,
+      new Generator(
+        new DocumentRootFactory(this.mdxFileCache),
+        new FsFileWriter(outputRoot, this.logger)
+      )
     );
     await generator.execute();
   }
 
   async watch() {
     const watcher = new Watcher(
-      new DocumentRootFactory().getDocumentRootWatchers(),
-      new FsFileWriter(outputRoot, new ConsoleLogger())
+      new DocumentRootFactory(this.mdxFileCache).getDocumentRootWatchers(),
+      new FsFileWriter(outputRoot, this.logger)
     );
     await watcher.execute();
   }
 }
 
 class DocumentRootFactory implements IDocumentRootFactory {
-  getDocumentRoots() {
-    // We want to share the MDX file cache across all document roots.
-    const cache = new MdxFileCache();
+  private readonly mdxFileCache: MdxFileCache;
 
-    return [new HandbookDocumentRoot(cache).getDocumentRoot()];
+  constructor(mdxFileCache: MdxFileCache) {
+    this.mdxFileCache = mdxFileCache;
+  }
+
+  getDocumentRoots() {
+    return this.getDocumentRootFactories().map(factory => factory.getDocumentRoot());
   }
 
   getDocumentRootWatchers() {
-    // We want to share the MDX file cache across all document roots.
-    const cache = new MdxFileCache();
+    return this.getDocumentRootFactories().map(factory => factory.getDocumentRootWatcher());
+  }
 
-    return [new HandbookDocumentRoot(cache).getDocumentRootWatcher()];
+  getDocumentRootFactories() {
+    return [
+      new HandbookDocumentRoot(this.mdxFileCache, path.resolve("library/handbook")),
+      new DocsDocumentRoot(this.mdxFileCache, path.resolve("library/docs"))
+    ];
+  }
+}
+
+class GeneratorWithTiming {
+  private logger: ConsoleLogger;
+  private generator: Generator;
+  constructor(logger: ConsoleLogger, generator: Generator) {
+    this.logger = logger;
+    this.generator = generator;
+  }
+
+  async execute() {
+    const start = Date.now();
+    this.logger.info(`Generating files...`);
+    await this.generator.execute();
+    const duration = (Date.now() - start) / 1000;
+
+    this.logger.success(`Finished generating files in %s seconds!`, duration);
   }
 }

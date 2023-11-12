@@ -24,4 +24,12 @@ export class File implements IFile {
   getSourcePath(): string | undefined {
     return this.props.sourcePath;
   }
+
+  static createFromObject(data: Record<string, any>, path: string, sourcePath?: string) {
+    return new File({
+      contents: JSON.stringify(data, null, 2),
+      path,
+      sourcePath
+    });
+  }
 }

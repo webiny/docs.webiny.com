@@ -7,7 +7,7 @@ export const ViewLatestVersion = () => {
     const { page } = usePage();
     const versions = useVersions();
 
-    if (page.version === "latest") {
+    if (page.version === versions.latestVersion) {
         return null;
     }
 

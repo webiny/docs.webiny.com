@@ -5,18 +5,18 @@ import { useRouter } from "next/router";
 const createNewPath = (versions, path, currentVersion, newVersion) => {
     const latestVersion = versions.latestVersion;
 
-    if (currentVersion === "latest" && newVersion !== latestVersion) {
+    if (currentVersion === latestVersion && newVersion !== latestVersion) {
         // Add version to existing path
         return path.replace("/docs/", `/docs/${newVersion}/`);
     }
 
-    if (currentVersion !== "latest" && newVersion === latestVersion) {
+    if (currentVersion !== latestVersion && newVersion === latestVersion) {
         const parts = path.split("/").slice(3);
         // Remove version from existing path
         return ["", "docs", ...parts].join("/");
     }
 
-    if (currentVersion !== "latest" && newVersion !== latestVersion) {
+    if (currentVersion !== latestVersion && newVersion !== latestVersion) {
         // Replace version in the existing path
         const parts = path.split("/").slice(3);
         return ["", "docs", newVersion, ...parts].join("/");

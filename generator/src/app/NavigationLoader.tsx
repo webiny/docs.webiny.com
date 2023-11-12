@@ -1,17 +1,17 @@
 import React from "react";
 import { INavigationLoader } from "../abstractions/INavigationLoader";
 import { NavigationTree } from "../abstractions/IReactRenderer";
+import { IMdxFileLoader } from "../abstractions/IMdxFileLoader";
 import { Navigation } from "./Navigation";
-import { MdxFileLoader } from "./MdxFileLoader";
 import { ReactRenderer } from "./ReactRenderer";
 
 export class NavigationLoader implements INavigationLoader {
   private readonly navigationPath: string;
   private readonly linkPrefix: string;
-  private readonly mdxFileLoader: MdxFileLoader;
+  private readonly mdxFileLoader: IMdxFileLoader;
   private reactRenderer: ReactRenderer<NavigationTree>;
 
-  constructor(navigationPath: string, linkPrefix: string, mdxFileLoader: MdxFileLoader) {
+  constructor(navigationPath: string, linkPrefix: string, mdxFileLoader: IMdxFileLoader) {
     this.navigationPath = navigationPath;
     this.linkPrefix = linkPrefix;
     this.mdxFileLoader = mdxFileLoader;

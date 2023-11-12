@@ -1,10 +1,11 @@
+import { DocumentationArticle } from "@/layouts/DocumentationArticle";
 import { useRouter } from "next/router";
 import { usePage } from "@/hooks/usePage";
 import { VersionedSidebarLayout } from "@/layouts/SidebarLayout";
 import { getParentNav } from "@/utils/getParentNav";
 import { Title } from "@/components/Title";
 
-export function DocumentationLayout({ children, ...props }) {
+export function Layout({ children, ...props }) {
     let router = useRouter();
     const { page } = usePage();
 
@@ -22,7 +23,7 @@ export function DocumentationLayout({ children, ...props }) {
         <>
             <Title suffix={suffix} />
             <VersionedSidebarLayout nav={page.navigation} {...props}>
-                {children}
+                <DocumentationArticle>{children}</DocumentationArticle>
             </VersionedSidebarLayout>
         </>
     );
