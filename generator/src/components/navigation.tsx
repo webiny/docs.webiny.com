@@ -18,7 +18,7 @@ interface CollapsableProps {
 
 export const Collapsable = ({ title, children, remove, before, after }: CollapsableProps) => {
   const parent = useParentProperty();
-  const id = `${parent?.id}.collapsable.${title}`;
+  const id = [parent?.id, "collapsable", title].filter(Boolean).join(".");
   const afterId = after ? `collapsable.${after}` : undefined;
   const beforeId = before ? `collapsable.${before}` : undefined;
   return (
