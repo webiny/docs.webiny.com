@@ -1,5 +1,5 @@
 import React from "react";
-import { Property, useParentProperty } from "@webiny/react-properties";
+import { Property, useIdGenerator, useParentProperty } from "@webiny/react-properties";
 import { createContext, useContext } from "react";
 import allPages from "@/data/mdxFiles.json";
 import versions from "@/data/versions.json";
@@ -32,12 +32,21 @@ export const NavGroup = ({ type, children }) => {
 };
 
 export const Collapsable = ({ title, children, remove, before, after }) => {
-    const parent = useParentProperty();
-    const id = `${parent?.id}.collapsable.${title}`;
-    const afterId = after ? `collapsable.${after}` : undefined;
-    const beforeId = before ? `collapsable.${before}` : undefined;
+    const getId = useIdGenerator("collapsable");
+    const id = getId(title);
+
+    const placeAfter = after !== undefined ? getId(after) : undefined;
+    const placeBefore = before !== undefined ? getId(before) : undefined;
+
     return (
-        <Property id={id} name={"items"} array remove={remove} before={beforeId} after={afterId}>
+        <Property
+            id={id}
+            name={"items"}
+            array
+            remove={remove}
+            before={placeBefore}
+            after={placeAfter}
+        >
             <Property id={`${id}.type`} name={"type"} value={"collapsable"} />
             <Property id={`${id}.title`} name={"title"} value={title} />
             {children}
@@ -54,12 +63,19 @@ export const Separator = ({ after, before, remove }) => {
 };
 
 export const Section = ({ title, children, remove, before, after }) => {
-    const parent = useParentProperty();
-    const id = `${parent.id}.section.${title}`;
-    const afterId = after ? `${parent.id}.section.${after}` : undefined;
-    const beforeId = before ? `${parent.id}.section.${before}` : undefined;
+    const getId = useIdGenerator("section");
+    const id = getId(title);
+    const placeAfter = after !== undefined ? getId(after) : undefined;
+    const placeBefore = before !== undefined ? getId(before) : undefined;
     return (
-        <Property id={id} name={"items"} array remove={remove} before={beforeId} after={afterId}>
+        <Property
+            id={id}
+            name={"items"}
+            array
+            remove={remove}
+            before={placeBefore}
+            after={placeAfter}
+        >
             <Property id={`${id}.type`} name={"type"} value={"section"} />
             <Property id={`${id}.title`} name={"title"} value={title} />
             {children}
