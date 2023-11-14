@@ -39,7 +39,41 @@ The next step is to run the project upgrade:
 yarn webiny upgrade
 ```
 
-### 3. Deploy Your Project
+#### Inspect tHE fb CHANGES
+
+### 3. `WEBINY_ELASTICSEARCH_INDEX_LOCALE` Environment Variable
+
+<Alert type={"info"}>
+
+  If you are not using the [Amazon DynamoDB + Amazon ElasticSearch](docs/architecture/introduction#different-database-setups) database setup, you can skip this step.
+
+</Alert>
+
+Used only with [Amazon DynamoDB + Amazon ElasticSearch](docs/architecture/introduction#different-database-setups) database setup, the `WEBINY_ELASTICSEARCH_INDEX_LOCALE` environment variable allows users to choose whether they want their ElasticSearch indexes to include a locale code in their names. 
+
+By default, this environment variable is set to `true` via the `.env` file located in the root of your project. It is also recommended to set it to `true` in your CI/CD workflows that deploy your long-lived environments (e.g. `production`). 
+
+To make things simpler for users, with the 5.38.0 release, we've decided to hide this environment variable altogether, and always include the locale code in the index name.
+
+#### What does this mean for existing projects?
+
+If you've had the `WEBINY_ELASTICSEARCH_INDEX_LOCALE` environment variable set to `true` during development and, more importantly, in your CI/CD workflows that deploy your long-lived environments (e.g. `production`), you don't need to do anything. You can also remove it, and your project will continue to work as expected. 
+
+But, if you had the environment variable set to `false` or you didn't have it set at all, you'll need to ensure its value is set to `false` upon deployment. This goes for both your local development environment and, more importantly, your CI /CD workflows.
+
+```bash
+WEBINY_ELASTICSEARCH_INDEX_LOCALE=false
+```
+
+<Alert type={"danger"}>
+
+  Please note that, in case of the latter, failing to apply the above environment variable assignment before deploying will result in your long-lived environments (e.g. `production`) not being able to access the data stored in your ElasticSearch indexes.
+
+  So, make sure to double-check this, and if you're not sure, please contact us on our [Slack](https://www.webiny.com/slack) channel.
+
+</Alert>
+
+### 4. Deploy Your Project
 
 Proceed by redeploying your Webiny project:
 
@@ -52,4 +86,3 @@ yarn webiny deploy --env {environment}
 
 ## Additional Notes
 
-✍️ 
