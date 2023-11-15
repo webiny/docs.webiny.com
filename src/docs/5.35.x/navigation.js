@@ -49,6 +49,13 @@ export const Navigation = () => {
                         <Page link={"user-guides/page-builder/advanced/page-localization"} />
                     </Section>
                 </Collapsable>
+                <Separator />
+                <Collapsable title={"Form Builder"}>
+                    <Section title={"Essentials"}>
+                        <Page link={"user-guides/form-builder/essentials/create-form"} />
+                        <Page link={"user-guides/form-builder/essentials/using-reCAPTCHA-in-form"} />
+                    </Section>
+                </Collapsable>
             </NavGroup>
         </>
     );
