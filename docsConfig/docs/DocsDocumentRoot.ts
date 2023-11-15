@@ -36,6 +36,7 @@ import { VersionsFile } from "./VersionsFile";
 import { Config } from "../Config";
 import { IMdxFileFilter } from "@webiny/docs-generator/src/abstractions/IMdxFileFilter";
 import { DocsMdxFile } from "./DocsMdxFile";
+import { VariableProcessor } from "./VariableProcessor";
 
 export class DocsDocumentRoot {
   private readonly rootDir: string;
@@ -98,7 +99,9 @@ export class DocsDocumentRoot {
       // Inject Algolia indexing data.
       new DocsearchProcessor(),
       // Inject navigation file import.
-      new PageNavigationProcessor(`@/${navigationOutputPath}`)
+      new PageNavigationProcessor(`@/${navigationOutputPath}`),
+      // Inject variable values (`{version}`, `{exact:...}`).
+      new VariableProcessor(this.versions)
     ]);
 
     const mdxFileLoader = new VersionedMdxFileLoader(

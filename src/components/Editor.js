@@ -47,7 +47,7 @@ function TabBar({ primary, secondary = [], showTabMarkers = true, children }) {
 
 const once = true;
 
-export function Editor({ title, lang, children }) {
+export function Editor({ title, lang = "shell", children }) {
     const [code, setCode] = useState("");
 
     useEffect(() => {

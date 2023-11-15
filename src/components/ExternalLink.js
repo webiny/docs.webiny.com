@@ -17,7 +17,7 @@ export const ExternalLink = ({ href, children, icon = true }) => {
                     alt="external link"
                     style={externalIcon}
                 />
-            ): null}
+            ) : null}
         </a>
     );
 };
