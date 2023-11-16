@@ -41,23 +41,6 @@ const getPageData = pagePath => {
 const mainMdxLoader = createLoader(mdxLoader);
 
 module.exports.createWebpackConfig = (config, options) => {
-    let maxHeap = 0;
-
-    if (options.isServer) {
-        setInterval(() => {
-            const heapUsage = process.memoryUsage().heapUsed / 1024 / 1024;
-            if (heapUsage > maxHeap) {
-                maxHeap = heapUsage;
-
-                process.stdout.write(`\nMax memory usage: ${red(maxHeap.toFixed(2) + " MB")}`);
-            }
-        }, 1000);
-
-        process.on("exit", () => {
-            console.log(`Max memory usage: ${red(maxHeap.toFixed(2) + " MB")}`);
-        });
-    }
-
     if (!options.dev && options.isServer) {
         let originalEntry = config.entry;
 
