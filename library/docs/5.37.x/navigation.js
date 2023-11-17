@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigation as BaseNavigation } from "../5.36.x/navigation";
-import { Page, Section, Collapsable, NavGroup } from "@webiny/docs-generator";
+import { Page, Section, Collapsable } from "@webiny/docs-generator";
 
 export const Navigation = () => {
     return (

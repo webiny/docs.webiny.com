@@ -1,12 +1,14 @@
 import { MdxData, MdxFile, Version } from "@webiny/docs-generator";
 
+// TODO: convert this into a generic `VersionedMdxFile` to be used with any DocumentRoot
 export class DocsMdxFile extends MdxFile {
   private type = "docs";
-  private readonly version: Version;
+  private version: Version;
+  private sourceVersion: Version;
 
-  constructor(data: MdxData, version: Version) {
+  constructor(data: MdxData, version?: Version) {
     super(data);
-    this.version = version;
+    this.version = version || new Version("0.0.0");
   }
 
   override clone(): any {
@@ -15,6 +17,14 @@ export class DocsMdxFile extends MdxFile {
 
   getVersion() {
     return this.version;
+  }
+
+  setVersion(version: Version) {
+    this.version = version;
+  }
+
+  setSourceVersion(version: Version) {
+    this.sourceVersion = version;
   }
 
   getData(): Record<string, any> {
@@ -32,6 +42,17 @@ export class DocsMdxFile extends MdxFile {
         Boolean
       ),
       type: this.type
+    };
+  }
+
+  override getVFile() {
+    return {
+      contents: this.getContents(),
+      path: this.getAbsolutePath(),
+      data: {
+        sourceVersion: this.sourceVersion.getValue(),
+        version: this.version.getValue()
+      }
     };
   }
 }

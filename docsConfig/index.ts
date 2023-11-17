@@ -4,7 +4,6 @@ import {
   Generator,
   FsFileWriter,
   Watcher,
-  MdxFileCache,
   ConsoleLogger
 } from "@webiny/docs-generator";
 
@@ -17,30 +16,25 @@ const outputRoot = path.resolve("src");
 export { Config };
 
 export class App {
-  private readonly mdxFileCache: MdxFileCache;
   private readonly logger: ConsoleLogger;
   private readonly config: Config;
 
   constructor(config: Config) {
     this.config = config;
     this.logger = new ConsoleLogger();
-    this.mdxFileCache = new MdxFileCache();
   }
 
   async generate() {
     const generator = new GeneratorWithTiming(
       this.logger,
-      new Generator(
-        new DocumentRootFactory(this.config, this.mdxFileCache),
-        new FsFileWriter(outputRoot, this.logger)
-      )
+      new Generator(new DocumentRootFactory(this.config), new FsFileWriter(outputRoot, this.logger))
     );
     await generator.execute();
   }
 
   async watch() {
     const watcher = new Watcher(
-      new DocumentRootFactory(this.config, this.mdxFileCache).getDocumentRootWatchers(),
+      new DocumentRootFactory(this.config).getDocumentRootWatchers(),
       new FsFileWriter(outputRoot, this.logger)
     );
     await watcher.execute();
@@ -48,12 +42,10 @@ export class App {
 }
 
 class DocumentRootFactory implements IDocumentRootFactory {
-  private readonly mdxFileCache: MdxFileCache;
   private readonly config: Config;
 
-  constructor(config: Config, mdxFileCache: MdxFileCache) {
+  constructor(config: Config) {
     this.config = config;
-    this.mdxFileCache = mdxFileCache;
   }
 
   getDocumentRoots() {
@@ -66,8 +58,8 @@ class DocumentRootFactory implements IDocumentRootFactory {
 
   getDocumentRootFactories() {
     return [
-      new HandbookDocumentRoot(this.mdxFileCache, path.resolve("library/handbook")),
-      new DocsDocumentRoot(this.config, this.mdxFileCache, path.resolve("library/docs"))
+      new HandbookDocumentRoot(this.config, path.resolve("library/handbook")),
+      new DocsDocumentRoot(this.config, path.resolve("library/docs"))
     ];
   }
 }

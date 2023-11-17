@@ -5,10 +5,10 @@ export class Version {
   private readonly _isLatest: boolean;
   private readonly _isOldest: boolean;
 
-  constructor(version: string, isLatest: boolean, isOldest: boolean) {
+  constructor(version: string, isLatest?: boolean, isOldest?: boolean) {
     this._version = version;
-    this._isLatest = isLatest;
-    this._isOldest = isOldest;
+    this._isLatest = isLatest ?? false;
+    this._isOldest = isOldest ?? false;
   }
 
   getValue() {

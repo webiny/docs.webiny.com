@@ -1,9 +1,7 @@
-import path from "path";
 import md5 from "md5";
 import {
   IDocumentRoot,
   IDocumentRootWatcher,
-  MdxFileCache,
   CompositeMdxProcessor,
   CodeSeparatorProcessor,
   LayoutProcessor,
@@ -19,19 +17,24 @@ import {
   NavigationLoader,
   NavigationWriter,
   DocumentRoot,
-  DocumentRootWatcher
+  DocumentRootWatcher,
+  withNextLinks,
+  NavigationCache,
+  PassthroughFileWriter
 } from "@webiny/docs-generator";
 import { HandbookMdxFileFactory } from "./HandbookMdxFileFactory";
 import { remarkResolveAssets } from "./remarkResolveAssets";
+import { MdxLinkResolver } from "./MdxLinkResolver";
+import { Config } from "../Config";
 
 export class HandbookDocumentRoot {
   private readonly documentRoot: IDocumentRoot;
   private readonly documentRootWatcher: IDocumentRootWatcher;
 
-  constructor(cache: MdxFileCache, rootDir: string) {
+  constructor(config: Config, rootDir: string) {
     const outputDir = "pages";
     const linkPrefix = "/docs/handbook";
-    const navigationPath = `${rootDir}/navigation.tsx`;
+    const navigationSourcePath = `${rootDir}/navigation.tsx`;
     const navigationOutputPath = `data/navigation.${md5(rootDir).slice(-6)}.json`;
 
     const handbookProcessor = new CompositeMdxProcessor([
@@ -49,29 +52,40 @@ export class HandbookDocumentRoot {
 
     const mdxFileLoader = new MdxFileLoader(
       rootDir,
-      cache,
       handbookProcessor,
       new HandbookMdxFileFactory()
     );
 
     const mdxFileWriter = new CompositeMdxFileWriter([
-      // Write the processed MDX file.
-      new MdxFileWriter(outputDir),
+      // In dev mode, we write the processed MDX file for debugging purposes.
+      config.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
       // Write sitemap XML file for each MDX file.
       new SitemapFileWriter(outputDir),
       // Write a JS file compiled from the MDX file.
-      new CompiledMdxFileWriter(outputDir, new MdxCompiler([remarkResolveAssets()]))
+      new CompiledMdxFileWriter(
+        outputDir,
+        new MdxCompiler([
+          remarkResolveAssets(),
+          withNextLinks(new MdxLinkResolver(rootDir, linkPrefix))
+        ])
+      )
     ]);
 
-    const navigationLoader = new NavigationLoader(navigationPath, linkPrefix, mdxFileLoader);
-    const navigationWriter = new NavigationWriter(navigationOutputPath, mdxFileWriter);
+    const navigationLoader = new NavigationLoader(
+      navigationSourcePath,
+      linkPrefix,
+      mdxFileLoader,
+      new NavigationCache()
+    );
+
+    const navigationWriter = new NavigationWriter(
+      navigationSourcePath,
+      navigationOutputPath,
+      mdxFileWriter
+    );
 
     this.documentRoot = new DocumentRoot(navigationLoader, navigationWriter);
-    this.documentRootWatcher = new DocumentRootWatcher(
-      path.resolve("src"),
-      cache,
-      this.documentRoot
-    );
+    this.documentRootWatcher = new DocumentRootWatcher(this.documentRoot, [navigationSourcePath]);
   }
 
   getDocumentRoot() {

@@ -6,7 +6,7 @@ import { MdxCompiler } from "./MdxCompiler";
 
 export class CompiledMdxFileWriter implements IMdxFileWriter {
   private readonly relativeOutputPath: string;
-  private mdxCompiler: MdxCompiler;
+  private readonly mdxCompiler: MdxCompiler;
 
   constructor(relativeOutputPath: string, mdxCompiler: MdxCompiler) {
     this.relativeOutputPath = relativeOutputPath;
@@ -19,7 +19,7 @@ export class CompiledMdxFileWriter implements IMdxFileWriter {
     return [
       new File({
         path: filePath,
-        contents: await this.mdxCompiler.compile(mdxFile)
+        contents: await this.mdxCompiler.compile(mdxFile.getVFile())
       })
     ];
   }

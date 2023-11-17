@@ -7,6 +7,6 @@ export type MdxData = {
   stats: Stats;
 };
 
-export interface IMdxFileFactory {
-  create(data: MdxData): MdxFile;
+export interface IMdxFileFactory<T extends MdxFile = MdxFile> {
+  create(data: MdxData): T;
 }

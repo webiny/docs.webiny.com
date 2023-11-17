@@ -1,10 +1,9 @@
-import { MdxFile } from "./MdxFile";
 import fs from "fs-extra";
 
 export class MdxFileCache {
-  private cache = new Map<string, { timeModified: number; mdxFile: MdxFile }>();
+  private cache = new Map<string, { timeModified: number; mdxFile: string }>();
 
-  async get(filePath: string): Promise<MdxFile | undefined> {
+  async get(filePath: string): Promise<string | undefined> {
     const timeModified = await this.getTimeModified(filePath);
     const inCache = this.cache.get(filePath);
 
@@ -15,7 +14,7 @@ export class MdxFileCache {
     return undefined;
   }
 
-  async set(filePath: string, mdxFile: MdxFile): Promise<void> {
+  async set(filePath: string, mdxFile: string): Promise<void> {
     const timeModified = await this.getTimeModified(filePath);
     this.cache.set(filePath, { timeModified, mdxFile });
   }

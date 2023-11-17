@@ -1,5 +1,6 @@
 import { basename } from "path";
 import frontMatter from "front-matter";
+import { VFileCompatible } from "vfile";
 import { MdxData } from "../abstractions/IMdxFileFactory";
 
 export interface FrontMatterAttributes {
@@ -49,7 +50,9 @@ export class MdxFile {
 
   clone() {
     const Klass = Object.getPrototypeOf(this).constructor;
-    return new Klass(this.props);
+    const clone = new Klass(this.props);
+    clone.contents = this.contents;
+    return clone;
   }
 
   /**
@@ -117,6 +120,13 @@ export class MdxFile {
     return {
       title: this.getTitle(),
       description: this.getDescription()
+    };
+  }
+
+  getVFile(): VFileCompatible {
+    return {
+      contents: this.getContents(),
+      path: this.getAbsolutePath()
     };
   }
 }

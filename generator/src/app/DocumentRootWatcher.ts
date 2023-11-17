@@ -1,14 +1,11 @@
 import { IDocumentRoot, IDocumentRootWatcher, OnFile } from "../abstractions/IDocumentRoot";
-import { MdxFileCache } from "./MdxFileCache";
 
 export class DocumentRootWatcher implements IDocumentRootWatcher {
   private readonly documentRoot: IDocumentRoot;
-  private readonly watchRoot: string;
-  private readonly cache: MdxFileCache;
+  private readonly additionalFiles: string[];
 
-  constructor(watchRoot: string, cache: MdxFileCache, documentRoot: IDocumentRoot) {
-    this.cache = cache;
-    this.watchRoot = watchRoot;
+  constructor(documentRoot: IDocumentRoot, additionalFiles: string[] = []) {
+    this.additionalFiles = additionalFiles;
     this.documentRoot = documentRoot;
   }
 
@@ -18,18 +15,23 @@ export class DocumentRootWatcher implements IDocumentRootWatcher {
     const files = await this.documentRoot.generate();
     const paths = files
       .map(file => file.getSourcePath())
-      .filter((value?: string): value is string => !!value);
+      .filter((value?: string): value is string => !!value)
+      .map(path => this.enforceExtensionOrGlob(path));
 
-    const watcher = watch(paths, { cwd: this.watchRoot, disableGlobbing: true });
+    const watcher = watch([...paths, ...this.additionalFiles]);
 
     watcher
       .on("change", async file => {
-        this.cache.evict(file);
+        console.log("File changed", file);
         const filesToWrite = await this.documentRoot.generate();
         filesToWrite.forEach(file => onFile(file));
       })
       .on("error", error => {
         console.log(`Watcher error: ${error}`);
       });
+  }
+
+  private enforceExtensionOrGlob(value: string) {
+    return [".js", ".ts", ".tsx"].some(ext => value.endsWith(ext)) ? value : `${value}*`;
   }
 }

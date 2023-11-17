@@ -1,3 +1,4 @@
+import { VFileCompatible } from "vfile";
 // @ts-ignore
 import { createCompiler } from "@mdx-js/mdx";
 // @ts-ignore
@@ -6,9 +7,7 @@ import { withTitleCaseHeadings } from "./mdxCompiler/remark/withTitleCaseHeading
 import { withImages, unwrapImages } from "./mdxCompiler/remark/withImages";
 import { withTableOfContents } from "./mdxCompiler/remark/withTableOfContents";
 import { withSyntaxHighlighting } from "./mdxCompiler/remark/withSyntaxHighlighting";
-import { withNextLinks } from "./mdxCompiler/remark/withNextLinks";
 import { removeExports } from "./mdxCompiler/remark/removeExports";
-import { MdxFile } from "./MdxFile";
 
 const DEFAULT_RENDERER = `
 import React from 'react'
@@ -28,7 +27,6 @@ export class MdxCompiler {
       withTableOfContents,
       withImages,
       withSyntaxHighlighting,
-      withNextLinks,
       withSmartQuotes,
       unwrapImages,
       removeExports,
@@ -36,15 +34,10 @@ export class MdxCompiler {
     ];
   }
 
-  async compile(mdxFile: MdxFile) {
-    const options = {
-      contents: mdxFile.getContents(),
-      path: mdxFile.getAbsolutePath()
-    };
-
+  async compile(file: VFileCompatible) {
     const compiler = this.getCompiler();
 
-    const { contents } = await compiler.process(options);
+    const { contents } = await compiler.process(file);
     return [
       `/* @jsxRuntime classic */`,
       `/* @jsx mdx */`,

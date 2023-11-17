@@ -162,9 +162,10 @@ function stringify(line, className) {
         .join("")}</span>`;
 }
 
-function highlightCode(code, prismLanguage) {
+function highlightCode(code, prismLanguage = "shell") {
     const isDiff = prismLanguage.startsWith("diff-");
     const language = isDiff ? prismLanguage.substr(5) : prismLanguage;
+
     const grammar = Prism.languages[language];
     if (!grammar) {
         console.warn(`Unrecognised language: ${prismLanguage}`);

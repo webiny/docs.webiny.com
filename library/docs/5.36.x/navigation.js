@@ -1,4 +1,4 @@
-import { Collapsable, NavGroup, Page, Section } from "@webiny/docs-generator";
+import { Collapsable, Page, Section } from "@webiny/docs-generator";
 import React from "react";
 import { Navigation as BaseNavigation } from "../5.35.x/navigation";
 

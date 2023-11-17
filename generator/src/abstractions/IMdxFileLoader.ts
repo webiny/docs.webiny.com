@@ -1,10 +1,5 @@
 import { MdxFile } from "../app/MdxFile";
 
-export interface ICachedFile {
-  isFromCache(): boolean;
-  getFile(): MdxFile;
-}
-
-export interface IMdxFileLoader {
-  load(filePath: string): Promise<ICachedFile>;
+export interface IMdxFileLoader<T extends MdxFile = MdxFile> {
+  load(filePath: string): Promise<T>;
 }

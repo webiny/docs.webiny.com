@@ -7,6 +7,7 @@ import {
 } from "../abstractions/IReactRenderer";
 import { IMdxFileLoader } from "../abstractions/IMdxFileLoader";
 import { MdxFile } from "./MdxFile";
+import { NavigationCache } from "./NavigationCache";
 
 type WithId<T> = T & { id: string };
 
@@ -19,28 +20,32 @@ const pageIsHidden = (page: any): boolean => {
 };
 
 export class Navigation {
-  private mdxFileLoader: IMdxFileLoader;
-  private navigationTree: NavigationTree;
+  private readonly mdxFileLoader: IMdxFileLoader;
+  private readonly navigationTree: NavigationTree;
   private readonly linkPrefix: string;
-  private mdxFiles: MdxFile[] = [];
+  private readonly mdxFiles: MdxFile[] = [];
+  private readonly mdxFileCache: NavigationCache;
   private navigationData: NavigationOutputData = [];
 
   private constructor(
     mdxFileLoader: IMdxFileLoader,
+    mdxFileCache: NavigationCache,
     navigationTree: NavigationTree,
     linkPrefix: string
   ) {
     this.mdxFileLoader = mdxFileLoader;
+    this.mdxFileCache = mdxFileCache;
     this.navigationTree = navigationTree;
     this.linkPrefix = linkPrefix;
   }
 
   static async create(
     mdxFileLoader: IMdxFileLoader,
+    mdxFileCache: NavigationCache,
     navigationTree: NavigationTree,
     linkPrefix: string
   ) {
-    const navigation = new Navigation(mdxFileLoader, navigationTree, linkPrefix);
+    const navigation = new Navigation(mdxFileLoader, mdxFileCache, navigationTree, linkPrefix);
     await navigation.initialize();
     return navigation;
   }
@@ -117,20 +122,26 @@ export class Navigation {
   ): Promise<[NavigationOutputPage, MdxFile | undefined]> {
     const filePath = `${(page.file ?? page.link ?? "").replace(".mdx", "")}.mdx`;
 
-    const loadedFile = await this.mdxFileLoader.load(filePath);
-    const mdxFile = loadedFile.getFile();
+    const mdxFile = await this.mdxFileLoader.load(filePath);
 
     const outputFileName = page.link ? page.link : mdxFile.getSlug();
 
     mdxFile.setOutputPath(`${this.linkPrefix}/${outputFileName}`);
 
+    const link = `/${mdxFile.getOutputPath().withoutExtension()}`;
+
+    const fileWasChanged = this.mdxFileCache.isFileDifferentFromCache(link, mdxFile);
+    if (fileWasChanged) {
+      this.mdxFileCache.set(link, mdxFile);
+    }
+
     return [
       {
         type: page.type,
         title: page.title || mdxFile.getTitle(),
-        link: `/${mdxFile.getOutputPath().withoutExtension()}`
+        link
       },
-      loadedFile.isFromCache() ? undefined : mdxFile
+      fileWasChanged ? mdxFile : undefined
     ];
   }
 }
