@@ -1,10 +1,10 @@
 import React from "react";
-import { Group, Page } from "@webiny/docs-generator";
+import { Group, NavigationRoot, Page } from "@webiny/docs-generator";
 import { Navigation as BaseNavigation } from "../5.29.x/navigation";
 
 export const Navigation = () => {
     return (
-        <>
+        <NavigationRoot directory={__dirname}>
             {/* Inherit navigation from 5.29.x. */}
             <BaseNavigation />
             {/* Add new items. */}
@@ -17,6 +17,6 @@ export const Navigation = () => {
                 <Page link={"wcp/overview"} />
                 <Page link={"wcp/link-a-project"} />
             </Group>
-        </>
+        </NavigationRoot>
     );
 };

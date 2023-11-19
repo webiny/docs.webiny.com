@@ -1,10 +1,10 @@
 import React from "react";
-import { Group, Page } from "@webiny/docs-generator";
+import { Group, Page, NavigationRoot } from "@webiny/docs-generator";
 import { Navigation as BaseNavigation } from "../5.32.x/navigation";
 
 export const Navigation = () => {
     return (
-        <>
+        <NavigationRoot directory={__dirname}>
             {/* Inherit navigation from 5.32.x. */}
             <BaseNavigation />
             {/* Add new items. */}
@@ -23,6 +23,6 @@ export const Navigation = () => {
                     <Page link={"performance-and-load-benchmark/headless-cms/performance-tuning"} />
                 </Group>
             </Group>
-        </>
+        </NavigationRoot>
     );
 };

@@ -1,9 +1,10 @@
 import dynamic from "next/dynamic";
+import { Tab, TabPanel, TabList } from "react-tabs";
+
 const Tabs = dynamic(
     import("react-tabs").then(mod => mod.Tabs),
     { ssr: false }
 );
-import { Tab, TabPanel, TabList } from "react-tabs";
 
 // works as a container for props, but don't rended smth directly.
 // its children are used in TabsComponent

@@ -1,10 +1,10 @@
 import React from "react";
 import { Navigation as BaseNavigation } from "../5.33.x/navigation";
-import { Page, Group } from "@webiny/docs-generator";
+import { Page, Group, NavigationRoot } from "@webiny/docs-generator";
 
 export const Navigation = () => {
     return (
-        <>
+        <NavigationRoot directory={__dirname}>
             {/* Inherit navigation from 5.33.x. */}
             <BaseNavigation />
             {/* Add new items. */}
@@ -67,6 +67,6 @@ export const Navigation = () => {
                     />
                 </Group>
             </Group>
-        </>
+        </NavigationRoot>
     );
 };
