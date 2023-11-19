@@ -124,7 +124,7 @@ export class Navigation {
   ): Promise<[NavigationOutputPage, MdxFile | undefined]> {
     const filePath = `${(page.file ?? page.link ?? "").replace(".mdx", "")}.mdx`;
 
-    const mdxFile = await this.mdxFileLoader.load(path.join(page.directory, filePath));
+    const mdxFile = await this. mdxFileLoader.load(path.join(page.directory, filePath));
 
     const outputFileName = this.getOutputFileName(page, mdxFile);
     mdxFile.setOutputPath(`${this.linkPrefix}/${outputFileName}`);

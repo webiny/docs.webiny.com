@@ -14,7 +14,8 @@ import React from 'react'
 import { mdx } from '@mdx-js/react'
 `;
 
-type RemarkPlugin = () => unknown;
+// TODO: convert existing remark plugins to TS, and define a proper abstraction for them.
+type RemarkPlugin = unknown;
 
 export class MdxCompiler {
   private compiler: any;

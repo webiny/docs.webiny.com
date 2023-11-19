@@ -1,18 +1,21 @@
 import { MdxData, MdxFile, Version } from "@webiny/docs-generator";
 
 // TODO: convert this into a generic `VersionedMdxFile` to be used with any DocumentRoot
-export class DocsMdxFile extends MdxFile {
-  private type = "docs";
-  private version: Version;
-  private sourceVersion: Version;
+export abstract class VersionedMdxFile extends MdxFile {
+  protected version: Version;
+  protected sourceVersion: Version;
 
   constructor(data: MdxData, version?: Version) {
     super(data);
     this.version = version || new Version("0.0.0");
+    this.sourceVersion = new Version("0.0.0");
   }
 
   override clone(): any {
-    return new DocsMdxFile(this.props, this.version);
+    const Klass = Object.getPrototypeOf(this).constructor;
+    const clone = new Klass(this.props, this.version);
+    clone.contents = this.contents;
+    return clone;
   }
 
   getVersion() {
@@ -27,7 +30,7 @@ export class DocsMdxFile extends MdxFile {
     this.sourceVersion = version;
   }
 
-  getData(): Record<string, any> {
+  override getData(): Record<string, any> {
     return {
       ...super.getData(),
       version: this.version.getValue(),
@@ -37,11 +40,10 @@ export class DocsMdxFile extends MdxFile {
 
   override getDocsearch() {
     return {
-      weight: 100,
+      ...super.getDocsearch(),
       versions: [this.version.isLatest() ? "latest" : undefined, this.version.getValue()].filter(
         Boolean
-      ),
-      type: this.type
+      )
     };
   }
 

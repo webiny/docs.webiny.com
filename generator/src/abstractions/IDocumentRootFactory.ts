@@ -1,5 +1,6 @@
-import { IDocumentRoot } from "./IDocumentRoot";
+import { IDocumentRoot, IDocumentRootWatcher } from "./IDocumentRoot";
 
 export interface IDocumentRootFactory {
-  getDocumentRoots(): IDocumentRoot[];
+  getDocumentRoot(): IDocumentRoot;
+  getDocumentRootWatcher(): IDocumentRootWatcher;
 }

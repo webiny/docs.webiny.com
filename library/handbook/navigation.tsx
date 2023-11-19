@@ -3,7 +3,7 @@ import { Page, Collapsable, Section, NavigationRoot } from "@webiny/docs-generat
 
 export const Navigation = () => {
   return (
-    <NavigationRoot directory={__dirname}>
+    <NavigationRoot directory={__dirname} linkPrefix={"handbook"}>
       <Collapsable title={"Welcome!"}>
         <Section title={"Introduction"}>
           <Page link={"introduction"} />

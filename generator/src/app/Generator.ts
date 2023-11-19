@@ -1,18 +1,17 @@
 import { IFileWriter } from "../abstractions/IFileWriter";
-import { IDocumentRootFactory } from "../abstractions/IDocumentRootFactory";
+import { IDocumentRoot } from "../abstractions/IDocumentRoot";
 
 export class Generator {
-  private documentRootFactory: IDocumentRootFactory;
+  private documentRoot: IDocumentRoot;
   private fileWriter: IFileWriter;
 
-  constructor(documentRootFactory: IDocumentRootFactory, fileWriter: IFileWriter) {
-    this.documentRootFactory = documentRootFactory;
+  constructor(documentRoot: IDocumentRoot, fileWriter: IFileWriter) {
+    this.documentRoot = documentRoot;
     this.fileWriter = fileWriter;
   }
 
   async execute() {
-    const documentRoots = this.documentRootFactory.getDocumentRoots();
-    const allFiles = await Promise.all(documentRoots.map(root => root.generate()));
+    const allFiles = await this.documentRoot.generate();
     const files = allFiles.flat();
 
     for (const file of files) {

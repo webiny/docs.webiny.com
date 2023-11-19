@@ -8,7 +8,8 @@ tsNode.register({
     dir: resolve(__dirname, "./generator")
 });
 
-const { App, Config } = require("./docsConfig");
+const { App, AppConfig } = require("@webiny/docs-generator");
+const { default: docsConfig } = require("./docs.config");
 
 (async () => {
     const { watch, watchOnly, version } = yargs
@@ -30,12 +31,12 @@ const { App, Config } = require("./docsConfig");
             type: "boolean"
         }).argv;
 
-    const config = Config.create({
+    const config = AppConfig.create({
+        outputRoot: docsConfig.outputRoot,
+        documentRootConfigs: docsConfig.documentRoots,
         devMode: process.env.NODE_ENV === "development",
         outputVersions: version
     });
-
-    console.log(config);
 
     const app = new App(config);
 

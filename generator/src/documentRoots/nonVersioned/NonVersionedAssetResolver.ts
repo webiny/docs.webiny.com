@@ -9,15 +9,22 @@ type ImportNode = Node & { value?: string };
 /**
  * This visitor looks for `import` statements, and resolves the import paths to the actual location of the asset.
  */
-export const remarkResolveAssets = () => {
-  return () => (tree: Node, file: VFile) => {
+export class NonVersionedAssetResolver {
+  private constructor() {}
+
+  static create() {
+    const assetResolver = new NonVersionedAssetResolver();
+    return () => (tree: Node, file: VFile) => assetResolver.traverse(tree, file);
+  }
+
+  private traverse(tree: Node, file: VFile) {
     visit<ImportNode>(tree, "import", node => {
       if (!node.value) {
         return;
       }
 
       const ast = parse(node.value, { sourceType: "module" });
-      const importNode = firstNode(ast);
+      const importNode = this.firstNode(ast);
 
       if (!importNode) {
         return;
@@ -30,9 +37,9 @@ export const remarkResolveAssets = () => {
 
       node.value = node.value.replace(source.value, `${file.dirname}/${source.value}`);
     });
-  };
-};
+  }
 
-const firstNode = (ast: ReturnType<typeof parse>) => {
-  return ast.program.body.pop() as ImportDeclaration;
-};
+  private firstNode(ast: ReturnType<typeof parse>) {
+    return ast.program.body.pop() as ImportDeclaration;
+  }
+}

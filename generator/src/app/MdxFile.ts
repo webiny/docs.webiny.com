@@ -34,7 +34,8 @@ class FilePath {
   }
 }
 
-export class MdxFile {
+export abstract class MdxFile {
+  protected abstract type: string;
   protected readonly props: MdxData;
   protected readonly attributes: FrontMatterAttributes;
   protected readonly contents: string;
@@ -113,13 +114,17 @@ export class MdxFile {
   }
 
   getDocsearch(): Record<string, any> {
-    return {};
+    return {
+      type: this.type,
+      weight: 100
+    };
   }
 
   getData(): Record<string, any> {
     return {
       title: this.getTitle(),
-      description: this.getDescription()
+      description: this.getDescription(),
+      type: this.type
     };
   }
 

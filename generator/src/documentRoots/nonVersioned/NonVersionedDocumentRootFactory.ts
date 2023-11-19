@@ -20,20 +20,35 @@ import {
   DocumentRootWatcher,
   withNextLinks,
   NavigationCache,
-  PassthroughFileWriter
+  PassthroughFileWriter,
+  IMdxProcessor,
+  NonVersionedMdxFileFactoryCallable,
+  IDocumentRootFactory
 } from "@webiny/docs-generator";
-import { HandbookMdxFileFactory } from "./HandbookMdxFileFactory";
-import { remarkResolveAssets } from "./remarkResolveAssets";
-import { MdxLinkResolver } from "./MdxLinkResolver";
-import { Config } from "../Config";
+import { NonVersionedMdxFileFactory } from "./NonVersionedMdxFileFactory";
+import { NonVersionedAssetResolver } from "./NonVersionedAssetResolver";
+import { NonVersionedMdxLinkResolver } from "./NonVersionedMdxLinkResolver";
+import { AppConfig } from "../../app/AppConfig";
+import { IMdxCompilerPlugin } from "../../abstractions/IMdxCompilerPlugin";
 
-export class HandbookDocumentRoot {
+interface Config {
+  rootDir: string;
+  linkPrefix: `/${string}`;
+  outputDir: string;
+  pageLayout: string;
+  mdxFileProcessors: IMdxProcessor[];
+  mdxFileFactory: NonVersionedMdxFileFactoryCallable;
+  mdxCompilerPlugins: IMdxCompilerPlugin[];
+}
+
+export class NonVersionedDocumentRootFactory implements IDocumentRootFactory {
   private readonly documentRoot: IDocumentRoot;
   private readonly documentRootWatcher: IDocumentRootWatcher;
 
-  constructor(config: Config, rootDir: string) {
-    const outputDir = "pages";
-    const linkPrefix = "/docs/handbook";
+  constructor(appConfig: AppConfig, config: Config) {
+    const rootDir = config.rootDir;
+    const outputDir = config.outputDir;
+    const linkPrefix = config.linkPrefix;
     const navigationSourcePath = `${rootDir}/navigation.tsx`;
     const navigationOutputPath = `data/navigation.${md5(rootDir).slice(-6)}.json`;
 
@@ -41,28 +56,33 @@ export class HandbookDocumentRoot {
       // Add a separator before code generated via processors.
       new CodeSeparatorProcessor(),
       // Inject layout component import.
-      new LayoutProcessor("@/layouts/HandbookLayout"),
+      new LayoutProcessor(config.pageLayout),
       // Inject pageData into the page contents.
       new PageDataProcessor(),
       // Inject Algolia indexing data.
       new DocsearchProcessor(),
       // Inject navigation file import.
-      new PageNavigationProcessor(`@/${navigationOutputPath}`)
+      new PageNavigationProcessor(`@/${navigationOutputPath}`),
+      ...config.mdxFileProcessors
     ]);
 
-    const mdxFileLoader = new MdxFileLoader(handbookProcessor, new HandbookMdxFileFactory());
+    const mdxFileLoader = new MdxFileLoader(
+      handbookProcessor,
+      new NonVersionedMdxFileFactory(config.mdxFileFactory)
+    );
 
     const mdxFileWriter = new CompositeMdxFileWriter([
       // In dev mode, we write the processed MDX file for debugging purposes.
-      config.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
+      appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
       // Write sitemap XML file for each MDX file.
       new SitemapFileWriter(outputDir),
       // Write a JS file compiled from the MDX file.
       new CompiledMdxFileWriter(
         outputDir,
         new MdxCompiler([
-          remarkResolveAssets(),
-          withNextLinks(new MdxLinkResolver(rootDir, linkPrefix))
+          NonVersionedAssetResolver.create(),
+          withNextLinks(new NonVersionedMdxLinkResolver(rootDir, linkPrefix)),
+          ...config.mdxCompilerPlugins
         ])
       )
     ]);

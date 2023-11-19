@@ -1,8 +1,8 @@
 import fs from "fs-extra";
 import { DocumentRootVersions, IMdxFileLoader, Version } from "@webiny/docs-generator";
-import { DocsMdxFile } from "./DocsMdxFile";
+import { VersionedMdxFile } from "./VersionedMdxFile";
 
-export class VersionedMdxFileLoader<T extends DocsMdxFile = DocsMdxFile>
+export class VersionedMdxFileLoader<T extends VersionedMdxFile = VersionedMdxFile>
   implements IMdxFileLoader<T>
 {
   private readonly versions: DocumentRootVersions;

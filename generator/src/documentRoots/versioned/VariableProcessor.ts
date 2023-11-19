@@ -1,5 +1,5 @@
 import { DocumentRootVersions, IMdxProcessor, MdxFile } from "@webiny/docs-generator";
-import { DocsMdxFile } from "./DocsMdxFile";
+import { VersionedMdxFile } from "./VersionedMdxFile";
 
 interface Replacement {
   find: string | RegExp;
@@ -13,7 +13,7 @@ export class VariableProcessor implements IMdxProcessor {
     this.versions = versions;
   }
 
-  processMdx(mdxFile: DocsMdxFile): MdxFile | Promise<MdxFile> {
+  processMdx(mdxFile: VersionedMdxFile): MdxFile | Promise<MdxFile> {
     const version = mdxFile.getVersion();
 
     const replacements: Replacement[] = [

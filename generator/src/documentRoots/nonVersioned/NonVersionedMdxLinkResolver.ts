@@ -1,12 +1,7 @@
 import { IMdxLinkResolver, VFile } from "@webiny/docs-generator";
 import path from "path";
 
-interface DocsVFileData {
-  sourceVersion: string;
-  version: string;
-}
-
-export class VersionedMdxLinkResolver implements IMdxLinkResolver<DocsVFileData> {
+export class NonVersionedMdxLinkResolver implements IMdxLinkResolver {
   private readonly documentRootDir: string;
   private readonly linkPrefix: string;
 
@@ -15,17 +10,12 @@ export class VersionedMdxLinkResolver implements IMdxLinkResolver<DocsVFileData>
     this.linkPrefix = linkPrefix;
   }
 
-  resolve(vFile: VFile<DocsVFileData>, currentFilePath: string, href: string): string {
+  resolve(currentFilePath: string, href: string): string {
     if (href.startsWith("/")) {
       return href;
     }
 
-    const versionedRootDir = this.documentRootDir.replace(
-      vFile.data.version,
-      vFile.data.sourceVersion
-    );
-
-    const currentFolder = path.dirname(currentFilePath).replace(versionedRootDir, "");
+    const currentFolder = path.dirname(currentFilePath).replace(this.documentRootDir, "");
 
     return path.join(this.linkPrefix, path.resolve(currentFolder, href));
   }

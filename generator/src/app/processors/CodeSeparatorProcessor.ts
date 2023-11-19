@@ -6,6 +6,7 @@ export class CodeSeparatorProcessor extends AbstractMdxProcessor {
     return mdxFile.withContents(contents => {
       return [
         contents,
+        "\n",
         this.mdxComment(
           `================== THE FOLLOWING CODE IS GENERATED VIA CODE PROCESSORS ==================`
         )

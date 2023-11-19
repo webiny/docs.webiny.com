@@ -14,6 +14,8 @@ export * from "./abstractions/IReactRenderer";
 
 export * from "./components/navigation";
 
+export * from "./app/App";
+export * from "./app/AppConfig";
 export * from "./app/Generator";
 export * from "./app/Watcher";
 export * from "./app/ConsoleLogger";
@@ -45,3 +47,7 @@ export * from "./app/processors/DocsearchProcessor";
 export * from "./app/processors/PageNavigationProcessor";
 
 export * from "./app/mdxCompiler/remark/withNextLinks";
+
+export * from "./documentRoots/nonVersioned/NonVersionedDocumentRootConfig";
+export * from "./documentRoots/versioned/VersionedMdxFile";
+export * from "./documentRoots/versioned/VersionedDocumentRootConfig";

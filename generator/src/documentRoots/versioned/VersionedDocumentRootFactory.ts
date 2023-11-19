@@ -26,35 +26,49 @@ import {
   withNextLinks,
   NavigationCache,
   PassthroughFileWriter,
-  CompositeDocumentRootWatcher
+  CompositeDocumentRootWatcher,
+  IDocumentRootFactory,
+  AppConfig,
+  IMdxProcessor
 } from "@webiny/docs-generator";
-import { DocsMdxFileFactory } from "./DocsMdxFileFactory";
-import { remarkResolveAssets } from "./remarkResolveAssets";
+import { VersionedMdxFileFactory } from "./VersionedMdxFileFactory";
+import { VersionedAssetResolver } from "./VersionedAssetResolver";
 import { VersionedMdxFileLoader } from "./VersionedMdxFileLoader";
 import { VersionedAssetResolverFactory } from "./VersionedAssetResolverFactory";
 import { VersionedDocumentRoot } from "./VersionedDocumentRoot";
 import { VersionsFile } from "./VersionsFile";
-import { Config } from "../Config";
-import { DocsMdxFile } from "./DocsMdxFile";
+import { VersionedMdxFile } from "./VersionedMdxFile";
 import { VariableProcessor } from "./VariableProcessor";
 import { VersionedMdxLinkResolver } from "./VersionedMdxLinkResolver";
+import { IMdxCompilerPlugin } from "../../abstractions/IMdxCompilerPlugin";
+import { VersionedMdxFileFactoryCallable } from "./VersionedDocumentRootConfig";
 
-export class DocsDocumentRoot {
-  private readonly rootDir: string;
+interface Config {
+  rootDir: string;
+  linkPrefix: `/${string}`;
+  outputDir: string;
+  pageLayout: string;
+  mdxFileProcessors: IMdxProcessor[];
+  mdxFileFactory: VersionedMdxFileFactoryCallable;
+  mdxCompilerPlugins: IMdxCompilerPlugin[];
+}
+
+export class VersionedDocumentRootFactory implements IDocumentRootFactory {
   private readonly documentRoot: IDocumentRoot;
+  private readonly appConfig: AppConfig;
   private readonly config: Config;
   private readonly documentRootWatcher: IDocumentRootWatcher;
   private readonly versions: DocumentRootVersions;
 
-  constructor(config: Config, rootDir: string) {
+  constructor(appConfig: AppConfig, config: Config) {
+    this.appConfig = appConfig;
     this.config = config;
-    this.rootDir = rootDir;
     this.versions = this.detectVersions();
 
     const documentRoots = this.versions
       .getVersions()
       .filter(version => this.shouldProcessVersion(version))
-      .map(version => this.createDocumentRoot(this.rootDir, version));
+      .map(version => this.createDocumentRoot(config, version));
 
     this.documentRoot = new VersionedDocumentRoot(
       this.getVersionsFile(),
@@ -75,23 +89,23 @@ export class DocsDocumentRoot {
   }
 
   private detectVersions() {
-    const allVersions = fs.readdirSync(this.rootDir);
+    const allVersions = fs.readdirSync(this.config.rootDir);
 
     return new DocumentRootVersions(allVersions);
   }
 
-  private createDocumentRoot(rootDir: string, version: Version) {
-    const outputDir = "pages";
-    const versionedRootDir = `${rootDir}/${version}`;
-    const linkPrefix = version.isLatest() ? "/docs" : `/docs/${version}`;
+  private createDocumentRoot(config: Config, version: Version) {
+    const outputDir = config.outputDir;
+    const versionedRootDir = `${config.rootDir}/${version}`;
+    const linkPrefix = version.isLatest() ? config.linkPrefix : `${config.linkPrefix}/${version}`;
     const navigationSourcePath = `${versionedRootDir}/navigation`;
     const navigationOutputPath = `data/navigation.${md5(versionedRootDir).slice(-6)}.json`;
 
-    const mdxProcessor = new CompositeMdxProcessor<DocsMdxFile>([
+    const mdxProcessor = new CompositeMdxProcessor<VersionedMdxFile>([
       // Add a separator before code generated via processors.
       new CodeSeparatorProcessor(),
       // Inject layout component import.
-      new LayoutProcessor("@/layouts/DocumentationLayout"),
+      new LayoutProcessor(config.pageLayout),
       // Inject pageData into the page contents.
       new PageDataProcessor(),
       // Inject Algolia indexing data.
@@ -99,27 +113,34 @@ export class DocsDocumentRoot {
       // Inject navigation file import.
       new PageNavigationProcessor(`@/${navigationOutputPath}`),
       // Inject variable values (`{version}`, `{exact:...}`).
-      new VariableProcessor(this.versions)
+      new VariableProcessor(this.versions),
+      ...config.mdxFileProcessors
     ]);
 
-    const mdxFileLoader = new VersionedMdxFileLoader<DocsMdxFile>(
+    const mdxFileLoader = new VersionedMdxFileLoader<VersionedMdxFile>(
       version,
       this.versions,
       // We need this loader to point to the versioned docs root, and not a specific version.
-      new MdxFileLoader<DocsMdxFile>(mdxProcessor, new DocsMdxFileFactory(version))
+      new MdxFileLoader<VersionedMdxFile>(
+        mdxProcessor,
+        new VersionedMdxFileFactory(config.mdxFileFactory, version)
+      )
     );
 
     const mdxFileWriter = new CompositeMdxFileWriter([
       // In dev mode, we write the processed MDX file for debugging purposes.
-      this.config.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
+      this.appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
       // Write sitemap XML file for each MDX file.
       new SitemapFileWriter(outputDir),
       // Write a JS file compiled from the MDX file.
       new CompiledMdxFileWriter(
         outputDir,
         new MdxCompiler([
-          remarkResolveAssets(new VersionedAssetResolverFactory(rootDir, version, this.versions)),
-          withNextLinks(new VersionedMdxLinkResolver(versionedRootDir, linkPrefix))
+          VersionedAssetResolver.create(
+            new VersionedAssetResolverFactory(config.rootDir, version, this.versions)
+          ),
+          withNextLinks(new VersionedMdxLinkResolver(versionedRootDir, linkPrefix)),
+          ...config.mdxCompilerPlugins
         ])
       )
     ]);
@@ -140,15 +161,17 @@ export class DocsDocumentRoot {
   }
 
   private shouldProcessVersion(version: Version) {
-    if (this.config.isDevMode()) {
-      return this.config.getVersionsToOutput().includes(version.getValue()) || version.isLatest();
+    if (this.appConfig.isDevMode()) {
+      return (
+        this.appConfig.getVersionsToOutput().includes(version.getValue()) || version.isLatest()
+      );
     }
     return true;
   }
 
   private getVersionsFile() {
-    const toOutput = this.config.getVersionsToOutput();
-    const filteredVersions = this.config.isDevMode()
+    const toOutput = this.appConfig.getVersionsToOutput();
+    const filteredVersions = this.appConfig.isDevMode()
       ? this.versions.createWithFilter(v => toOutput.includes(v.getValue()))
       : this.versions;
 

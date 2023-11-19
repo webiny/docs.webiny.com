@@ -15,8 +15,18 @@ interface NavigationRootContext {
 const NavigationRootContext = React.createContext<NavigationRootContext | undefined>(undefined);
 
 export const NavigationRoot = ({ directory, linkPrefix, children }: NavigationRootProps) => {
+  let parentLinkPrefix;
+  try {
+    const parentRoot = useNavigationRoot();
+    parentLinkPrefix = parentRoot.linkPrefix;
+  } catch {
+    // Simply means there's no parent <NavigationRoot>
+  }
+
   return (
-    <NavigationRootContext.Provider value={{ directory, linkPrefix }}>
+    <NavigationRootContext.Provider
+      value={{ directory, linkPrefix: linkPrefix ?? parentLinkPrefix }}
+    >
       {children}
     </NavigationRootContext.Provider>
   );
