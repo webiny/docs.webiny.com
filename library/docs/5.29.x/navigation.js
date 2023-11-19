@@ -1,59 +1,59 @@
 import React from "react";
 import { Navigation as BaseNavigation } from "../5.28.x/navigation";
-import { Collapsable, Section, Page, NavigationRoot } from "@webiny/docs-generator";
+import { Group, Page, NavigationRoot } from "@webiny/docs-generator";
 
 export const Navigation = () => {
     return (
         <NavigationRoot directory={__dirname}>
             {/* Inherit navigation from 5.28.x. */}
             <BaseNavigation />
-            <Collapsable title={"Infrastructure"}>
-                <Section title={"Basics"}>
+            <Group title={"Infrastructure"}>
+                <Group title={"Basics"}>
                     <Page
                         link={"infrastructure/basics/modify-cloud-infrastructure"}
                         after={"infrastructure/basics/destroy-cloud-infrastructure"}
                     />
-                </Section>
-            </Collapsable>
+                </Group>
+            </Group>
 
-            <Collapsable title={"Core Development Concepts"}>
-                <Section title={"Scaffolding"}>
+            <Group title={"Core Development Concepts"}>
+                <Group title={"Scaffolding"}>
                     <Page
                         link={"core-development-concepts/scaffolding/full-stack-application"}
                         remove
                     />
-                </Section>
-            </Collapsable>
+                </Group>
+            </Group>
 
-            <Collapsable title={"Architecture"}>
-                <Section title={"Core Architecture"} before={"API Architecture"}>
+            <Group title={"Architecture"}>
+                <Group title={"Core Architecture"} before={"API Architecture"}>
                     <Page link={"architecture/core/overview"} />
-                </Section>
-                <Section title={"Admin Area Architecture"}>
+                </Group>
+                <Group title={"Admin Area Architecture"}>
                     <Page link={"architecture/admin/introduction"} remove />
-                </Section>
-                <Section title={"Website Architecture"}>
+                </Group>
+                <Group title={"Website Architecture"}>
                     <Page link={"architecture/website/introduction"} remove />
-                </Section>
-                <Section title={"API Architecture"}>
+                </Group>
+                <Group title={"API Architecture"}>
                     <Page link={"architecture/api/introduction"} remove />
                     <Page link={"architecture/api/overview-vpc-default"} remove />
                     <Page link={"architecture/api/overview-vpc-custom"} remove />
-                </Section>
-                <Section title={"Deployment Modes"} after={"Website Architecture"}>
+                </Group>
+                <Group title={"Deployment Modes"} after={"Website Architecture"}>
                     <Page link={"architecture/deployment-modes/introduction"} />
                     <Page link={"architecture/deployment-modes/development"} />
                     <Page link={"architecture/deployment-modes/production"} />
-                </Section>
-            </Collapsable>
-            <Collapsable title={"Core Development Concepts"}>
-                <Section title={"Scaffolding"}>
+                </Group>
+            </Group>
+            <Group title={"Core Development Concepts"}>
+                <Group title={"Scaffolding"}>
                     <Page
                         link={"core-development-concepts/scaffolding/full-stack-application"}
                         remove
                     />
-                </Section>
-            </Collapsable>
+                </Group>
+            </Group>
         </NavigationRoot>
     );
 };

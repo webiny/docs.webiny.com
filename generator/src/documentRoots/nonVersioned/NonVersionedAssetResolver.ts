@@ -3,6 +3,7 @@ import { Node } from "unist";
 import { VFile } from "vfile";
 import { parse } from "@babel/parser";
 import { ImportDeclaration } from "@babel/types";
+import path from "path";
 
 type ImportNode = Node & { value?: string };
 
@@ -14,7 +15,9 @@ export class NonVersionedAssetResolver {
 
   static create() {
     const assetResolver = new NonVersionedAssetResolver();
-    return () => (tree: Node, file: VFile) => assetResolver.traverse(tree, file);
+    return () => (tree: Node, file: VFile) => {
+      assetResolver.traverse(tree, file);
+    };
   }
 
   private traverse(tree: Node, file: VFile) {
@@ -31,11 +34,12 @@ export class NonVersionedAssetResolver {
       }
 
       const { source } = importNode;
-      if (!source.value.startsWith("./")) {
+      if (!source.value.startsWith("./") && !source.value.startsWith("../")) {
         return;
       }
 
-      node.value = node.value.replace(source.value, `${file.dirname}/${source.value}`);
+      const resolvedPath = path.join(String(file.dirname), source.value);
+      node.value = node.value.replace(source.value, resolvedPath);
     });
   }
 

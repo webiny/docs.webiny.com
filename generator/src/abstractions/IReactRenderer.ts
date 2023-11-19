@@ -16,14 +16,8 @@ export interface NavigationOutputPage {
   link: string;
 }
 
-export interface NavigationSection<TChild> {
-  type: "section";
-  title: string;
-  items: TChild[];
-}
-
-export interface NavigationCollapsable<TChild> {
-  type: "collapsable";
+export interface NavigationGroup<TChild> {
+  type: "group";
   title: string;
   items: TChild[];
 }
@@ -33,16 +27,7 @@ export interface NavigationSeparator {
 }
 
 export type NavigationTree<TPage = NavigationPage> = {
-  items: Array<
-    | NavigationCollapsable<
-        | NavigationCollapsable<TPage>
-        | NavigationSection<NavigationCollapsable<TPage> | TPage>
-        | TPage
-      >
-    | NavigationSection<NavigationCollapsable<TPage> | TPage>
-    | NavigationSeparator
-    | TPage
-  >;
+  items: Array<NavigationGroup<NavigationGroup<TPage> | TPage> | NavigationSeparator | TPage>;
 };
 
 export interface IReactRenderer<T> {
@@ -50,12 +35,7 @@ export interface IReactRenderer<T> {
 }
 
 export type NavigationOutputData = Array<
-  | NavigationCollapsable<
-      | NavigationCollapsable<NavigationOutputPage>
-      | NavigationSection<NavigationCollapsable<NavigationOutputPage> | NavigationOutputPage>
-      | NavigationOutputPage
-    >
-  | NavigationSection<NavigationCollapsable<NavigationOutputPage> | NavigationOutputPage>
+  | NavigationGroup<NavigationGroup<NavigationOutputPage> | NavigationOutputPage>
   | NavigationOutputPage
   | NavigationSeparator
 >;

@@ -48,6 +48,7 @@ const { default: docsConfig } = require("./docs.config");
         await app.generate();
     } catch (err) {
         console.error("CAUGHT ERROR", err.message);
+        console.log(err);
         process.exit(1);
     }
 

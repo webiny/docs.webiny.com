@@ -1,15 +1,15 @@
 import React from "react";
-import { Page, Section, Collapsable, Separator, NavigationRoot } from "@webiny/docs-generator";
+import { Page, Group, Separator, NavigationRoot } from "@webiny/docs-generator";
 
 export const Navigation = ({ children }) => {
     return (
         <NavigationRoot directory={__dirname} linkPrefix={"user-guides"}>
-            <Collapsable title={"Get Started"}>
+            <Group title={"Get Started"}>
                 <Page link={"overview"} />
-            </Collapsable>
+            </Group>
             <Separator />
-            <Collapsable title={"Headless CMS"}>
-                <Section title={"Essentials"}>
+            <Group title={"Headless CMS"}>
+                <Group title={"Essentials"}>
                     <Page title={"Glossary"} link={"headless-cms/essentials/glossary"} />
                     <Page link={"headless-cms/essentials/create-content-model"} />
                     <Page link={"headless-cms/essentials/create-content-entry"} />
@@ -19,15 +19,15 @@ export const Navigation = ({ children }) => {
                     <Page link={"headless-cms/essentials/manage-content-model-settings"} />
                     <Page link={"headless-cms/essentials/add-validator-to-fields"} />
                     <Page link={"headless-cms/essentials/reference-field"} />
-                </Section>
-                <Section title={"Advanced"}>
+                </Group>
+                <Group title={"Advanced"}>
                     <Page link={"headless-cms/advanced/content-localization"} />
                     <Page link={"headless-cms/advanced/user-creation"} />
-                </Section>
-            </Collapsable>
+                </Group>
+            </Group>
             <Separator />
-            <Collapsable title={"Page Builder"}>
-                <Section title={"Essentials"}>
+            <Group title={"Page Builder"}>
+                <Group title={"Essentials"}>
                     <Page title={"Glossary"} link={"page-builder/essentials/glossary"} />
                     <Page title={"Overview"} link={"page-builder/essentials/overview"} />
                     <Page
@@ -40,13 +40,13 @@ export const Navigation = ({ children }) => {
                     <Page link={"page-builder/essentials/seo-and-social-sharing"} />
                     <Page link={"page-builder/essentials/navigation-menu"} />
                     <Page link={"page-builder/essentials/page-revisions"} />
-                </Section>
-                <Section title={"Advanced"}>
+                </Group>
+                <Group title={"Advanced"}>
                     <Page link={"page-builder/advanced/user-creation"} />
                     <Page link={"page-builder/advanced/page-export-import"} />
                     <Page link={"page-builder/advanced/page-localization"} />
-                </Section>
-            </Collapsable>
+                </Group>
+            </Group>
             {children}
         </NavigationRoot>
     );

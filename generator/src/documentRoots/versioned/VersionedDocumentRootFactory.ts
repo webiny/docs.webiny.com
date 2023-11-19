@@ -1,5 +1,4 @@
 import md5 from "md5";
-import fs from "fs-extra";
 
 import {
   IDocumentRoot,
@@ -29,7 +28,8 @@ import {
   CompositeDocumentRootWatcher,
   IDocumentRootFactory,
   AppConfig,
-  IMdxProcessor
+  IMdxProcessor,
+  IVersionsProvider
 } from "@webiny/docs-generator";
 import { VersionedMdxFileFactory } from "./VersionedMdxFileFactory";
 import { VersionedAssetResolver } from "./VersionedAssetResolver";
@@ -42,12 +42,14 @@ import { VariableProcessor } from "./VariableProcessor";
 import { VersionedMdxLinkResolver } from "./VersionedMdxLinkResolver";
 import { IMdxCompilerPlugin } from "../../abstractions/IMdxCompilerPlugin";
 import { VersionedMdxFileFactoryCallable } from "./VersionedDocumentRootConfig";
+import { VersionsProcessor } from "./VersionsProcessor";
 
 interface Config {
   rootDir: string;
   linkPrefix: `/${string}`;
   outputDir: string;
   pageLayout: string;
+  versionsProvider: IVersionsProvider;
   mdxFileProcessors: IMdxProcessor[];
   mdxFileFactory: VersionedMdxFileFactoryCallable;
   mdxCompilerPlugins: IMdxCompilerPlugin[];
@@ -62,16 +64,27 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
 
   constructor(appConfig: AppConfig, config: Config) {
     this.appConfig = appConfig;
-    this.config = config;
-    this.versions = this.detectVersions();
+
+    const versionsFileOutputPath = `data/versions.${md5(config.rootDir).slice(-6)}.json`;
+
+    this.config = {
+      ...config,
+      mdxFileProcessors: [
+        ...config.mdxFileProcessors,
+        // Inject versions file import.
+        new VersionsProcessor(`@/${versionsFileOutputPath}`)
+      ]
+    };
+
+    this.versions = config.versionsProvider.getVersions();
 
     const documentRoots = this.versions
       .getVersions()
       .filter(version => this.shouldProcessVersion(version))
-      .map(version => this.createDocumentRoot(config, version));
+      .map(version => this.createDocumentRoot(version));
 
     this.documentRoot = new VersionedDocumentRoot(
-      this.getVersionsFile(),
+      this.getVersionsFile(versionsFileOutputPath),
       new CompositeDocumentRoot(documentRoots)
     );
 
@@ -88,13 +101,8 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
     return this.documentRootWatcher;
   }
 
-  private detectVersions() {
-    const allVersions = fs.readdirSync(this.config.rootDir);
-
-    return new DocumentRootVersions(allVersions);
-  }
-
-  private createDocumentRoot(config: Config, version: Version) {
+  private createDocumentRoot(version: Version) {
+    const config = this.config;
     const outputDir = config.outputDir;
     const versionedRootDir = `${config.rootDir}/${version}`;
     const linkPrefix = version.isLatest() ? config.linkPrefix : `${config.linkPrefix}/${version}`;
@@ -169,12 +177,12 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
     return true;
   }
 
-  private getVersionsFile() {
+  private getVersionsFile(versionsFileOutputPath: string) {
     const toOutput = this.appConfig.getVersionsToOutput();
     const filteredVersions = this.appConfig.isDevMode()
       ? this.versions.createWithFilter(v => toOutput.includes(v.getValue()))
       : this.versions;
 
-    return VersionsFile.create(filteredVersions, `data/docs.versions.json`);
+    return VersionsFile.create(filteredVersions, versionsFileOutputPath);
   }
 }

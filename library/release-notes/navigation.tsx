@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import globby from "globby";
-import { Page, Collapsable, Section, NavigationRoot } from "@webiny/docs-generator";
+import { Page, Group, NavigationRoot } from "@webiny/docs-generator";
 import { rcompare, valid } from "semver";
 
 const rootDir = `${__dirname}/`;
@@ -54,7 +54,7 @@ export const Navigation = () => {
     const other = releases[version].filter(item => !predefinedTypes.includes(item.type));
 
     return (
-      <Collapsable title={version}>
+      <Group title={version}>
         {changeLog ? (
           <Page file={changeLog.file} link={`release-notes/${version}/changelog`} />
         ) : null}
@@ -68,25 +68,25 @@ export const Navigation = () => {
             link={`release-notes/${item.file.replace(".mdx", "")}`}
           />
         ))}
-      </Collapsable>
+      </Group>
     );
   }
 
   return (
     <NavigationRoot directory={__dirname}>
-      <Collapsable title={"Release Notes"}>
+      <Group title={"Release Notes"}>
         <Page file={"./upgrade-webiny.mdx"} link={"release-notes/upgrade-webiny"} />
-        <Section title={"Release Notes"}>
+        <Group title={"Release Notes"}>
           {versions.slice(0, 5).map(version => (
             <MenuItem key={version} version={version} />
           ))}
-          <Collapsable title={"Older Releases"}>
+          <Group title={"Older Releases"}>
             {versions.slice(5).map(version => (
               <MenuItem key={version} version={version} />
             ))}
-          </Collapsable>
-        </Section>
-      </Collapsable>
+          </Group>
+        </Group>
+      </Group>
     </NavigationRoot>
   );
 };

@@ -11,6 +11,7 @@ export * from "./abstractions/IMdxProcessor";
 export * from "./abstractions/INavigationWriter";
 export * from "./abstractions/INavigationLoader";
 export * from "./abstractions/IReactRenderer";
+export * from "./abstractions/IVersionsProvider";
 
 export * from "./components/navigation";
 

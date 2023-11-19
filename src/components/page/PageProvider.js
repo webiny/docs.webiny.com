@@ -15,6 +15,7 @@ export const PageProvider = ({ Component, children }) => {
         MdxPage: Component,
         Layout: layoutProps.Layout || Fragment,
         page: {
+            versions: layoutProps.versions || [],
             navigation: layoutProps.navigation || [],
             ...pageData,
             docsearch,

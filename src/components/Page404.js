@@ -1,5 +1,4 @@
 import { usePage } from "@/hooks/usePage";
-import { useVersions } from "@/hooks/useVersions";
 import { Layout } from "@/layouts/DocumentationLayout";
 import { PageLayout } from "@/layouts/PageLayout";
 import Link from "next/link";
@@ -7,7 +6,6 @@ import { useRouter } from "next/router";
 const allPages = [];
 
 export const Page404 = () => {
-    const versions = useVersions();
     const { page } = usePage();
     const router = useRouter();
 
@@ -36,7 +34,7 @@ export const Page404 = () => {
                                 <li key={page.fullPath}>
                                     <Link href={page.fullPath}>
                                         {page.version === "latest"
-                                            ? versions.latestVersion
+                                            ? page.versions.latestVersion
                                             : page.version}
                                     </Link>
                                 </li>

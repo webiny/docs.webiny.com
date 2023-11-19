@@ -30,6 +30,7 @@ export class Version {
 
 export class DocumentRootVersions {
   private readonly versions: Version[];
+
   constructor(versions: string[]) {
     this.versions = this.validateAndSortVersions(versions).map((version, index, parent) => {
       const isLatest = index === 0;
@@ -51,6 +52,11 @@ export class DocumentRootVersions {
   getLatest() {
     // There will always be at least one version, so there will always be a "latest" version.
     return this.versions.find(version => version.isLatest()) as Version;
+  }
+
+  getOldest() {
+    // There will always be at least one version, so there will always be an "oldest" version.
+    return this.versions.find(version => version.isOldest()) as Version;
   }
 
   getVersions() {

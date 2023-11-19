@@ -70,7 +70,7 @@ function nearestScrollableContainer(el) {
 const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
     const { type, title, link, items, isActive, isActiveChild } = element;
 
-    if (type === "collapsable") {
+    if (type === "group" && depth !== 1) {
         return (
             <Collapsable
                 subElements={items}
@@ -80,9 +80,7 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 depth={depth}
             />
         );
-    } else if (type === "page") {
-        return <Page title={title} link={link} isActive={isActive} ref={ref} depth={depth} />;
-    } else if (type === "section") {
+    } else if (type === "group" && depth === 1) {
         return (
             <Section
                 subElements={items}
@@ -92,11 +90,12 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 depth={depth}
             />
         );
+    } else if (type === "page") {
+        return <Page title={title} link={link} isActive={isActive} ref={ref} depth={depth} />;
     } else if (type === "separator") {
         return <HorizontalLine />;
-    } else {
-        return null;
     }
+    return null;
 });
 
 const HorizontalLine = () => {
