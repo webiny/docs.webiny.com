@@ -31,9 +31,9 @@ export class Version {
 export class DocumentRootVersions {
   private readonly versions: Version[];
   constructor(versions: string[]) {
-    this.versions = this.validateAndSortVersions(versions).map((version, index) => {
+    this.versions = this.validateAndSortVersions(versions).map((version, index, parent) => {
       const isLatest = index === 0;
-      const isOldest = versions.length - 1 === index;
+      const isOldest = parent.length - 1 === index;
 
       return new Version(version, isLatest, isOldest);
     });

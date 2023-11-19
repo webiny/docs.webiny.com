@@ -1,10 +1,10 @@
 import React from "react";
 import { Navigation as BaseNavigation } from "../5.36.x/navigation";
-import { Page, Section, Collapsable } from "@webiny/docs-generator";
+import { Page, Section, Collapsable, NavigationRoot } from "@webiny/docs-generator";
 
 export const Navigation = () => {
     return (
-        <>
+        <NavigationRoot directory={__dirname}>
             {/* Inherit navigation from 5.36.x. */}
             <BaseNavigation />
             {/* Add new items. */}
@@ -43,6 +43,6 @@ export const Navigation = () => {
             <Collapsable title={"Webiny Enterprise"}>
                 <Page link={"enterprise/teams"} />
             </Collapsable>
-        </>
+        </NavigationRoot>
     );
 };

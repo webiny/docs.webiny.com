@@ -50,11 +50,7 @@ export class HandbookDocumentRoot {
       new PageNavigationProcessor(`@/${navigationOutputPath}`)
     ]);
 
-    const mdxFileLoader = new MdxFileLoader(
-      rootDir,
-      handbookProcessor,
-      new HandbookMdxFileFactory()
-    );
+    const mdxFileLoader = new MdxFileLoader(handbookProcessor, new HandbookMdxFileFactory());
 
     const mdxFileWriter = new CompositeMdxFileWriter([
       // In dev mode, we write the processed MDX file for debugging purposes.

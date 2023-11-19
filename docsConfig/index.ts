@@ -29,6 +29,7 @@ export class App {
       this.logger,
       new Generator(new DocumentRootFactory(this.config), new FsFileWriter(outputRoot, this.logger))
     );
+
     await generator.execute();
   }
 

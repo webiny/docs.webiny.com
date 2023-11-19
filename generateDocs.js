@@ -43,7 +43,13 @@ const { App, Config } = require("./docsConfig");
         await app.watch();
     }
 
-    await app.generate();
+    try {
+        await app.generate();
+    } catch (err) {
+        console.error("CAUGHT ERROR", err.message);
+        process.exit(1);
+    }
+
     if (watch) {
         await app.watch();
     }

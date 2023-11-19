@@ -1,4 +1,3 @@
-import path from "path";
 import fs from "fs-extra";
 import { DocumentRootVersions, IMdxFileLoader, Version } from "@webiny/docs-generator";
 import { DocsMdxFile } from "./DocsMdxFile";
@@ -7,17 +6,14 @@ export class VersionedMdxFileLoader<T extends DocsMdxFile = DocsMdxFile>
   implements IMdxFileLoader<T>
 {
   private readonly versions: DocumentRootVersions;
-  private readonly rootDir: string;
   private readonly mdxFileLoader: IMdxFileLoader<T>;
   private readonly version: Version;
 
   constructor(
-    rootDir: string,
     version: Version,
     versions: DocumentRootVersions,
     mdxFileLoader: IMdxFileLoader<T>
   ) {
-    this.rootDir = rootDir;
     this.version = version;
     this.versions = versions;
     this.mdxFileLoader = mdxFileLoader;
@@ -28,7 +24,7 @@ export class VersionedMdxFileLoader<T extends DocsMdxFile = DocsMdxFile>
 
     if (!resolvedMdxFile) {
       throw Error(
-        `Couldn't find a source file for "${filePath}" in document root "${this.rootDir}"!`
+        `Couldn't find a parent source file for "${filePath}"!`
       );
     }
 
@@ -40,12 +36,10 @@ export class VersionedMdxFileLoader<T extends DocsMdxFile = DocsMdxFile>
   }
 
   async resolvePath(version: Version, filePath: string): Promise<ResolvedMdxFile | undefined> {
-    const versionedPath = path.join(this.rootDir, version.getValue(), filePath);
-
-    const pathExists = await fs.pathExists(versionedPath);
+    const pathExists = await fs.pathExists(filePath);
 
     if (pathExists) {
-      return new ResolvedMdxFile(versionedPath, version);
+      return new ResolvedMdxFile(filePath, version);
     }
 
     const previousVersion = this.versions.getPreviousVersion(version);
@@ -54,7 +48,10 @@ export class VersionedMdxFileLoader<T extends DocsMdxFile = DocsMdxFile>
       return undefined;
     }
 
-    return this.resolvePath(previousVersion, filePath);
+    return this.resolvePath(
+      previousVersion,
+      filePath.replace(version.getValue(), previousVersion.getValue())
+    );
   }
 }
 

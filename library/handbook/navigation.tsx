@@ -1,9 +1,9 @@
 import React from "react";
-import { Page, Collapsable, Section } from "@webiny/docs-generator";
+import { Page, Collapsable, Section, NavigationRoot } from "@webiny/docs-generator";
 
 export const Navigation = () => {
   return (
-    <>
+    <NavigationRoot directory={__dirname}>
       <Collapsable title={"Welcome!"}>
         <Section title={"Introduction"}>
           <Page link={"introduction"} />
@@ -11,6 +11,6 @@ export const Navigation = () => {
           <Page file={"cypress.mdx"} link={"testing/cypress"} />
         </Section>
       </Collapsable>
-    </>
+    </NavigationRoot>
   );
 };

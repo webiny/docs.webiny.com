@@ -5,6 +5,8 @@ import { VersionSelector } from "@/components/page/VersionSelector";
 import { ViewLatestVersion } from "@/components/page/ViewLatestVersion";
 import { PageHeader } from "@/components/page/PageHeader";
 
+// TODO: this might not be needed at all. So far, it's only used in Page404, which is also questionable.
+
 export function PageLayout({ children }) {
     const { page } = usePage();
 

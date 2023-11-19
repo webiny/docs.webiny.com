@@ -1,10 +1,10 @@
 import React from "react";
 import { Navigation as BaseNavigation } from "../5.28.x/navigation";
-import { Collapsable, Section, Page, NavGroup } from "@webiny/docs-generator";
+import { Collapsable, Section, Page, NavigationRoot } from "@webiny/docs-generator";
 
 export const Navigation = () => {
     return (
-        <>
+        <NavigationRoot directory={__dirname}>
             {/* Inherit navigation from 5.28.x. */}
             <BaseNavigation />
             <Collapsable title={"Infrastructure"}>
@@ -54,6 +54,6 @@ export const Navigation = () => {
                     />
                 </Section>
             </Collapsable>
-        </>
+        </NavigationRoot>
     );
 };

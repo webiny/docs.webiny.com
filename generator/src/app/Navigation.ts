@@ -1,3 +1,4 @@
+import path from "path";
 import { mdbid } from "@webiny/utils";
 import {
   NavigationOutputData,
@@ -93,28 +94,29 @@ export class Navigation {
   }
 
   private traversePages<TPageIn extends NavigationPage, TPageOut>(
-    groups: NavigationTree<TPageIn>["items"],
+    nodes: NavigationTree<TPageIn>["items"],
     cb: (page: TPageIn) => TPageOut
-  ) {
-    return groups.map(group => {
-      if (group.type === "separator") {
-        return group;
-      }
+  ): NavigationTree<TPageOut>["items"] {
+    return nodes
+      .map(node => {
+        if (node.type === "separator") {
+          return node;
+        }
 
-      return {
-        ...group,
-        items: group.items.map(section => {
-          if (section.type === "page") {
-            return cb(section);
+        if (node.type === "page") {
+          const page = cb(node);
+          if (pageIsHidden(page)) {
+            return null;
           }
+          return page;
+        }
 
-          return {
-            ...section,
-            items: section.items.map(page => cb(page)).filter(page => !pageIsHidden(page))
-          };
-        })
-      };
-    });
+        return {
+          ...node,
+          items: this.traversePages<TPageIn, TPageOut>(node.items, cb)
+        };
+      })
+      .filter(Boolean) as NavigationTree<TPageOut>["items"];
   }
 
   private async resolveLink(
@@ -122,10 +124,9 @@ export class Navigation {
   ): Promise<[NavigationOutputPage, MdxFile | undefined]> {
     const filePath = `${(page.file ?? page.link ?? "").replace(".mdx", "")}.mdx`;
 
-    const mdxFile = await this.mdxFileLoader.load(filePath);
+    const mdxFile = await this.mdxFileLoader.load(path.join(page.directory, filePath));
 
-    const outputFileName = page.link ? page.link : mdxFile.getSlug();
-
+    const outputFileName = this.getOutputFileName(page, mdxFile);
     mdxFile.setOutputPath(`${this.linkPrefix}/${outputFileName}`);
 
     const link = `/${mdxFile.getOutputPath().withoutExtension()}`;
@@ -143,5 +144,10 @@ export class Navigation {
       },
       fileWasChanged ? mdxFile : undefined
     ];
+  }
+
+  private getOutputFileName(page: NavigationPage, mdxFile: MdxFile) {
+    // `page.linkPrefix` comes from the `<NavigationRoot>` element.
+    return [page.linkPrefix, page.link ?? mdxFile.getSlug()].filter(Boolean).join("/");
   }
 }

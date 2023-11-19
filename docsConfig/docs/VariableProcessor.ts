@@ -23,7 +23,7 @@ export class VariableProcessor implements IMdxProcessor {
       },
       {
         find: /\{exact:(.+?)\}\//g,
-        replaceWith: (match: string, value: string) => {
+        replaceWith: (_: string, value: string) => {
           return value !== this.versions.getLatest().getValue() ? `${value}/` : "";
         }
       }

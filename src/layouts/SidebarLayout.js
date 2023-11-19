@@ -1,5 +1,6 @@
 import { useNavigation } from "@/components/page/Navigation";
 import { VersionSelector } from "@/components/page/VersionSelector";
+import { usePage } from "@/hooks/usePage";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { createContext, forwardRef, useEffect, useRef, useState } from "react";
@@ -8,7 +9,7 @@ import clsx from "clsx";
 import { Dialog } from "@headlessui/react";
 import { SearchButton } from "@/components/page/Search";
 
-import { scroll } from "./SidebarLayout.module.css";
+import { scroll } from "@/css/scroll.module.css";
 
 const Arrow = ({ className }) => {
     return (
@@ -317,8 +318,11 @@ function Wrapper({ allowOverflow, children }) {
     return <div className={allowOverflow ? undefined : "overflow-hidden"}>{children}</div>;
 }
 
-export function VersionedSidebarLayout({ children, nav, sidebar }) {
+export function VersionedSidebarLayout({ children }) {
     const navigation = useNavigation();
+    const { page } = usePage();
+    const nav = page.navigation;
+
     return (
         <SidebarContext.Provider value={{ nav }}>
             <Wrapper allowOverflow={true}>
@@ -330,7 +334,7 @@ export function VersionedSidebarLayout({ children, nav, sidebar }) {
                             <VersionSelector />
                         </div>
                         <SearchButton />
-                        <Nav nav={nav}>{sidebar}</Nav>
+                        <Nav nav={nav} />
                     </div>
                     <div className="lg:pl-[20.875rem]">{children}</div>
                 </div>
@@ -359,15 +363,18 @@ export function VersionedSidebarLayout({ children, nav, sidebar }) {
                             />
                         </svg>
                     </button>
-                    <Nav nav={nav}>{sidebar}</Nav>
+                    <Nav nav={nav} />
                 </div>
             </Dialog>
         </SidebarContext.Provider>
     );
 }
 
-export function SidebarLayout({ children, nav, sidebar }) {
+export function SidebarLayout({ children }) {
     const navigation = useNavigation();
+    const { page } = usePage();
+    const nav = page.navigation;
+
     return (
         <SidebarContext.Provider value={{ nav }}>
             <Wrapper allowOverflow={true}>
@@ -376,7 +383,7 @@ export function SidebarLayout({ children, nav, sidebar }) {
                         className={`hidden lg:block fixed z-20 inset-0 top-[4.15rem] right-auto w-[20.875rem] pb-10 pl-[18px] overflow-y-auto border-r border-neutral-200 dark:border-[#36383a] ${scroll}`}
                     >
                         <SearchButton />
-                        <Nav nav={nav}>{sidebar}</Nav>
+                        <Nav nav={nav} />
                     </div>
                     <div className="lg:pl-[20.875rem]">{children}</div>
                 </div>
@@ -405,7 +412,7 @@ export function SidebarLayout({ children, nav, sidebar }) {
                             />
                         </svg>
                     </button>
-                    <Nav nav={nav}>{sidebar}</Nav>
+                    <Nav nav={nav} />
                 </div>
             </Dialog>
         </SidebarContext.Provider>

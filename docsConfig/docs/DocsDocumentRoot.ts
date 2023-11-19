@@ -103,11 +103,10 @@ export class DocsDocumentRoot {
     ]);
 
     const mdxFileLoader = new VersionedMdxFileLoader<DocsMdxFile>(
-      rootDir,
       version,
       this.versions,
       // We need this loader to point to the versioned docs root, and not a specific version.
-      new MdxFileLoader<DocsMdxFile>(rootDir, mdxProcessor, new DocsMdxFileFactory(version))
+      new MdxFileLoader<DocsMdxFile>(mdxProcessor, new DocsMdxFileFactory(version))
     );
 
     const mdxFileWriter = new CompositeMdxFileWriter([

@@ -4,6 +4,8 @@ export interface NavigationPage {
   type: "page";
   title: string | null;
   hidden: boolean;
+  directory: string;
+  linkPrefix?: string;
   link?: string;
   file?: string;
 }
@@ -31,7 +33,16 @@ export interface NavigationSeparator {
 }
 
 export type NavigationTree<TPage = NavigationPage> = {
-  items: Array<NavigationCollapsable<NavigationSection<TPage> | TPage> | NavigationSeparator>;
+  items: Array<
+    | NavigationCollapsable<
+        | NavigationCollapsable<TPage>
+        | NavigationSection<NavigationCollapsable<TPage> | TPage>
+        | TPage
+      >
+    | NavigationSection<NavigationCollapsable<TPage> | TPage>
+    | NavigationSeparator
+    | TPage
+  >;
 };
 
 export interface IReactRenderer<T> {
@@ -39,6 +50,12 @@ export interface IReactRenderer<T> {
 }
 
 export type NavigationOutputData = Array<
-  | NavigationCollapsable<NavigationSection<NavigationOutputPage> | NavigationOutputPage>
+  | NavigationCollapsable<
+      | NavigationCollapsable<NavigationOutputPage>
+      | NavigationSection<NavigationCollapsable<NavigationOutputPage> | NavigationOutputPage>
+      | NavigationOutputPage
+    >
+  | NavigationSection<NavigationCollapsable<NavigationOutputPage> | NavigationOutputPage>
+  | NavigationOutputPage
   | NavigationSeparator
 >;
