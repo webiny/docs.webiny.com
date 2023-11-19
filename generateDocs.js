@@ -45,6 +45,11 @@ const { default: docsConfig } = require("./docs.config");
     }
 
     try {
+        if (docsConfig.cleanOutputDir) {
+            const rimraf = require("rimraf");
+            console.log("Cleaning output directory...");
+            rimraf.sync(docsConfig.cleanOutputDir);
+        }
         await app.generate();
     } catch (err) {
         console.error("CAUGHT ERROR", err.message);

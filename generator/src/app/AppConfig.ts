@@ -2,7 +2,6 @@ import { IDocumentRootConfig } from "../abstractions/IDocumentRootConfig";
 
 export interface AppConfigProps {
   devMode: boolean;
-  outputRoot: string;
   documentRootConfigs: IDocumentRootConfig[];
   outputVersions?: string[];
 }
@@ -16,10 +15,6 @@ export class AppConfig {
 
   isDevMode() {
     return this.props.devMode;
-  }
-
-  getOutputRoot() {
-    return this.props.outputRoot;
   }
 
   getDocumentRootConfigs() {

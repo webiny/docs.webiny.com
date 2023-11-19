@@ -241,7 +241,7 @@ function Nav({ nav }) {
                 const isActive = navItem.link === router.pathname;
 
                 navItem.isActive = isActive;
-            } else if (navItem.type === "collapsable" || navItem.type === "section") {
+            } else if (navItem.type === "group") {
                 setIsActive(navItem.items);
 
                 const isActiveChild = navItem.items.some(

@@ -11,16 +11,16 @@ import { UserGuideMdxFile } from "./library/user-guides/UserGuideMdxFile";
 import { UserGuidesVersionProvider } from "./library/user-guides/UserGuidesVersionProvider";
 
 export default {
-  outputRoot: path.resolve("src"),
+  cleanOutputDir: path.resolve("src/pages/docs"),
   documentRoots: [
     /* Developer Docs */
-    // new VersionedDocumentRootConfig({
-    //   rootDir: path.resolve("library/docs"),
-    //   linkPrefix: "/docs",
-    //   outputDir: path.resolve("src/pages"),
-    //   pageLayout: "@/layouts/DocumentationLayout",
-    //   mdxFileFactory: (data: MdxData, version: Version) => new DocsMdxFile(data, version)
-    // }),
+    new VersionedDocumentRootConfig({
+      rootDir: path.resolve("library/docs"),
+      linkPrefix: "/docs",
+      outputDir: path.resolve("src/pages"),
+      pageLayout: "@/layouts/DocumentationLayout",
+      mdxFileFactory: (data: MdxData, version: Version) => new DocsMdxFile(data, version)
+    }),
 
     /* User Guides */
     new VersionedDocumentRootConfig({
