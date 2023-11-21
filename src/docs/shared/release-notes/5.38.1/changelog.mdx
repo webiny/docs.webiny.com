@@ -1,0 +1,29 @@
+---
+title: Webiny 5.38.1 Changelog
+description: See what's new in Webiny version 5.38.1.
+---
+
+<GithubRelease version={"5.38.1"} />
+
+<Alert type={"warning"} title={"SECURITY PATCH"}>
+  This is a low severity security patch release!
+</Alert>
+
+## Add Execution Context Scoping to `withoutAuthorization` Method Call ([#3714](https://github.com/webiny/webiny-js/pull/3714))
+
+### Problem Description
+
+One of our community members discovered an interesting issue when running GraphQL queries which contain multiple selections.
+When GraphQL is executing a query, multiple selection paths are executed in parallel, and if one of those resolvers runs into a `security.withoutAuthorization()` method call, the authorization will also be disabled for all parallel executions, for the duration of the provided callback. This means that the data fetching logic is affected, and the resolver might return data which should otherwise not be returned.
+
+### When Does This Happen?
+
+You will not see this in our Admin app queries, because we never run queries with multiple root level selections. However, if you run a manual query, using any GraphQL client, our API Playground, you will be able to construct a query which exposes this issue. For security reasons, we will not show examples of queries which can reproduce the issue.
+
+### How Serious Is This?
+
+From your system security standpoint, this is a low severity issue, because this can only be exploited if you already are a system user, meaning you have valid credentials, and can log in. This cannot be exploited by public (anonymous) users without credentials.
+
+### The Solution
+
+The solution uses the async context tracking feature of Nodejs: https://nodejs.org/api/async_context.html#class-asynclocalstorage. This makes it possible for us to track the state of authorization on the execution context level, and not the entire request. So now, even if one part of the code execution temporarily disables authorization, all parallel execution paths would still have the authorization enabled.
