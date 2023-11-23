@@ -5,10 +5,10 @@ import {
   NonVersionedDocumentRootConfig,
   VersionedDocumentRootConfig
 } from "@webiny/docs-generator";
-import { DocsMdxFile } from "./library/docs/DocsMdxFile";
-import { HandbookMdxFile } from "./library/handbook/HandbookMdxFile";
-import { UserGuideMdxFile } from "./library/user-guides/UserGuideMdxFile";
-import { UserGuidesVersionProvider } from "./library/user-guides/UserGuidesVersionProvider";
+import { DeveloperDocsMdxFile } from "./docs/developer-docs/DeveloperDocsMdxFile";
+import { HandbookMdxFile } from "./docs/handbook/HandbookMdxFile";
+import { UserGuideMdxFile } from "./docs/user-guides/UserGuideMdxFile";
+import { UserGuidesVersionProvider } from "./docs/user-guides/UserGuidesVersionProvider";
 
 export default {
   sitemapOutputPath: path.resolve("public/algolia/sitemap.xml"),
@@ -16,29 +16,29 @@ export default {
   documentRoots: [
     /* Developer Docs */
     new VersionedDocumentRootConfig({
-      rootDir: path.resolve("library/docs"),
+      rootDir: path.resolve("docs/developer-docs"),
       linkPrefix: "/docs",
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/DocumentationLayout",
-      mdxFileFactory: (data: MdxData, version: Version) => new DocsMdxFile(data, version)
+      mdxFileFactory: (data: MdxData, version: Version) => new DeveloperDocsMdxFile(data, version)
     }),
 
     /* User Guides */
     new VersionedDocumentRootConfig({
-      rootDir: path.resolve("library/user-guides"),
+      rootDir: path.resolve("docs/user-guides"),
       linkPrefix: "/docs",
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/DocumentationLayout",
       mdxFileFactory: (data: MdxData, version: Version) => new UserGuideMdxFile(data, version),
       versionsProvider: new UserGuidesVersionProvider(
-        path.resolve("library/docs"),
-        path.resolve("library/user-guides")
+        path.resolve("docs/developer-docs"),
+        path.resolve("docs/user-guides")
       )
     }),
 
     /* Handbook */
     new NonVersionedDocumentRootConfig({
-      rootDir: path.resolve("library/handbook"),
+      rootDir: path.resolve("docs/handbook"),
       linkPrefix: "/docs/handbook",
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/HandbookLayout",

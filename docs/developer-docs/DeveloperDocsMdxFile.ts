@@ -1,6 +1,6 @@
 import { VersionedMdxFile } from "@webiny/docs-generator";
 
-export class DocsMdxFile extends VersionedMdxFile {
+export class DeveloperDocsMdxFile extends VersionedMdxFile {
   protected override type = "docs";
 
   override getDocsearch() {
