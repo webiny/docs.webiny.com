@@ -11,8 +11,7 @@ export class Generator {
   }
 
   async execute() {
-    const allFiles = await this.documentRoot.generate();
-    const files = allFiles.flat();
+    const files = await this.documentRoot.generate();
 
     for (const file of files) {
       await this.fileWriter.write(file);

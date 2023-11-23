@@ -32,10 +32,11 @@ const { default: docsConfig } = require("./docs.config");
         }).argv;
 
     const config = AppConfig.create({
-        outputRoot: docsConfig.outputRoot,
-        documentRootConfigs: docsConfig.documentRoots,
         devMode: process.env.NODE_ENV === "development",
-        outputVersions: version
+        documentRootConfigs: docsConfig.documentRoots,
+        outputRoot: docsConfig.outputRoot,
+        outputVersions: version,
+        sitemapOutputPath: docsConfig.sitemapOutputPath
     });
 
     const app = new App(config);

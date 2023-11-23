@@ -11,6 +11,7 @@ import { UserGuideMdxFile } from "./library/user-guides/UserGuideMdxFile";
 import { UserGuidesVersionProvider } from "./library/user-guides/UserGuidesVersionProvider";
 
 export default {
+  sitemapOutputPath: path.resolve("public/algolia/sitemap.xml"),
   cleanOutputDir: path.resolve("src/pages/docs"),
   documentRoots: [
     /* Developer Docs */

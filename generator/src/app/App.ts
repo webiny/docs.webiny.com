@@ -10,6 +10,7 @@ import {
   CompositeDocumentRoot,
   CompositeDocumentRootWatcher
 } from "../index";
+import { SitemapGenerator } from "./SitemapGenerator";
 
 export class App {
   private readonly logger: ConsoleLogger;
@@ -49,11 +50,18 @@ class DocumentRootFactory implements IDocumentRootFactory {
   }
 
   getDocumentRoot(): IDocumentRoot {
-    return new CompositeDocumentRoot(
+    const documentRoot = new CompositeDocumentRoot(
       this.config.getDocumentRootConfigs().map(documentRootConfig => {
         return documentRootConfig.getDocumentRootFactory(this.config).getDocumentRoot();
       })
     );
+
+    const sitemapOutputPath = this.config.getSitemapOutputPath();
+    if (sitemapOutputPath) {
+      return new SitemapGenerator(sitemapOutputPath, documentRoot);
+    }
+
+    return documentRoot;
   }
 
   getDocumentRootWatcher(): IDocumentRootWatcher {

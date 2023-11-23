@@ -3,6 +3,7 @@ import { IDocumentRootConfig } from "../abstractions/IDocumentRootConfig";
 export interface AppConfigProps {
   devMode: boolean;
   documentRootConfigs: IDocumentRootConfig[];
+  sitemapOutputPath?: string;
   outputVersions?: string[];
 }
 
@@ -15,6 +16,10 @@ export class AppConfig {
 
   isDevMode() {
     return this.props.devMode;
+  }
+
+  getSitemapOutputPath() {
+    return this.props.sitemapOutputPath;
   }
 
   getDocumentRootConfigs() {
