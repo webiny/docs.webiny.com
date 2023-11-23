@@ -268,6 +268,131 @@ And you should be able to see the following Product model.
 
 ![Product Model](./assets/content-models-plugins/product-model.png)
 
+#### Product Review Model With Object Field
+
+In this example, we will explore how to use an `object` field and allow multiple values for this object field. As discussed earlier, we need to define a `CmsModelPlugin` plugin to create a model. Add the following code to the [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/graphql/src/plugins/models.ts) file that we created earlier.
+
+```ts apps/api/graphql/src/plugins/models.ts
+  // Defines a "Product Review" content model.
+  new CmsModelPlugin({
+    name: "Product Review",
+    modelId: "productReview",
+    description: "Product Review content model",
+    group: {
+      id: "ecommerce",
+      name: "E-Commerce"
+    },
+    fields: [
+      {
+        id: "reviewerName",
+        fieldId: "reviewerName",
+        type: "text",
+        label: "Reviewer Name",
+        helpText: "Name of Reviewer",
+        renderer: { name: "text-input" },
+        validation: [
+          {
+            name: "required",
+            message: "Reviewer name is required."
+          }
+        ]
+      },
+      {
+        id: "productRating",
+        fieldId: "productRating",
+        type: "number",
+        label: "Rating",
+        helpText: "Number of stars out of 5",
+        renderer: { name: "text-input" }
+      },
+      {
+        id: "review",
+        fieldId: "review",
+        type: "object",
+        label: "Product Review",
+        helpText: "Product Review from the reviewer",
+        multipleValues: true,
+        renderer: {
+          name: "objects"
+        },
+        settings: {
+            fields: [
+              {
+                id: "reviewTitle",
+                fieldId: "reviewTitle",
+                type: "text",
+                label: "Review Title",
+                helpText: "Review Title",
+                renderer: {
+                  name: "text-input"
+                },
+                validation: [
+                  {
+                    name: "required",
+                    message: "Review Title is required."
+                  }
+                ]
+              },
+              {
+                id: "reviewDescription",
+                fieldId: "reviewDescription",
+                type: "text",
+                label: "Review Description",
+                helpText: "Review Description",
+                renderer: {
+                  name: "text-input"
+                },
+                validation: [
+                  {
+                    name: "required",
+                    message: "Review Description is required."
+                  }
+                ]
+              },
+            ],
+            layout: [["reviewTitle"], ["reviewDescription"]]
+        }
+      }
+    ],
+    layout: [["reviewerName"], ["productRating"], ["review"]],
+    titleFieldId: "reviewerName"
+  })
+```
+
+In the example above, the `review` field is of type `object` and allows multiple values. To define an object field with multiple values, we set the following properties:
+
+- `field` property to `object`
+- `multipleValues` property to `true`
+- and `renderer` property to `objects`. e.g.
+
+```ts
+(...)
+fieldId: "review",
+type: "object",
+multipleValues: true,
+renderer: {
+  name: "objects"
+},
+(...)
+```
+
+If you want an object field with a single value, set the `multipleValues` property to `false`. Please note that in this case, the `renderer` property will be `object`, not `objects`. e.g.
+
+```ts
+(...)
+multipleValues: false,
+renderer: {
+  name: "object"
+}
+(...)
+```
+
+With the [`webiny watch`](/docs/core-development-concepts/basics/watch-command) command up and running,
+the performed application code changes should be automatically rebuilt and redeployed into the cloud.
+And you should be able to see the following Product Review model.
+
+![Product Model](./assets/content-models-plugins/product-review-model.png)
+
 ### Define a Content Model Only for a Specific Locale
 
 In this example, we show how we can define content models and content model groups only for a specific locale, in our case, the `en-US`.
@@ -410,6 +535,45 @@ Here are a couple of examples of specifying icons from solid, regular, and brand
 - `far/copy`
 - `fab/aws`.
 - `fab/react`.
+
+### What Is the Purpose of `titleFieldId` in the Content Model Definition?
+
+The `titleFieldId` in a content model is used to specify which field should be used as the title for the entries of that content model. This is a `text` field that provides a human-readable summary of each entry.
+For example, in a blog post content model, you might have fields like `id`, `title`, `body`, `author`, etc. By setting `titleFieldId` to `title`, you're telling Webiny to use the `title` field as the display name for each blog post in the **admin interface** (content entry listing screen).
+Here's an example:
+
+```ts
+const myModel = new CmsModelPlugin({
+  modelId: "myModel",
+  fields: [
+    {
+      id: "id",
+      type: "number",
+      fieldId: "id",
+      label: "ID",
+      settings: {}
+    },
+    {
+      id: "title",
+      type: "text",
+      fieldId: "title",
+      label: "Title",
+      settings: {}
+    },
+    // other fields...
+  ],
+  layout: [],
+  group: {
+    id: "group",
+    name: "Group"
+  },
+  name: "My Model",
+  description: "",
+  titleFieldId: "title" // Here, 'title' field is used as the title for each entry
+});
+```
+
+In this example, the `title` field is used as the title for each entry of the `myModel` content model. This means that in the admin interface (content entry listing screen), the value of the `title` field will be used as the display name for each entry.
 
 ## Immutable Code Definitions
 
