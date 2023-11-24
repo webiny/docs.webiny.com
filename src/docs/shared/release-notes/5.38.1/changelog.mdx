@@ -11,26 +11,28 @@ import fmBulkEdit from "./assets/fm-bulk-edit.png";
   This release contains a low severity security patch!
 </Alert>
 
-## `withoutAuthorization` Execution Context Scoping ([#3714](https://github.com/webiny/webiny-js/pull/3714))
+## Security
 
-### Problem Description
+### `withoutAuthorization` Execution Context Scoping ([#3714](https://github.com/webiny/webiny-js/pull/3714))
+
+#### Problem Description
 
 One of our community members discovered an interesting issue when running GraphQL queries which contain multiple selections.
 When GraphQL is executing a query, multiple selection paths are executed in parallel, and if one of those resolvers runs into a `security.withoutAuthorization()` method call, the authorization will also be disabled for all parallel executions, for the duration of the provided callback. This means that the data fetching logic is affected, and the resolver might return data which should otherwise not be returned.
 
-### When Does This Happen?
+#### When Does This Happen?
 
 You will not see this in our Admin app queries, because we never run queries with multiple root level selections. However, if you run a manual query, using any GraphQL client, our API Playground, you will be able to construct a query which exposes this issue. For security reasons, we will not show examples of queries which can reproduce the issue.
 
-### How Serious Is This?
+#### How Serious Is This?
 
 From your system security standpoint, this is a low severity issue, because this can only be exploited if you already are a system user, meaning you have valid credentials, and can log in. This cannot be exploited by public (anonymous) users without credentials.
 
-### The Solution
+#### The Solution
 
 The solution uses the [async context tracking](https://nodejs.org/api/async_context.html) feature of Nodejs. This makes it possible for us to track the state of authorization on the execution context level, and not the entire request. So now, even if one part of the code execution temporarily disables authorization, all parallel execution paths would still have the authorization enabled.
 
-### Removed Methods
+#### Removed Methods
 
 To make the patch described above work reliably, we had to finally remove methods `enableAuthorization()` and `disableAuthorization()` from the Security app. These methods have long been deprecated, since the introduction of `withoutAuthorization()` method, so this should not come as a surprise.
 
@@ -50,7 +52,9 @@ context.security.withoutAuthorization(() => {
 });
 ```
 
-## Bulk Edit File Manager Extension Fields ([#3715](https://github.com/webiny/webiny-js/pull/3715))
+## File Manager
+
+### Bulk Edit File Manager Extension Fields ([#3715](https://github.com/webiny/webiny-js/pull/3715))
 
 If you are using [custom file fields](/docs/{version}/file-manager/extending/customize-file-fields) in the File Manager, you will now be able to bulk edit them, using this new early preview feature. To enable bulk editing of your custom file fields, you need to se a `bulkEdit: true` property:
 
