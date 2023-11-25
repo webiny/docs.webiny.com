@@ -7,25 +7,36 @@ export class VersionedMdxFileLoader<T extends VersionedMdxFile = VersionedMdxFil
 {
   private readonly versions: DocumentRootVersions;
   private readonly mdxFileLoader: IMdxFileLoader<T>;
+  private readonly rootDir: string;
   private readonly version: Version;
 
   constructor(
+    rootDir: string,
     version: Version,
     versions: DocumentRootVersions,
     mdxFileLoader: IMdxFileLoader<T>
   ) {
+    this.rootDir = rootDir;
     this.version = version;
     this.versions = versions;
     this.mdxFileLoader = mdxFileLoader;
   }
 
   async load(filePath: string): Promise<T> {
-    const resolvedMdxFile = await this.resolvePath(this.version, filePath);
+    let filePathVersion = this.extractVersionFromFilePath(filePath);
+    if (!filePathVersion) {
+      filePathVersion = this.version;
+    }
+
+    const filePathWithCurrentVersion = filePath.replace(
+      filePathVersion.getValue(),
+      this.version.getValue()
+    );
+
+    const resolvedMdxFile = await this.resolvePath(this.version, filePathWithCurrentVersion);
 
     if (!resolvedMdxFile) {
-      throw Error(
-        `Couldn't find a parent source file for "${filePath}"!`
-      );
+      throw Error(`Couldn't find a parent source file for "${filePath}"!`);
     }
 
     const mdxFile = await this.mdxFileLoader.load(resolvedMdxFile.getFilePath());
@@ -52,6 +63,16 @@ export class VersionedMdxFileLoader<T extends VersionedMdxFile = VersionedMdxFil
       previousVersion,
       filePath.replace(version.getValue(), previousVersion.getValue())
     );
+  }
+
+  private extractVersionFromFilePath(filePath: string) {
+    const relativeFilePath = filePath.replace(`${this.rootDir}/`, "");
+    for (const version of this.versions.getVersions()) {
+      if (relativeFilePath.startsWith(version.getValue())) {
+        return version;
+      }
+    }
+    return undefined;
   }
 }
 

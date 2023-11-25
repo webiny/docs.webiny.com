@@ -23,7 +23,7 @@ class VersionedAssetResolver {
   private readonly rootDir: string;
   private readonly version: Version;
   private readonly versions: DocumentRootVersions;
-  private history: string[] = [];
+  private readonly history: string[] = [];
 
   constructor(rootDir: string, version: Version, versions: DocumentRootVersions) {
     this.rootDir = rootDir;
@@ -31,8 +31,10 @@ class VersionedAssetResolver {
     this.versions = versions;
   }
 
-  resolvePath(issuer: VFile, assetPath: string) {
-    const dirname = issuer.dirname;
+  resolvePath(vFile: VFile, assetPath: string) {
+    const dirname = vFile.dirname;
+    const issuer = vFile.history[0];
+
     if (!dirname) {
       return assetPath;
     }
@@ -41,19 +43,13 @@ class VersionedAssetResolver {
     const resolvedAssetPath = this.tryResolve(this.version, requestedAssetPath);
 
     if (!resolvedAssetPath) {
-      console.error(
-        `Failed to resolve asset "${assetPath}" in "${issuer.history[0].replace(
-          this.rootDir,
-          ""
-        )}".`
-      );
+      const message = `Failed to resolve asset "${assetPath}" in "${issuer.replace(
+        this.rootDir,
+        ""
+      )}".`;
 
-      throw Error(
-        `Failed to resolve asset "${assetPath}" in "${issuer.history[0].replace(
-          this.rootDir,
-          ""
-        )}".`
-      );
+      console.error(message);
+      throw Error(message);
     }
 
     return resolvedAssetPath;

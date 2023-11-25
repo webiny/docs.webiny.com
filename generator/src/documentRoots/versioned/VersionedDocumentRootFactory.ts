@@ -126,6 +126,7 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
     ]);
 
     const mdxFileLoader = new VersionedMdxFileLoader<VersionedMdxFile>(
+      config.rootDir,
       version,
       this.versions,
       // We need this loader to point to the versioned docs root, and not a specific version.
@@ -147,7 +148,9 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
           VersionedAssetResolver.create(
             new VersionedAssetResolverFactory(config.rootDir, version, this.versions)
           ),
-          withNextLinks(new VersionedMdxLinkResolver(versionedRootDir, linkPrefix)),
+          withNextLinks(
+            new VersionedMdxLinkResolver(versionedRootDir, version, this.versions, linkPrefix)
+          ),
           ...config.mdxCompilerPlugins
         ])
       )

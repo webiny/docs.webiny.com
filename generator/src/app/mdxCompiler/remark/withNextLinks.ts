@@ -24,7 +24,7 @@ export const withNextLinks = (linkResolver: IMdxLinkResolver) => {
 
       if (isInternalHref(node.url)) {
         const index = parent.children.findIndex(child => child === node);
-        node.url = linkResolver.resolve(currentFilePath, node.url, file);
+        node.url = linkResolver.resolve(file, node.url);
 
         parent.children = [
           ...parent.children.slice(0, index),
