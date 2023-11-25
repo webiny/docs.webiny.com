@@ -12,7 +12,7 @@ export class VersionedMdxLinkResolver implements IMdxLinkResolver<DocsVFileData>
   private readonly version: Version;
   private readonly versions: DocumentRootVersions;
   private readonly linkPrefix: string;
-  private history: string[] = [];
+  private readonly history: string[] = [];
 
   constructor(
     rootDir: string,
