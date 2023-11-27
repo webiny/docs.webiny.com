@@ -8,6 +8,13 @@ export const Navigation = () => {
             {/* Inherit navigation from 5.34.x. */}
             <BaseNavigation />
             {/* Add new items. */}
+            <NavGroup type={"docs"}>
+                <Collapsable title={"Webiny Overview"}>
+                    <Section title={"Features"}>
+                        <Page link={"overview/features/advanced-content-organization"} after={"CLI"} />
+                    </Section>
+                </Collapsable>
+            </NavGroup>
             <NavGroup type={"user-guides"}>
                 <Collapsable title={"Get Started"}>
                     <Page link={"user-guides/overview"} />
