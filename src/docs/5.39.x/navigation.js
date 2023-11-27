@@ -1,6 +1,6 @@
 import React from "react";
-import { Navigation as BaseNavigation } from "../5.38.x/navigation";
 import { Collapsable, NavGroup, Page, Section } from "@/docs/utils/navigation";
+import { Navigation as BaseNavigation } from "../5.38.x/navigation";
 
 export const Navigation = () => {
     return (
