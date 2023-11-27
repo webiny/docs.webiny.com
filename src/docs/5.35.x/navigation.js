@@ -11,7 +11,7 @@ export const Navigation = () => {
             <NavGroup type={"docs"}>
                 <Collapsable title={"Webiny Overview"}>
                     <Section title={"Features"}>
-                        <Page link={"overview/features/advanced-content-organization"} />
+                        <Page link={"overview/features/advanced-content-organization"} after={"overview/features/access-control"} />
                     </Section>
                 </Collapsable>
             </NavGroup>
