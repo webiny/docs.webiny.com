@@ -322,37 +322,37 @@ const handler = createHandler({
 });
 ```
 
-#### Multiple Event Handlers of a Single Type in a Single Handler
+#### Multiple Event Handlers of a Same Type in a Single Handler
 
 You can define multiple event handlers, for example DynamoDB event handlers, in a single handler.
 
 They will be executed in reverse order, meaning that the last one defined will be executed first.
 
-<Alert type="danger">
-  You MUST call `await next();` in your event handler, otherwise the next event handler will not be executed.
-</Alert>
+There are few things to note:
+* You should call `await next();` in your event handler, otherwise the next event handler will not be executed.
+* You can return anything you want to from your event handler, just note that the next event handler will receive that value as a result if the `await next();` call.
 
 ```ts
 import { createHandler, createDynamoDBEventHandler } from "@webiny/handler-aws";
 
 const handler = createHandler({
   plugins: [
-    // This event handler will only be triggered when a DynamoDB event is received.
-    createDynamoDBEventHandler(async ({ request, reply, event, context, lambdaContext, next }) => {
-      await next();
+    // This event handler will be triggered second.
+    createDynamoDBEventHandler(async ({ request, reply, event, context, lambdaContext }) => {
       const result = await heavyCalculation(event);
 
-      return reply.send({
+      return {
         result
-      });
+      };
     }),
-    // This event handler will only be triggered when a DynamoDB event is received.
+    // This event handler will be triggered first.
     createDynamoDBEventHandler(async ({ request, reply, event, context, lambdaContext, next }) => {
-      await next();
-      const result = await anotherHeavyCalculation(event);
+      const resultFromPreviousEventHandler = await next();
+      const result = await anotherHeavyCalculation(resultFromPreviousEventHandler, event);
 
       return reply.send({
-        result
+        ...resultFromPreviousEventHandler,
+        ...result
       });
     })
   ]
