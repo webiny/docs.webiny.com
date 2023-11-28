@@ -4,6 +4,7 @@ import { VFile } from "vfile";
 import { parse } from "@babel/parser";
 import { ImportDeclaration } from "@babel/types";
 import { VersionedAssetResolverFactory } from "./VersionedAssetResolverFactory";
+import { IMdxRemarkPlugin } from "../../abstractions/IMdxRemarkPlugin";
 
 type ImportNode = Node & { value?: string };
 
@@ -11,19 +12,14 @@ const firstNode = (ast: ReturnType<typeof parse>) => {
   return ast.program.body.pop() as ImportDeclaration;
 };
 
-export class VersionedAssetResolver {
+export class VersionedAssetResolverRemarkPlugin implements IMdxRemarkPlugin {
   private resolver: VersionedAssetResolverFactory;
 
-  private constructor(resolver: VersionedAssetResolverFactory) {
+  constructor(resolver: VersionedAssetResolverFactory) {
     this.resolver = resolver;
   }
 
-  static create(resolver: VersionedAssetResolverFactory) {
-    const assetResolver = new VersionedAssetResolver(resolver);
-    return () => (tree: Node, file: VFile) => assetResolver.traverse(tree, file);
-  }
-
-  private traverse(tree: Node, file: VFile) {
+  process(tree: Node, file: VFile) {
     visit<ImportNode>(tree, "import", (node, _, parent) => {
       if (!node.value || !parent) {
         return;

@@ -32,9 +32,11 @@ const { default: docsConfig } = require("./docs.config");
         }).argv;
 
     const config = AppConfig.create({
+        linkValidator: docsConfig.linkValidator,
+        mdxRemarkPlugins: docsConfig.mdxRemarkPlugins,
+        projectRootDir: docsConfig.projectRootDir,
         devMode: process.env.NODE_ENV === "development",
         documentRootConfigs: docsConfig.documentRoots.filter(Boolean),
-        outputRoot: docsConfig.outputRoot,
         outputVersions: version,
         sitemapOutputPath: docsConfig.sitemapOutputPath
     });
@@ -53,8 +55,6 @@ const { default: docsConfig } = require("./docs.config");
         }
         await app.generate();
     } catch (err) {
-        console.error("CAUGHT ERROR", err.message);
-        console.log(err);
         process.exit(1);
     }
 

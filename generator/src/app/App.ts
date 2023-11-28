@@ -2,13 +2,13 @@ import {
   IDocumentRootFactory,
   Generator,
   FsFileWriter,
-  Watcher,
   ConsoleLogger,
   AppConfig,
   IDocumentRoot,
   IDocumentRootWatcher,
   CompositeDocumentRoot,
-  CompositeDocumentRootWatcher
+  CompositeDocumentRootWatcher,
+  LinkValidationConsoleReporter
 } from "../index";
 import { SitemapGenerator } from "./SitemapGenerator";
 
@@ -17,8 +17,8 @@ export class App {
   private readonly config: AppConfig;
 
   constructor(config: AppConfig) {
-    this.config = config;
     this.logger = new ConsoleLogger();
+    this.config = this.withDefaultConfig(config);
   }
 
   async generate() {
@@ -30,15 +30,59 @@ export class App {
       )
     );
 
-    await generator.execute();
+    try {
+      await generator.execute();
+      await this.checkBrokenLinks();
+    } catch (err) {
+      this.logger.error(err.message);
+      throw err;
+    }
   }
 
   async watch() {
-    const watcher = new Watcher(
-      new DocumentRootFactory(this.config).getDocumentRootWatcher(),
-      new FsFileWriter(this.logger)
+    const watcher = new DocumentRootFactory(this.config).getDocumentRootWatcher();
+    const fileWriter = new FsFileWriter(this.logger);
+
+    await watcher.watch(
+      async file => {
+        await fileWriter.write(file);
+        const filePath = file.getSourcePath();
+        if (filePath) {
+          this.checkBrokenLinks(filePath.replace(process.cwd(), ""));
+        }
+      },
+      // `onEvent` callback is executed whenever there's an event fired by `chokidar`.
+      () => {
+        this.config.getLinkValidator().reset();
+      }
     );
-    await watcher.execute();
+
+    return new Promise(() => {
+      // This promise will never resolve until we stop the process.
+    });
+  }
+
+  private withDefaultConfig(appConfig: AppConfig) {
+    return appConfig.modify(config => {
+      return {
+        ...config,
+        mdxRemarkPlugins: [
+          appConfig.getLinkValidator().getRemarkPlugin(),
+          ...(config.mdxRemarkPlugins || [])
+        ]
+      };
+    });
+  }
+
+  private async checkBrokenLinks(match?: string) {
+    const validationResult = await this.config.getLinkValidator().validate(match);
+    this.config.getLinkValidator().reset();
+    if (validationResult.hasErrors()) {
+      new LinkValidationConsoleReporter(this.logger).report(validationResult);
+      if (!this.config.isDevMode()) {
+        throw Error(`Invalid links detected!`);
+      }
+    }
   }
 }
 

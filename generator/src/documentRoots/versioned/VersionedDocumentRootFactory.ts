@@ -22,27 +22,29 @@ import {
   CompositeDocumentRoot,
   DocumentRootVersions,
   Version,
-  withNextLinks,
   NavigationCache,
   PassthroughFileWriter,
   CompositeDocumentRootWatcher,
   IDocumentRootFactory,
   AppConfig,
   IMdxProcessor,
-  IVersionsProvider
+  IVersionsProvider,
+  IMdxFileFactory,
+  IMdxRemarkPlugin
 } from "@webiny/docs-generator";
 import { VersionedMdxFileFactory } from "./VersionedMdxFileFactory";
-import { VersionedAssetResolver } from "./VersionedAssetResolver";
+import { VersionedAssetResolverRemarkPlugin } from "./VersionedAssetResolverRemarkPlugin";
 import { VersionedMdxFileLoader } from "./VersionedMdxFileLoader";
 import { VersionedAssetResolverFactory } from "./VersionedAssetResolverFactory";
 import { VersionedDocumentRoot } from "./VersionedDocumentRoot";
 import { VersionsFile } from "./VersionsFile";
 import { VersionedMdxFile } from "./VersionedMdxFile";
 import { VariableProcessor } from "./VariableProcessor";
-import { VersionedMdxLinkResolver } from "./VersionedMdxLinkResolver";
-import { IMdxCompilerPlugin } from "../../abstractions/IMdxCompilerPlugin";
 import { VersionedMdxFileFactoryCallable } from "./VersionedDocumentRootConfig";
 import { VersionsProcessor } from "./VersionsProcessor";
+import { AbsolutePathProcessor } from "../../app/processors/AbsolutePathProcessor";
+import { RemarkPluginsRunner } from "../../app/mdxCompiler/RemarkPluginsRunner";
+import { NextLinksRemarkPlugin } from "../../app/mdxCompiler/remark/NextLinksRemarkPlugin";
 
 interface Config {
   rootDir: string;
@@ -52,7 +54,7 @@ interface Config {
   versionsProvider: IVersionsProvider;
   mdxFileProcessors: IMdxProcessor[];
   mdxFileFactory: VersionedMdxFileFactoryCallable;
-  mdxCompilerPlugins: IMdxCompilerPlugin[];
+  mdxRemarkPlugins: IMdxRemarkPlugin[];
 }
 
 export class VersionedDocumentRootFactory implements IDocumentRootFactory {
@@ -109,7 +111,7 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
     const navigationSourcePath = `${versionedRootDir}/navigation`;
     const navigationOutputPath = `data/navigation.${md5(versionedRootDir).slice(-6)}.json`;
 
-    const mdxProcessor = new CompositeMdxProcessor<VersionedMdxFile>([
+    const mdxFileProcessors: IMdxProcessor[] = [
       // Add a separator before code generated via processors.
       new CodeSeparatorProcessor(),
       // Inject layout component import.
@@ -123,7 +125,14 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
       // Inject variable values (`{version}`, `{exact:...}`).
       new VariableProcessor(this.versions),
       ...config.mdxFileProcessors
-    ]);
+    ];
+
+    if (this.appConfig.isDevMode()) {
+      // Inject absolute file path for development purposes.
+      mdxFileProcessors.push(new AbsolutePathProcessor(this.appConfig.getProjectRootDir()));
+    }
+
+    const mdxProcessor = new CompositeMdxProcessor<VersionedMdxFile>(mdxFileProcessors);
 
     const mdxFileLoader = new VersionedMdxFileLoader<VersionedMdxFile>(
       config.rootDir,
@@ -136,24 +145,24 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
       )
     );
 
+    const mdxCompiler = new MdxCompiler([
+      RemarkPluginsRunner.create([
+        ...this.appConfig.getMdxRemarkPlugins(),
+        ...config.mdxRemarkPlugins,
+        new VersionedAssetResolverRemarkPlugin(
+          new VersionedAssetResolverFactory(config.rootDir, version, this.versions)
+        ),
+        new NextLinksRemarkPlugin()
+      ])
+    ]);
+
     const mdxFileWriter = new CompositeMdxFileWriter([
       // In dev mode, we write the processed MDX file for debugging purposes.
       this.appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
       // Write sitemap XML file for each MDX file.
       new SitemapFileWriter(outputDir),
       // Write a JS file compiled from the MDX file.
-      new CompiledMdxFileWriter(
-        outputDir,
-        new MdxCompiler([
-          VersionedAssetResolver.create(
-            new VersionedAssetResolverFactory(config.rootDir, version, this.versions)
-          ),
-          withNextLinks(
-            new VersionedMdxLinkResolver(versionedRootDir, version, this.versions, linkPrefix)
-          ),
-          ...config.mdxCompilerPlugins
-        ])
-      )
+      new CompiledMdxFileWriter(outputDir, mdxCompiler)
     ]);
 
     const navigationLoader = new NavigationLoader(

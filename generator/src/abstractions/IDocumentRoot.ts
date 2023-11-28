@@ -8,6 +8,10 @@ export interface IDocumentRoot {
   generate(): Promise<IFile[]>;
 }
 
+export interface OnWatchEvent {
+  (event: string): void;
+}
+
 export interface IDocumentRootWatcher {
-  watch(onFile: OnFile): Promise<void>;
+  watch(onFile: OnFile, onEvent?: OnWatchEvent): Promise<void>;
 }

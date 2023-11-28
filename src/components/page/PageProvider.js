@@ -26,6 +26,11 @@ export const PageProvider = ({ Component, children }) => {
         }
     };
 
+    // Development only
+    if (process.env.NODE_ENV === "development") {
+        context.page.sourceFile = pageData.sourceFile;
+    }
+
     return <PageContext.Provider value={context}>{children}</PageContext.Provider>;
 };
 

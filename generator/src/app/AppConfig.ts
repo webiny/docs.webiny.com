@@ -1,14 +1,23 @@
 import { IDocumentRootConfig } from "../abstractions/IDocumentRootConfig";
+import { IMdxRemarkPlugin } from "../abstractions/IMdxRemarkPlugin";
+import { LinkValidator } from "./LinkValidator";
 
 export interface AppConfigProps {
   devMode: boolean;
   documentRootConfigs: IDocumentRootConfig[];
-  sitemapOutputPath?: string;
+  linkValidator?: LinkValidator;
+  mdxRemarkPlugins?: IMdxRemarkPlugin[];
   outputVersions?: string[];
+  projectRootDir: string;
+  sitemapOutputPath?: string;
+}
+
+export interface AppConfigModifier {
+  (config: AppConfigProps): AppConfigProps;
 }
 
 export class AppConfig {
-  private props: AppConfigProps;
+  private readonly props: AppConfigProps;
 
   private constructor(props: AppConfigProps) {
     this.props = props;
@@ -16,6 +25,14 @@ export class AppConfig {
 
   isDevMode() {
     return this.props.devMode;
+  }
+
+  getLinkValidator() {
+    return this.props.linkValidator || new LinkValidator(() => true);
+  }
+
+  getMdxRemarkPlugins() {
+    return this.props.mdxRemarkPlugins ?? [];
   }
 
   getSitemapOutputPath() {
@@ -30,7 +47,15 @@ export class AppConfig {
     return this.props.outputVersions ?? [];
   }
 
+  getProjectRootDir() {
+    return this.props.projectRootDir;
+  }
+
   static create(props: AppConfigProps) {
     return new AppConfig(props);
+  }
+
+  modify(cb: AppConfigModifier) {
+    return new AppConfig(cb(this.props));
   }
 }

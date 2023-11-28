@@ -1,30 +1,23 @@
 import visit from "unist-util-visit";
 import { Node } from "unist";
-import { VFileOptions } from "vfile";
-import { IMdxLinkResolver } from "../../../abstractions/IMdxLinkResolver";
 import { addDefaultImport } from "./utils";
-
-function isInternalHref(href: string) {
-  return ["/", "../", "./"].some(prefix => href.startsWith(prefix));
-}
+import { IMdxRemarkPlugin } from "../../../abstractions/IMdxRemarkPlugin";
 
 type JSXNode = Node & { value: string };
 type LinkNode = Node & { url: string; children: Node[] };
 type NodeWithChildren = Node & { children: Array<Node | JSXNode> };
 
-export const withNextLinks = (linkResolver: IMdxLinkResolver) => {
-  return () => (tree: NodeWithChildren, file: VFileOptions) => {
+export class NextLinksRemarkPlugin implements IMdxRemarkPlugin<NodeWithChildren> {
+  process(tree: NodeWithChildren): void {
     const component = addDefaultImport(tree, "next/link", "Link");
-    const currentFilePath = file.history[0];
 
     visit<LinkNode>(tree, "link", (node, _, parent) => {
       if (!parent) {
         return;
       }
 
-      if (isInternalHref(node.url)) {
+      if (this.isInternalHref(node.url)) {
         const index = parent.children.findIndex(child => child === node);
-        node.url = linkResolver.resolve(file, node.url);
 
         parent.children = [
           ...parent.children.slice(0, index),
@@ -39,5 +32,9 @@ export const withNextLinks = (linkResolver: IMdxLinkResolver) => {
 
       return visit.CONTINUE;
     });
-  };
-};
+  }
+
+  private isInternalHref(href: string) {
+    return href.startsWith("/");
+  }
+}

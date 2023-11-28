@@ -3,6 +3,7 @@ import { MDXProvider } from "@mdx-js/react";
 import Link from "next/link";
 import { mdxComponents } from "@/components/mdxComponents";
 import { Footer } from "@/components/page/Footer";
+import { SourceFile } from "@/components/SourceFile";
 import { PageHeader } from "@/components/page/PageHeader";
 import { TableOfContents, TableOfContentsProvider } from "@/components/page/TableOfContents";
 import { VersionSelector } from "@/components/page/VersionSelector";
@@ -31,6 +32,8 @@ export function VersionedLayout({ titleSuffix, children, ...props }) {
                             <div className={"relative z-20 mt-8 dark:prose-dark"}>
                                 <MDXProvider components={mdxComponents}>{children}</MDXProvider>
                             </div>
+
+                            <SourceFile />
                         </article>
 
                         <Footer previous={prev} next={next}>

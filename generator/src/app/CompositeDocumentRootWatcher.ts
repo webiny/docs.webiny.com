@@ -1,4 +1,4 @@
-import { IDocumentRootWatcher, OnFile } from "../abstractions/IDocumentRoot";
+import { IDocumentRootWatcher, OnFile, OnWatchEvent } from "../abstractions/IDocumentRoot";
 
 export class CompositeDocumentRootWatcher implements IDocumentRootWatcher {
   private readonly documentRootWatchers: IDocumentRootWatcher[];
@@ -7,7 +7,7 @@ export class CompositeDocumentRootWatcher implements IDocumentRootWatcher {
     this.documentRootWatchers = documentRootWatchers;
   }
 
-  async watch(onFile: OnFile): Promise<void> {
-    this.documentRootWatchers.forEach(documentRootWatcher => documentRootWatcher.watch(onFile));
+  async watch(onFile: OnFile, onEvent?: OnWatchEvent): Promise<void> {
+    this.documentRootWatchers.forEach(documentRootWatcher => documentRootWatcher.watch(onFile, onEvent));
   }
 }

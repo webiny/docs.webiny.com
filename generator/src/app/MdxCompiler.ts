@@ -1,4 +1,5 @@
-import { VFileCompatible } from "vfile";
+import { Node } from "unist";
+import { VFileOptions } from "vfile";
 // @ts-ignore
 import { createCompiler } from "@mdx-js/mdx";
 // @ts-ignore
@@ -14,8 +15,7 @@ import React from 'react'
 import { mdx } from '@mdx-js/react'
 `;
 
-// TODO: convert existing remark plugins to TS, and define a proper abstraction for them.
-type RemarkPlugin = unknown;
+type RemarkPlugin = () => (tree: Node, file: VFileOptions) => void;
 
 export class MdxCompiler {
   private compiler: any;
@@ -35,7 +35,7 @@ export class MdxCompiler {
     ];
   }
 
-  async compile(file: VFileCompatible) {
+  async compile(file: VFileOptions) {
     const compiler = this.getCompiler();
 
     const { contents } = await compiler.process(file);

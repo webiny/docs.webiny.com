@@ -1,14 +1,15 @@
+import React from "react";
+import Link from "next/link";
+import { MDXProvider } from "@mdx-js/react";
 import { mdxComponents } from "@/components/mdxComponents";
 import { Footer } from "@/components/page/Footer";
 import { PageHeader } from "@/components/page/PageHeader";
 import { TableOfContents, TableOfContentsProvider } from "@/components/page/TableOfContents";
+import { SourceFile } from "@/components/SourceFile";
 import { usePage } from "@/hooks/usePage";
 import { usePrevNext } from "@/hooks/usePrevNext";
 import { SidebarLayout } from "@/layouts/SidebarLayout";
 import { Title } from "@/components/Title";
-import { MDXProvider } from "@mdx-js/react";
-import Link from "next/link";
-import React from "react";
 
 export function NonVersionedLayout({ titleSuffix, children }) {
     const { page } = usePage();
@@ -25,6 +26,7 @@ export function NonVersionedLayout({ titleSuffix, children }) {
                             <div className={"relative z-20 mt-8 dark:prose-dark"}>
                                 <MDXProvider components={mdxComponents}>{children}</MDXProvider>
                             </div>
+                            <SourceFile />
                         </article>
 
                         <Footer previous={prev} next={next}>
@@ -33,6 +35,7 @@ export function NonVersionedLayout({ titleSuffix, children }) {
                                     Edit this page on GitHub
                                 </a>
                             </Link>
+                            <SourceFile />
                         </Footer>
 
                         {page.tableOfContents.length > 0 && <TableOfContents />}

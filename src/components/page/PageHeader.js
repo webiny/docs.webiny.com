@@ -2,6 +2,7 @@ export function PageHeader({ title, description }) {
     if (!title && !description) {
         return null;
     }
+
     return (
         <header
             id="header"

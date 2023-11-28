@@ -1,4 +1,5 @@
 import { MDXProvider } from "@mdx-js/react";
+import { SourceFile } from "@/components/SourceFile";
 import { mdxComponents } from "@/components/mdxComponents";
 import { usePage } from "@/hooks/usePage";
 import { VersionSelector } from "@/components/page/VersionSelector";
@@ -17,6 +18,7 @@ export function PageLayout({ children }) {
             </div>
             <article className={"prose md:prose-md prose-slate"}>
                 <ViewLatestVersion />
+                <SourceFile />
                 <PageHeader title={page.title} description={page.description} />
                 <div className={"relative z-20 mt-8 dark:prose-dark pb-10"}>
                     <MDXProvider components={mdxComponents}>{children}</MDXProvider>

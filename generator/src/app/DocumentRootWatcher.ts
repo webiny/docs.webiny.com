@@ -1,4 +1,9 @@
-import { IDocumentRoot, IDocumentRootWatcher, OnFile } from "../abstractions/IDocumentRoot";
+import {
+  IDocumentRoot,
+  IDocumentRootWatcher,
+  OnFile,
+  OnWatchEvent
+} from "../abstractions/IDocumentRoot";
 
 export class DocumentRootWatcher implements IDocumentRootWatcher {
   private readonly documentRoot: IDocumentRoot;
@@ -9,7 +14,7 @@ export class DocumentRootWatcher implements IDocumentRootWatcher {
     this.documentRoot = documentRoot;
   }
 
-  async watch(onFile: OnFile): Promise<void> {
+  async watch(onFile: OnFile, onEvent?: OnWatchEvent): Promise<void> {
     const { watch } = await import("chokidar");
 
     const files = await this.documentRoot.generate();
@@ -22,6 +27,7 @@ export class DocumentRootWatcher implements IDocumentRootWatcher {
 
     watcher
       .on("change", async file => {
+        onEvent && onEvent("change");
         console.log("File changed", file);
         const filesToWrite = await this.documentRoot.generate();
         filesToWrite.forEach(file => onFile(file));

@@ -90,7 +90,7 @@ module.exports = {
                         },
                         h5: {
                             fontWeight: 700,
-                            fontSize: "1rem",
+                            fontSize: "1rem"
                         },
                         "h1 *, h2 *, h3 *, h4 *": {
                             fontSize: "inherit !important"
@@ -154,6 +154,7 @@ module.exports = {
                         ".danger-box li::before": {
                             backgroundColor: "#D14343"
                         },
+
                         ol: {
                             counterReset: "cupcake calc(var(--start) - 1)",
                             paddingLeft: "27px",
