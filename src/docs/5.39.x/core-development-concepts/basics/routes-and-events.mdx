@@ -59,8 +59,13 @@ const handler = createHandler({
 
 This `createHandler` method will handle all incoming events, except the Raw event, which is handled by the `createRawHandler` method, imported from the `@webiny/handler-aws` or `createHandler` imported from `@webiny/handler-aws/raw`.
 
-The underlying event handlers, which the main `createHandler` chooses, actually initialize Webiny system.
+
+### Event Specific Handlers
+
+The underlying event handlers, which the main `createHandler` chooses depending on the event type, actually initialize the Webiny system.
 They will initialize [`fastify`](https://fastify.dev/docs/latest/), context and everything which is defined by plugins that were passed on.
+
+There are multiple event handlers shipped with our system, but if we missed something that you need - and is an AWS event type, feel free to open an issue or a PR.
 
 #### API Gateway Route (Event)
 
@@ -302,7 +307,7 @@ const handler = createHandler({
     createSQSEventHandler(async ({ request, reply, event, context, lambdaContext }) => {
       // the "context" variable is the same as in our system - as long as you haven't changed Webiny's default plugin loader
       // because it is a sqs event, you know the type of the "event" variable, and you can handle it from there
-      const result = await someHeavyCalculation(event);
+      const result = await someHeavyCalculationOnSQSEvent(event);
 
       // maybe store that result into the database?
       await storeResult(result);
@@ -313,7 +318,7 @@ const handler = createHandler({
     }),
     // This event handler will only be triggered when a DynamoDB event is received.
     createDynamoDBEventHandler(async ({ request, reply, event, context, lambdaContext }) => {
-      const result = await yetAnotherHeavyCalculation(event);
+      const result = await heavyCalculationOnlyOnDynamoDBStreamEvent(event);
 
       return reply.send({
         result
@@ -348,6 +353,7 @@ const handler = createHandler({
     }),
     // This event handler will be triggered first.
     createDynamoDBEventHandler(async ({ request, reply, event, context, lambdaContext, next }) => {
+      // this is how we trigger the second event handler (the one defined above)
       const resultFromPreviousEventHandler = await next();
       const result = await anotherHeavyCalculation(resultFromPreviousEventHandler, event);
 
