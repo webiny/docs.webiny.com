@@ -18,18 +18,19 @@ import {
   NavigationWriter,
   DocumentRoot,
   DocumentRootWatcher,
-  withNextLinks,
   NavigationCache,
   PassthroughFileWriter,
   IMdxProcessor,
   NonVersionedMdxFileFactoryCallable,
-  IDocumentRootFactory
+  IDocumentRootFactory,
+  IMdxRemarkPlugin
 } from "@webiny/docs-generator";
 import { NonVersionedMdxFileFactory } from "./NonVersionedMdxFileFactory";
-import { NonVersionedAssetResolver } from "./NonVersionedAssetResolver";
-import { NonVersionedMdxLinkResolver } from "./NonVersionedMdxLinkResolver";
+import { NonVersionedAssetResolverRemarkPlugin } from "./NonVersionedAssetResolverRemarkPlugin";
 import { AppConfig } from "../../app/AppConfig";
-import { IMdxCompilerPlugin } from "../../abstractions/IMdxCompilerPlugin";
+import { RemarkPluginsRunner } from "../../app/mdxCompiler/RemarkPluginsRunner";
+import { NextLinksRemarkPlugin } from "../../app/mdxCompiler/remark/NextLinksRemarkPlugin";
+import { AbsolutePathProcessor } from "../../app/processors/AbsolutePathProcessor";
 
 interface Config {
   rootDir: string;
@@ -38,7 +39,7 @@ interface Config {
   pageLayout: string;
   mdxFileProcessors: IMdxProcessor[];
   mdxFileFactory: NonVersionedMdxFileFactoryCallable;
-  mdxCompilerPlugins: IMdxCompilerPlugin[];
+  mdxRemarkPlugins: IMdxRemarkPlugin[];
 }
 
 export class NonVersionedDocumentRootFactory implements IDocumentRootFactory {
@@ -50,9 +51,10 @@ export class NonVersionedDocumentRootFactory implements IDocumentRootFactory {
     const outputDir = config.outputDir;
     const linkPrefix = config.linkPrefix;
     const navigationSourcePath = `${rootDir}/navigation.tsx`;
-    const navigationOutputPath = `data/navigation.${md5(rootDir).slice(-6)}.json`;
+    const navigationRelativeOutputPath = `data/navigation.${md5(rootDir).slice(-6)}.json`;
+    const navigationAbsoluteOutputPath = `${appConfig.getProjectRootDir()}/${navigationRelativeOutputPath}`;
 
-    const handbookProcessor = new CompositeMdxProcessor([
+    const mdxFileProcessors: IMdxProcessor[] = [
       // Add a separator before code generated via processors.
       new CodeSeparatorProcessor(),
       // Inject layout component import.
@@ -62,14 +64,30 @@ export class NonVersionedDocumentRootFactory implements IDocumentRootFactory {
       // Inject Algolia indexing data.
       new DocsearchProcessor(),
       // Inject navigation file import.
-      new PageNavigationProcessor(`@/${navigationOutputPath}`),
+      new PageNavigationProcessor(`@/${navigationRelativeOutputPath}`),
       ...config.mdxFileProcessors
-    ]);
+    ];
+
+    if (appConfig.isDevMode()) {
+      // Inject absolute file path for development purposes.
+      mdxFileProcessors.push(new AbsolutePathProcessor(appConfig.getProjectRootDir()));
+    }
+
+    const handbookProcessor = new CompositeMdxProcessor(mdxFileProcessors);
 
     const mdxFileLoader = new MdxFileLoader(
       handbookProcessor,
       new NonVersionedMdxFileFactory(config.mdxFileFactory)
     );
+
+    const mdxCompiler = new MdxCompiler([
+      RemarkPluginsRunner.create([
+        ...appConfig.getMdxRemarkPlugins(),
+        ...config.mdxRemarkPlugins,
+        new NonVersionedAssetResolverRemarkPlugin(),
+        new NextLinksRemarkPlugin()
+      ])
+    ]);
 
     const mdxFileWriter = new CompositeMdxFileWriter([
       // In dev mode, we write the processed MDX file for debugging purposes.
@@ -77,14 +95,7 @@ export class NonVersionedDocumentRootFactory implements IDocumentRootFactory {
       // Write sitemap XML file for each MDX file.
       new SitemapFileWriter(outputDir),
       // Write a JS file compiled from the MDX file.
-      new CompiledMdxFileWriter(
-        outputDir,
-        new MdxCompiler([
-          NonVersionedAssetResolver.create(),
-          withNextLinks(new NonVersionedMdxLinkResolver(rootDir, linkPrefix)),
-          ...config.mdxCompilerPlugins
-        ])
-      )
+      new CompiledMdxFileWriter(outputDir, mdxCompiler)
     ]);
 
     const navigationLoader = new NavigationLoader(
@@ -96,7 +107,7 @@ export class NonVersionedDocumentRootFactory implements IDocumentRootFactory {
 
     const navigationWriter = new NavigationWriter(
       navigationSourcePath,
-      navigationOutputPath,
+      navigationAbsoluteOutputPath,
       mdxFileWriter
     );
 

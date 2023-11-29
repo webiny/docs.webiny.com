@@ -6,7 +6,7 @@ export const Navigation = () => {
     <NavigationRoot directory={__dirname}>
       <Group title={"Welcome!"}>
         <Page file={"./introduction"} link={"introduction"} />
-        <Group title={"Engineering"}>
+        <Group title={"Engineering"} linkPrefix={"engineering"}>
           <Page file={"./engineering/cypress"} />
           <Page file={"./engineering/cypress.mdx"} link={"testing/cypress"} />
         </Group>

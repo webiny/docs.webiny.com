@@ -1,8 +1,8 @@
 import { MdxData } from "../../abstractions/IMdxFileFactory";
 import { IMdxProcessor } from "../../abstractions/IMdxProcessor";
-import { IMdxCompilerPlugin } from "../../abstractions/IMdxCompilerPlugin";
 import { IDocumentRootFactory } from "../../abstractions/IDocumentRootFactory";
 import { IDocumentRootConfig } from "../../abstractions/IDocumentRootConfig";
+import { IMdxRemarkPlugin } from "../../abstractions/IMdxRemarkPlugin";
 import { MdxFile } from "../../app/MdxFile";
 import { AppConfig } from "../../app/AppConfig";
 import { NonVersionedDocumentRootFactory } from "./NonVersionedDocumentRootFactory";
@@ -18,7 +18,7 @@ interface NonVersionedDocumentRootConfigParams {
   pageLayout: string;
   mdxFileFactory: NonVersionedMdxFileFactoryCallable;
   mdxFileProcessors?: IMdxProcessor[];
-  mdxCompilerPlugins?: IMdxCompilerPlugin[];
+  mdxRemarkPlugins?: IMdxRemarkPlugin[];
 }
 
 export class NonVersionedDocumentRootConfig implements IDocumentRootConfig {
@@ -27,7 +27,7 @@ export class NonVersionedDocumentRootConfig implements IDocumentRootConfig {
   constructor(config: NonVersionedDocumentRootConfigParams) {
     this.config = {
       ...config,
-      mdxCompilerPlugins: config.mdxCompilerPlugins ?? [],
+      mdxRemarkPlugins: config.mdxRemarkPlugins ?? [],
       mdxFileProcessors: config.mdxFileProcessors ?? []
     };
   }

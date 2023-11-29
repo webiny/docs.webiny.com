@@ -67,14 +67,15 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
   constructor(appConfig: AppConfig, config: Config) {
     this.appConfig = appConfig;
 
-    const versionsFileOutputPath = `data/versions.${md5(config.rootDir).slice(-6)}.json`;
+    const versionsFileRelativeOutputPath = `data/versions.${md5(config.rootDir).slice(-6)}.json`;
+    const versionsFileAbsoluteOutputPath = `${appConfig.getProjectRootDir()}/${versionsFileRelativeOutputPath}`;
 
     this.config = {
       ...config,
       mdxFileProcessors: [
         ...config.mdxFileProcessors,
         // Inject versions file import.
-        new VersionsProcessor(`@/${versionsFileOutputPath}`)
+        new VersionsProcessor(`@/${versionsFileRelativeOutputPath}`)
       ]
     };
 
@@ -86,7 +87,7 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
       .map(version => this.createDocumentRoot(version));
 
     this.documentRoot = new VersionedDocumentRoot(
-      this.getVersionsFile(versionsFileOutputPath),
+      this.getVersionsFile(versionsFileAbsoluteOutputPath),
       new CompositeDocumentRoot(documentRoots)
     );
 
@@ -109,7 +110,8 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
     const versionedRootDir = `${config.rootDir}/${version}`;
     const linkPrefix = version.isLatest() ? config.linkPrefix : `${config.linkPrefix}/${version}`;
     const navigationSourcePath = `${versionedRootDir}/navigation`;
-    const navigationOutputPath = `data/navigation.${md5(versionedRootDir).slice(-6)}.json`;
+    const navigationRelativeOutputPath = `data/navigation.${md5(versionedRootDir).slice(-6)}.json`;
+    const navigationAbsoluteOutputPath = `${this.appConfig.getProjectRootDir()}/${navigationRelativeOutputPath}`;
 
     const mdxFileProcessors: IMdxProcessor[] = [
       // Add a separator before code generated via processors.
@@ -121,7 +123,7 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
       // Inject Algolia indexing data.
       new DocsearchProcessor(),
       // Inject navigation file import.
-      new PageNavigationProcessor(`@/${navigationOutputPath}`),
+      new PageNavigationProcessor(`@/${navigationRelativeOutputPath}`),
       // Inject variable values (`{version}`, `{exact:...}`).
       new VariableProcessor(this.versions),
       ...config.mdxFileProcessors
@@ -173,7 +175,7 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
     );
     const navigationWriter = new NavigationWriter(
       navigationSourcePath,
-      navigationOutputPath,
+      navigationAbsoluteOutputPath,
       mdxFileWriter
     );
 

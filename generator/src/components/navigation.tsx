@@ -47,15 +47,48 @@ export const Draft = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+interface GroupContext {
+  linkPrefix?: string;
+}
+
+const GroupContext = React.createContext<GroupContext | undefined>(undefined);
+
+interface GroupProviderProps {
+  children: React.ReactNode;
+  linkPrefix?: string;
+}
+
+const GroupProvider = ({ children, linkPrefix }: GroupProviderProps) => {
+  const parentGroup = useGroup();
+  const navigationRoot = useNavigationRoot();
+
+  const combinedPrefix = [
+    parentGroup ? parentGroup.linkPrefix : navigationRoot.linkPrefix,
+    linkPrefix
+  ]
+    .filter(Boolean)
+    .join("/")
+    .replace(/\/{2,}/, "/");
+
+  return (
+    <GroupContext.Provider value={{ linkPrefix: combinedPrefix }}>{children}</GroupContext.Provider>
+  );
+};
+
+const useGroup = () => {
+  return React.useContext(GroupContext);
+};
+
 interface GroupProps {
   title: string;
   children: React.ReactNode;
+  linkPrefix?: string;
   remove?: boolean;
   before?: string;
   after?: string;
 }
 
-export const Group = ({ title, children, remove, before, after }: GroupProps) => {
+export const Group = ({ title, linkPrefix, children, remove, before, after }: GroupProps) => {
   const getId = useIdGenerator("collapsable");
   const id = getId(title);
 
@@ -63,11 +96,20 @@ export const Group = ({ title, children, remove, before, after }: GroupProps) =>
   const placeBefore = before !== undefined ? getId(before) : undefined;
 
   return (
-    <Property id={id} name={"items"} array remove={remove} before={placeBefore} after={placeAfter}>
-      <Property id={`${id}.type`} name={"type"} value={"group"} />
-      <Property id={`${id}.title`} name={"title"} value={title} />
-      {children}
-    </Property>
+    <GroupProvider linkPrefix={linkPrefix}>
+      <Property
+        id={id}
+        name={"items"}
+        array
+        remove={remove}
+        before={placeBefore}
+        after={placeAfter}
+      >
+        <Property id={`${id}.type`} name={"type"} value={"group"} />
+        <Property id={`${id}.title`} name={"title"} value={title} />
+        {children}
+      </Property>
+    </GroupProvider>
   );
 };
 
@@ -97,13 +139,16 @@ interface PageProps {
 
 export const Page = ({ title, link, file, remove, before, after, hidden = false }: PageProps) => {
   const getId = useIdGenerator(String(link || file));
-  const { directory, linkPrefix } = useNavigationRoot();
+  const navigationRoot = useNavigationRoot();
+  const parentGroup = useGroup();
+
+  const linkPrefix = parentGroup ? parentGroup.linkPrefix : navigationRoot.linkPrefix;
 
   return (
     <Property id={getId()} name={"items"} array remove={remove} before={before} after={after}>
       <Property id={getId("type")} name={"type"} value={"page"} />
       <Property id={getId("hidden")} name={"hidden"} value={hidden} />
-      <Property id={getId("directory")} name={"directory"} value={directory} />
+      <Property id={getId("directory")} name={"directory"} value={navigationRoot.directory} />
       {linkPrefix ? (
         <Property id={getId("linkPrefix")} name={"linkPrefix"} value={linkPrefix} />
       ) : null}

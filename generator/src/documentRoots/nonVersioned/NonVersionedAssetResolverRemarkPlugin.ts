@@ -1,26 +1,22 @@
 import visit from "unist-util-visit";
 import { Node } from "unist";
-import { VFile } from "vfile";
+import { VFileOptions } from "vfile";
+import path from "path";
 import { parse } from "@babel/parser";
 import { ImportDeclaration } from "@babel/types";
-import path from "path";
+import { IMdxRemarkPlugin } from "../../abstractions/IMdxRemarkPlugin";
 
 type ImportNode = Node & { value?: string };
 
 /**
  * This visitor looks for `import` statements, and resolves the import paths to the actual location of the asset.
  */
-export class NonVersionedAssetResolver {
-  private constructor() {}
-
-  static create() {
-    const assetResolver = new NonVersionedAssetResolver();
-    return () => (tree: Node, file: VFile) => {
-      assetResolver.traverse(tree, file);
-    };
+export class NonVersionedAssetResolverRemarkPlugin implements IMdxRemarkPlugin {
+  process(tree: Node, file: VFileOptions): void {
+    this.traverse(tree, file);
   }
 
-  private traverse(tree: Node, file: VFile) {
+  private traverse(tree: Node, file: VFileOptions) {
     visit<ImportNode>(tree, "import", node => {
       if (!node.value) {
         return;

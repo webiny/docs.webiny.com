@@ -40,16 +40,16 @@ export default {
         path.resolve("docs/developer-docs"),
         path.resolve("docs/user-guides")
       )
-    })
+    }),
 
     /* Handbook */
-    // process.env.NODE_ENV === "development" &&
-    //   new NonVersionedDocumentRootConfig({
-    //     rootDir: path.resolve("docs/handbook"),
-    //     linkPrefix: "/docs/handbook",
-    //     outputDir: path.resolve("src/pages"),
-    //     pageLayout: "@/layouts/HandbookLayout",
-    //     mdxFileFactory: (data: MdxData) => new HandbookMdxFile(data)
-    //   })
+    process.env.NODE_ENV === "development" &&
+      new NonVersionedDocumentRootConfig({
+        rootDir: path.resolve("docs/handbook"),
+        linkPrefix: "/docs/handbook",
+        outputDir: path.resolve("src/pages"),
+        pageLayout: "@/layouts/HandbookLayout",
+        mdxFileFactory: (data: MdxData) => new HandbookMdxFile(data)
+      })
   ]
 };
