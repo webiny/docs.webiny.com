@@ -43,7 +43,7 @@ export default {
     }),
 
     /* Handbook */
-    process.env.NODE_ENV === "development" &&
+    (process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview") &&
       new NonVersionedDocumentRootConfig({
         rootDir: path.resolve("docs/handbook"),
         linkPrefix: "/docs/handbook",
