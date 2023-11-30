@@ -8,7 +8,8 @@ import {
   IDocumentRootWatcher,
   CompositeDocumentRoot,
   CompositeDocumentRootWatcher,
-  LinkValidationConsoleReporter
+  LinkValidationConsoleReporter,
+  IFile
 } from "../index";
 import { SitemapGenerator } from "./SitemapGenerator";
 
@@ -129,9 +130,12 @@ class GeneratorWithTiming {
   async execute() {
     const start = Date.now();
     this.logger.info(`Generating files...`);
-    await this.generator.execute();
+    const files = await this.generator.execute();
+
     const duration = (Date.now() - start) / 1000;
+    const jsFilesCount = files.filter(file => file.getOutputPath().endsWith(".js")).length;
 
     this.logger.success(`Finished generating files in %s seconds!`, duration);
+    this.logger.info(`Generated %s page files.`, jsFilesCount);
   }
 }

@@ -4,7 +4,7 @@ title: Code Benchmarking
 description: Learn how to benchmark code
 ---
 
-import {Alert} from "@/components/Alert";
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="What you'll learn">
 
@@ -32,40 +32,47 @@ This is useful to figure out where are the bottlenecks in the Webiny's and the u
 As noted in the overview part of this article, the benchmark tool measures execution time and memory difference, from start to end of execution, of the piece of code wrapped in the measurement method.
 
 The measurement method looks like this:
+
 ```typescript
-const result = await context.benchmark.measure("my code", async() => {
-    const innerResult = await doSomething();
-    
-    const processedInnerResult = await process(innerResult);
-    
-    return output(processedInnerResult);
+const result = await context.benchmark.measure("my code", async () => {
+  const innerResult = await doSomething();
+
+  const processedInnerResult = await process(innerResult);
+
+  return output(processedInnerResult);
 });
 // do something with that result
 passTheResult(result);
 ```
+
 The measurement is stored into an object with interface [BenchmarkMeasurement](https://github.com/webiny/webiny-js/blob/7d9d7bbf0dbbc6bfed114d1835114b3512e33ffa/packages/api/src/types.ts#L7).
 The properties are:
-* name - identifier of the measurement (`my code` in our example)
-* category - category of the measurement - default is `webiny`
-* start - the `Date` object created when the measurement started
-* end - the `Date` object created when the measurement ended
-* elapsed - difference, in milliseconds, from the end to start `Date` values
-* memory - difference, in bytes, from the end to the start of the memory measurement (collected via the `process.memoryUsage().heapUsed`)
+
+- name - identifier of the measurement (`my code` in our example)
+- category - category of the measurement - default is `webiny`
+- start - the `Date` object created when the measurement started
+- end - the `Date` object created when the measurement ended
+- elapsed - difference, in milliseconds, from the end to start `Date` values
+- memory - difference, in bytes, from the end to the start of the memory measurement (collected via the `process.memoryUsage().heapUsed`)
 
 ### Categorizing the Measurements
 
 You can set your own measurement category, as the default category is `webiny`:
+
 ```typescript
-const result = await context.benchmark.measure({
-        name: "my code",
-        category: "my category"
-    }, async() => {
+const result = await context.benchmark.measure(
+  {
+    name: "my code",
+    category: "my category"
+  },
+  async () => {
     const innerResult = await doSomething();
-    
+
     const processedInnerResult = await process(innerResult);
-    
+
     return output(processedInnerResult);
-});
+  }
+);
 // do something with that result
 passTheResult(result);
 ```
@@ -76,37 +83,38 @@ By setting the category, you can filter the measurements easily later. You can w
 
 The measurements are not enabled by the default because, we are absolutely positive, nobody wants it to run all the time.
 If you want to enable the measurements, you will need to create a plugin which enables it:
-```typescript
-import {ContextPlugin} from "@webiny/handler-aws";
 
-const plugin = new ContextPlugin(async(context) => {
-    context.benchmark.enableOn(async() => {
-        /**
-         * You can check the request headers for x-benchmark.
-         */
-        if (context.request.headers["x-benchmark"] === "true") {
-            return true;
-        }
-        /**
-         * You can check the query parameters for enableBenchmark. 
-         */
-        const query = context.request.query as Record<string, string> | undefined;
-        if (query?.["enableBenchmark"] === "true") {
-            return true;
-        }
-        /**
-         * You can check the environment variable as well.
-         */
-        return process.env.BENCHMARK_ENABLE === "true";
-    });
+```typescript
+import { ContextPlugin } from "@webiny/handler-aws";
+
+const plugin = new ContextPlugin(async context => {
+  context.benchmark.enableOn(async () => {
+    /**
+     * You can check the request headers for x-benchmark.
+     */
+    if (context.request.headers["x-benchmark"] === "true") {
+      return true;
+    }
+    /**
+     * You can check the query parameters for enableBenchmark.
+     */
+    const query = context.request.query as Record<string, string> | undefined;
+    if (query?.["enableBenchmark"] === "true") {
+      return true;
+    }
+    /**
+     * You can check the environment variable as well.
+     */
+    return process.env.BENCHMARK_ENABLE === "true";
+  });
 });
 
 const handler = createHandler({
-    plugins: [
-        // the plugin which enables the benchmarking must always go to the top of the plugin list
-        plugin,
-        // rest of the plugins
-    ],
+  plugins: [
+    // the plugin which enables the benchmarking must always go to the top of the plugin list
+    plugin
+    // rest of the plugins
+  ]
 });
 ```
 
@@ -130,26 +138,26 @@ If you want to know more about the Fastify hooks and lifecycles, there is quite 
 You can customize the output of the measurement logs, for example: send them to a service of your own liking.
 
 ```typescript
-import {ContextPlugin} from "@webiny/handler-aws";
+import { ContextPlugin } from "@webiny/handler-aws";
 
-const plugin = new ContextPlugin(async(context) => {
-    context.benchmark.onOutput(async({benchmark, stop}) => {
-        const result = await sendToUserDefinedService(benchmark.measurements);
-        if (!result) {
-            console.log(`Could not send benchmark results to a user defined service.`);
-        }
-        /**
-         * If you want to prevent the measurements to be sent to the Cloudwatch, you need to break the cycle. 
-         */
-        return stop();
-    });
+const plugin = new ContextPlugin(async context => {
+  context.benchmark.onOutput(async ({ benchmark, stop }) => {
+    const result = await sendToUserDefinedService(benchmark.measurements);
+    if (!result) {
+      console.log(`Could not send benchmark results to a user defined service.`);
+    }
+    /**
+     * If you want to prevent the measurements to be sent to the Cloudwatch, you need to break the cycle.
+     */
+    return stop();
+  });
 });
 
 const handler = createHandler({
-    plugins: [
-        // register the plugin in the end of the plugins array
-        plugin
-    ]
+  plugins: [
+    // register the plugin in the end of the plugins array
+    plugin
+  ]
 });
 ```
 

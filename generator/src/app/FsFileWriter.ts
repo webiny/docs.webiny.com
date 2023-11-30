@@ -13,7 +13,7 @@ export class FsFileWriter implements IFileWriter {
 
   async write(file: IFile): Promise<void> {
     const target = file.getOutputPath();
-    this.logger?.debug(`Writing file: %s`, target.replace(process.cwd(), ""));
+    // this.logger?.debug(`Writing file: %s`, target.replace(process.cwd(), ""));
     await fs.ensureDir(dirname(target));
     await fs.writeFile(target, await file.getContents());
   }

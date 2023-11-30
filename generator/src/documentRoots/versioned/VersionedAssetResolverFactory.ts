@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
-import { VFile } from "vfile";
+import { VFileOptions } from "vfile";
 import { DocumentRootVersions, Version } from "@webiny/docs-generator";
 
 export class VersionedAssetResolverFactory {
@@ -31,7 +31,7 @@ class VersionedAssetResolver {
     this.versions = versions;
   }
 
-  resolvePath(vFile: VFile, assetPath: string) {
+  resolvePath(vFile: VFileOptions, assetPath: string) {
     const dirname = vFile.dirname;
     const issuer = vFile.history[0];
 

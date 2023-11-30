@@ -156,20 +156,27 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
                     {title}
                 </button>
             </li>
-            <ul
-                className={
-                    "transition-all duration-300 " +
-                    clsx({
-                        "ml-[18px] ": depth > 0,
-                        "transform opacity-1 overflow-visible": showMenu,
-                        "max-h-0 transform opacity-0 overflow-hidden": !showMenu
-                    })
-                }
-            >
-                {subElements.map((navElement, index) => (
-                    <NavTreeElement key={index} element={navElement} ref={ref} depth={depth + 1} />
-                ))}
-            </ul>
+            {subElements.length ? (
+                <ul
+                    className={
+                        "transition-all duration-300 " +
+                        clsx({
+                            "ml-[18px] ": depth > 0,
+                            "transform opacity-1 overflow-visible": showMenu,
+                            "max-h-0 transform opacity-0 overflow-hidden": !showMenu
+                        })
+                    }
+                >
+                    {subElements.map((navElement, index) => (
+                        <NavTreeElement
+                            key={index}
+                            element={navElement}
+                            ref={ref}
+                            depth={depth + 1}
+                        />
+                    ))}
+                </ul>
+            ) : null}
         </>
     );
 });
@@ -179,20 +186,21 @@ const Page = forwardRef(({ title, link, isActive, depth = 0 }, ref) => {
         <li
             ref={isActive ? ref : null}
             className={clsx(
-                "link-element grid content-center block my-[15px] ml-[-1px] pl-[15px] cursor-pointer border-slate-100 dark:border-transparent",
+                "link-element grid content-center block ml-[-1px] cursor-pointer border-slate-100 dark:border-transparent",
                 {
                     "--active border-l-[1px] text-orange border-l-orange font-bold dark:border-orange/50":
                         isActive,
-                    "border-l-[1px] hover:border-l-[1px] hover:text-dark-purple hover:border-orange/50":
-                        !isActive,
-                    "font-semibold text-nav-directory": depth === 0,
-                    "my-[7px] text-nav-link": depth > 0,
+                    "hover:text-dark-purple": !isActive,
+                    "font-semibold text-nav-directory root-element h-[30px] mt-[5px] mb-[8px]":
+                        depth === 0,
+                    "my-[7px] text-nav-link border-l-[1px] hover:border-l-[1px] hover:border-orange/50 pl-[15px] my-[15px]":
+                        depth > 0,
                     "text-dark-blue dark:text-white": depth === 0 && !isActive,
                     "text-dark-blue dark:text-light-grey-2": depth > 0 && !isActive
                 }
             )}
         >
-            <Link href={link}>
+            <Link href={link} legacyBehavior>
                 {/* first line */}
                 <a className="leading-6">{title}</a>
             </Link>
