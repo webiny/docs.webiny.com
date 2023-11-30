@@ -127,6 +127,7 @@ As our next step, we'll define a renderer for our new field. The renderer determ
 ```ts secretTextFieldRendererPlugin.tsx
 import React from "react";
 import { CmsEditorFieldRendererPlugin } from "@webiny/app-headless-cms/types";
+import { ValidationError } from "@webiny/validation";
 import { Input } from "@webiny/ui/Input";
 
 export default (): CmsEditorFieldRendererPlugin => ({
@@ -142,8 +143,15 @@ export default (): CmsEditorFieldRendererPlugin => ({
     render({ field, getBind }) {
       const Bind = getBind();
 
+      const validator = (value: any) => {
+        if (value.length < 8) {
+          return new ValidationError("Value must be at least 8 characters long to have enough entropy to be secret enough.");
+        }
+        return true;
+      }
+
       return (
-        <Bind>
+        <Bind validators={validator}>
           {bind => (
             <Input
               {...bind}
