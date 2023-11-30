@@ -16,15 +16,18 @@ import { UserGuidesVersionProvider } from "./docs/user-guides/UserGuidesVersionP
 const preview = process.env.VERCEL_ENV === "preview" || process.env.NODE_ENV === "development";
 
 /**
- * If you want to build more than just the "latest" version in the Vercel preview deployment,
- * whitelist versions by adding them to this array. Example: "5.35.x"
+ * If you want to only build specific versions in the Vercel preview deployment,
+ * whitelist them by adding version numbers to this array. Example: "5.35.x"
  */
 const whitelistedVersions: string[] = [];
 
 const filterByEnvironment = (version: Version) => {
-  if (preview) {
-    return version.isLatest() || whitelistedVersions.includes(version.getValue());
+  // In `preview`, if there are specific versions whitelisted for deployment, those are the only ones we'll output.
+  if (preview && whitelistedVersions.length > 0) {
+    return whitelistedVersions.includes(version.getValue());
   }
+
+  // Build everything.
   return true;
 };
 
