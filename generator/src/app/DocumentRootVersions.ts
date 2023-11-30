@@ -28,6 +28,10 @@ export class Version {
   }
 }
 
+export interface DocumentRootVersionFilter {
+  (v: Version): boolean;
+}
+
 export class DocumentRootVersions {
   private readonly versions: Version[];
 
@@ -40,7 +44,7 @@ export class DocumentRootVersions {
     });
   }
 
-  createWithFilter(filter: (v: Version) => boolean) {
+  createWithFilter(filter: DocumentRootVersionFilter) {
     const filteredVersions = new Set(this.versions.filter(filter).map(v => v.getValue()));
 
     // We always include the "latest" version.

@@ -42,6 +42,8 @@ export * from "./app/CompositeMdxProcessor";
 export * from "./app/CompositeMdxFileWriter";
 export * from "./app/CompiledMdxFileWriter";
 export * from "./app/MdxCompiler";
+export * from "./app/VersionsProvider";
+export * from "./app/FilteredVersionsProvider";
 export * from "./app/processors/CodeSeparatorProcessor";
 export * from "./app/processors/LayoutProcessor";
 export * from "./app/processors/PageDataProcessor";
