@@ -177,7 +177,7 @@ export function Header() {
 
     const homepage = url.replace(
         "/{version}/",
-        page.version === "latest" ? "/" : `/${page.version}/`
+        page.isLatest ? "/" : `/${page.version}/`
     );
 
     return (
