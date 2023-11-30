@@ -12,6 +12,7 @@ import { DeveloperDocsMdxFile } from "./docs/developer-docs/DeveloperDocsMdxFile
 import { HandbookMdxFile } from "./docs/handbook/HandbookMdxFile";
 import { UserGuideMdxFile } from "./docs/user-guides/UserGuideMdxFile";
 import { UserGuidesVersionProvider } from "./docs/user-guides/UserGuidesVersionProvider";
+import { ReleaseNotesMdxFile } from "./docs/release-notes/ReleaseNotesMdxFile";
 
 const preview = process.env.VERCEL_ENV === "preview" || process.env.NODE_ENV === "development";
 
@@ -65,6 +66,15 @@ export default {
         path.resolve("docs/developer-docs"),
         path.resolve("docs/user-guides")
       )
+    }),
+
+    /* Release Notes */
+    new NonVersionedDocumentRootConfig({
+      rootDir: path.resolve("docs/release-notes"),
+      linkPrefix: "/docs",
+      outputDir: path.resolve("src/pages"),
+      pageLayout: "@/layouts/ReleaseNotesLayout",
+      mdxFileFactory: (data: MdxData) => new ReleaseNotesMdxFile(data)
     }),
 
     /* Handbook */

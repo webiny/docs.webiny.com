@@ -37,7 +37,7 @@ export function VersionedLayout({ titleSuffix, children, ...props }) {
                         </article>
 
                         <Footer previous={prev} next={next}>
-                            <Link href={`https://github.com/webiny/docs.webiny.com`}>
+                            <Link href={`https://github.com/webiny/docs.webiny.com`} legacyBehavior>
                                 <a className="hover:text-slate-900 dark:hover:text-slate-400">
                                     Edit this page on GitHub
                                 </a>

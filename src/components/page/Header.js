@@ -1,48 +1,15 @@
 import { useNavigation } from "@/components/page/Navigation";
+import Router from "next/router";
 import { usePage } from "@/hooks/usePage";
+import { useHomepage } from "@/hooks/useHomepage";
 import { Dialog } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import { SearchButton } from "./Search";
-import Router from "next/router";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "./ThemeToggle";
 import styles from "./Header.module.css";
-
-function Featured() {
-    return (
-        <Link href="https://github.com/webiny/webiny-js">
-            <a
-                className="items-center hidden px-3 py-2 rounded-full ml-9 xl:flex"
-                target="_blank"
-                rel="noreferrer"
-            >
-                <span className="ml-2 text-nav-link dark:text-white">
-                    <span role="img" aria-label="star">
-                        ⭐️
-                    </span>{" "}
-                    If you like Webiny, help us out by giving us a star on GitHub!
-                </span>
-                <svg
-                    width="6"
-                    height="12"
-                    viewBox="0 0 6 12"
-                    className="ml-2"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                        d="M1 10.748L5.36872 5.95182L1.03281 0.999808"
-                        className="stroke-dark-blue dark:stroke-white"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                </svg>
-            </a>
-        </Link>
-    );
-}
 
 export function NavPopover({ display = "md:hidden", className, ...props }) {
     let [isOpen, setIsOpen] = useState(false);
@@ -149,18 +116,31 @@ export function NavPopover({ display = "md:hidden", className, ...props }) {
 
 export function NavItems() {
     const { page } = usePage();
+
+    const activeClass = type => {
+        return page.type === type ? "text-orange" : "";
+    };
+
     return (
         <>
             <li>
-                {page.type === "docs" ? (
-                    <Link href="/docs/user-guides">
-                        <a className="text-nav-subdirectory dark:text-white">User Guides</a>
-                    </Link>
-                ) : (
-                    <Link href="/docs">
-                        <a className="text-nav-subdirectory dark:text-white">Developer Docs</a>
-                    </Link>
-                )}
+                <Link href="/docs/get-started/install-webiny" legacyBehavior>
+                    <a className={`text-nav-subdirectory ${activeClass("docs")}`}>Developer Docs</a>
+                </Link>
+            </li>
+            <li>
+                <Link href="/docs/release-notes/upgrade-webiny" legacyBehavior>
+                    <a className={`text-nav-subdirectory ${activeClass("release-notes")}`}>
+                        Release Notes
+                    </a>
+                </Link>
+            </li>
+            <li>
+                <Link href="/docs/user-guides/overview" legacyBehavior>
+                    <a className={`text-nav-subdirectory ${activeClass("user-guides")}`}>
+                        User Guides
+                    </a>
+                </Link>
             </li>
         </>
     );
@@ -168,17 +148,7 @@ export function NavItems() {
 
 export function Header() {
     const { toggleNavigation } = useNavigation();
-    const { page } = usePage();
-
-    // TODO: handle this via dedicated versioned/non-versioned components
-    const url = page.version
-        ? "/docs/{version}/get-started/install-webiny"
-        : "/docs/get-started/install-webiny";
-
-    const homepage = url.replace(
-        "/{version}/",
-        page.isLatest ? "/" : `/${page.version}/`
-    );
+    const { homepageUrl } = useHomepage();
 
     return (
         <>
@@ -200,7 +170,7 @@ export function Header() {
                             />
                         </svg>
                     </button>
-                    <Link href={homepage}>
+                    <Link href={homepageUrl} legacyBehavior>
                         <a
                             className="flex-none w-[1.5925rem] lg:pr-[8.3875rem] lg:border-r border-border dark:border-dark-grey overflow-hidden lg:w-auto"
                             onContextMenu={e => {
@@ -211,9 +181,8 @@ export function Header() {
                             <Logo className="w-auto h-[1.8025rem] lg:h-10" />
                         </a>
                     </Link>
-                    <Featured />
                     <div className="relative items-center hidden ml-auto lg:flex">
-                        <nav className="flex items-center h-[2.375rem] text-sm leading-6 font-semibold text-slate-700 dark:text-slate-200 border-l border-border dark:border-dark-grey ml-[1.875rem] pl-[1.875rem]">
+                        <nav className="flex items-center h-[2.375rem] text-sm leading-6 font-semibold text-slate-700 dark:text-slate-200 ml-[1.875rem] pl-[1.875rem]">
                             <ul className="flex space-x-8">
                                 <NavItems />
                             </ul>

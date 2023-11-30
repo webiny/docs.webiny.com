@@ -19,31 +19,34 @@ export default class Document extends NextDocument {
                     <link
                         rel="apple-touch-icon"
                         sizes="180x180"
-                        href={v("/favicons/apple-touch-icon.png")}
+                        href={v("/docs-favicons/apple-touch-icon.png")}
                     />
                     <link
                         rel="icon"
                         type="image/png"
                         sizes="32x32"
-                        href={v("/favicons/favicon-32x32.png")}
+                        href={v("/docs-favicons/favicon-32x32.png")}
                     />
                     <link
                         rel="icon"
                         type="image/png"
                         sizes="16x16"
-                        href={v("/favicons/favicon-16x16.png")}
+                        href={v("/docs-favicons/favicon-16x16.png")}
                     />
-                    <link rel="manifest" href={v("/favicons/site.webmanifest")} />
+                    <link rel="manifest" href={v("/docs-favicons/site.webmanifest")} />
                     <link
                         rel="mask-icon"
-                        href={v("/favicons/safari-pinned-tab.svg")}
+                        href={v("/docs-favicons/safari-pinned-tab.svg")}
                         color="#FA5A28"
                     />
-                    <link rel="shortcut icon" href={v("/favicons/favicon.ico")} />
+                    <link rel="shortcut icon" href={v("/docs-favicons/favicon.ico")} />
                     <meta name="apple-mobile-web-app-title" content="Webiny Docs" />
                     <meta name="application-name" content="Webiny Docs" />
                     <meta name="msapplication-TileColor" content="#FA5A28" />
-                    <meta name="msapplication-config" content={v("/favicons/browserconfig.xml")} />
+                    <meta
+                        name="msapplication-config"
+                        content={v("/docs-favicons/browserconfig.xml")}
+                    />
                     <meta name="theme-color" content="#ffffff" />
                     <script
                         dangerouslySetInnerHTML={{

@@ -16,5 +16,7 @@ export class Generator {
     for (const file of files) {
       await this.fileWriter.write(file);
     }
+
+    return files;
   }
 }

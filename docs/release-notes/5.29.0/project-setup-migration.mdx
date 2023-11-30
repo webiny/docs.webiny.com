@@ -31,7 +31,7 @@ how to upgrade, please check the [Upgrade From 5.28.0 to 5.29.0](/docs/release-n
 
 ## Introduction
 
-With the [5.29.0 release](/docs/release-notes/5.29.0/changelog), we've introduced a brand-new project setup. Essentially, the new project setup abstracts a solid amount of files and folders from a Webiny project, making it easier for users to grasp Webiny and develop on top of it. 
+With the [5.29.0 release](/docs/release-notes/5.29.0/changelog), we've introduced a brand-new project setup. Essentially, the new project setup abstracts a solid amount of files and folders from a Webiny project, making it easier for users to grasp Webiny and develop on top of it.
 
 ## Overview
 
@@ -67,26 +67,20 @@ If possible, after the migration, you should perform an analysis and try to dete
 
 We will try to mention some of these resources in the section which cover cloud infrastructure (Pulumi) state files and deployments.
 
-
 ## Steps
 
 ### 1. Create a new Webiny project
 
-
 On your local machine, create a new Webiny project via the following command:
-
 
 ```bash
 npx create-webiny-project {FOLDER_NAME}
 
 ```
 
-
 Note that the wizard that follows will ask you to choose an AWS region and a database setup. Please select the same AWS region and the database setup you were already using.
 
-
 This new project will be our new base from now on. Once the migration has been completed, the old project won’t be needed anymore (but you can keep it around for some time, just in case).
-
 
 Once we’ve created the project, we continue by doing the following initial steps in it.
 
@@ -94,18 +88,15 @@ Once we’ve created the project, we continue by doing the following initial ste
 
 For starters, we copy all the custom plugins we have in the old project. This includes the `plugins` folder, as well making sure all the plugins inside of it are properly imported in relevant project applications (API, Admin, Website).
 
-
 #### 2. `.env` Files
 
-
-If you’re migrating a local / development-related project, then you’re most probably relying on the `.env` file. If so, make sure to copy the file into the new project. On the other hand, if you’re migrating a long-lived environment, environment variables should already be present in CI/CD provider’s secrets vault. In that case, this step can be ignored. 
+If you’re migrating a local / development-related project, then you’re most probably relying on the `.env` file. If so, make sure to copy the file into the new project. On the other hand, if you’re migrating a long-lived environment, environment variables should already be present in CI/CD provider’s secrets vault. In that case, this step can be ignored.
 
 Then again, if you’re migrating a long-lived environment from a local machine, ensure all of the environment variables, that are usually assigned in a CI/CD workflow, are assigned locally.
 
 From all the environment variables, we should highlight the Pulumi (`PULUMI_SECRETS_PROVIDER`, `PULUMI_CONFIG_PASSPHRASE`) and AWS environment variables.
 
 Failing to have these values the same will prevent us from performing the actual migration. For example, when it comes to Pulumi-related environment variables, Pulumi usually will throw an error.
-
 
 #### 3. Package Resolutions
 
@@ -118,14 +109,13 @@ In the new project, we want to keep the same versions of Pulumi-related NPM pack
 
 After the change, in the new project, updated `resolutions` block should look like the following:
 
-<Image src={resolutions} canEnlarge={false} style={{width:400}}/>
+<Image src={resolutions} canEnlarge={false} style={{ width: 400 }} />
 
 #### 4. Run `yarn`
 
 In order for the `yarn` and resolutions-related changes to take affect, let’s run `yarn` from the new project’s root.
 
 If the command execution has completed successfully, then we’re ready to start applying cloud infrastructure (Pulumi) code adjustments.
-
 
 ### 2. Apply Cloud Infrastructure (Pulumi) Code Adjustments
 
@@ -138,8 +128,7 @@ With the new project structure, all of the project applications are located with
 3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts))
 4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts))
 
-These are the files via which the cloud infrastructure adjustments can be applied. To learn more, we suggest you take a look at the [Modify Cloud Infrastructure](/docs/{version}/infrastructure/basics/modify-cloud-infrastructure)
-
+These are the files via which the cloud infrastructure adjustments can be applied. To learn more, we suggest you take a look at the [Modify Cloud Infrastructure](/docs/infrastructure/basics/modify-cloud-infrastructure)
 
 ### 3. Pulumi State Files Migration
 
@@ -160,17 +149,15 @@ In the new project, we now have four project apps, thus four sets of state files
 
 <Alert type={"info"}>
 
-  More info on the new cloud architecture can be found [here](https://www.webiny.com/docs/architecture/introduction).
+More info on the new cloud architecture can be found [here](https://www.webiny.com/docs/architecture/introduction).
 
-</Alert> 
+</Alert>
 
 At the end of this migration, running the deploy command should result in some changes when it comes to the deployed cloud infrastructure, but the most important part is that all of the stateful services should not be deleted.
-
 
 #### 1. Exporting Old Project’s State Files
 
 In order to start with the Pulumi state files migration, we need to retrieve the old project’s state files. If you’re migrating a local / dev-purposed project, these should be located in your project root’s `.pulumi` folder. If you’re migrating a long-lived environment, you should retrieve them from the relevant Amazon S3 bucket.
-
 
 #### 2. Copy Retrieved Pulumi State Files Into the New Project
 
@@ -214,21 +201,19 @@ yarn webiny pulumi apps/core --env xyz -- preview --show-sames --diff
 
 The result should be as similar as possible the following:
 
-<Image src={pulumiPreviewCore}/>
+<Image src={pulumiPreviewCore} />
 
 As we can see, two create operations and one update operation will be performed.
 
-The create operations are related to new Amazon EventBridge that is now deployed with the new Webiny setup, and also the “block-public-access”  policy for File Manager’s Amazon S3 bucket (ensures bucket objects are not public).
-
+The create operations are related to new Amazon EventBridge that is now deployed with the new Webiny setup, and also the “block-public-access” policy for File Manager’s Amazon S3 bucket (ensures bucket objects are not public).
 
 <Alert type={"warning"}>
 
-  Note that the above preview doesn’t show us the changes that were potentially applied via the `apps/core/webiny.application.ts` file on your behalf. If any, you should additionally inspect the preview output and ensure changes you had in place are also intact.
-  
+Note that the above preview doesn’t show us the changes that were potentially applied via the `apps/core/webiny.application.ts` file on your behalf. If any, you should additionally inspect the preview output and ensure changes you had in place are also intact.
+
 </Alert>
 
 If the preview looks correct, then we can proceed with the actual deployment:
-
 
 ```bash
 yarn webiny deploy apps/core --env xyz --preview
@@ -236,7 +221,7 @@ yarn webiny deploy apps/core --env xyz --preview
 
 The result should be the following:
 
-<Image src={pulumiDeployCore}/>
+<Image src={pulumiDeployCore} />
 
 ##### **API Application (`apps/api`)**
 
@@ -251,14 +236,14 @@ Once we run the following preview command:
 ```bash
 yarn webiny deploy apps/api --env xyz --preview
 
-# Once the above command has been run, for more info, we 
+# Once the above command has been run, for more info, we
 # can also directly run the following Pulumi command:
 yarn webiny pulumi apps/api --env xyz -- preview --show-sames --diff
 ```
 
 The result should be the following:
 
-<Image src={pulumiPreviewApi}/>
+<Image src={pulumiPreviewApi} />
 
 As we can see, all of the resources will be recreated, except for the `api-cloudfront` one, which shows changes in the `defaultCacheBehavior,orderedCacheBehaviors,origins`.
 
@@ -270,33 +255,32 @@ yarn webiny pulumi apps/api --env xyz -- preview --show-sames --diff
 
 …we’d see the following changes:
 
-<Image src={pulumiPreviewApi2}/>
+<Image src={pulumiPreviewApi2} />
 
 As we can see, we have changes in `targetOriginId` properties and within the `origins` property. Essentially, the existing Amazon Cloudfront distribution is just linked with the newly deployed API Gateway. If those are the only differences that the preview command showed, then we’re almost ready to deploy.
 
 <Alert type={"warning"}>
 
-  Note that the above preview doesn’t show us the changes that were potentially applied via the `apps/api/webiny.application.ts` file on your behalf. If any, you should additionally inspect the preview output and ensure changes you had in place are also intact.
+Note that the above preview doesn’t show us the changes that were potentially applied via the `apps/api/webiny.application.ts` file on your behalf. If any, you should additionally inspect the preview output and ensure changes you had in place are also intact.
 
 </Alert>
 
 We say “almost”, because we have to perform one additional step before doing it. If we were to deploy immediately, there’s a chance an error would be thrown, saying a `APW#SETTINGS` DynamoDB record cannot be created:
 
-<Image src={apwSettingsDdbRecord}/>
+<Image src={apwSettingsDdbRecord} />
 
 It’s a record that gets created during the deployment (also defined within internal Pulumi infrastructure code). Unfortunately, at this time, Pulumi doesn’t allow us to ignore or overwrite existing DynamoDB records. If the same record already exists, an error will be thrown.
 
-
-So, in order to fix the issue, we’ll have to go into our AWS console, find the relevant DynamoDB table, and manually delete the record shown in the above screenshot (`APW#SETTINGS`).  Note that if you don’t have the record in the table, there’s nothing to do then.
+So, in order to fix the issue, we’ll have to go into our AWS console, find the relevant DynamoDB table, and manually delete the record shown in the above screenshot (`APW#SETTINGS`). Note that if you don’t have the record in the table, there’s nothing to do then.
 
 <Alert type={"info"}>
-  You can find the name of the relevant DynamoDB table name in the stack output that was returned as the result of the deployment of the Core application (in previous step).
+  You can find the name of the relevant DynamoDB table name in the stack output that was returned as
+  the result of the deployment of the Core application (in previous step).
 </Alert>
 
 Once deleted, we’ve completed all the necessary pre-deployment steps, so we can start the deployment.
 
 We can start the deployment via the following command:
-
 
 ```bash
 yarn webiny deploy apps/api --env xyz
@@ -304,15 +288,13 @@ yarn webiny deploy apps/api --env xyz
 
 The result should be something like the following:
 
-<Image src={pulumiDeployApi}/>
-
+<Image src={pulumiDeployApi} />
 
 From the logs above, we can see it’s Amazon Cloudfront distribution that received changes seen in the previous preview command:
 
-<Image src={pulumiDeployApi2}/>
+<Image src={pulumiDeployApi2} />
 
 If that is the case, then we’re ready for the next step, which is redeploying the Admin app.
-
 
 ##### **Admin Application (`apps/admin`)**
 
@@ -321,14 +303,14 @@ As before, the first step we want to take before deploying the Admin application
 ```bash
 yarn webiny deploy apps/admin --env xyz --preview
 
-# Once the above command has been run, for more info, we 
+# Once the above command has been run, for more info, we
 # can also directly run the following Pulumi command:
 yarn webiny pulumi apps/admin --env xyz -- preview --show-sames --diff
 ```
 
 The result should be the following:
 
-<Image src={pulumiPreviewAdmin}/>
+<Image src={pulumiPreviewAdmin} />
 
 As we can see, we can see three **create** and two **update** operations.
 
@@ -338,7 +320,7 @@ If these are the changes that the preview command reported, then we’re ready t
 
 <Alert type={"warning"}>
 
-  Note that the above preview doesn’t show us the changes that were potentially applied via the `apps/admin/webiny.application.ts` file on your behalf. If any, you should additionally inspect the preview output and ensure changes you had in place are also intact.
+Note that the above preview doesn’t show us the changes that were potentially applied via the `apps/admin/webiny.application.ts` file on your behalf. If any, you should additionally inspect the preview output and ensure changes you had in place are also intact.
 
 </Alert>
 
@@ -357,7 +339,7 @@ yarn webiny deploy apps/admin --env xyz
 
 The result should be the following:
 
-<Image src={pulumiDeployAdmin}/>
+<Image src={pulumiDeployAdmin} />
 
 **Website Application (`apps/website`)**
 
@@ -366,38 +348,36 @@ Finally, the Website application. To perform the deployment preview, we can run 
 ```bash
 yarn webiny deploy apps/website --env xyz --preview
 
-# Once the above command has been run, for more info, we 
+# Once the above command has been run, for more info, we
 # can also directly run the following Pulumi command:
 yarn webiny pulumi apps/website --env xyz -- preview --show-sames --diff
 ```
 
 The result should be the following:
 
-<Image src={pulumiPreviewWebsite}/>
+<Image src={pulumiPreviewWebsite} />
 
 <Alert type={"warning"}>
 
-  Note that the above preview doesn’t show us the changes that were potentially applied via the `apps/website/webiny.application.ts` file on your behalf. If any, you should additionally inspect the preview output and ensure changes you had in place are also intact.
+Note that the above preview doesn’t show us the changes that were potentially applied via the `apps/website/webiny.application.ts` file on your behalf. If any, you should additionally inspect the preview output and ensure changes you had in place are also intact.
 
 </Alert>
 
 As we can see, a lot of **create** operations. But this is mainly because of the fact that the Page Builder’s Prerendering Service is no longer deployed as part of the API application, but as part of the Website application. All of these are related to the Prerendering Service:
 
-<Image src={pulumiPreviewWebsite2}/>
+<Image src={pulumiPreviewWebsite2} />
 
 What about the rest?
 
-<Image src={pulumiPreviewWebsite3}/>
-
+<Image src={pulumiPreviewWebsite3} />
 
 The rest is related to, as with the Admin application, making the Amazon S3 buckets publicly inaccessible.
-
 
 There’s also the Amazon Cloudfront function / Amazon Lambda@Edge function, that are here for multi-tenancy routing purposes (if enabled).
 
 Finally, similarly to what we had in the API application section, a `PS#SETTINGS` Amazon DynamoDB entry will be created in the process. Meaning, in order to avoid the error we explained above, we’ll need to find the record via the DynamoDB console, and delete it:
 
-<Image src={psSettingsDdbRecord}/>
+<Image src={psSettingsDdbRecord} />
 
 Once the record has been deleted, we can start with the deployment.
 
@@ -415,13 +395,13 @@ yarn webiny deploy apps/website --env xyz
 
 The following is a result we should receive:
 
-<Image src={pulumiDeployWebsite}/>
+<Image src={pulumiDeployWebsite} />
 
 As we can see, 32 **create** and four **update** operations have been performed.
 
 With the Website application, we’ve completed the Pulumi state files migration. The only thing left to do is manually test the re-deployed system and ensure everything is working as expected. To get started, we suggest running the `yarn webiny info --env xyz` command, and opening the Admin application in your browser:
 
-<Image src={webinyInfo}/>
+<Image src={webinyInfo} />
 
 If everything works as expected, we can finalize the migration by copying the migrated Pulumi state files in our state files storage.
 
