@@ -1,0 +1,49 @@
+---
+id: aafeaa29
+title: GraphQL Requests
+description: Learn about the necessary cloud infrastructure resources on which the API project application relies on to perform graphql requests.
+---
+
+import { Alert } from "@/components/Alert";
+import apiGqlRequest from "./assets/graphql-requests/webiny_api_gql_request.png";
+
+<Alert type="success" title="What you’ll learn">
+
+- how GraphQL HTTP requests are handled by the deployed cloud infrastructure and application code
+
+</Alert>
+
+## Diagram
+
+<Alert type="info">
+
+For brevity, the diagram doesn't include network-level cloud infrastructure resources, like region, VPC, availability zones, and so on. Check out the [Deployment Modes](/docs/{version}/architecture/deployment-modes/introduction) section if you're interested in that aspect of the deployed cloud infrastructure.
+
+</Alert>
+
+<Alert type="info">
+
+Note that the stateful resources like Amazon S3, Amazon Cognito, Amazon DynamoDB and Amazon ElasticSearch are deployed as part of the [Core](/docs/{version}/architecture/core/overview) project application. These are still included in the diagram, just so it's more clear to the reader.
+
+</Alert>
+
+<Image
+  src={apiGqlRequest}
+  title="Webiny Cloud Infrastructure - API - GraphQL Requests"
+  shadow={false}
+/>
+
+## Description
+
+The diagram shows how HTTP requests (GraphQL queries and mutations) travel through the deployed cloud infrastructure. Request are primarily issued by the **Admin Area**, or **Website** applications, but of course, can be issued by other clients as well.
+
+The flow consists of the following six steps:
+
+1. The GraphQL HTTP request first reaches the Amazon CloudFront <diagram-letter>A</diagram-letter>.
+2. The request is forwarded to the Amazon API Gateway <diagram-letter>B</diagram-letter>.
+3. The Amazon API Gateway invokes the GraphQL Handler AWS Lambda function <diagram-letter>C</diagram-letter>.
+4. Depending on the issued GraphQL operation, the AWS Lambda function's code may issue one or more requests to other cloud infrastructure resources:
+   1. Amazon Cognito <diagram-letter>D</diagram-letter> to perform identity authentication
+   2. Amazon DynamoDB <diagram-letter>E</diagram-letter> or Amazon ElasticSearch Service <diagram-letter>F</diagram-letter> to perform database queries
+5. Once the code execution has completed, an HTTP response is returned back to the Amazon API Gateway <diagram-letter>B</diagram-letter>.
+6. The Amazon API Gateway <diagram-letter>B</diagram-letter> forwards the request to the Amazon CloudFront <diagram-letter>A</diagram-letter>, which again forwards it back to the client.

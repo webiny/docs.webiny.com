@@ -1,0 +1,146 @@
+---
+id: aafeaa44
+title: Mailer
+description: Overview of Webiny mailer package.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What You’ll Learn">
+
+- How to use api-mailer to send e-mails
+- How to use api-mailer with basic configuration
+- How to use api-mailer with advanced configuration
+
+</Alert>
+
+## About
+
+Starting from 5.30.0 version of Webiny we have a mailer package (`@webiny/api-mailer`) via which you can send e-mails.
+
+## Available Mailers
+
+We have a couple of built-in e-mail mailers:
+
+- Dummy Mailer - does not send e-mails, just records them in an array which you can access later
+- SMTP Mailer - sends e-mails with the help of [nodemailer](https://github.com/nodemailer/nodemailer) library
+
+### Dummy Mailer
+
+A mailer which pretends to be sending e-mails. Used for testing and as a backup in case no other mailer is configured or defined.
+
+You can manually set it as the mailer so e-mails never actually get sent:
+
+```typescript
+import { createDummyMailer } from "@webiny/api-mailer";
+
+context.mailer.setMailer(async () => {
+  return createDummyMailer();
+});
+```
+
+### SMTP Mailer
+
+A mailer which sends e-mails via the defined SMTP credentials. In the background it uses [nodemailer](https://github.com/nodemailer/nodemailer) library to send the e-mails.
+
+#### Basic Configuration
+
+The configuration is done via the environment variables:
+
+```bash
+WEBINY_MAILER_HOST=smtp.localhost.test
+WEBINY_MAILER_USER=root
+WEBINY_MAILER_PASSWORD=password
+```
+
+If any of these variables is not defined, mailer will default to the Dummy Mailer.
+
+#### Advanced Configuration
+
+The advanced configuration is done by creating your own SMTP mailer with custom config. You can use our `createSmtpMailer` method, you just need to pass the custom configuration.
+
+Here is an example on how to configure custom mailer:
+
+```typescript
+import { createSmtpMailer, SmtpMailerConfig } from "@webiny/api-mailer";
+import { MailerContext } from "@webiny/api-mailer/types";
+
+/**
+ * First we configure the STMP mailer.
+ */
+const config: SmtpMailerConfig = {
+  host: "smtp.localhost.test",
+  auth: {
+    user: "root",
+    pass: "password"
+  }
+};
+const mailer = createSmtpMailer(config);
+
+/**
+ * ... then you need to set the mailer to your application
+ */
+
+export const handler = createHandler({
+  plugins: [
+    ...plugins,
+    createMailer(),
+    // after createMailer() method we can set new mailer
+    new ContextPlugin<MailerContext>(async context => {
+      context.mailer.setMailer(mailer);
+    }),
+    ...more_plugins
+  ],
+  http: { debug }
+});
+```
+
+Note that `setMailer` method supports both setting the variable of `Mailer` type or an async `Mailer` factory.
+
+Here is an example of a context plugin which sets mailer via factory:
+
+```typescript
+const plugin = new ContextPlugin<MailerContext>(async context => {
+  context.mailer.setMailer(async () => {
+    return import("./pathToSomeMailer").then(createMailer => {
+      return createMailer();
+    });
+  });
+});
+```
+
+## Usage
+
+For example, let's say you want to send an e-mail when user creates an entry in the `Person` model.
+You would want to subscribe to the `onAfterEntryCreate` event and send an e-mail only when added entry to that certain model.
+
+```typescript
+const plugin = new ContextPlugin<MailerContext>(async context => {
+  context.cms.onAfterEntryCreate.subscribe(async ({ entry, model }) => {
+    if (model.modelId !== "person") {
+      return;
+    }
+    try {
+      const response = await context.mailer.send({
+        data: {
+          to: ["me@test.local"],
+          from: "webiny@test.local",
+          subject: `A new entry in the ${model.name} model was created`,
+          text: `A new entry in the ${model.name} was created. ID of the entry is ${entry.id}`,
+          html: `<h2>A new entry in the ${model.name}</h2>
+                  <p>Entry ID is ${entry.id}, url is ${createEntryUrl(entry)}</p>`
+        }
+      });
+      if (response.result) {
+        return;
+      } else if (!response.error) {
+        console.log("E-mail was not sent, but there is no error in the response.");
+        return;
+      }
+      console.log(response.error);
+    } catch (ex) {
+      console.log(ex.message);
+    }
+  });
+});
+```

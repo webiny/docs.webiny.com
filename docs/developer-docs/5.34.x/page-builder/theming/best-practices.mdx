@@ -1,0 +1,317 @@
+---
+id: aafeaa34
+title: Best Practices
+description: Theme development and styling best practices.
+---
+
+import { Alert } from "@/components/Alert";
+
+<!-- Always include this section on top of the page. -->
+
+<Alert type="success" title="What You’ll Learn">
+
+- what are some of the best practices when it comes to theme and styling development
+
+</Alert>
+
+## Overview
+
+### Use Theme Object When Styling
+
+When styling custom page layouts or page elements, visual elements like colors, typography and others should always be defined by relying on the theme object and the values it holds. 
+
+For example, instead of defining the background color for a page element with a hard-coded value, we should rely on the `theme.styles.colors` object and the colors it holds. For example:
+
+```diff-tsx
+import * as React from "react";
+import styled from "@emotion/styled";
+
+const SomeDiv = styled.div`
+- background-color: #fff;
++ background-color: ${props => props.theme.styles.colors["color5"]};
+  height: 100px;
+`;
+```
+
+This way, we can easily change the color of the page element by simply changing the color value in the theme object.
+
+This is even more important when it comes to multi-theme projects, where we can have multiple theme objects, each holding different values for the same visual elements. In this case, we can easily switch between themes, without having to change the styling code.
+
+<Alert type={"info"}>
+
+  For a multi-theme setup, please take a look at the existing [Setup Theme Manager](/docs/{version}/enterprise/theme-manager) article.
+
+</Alert>
+
+### Access Theme Object via React Context
+
+The theme object should always be accessed via React context. For example, when creating styled components:
+
+```tsx
+import * as React from "react";
+import styled from "@emotion/styled";
+
+const SomeDiv = styled.div`
+  background-color: ${props => props.theme.styles.colors["color5"]};
+  height: 100px;
+`;
+```
+
+The theme object should not be accessed by directly importing the [`apps/theme/theme.ts`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/theme.ts) file. This can
+lead to issues in multi-theme projects, where the theme object is not the same for all themes.
+
+### Accessing Typography Variants
+
+When accessing typography variants, we can leverage the special `stylesById` getter function, like in the following example:
+
+```tsx
+import * as React from "react";
+import styled from "@emotion/styled";
+
+const SomeDiv = styled.div`
+  ${props => props.theme.styles.typography.paragraphs.stylesById("paragraph1")};
+  height: 100px;
+  width: 200px;
+`;
+```
+
+As we can see, the `stylesById` getter function accepts a typography variant ID as an argument, and returns a CSS object that defines the visual appearance of the typography variant. This way, we can easily access different typography variants, without having to manually traverse the [`styles.typography`](/docs/{version}/page-builder/theming/theme-object#typography) object.
+
+### Use `mq` Utility Function For Easier Responsive Styling
+
+One of the tools that is recommended in [Emotion](https://emotion.sh/docs/introduction) library's documentation portal is [Facepaint](https://github.com/emotion-js/facepaint). The library enables the developer to easily define CSS rules for multiple pre-defined breakpoints, for example:
+
+```ts
+import { css } from "emotion";
+import facepaint from "facepaint";
+
+const mq = facepaint([
+  "@media(min-width: 420px)",
+  "@media(min-width: 920px)",
+  "@media(min-width: 1120px)"
+]);
+
+const myClassName = css(
+  mq({
+    color: ["red", "green", "blue", "darkorchid"]
+  })
+);
+```
+
+With this 5.35.0 release, this library is included in the [`@webiny/app-page-builder-elements`](https://github.com/webiny/webiny-js/tree/dev/packages/app-page-builder-elements) package, enabling users to immediately use it, without the need to install it first. Furthermore, by importing the `mq` utility function, users can immediately start writing their per-breakpoint styles, because the function is already configured to follow the breakpoints defined in the [theme](https://github.com/webiny/webiny-js/blob/dev/packages/cwp-template-aws/template/common/apps/theme/theme.ts). For example:
+
+```tsx
+import React from "react";
+import { mq } from "@webiny/app-page-builder-elements";
+import styled from "@emotion/styled";
+
+// Basic usage.
+export const HeroSection = styled("div")(() =>
+  mq({ color: ["red", "green", "blue", "gray", "white"] })
+);
+
+// With theme being accessed via the `theme` argument:
+export const HeroSectionWithTheme = styled("div")(
+  {
+    lineHeight: "125%",
+    backgroundColor: "#fff",
+    backgroundRepeat: "no-repeat"
+  },
+  ({ theme }) =>
+    mq({
+      color: [
+        "red",
+        theme.styles.colors.color1,
+        theme.styles.colors.color2,
+        theme.styles.colors.color3,
+        theme.styles.colors.color4
+      ]
+    })
+);
+```
+
+<Alert type={"info"}>
+
+  Need to define responsive styles for theme-level styles, like typography or colors? Responsive styles can also be defined via the theme object. 
+  
+  For more information, please refer to the [Responsive Styles](/docs/{version}/page-builder/theming/theme-object#responsive-styles) section.
+
+</Alert>
+
+### Styling Custom Page Elements
+
+Most often, styles for [custom page elements](/docs/{version}/page-builder/extending/create-a-page-element) are introduced via one or more standalone [Emotion styled components](https://emotion.sh/docs/styled), included with the page element code.
+
+
+#### Using `styles.elements` Object To Style Custom Page Elements
+
+On top of the guidelines outlined in the [Use Theme Object When Styling](#use-theme-object-when-styling) section, in order to provide theme-specific styles for custom page elements, we can also leverage the theme object's [`styles.elements`](/docs/{version}/page-builder/theming/theme-object#page-elements) object.
+
+The following example shows how we can provide different styles for an imaginary `myCustomElement` custom page element for different themes.
+
+```diff-ts apps/theme/theme-light.ts
+// (...)
+
+// Theme object.
+const theme = createTheme({
+    breakpoints,
+    styles: {
+        colors,
+        typography,
+        elements: {
+            document: {
+                // (...)
+            },
++           myCustomElement: {
++               background: colors.color1,
++               border: `1px solid ${colors.color1}`,
++               borderRadius: 4,
++               color: colors.color6,
++           }
+            button: {
+                // (...)
+            }
+        }
+    }
+});
+```
+
+
+```diff-ts apps/theme/theme-dark.ts
+// (...)
+
+// Theme object.
+const theme = createTheme({
+    breakpoints,
+    styles: {
+        colors,
+        typography,
+        elements: {
+            document: {
+                // (...)
+            },
++           myCustomElement: {
++               background: colors.color2,
++               border: `1px solid ${colors.color2}`,
++               borderRadius: 14,
++               color: colors.color7,
++           }
+            button: {
+                // (...)
+            }
+        }
+    }
+});
+```
+
+### Global Styles
+
+Sometimes we might need to insert global CSS rules like resets or font faces. There are a couple of ways to do this.
+
+The easiest way is to use Emotion's [`Global`](https://emotion.sh/docs/globals) component, within a page layout React component. An example of this can be found in **Static page** page layout. From the [`Static.tsx`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/layouts/pages/Static.tsx) file:
+
+```diff-tsx apps/theme/layouts/pages/Static.tsx
+import React from "react";
+import { Global, css } from "@emotion/react";
+import styled from "@emotion/styled";
+import { Header } from "./Static/Header";
+import { Footer } from "./Static/Footer";
+
++ const globalStyles = css`
++     html {
++         scroll-behavior: smooth;
++     }
++
++     @media screen and (prefers-reduced-motion: reduce) {
++         html {
++             scroll-behavior: smooth;
++         }
++     }
++ `;
+
+const Layout = styled.div`
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    footer {
+        margin-top: auto;
+    }
+`;
+
+const Static: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    return (
+        <Layout>
++           <Global styles={globalStyles} />
+            <Header />
+            {/* We render the actual page content via the "children" prop. */}
+            <main>{children}</main>
+            <Footer />
+        </Layout>
+    );
+};
+
+export default Static;
+```
+
+Note that, since the above global styles are added as part of the **Static page** page layout, they will only be applied to the pages that use this layout. Furthermore, note that these styles will only be applied when the page is being rendered on the public website, and not in the page editor. This is because the page editor only renders the page content, and not the page layout.  
+
+To resolve the above two issues, we can also introduce global styles via the [`global.scss`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/global.scss) file. By doing this, we're ensuring:
+
+1. the styles are applied to all pages, regardless of the page layout used
+2. the styles are applied in both the public website and the page editor
+
+<Alert type={"info"}>
+
+  Note that the global styles introduced via the [`global.scss`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/theme/global.scss) file can also have a visual impact on the Admin application. If you'll be using this approach, double check that the styles don't affect the Admin application in unintended ways.
+  
+</Alert>
+
+Alternatively, sometimes we may need to introduce global styles only on the page content (document) level. More on this in the following section.
+
+#### Global Document Styles
+
+Sometimes we may need to introduce global styles only on the page content (document) level. For example, by default, in the `styles.elements.document` object, we have the following styles that define how [links](#), **bold** and *italic* text should look like:
+
+```diff-ts apps/theme/theme.ts
+// (...)
+
+// Theme object.
+const theme = createTheme({
+    breakpoints,
+    styles: {
+        colors,
+        typography,
+        elements: {
+            document: {
++               a: { color: colors.color1 },
++               b: { fontWeight: "bold" },
++               i: { fontStyle: "italic" }
+            },
+            button: {
+                // (...)
+            }
+        }
+    }
+});
+```
+
+With this approach, we can target anything that's rendered within the page content (document) area. The styles will be applied to all pages, regardless of the page layout used. Furthermore, the styles will be applied in both the public website and the page editor. 
+
+<Alert type={"info"}>
+
+  Pages created via Page Builder's page editor consist of multiple page elements, structured in a parent-child hierarchy. The **document** page element is always the top-most element in this hierarchy, similarly to how the `<html>` element is the top-most element in the DOM.
+
+</Alert>
+
+
+[//]: # (### Custom Page Elements - When To Expose Styles Via Theme Object)
+
+[//]: # ()
+[//]: # (While creating custom page elements, the most straightforward way to style them is by creating one or more Emotion styled components. But do note  )
+
+[//]: # ()
+[//]: # ()
+[//]: # (### overriding existing elements)
+
+[//]: # ()
+[//]: # (✍🏻)

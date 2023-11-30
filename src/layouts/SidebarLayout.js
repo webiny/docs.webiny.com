@@ -1,6 +1,6 @@
 import { useNavigation } from "@/components/page/Navigation";
-//import { usePage } from "@/hooks/usePage";
 import { VersionSelector } from "@/components/page/VersionSelector";
+import { usePage } from "@/hooks/usePage";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { createContext, forwardRef, useEffect, useRef, useState } from "react";
@@ -9,7 +9,7 @@ import clsx from "clsx";
 import { Dialog } from "@headlessui/react";
 import { SearchButton } from "@/components/page/Search";
 
-import { scroll } from "./SidebarLayout.module.css";
+import { scroll } from "@/css/scroll.module.css";
 
 const Arrow = ({ className }) => {
     return (
@@ -70,7 +70,7 @@ function nearestScrollableContainer(el) {
 const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
     const { type, title, link, items, isActive, isActiveChild } = element;
 
-    if (type === "collapsable") {
+    if (type === "group" && depth !== 1) {
         return (
             <Collapsable
                 subElements={items}
@@ -80,9 +80,7 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 depth={depth}
             />
         );
-    } else if (type === "page") {
-        return <Page title={title} link={link} isActive={isActive} ref={ref} depth={depth} />;
-    } else if (type === "section") {
+    } else if (type === "group" && depth === 1) {
         return (
             <Section
                 subElements={items}
@@ -92,11 +90,12 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 depth={depth}
             />
         );
+    } else if (type === "page") {
+        return <Page title={title} link={link} isActive={isActive} ref={ref} depth={depth} />;
     } else if (type === "separator") {
         return <HorizontalLine />;
-    } else {
-        return null;
     }
+    return null;
 });
 
 const HorizontalLine = () => {
@@ -242,7 +241,7 @@ function Nav({ nav }) {
                 const isActive = navItem.link === router.pathname;
 
                 navItem.isActive = isActive;
-            } else if (navItem.type === "collapsable" || navItem.type === "section") {
+            } else if (navItem.type === "group") {
                 setIsActive(navItem.items);
 
                 const isActiveChild = navItem.items.some(
@@ -318,8 +317,11 @@ function Wrapper({ allowOverflow, children }) {
     return <div className={allowOverflow ? undefined : "overflow-hidden"}>{children}</div>;
 }
 
-export function SidebarLayout({ children, nav, sidebar }) {
+export function VersionedSidebarLayout({ children }) {
     const navigation = useNavigation();
+    const { page } = usePage();
+    const nav = page.navigation;
+
     return (
         <SidebarContext.Provider value={{ nav }}>
             <Wrapper allowOverflow={true}>
@@ -331,7 +333,7 @@ export function SidebarLayout({ children, nav, sidebar }) {
                             <VersionSelector />
                         </div>
                         <SearchButton />
-                        <Nav nav={nav}>{sidebar}</Nav>
+                        <Nav nav={nav} />
                     </div>
                     <div className="lg:pl-[20.875rem]">{children}</div>
                 </div>
@@ -360,7 +362,56 @@ export function SidebarLayout({ children, nav, sidebar }) {
                             />
                         </svg>
                     </button>
-                    <Nav nav={nav}>{sidebar}</Nav>
+                    <Nav nav={nav} />
+                </div>
+            </Dialog>
+        </SidebarContext.Provider>
+    );
+}
+
+export function SidebarLayout({ children }) {
+    const navigation = useNavigation();
+    const { page } = usePage();
+    const nav = page.navigation;
+
+    return (
+        <SidebarContext.Provider value={{ nav }}>
+            <Wrapper allowOverflow={true}>
+                <div className="max-w-[96.993rem] 3xl:max-w-[104rem] mx-auto pl-4 sm:pl-6 md:pl-8 3xl:pl-[5.43rem] pr-4 sm:pr-6 md:pr-8">
+                    <div
+                        className={`hidden lg:block fixed z-20 inset-0 top-[4.15rem] right-auto w-[20.875rem] pb-10 pl-[18px] overflow-y-auto border-r border-neutral-200 dark:border-[#36383a] ${scroll}`}
+                    >
+                        <SearchButton />
+                        <Nav nav={nav} />
+                    </div>
+                    <div className="lg:pl-[20.875rem]">{children}</div>
+                </div>
+            </Wrapper>
+            <Dialog
+                as="div"
+                open={navigation.isOpen}
+                onClose={navigation.closeNavigation}
+                className="fixed z-50 inset-0 overflow-y-auto lg:hidden"
+            >
+                <Dialog.Overlay className="fixed inset-0 bg-black/20 backdrop-blur-sm dark:bg-slate-900/80" />
+                <div className="relative bg-white w-[21.25rem] max-w-[calc(100%-3rem)] p-6 dark:bg-dark-grey-2 overflow-scroll h-full">
+                    <button
+                        type="button"
+                        onClick={navigation.closeNavigation}
+                        className="absolute z-10 top-5 right-5 w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-600 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none"
+                    >
+                        <span className="sr-only">Close navigation</span>
+                        <svg viewBox="0 0 10 10" className="w-2.5 h-2.5 overflow-visible">
+                            <path
+                                d="M0 0L10 10M10 0L0 10"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                            />
+                        </svg>
+                    </button>
+                    <Nav nav={nav} />
                 </div>
             </Dialog>
         </SidebarContext.Provider>

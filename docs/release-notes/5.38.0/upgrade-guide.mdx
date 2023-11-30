@@ -1,0 +1,112 @@
+---
+id: a4d38491
+title: Upgrade from 5.37.x to 5.38.0
+description: Learn how to upgrade Webiny from 5.37.x to 5.38.0.
+---
+
+import { Alert } from "@/components/Alert";
+import { AdditionalNotes } from "@/components/upgrade/AdditionalNotes";
+
+<Alert type="success" title="What you’ll learn">
+
+  - how to upgrade Webiny from 5.37.x to 5.38.x
+
+</Alert>
+
+<Alert type="info">
+
+  Make sure to check out the [5.38.0 changelog](./changelog) to get familiar with the changes introduced in this
+  release.
+
+</Alert>
+
+## Step-by-Step Guide
+
+### 1. Upgrade Webiny Packages
+
+Upgrade all Webiny NPM packages by running the following command:
+
+```bash
+yarn up "@webiny/*@5.38.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return **5.38.0**.
+
+### 2. Run the Upgrade Command
+
+The next step is to run the project upgrade:
+
+```bash
+yarn webiny upgrade
+```
+
+### 3. Form Builder - Multi-Step Forms
+
+<Alert type={"info"}>
+
+  In case you don't use Form Builder or didn't perform any customizations to the default form layout React code located in `apps/theme/layouts/forms` folder, you can simply delete the generated `apps/theme/layouts/_forms_backup` folder that the `webiny upgrade` command generates and proceed with the next step. Otherwise, please read on.
+
+</Alert>
+
+With the introduction of [multi-step forms](/docs/release-notes/5.38.0/changelog#multi-step-forms), forms created with the Form Builder app can now span across multiple pages.
+
+In terms of existing data in the database, upon upgrading and deploying your Webiny project, all existing forms and form submissions will be automatically converted to multi-step forms (that consist of a single step).
+
+But, before deploying, a couple of manual steps need to be performed in your form layouts-related React code. The above `webiny upgrade` command will partially assist with that.
+
+The command will first make a backup of your existing `apps/theme/layouts/forms` folder will be created (in `apps/theme/layouts/_forms_backup`). This will ensure no code is lost in the process. Second, it will generate a new `apps/theme/layouts/forms` folder, which contains the latest React code. More specifically, it contains the latest default form layout React code, which supports multi-step forms.
+
+With both the old and new code available, you can now proceed by comparing the old and new code, and apply any changes you might have made to the old code to the new code. If you have multiple form layouts, you'll need to repeat this process for each of them. Once you're done, you can delete the old `apps/theme/layouts/_forms_backup` folder.
+
+#### Things to Watch Out For
+
+When comparing the 5.37.0 and 5.38.0 default form layout React code, there are two differences.
+
+The [`apps/theme/layouts/forms/DefaultFormLayout.tsx`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/common/apps/theme/layouts/forms/DefaultFormLayout.tsx) file is where the most of the changes were made. The code now uses the newly available properties like `goToNextStep`, `goToPreviousStep`, `isLastStep`, `isFirstStep` and others to control the form flow.
+
+The code also imports the new `Button` component from the [`apps/theme/layouts/forms/DefaultFormLayout/buttons/Button.tsx`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/common/apps/theme/layouts/forms/DefaultFormLayout/buttons/Button.tsx) file, which is another difference between the two versions. This is a new component that did not exist in the 5.37.0 version. It is used to render the buttons for moving between form steps and also for submitting the form.
+
+With these two, the rest of the code is the same, so you can simply copy over any changes you might have made to the old code to the new code.
+
+### 4. `WEBINY_ELASTICSEARCH_INDEX_LOCALE` Environment Variable
+
+<Alert type={"info"}>
+
+  If you are not using the [Amazon DynamoDB + Amazon ElasticSearch](docs/architecture/introduction#different-database-setups) database setup, you can skip this step.
+
+</Alert>
+
+Used only with [Amazon DynamoDB + Amazon ElasticSearch](docs/architecture/introduction#different-database-setups) database setup, the `WEBINY_ELASTICSEARCH_INDEX_LOCALE` environment variable allows users to choose whether they want their ElasticSearch indexes to include a locale code in their names.
+
+By default, this environment variable is set to `true` via the `.env` file located in the root of your project. It is also recommended to set it to `true` in your CI/CD workflows that deploy your long-lived environments (e.g. `production`).
+
+To make things simpler for users, with the 5.38.0 release, we've decided to hide this environment variable altogether, and always include the locale code in the index name.
+
+#### What does this mean for existing projects?
+
+If you've had the `WEBINY_ELASTICSEARCH_INDEX_LOCALE` environment variable set to `true` during development and, more importantly, in your CI/CD workflows that deploy your long-lived environments (e.g. `production`), you don't need to do anything. You can also remove it, and your project will continue to work as expected.
+
+But, if you had the environment variable set to `false` or you didn't have it set at all, you'll need to ensure its value is set to `false` upon deployment. This goes for both your local development environment and, more importantly, your CI /CD workflows.
+
+```bash
+WEBINY_ELASTICSEARCH_INDEX_LOCALE=false
+```
+
+<Alert type={"danger"}>
+
+  Please note that, in case of the latter, failing to apply the above environment variable assignment before deploying will result in your long-lived environments (e.g. `production`) not being able to access the data stored in your ElasticSearch indexes.
+
+  So, make sure to double-check this, and if you're not sure, please contact us on our [Slack](https://www.webiny.com/slack) channel.
+
+</Alert>
+
+### 5. Deploy Your Project
+
+Proceed by redeploying your Webiny project:
+
+```bash
+# Execute in your project root.
+yarn webiny deploy --env {environment}
+```
+
+<AdditionalNotes />

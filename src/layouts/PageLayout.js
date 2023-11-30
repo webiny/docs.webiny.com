@@ -1,9 +1,12 @@
 import { MDXProvider } from "@mdx-js/react";
+import { SourceFile } from "@/components/SourceFile";
 import { mdxComponents } from "@/components/mdxComponents";
 import { usePage } from "@/hooks/usePage";
 import { VersionSelector } from "@/components/page/VersionSelector";
 import { ViewLatestVersion } from "@/components/page/ViewLatestVersion";
 import { PageHeader } from "@/components/page/PageHeader";
+
+// TODO: this might not be needed at all. So far, it's only used in Page404, which is also questionable.
 
 export function PageLayout({ children }) {
     const { page } = usePage();
@@ -15,6 +18,7 @@ export function PageLayout({ children }) {
             </div>
             <article className={"prose md:prose-md prose-slate"}>
                 <ViewLatestVersion />
+                <SourceFile />
                 <PageHeader title={page.title} description={page.description} />
                 <div className={"relative z-20 mt-8 dark:prose-dark pb-10"}>
                     <MDXProvider components={mdxComponents}>{children}</MDXProvider>

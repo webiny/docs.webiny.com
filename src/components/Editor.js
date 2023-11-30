@@ -47,8 +47,11 @@ function TabBar({ primary, secondary = [], showTabMarkers = true, children }) {
 
 const once = true;
 
-export function Editor({ title, lang, children }) {
+const languageGuard = ["null", "undefined", undefined, null];
+
+export function Editor({ children, ...props }) {
     const [code, setCode] = useState("");
+    const lang = languageGuard.includes(props.lang) ? "shell" : props.lang;
 
     useEffect(() => {
         const isDiff = lang.startsWith("diff-");
@@ -60,11 +63,11 @@ export function Editor({ title, lang, children }) {
         } else {
             setCode(highlightCode(children, lang));
         }
-    }, [once]);
+    }, [once]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <section className="code-block mt-[1.875rem] lg:mt-[3.75rem] mb-[1.875rem] lg:mb-[3.75rem] first:mt-0 last:mb-0 bg-code-tab rounded-[0.625rem] shadow-lg overflow-hidden dark:ring-1 dark:ring-white/10 dark:ring-inset">
-            {title ? <TabBar primary={{ name: title }} showTabMarkers={false} /> : null}
+            {props.title ? <TabBar primary={{ name: props.title }} showTabMarkers={false} /> : null}
             <div className="children:my-0 children:!shadow-none children:bg-transparent children:rounded-none">
                 <pre className={`language-${lang}`} tabIndex={0}>
                     <code

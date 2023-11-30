@@ -1,0 +1,241 @@
+---
+id: aafeaa43
+title: Set up CI/CD
+description: Learn how to set up a CI/CD pipeline for your Webiny project.
+---
+
+import { Alert } from "@/components/Alert";
+import ghActionsLogo from "./assets/ci-cd/gh_actions_logo.png";
+import ghRepoSecrets from "./assets/ci-cd/gh_repo_secrets.png";
+
+<Alert type="info" title="Can I use this?">
+
+This feature is available since **v5.7.0**.
+
+</Alert>
+
+<Alert type="success" title="What you'll learn">
+
+- how to use the built-in scaffold to set up your CI/CD in no time
+
+</Alert>
+
+## Overview
+
+In order to set up your own CI/CD workflow faster (with all of the concepts, steps, and strategies explained in the [CI/CD](/docs/{version}/core-development-concepts/ci-cd/introduction) key topics), we recommend you use the built-in CI/CD scaffold.
+
+To use it, simply run the following command from your project root:
+
+```bash
+yarn webiny scaffold
+```
+
+Once the list of all available scaffolds is shown, select the **Set up CI/CD** option and continue by answering the questions that follow.
+
+## Different CI/CD Providers
+
+At the moment, the scaffold allows you to set up your CI/CD with [GitHub Actions](https://github.com/features/actions) only. But in the future, we would certainly like to also bring support for more providers, depending on the interest from the community.
+
+<Alert type="success">
+
+If you plan to use a different CI/CD provider, you can still create your workflows manually, by following all of the recommendations outlined in [CI/CD key topics](/docs/{version}/core-development-concepts/ci-cd/introduction). Also, if you think your provider should be supported out of the box, please [open an issue](https://github.com/webiny/webiny-js/issues) or [contact us](https://www.webiny.com/slack).
+
+</Alert>
+
+### GitHub Actions
+
+<Image src={ghActionsLogo} shadow={false} canEnlarge={false} />
+
+[GitHub Actions](https://github.com/features/actions) are often a good choice when it comes to setting up your own CI/CD, simply because of its tight integration with other existing GitHub concepts and resources.
+
+<Alert type="warning" title="CAUTION">
+
+Upon running this scaffold, note that you will need to paste your GitHub account's personal access token. You can choose to use an existing one, or even better, create a new one simply by clicking on the [following link](https://github.com/settings/tokens/new?scopes=repo,workflow&description=webiny-cicd-token).
+
+Additionally, you may be prompted to enter your e-mail address, which will be used **only** while the scaffold is committing initial GitHub Actions workflow files.
+
+</Alert>
+
+#### What Actions Will The Scaffold Perform For Me?
+
+No matter whether you choose to set up your CI/CD within an existing GitHub code repository or create a new one, during the scaffolding process, the following actions will be taken on your behalf:
+
+1. push GitHub actions [workflows](https://github.com/webiny/webiny-js/tree/next/packages/cli-plugin-scaffold-ci/src/githubActions/files/workflows/.github/workflows)
+2. if possible, create [protected](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) `dev`, `staging`, and `prod` branches
+3. set `dev` as the [default](https://docs.github.com/en/github/administering-a-repository/managing-branches-in-your-repository/changing-the-default-branch) branch
+
+<Alert type="success">
+
+The created workflow files follow workflows described in the [CI/CD](/docs/{version}/core-development-concepts/ci-cd/introduction) key topics section. Before running them, you're free to inspect and adjust them to your needs.
+
+</Alert>
+
+#### Next Steps
+
+Once the scaffolding has finished, these are the steps we recommend you follow:
+
+##### 1. Ensure `dev` Branch Contains the Latest Code
+
+While moving through the setup wizard, you get to choose whether you want to create a brand new GitHub code repository, or use an existing one.
+
+In case of the former, note that, apart from the initial GitHub Actions workflows, the created code repository will be empty. In other words, during the scaffolding process, your project files are not automatically pushed into it.
+
+In order to do that yourself, you can run the following commands:
+
+```bash
+# Skip this command if your code repository was already initialized locally.
+git init
+
+# Connect your local code repository with the just created remote one.
+git remote add origin git@github.com:{GITHUB_USER}/{GITHUB_REPO_NAME}.git
+
+# Commit all project files and push them into the default "dev" branch.
+git fetch && \
+git add -A && \
+git commit -m "chore: initial commit" && \
+git checkout dev && \
+git merge master --allow-unrelated-histories -m "merge: pull changes from master" && \
+git push -u origin dev
+```
+
+In case of the latter, if you've picked an existing GitHub code repository, then most likely your project was already previously pushed into it, and no additional actions are needed.
+
+##### 2. Delete Previous Default Branch (Optional)
+
+By default, for every new code repository, GitHub sets the `main` (previously `master`) branch as the default one. Since during the scaffolding process, the `dev` branch was set as the new default, you can delete the previous one.
+
+<Alert type="warning" title="CAUTION">
+
+When scaffolding inside of an existing repository, just double-check if the new `dev` and previous default branch are in sync. We don't want to accidentally end up with lost code commits.
+
+</Alert>
+
+##### 3. Set Up Repository Secrets
+
+Finally, go to your code GitHub repository settings and navigate to the [Actions Secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets) section:
+
+<Image src={ghRepoSecrets} title="GitHub Actions Secrets" />
+
+This is where we'll need to add all of the secrets that are used within the generated GitHub Actions workflows.
+
+Note that, depending on the target branch, the workflows deploy your Webiny project into three separate [environments](/docs/{version}/infrastructure/basics/environments): `dev`, `staging`, and `prod`. Because of this, note that every secret will need to defined three times (once for each environment).
+
+For example, when defining the `AWS_ACCESS_KEY_ID` environment variable, we'll end up with the following three secrets:
+
+1. `DEV_AWS_ACCESS_KEY_ID`
+2. `STAGING_AWS_ACCESS_KEY_ID`
+3. `PROD_AWS_ACCESS_KEY_ID`
+
+This enables us to use different secrets for every environment we deploy into. For example, we can use a different AWS account for every environment.
+
+The following is a list of all environment variables that need to be defined in order for the generated GitHub Actions workflows to work correctly.
+
+###### 1. `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION`
+
+`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` represent credentials of an AWS account that will be used to deploy necessary cloud infrastructure resources, into the specific environment. Note that, as stated in the [CI/CD](/docs/{version}/core-development-concepts/ci-cd/environments#cloud-aws-accounts) key topics, we recommend every environment (`dev`, `staging`, `prod`) uses its own AWS account. So, these should be different for each environment.
+
+<Alert type="success">
+
+Learn how to create AWS credentials in the [Configure AWS Credentials](/docs/{version}/infrastructure/aws/configure-aws-credentials) guide.
+
+</Alert>
+
+With credentials, we also need to specify the [AWS region](https://aws.amazon.com/about-aws/global-infrastructure/regions_az/) via the `AWS_REGION` environment variable.
+
+Ultimately, the following is the full list of secrets that need to be defined:
+
+```bash
+# "dev" environment.
+DEV_AWS_ACCESS_KEY_ID
+DEV_AWS_SECRET_ACCESS_KEY
+DEV_AWS_REGION
+
+# "staging" environment.
+STAGING_AWS_ACCESS_KEY_ID
+STAGING_AWS_SECRET_ACCESS_KEY
+STAGING_AWS_REGION
+
+# "prod" environment.
+PROD_AWS_ACCESS_KEY_ID
+PROD_AWS_SECRET_ACCESS_KEY
+PROD_AWS_REGION
+```
+
+###### 2. `PULUMI_SECRETS_PROVIDER` and `PULUMI_CONFIG_PASSPHRASE`
+
+Upon deploying cloud infrastructure resources with [Pulumi](/docs/{version}/infrastructure/pulumi-iac/iac-with-pulumi), we need to specify the secrets provider. As the name itself suggest, this feature enables us to store deployment-related secrets, for example API keys, connection credentials, and similar.
+
+And although Webiny does not store nor rely on this feature by default, we still need to define the `PULUMI_SECRETS_PROVIDER` and `PULUMI_CONFIG_PASSPHRASE` environment variables. This is simply a requirement set by the Pulumi CLI.
+
+<Alert type="success">
+
+To learn more about secrets and how Pulumi handles them, please visit the [official documentation](https://www.pulumi.com/docs/intro/concepts/secrets/).
+
+</Alert>
+
+We suggest you use "passphrase" as the value of the `PULUMI_SECRETS_PROVIDER` secret, and, for the `PULUMI_CONFIG_PASSPHRASE` secret, that you simply generate a random string as its value.
+
+<Alert type="danger">
+
+Be careful not to lose the generated `PULUMI_CONFIG_PASSPHRASE` secret value. Because if you do, you won't be able to redeploy already deployed cloud infrastructure resources. You will have to do it from scratch, which means you could potentially lose sensitive data.
+
+</Alert>
+
+Ultimately, the following is the full list of secrets that need to be defined:
+
+```bash
+# "dev" environment.
+DEV_PULUMI_SECRETS_PROVIDER
+DEV_PULUMI_CONFIG_PASSPHRASE
+
+# "staging" environment.
+STAGING_PULUMI_SECRETS_PROVIDER
+STAGING_PULUMI_CONFIG_PASSPHRASE
+
+# "prod" environment.
+PROD_PULUMI_SECRETS_PROVIDER
+PROD_PULUMI_CONFIG_PASSPHRASE
+```
+
+###### 3. `WEBINY_PULUMI_BACKEND`
+
+The last piece of the puzzle is the `WEBINY_PULUMI_BACKEND` secret, which determines the [Pulumi backend](/docs/{version}/core-development-concepts/ci-cd/cloud-infrastructure-state-files#using-different-backends) that we want to use in order to store our cloud infrastructure state files. At the moment, here we recommend you use one of the following two options.
+
+Either you simply manually deploy an Amazon S3 bucket within the AWS account that's about to be used to deploy your project into a specific environment, or alternatively, use the [Pulumi Service](/docs/{version}/core-development-concepts/ci-cd/cloud-infrastructure-state-files#pulumi-service). In case of the former, just set the S3 URI, for example `s3://my-project-pulumi-state-files-dev`. In case of the latter, simply paste the Pulumi Service [Access Token](https://app.pulumi.com/account/tokens).
+
+<Alert type="success">
+
+If you choose to use Amazon S3 as the backend and you are using multiple AWS Accounts [as recommended](/docs/{version}/core-development-concepts/ci-cd/environments#cloud-aws-accounts), note that you will end up with creating multiple buckets, one within each AWS account. Each Amazon S3 bucket will only store cloud infrastructure state files for a specific [shared environment](/docs/{version}/core-development-concepts/ci-cd/environments#shared-environments).
+
+</Alert>
+
+<Alert type="info">
+
+For more information on backends, we recommend you read the [Cloud Infrastructure State Files](/docs/{version}/core-development-concepts/ci-cd/cloud-infrastructure-state-files#using-different-backends) key topic.
+
+</Alert>
+
+Ultimately, the following is the full list of secrets that need to be defined:
+
+```bash
+# "dev" environment.
+DEV_WEBINY_PULUMI_BACKEND
+
+# "staging" environment.
+STAGING_WEBINY_PULUMI_BACKEND
+
+# "prod" environment.
+PROD_WEBINY_PULUMI_BACKEND
+```
+
+##### 4. Start Developing
+
+To start developing, based on the [GitHub Flow](/docs/{version}/core-development-concepts/ci-cd/version-control#github-flow), the first step of every developer would be to simply create a new branch from the default `dev` branch. Once ready, we submit a pull request, again against the `dev` branch.
+
+<Alert type="success">
+
+Read more about the GitHub Flow in the [Version Control](/docs/{version}/core-development-concepts/ci-cd/version-control#github-flow) key topic.
+
+</Alert>
+
+Note that, at this point, the `staging` and `prod` branches will still be empty, and no deployments will occur until you actually merge the `dev` branch into `staging`, and later the `staging` branch into `prod`. Still, if you want to deploy these too, simply do the merging immediately, without waiting for first code changes from developers to arrive.

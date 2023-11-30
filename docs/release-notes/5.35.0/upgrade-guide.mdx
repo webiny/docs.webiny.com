@@ -1,0 +1,453 @@
+---
+id: aafea9a7
+title: Upgrade from 5.34.x to 5.35.0
+description: Learn how to upgrade Webiny from 5.34.x to 5.35.0.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type={"danger"}>
+
+Before upgrading to `5.35.0`, please ensure your Webiny project is using the [new project
+setup](/docs/release-notes/5.29.0/changelog#brand-new-project-setup), introduced with Webiny
+[5.29.0](/docs/release-notes/5.29.0/changelog). In case you did not already migrate, please visit the [migration
+guide](/docs/release-notes/5.29.0/project-setup-migration).
+
+</Alert>
+
+<Alert type="success" title="What you’ll learn">
+
+- how to upgrade Webiny from 5.34.x to 5.35.0
+
+</Alert>
+
+<Alert type="info">
+
+Make sure to check out the [5.35.0 changelog](/docs/{version}/release-notes/5.35.0/changelog) to get familiar with the changes introduced in this
+release.
+
+</Alert>
+
+## Step-by-Step Guide
+
+The following steps will guide you through the upgrade process. Please note that this guide assumes you are using the [new project setup](/docs/release-notes/5.29.0/changelog#brand-new-project-setup), introduced with Webiny [5.29.0](/docs/release-notes/5.29.0/changelog). In case you did not already migrate, please visit the [migration guide](/docs/release-notes/5.29.0/project-setup-migration).
+
+### 1. Upgrade Webiny Packages
+
+Upgrade all `@webiny/*` packages by running the following command:
+
+```bash
+yarn up "@webiny/*@5.35.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return `5.35.0`.
+
+### 2. Run the Upgrade Command
+
+The next step is to run the project upgrade:
+
+```bash
+yarn webiny upgrade
+```
+
+<Alert type="info">
+  This script will create backups of some files, so make sure you review the changes, and manually
+  apply any changes you might have in those files to the new files. 
+
+  For more information, please read the [Upgrade Command - Additional Notes](#upgrade-command-additional-notes) section below.
+</Alert>
+
+<Alert type="warning">
+  If the upgrade command ends in error "<strong>Script does not exist.</strong>", please clear your
+  npx cache. You can run <strong>npx clear-npx-cache</strong> to clear it, or just delete it
+  manually from your npx directory.
+</Alert>
+
+### 3. Upgrade Your Code to the New Lambda Function Setup
+
+<Alert type="danger">
+
+In the 5.35.0 we are removing the Headless CMS Lambda function from the deployment. This is a breaking change, but it
+should not take you a long time to fix.
+
+</Alert>
+
+Please read the [Removing the Headless CMS Lambda Function](/docs/release-notes/5.35.0/removing-the-headless-cms-lambda-function) article to learn how to upgrade your code to the new Lambda function setup.
+
+### 4. Deploy Your Project
+
+Proceed by redeploying your Webiny project:
+
+```bash
+# Execute in your project root.
+yarn webiny deploy --env {environment}
+```
+
+Once deployed, access your Admin app to finalize the Page Builder upgrade, which will migrate your existing page blocks to the new Block Manager.
+
+<Alert type="warning">
+
+Make sure you deploy the entire system using the command shown above! You have to deploy all apps before using the
+system. Partial deploys may cause the upgrade to be applied incorrectly.
+
+</Alert>
+
+<Alert type="warning">
+
+As stated in the [Upgrade Webiny](/docs/{version}/release-notes/upgrade-webiny#pre-production-environments-first) section, we recommend that you
+first deploy your changes into one of your pre-production environments, like `dev` or `staging`.
+
+</Alert>
+
+<Alert type="info">
+
+Learn more about different deployment environments in the [CI/CD /
+Environments](/docs/{version}/core-development-concepts/ci-cd/environments) key topic.
+
+</Alert>
+
+## Upgrade Command
+
+### Additional Notes
+
+The following sections explains some of the steps that the upgrade command performs. We recommend that you read through them to get familiar with the changes introduced in this release.
+
+Note that there might be cases where the upgrade command will not be able to automatically apply the changes. In such cases, you will be prompted to manually apply the changes.
+
+#### Theme Object
+
+The upgrade command will perform a couple of code level changes related to your website's theme object structure.
+
+<Alert type={"warning"}>
+
+  Note that in order to receive these changes, your project must be using the latest Page Builder page rendering engine, introduced with [Webiny 5.34.0](/docs/release-notes/5.34.0/changelog#page-elements-a-brand-new-page-rendering-engine-2898).
+
+</Alert>
+
+<br/><br/>
+
+##### `styles.typography`
+
+Prior to this release, within the theme object, the `styles.typography` property referenced an object where keys represented the typography variant (heading1, heading2, etc.), and values were objects representing the actual typography styles. For example:
+
+```ts apps/theme/theme.ts
+{
+  // ...
+  styles: {
+    typography: {
+      heading1: {
+        // ...
+      },
+      heading2: {
+        // ...
+      },
+      // ...
+    }
+  }
+}
+```
+
+From now on, the `styles.typography` property references an object where keys represent the typography type (heading, paragraph, etc.), and values are arrays of objects, where each object represents a specific typography variant. Each typography variant is an object that consists of four properties: `id`, `name`, `tag`, and `styles`. For example:
+
+```ts apps/theme/theme.ts
+{
+  // ...
+  styles: {
+    typography: {
+      heading: [
+        {
+          id: "heading1",
+          name: "Heading 1",
+          tag: "h1",
+          styles: {
+            // ...
+          }
+        },
+        {
+          id: "heading2",
+          name: "Heading 2",
+          tag: "h2",
+          styles: {
+            // ...
+          }
+        },
+        // ...
+      ],
+      paragraph: [
+        {
+          id: "paragraph1",
+          name: "Paragraph 1",
+          tag: "p",
+          styles: {
+            // ...
+          }
+        },
+        {
+          id: "paragraph2",
+          name: "Paragraph 2",
+          tag: "p",
+          styles: {
+            // ...
+          }
+        },
+        // ...
+      ],
+      // ...
+    }
+  }
+}
+```
+
+The upgrade command will automatically update the `styles.typography` object in your `theme/theme.ts` file. But do note that if you've added custom typography variants, the upgrade might not be able to update the `styles.typography` object correctly. In that case, manual intervention will be required.
+
+##### Accessing Typography Styles
+
+The second change is related to the way typography styles are accessed. Previously, you could access typography styles via the `styles.typography` object, and then by using the typography variant as a key, for example:
+
+```ts
+theme.styles.typography.heading1
+```
+
+Since the structure of the `styles.typography` object has changed, you will need to access typography styles via the `styles.typography` object, and then by using the typography type as a key, and finally by using the typography variant as a key, for example 
+
+```ts
+theme.styles.typography["headings"][0]
+```
+
+But, since this is a bit cumbersome, we've introduced a new utility function called `stylesById` that will make it easier to access typography styles. For example, if you want to access the `heading1` typography variant, you can do so by using the following:
+
+```ts
+theme.styles.typography["headings"].stylesById["heading1"]
+```
+
+The upgrade command will automatically update the `styles.typography` object in your `theme/theme.ts` file. But 
+if for some reason it fails to do so, you can manually update usage of the `styles.typography` object in your project.
+
+##### Theme Object Accessed Via Context Object
+
+Prior to version 5.35.0, upon creating styled React components, if required, the [`theme`](https://github.com/webiny/webiny-js/blob/next/apps/theme/theme.ts#L145-L218) object would be accessed by directly importing the `theme/theme.ts` file. This is no longer the case as, from now on, the object should be [accessed via React context](https://emotion.sh/docs/theming). 
+
+For example, if in your Webiny project you had something like the following:
+
+```tsx
+import theme from "../../theme";
+
+const Heading = styled.div(theme.styles.typography["heading1"]);
+```
+
+With the new version, the following changes should be made:
+
+```diff-tsx
+// No need for the import anymore.
+- import theme from "../../theme";
+
+// The theme object is now accessed via the context object.
+- const Heading = styled.div(theme.styles.typography["heading1"]);
++ const Heading = styled.div(({ theme }) => theme.styles.typography["heading1"]);
+```
+
+Note that the upgrade command will try to detect legacy usages of the `theme` object and will try to adjust them automatically. However, if you have custom code that uses the `theme` object, you might need to make the necessary adjustments manually. You will notice this as, upon running the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command)  command against the Admin or the Website application, errors will be reported.
+
+#### Default Form Layout Replaced
+
+Because of all of the theme object-related changes, and also [new improvements](/docs/release-notes/5.35.0/changelog#form-builder) that have been introduced to the Form Builder application, note that your default form layout will be backed up and completely replaced with the latest version of the layout. This means that if you have made any customizations to the default form layout, you will need to manually re-apply them to the new layout.
+
+<br/> <br/>
+<Alert type={"warning"}>
+
+  Note that in order to receive these changes, your project must be using the latest Page Builder page rendering engine, introduced with [Webiny 5.34.0](/docs/release-notes/5.34.0/changelog#page-elements-a-brand-new-page-rendering-engine-2898).
+
+</Alert>
+
+#### Emotion 11
+
+With this release, we are [upgrading Emotion library](/docs/release-notes/5.35.0/changelog#emotion-11-3138) to version 11.
+
+Across multiple `package.json` files, the [upgrade command](#2-run-the-upgrade-command) will upgrade versions of all [`@emotion`](https://emotion.sh/docs/emotion-11) packages to version 11. It will also replace all usages of the [`@emotion/core`](https://www.npmjs.com/package/@emotion/core) package with the new [`@emotion/react`](https://www.npmjs.com/package/@emotion/react) ([`@emotion/core`](https://www.npmjs.com/package/@emotion/core) package is now deprecated).
+
+<Alert type={"warning"}>
+
+  Note that in order to receive these changes, your project must be using the latest Page Builder page rendering engine, introduced with [Webiny 5.34.0](/docs/release-notes/5.34.0/changelog#page-elements-a-brand-new-page-rendering-engine-2898).
+
+</Alert>
+
+### Troubleshooting
+
+The following are some of the most common issues that you might encounter when upgrading to version 5.35.0.
+
+#### Typography variant was categorized as a paragraph, double check if a different category is more appropriate.
+
+This warning is printed when the upgrade command is unable to categorize a custom typography variant that you might have added to the `theme/theme.ts` file, within the `styles.typography` object. For example, this will happen if you have something like the following:
+
+```ts apps/theme/theme.ts
+{
+  // ...
+  styles: {
+    typography: {
+      // Custom typography key.
+      myCustomTypography: {
+        // ...
+      },
+    }
+  }
+}
+```
+
+Since it's impossible to detect the correct category, the upgrade command will categorize the `myCustomTypography` variant as a paragraph:
+
+```diff-ts apps/theme/theme.ts
+{
+  // ...
+  styles: {
+    typography: {
+      paragraphs: {
+        // Custom typography key.
+        myCustomTypography: {
+          // ...
+        },
+      },
+    }
+  }
+}
+```
+
+
+
+If you believe that this is not the correct category, you can manually update the `styles.typography` object in your `theme/theme.ts` file. For example, you might want to move the `myCustomTypography` variant into the `headings` category:
+
+```diff-ts apps/theme/theme.ts
+{
+  // ...
+  styles: {
+    typography: {
+-     paragraphs: {
+-       // Remove the custom typography variant here.
+-       myCustomTypography: {
+-         // ...
+-       }
+-     },
++     headings: {
++       // Move the custom typography variant here.
++       myCustomTypography: {
++         // ...
++       }
++     }
+    }
+  }
+}
+```
+
+<Alert type={"info"}>
+
+  To learn more about the new theme object and typography-related changes, check out the above [Theme Object](#theme-object) section.
+
+</Alert>
+
+#### Could not migrate some of the theme object's typography-related code.
+
+This error is printed when the upgrade command is unable to migrate all of the typography-related code in your project. This usually happens when you have custom code that uses the `theme` object or sometimes in case typography variants are being accessed. For example, if you had the following Emotion styled component:
+
+```tsx
+const CustomStyledComponent = styled('div')({
+    h1: {
+        ...typography.heading1,
+        marginBottom: 20,
+        marginTop: 50
+    }
+});
+
+```
+
+The `heading1` object is now accessed via the `theme` context object, so the above code will need to be adjusted to the following:
+
+```diff-tsx
+- const CustomStyledComponent = styled('div')({
++ const CustomStyledComponent = styled('div')(({ theme }) => ({ // The theme object is now accessed via the context object. 
+    h1: {
+-       ...typography.heading1,
++       ...theme.styles.typography["headings"].stylesById("heading1"),
+        marginBottom: 20,
+        marginTop: 50
+    }
+}));
+```
+
+<Alert type={"info"}>
+
+  To learn more about the new theme object and typography-related changes, check out the above [Theme Object](#theme-object) section.
+
+</Alert>
+
+#### Found custom Emotion plugins in your project. Please make sure to update them to the latest version.
+
+Note that if you've been using custom Babel plugins for Emotion, you will need to manually update them to the latest version.
+
+These are usually introduced via `webiny.config.ts` files. For example, if you had something like the following in either your `apps/admin/webiny.config.ts` or `apps/website/webiny.config.ts` files:
+
+```ts apps/admin/webiny.config.ts or apps/website/webiny.config.ts
+import { createWebsiteAppConfig } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteAppConfig(({ config }) => {
+    config.babel(babelConfig => {
+        return {
+            ...babelConfig,
+            plugins: [...babelConfig.plugins, ["babel-plugin-emotion", { autoLabel: true }]]
+        };
+    });
+});
+```
+
+You will need to adjust it to the following:
+
+```diff-ts apps/admin/webiny.config.ts or apps/website/webiny.config.ts
+import { createWebsiteAppConfig } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteAppConfig(({ config }) => {
+    config.babel(babelConfig => {
+        return {
+            ...babelConfig,
+-           plugins: [...babelConfig.plugins, ["babel-plugin-emotion", { autoLabel: true }]]
++           plugins: [...babelConfig.plugins, ["@emotion", { autoLabel: "always"}]]
+
+        };
+    });
+});
+```
+
+In case of the above, note that the options for the [`@emotion/babel-plugin`](https://www.npmjs.com/package/@emotion/babel-plugin) are different from the ones for the [`babel-plugin-emotion`](https://www.npmjs.com/package/babel-plugin-emotion) plugin. You can find more information about the new plugin [here](https://emotion.sh/docs/emotion-11#babel-preset-and-babel-plugin).
+
+<Alert type={"info"}>
+
+  To learn more about the Emotion 11 upgrade, check out the above [Emotion 11](#emotion-11) section.
+
+</Alert>
+
+#### Some of the theme-related upgrades were not applied because you are using an older version of the Page Builder rendering engine.
+
+If you received this warning while upgrading, it means that your project is not using the latest Page Builder rendering engine, introduced with [Webiny 5.34.0](/docs/release-notes/5.34.0/changelog#page-elements-a-brand-new-page-rendering-engine-2898). To learn more about the new rendering engine and how to upgrade, check out the [Page Builder - Page Rendering Engine Migration](/docs/release-notes/5.34.0/page-builder-pe-rendering-engine-migration) tutorial.
+
+#### Running the `webiny upgrade` Command Fails With `ENOENT: no such file or directory, chmod ...` Message
+
+If you're receiving an error similar to the following:
+
+```bash
+3100 error enoent ENOENT: no such file or directory, chmod '/Users/svenalhamad/.npm/_npx/45065/lib/node_modules/run-js-with-npx-from-gist/node_modules/replace-in-path/dist/bin/replace-in-path.js'
+3101 error enoent This is related to npm not being able to find a file.
+```
+
+This could be due to a caching issue. To fix it, try running the following commands:
+
+```bash
+# Clear the yarn cache.
+yarn cache clean
+
+# Clear the npm cache.
+npm cache clean --force
+```
+
+Alternatively, we've seen upgrading [`npx`](https://www.npmjs.com/package/npx) to the latest version also fixes the issue:
+
+```bash
+# Upgrade npx to the latest version.
+npm install -g npx
+```

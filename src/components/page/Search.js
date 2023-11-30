@@ -81,7 +81,7 @@ export function SearchProvider({ children }) {
                         facetFilters: [
                             ["language:en"],
                             [`version:${page.version}`],
-                            [`articleType:${page.articleType}`]
+                            [`articleType:${page.docsearch.type}`]
                         ]
                     }}
                     placeholder="Search..."

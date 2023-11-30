@@ -1,0 +1,121 @@
+---
+id: a4d38490
+title: Webiny 5.38.1 Changelog
+description: See what's new in Webiny version 5.38.1.
+---
+
+
+
+
+
+import fmBulkEdit from "./assets/fm-bulk-edit.png";
+import {Alert} from "@/components/Alert";
+
+<GithubRelease version={"5.38.1"} />
+
+<Alert type={"warning"} title={"SECURITY PATCH"}>
+  This release contains a low severity security patch!
+</Alert>
+
+## Security
+
+### `withoutAuthorization` Execution Context Scoping ([#3714](https://github.com/webiny/webiny-js/pull/3714))
+
+#### Problem Description
+
+One of our community members discovered an interesting issue when running GraphQL queries which contain multiple selections.
+When GraphQL is executing a query, multiple selection paths are executed in parallel, and if one of those resolvers runs into a `security.withoutAuthorization()` method call, the authorization will also be disabled for all parallel executions, for the duration of the provided callback. This means that the data fetching logic is affected, and the resolver might return data which should otherwise not be returned.
+
+#### When Does This Happen?
+
+You will not see this in our Admin app queries, because we never run queries with multiple root level selections. However, if you run a manual query, using any GraphQL client, our API Playground, you will be able to construct a query which exposes this issue. For security reasons, we will not show examples of queries which can reproduce the issue.
+
+#### How Serious Is This?
+
+From your system security standpoint, this is a low severity issue, because this can only be exploited if you already are a system user, meaning you have valid credentials, and can log in. This cannot be exploited by public (anonymous) users without credentials.
+
+#### The Solution
+
+The solution uses the [async context tracking](https://nodejs.org/api/async_context.html) feature of Nodejs. This makes it possible for us to track the state of authorization on the execution context level, and not the entire request. So now, even if one part of the code execution temporarily disables authorization, all parallel execution paths would still have the authorization enabled.
+
+#### Removed Methods
+
+To make the patch described above work reliably, we had to finally remove methods `enableAuthorization()` and `disableAuthorization()` from the Security app. These methods have long been deprecated, since the introduction of `withoutAuthorization()` method, so this should not come as a surprise.
+
+Still, if your plugins used these two deprecated methods, you will be forced to upgrade the usage. Here's what you'll need to do:
+
+```ts Old Usage
+context.security.disableAuthorization();
+// Do something
+context.security.enableAuthorization();
+```
+
+This same code will now look like this:
+
+```ts New Usage
+context.security.withoutAuthorization(async() => {
+  // Do something
+});
+```
+
+## Headless CMS
+
+### Custom DateTime and Identity Input ([#3718](https://github.com/webiny/webiny-js/pull/3718))
+<Alert type="info">
+  This is an advanced feature, only available by directly calling the GraphQL API mutations, for users who want to import data from their existing system and retain the DateTime and Identity data. 
+</Alert>
+
+With this release, our users can set their own custom DateTime values to the `createdOn`, `savedOn` and `publishedOn` fields. If the values are not sent to the GraphQL API, the code falls back to the already existing functionality.
+
+They can also set their own custom Identity values to the `createdBy`, `modifiedBy` and `ownedBy` fields. If the values are not sent to the GraphQL API, the code falls back to the default functionality.
+
+Setting your own custom DateTime and Identity values can be done when **creating an entry**, **creating a new revision of the entry** or **updating the entry**.
+
+### Skipping the Update of `savedOn` and `publishedOn` Fields When Publishing an Entry ([#3718](https://github.com/webiny/webiny-js/pull/3718))
+
+<Alert type="info">
+  This is an advanced feature, only available by directly calling the GraphQL API mutations. 
+</Alert>
+
+With this release, our users can choose to skip the update of the `savedOn` and `publishedOn` fields when publishing an entry.
+This can be done by setting the `updateSavedOn` and `updatePublishedOn` argument to `false` when calling the `publish` mutation.
+
+By default, the system updates those fields when **publishing** an entry.
+
+
+## File Manager
+
+### Bulk Edit File Manager Extension Fields ([#3715](https://github.com/webiny/webiny-js/pull/3715))
+
+If you are using [custom file fields](/docs/{version}/file-manager/extending/customize-file-fields) in the File Manager, you will now be able to bulk edit them, using this new early preview feature. To enable bulk editing of your custom file fields, you need to se a `bulkEdit: true` property:
+
+```ts
+modifier.addField({
+  id: "customLabel",
+  fieldId: "customLabel",
+  label: "Custom Label",
+  type: "text",
+  renderer: {
+    name: "text-input"
+  },
+  // Enable bulk editing of this field
+  bulkEdit: true
+});
+```
+
+Once you deploy your API, the File Manager will auto-detect your bulk-editable fields. Once you select multiple files, a new action will appear in the top toolbar, which will bring up the following dialog:
+
+<Image src={fmBulkEdit} title={"Bulk Edit Dialog"}/>
+
+### Custom DateTime and Identity Input ([#3718](https://github.com/webiny/webiny-js/pull/3718))
+
+<Alert type="info">
+  This is an advanced feature, only available by directly calling the GraphQL API mutations, for users who want to import data from their existing system and retain the DateTime and Identity data.
+</Alert>
+
+Because our File Manager is built on top the Headless CMS code, it also can use the same custom DateTime and Identity input functionality.
+
+The main difference here is that the File Manager does not have the `publishedOn` and `ownedBy` fields.
+The reason behind that is that the File Manager does not have the concept of revisions, so there is no need for the `publishedOn` and `ownedBy` fields.
+
+Basically, our users can now send their own `createdOn` and `savedOn` DateTime values, and their own `createdBy` and `modifiedBy` Identity values when **creating a file** or **updating the file**.

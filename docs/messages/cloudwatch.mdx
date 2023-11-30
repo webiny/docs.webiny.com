@@ -1,0 +1,89 @@
+---
+id: aafea9f8
+title: Accessing Amazon CloudWatch logs for AWS Lambda Functions
+//: null
+description: null
+---
+
+import cwLogs from "./assets/cw-logs.png"
+import logsInsights from "./assets/logs-insights.png"
+import logsInsightsApiErrors from "./assets/logs-insights-api-errors.png"
+
+From time to time, for development purposes, developers might need to access runtime logs for one or more [AWS Lambda](https://aws.amazon.com/lambda/) functions that Webiny deploys. This guide shows how to access these logs. 
+
+## CloudWatch Logs
+
+The first way of accessing logs is by using [CloudWatch Logs](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/WhatIsCloudWatchLogs.html):
+
+1. Open [CloudWatch Management Console](https://console.aws.amazon.com/cloudwatch/home).
+2. Click on **Log groups** in the left-hand menu.
+3. Click on the log group that corresponds to the function you want to view logs for (logs are grouped by function name). You can also use the search bar to quickly find the log group you're looking for. For example, you can type **graphql** to find the log group that contains logs for Webiny's GraphQL API. 
+4. Select a log stream. Note that, usually, there is more than one log stream for a function, so you will need to select the one that corresponds to the time period you're interested in.
+5. You should now see the logs for the Lambda function you selected.
+
+<Image src={cwLogs} alt="CloudWatch Logs" />
+
+### Examples
+
+#### GraphQL API
+
+If you need to access the logs for Webiny's GraphQL API, the log group you're looking for is called `/aws/lambda/{prefix}-graphql-{suffix}`, for example:
+
+```
+/aws/lambda/wby-graphql-2c38a37
+```
+
+<Alert type={"info"}>
+
+  Type **graphql** in the search bar to quickly find the log group.
+
+</Alert>
+
+#### Data Migrations
+
+If you need to access data migrations-related logs, the log group you're looking for is called `/aws/lambda/{prefix}-data-migration-{suffix}`, for example:
+
+```
+/aws/lambda/wby-data-migration-2c38a37
+```
+
+<Alert type={"info"}>
+
+  Type **data-migration** in the search bar to quickly find the log group.
+
+</Alert>
+
+
+## CloudWatch Logs Insights
+
+[CloudWatch Logs Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html) enables you to interactively search and analyze your logs. Most importantly, the service allows you to search logs not only across multiple log streams, but also across multiple log groups. This is especially useful when you need to search logs for multiple functions at once.
+
+CloudWatch Logs Insights can be accessed from the [CloudWatch Management Console](https://console.aws.amazon.com/cloudwatch/home). To access it, click on **Logs Insights** in the left-hand menu. You will be presented with a query editor via which you can then perform queries. 
+
+<Image src={logsInsights} alt="CloudWatch Logs Insights" />
+
+### Examples
+
+#### GraphQL API Error Logs
+
+To access GraphQL API error logs, first, select the **graphql** AWS Lambda function's log group. You can do that by typing **graphql** in the search bar. Once you've selected the log group, select the time period you're interested in and use the following query:
+
+```text
+fields @timestamp, @message
+| filter @message like /ERROR/
+| sort @timestamp desc
+```
+
+<Image src={logsInsightsApiErrors} alt="GraphQL API Error Logs" />
+
+#### GraphQL API and Data Migrations Logs 
+
+To access all logs for GraphQL API and data migrations at the same time, first, select the **graphql** and **data-migration** AWS Lambda functions' log groups. You can do that by typing **graphql** and **data-migration** in the search bar.  Once you've selected the log groups, select the time period you're interested in and use the following query:
+
+```text
+fields @timestamp, @message
+| sort @timestamp desc
+```
+
+<Image src={logsInsights} alt="GraphQL API and Data Migrations Logs" />
+

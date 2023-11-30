@@ -3,7 +3,7 @@ import Head from "next/head";
 
 export function Title({ suffix }) {
     const { page } = usePage();
-    let titleWithSuffix = page.title + (page.version == 'latest' ? '' :  (' | '+page.version)) + (suffix.trim().startsWith("|") ? "" : " - ") + suffix;
+    let titleWithSuffix = page.title + (suffix.trim().startsWith("|") ? "" : " - ") + suffix;
 
     return (
         <Head>

@@ -1,0 +1,140 @@
+---
+id: aafeab2a
+title: Destroy Cloud Infrastructure
+description: Learn how to destroy the cloud infrastructure deployed for your project applications, using the Webiny CLI.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you’ll learn">
+
+- how to destroy cloud infrastructure previously deployed for project applications (possibly into multiple environments)
+
+</Alert>
+
+<!-- ## The `destroy` command
+
+To make it a bit easier for users that are just testing Webiny or want to quickly destroy all of the deployed cloud infrastructure, Webiny CLI provides the `destroy` command, which destroys all of the cloud infrastructure, deployed by the three applications that are by default included in a Webiny project.
+
+To destroy all deployed cloud infrastructure, in your terminal of choice, and in your project root, execute the following command:
+
+```
+yarn webiny destroy
+```
+
+<Alert type="danger">
+
+Although this may seem as a convenient way to get rid of everything that was previously deployed, be cautious when using this command. Once cloud infrastructure is destroyed, in most cases, it cannot be brought back, which means you could potentially loose your data, files, and similar.
+
+</Alert>
+
+### Different environments
+The `destroy` command destroys the cloud infrastructure that was deployed into the `dev` environment by default. You can specify a different environment with the `--env` argument. For example, to destroy cloud infrastructure that was deployed into the `prod` environment, you can run the following command:
+
+```
+yarn webiny destroy --env prod
+```
+-->
+
+## The `destroy` Command
+
+This command lets you destroy cloud infrastructure previously deployed within a [project application](/docs/{version}/core-development-concepts/project-organization/project-applications-and-packages). <!-- This can be handy if you want to avoid completely destroying all cloud infrastructure that was deployed by the default project applications, which is what the shown `destroy` command does. -->
+
+As its first argument, the `destroy` command receives the path to the project application folder. You also need to specify the environment into which the cloud infrastructure was previously deployed, which is specified via the `--env` argument.
+
+<!-- Note that, unlike with the `destroy` command, the `--env` argument is not optional and it needs to be provided explicitly. -->
+
+The following destroy commands destroy cloud infrastructure deployed for four project applications, all previously deployed into the `dev` environment:
+
+```bash
+yarn webiny destroy apps/website --env dev
+yarn webiny destroy apps/admin --env dev
+yarn webiny destroy apps/api --env dev
+yarn webiny destroy apps/core --env dev
+```
+
+Note that the order of execution matters. In order to correctly and fully destroy your Webiny project's cloud infrastructure resources, the above commands should be executed in that exact order.
+
+## Debugging
+
+If you run into an error while running the `webiny destroy` command, to get additional information and logs about it, you can append the `--debug` argument. For example:
+
+```bash
+yarn webiny destroy apps/api --env dev --debug
+```
+
+This can significantly help in debugging underlying deployment ([Pulumi](/docs/{version}/infrastructure/pulumi-iac/iac-with-pulumi)) errors, since without it, in some cases the returned error report doesn't contain enough useful information. We've also seen cases in which the report would actually be misleading and even incorrect, making the debugging process much harder for the user.
+
+## FAQ
+
+### How do I destroy cloud infrastructure resources deployed into the `prod` environment? I'm receiving a warning about protected cloud infrastructure resources.
+
+When deploying into the `prod` environment, some of the cloud infrastructure resources that Webiny deploys for you as part of the [Core project application](/docs/{version}/architecture/core/overview) are marked as [protected](https://www.pulumi.com/docs/intro/concepts/resources/#protect).
+
+> The `protect` option marks a resource as protected. A protected resource cannot be deleted directly. Instead, you must first set `protect: false` and run `pulumi up`. Then you can delete the resource by removing the line of code or by running `pulumi destroy`. The default is to inherit this value from the parent resource, and `false` for resources without a parent.
+
+<Alert type="info">
+
+Within a Webiny project, note that the `pulumi up` and `pulumi destroy` commands are run via the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) and [`webiny destroy`](/docs/{version}/infrastructure/basics/destroy-cloud-infrastructure) commands, respectively.
+
+</Alert>
+
+So, in order to destroy all cloud infrastructure resources deployed into the `prod` environment, we need to first pass `protect: false` upon calling the `createCoreApp` function in `apps/core/webiny.application.ts`:
+
+```ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+  protect: false
+});
+```
+
+Once that's in place, run the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command to apply changes, and finally, run the [`webiny destroy`](/docs/{version}/infrastructure/basics/destroy-cloud-infrastructure) to destroy everything:
+
+```bash
+# Removes the protection from mission-critical cloud infrastructure resources.
+yarn webiny deploy apps/core --env prod
+
+# At this point, the protection has been removed. We can now run the destroy command.
+yarn webiny destroy apps/core --env prod
+```
+
+Once that has been destroyed, you can proceed with destroying the rest of the project applications, which do not contain any protected cloud infrastructure resources.
+
+```bash
+yarn webiny destroy apps/api --env prod
+yarn webiny destroy apps/admin --env prod
+yarn webiny destroy apps/website --env prod
+```
+
+## Troubleshooting
+
+### Upon destroying my Webiny project, I've received a "PreconditionFailed" error message. What can I do?
+
+On multiple occasions, we've seen users receive the following error upon destroying their Webiny project:
+
+```text
+  pulumi:pulumi:Stack (website-dev):
+    error: update failed
+
+  aws:cloudfront:Distribution (delivery):
+    error: deleting urn:pulumi:dev::website::aws:cloudfront/distribution:Distribution::delivery: 1 error occurred:
+        * CloudFront Distribution {DISTRIBUTION_ID} cannot be deleted: PreconditionFailed: The request failed because it didn't meet the preconditions in one or more request-header fields.
+        status code: 412, request id: {REQUEST_ID}
+```
+
+As we can see, the error is related to deleting an Amazon Cloudfront distribution that's deployed as part of the **Website** project application.
+
+As mentioned in [this GitHub issue](https://github.com/pulumi/pulumi-aws/issues/308#issuecomment-415928729), this error can happen because of the fact that many operations within AWS silently mutate Cloudfront distributions' [ETAG](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html). This causes the subsequent update (delete) attempts to fail.
+
+Ultimately, this issue can be resolved by refreshing your Pulumi state files, by running the following command:
+
+```bash
+yarn webiny pulumi apps/website --env dev -- refresh --skip-preview --yes
+```
+
+### Destroying my project takes a long time to finish.
+
+We're aware of this fact, and this is mainly because of the [Amazon ElasticSearch Service](https://aws.amazon.com/elasticsearch-service/). While other cloud infrastructure resources get destroyed reasonably fast, this service can take anywhere from 15 to 30 minutes to destroy itself. In rare cases, we've even seen the service still present in user's account [for days](https://forums.aws.amazon.com/thread.jspa?threadID=233859).
+
+Unfortunately, this is a well-known issue for quite some time, and until the present, there haven't been any positive improvements.

@@ -1,0 +1,213 @@
+---
+id: aafeab20
+title: Watch Command
+description: Learn how to continuously rebuild and redeploy your code using the "webiny watch" command.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="info" title="Can I Use This?">
+
+The `webiny watch` command is available since Webiny **v5.5.0**.
+
+</Alert>
+
+<Alert type="success" title="What you'll learn">
+
+- how to continuously rebuild and redeploy your code using the `webiny watch` command.
+
+</Alert>
+
+## Overview
+
+While developing JavaScript applications, it's not unusual for developers to have one or more code watching processes running in the background. In general, their job is to continuously detect code changes and perform rebuild (recompilation) operations accordingly, which may include some of the following steps:
+
+- transform code in order to work in a specific environment, like older browsers or specific version of Node.js
+- remove syntax sugar or other code that's not compatible with the JavaScript language, for example TypeScript
+- bundling and optimizing code and even static assets, for example images
+- warn about syntax and potential runtime errors
+- and more...
+
+Webiny is no different. Whether you decide to create a new React application, a new GraphQL API, or just a simple package, as you develop these, running the `webiny watch` command in order to rebuild and test them out, is necessary.
+
+## `webiny watch` Command
+
+The `webiny watch` command is the number one command you'll be using while developing both frontend and backend applications.
+
+The command can be instructed not only to watch one or more packages in your Webiny project, but also a complete project application, and even redeploy it to the cloud as you make changes to its application and cloud infrastructure code. Last but not least, the `webiny watch` command also lets you easily stream logs (`console.log` calls) from deployed application code directly to your terminal, making it a bit easier to perform debugging, if necessary.
+
+The following screenshot shows the `webiny watch` command in action, displaying different logs, grouped into three different panes - **Build**, **Deploy**, and **Logs**.
+
+![Watch Command - Build, Deploy and Logs Panes](./assets/watch-command/watch-command-preview.png)
+
+<Alert type="info">
+
+Learn more about project applications and packages in the [Project Applications and Packages](/docs/{version}/core-development-concepts/project-organization/project-applications-and-packages) key topic.
+
+</Alert>
+
+## Watching Project Applications
+
+Watching project applications entails watching for changes that occur in their application and cloud infrastructure code. Once a code change has been detected, the code will be rebuilt, and, if necessary, cloud infrastructure resources will automatically be redeployed.
+
+Imagine you wanted to expand the GraphQL API, that's deployed as part of the default **API** project application. With the `webiny watch` command ran, you can just start writing code, save it, and all of the code will be rebuilt and automatically redeployed to your cloud, enabling you to immediately see the changes and to test them out. This approach makes the serverless development a bit more agile and, in a way, mimics the local development you might already be familiar with.
+
+<Alert type="info">
+
+Learn more about the **API** project application in the [Cloud Infrastructure](/docs/{version}/architecture/api/overview) key topics section.
+
+</Alert>
+
+To start watching the default **API** project application in your Webiny project, in your terminal of choice, run the following command:
+
+```bash
+# Starts watching the API project application, deployed into the "dev" environment.
+yarn webiny watch apps/api --env dev
+
+# You can, naturally, watch other project applications as well.
+yarn webiny watch apps/admin --env dev
+yarn webiny watch custom-project-application --env custom-env
+```
+
+## Watching Specific Packages
+
+Over time, as your project application starts to grow, running the `webiny watch` command across too many packages may become CPU intensive. When you feel you've reached this point, it's recommended you start specifying the packages you want to watch and develop.
+
+### Specifying A Folder Within A Project Application
+
+Instead of watching the complete project application and all of its code, you can just choose to watch code located in a specific folder within a project application. For example, if we just wanted to work on the GraphQL API that's deployed within the default **API** project application and whose code is located in the `api/graphql` folder, we could run the following command:
+
+```bash
+# Starts watching the GraphQL API code, that's deployed as part of the
+# API project application ("apps/api/graphql").
+yarn webiny watch apps/api/graphql --env dev
+```
+
+In the same way, if we just wanted to work on the Headless CMS GraphQL API that's deployed within the default **API** project application and whose code is located in the `api/headlessCMS` folder, we could run the following command:
+
+```bash
+# Starts watching the Headless CMS GraphQL API code, that's also deployed as part of the
+# API project application ("api/headlessCMS").
+yarn webiny watch apps/api/headlessCMS --env dev
+```
+
+### Picking Specific Packages
+
+If the above option is not enough, you can also pick the exact packages you want to watch, using the `--package` argument. The following command will watch for code changes in the `api-graphql` and our custom `api-car-manufacturers` packages:
+
+```bash
+# Starts watching the "api-graphql" package ("api/graphql") and our
+# custom "api-car-manufacturers" package on which we're currently working on.
+yarn webiny watch --env dev --package api-graphql --package api-car-manufacturers
+```
+
+The `--package` argument can also take a [`minimatch`](https://www.npmjs.com/package/minimatch) pattern, allowing you to specify multiple packages to watch, with a single `--package` argument. For example, the following command will watch all packages whose name starts with `api-`:
+
+```bash
+# Starts watching all "api-*" packages. Note that it's recommended you wrap
+# your pattern with quotes, otherwise you might receive unexpected results.
+yarn webiny watch --env dev --package "api-*"
+```
+
+Note that when picking packages this way, you should also include at least one package that represents the actual cloud (AWS Lambda) function. These packages are located within your project application folder, and, in the above command, that package was `api-graphql` (`api/graphql`).
+
+Aa an additional example, if we were working on expanding the Headless CMS GraphQL API, we'd want to include the `api-headless-cms` (`api/headlessCMS`) package, because this is the package that represents the actual cloud function, which we want to redeploy on every code change:
+
+```bash
+# Starts watching the "api-headless-cms" package ("api/headlessCMS") and our
+# custom "api-cms-custom-field" package on which we're currently working on.
+yarn webiny watch --env dev --package api-headless-cms --package api-cms-custom-field
+```
+
+This ensures that the cloud function code is rebuilt on every code change, and thus, that the actual cloud (AWS Lambda) function is redeployed accordingly.
+
+<Alert type="success">
+
+Package names are specified via the `name` property in `package.json` files. For example, [`api/graphql/package.json`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/graphql/package.json#L2) or [`api/code/headlessCMS/package.json`](https://github.com/webiny/webiny-js/blob/next/packages/cwp-template-aws/template/api/code/headlessCMS/package.json#L2).
+
+</Alert>
+
+## Enabling Logs Forwarding
+
+While watching and developing project applications, it's not unusual to debug certain issues by checking the values of one or more variables while the code is in runtime.
+
+If not using the native Node.js debugger, usually we tend to place one or more `console.log` calls in our code and then run the application again. And although in serverless environments this is possible, when it comes to actually reading the logged data, the developer experience has shown to be a bit cumbersome and really not that straight forward.
+
+That's why, by appending the `-r` argument, you can have all of your `console.log` calls stream logged information directly to your terminal. For example:
+
+```bash
+# Starts watching the "api-headless-cms" package ("api/headlessCMS") and our
+# custom "api-cms-custom-field" package on which we're currently working on.
+yarn webiny watch apps/api --env dev -r
+```
+
+Note that this will stream logs from all cloud functions that were triggered while running and testing the code. If you start receiving more logs than expected, the `-r` argument can also take a [`minimatch`](https://www.npmjs.com/package/minimatch) pattern, with which you can filter out the logs you don't wish to see. The following example will ensure only logs originating from the `api-graphql` function are shown:
+
+```bash
+# Starts watching the "api-headless-cms" package ("api/headlessCMS") and our
+# custom "api-cms-custom-field" package on which we're currently working on.
+yarn webiny watch apps/api --env dev -r="api-graphql*"
+```
+
+<Alert type="danger">
+
+In order to achieve forwarding, behind the scenes, this feature relies on the [localtunnel](https://www.npmjs.com/package/localtunnel) package.
+
+Essentially, everything you log in your application code is forwarded to your terminal **over public internet**. For development purposes, this doesn't necessarily have to be an issue, but still, if you're dealing with sensitive data, please take this fact into consideration.
+
+</Alert>
+
+## Watching Packages
+
+The `webiny watch` command also lets you simply watch one or more packages, with no automatic redeployments. This can be useful if you've just started with creation of one or more packages or you're writing tests. In other words, you're not ready yet to integrate the new packages with existing project applications.
+
+To start watching one or more packages, simply omit the project application related arguments, and provide package names, via the already seen `--package` argument. For example:
+
+```bash
+# Starts watching three packages.
+yarn webiny watch --package "api-car-manufacturers" --package "api-headless-cms" --package "api-cms-custom-field"
+```
+
+## FAQ
+
+### Can I use the `webiny watch` command to start a watch process on frontend (React) apps?
+
+Yes, and with it, it's now a bit easier to start a new watch process for these.
+
+Where previously you had to navigate to your `apps/admin` package and run the `yarn start` command, now, it's simply a matter of running the following command:
+
+```bash
+yarn webiny watch --package admin --env dev
+```
+
+You can even start watching both `admin` and `website` applications at the same time, by running:
+
+```bash
+ yarn webiny watch --package admin --package website --env dev
+```
+
+### Are there any requirements for a package to be "watchable" (using the `webiny watch` command)?
+
+The only thing that's needed is the `watch` script, in package's respective `package.json` file. But note that, all of the packages, including the ones that are scaffolded using the Webiny CLI's scaffolding utilities, will have this script automatically included, so essentially, there are no extra steps to be taken here.
+
+### Can I append extra arguments when calling the `webiny watch` command?
+
+Yes, one of the examples where we use extra arguments is the environment, for example `--env dev`.
+
+Note that, all of the extra arguments, that you append upon calling the `webiny watch` command, will be passed to every `watch` script that's invoked in the process. From there, it's just a matter of whether the invoked `watch` script supports any of these extra arguments or not.
+
+### Should automatic redeployments be used for frontend development?
+
+The automatic redeployments feature is not that useful when doing frontend development, simply because you already have your application running locally, and there isn't really a need to continuously redeploy it to the cloud. That's why, when you start watching **Admin Area** (`apps/admin`) and **Website** (`apps/website`) project applications, you'll notice that the automatic redeployments are disabled. The only thing you'll be able to see are the code rebuild logs (the **Build** pane).
+
+This feature really shines when talking about backend (serverless) development, because all of the changes you make locally in your code are immediately reflected in a remote cloud environment.
+
+## Troubleshooting
+
+### I'm on Windows, using Git Bash, and my screen looks completely broken.
+
+If you're using [Git Bash](https://www.atlassian.com/git/tutorials/git-bash), then you'll have to update it to at least to version `2.27.0`, as this version introduces the support for pseudo consoles.
+
+![Enable Support For Pseudo Consoles](./assets/watch-command/git-support-pseudo-consoles.png)
+
+Please try enabling this option and try again.

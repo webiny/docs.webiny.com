@@ -1,0 +1,131 @@
+---
+id: aafea42f
+title: Lexical Tools
+description: Learn how to use Lexical tools to manipulate Lexical state.
+---
+
+<CanIUseThis since={"5.38.0"} />
+
+<WhatYouWillLearn>
+
+- how to parse HTML to Lexical state
+- how to convert Lexical state to HTML
+
+</WhatYouWillLearn>
+
+## Overview
+
+Webiny uses the [Lexical](https://lexical.dev/) text editor framework to power its Rich Text Editor components. It's very powerful, and enables us to build a feature rich and extendable text editors. The downside is that the output of the editor is not HTML, as you would expect from a WYSIWYG editor.
+
+To help you convert Lexical's native state shape into HTML, and vice-versa, we've created a set of utilities, which reside in our `@webiny/lexical-converter` package.
+
+This article demonstrates how to use this utility package to convert your HTML or Lexical data into the desired form.
+
+## HTML to Lexical
+
+To parse HTML to a valid Lexical state, Lexical editor requires a DOM document. Every environment is different, so there's an extra step you need to take before you use our tool, and that is converting your HTML to a DOM document.
+
+Browsers have a native [DOMParser](https://developer.mozilla.org/en-US/docs/Web/API/DOMParser) class you can just instantiate and parse your HTML.
+
+Node.js is a bit more involved, because DOM is not a native thing for Node.js. You'll need to use a library like [JSDOM](https://github.com/jsdom/jsdom), to parse your HTML to a DOM document.
+
+### Browser Usage
+
+In the browser environment, you can simply use the `DOMParser` class.
+
+```ts Parse HTML to a DOM document in the browser
+const html = `<p>My input HTML</p>`;
+const parser = new DOMParser();
+const document = parser.parseFromString(html, "text/html");
+```
+
+### Node.js Usage
+
+In the Node.js environment, first install a DOM library of choice. We'll use JSDOM:
+
+```shell Install JSDOM
+// NPM
+npm i jsdom
+
+// Yarn
+yarn add jsdom
+```
+
+Then use it to parse your HTML, and get a DOM document:
+
+```ts Parse HTML to a DOM document in Node.js
+import JSDOM from "jsdom";
+
+const html = `<p>My input HTML</p>`;
+const { window } = new JSDOM(html);
+const document = window.document;
+```
+
+### Convert DOM to Lexical State
+
+Once you have your DOM document, you can convert it to Lexical state:
+
+```ts Convert DOM to Lexical State
+import { createHtmlToLexicalParser } from "@webiny/lexical-converter";
+
+// Create a parser.
+const parser = createHtmlToLexicalParser();
+
+// Get a DOM document (as described in previous sections).
+const document = getDomDocument();
+
+// Parse DOM document to Lexical state.
+const lexicalState = parser(document);
+```
+
+### Custom Nodes
+
+You can configure your Lexical parser with [custom Lexical nodes](https://lexical.dev/docs/concepts/nodes#creating-custom-nodes). This will often be necessary if your HTML contains tags unknown to Webiny.
+
+```ts Add Custom Nodes
+import { createHtmlToLexicalParser } from "@webiny/lexical-converter";
+
+// Create a parser with custom nodes.
+const parser = createHtmlToLexicalParser({
+  editorConfig: {
+    nodes: [MyCustomNode]
+  }
+});
+
+// Get a DOM document (as described in previous sections).
+const document = getDomDocument();
+
+// Parse DOM document to Lexical state.
+const lexicalState = parser(document);
+```
+
+### Custom Node Mapper
+
+You might also need to perform some actions on your node instance, after the DOM is parsed into a Lexical state. To process each parsed node, configure the parser with a `nodeMapper` property:
+
+```ts Add a Custom Node Mapper
+import { LexicalNode } from "lexical";
+import { createHtmlToLexicalParser } from "@webiny/lexical-converter";
+import { $isHeadingNode } from "@webiny/lexical-nodes";
+
+// This is a custom mapper that will pass some styling information to a matching node.
+const addCustomThemeStyleToHeadings = (node: LexicalNode): LexicalNode => {
+  // Use utilities provided by Webiny to check for built-in node types.
+  if ($isHeadingNode(node)) {
+    node.setThemeStyles([{ styleId: "my-default-id", type: "typography" }]);
+  }
+
+  return node;
+};
+
+// Create a parser with a custom node mapper.
+const parser = createHtmlToLexicalParser({
+  nodeMapper: addCustomThemeStyleToHeadings
+});
+
+// Get a DOM document (as described in previous sections).
+const document = getDomDocument();
+
+// Parse DOM document to Lexical state.
+const lexicalState = parser(document);
+```

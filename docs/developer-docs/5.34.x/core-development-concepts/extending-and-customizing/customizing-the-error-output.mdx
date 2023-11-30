@@ -1,0 +1,85 @@
+---
+id: aafea5ff
+title: Customizing the Error Output
+description: Learn how to set a custom error handler to modify the error output
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- how to set a custom error handler
+- how to modify the error output
+
+</Alert>
+
+## Introduction
+
+In the `5.34.0` version we added a possibility for users to modify our `Fastify` handler instance, via the `ModifyFastifyPlugin`. To find our more on how and why we use `Fastify`, please read this [article](/docs/core-development-concepts/basics/routes-and-events).
+
+With the given plugin user can change and add anything to the `Fastify` instance, including the error handler.
+
+We have our built-in error handler, but if it does not suit the user, they can change it.
+
+## Creating the modifier plugin to set a Custom Error Handler
+
+There is a plugin class, `ModifyFastifyPlugin`, which user can construct, or they can use a function which in turn constructs the plugin from the `ModifyFastifyPlugin` class.
+
+## Example: Create a Custom Handler Via Class
+
+```typescript
+import { ModifyFastifyPlugin } from "@webiny/handler";
+
+const plugin = new ModifyFastifyPlugin(instance => {
+  instance.setErrorHandler(async (error, request, reply) => {
+    return reply
+      .status(500)
+      .headers({
+        "Cache-Control": "no-store"
+      })
+      .send({
+        ...error,
+        myCustomErrorClassHandler: true
+      });
+  });
+});
+```
+
+## Example: Create a Custom Handler Via Function
+
+```typescript
+import { createModifyFastifyPlugin } from "@webiny/handler";
+
+const plugin = createModifyFastifyPlugin(instance => {
+  instance.setErrorHandler(async (error, request, reply) => {
+    return reply
+      .status(500)
+      .headers({
+        "Cache-Control": "no-store"
+      })
+      .send({
+        ...error,
+        myCustomErrorFunctionHandler: true
+      });
+  });
+});
+```
+
+## Registering the Plugin
+
+In both cases of creating the Fastify modifier plugin, users need to register the plugin the same location.
+
+```typescript
+export const handler = createHandler({
+  plugins: [
+    // ... register the plugin in the plugins array of the createHandler
+    plugin
+  ]
+});
+```
+
+<Alert type="warning">
+
+Users **MUST** register the plugin in both GraphQL (`apps/api/graphql/src/index.ts`) and HeadlessCMS (`apps/api/headlessCMS/src/index.ts`) Lambda handlers.
+
+</Alert>

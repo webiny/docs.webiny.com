@@ -1,0 +1,101 @@
+---
+id: aafeab2c
+title: Connect Custom Domain
+description: Learn how to connect custom domain to your application in a Webiny project.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you’ll learn">
+
+- how to connect custom domain to your project application
+
+</Alert>
+
+## Introduction
+
+By default, both **Admin Area** `(apps/admin)` and **Website** `(apps/website)` React applications are accessible via a CloudFront URL.
+This is fine for development purposes, however, for the production environment, you will most likely need a custom domain for those applications. This is because custom domains are human-readable, easy to remember, and good for branding.
+
+In this guide, we show how to connect a custom domain to the **Website** `(apps/website)` React application,
+however, the same steps can be used for connecting it to the **Admin Area** `(apps/admin)` React application, and also the **GraphQL API** `(apps/api)` application.
+
+## Before We Begin
+
+Before starting with this guide, make sure to do the following:
+
+- Register the domain name with the domain provider of your choice.
+- Create a certificate using [AWS Certificate Manager (ACM)](https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html)
+  that covers the domain name you plan to use with the distribution to validate that you are authorized to use the domain.
+  You can also import an existing certificate into ACM from an authorized certificate authority (CA).
+
+<Alert type="info">
+
+Learn more about requesting a public certificate using AWS Certificate Manager (ACM) in the official [AWS documentation article](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html#request-public-console).
+
+</Alert>
+
+<Alert type="info">
+
+Read more about requirements for using alternate domain names in the official [AWS documentation article](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/CNAMEs.html#alternate-domain-names-requirements).
+
+</Alert>
+
+## Configure the Custom Domain in the Website App
+
+
+```diff-ts apps/website/webiny.application.ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteApp({
+    pulumiResourceNamePrefix: "wby-",
++    domains() {
++      return {
++        domains: ["my.domain.com"],
++        sslSupportMethod: "sni-only",
++        acmCertificateArn:
++          "arn:aws:acm:us-east-1:636962863878:certificate/3baf9092-fb27-4efb-9409-XXXXXXXX"
++      };
++    }
+});
+```
+
+With the above changes in place, `deploy` the **Website** project application, so that the new configuration is properly applied.
+
+```shell
+yarn webiny deploy apps/website --env=dev
+```
+
+<Alert type="info">
+
+The instructions shown above also apply to the **API** and the **Admin Area** apps. Use the same configuration steps in their respective `webiny.application.ts` files.
+
+</Alert>
+
+It's time to move on to the last step, which is pointing our custom domain to the CloudFront Distribution.
+
+## Point Domain to CloudFront Distribution
+
+Now that we have connected our custom domain as the alternative domain for the CloudFront URL, we also must configure the DNS service for the domain to route traffic for the domain,
+such as `coolwebsite.com`, to the CloudFront domain name for your distribution, such as `d111111abcdef8.cloudfront.net`.
+
+Use the method provided by your DNS service provider to add a **CNAME** record for your domain.
+This new **CNAME** record will redirect DNS queries from your domain (for example, `coolwebsite.com`) to the CloudFront domain name for your distribution (for example, `d111111abcdef8.cloudfront.net`).
+For more information, see the documentation provided by your DNS service provider.
+
+<Alert type="success">
+
+The changes made to the DNS service might take few minutes to propagate.
+You can use a service like [DNS Checker](https://dnschecker.org/) to check the status of newly added **CNAME** record.
+
+</Alert>
+
+Finally, test the alternate domain name by visiting URLs with your domain name instead of the CloudFront domain name of your distribution:
+
+![Website with custom domain](./assets/connect-custom-domain/cool-website.png)
+
+## FAQ
+
+**Do we need to apply the domain changes to multiple applications or just the Admin app? **
+
+On order to have all three applications, **API** (`apps/api`), **Admin** (`apps/admin`), and **Website** (`apps/website`), publicly accessible over a custom domain, domain changes need to be applied for all three applications. This is done via their respective `webiny.application.ts` configuration files.

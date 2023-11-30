@@ -1,0 +1,290 @@
+---
+id: aafea428
+title: Customize Entry List Bulk Actions
+description: Learn how to add, replace, or remove bulk actions in the Entry List.
+---
+
+import hcmsBulkActions from "./assets/hcms-bulk-actions.png";
+import hcmsBulkActionsSimple from "./assets/hcms-bulk-actions-simple.gif";
+import hcmsBulkActionsAsync from "./assets//hcms-bulk-actions-async.gif";
+import hcmsBulkActionsDiscover from "./assets/hmcs-bulk-actions-discover.png";
+import hcmsBulkActionsPosition from "./assets/hcms-bulk-actions-position.png";
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="info" title="Can I Use This?">
+
+This feature is available since Webiny **v5.38.0**.
+
+</Alert>
+
+<Alert type="success" title="What you will learn">
+
+- how to add a custom bulk action to the Entry List
+- how to discover existing bulk action names
+- how to change the position, remove, or replace an existing bulk action
+
+</Alert>
+
+## Overview
+
+In Headless CMS, pre-built actions empower users to modify status, delete, or move multiple entries effortlessly. These actions become visible when you select one or more entries from the list.
+
+To work with bulk actions, you need to use the `ContentEntryListConfig` component. For this article, we will use the `BulkAction` in the `Browser` namespace.
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+import "./App.scss";
+
++ // You can destructure child components to make the code more readable and easier to work with.
++ const { Browser } = ContentEntryListConfig;
+
+export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <ContentEntryListConfig>
++          <Browser.BulkAction name={"demo-bulk-action”} element={<span>Demo Bulk Action</span>} />
++       </ContentEntryListConfig>
+      </Admin>
+    );
+};
+```
+
+`Browser` is the crucial component of the Admin app's Content Entry List. This is where users can easily browse through entries, apply filters, perform searches, create new entries, and organize them into folders. 
+
+If users select one or more entries from the list, the bulk action bar will appear.
+
+<Image src={hcmsBulkActions} title="Browser and the Built-in Bulk Actions" />
+
+## Add a Bulk Action
+
+To add a new bulk action, use the `ContentEntryListConfig` component and mount it within your Admin app. This component will serve as the foundation for your bulk actions.
+
+To ensure UI consistency, use the `useButtons` hook to access four button components:
+
+- `ButtonDefault`
+- `ButtonPrimary`
+- `ButtonSecondary`
+- `IconButton`
+
+Choose the one that best suits your design needs. In the following examples, we will use the `IconButton` component.
+
+### Simple Bulk Action
+
+Here is an example of creating a bulk action that copies the selected entries to the clipboard in JSON format.
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { useSnackbar } from "@webiny/app-admin";
++ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
++ import { ReactComponent as CopyIcon } from "@material-design-icons/svg/outlined/content_copy.svg";
+import "./App.scss";
+
++ // You can destructure child components to make the code more readable and easier to work with.
++ const { BulkAction } = ContentEntryListConfig.Browser;
++ const { useWorker, useButtons } = BulkAction;
++
++ const ActionCopyJson = () => {
++   // useButtons() exposes the button components also used internally: use these to keep the UI consistent.
++   const { IconButton } = useButtons();
++   // useWorker() exposes the currently selected items within the context.
++   const { items } = useWorker();
++   // showSnackbar allows to provide a feedback to users.
++   const { showSnackbar } = useSnackbar();
++
++   const copyJson = () => {
++     navigator.clipboard.writeText(JSON.stringify(items, null, 2));
++     showSnackbar("JSON data copied to clipboard.");
++   };
++
++   return (
++     <IconButton
++       icon={<CopyIcon />}
++       onAction={copyJson}
++       label={`Copy as JSON`}
++       tooltipPlacement={"bottom"}
++     />
++   );
++ };
+
+  export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <ContentEntryListConfig>
++         <BulkAction 
++           name={"copy-json"}
++           element={<ActionCopyJson />}
++           modelIds={["article"]}
++         />
++       </ContentEntryListConfig>
+      </Admin>
+    );
+  };
+```
+
+The `items` property obtained from `useWorker()` is a crucial part of managing bulk actions: these are the currently selected items within the context of the Content Entry List.
+
+By declaring the `modelIds` prop, you can define in which Content Model Entry List you want to show your bulk action. If you exclude this prop, the bulk action will be registered for all models in the system. For instance, in the given example, next time you open the `article` content model browser and choose one or multiple entries, the defined bulk action will be shown.
+
+This is the whole process of registering a new bulk action element.
+
+<Image src={hcmsBulkActionsSimple} title="Custom Simple Bulk Action" />
+
+### Asynchronous Bulk Action
+
+Sometimes, you may need to execute a bulk action that involves multiple asynchronous tasks, such as sending selected entries to an external service. In such cases, we can use the `useWorker` and `useDialogs` hooks to create a seamless user experience:
+
+- `useWorker` provides the currently selected items and the `processInSeries` method to perform our callback.
+- `useDialog` provides methods to show confirmation and result dialogs.
+
+Here's an example of creating a bulk action that sends the selected entries to an external service using `fetch` and shows the result of each iteration.
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
++ import { ReactComponent as SendIcon } from "@material-design-icons/svg/outlined/send.svg";
+import "./App.scss";
+
++ // You can destructure child components to make the code more readable and easier to work with.
++ const { BulkAction } = ContentEntryListConfig.Browser;
++ const { useWorker, useButtons, useDialog } = BulkAction;
+
++ const ActionSendToExternal = () => {
++    // useButtons() exposes the button components also used internally: use these to keep the UI consistent.
++    const { IconButton } = useButtons();
++    // useWorker provides the selected items, method to process them and the result of the operation.
++    const worker = useWorker();
++    // useDialog provides methods to show confirmation and result dialogs.
++    const { showConfirmationDialog, showResultsDialog } = useDialog();
++
++    const openSendToExternalServiceDialog = () =>
++      showConfirmationDialog({
++        title: "Send to External Service",
++        message: `You are about to send the selected entries. Are you sure you want to continue?`,
++        loadingLabel: `Processing`,
++        execute: async () => {
++          await worker.processInSeries(async ({ item, report }) => {
++            try {
++              const response = await fetch(
++                "https://any.url.com",
++                {
++                  method: "POST",
++                  headers: {
++                    "Content-Type": "application/json"
++                  },
++                  body: JSON.stringify(item.id)
++                }
++              );
++
++             // Add the result from the operation, marking it as a success
++             report.success({
++               title: item.meta.title,
++               message: `Entry successfully sent, response status: ${response.status}`
++             });
++           } catch (e) {
++             // Add the result from the operation, marking it as an error
++             report.error({
++               title: item.meta.title,
++               message: e.message
++             });
++           }
++       }, 5 // Batch size, default value: 10);
++
++       // Reset the selected items
++       worker.resetItems();
++
++       // Show a dialog with the report from all operations
++       showResultsDialog({
++         results: worker.results,
++         title: "Send to External Service",
++         message: "Operation completed, here below you find the complete report:"
++       });
++     }
++   });
++
++   return (
++     <IconButton
++       icon={<SendIcon />}
++       onAction={openSendToExternalServiceDialog}
++       label={`Send to external service`}
++       tooltipPlacement={"bottom"}
++     />
++   );
++ };
+
+  export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <ContentEntryListConfig>
++         <BulkAction 
++           name={"send-to-external"}
++           element={<ActionSendToExternal />}
++           modelIds={["article"]}
++         />
++       </ContentEntryListConfig>
+      </Admin>
+    );
+  };
+```
+
+For the `IconButton` component, the `onAction` prop can accept any method. In the current scenario, we are using the `showConfirmationDialog` method to open a dialog.
+
+`showConfirmationDialog` is designed to receive a callback function, which will be executed when the users confirm their action. You can pass any callback function to this method or use the `processInSeries` method from the `useWorker` hook.
+
+`processInSeries` requires a callback as its first parameter. This callback is provided with the current item of the list being iterated and `report`: use this information to collect the result of the operation and indicate whether it was successful or not. The second parameter is the `chunk` size, which determines how many items are processed in each batch. You can adjust this value to control the size of each batch.
+
+`showResultsDialog` is used after the completion of the sending process to present the user with a summary of the actions performed, including information about successful entries sent and any errors encountered during the process. This allows the user to review a detailed report of the entire operation.
+
+By declaring the `modelIds` prop, you can define in which Content Model Entry List you want to show your bulk action. If you exclude this prop, the bulk action will be registered for all models in the system. For instance, in the given example, next time you open the `article` content model browser and choose one or multiple entries, the defined bulk action will be shown.
+
+<Image src={hcmsBulkActionsAsync} title="Asyncronous Bulk Action" />
+
+## Discover Bulk Actions
+
+This section demonstrates how you can discover the names of existing bulk actions. This is important for further sections on positioning, removing, and replacing bulk actions.
+
+The easiest way to discover existing bulk actions is to use your browser's React Dev Tools plugins, select at least one entry and look for the `Buttons` element inside `BulkActions`. From there, you can either look for `actions` prop or look at the child elements and their keys:
+
+<Image src={hcmsBulkActionsDiscover} title="Discover Existing Bulk Actions" />
+
+## Position a Bulk Action
+
+To position your custom bulk action before or after an existing action, you can use the `before` and `after` props on the `<Browser.BulkAction>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.BulkAction name={"copy-json"} element={<ActionCopyJson />} before={"delete"} />
+</ContentEntryListConfig>
+```
+
+<Image src={hcmsBulkActionsPosition} title="Position Your Action Before Another Action" />
+
+## Remove a Bulk Action
+
+Sometimes you might want to remove an existing bulk action. All you need to do is reference the action by name and pass a `remove` prop to the `<Browser.BulkAction>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.BulkAction name={"delete"} remove />
+</ContentEntryListConfig>
+```
+
+## Replace a Bulk Action
+
+To replace an existing bulk action with a new action element, you need to reference an existing action by name and pass a new component via the `element` prop:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.BulkAction name={"delete"} element={<span>A new action!</span>} />
+</ContentEntryListConfig>
+```

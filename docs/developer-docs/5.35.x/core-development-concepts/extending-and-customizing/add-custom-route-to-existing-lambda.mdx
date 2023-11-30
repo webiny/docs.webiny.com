@@ -1,0 +1,165 @@
+---
+id: aafeaa23
+title: Adding Custom Route to Existing Webiny Lambda
+description: Learn how to add a custom route to existing Webiny Lambda
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- how to add a custom route
+- how to add a custom route handler
+
+</Alert>
+
+## Introduction
+
+Starting with the Webiny version 5.31.0, when we added the [Fastify](https://www.fastify.io/), users can quite easily add new routes to our existing Lambdas.
+
+Users can add as many routes as they want, with possibility for them to be a `POST`, `GET`, `OPTIONS`, `PUT`, `PATH`, `DELETE` and `HEAD` method routes.
+
+## Adding a Route to the API Gateway
+
+First, we need to add the route to the `API Gateway`.
+Without this part, the route will not be known by the `API Gateway` and users will get a `404` response.
+
+```typescript apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+import { ApiGraphql } from "@webiny/pulumi-aws";
+
+export default createApiApp({
+  pulumi: app => {
+    const graphQlModule = app.getModule(ApiGraphql);
+    // add custom POST route
+    graphQlModule.addRoute({
+      name: "my-custom-route-post",
+      path: "/my-custom-path",
+      method: "POST"
+    });
+    // add custom OPTIONS route
+    graphQlModule.addRoute({
+      name: "my-custom-route-options",
+      path: "/my-custom-path",
+      method: "OPTIONS"
+    });
+  }
+});
+```
+
+After these changes, feel free to deploy the api part of your project to test if new route is working. Use your favorite HTTP client to test it out.
+
+### Dynamic API Gateway Route
+
+To have a API Gateway route which accepts dynamic parameters, you must specify the parameter in the path, in our case the `{id}`.
+
+```typescript apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+import { ApiGraphql } from "@webiny/pulumi-aws";
+
+export default createApiApp({
+  pulumi: app => {
+    const graphQlModule = app.getModule(ApiGraphql);
+    // add custom POST route
+    graphQlModule.addRoute({
+      name: "my-custom-route-post",
+      path: "/my-custom-path/{id}",
+      method: "POST"
+    });
+    // add custom OPTIONS route
+    graphQlModule.addRoute({
+      name: "my-custom-route-options",
+      path: "/my-custom-path/{id}",
+      method: "OPTIONS"
+    });
+  }
+});
+```
+
+## Adding a Route to the Handler
+
+After you added the route to the `API Gateway`, you can move onto creating a route in our existing handler.
+
+```typescript apps/api/graphql/src/index.ts
+// add the import somewhere at the top of the file or update the existing import from @webiny/handler-aws
+import { createApiGatewayRoute } from "@webiny/handler-aws";
+
+// existing handler
+export const handler = createHandler({
+  plugins: [
+    // at the end of the plugins array you need to create a new API Gateway route
+    createApiGatewayRoute(({ onPost, onOptions, context }) => {
+      onPost("/my-custom-path", async (request, reply) => {
+        // do something with request
+        if (request.body === null) {
+          return reply.send({
+            somethingIsWrong: true
+          });
+        }
+        return reply.send({
+          output: true,
+          someOtherVariable: "xyz"
+        });
+      });
+      onOptions("/my-custom-path", async (_, reply) => {
+        return reply
+          .headers({
+            myCustomOptionHeader: "yes"
+          })
+          .send({})
+          .hijack();
+      });
+    })
+  ]
+});
+```
+
+### Dynamic Webiny Handler Route
+
+To have a Fastify route which accepts dynamic parameters, you must specify the parameter in the path, in our case the `:id`.
+
+```typescript apps/api/graphql/src/index.ts
+// add the import somewhere at the top of the file or update the existing import from @webiny/handler-aws
+import { createApiGatewayRoute } from "@webiny/handler-aws";
+
+// existing handler
+export const handler = createHandler({
+  plugins: [
+    // at the end of the plugins array you need to create a new API Gateway route
+    createApiGatewayRoute(({ onPost, onOptions }) => {
+      onPost("/my-custom-path/:id", async (request, reply) => {
+        // the parameters are available on request.params object
+        const { id } = request.params;
+        return reply.send({
+          id
+        });
+      });
+      onOptions("/my-custom-path/:id", async (request, reply) => {
+        const { id } = request.params;
+        return reply
+          .headers({
+            myCustomOptionHeader: "yes",
+            id
+          })
+          .send({})
+          .hijack();
+      });
+    })
+  ]
+});
+```
+
+In the `createApiGatewayRoute` method callback, there are multiple properties available:
+
+- `onPost` - register a POST method route
+- `onOptions` - register an OPTIONS method route
+- `onDelete` - register a DELETE method route
+- `onPatch` - register a PATCH method route
+- `onGet` - register a GET method route
+- `onHead` - register a HEAD method route
+- `onPut` - register a PUT method route
+- `onAll` - register a route which will catch all the existing methods
+- `context` - our Webiny internal context with all our applications attached to it
+
+The [`request`](https://www.fastify.io/docs/latest/Reference/Request/) and [`reply`](https://www.fastify.io/docs/latest/Reference/Reply/) objects are the original ones from the Fastify, so you can look into their documentation about what they contain and what you can use.
+

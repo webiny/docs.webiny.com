@@ -1,0 +1,235 @@
+---
+id: aafea80d
+title: Customize Entry List Filters
+description: Learn how to add, replace, or remove filters in the Entry List.
+---
+
+import hcmsFilters from "./assets/hcms-filters.png";
+import hcmsToggleFilter from "./assets/hcms-toggle-filter.gif";
+import hcmsDropdownFilter from "./assets/hcms-dropdown-filter.gif";
+import hcmsDiscoverFilters from "./assets/hcms-discover-filters.png";
+import hcmsPositionBefore from "./assets/hcms-position-before.png";
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="info" title="Can I Use This?">
+
+This feature is available since Webiny **v5.37.0**.
+
+</Alert>
+
+<Alert type="success" title="What you'll learn">
+
+- how to add a custom filter to the Entry List
+- how to discover existing filter names
+- how to change the position of filters, remove, or replace an existing filter
+
+</Alert>
+
+## Overview
+
+By default, Headless CMS offers a single built-in filter to help you quickly filter entries based on their status (draft, published, unpublished). 
+
+To work with filters, you need to use the `ContentEntryListConfig` component. For this article, we will use the `Filter` component, located in the `Browser` namespace. 
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+import "./App.scss";
+
++ // You can destructure child components to make the code more readable and easier to work with.
++ const { Browser } = ContentEntryListConfig;
+
+export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <ContentEntryListConfig>
++          <Browser.Filter name={"demo-filter"} element={<span>Demo Filter</span>} />
++       </ContentEntryListConfig>
+      </Admin>
+    );
+};
+```
+
+In the admin app, Browser is the main area of a Content Model Entry List, where users browse entries, apply filters, perform searching, organize entries into folders, create new entries, etc.
+<Image src={hcmsFilters} title="Browser and the built-in filter by status" />
+
+<Alert type="info" title="Content entry setup">
+
+The code examples below are based on a content model called `Property` with the following fields: 
+
+- `title` text input
+- `price` number input
+
+</Alert>
+
+## Add a Filter
+
+To add a new filter, you need a regular React element to pass to the `Browser.Filter` component through the `element` prop. You must also include the `name` prop, which serves as a unique identifier, enabling further interactions, such as positioning, removing, and replacing.
+
+```tsx apps/admin/src/App.tsx
+import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+
+const { Browser } = ContentEntryListConfig;
+
+const DemoFilter = () => {
+  return <span>Demo Filter</span>;
+}
+
+/* Register your custom filter. */
+<ContentEntryListConfig>
+  <Browser.Filter
+    name={"demo-filter"}
+    element={<DemoFilter />}
+    modelIds={["property"]}
+  />
+</ContentEntryListConfig>
+
+```
+
+By declaring the `modelIds` prop, you can define in which Content Model Entry List you want to show your custom filter. If you exclude this prop, the filter will be registered for all models in the system.
+
+In the example above, the next time you open your `property` content model browser and expand the filters bar, you'll see your new element there. This is the whole process of registering a new filter element. In the following sections, we'll focus on implementing actual filtering.
+
+### Simple Filter
+
+Here's an example of how to create a filter that displays only "Deluxe" properties. We consider a property to be "Deluxe" if its price is over 1 million.
+
+```tsx apps/admin/src/App.tsx
+import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+import { useBind } from "@webiny/form";
+import { Switch } from "@webiny/ui/Switch";
+
+const { Browser } = ContentEntryListConfig;
+
+const DeluxeFilter = () => {
+  const bind = useBind({
+    name: "price_gt"
+  });
+
+  const toggleFilter = () => {
+    bind.onChange(bind.value ? undefined : 1000000);
+  };
+
+  return <Switch {...bind} label={"Show deluxe properties only"} onChange={toggleFilter} />;
+};
+
+/* Register your custom filter. */
+<ContentEntryListConfig>
+  <Browser.Filter
+    name={"deluxe"}
+    element={<DeluxeFilter />}
+    modelIds={["property"]}
+  />
+</ContentEntryListConfig>
+```
+
+Under the hood, filters are handled via a regular form component: this means we can hook into the form to set new filter values. We're using the `useBind` hook and give it a name. This `name` will become a key within the form data object, which will be passed to the GraphQL query. To unset a filter, we set `undefined`.
+
+You can write any filtering logic based on [Headless CMS's built-in GraphQL API filtering](/docs/headless-cms/basics/using-graphql-api-advanced-filtering).
+
+<Image src={hcmsToggleFilter} title="Toggle Filter in Action" />
+
+### Advanced Filter
+
+Sometimes, you need to implement filtering logic that is more complex than just setting a single value. The following example shows a filter in the form of a dropdown menu, where each option needs to use a different GraphQL query operator. `> 500k` needs to use the `price_gt` key, while `< 500k` needs to use the `price_lt` key. This cannot be achieved with simple form binding.
+
+To correctly format our filters, we'll use the `Browser.FiltersToWhere` component to register our custom converter, allowing you to convert form data to a valid GraphQL query input. With this approach, you have full control over values that will be passed to the API when the user interacts with the filters UI.
+
+```tsx apps/admin/src/App.tsx
+import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+import { useBind } from "@webiny/form";
+import { Select } from "@webiny/ui/Select";
+
+const { Browser } = ContentEntryListConfig;
+
+export const FilterByPrice = () => {
+  const bind = useBind({
+    name: "price",
+    defaultValue: "all",
+    beforeChange(value, cb) {
+      cb(value === "all" ? undefined : value);
+    }
+  });
+
+  const options = [
+    { label: "All", value: "all" },
+    { label: "> 500k", value: "gt:500000" },
+    { label: "< 500k", value: "lt:500000" }
+  ];
+
+  return <Select {...bind} placeholder={"Filter by price"} options={options} size="medium" />;
+};
+
+const convertFilters = ({ price, ...rest }: any) => {
+  if (!price) {
+    return rest;
+  }
+
+  const [operator, value] = price.split(":");
+  return { ...rest, [`price_${operator}`]: parseInt(value) };
+};
+
+/* Register your custom filter and the filters converter. */
+<ContentEntryListConfig>
+  <Browser.Filter 
+    name={"price"} 
+    element={<FilterByPrice />} 
+    modelIds={["property"]} 
+  />
+  <Browser.FiltersToWhere 
+    converter={convertFilters} 
+    modelIds={["property"]} 
+  />
+</ContentEntryListConfig>
+```
+
+<Image src={hcmsDropdownFilter} title="Dropdown Filter in Action" />
+
+<Alert type={"info"} title={"Multiple Converters"}>
+  You can add as many converters as you need. The output of the previous converter will be passed as an
+  input to the next converter.
+</Alert>
+
+## Discovering Filters
+
+This section demonstrates how you can discover the names of existing filters. This is important for further sections on positioning, removing, and replacing filters.
+
+The easiest way to discover existing filters is to use your browser's React Dev Tools plugins and look for the `Filters` element. From there, you can either look for `filters` props or look at the child elements and their keys:
+
+<Image src={hcmsDiscoverFilters} title="Discover Existing Filters" />
+
+## Positioning a Filter
+
+To position your custom filter before or after an existing filter, you can use the `before` and `after` props on the `<Browser.Filter>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.Filter name={"price"} element={<FilterByPrice />} before={"type"} />
+</ContentEntryListConfig>
+```
+
+<Image src={hcmsPositionBefore} title="Position Your Filter Before Another Filter" />
+
+## Removing a Filter
+
+Sometimes you might want to remove an existing filter. All you need to do is reference the filter by name and pass a `remove` prop to the `<Browser.Filter>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.Filter name={"type"} remove />
+</ContentEntryListConfig>
+```
+
+## Replacing a Filter
+
+To replace an existing filter with a new filter element, you need to reference an existing filter by name and pass a new component via the `element` prop:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.Filter name={"type"} element={<span>A new filter!</span>} />
+</ContentEntryListConfig>
+```

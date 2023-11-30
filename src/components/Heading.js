@@ -1,5 +1,5 @@
-import { useEffect, useContext, useRef } from "react";
-import { ContentsContext } from "@/layouts/ContentsLayout";
+import { useTableOfContents } from "@/components/page/TableOfContents";
+import { useEffect, useRef } from "react";
 import { useTop } from "@/hooks/useTop";
 import clsx from "clsx";
 
@@ -17,21 +17,20 @@ export function Heading({
     ...props
 }) {
     let Component = `h${level}`;
-    const context = useContext(ContentsContext);
 
-    let ref = useRef();
-    let top = useTop(ref);
+    const ref = useRef();
+    const top = useTop(ref);
+    const toc = useTableOfContents();
 
     useEffect(() => {
-        if (!context) return;
         if (typeof top !== "undefined") {
-            context.registerHeading(id, top);
+            toc.registerHeading(id, top);
         }
         return () => {
-            context.unregisterHeading(id);
+            toc.unregisterHeading(id);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [top, id, context?.registerHeading, context?.unregisterHeading]);
+    }, [top, id, toc.registerHeading, toc.unregisterHeading]);
 
     const LEVELS = {
         2: "top-[6.5rem]",

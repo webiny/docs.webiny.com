@@ -1,5 +1,4 @@
-import { useContext } from "react";
-import { SidebarContext } from "@/layouts/SidebarLayout";
+import { usePage } from "@/hooks/usePage";
 import { useRouter } from "next/router";
 
 function flatPages(links, pages = []) {
@@ -15,8 +14,8 @@ function flatPages(links, pages = []) {
 
 export function usePrevNext() {
     let router = useRouter();
-    let { nav } = useContext(SidebarContext);
-    let pages = flatPages(nav);
+    let { page } = usePage();
+    let pages = flatPages(page.navigation);
     let pageIndex = pages.findIndex(page => page.link === router.pathname);
     return {
         prev: pageIndex > -1 ? pages[pageIndex - 1] : undefined,

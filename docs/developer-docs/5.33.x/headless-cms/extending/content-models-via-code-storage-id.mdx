@@ -1,0 +1,170 @@
+---
+id: aafea84b
+title: CMS Model Plugin Storage Id Field Property
+description: Learn About CMS Model Plugin Field Definition StorageId Property
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- what is the `storageId` field property
+- how to upgrade existing CMS Model field definition
+
+</Alert>
+
+<Alert type="info" title="Can I use this?">
+
+If you created your project with Webiny **v5.33.0** or later, you can skip the upgrade part of the article.
+
+</Alert>
+
+## Overview
+
+As we introduced CMS Model Field aliases in v5.33.0, we introduced a new property on our CMS Model Field definitions, the `storageId` property.
+
+### What Is the `storageId` Used For?
+
+We use it as the storage path for the given field value in the record. As `fieldId` is now changeable, we cannot store values by the `fieldId` value because it would result in the data loss each time the `fieldId` value has changed.
+
+### How Is the `storageId` Generated?
+
+The `storageId` field comprises out of the field `type` property (`text`, `number`, `object`, etc...) and the `id` property, which is generated via the `nanoid` library.
+
+Here are few examples how the `storageId` property value looks like this:
+
+- `text@gbureq32f`
+- `object@cbare1kaf`
+
+We are basically joining the field `type` and the `id` properties, because it makes it easier to target the specific field types with custom mappings in the Elasticsearch system deployment.
+
+The `storageId` value should never change, no matter what - you will lose data otherwise.
+
+### Do I Need To Define the `storageId` When Defining the CMS Model Plugin?
+
+Simply, no, you should not define the `storageId` property as we generate that value automatically.
+
+### But What If I Have Already Defined The `storageId` Property Value?
+
+If you have data in that field, and you change the property value, you will lose all the data in it.
+
+## Upgrading CMS Model Plugin Definitions
+
+<Alert type="info">
+  If your CMS Model plugins were created with v5.33.0 or later, you can skip this part.
+</Alert>
+
+For the existing definitions, prior to the v5.33.0, of the `CmsModelPlugin` you **MUST** add the `storageId` property to every field you have defined.
+We create a `storageId` automatically, but for your existing models you want to have the `storageId` values set to the existing `fieldId` value.
+
+So, for example, if you have a model defined:
+
+```typescript
+import { CmsModelPlugin } from "@webiny/api-headless-cms";
+
+const myModel = new CmsModelPlugin({
+  modelId: "myModel",
+  fields: [
+    {
+      id: "id",
+      type: "number",
+      fieldId: "id",
+      label: "ID",
+      settings: {}
+    },
+    {
+      id: "title",
+      type: "text",
+      fieldId: "title",
+      label: "Title",
+      settings: {}
+    },
+    {
+      id: "myObjectField",
+      type: "object",
+      fieldId: "myObjectField",
+      label: "My Object Field",
+      settings: {
+        fields: [
+          {
+            id: "date",
+            type: "datetime",
+            fieldId: "date",
+            label: "Date",
+            settings: {
+              type: "date"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  layout: [],
+  group: {
+    id: "group",
+    name: "Group"
+  },
+  name: "My Model",
+  description: "",
+  titleFieldId: "title"
+});
+```
+
+You will need to add the `storageId` property to each of the fields. Don't forget the nested fields in the `object` type field.
+
+```typescript
+import { CmsModelPlugin } from "@webiny/api-headless-cms";
+
+new CmsModelPlugin({
+  modelId: "myModel",
+  fields: [
+    {
+      id: "id",
+      type: "number",
+      fieldId: "id",
+      label: "ID",
+      storageId: "id", // <-- MUST be set to "id"
+      settings: {}
+    },
+    {
+      id: "title",
+      type: "text",
+      fieldId: "title",
+      label: "Title",
+      storageId: "title", // <-- MUST be set to "title"
+      settings: {}
+    },
+    {
+      id: "myObjectField",
+      type: "object",
+      fieldId: "myObjectField",
+      label: "My Object Field",
+      storageId: "myObjectField", // <-- MUST be set to "myObjectField"
+      settings: {
+        fields: [
+          {
+            id: "date",
+            type: "datetime",
+            fieldId: "date",
+            label: "Date",
+            storageId: "date", // <-- MUST be set to "date"
+            settings: {
+              type: "date"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  layout: [],
+  group: {
+    id: "group",
+    name: "Group"
+  },
+  name: "My Model",
+  description: "",
+  titleFieldId: "title"
+});
+```
+
+If you forget to do this after the upgrade to the v5.33.0, you will not get any data back from your queries.

@@ -1,23 +1,24 @@
 import Link from "next/link";
 import { usePage } from "@/hooks/usePage";
-import { useVersions } from "@/hooks/useVersions";
 import { Alert } from "@/components/Alert";
 
 export const ViewLatestVersion = () => {
     const { page } = usePage();
-    const versions = useVersions();
 
-    if (page.version === "latest") {
+    if (page.version === page.versions.latestVersion) {
         return null;
     }
 
-    if (page.articleType === "docs") {
+    if (page.type === "docs") {
         return (
             <div className={"mb-10"}>
                 <Alert type={"warning"} title={"Warning"}>
                     You&apos;re browsing the documentation for an old version of Webiny. Consider
                     upgrading your project to Webiny{" "}
-                    <Link href={"/docs/get-started/install-webiny"}>{versions.latestVersion}</Link>.
+                    <Link href={"/docs/get-started/install-webiny"}>
+                        {page.versions.latestVersion}
+                    </Link>
+                    .
                 </Alert>
             </div>
         );
@@ -27,7 +28,7 @@ export const ViewLatestVersion = () => {
                 <Alert type={"warning"} title={"Warning"}>
                     You&apos;re browsing the documentation for an old version of Webiny. Consider
                     upgrading your project to Webiny{" "}
-                    <Link href={"/docs/user-guides/overview"}>{versions.latestVersion}</Link>.
+                    <Link href={"/docs/user-guides/overview"}>{page.versions.latestVersion}</Link>.
                 </Alert>
             </div>
         );
