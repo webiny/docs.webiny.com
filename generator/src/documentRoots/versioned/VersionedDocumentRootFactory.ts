@@ -30,7 +30,8 @@ import {
   IMdxProcessor,
   IVersionsProvider,
   IMdxFileFactory,
-  IMdxRemarkPlugin
+  IMdxRemarkPlugin,
+  IMdxFileFilter
 } from "@webiny/docs-generator";
 import { VersionedMdxFileFactory } from "./VersionedMdxFileFactory";
 import { VersionedAssetResolverRemarkPlugin } from "./VersionedAssetResolverRemarkPlugin";
@@ -45,6 +46,7 @@ import { VersionsProcessor } from "./VersionsProcessor";
 import { AbsolutePathProcessor } from "../../app/processors/AbsolutePathProcessor";
 import { RemarkPluginsRunner } from "../../app/mdxCompiler/RemarkPluginsRunner";
 import { NextLinksRemarkPlugin } from "../../app/mdxCompiler/remark/NextLinksRemarkPlugin";
+import { FilteredMdxFileWriter } from "../../app/FilteredMdxFileWriter";
 
 interface Config {
   rootDir: string;
@@ -53,6 +55,7 @@ interface Config {
   pageLayout: string;
   versionsProvider: IVersionsProvider;
   mdxFileProcessors: IMdxProcessor[];
+  mdxFileOutputFilter: IMdxFileFilter;
   mdxFileFactory: VersionedMdxFileFactoryCallable;
   mdxRemarkPlugins: IMdxRemarkPlugin[];
 }
@@ -158,14 +161,17 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
       ])
     ]);
 
-    const mdxFileWriter = new CompositeMdxFileWriter([
-      // In dev mode, we write the processed MDX file for debugging purposes.
-      this.appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
-      // Write sitemap XML file for each MDX file.
-      new SitemapFileWriter(outputDir),
-      // Write a JS file compiled from the MDX file.
-      new CompiledMdxFileWriter(outputDir, mdxCompiler)
-    ]);
+    const mdxFileWriter = new FilteredMdxFileWriter(
+      config.mdxFileOutputFilter,
+      new CompositeMdxFileWriter([
+        // In dev mode, we write the processed MDX file for debugging purposes.
+        this.appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
+        // Write sitemap XML file for each MDX file.
+        new SitemapFileWriter(outputDir),
+        // Write a JS file compiled from the MDX file.
+        new CompiledMdxFileWriter(outputDir, mdxCompiler)
+      ])
+    );
 
     const navigationLoader = new NavigationLoader(
       navigationSourcePath,

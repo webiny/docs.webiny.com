@@ -5,7 +5,8 @@ import {
   MdxData,
   NonVersionedDocumentRootConfig,
   VersionedDocumentRootConfig,
-  LinkValidator
+  LinkValidator,
+  MdxFileFilter
 } from "@webiny/docs-generator";
 import { DeveloperDocsMdxFile } from "./docs/developer-docs/DeveloperDocsMdxFile";
 import { HandbookMdxFile } from "./docs/handbook/HandbookMdxFile";
@@ -42,7 +43,9 @@ export default {
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/DocumentationLayout",
       mdxFileFactory: (data: MdxData, version: Version) => new DeveloperDocsMdxFile(data, version),
-      versionsFilter: filterByEnvironment
+      mdxFileOutputFilter: new MdxFileFilter<DeveloperDocsMdxFile>(mdxFile => {
+        return filterByEnvironment(mdxFile.getVersion());
+      })
     }),
 
     /* User Guides */
@@ -52,7 +55,9 @@ export default {
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/DocumentationLayout",
       mdxFileFactory: (data: MdxData, version: Version) => new UserGuideMdxFile(data, version),
-      versionsFilter: filterByEnvironment,
+      mdxFileOutputFilter: new MdxFileFilter<UserGuideMdxFile>(mdxFile => {
+        return filterByEnvironment(mdxFile.getVersion());
+      }),
       versionsProvider: new UserGuidesVersionProvider(
         path.resolve("docs/developer-docs"),
         path.resolve("docs/user-guides")

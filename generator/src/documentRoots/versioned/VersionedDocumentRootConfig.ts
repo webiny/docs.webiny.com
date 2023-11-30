@@ -5,11 +5,12 @@ import { IDocumentRootConfig } from "../../abstractions/IDocumentRootConfig";
 import { IVersionsProvider } from "../../abstractions/IVersionsProvider";
 import { IMdxRemarkPlugin } from "../../abstractions/IMdxRemarkPlugin";
 import { AppConfig } from "../../app/AppConfig";
-import { DocumentRootVersionFilter, Version } from "../../app/DocumentRootVersions";
+import { Version } from "../../app/DocumentRootVersions";
 import { VersionsProvider } from "../../app/VersionsProvider";
 import { VersionedDocumentRootFactory } from "./VersionedDocumentRootFactory";
 import { VersionedMdxFile } from "./VersionedMdxFile";
-import { FilteredVersionsProvider } from "../../app/FilteredVersionsProvider";
+import { IMdxFileFilter } from "../../abstractions/IMdxFileFilter";
+import { MdxFileFilter } from "../../app/MdxFileFilter";
 
 export interface VersionedMdxFileFactoryCallable {
   (data: MdxData, version: Version): VersionedMdxFile;
@@ -21,27 +22,23 @@ interface VersionedDocumentRootConfigParams {
   outputDir: string;
   pageLayout: string;
   mdxFileFactory: VersionedMdxFileFactoryCallable;
-  versionsFilter?: DocumentRootVersionFilter;
   versionsProvider?: IVersionsProvider;
+  mdxFileOutputFilter?: IMdxFileFilter;
   mdxFileProcessors?: IMdxProcessor[];
   mdxRemarkPlugins?: IMdxRemarkPlugin[];
 }
 
 export class VersionedDocumentRootConfig implements IDocumentRootConfig {
-  private readonly config: Omit<Required<VersionedDocumentRootConfigParams>, "versionsFilter">;
+  private readonly config: Required<VersionedDocumentRootConfigParams>;
 
-  constructor({ versionsFilter, ...config }: VersionedDocumentRootConfigParams) {
-    const baseVersionsProvider = config.versionsProvider ?? new VersionsProvider(config.rootDir);
-
-    const versionsProvider = new FilteredVersionsProvider(
-      versionsFilter ?? (() => true),
-      baseVersionsProvider
-    );
+  constructor(config: VersionedDocumentRootConfigParams) {
+    const versionsProvider = config.versionsProvider ?? new VersionsProvider(config.rootDir);
 
     this.config = {
       ...config,
       versionsProvider,
       mdxRemarkPlugins: config.mdxRemarkPlugins ?? [],
+      mdxFileOutputFilter: config.mdxFileOutputFilter ?? new MdxFileFilter(() => true),
       mdxFileProcessors: config.mdxFileProcessors ?? []
     };
   }
