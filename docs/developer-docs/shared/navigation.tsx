@@ -1,6 +1,5 @@
 import React from "react";
 import { Page, Group, NavigationRoot } from "@webiny/docs-generator";
-import { Navigation as ReleaseNotes } from "../../release-notes/navigation";
 import { Navigation as Messages } from "../../messages/navigation";
 
 export const Navigation = () => {
@@ -20,7 +19,6 @@ export const Navigation = () => {
           <Page link={"performance-and-load-benchmark/page-builder/deliver-a-page"} />
         </Group>
       </Group>
-      <ReleaseNotes />
       <Group title={"Release Management"}>
         <Page link={"release-management/branching-strategy"} />
         <Page link={"release-management/unstable-releases"} />

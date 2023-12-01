@@ -1,5 +1,5 @@
-const { addImport, addExport } = require("./utils");
 const slugify = require("@sindresorhus/slugify");
+const { addImport, addExport, escape } = require("./utils");
 
 const anchorRegex = /\{\#([a-z0-9\-]+)\}/i;
 
@@ -17,7 +17,7 @@ function removeAnchor(value) {
 }
 
 module.exports.withTableOfContents = () => {
-    return tree => {
+    return (tree, file) => {
         const component = addImport(tree, "@/components/Heading", "Heading");
         const contents = [];
 
@@ -37,7 +37,7 @@ module.exports.withTableOfContents = () => {
                     .join("");
 
                 const customAnchor = getAnchor(title);
-                title = removeAnchor(title);
+                title = escape(removeAnchor(title));
                 let slug = customAnchor ?? slugify(title);
 
                 let allOtherSlugs = contents.flatMap(entry => [
@@ -98,7 +98,7 @@ module.exports.withTableOfContents = () => {
                             if (children.type === "inlineCode") {
                                 return `<code>${children.value}</code>`;
                             } else {
-                                return removeAnchor(children.value);
+                                return escape(removeAnchor(children.value));
                             }
                         })
                         .join("")}</${component}>`;
@@ -126,6 +126,8 @@ module.exports.withTableOfContents = () => {
                     `<Heading id="${slugify(title)}"$1`
                 );
             }
+
+            const endOfLoop = node;
         }
 
         addExport(tree, "tableOfContents", contents);

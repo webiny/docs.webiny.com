@@ -1,3 +1,5 @@
+import escapeHtml from "escape-html";
+
 function addImport(tree, mod, name) {
     tree.children.unshift({
         type: "import",
@@ -29,9 +31,14 @@ function addExport(tree, name, value) {
     });
 }
 
+function escape(string) {
+    return escapeHtml(string);
+}
+
 module.exports = {
     addDefaultImport,
     addExport,
     addImport,
-    addImportImage
+    addImportImage,
+    escape
 };

@@ -11,11 +11,14 @@ export const PageProvider = ({ Component, children }) => {
         return <div>Page not found! Please enter a valid URL.</div>;
     }
 
+    const versions = layoutProps.versions || [];
+
     const context = {
         MdxPage: Component,
         Layout: layoutProps.Layout || Fragment,
         page: {
-            versions: layoutProps.versions || [],
+            versions,
+            isLatest: pageData.version ? versions.latestVersion === pageData.version : true,
             navigation: layoutProps.navigation || [],
             ...pageData,
             docsearch,

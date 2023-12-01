@@ -1,16 +1,12 @@
 import visit from "unist-util-visit";
 import { Node } from "unist";
-import { VFile } from "vfile";
+import { VFileOptions } from "vfile";
 import { parse } from "@babel/parser";
 import { ImportDeclaration } from "@babel/types";
 import { VersionedAssetResolverFactory } from "./VersionedAssetResolverFactory";
 import { IMdxRemarkPlugin } from "../../abstractions/IMdxRemarkPlugin";
 
 type ImportNode = Node & { value?: string };
-
-const firstNode = (ast: ReturnType<typeof parse>) => {
-  return ast.program.body.pop() as ImportDeclaration;
-};
 
 export class VersionedAssetResolverRemarkPlugin implements IMdxRemarkPlugin {
   private resolver: VersionedAssetResolverFactory;
@@ -19,7 +15,7 @@ export class VersionedAssetResolverRemarkPlugin implements IMdxRemarkPlugin {
     this.resolver = resolver;
   }
 
-  process(tree: Node, file: VFile) {
+  process(tree: Node, file: VFileOptions) {
     visit<ImportNode>(tree, "import", (node, _, parent) => {
       if (!node.value || !parent) {
         return;
@@ -43,13 +39,13 @@ export class VersionedAssetResolverRemarkPlugin implements IMdxRemarkPlugin {
     });
   }
 
-  private resolveImport(node: ImportNode, file: VFile) {
+  private resolveImport(node: ImportNode, file: VFileOptions) {
     if (!node.value) {
       return node;
     }
 
     const ast = parse(node.value, { sourceType: "module" });
-    const importNode = firstNode(ast);
+    const importNode = this.firstNode(ast);
 
     if (!importNode) {
       return node;
@@ -66,5 +62,9 @@ export class VersionedAssetResolverRemarkPlugin implements IMdxRemarkPlugin {
     );
 
     return node;
+  }
+
+  private firstNode(ast: ReturnType<typeof parse>) {
+    return ast.program.body.pop() as ImportDeclaration;
   }
 }

@@ -6,11 +6,7 @@ export class DeveloperDocsMdxFile extends VersionedMdxFile {
   override getDocsearch() {
     return {
       ...super.getDocsearch(),
-      weight: this.getWeight()
+      weight: 100
     };
-  }
-
-  private getWeight() {
-    return this.getAbsolutePath().includes("/release-notes/") ? 50 : 100;
   }
 }
