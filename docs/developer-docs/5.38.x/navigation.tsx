@@ -18,6 +18,12 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Headless CMS"}>
+          <Group title={"Basics"}>
+          <Page
+              link={"headless-cms/basics/migrating-to-webiny"}
+              after={"headless-cms/basics/using-graphql-api-advanced-filtering"}
+            />
+          </Group>
           <Group title={"Extending functionality"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-bulk-actions"}
