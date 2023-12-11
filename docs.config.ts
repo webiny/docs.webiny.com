@@ -17,6 +17,12 @@ import { ReleaseNotesMdxFile } from "./docs/release-notes/ReleaseNotesMdxFile";
 const preview = process.env.VERCEL_ENV === "preview" || process.env.NODE_ENV === "development";
 
 /**
+ * Sometimes, we want to use links unknown to the LinkValidator, but which are located under the same domain.
+ * Use this array to whitelist such links.
+ */
+const linkWhitelist: string[] = ["/forms/product-demo", "/slack"];
+
+/**
  * If you want to only build specific versions in the Vercel preview deployment,
  * whitelist them by adding version numbers to this array. Example: "5.35.x"
  */
@@ -36,7 +42,7 @@ export default {
   projectRootDir: __dirname,
   cleanOutputDir: path.resolve("src/pages/docs"),
   sitemapOutputPath: path.resolve("public/algolia/sitemap.xml"),
-  linkValidator: new LinkValidator(link => {
+  linkValidator: new LinkValidator(linkWhitelist, link => {
     return fs.pathExists(path.join(__dirname, `src/pages/${link}.js`));
   }),
   documentRoots: [

@@ -28,10 +28,12 @@ class LinkValidationResult {
 
 export class LinkValidator {
   private readonly validator: ValidationCallback;
+  private readonly whitelist: string[];
   private readonly linkCollection = new Map<string, Set<string>>();
   private readonly skipPrefixes = ["#", "http://", "https://", "mailto:"];
 
-  constructor(validator: ValidationCallback) {
+  constructor(whitelist: string[], validator: ValidationCallback) {
+    this.whitelist = whitelist;
     this.validator = validator;
   }
 
@@ -48,6 +50,10 @@ export class LinkValidator {
         }
 
         const [url] = link.split("#");
+
+        if (this.whitelist.includes(url)) {
+          continue;
+        }
 
         const isValid = await this.validator(url);
         if (!isValid) {
