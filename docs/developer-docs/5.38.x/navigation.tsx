@@ -31,6 +31,7 @@ export const Navigation = () => {
               link={"file-manager/extending/customize-file-bulk-actions"}
               after={"file-manager/extending/customize-file-filters"}
             />
+            <Page link={"file-manager/extending/customize-file-details-drawer"} />
           </Group>
         </Group>
         <Group title={"Webiny Enterprise"}>
