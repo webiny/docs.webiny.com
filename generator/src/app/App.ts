@@ -46,10 +46,14 @@ export class App {
 
     await watcher.watch(
       async file => {
-        await fileWriter.write(file);
-        const filePath = file.getSourcePath();
-        if (filePath) {
-          this.checkBrokenLinks(filePath.replace(process.cwd(), ""));
+        try {
+          await fileWriter.write(file);
+          const filePath = file.getSourcePath();
+          if (filePath) {
+            this.checkBrokenLinks(filePath.replace(process.cwd(), ""));
+          }
+        } catch (err) {
+          this.logger.error(err);
         }
       },
       // `onEvent` callback is executed whenever there's an event fired by `chokidar`.
