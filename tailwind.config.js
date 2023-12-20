@@ -195,7 +195,7 @@ module.exports = {
                         },
                         strong: {
                             color: theme("colors.slate.900"),
-                            fontWeight: theme("fontWeight.semibold")
+                            fontWeight: theme("fontWeight.bold")
                         },
                         "a strong": {
                             color: "inherit",
