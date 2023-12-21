@@ -13,6 +13,9 @@ export const Navigation = () => {
           <Page file={"./company/how-we-make-users-happy"} />
           <Page file={"./company/how-we-make-money"} />
           <Page file={"./company/our-ethos"} />
+          <Page file={"./company/deciding-what-features-to-build"} />
+          <Page file={"./company/how-we-ensure-quality"} />
+          <Page file={"./company/why-we-chose-serverless"} />
         </Group>
 
         <Page file={"./introduction"} link={"introduction"} />
