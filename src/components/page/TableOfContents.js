@@ -101,9 +101,8 @@ export function TableOfContents() {
                                             ? "text-orange"
                                             : "text-dark-blue dark:text-white"
                                     }`}
-                                >
-                                    {section.title}
-                                </a>
+                                    dangerouslySetInnerHTML={{ __html: section.title }}
+                                />
                             </li>
                             {section.children.map(subsection => (
                                 <Fragment key={subsection.slug}>
@@ -121,9 +120,8 @@ export function TableOfContents() {
                                                     ? "font-bold"
                                                     : "font-normal"
                                             )}
-                                        >
-                                            {subsection.title}
-                                        </a>
+                                            dangerouslySetInnerHTML={{ __html: subsection.title }}
+                                        />
                                     </li>
                                     {subsection?.children.map(item => (
                                         <li className="ml-5 mt-5" key={item.slug}>
@@ -135,9 +133,8 @@ export function TableOfContents() {
                                                         ? "text-orange"
                                                         : "text-[#798099] dark:text-light-grey"
                                                 }
-                                            >
-                                                {item.title}
-                                            </a>
+                                                dangerouslySetInnerHTML={{ __html: item.title }}
+                                            />
                                         </li>
                                     ))}
                                 </Fragment>
