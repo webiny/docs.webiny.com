@@ -38,7 +38,9 @@ export const Page = () => {
                 <meta key="og:description" property="og:description" content={page.description} />
                 <meta key="og:image" property="og:image" content={socialShareCard} />
                 <meta name="docsearch:language" content="en" />
-                <meta name="docsearch:version" content={page.docsearch.versions} />
+                {page.docsearch.versions ? (
+                    <meta name="docsearch:version" content={page.docsearch.versions} />
+                ) : null}
                 <meta name="docsearch:articleType" content={page.docsearch.type} />
                 <meta name="docsearch:articleWeight" content={page.docsearch.weight} />
                 {page.robots ? <meta name="robots" content={page.robots} /> : null}
