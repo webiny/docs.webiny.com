@@ -8,6 +8,84 @@ import { GithubRelease } from "@/components/GithubRelease";
 
 <GithubRelease version={"5.39.0"} />
 
+## Headless CMS
+
+### Revamped Date/Time and Identity (On/By) Meta Fields
+
+With Webiny's Headless CMS, created content entries include the following date/time and identity-related meta fields:
+
+| Field         | Description                                                                   |
+| ------------- | ----------------------------------------------------------------------------- |
+| `createdOn`   | The date/time when an entry revision was created.                             |
+| `savedOn`     | The date/time when an entry revision was last saved.                          |
+| `publishedOn` | The date/time when an entry revision was published.                           |
+| `createdBy`   | The identity of the user who created an entry revision.                       |
+| `ownedBy`     | The identity of the user who owns the entry (who created the first revision). |
+| `modifiedBy`  | The identity of the user who last modified an entry revision.                 |
+
+And while these meta fields are useful, the main issue our users have been facing is that they are all revision-specific, and not entry-specific. As a result, if a user wanted to, for example, display the date/time when an entry was initially created, they had to first retrieve the entry's first revision, and then display the `createdOn` meta field from that revision. Definitely not ideal.
+
+On top of that, searching for entries and sorting based on the date/time or identity-related meta fields was also not possible. Because, again, these meta fields are revision-specific, and not entry-specific.
+
+In order to tackle these issues, with this release, we're revamping the date/time and identity-related meta fields. In total, we're introducing 20 new meta fields, where 10 are revision-specific, and 10 are entry-specific.
+
+
+
+**Revision-level Meta Fields**
+
+| Field                      | Description                                   | May be empty |
+| -------------------------- | --------------------------------------------- | ------------ |
+| `revisionCreatedOn`        | When was the revision initially created.      | No           |
+| `revisionSavedOn`          | When was the revision last saved.             | No           |
+| `revisionModifiedOn`       | When was the revision last modified.          | **Yes**      |
+| `revisionFirstPublishedOn` | When was the revision first published.        | No           |
+| `revisionLastPublishedOn`  | When was the revision last published.         | No           |
+| `revisionCreatedBy`        | Identity that initially created the revision. | No           |
+| `revisionSavedBy`          | Identity that last saved the revision.        | No           |
+| `revisionModifiedBy`       | Identity that last modified the revision.     | **Yes**      |
+| `revisionFirstPublishedBy` | Identity that first published the revision.   | No           |
+| `revisionLastPublishedBy`  | Identity that last published the revision.    | No           |
+
+**Entry-level Meta Fields**
+
+| Field                      | Description                                   | May be empty |
+| -------------------------- | --------------------------------------------- | ------------ |
+| `entryCreatedOn`        | When was the entry initially created.      | No           |
+| `entrySavedOn`          | When was the entry last saved.             | No           |
+| `entryModifiedOn`       | When was the entry last modified.          | **Yes**      |
+| `entryFirstPublishedOn` | When was the entry first published.        | No           |
+| `entryLastPublishedOn`  | When was the entry last published.         | No           |
+| `entryCreatedBy`        | Identity that initially created the entry. | No           |
+| `entrySavedBy`          | Identity that last saved the entry.        | No           |
+| `entryModifiedBy`       | Identity that last modified the entry.     | **Yes**      |
+| `entryFirstPublishedBy` | Identity that first published the entry.   | No           |
+| `entryLastPublishedBy`  | Identity that last published the entry.    | No           |
+
+With these new meta fields, users can now easily display the date/time when an entry was initially created, or when it was last modified. They can also easily search for entries and sort them based on the date/time or identity-related meta fields.
+
+For example, if a user wanted to display the date/time when an entry was initially created, they can now simply use the `entryCreatedOn` meta field. And if they wanted to display the identity of the user who last modified an entry, they can now simply use the `entryModifiedBy` meta field.
+
+### Migrations STATUS FILDS / OVERRIDES
+
+## Deployments
+
+### Introducing Support for Amazon OpenSearch Service ([#3612](https://github.com/webiny/webiny-js/pull/3612))
+
+With this release, we're introducing support for [Amazon OpenSearch Service](https://aws.amazon.com/opensearch-service/), a managed service that replaces the popular [Amazon Elasticsearch Service](https://aws.amazon.com/elasticsearch-service/).
+
+Upon creating a new Webiny project, users will no longer be able to select the DynamoDB + Elasticsearch database setup. Instead, they will be able to select the DynamoDB + OpenSearch setup.
+
+Note that all existing projects that are using the Amazon DynamoDB + Amazon Elasticsearch database setup will continue to work as before. Users' projects will still be able to use the Amazon Elasticsearch Service, and they will not be forced to migrate to Amazon OpenSearch Service.
+
+Finally, note that, at the moment, we do not provide a migration path from Amazon Elasticsearch Service to Amazon OpenSearch Service for existing projects. Drop us a message in our [Community Slack](https://www.webiny.com/slack) if this is something you'd like to see in the future.
+
+<Alert type={"info"}>
+
+Visit the [Different Database Setups](/docs/architecture/introduction#different-database-setups) article to learn more
+about the different database setups Webiny supports.
+
+</Alert>
+
 ## System
 
 ### Node.js v18 ([#3561](https://github.com/webiny/webiny-js/pull/3561))
@@ -20,7 +98,7 @@ Unfortunately, there are some breaking changes coming with the dependency update
 
 This was a quite large update, with over **750** files changed in our repository, so if you encounter any issues - please let us know.
 
-## Multi-Event Handler ([#3710](https://github.com/webiny/webiny-js/pull/3710))
+### Multi-Event Handler ([#3710](https://github.com/webiny/webiny-js/pull/3710))
 
 Until this release, the Lambda Handler was only able to handle a single type of the event.
 
@@ -30,3 +108,27 @@ From now on, for all AWS events we support, you can use the `createHandler` func
 Of course, you can still use the old way of importing specific `createHandler` (s3, dynamodb, etc...) - we will not remove those.
 
 To find out more about the Handlers, please read [this](/docs/core-development-concepts/basics/routes-and-events) article.
+
+## Other
+
+### Webiny CLI - Introducing the `webiny open` Command
+
+With this release, we're introducing the new `webiny open` Webiny CLI command.
+
+The new command enables users to quickly open Admin or Website app in their default browser. For example:
+
+```bash
+# Opens the Admin app in your default browser (`dev` environment).
+yarn webiny open admin --env dev
+
+# Opens the Website app in your default browser (`dev` environment).
+yarn webiny open website --env dev
+```
+
+This way, it's a bit easier to open the Admin or Website app. Users no longer need to first retrieve relevant URLs via the [`webiny info`](/docs/core-development-concepts/basics/webiny-cli#common-commands) or [`webiny output`](/docs/core-development-concepts/basics/webiny-cli#yarn-webiny-output-folder---env-env) command and then manually copy/paste them into the browser.
+
+<Alert type={"info"}>
+
+Note that, for local development, the apps are still spun up locally in the same way - via the [`webiny watch`](/docs/core-development-concepts/basics/watch-command) command.
+
+</Alert>
