@@ -18,6 +18,12 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Headless CMS"}>
+          <Group title={"Basics"}>
+          <Page
+              link={"headless-cms/basics/migrating-to-webiny"}
+              after={"headless-cms/basics/using-graphql-api-advanced-filtering"}
+            />
+          </Group>
           <Group title={"Extending functionality"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-bulk-actions"}
@@ -31,6 +37,7 @@ export const Navigation = () => {
               link={"file-manager/extending/customize-file-bulk-actions"}
               after={"file-manager/extending/customize-file-filters"}
             />
+            <Page link={"file-manager/extending/customize-file-details-drawer"} />
           </Group>
         </Group>
         <Group title={"Webiny Enterprise"}>
