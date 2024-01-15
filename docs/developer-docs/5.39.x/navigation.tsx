@@ -10,6 +10,11 @@ export const Navigation = () => {
       {/* Add new items. */}
       <NavigationRoot directory={__dirname}>
         {/* Add new groups and pages here. */}
+        <Group title={"Headless CMS"}>
+          <Group title={"References"}>
+            <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
+          </Group>
+        </Group>
       </NavigationRoot>
     </>
   );

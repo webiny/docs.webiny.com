@@ -66,7 +66,7 @@ export function Editor({ children, ...props }) {
     }, [once]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
-        <section className="code-block mt-[1.875rem] lg:mt-[3.75rem] mb-[1.875rem] lg:mb-[3.75rem] first:mt-0 last:mb-0 bg-code-tab rounded-[0.625rem] shadow-lg overflow-hidden dark:ring-1 dark:ring-white/10 dark:ring-inset">
+        <section className="code-block mt-[1.875rem] lg:mt-[2rem] mb-[1.875rem] lg:mb-[2rem] first:mt-0 last:mb-0 bg-code-tab rounded-[0.625rem] shadow-lg overflow-hidden dark:ring-1 dark:ring-white/10 dark:ring-inset">
             {props.title ? <TabBar primary={{ name: props.title }} showTabMarkers={false} /> : null}
             <div className="children:my-0 children:!shadow-none children:bg-transparent children:rounded-none">
                 <pre className={`language-${lang}`} tabIndex={0}>
