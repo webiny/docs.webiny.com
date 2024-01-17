@@ -14,7 +14,7 @@ export const Navigation = () => {
           <Group title={"Extending functionality"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-table-columns"}
-              before={"headless-cms/extending/customize-entry-list-bulk-actions"}
+              after={"headless-cms/extending/customize-entry-list-bulk-actions"}
             />
           </Group>
           <Group title={"References"}>
