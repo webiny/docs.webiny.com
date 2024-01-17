@@ -110,6 +110,47 @@ Note that the `tagResources` function applies tags only to resources that can ac
 
 </Alert>
 
+### Pulumi Resource Name Prefixes
+
+By default, all cloud infrastructure resources deployed by Webiny are prefixed with the `wby-` prefix. If needed, this prefix can be changed via the `pulumiResourceNamePrefix` parameter, via the four `webiny.application.ts` configuration files, located in each of the four project application folders in every Webiny project:
+
+1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts))
+2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts))
+3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts))
+4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts))
+
+For example:
+
+```diff-ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
++     pulumiResourceNamePrefix: "my-custom-prefix-",
+});
+```
+
+Note that, in the above example, we've adjusted the prefix within the Core application's [`webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts) configuration file, but the same works with other applications as well.
+
+Furthermore, note that the prefix can also be assigned dynamically, via a callback function. The following example shows how we can dynamically assign the prefix based on the environment name.
+
+```diff-ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
++    pulumiResourceNamePrefix: ({ params }) => {
++        // We can retrieve the environment name via "run" parameters.
++        const { env } = params.run;
++        if (env === "prod") {
++            // Let's add the "prod" into the prefix.
++            return "wby-prod-";
++        }
++
++        // Not production? Just return the default prefix.
++        return "wby-";
++    }
+});
+```
+
 ### Retrieving the Deployment Environment
 
 Upon running the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command, we specify the environment into which we want to deploy our project (or a specific project application). In more complex cases, we may need to retrieve the environment in order to conditionally apply different configuration to our cloud infrastructure.
