@@ -3,7 +3,9 @@ import Head from "next/head";
 
 export function Title({ suffix }) {
     const { page } = usePage();
-    let titleWithSuffix = page.title + (suffix.trim().startsWith("|") ? "" : " - ") + suffix;
+    const version = page.version && !page.isLatest ? page.version : undefined;
+    const parts = [page.title, version,suffix]
+    const titleWithSuffix = parts.filter(Boolean).join(" | ")
 
     return (
         <Head>

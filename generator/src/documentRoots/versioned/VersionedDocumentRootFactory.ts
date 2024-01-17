@@ -29,7 +29,6 @@ import {
   AppConfig,
   IMdxProcessor,
   IVersionsProvider,
-  IMdxFileFactory,
   IMdxRemarkPlugin,
   IMdxFileFilter
 } from "@webiny/docs-generator";

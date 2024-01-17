@@ -17,7 +17,7 @@ export const Page = () => {
 
     return (
         <>
-            <Title suffix="Webiny Docs">{page.title}</Title>
+            <Title suffix="Webiny Docs"/>
             <Head>
                 <meta key="twitter:card" name="twitter:card" content="summary_large_image" />
                 <meta key="twitter:site" name="twitter:site" content="@WebinyCMS" />
