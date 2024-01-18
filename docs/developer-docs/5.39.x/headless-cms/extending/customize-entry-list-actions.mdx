@@ -1,0 +1,268 @@
+---
+id: 3405e506
+title: Customize Entry List Actions
+description: Learn how to add, replace, or remove actions in the Entry List.
+---
+
+import hcmsAddEntryAction from "./assets/hcms-add-entry-action.gif";
+import hcmsAddFolderAction from "./assets/hcms-add-folder-action.gif";
+import hcmsDefaultActions from "./assets/hcms-default-actions.gif";
+import hcmsPositionEntryActions from "./assets/hcms-position-entry-action.png";
+import hcmsPositionFolderActions from "./assets/hcms-position-folder-action.png";
+import hcmsDiscoverEntryActions from "./assets/hcms-discover-entry-actions.png";
+import hcmsDiscoverFolderActions from "./assets/hcms-discover-folder-actions.png";
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="info" title="Can I Use This?">
+
+This feature has been available since Webiny **v5.39.0**.
+
+</Alert>
+
+<Alert type="success" title="What you will learn">
+
+- how to add a custom action to the Entry List
+- how to discover existing action names
+- how to change the position, remove, or replace an existing action
+
+</Alert>
+
+## Overview
+
+In Headless CMS, pre-built actions empower users to edit, move or delete entries and folders directly from the entry list table.
+
+There are two distinct types of actions: `FolderAction`, which is designed specifically for folders, and `EntryAction`, which is designed specifically for individual entries.
+
+<Image src={hcmsDefaultActions} title="Default table actions" />
+
+## Using the code examples
+
+The following code examples follow our usual configuration pattern. You must add the code from the examples to your `apps/admin/src/App.tsx`. Here's an example:
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+import "./App.scss";
+
++ // You can destructure config components to make the code more readable and easier to work with.
++ const { Browser } = ContentEntryListConfig;
+
+export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <ContentEntryListConfig>
++         {* Config components go here. *}
++       </ContentEntryListConfig>
+      </Admin>
+    );
+};
+```
+
+## Folder Actions
+
+### Add a Folder Action
+
+To add a new action, use the `Browser.FolderAction` component and mount it within your Admin app. This component will serve as the foundation for your action.
+
+To help developers keep the UI consistent, you'll find a handy `OptionsMenuItem` component, inheriting UI rules and guidelines from the Webiny core package.
+
+Here is an example of creating a folder action component that copies the selected folder to the clipboard in JSON format.
+
+```tsx CopyFolderData.tsx
+import React from "react";
+import { ReactComponent as CopyIcon } from "@material-design-icons/svg/outlined/content_copy.svg";
+import { useFolder } from "@webiny/app-aco";
+import { useSnackbar } from "@webiny/app-admin";
+import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+
+export const CopyFolderData = () => {
+  const { folder } = useFolder();
+  const { showSnackbar } = useSnackbar();
+  const { OptionsMenuItem } = ContentEntryListConfig.Browser.FolderAction;
+
+  const copyJson = () => {
+    navigator.clipboard.writeText(JSON.stringify(folder, null, 2));
+    showSnackbar("JSON data copied to clipboard.");
+  };
+
+  if (!folder) {
+    return null;
+  }
+
+  return <OptionsMenuItem icon={<CopyIcon />} label={"Copy"} onAction={copyJson} />;
+};
+```
+
+You can pass the custom component to the folder action definition using the `element` prop.
+
+```tsx
+  <ContentEntryListConfig>
+    <Browser.FolderAction
+      name={"copy-json"}
+      element={<CopyFolderData />}
+      modelIds={["property"]}
+    /> 
+  </ContentEntryListConfig> 
+```
+
+By declaring the `modelIds` prop, you can define which Content Model Entry List you want to show your action in. If you exclude this prop, the action will be registered for all models in the system. For instance, in the given example, the next time you open the `property` content model browser, the defined action will be shown.
+
+This is the whole process of registering a new folder action element.
+
+<Image src={hcmsAddFolderAction} title="Custom Folder Action" />
+
+
+### Discover Folder Actions
+
+This section demonstrates how you can discover the names of existing folder actions. This is important for further sections on positioning, removing, and replacing existing actions.
+
+The easiest way to discover existing folder actions is to use your browser's React Dev Tools plugins and search for the `BaseFolderAction`:
+
+<Image src={hcmsDiscoverFolderActions} title="Discover Existing Folder Actions" />
+
+### Position a Folder Action
+
+To position your custom folder action before or after an existing action, you can use the `before` and `after` props on the `<Browser.FolderAction>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.FolderAction 
+    name={"copy-json"}
+    element={<CopyFolderData />}
+    before={"delete"}
+  />
+</ContentEntryListConfig>
+```
+
+<Image src={hcmsPositionFolderActions} title="Position Your Action Before Another Action" />
+
+### Remove a Folder Action
+
+You may want to remove an existing action. All you need to do is reference the action by name and pass a `remove` prop to the `<Browser.FolderAction>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.FolderAction name={"delete"} remove />
+</ContentEntryListConfig>
+```
+
+### Replace a Folder Action
+
+To replace an existing action with a new action element, you need to reference an existing action by name and pass a new component via the `element` prop:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.FolderAction
+    name={"delete"}
+    element={<span>A new action!</span>}
+  />
+</ContentEntryListConfig>
+```
+
+## Entry Actions
+
+### Add an Entry Action
+
+To add a new action, use the `Browser.EntryAction` component and mount it within your Admin app. This component will serve as the foundation for your action.
+
+To ensure consistency in the UI, developers can use two components that inherit rules and guidelines from the Webiny core package:
+
+- `OptionsMenuItem`: triggers a defined action
+- `OptionMenuLink`: takes the user to a new location, such as a new web page
+
+Here is an example of creating an entry action component that copies the selected entry to the clipboard in JSON format.
+
+```tsx CopyEntryData.tsx
+import React from "react";
+import { ReactComponent as CopyIcon } from "@material-design-icons/svg/outlined/content_copy.svg";
+import { useSnackbar } from "@webiny/app-admin";
+import { ContentEntryListConfig, useEntry } from "@webiny/app-headless-cms";
+
+export const CopyEntryData = () => {
+  const { entry } = useEntry();
+  const { showSnackbar } = useSnackbar();
+  const { OptionsMenuItem } = ContentEntryListConfig.Browser.EntryAction;
+
+  const copyJson = () => {
+    navigator.clipboard.writeText(JSON.stringify(entry, null, 2));
+    showSnackbar("JSON data copied to clipboard.");
+  };
+
+  if (!entry) {
+    return null;
+  }
+
+  return <OptionsMenuItem icon={<CopyIcon />} label={"Copy"} onAction={copyJson} />;
+};
+```
+
+You can pass the custom component to the entry action definition using the `element` prop.
+
+```tsx
+  <ContentEntryListConfig>
+    <Browser.EntryAction
+      name={"copy-json"}
+      element={<CopyEntryData />}
+      modelIds={["property"]}
+    /> 
+  </ContentEntryListConfig> 
+```
+
+By declaring the `modelIds` prop, you can define which Content Model Entry List you want to show your action in. If you exclude this prop, the action will be registered for all models in the system. For instance, in the given example, the next time you open the `property` content model browser, the defined action will be shown.
+
+This is the whole process of registering a new entry action element.
+
+<Image src={hcmsAddEntryAction} title="Custom Entry Action" />
+
+
+### Discover Entry Actions
+
+This section demonstrates how you can discover the names of existing entry actions. This is important for further sections on positioning, removing, and replacing existing actions.
+
+The easiest way to discover existing entry actions is to use your browser's React Dev Tools plugins and search for the `BaseEntryAction`:
+
+<Image src={hcmsDiscoverEntryActions} title="Discover Existing Entry Actions" />
+
+### Position an Entry Action
+
+To position your custom folder action before or after an existing action, you can use the `before` and `after` props on the `<Browser.EntryAction>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.EntryAction 
+    name={"copy-json"}
+    element={<CopyEntryData />}
+    before={"delete"}
+  />
+</ContentEntryListConfig>
+```
+
+<Image src={hcmsPositionEntryActions} title="Position Your Action Before Another Action" />
+
+### Remove an Entry Action
+
+You may want to remove an existing action. All you need to do is reference the action by name and pass a `remove` prop to the `<Browser.EntryAction>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.EntryAction name={"delete"} remove />
+</ContentEntryListConfig>
+```
+
+### Replace an Entry Action
+
+To replace an existing action with a new action element, you need to reference an existing action by name and pass a new component via the `element` prop:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.EntryAction
+    name={"delete"} 
+    element={<span>A new action!</span>} 
+  />
+</ContentEntryListConfig>
+```
+
