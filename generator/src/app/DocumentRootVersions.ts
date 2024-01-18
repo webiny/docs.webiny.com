@@ -23,6 +23,18 @@ export class Version {
     return this._isOldest;
   }
 
+  equals(version: Version) {
+    return this._version === version.getValue();
+  }
+
+  gt(version: Version) {
+    if (version.getValue() === "0.0.0") {
+      return this._version !== "0.0.0";
+    }
+
+    return semver.gt(this.getValue().replace(".x", ".0"), version.getValue().replace(".x", ".0"));
+  }
+
   toString() {
     return this._version;
   }
@@ -67,7 +79,7 @@ export class DocumentRootVersions {
     return this.versions;
   }
 
-  getPreviousVersion(version: Version) {
+  getOlderVersion(version: Version) {
     if (version.isOldest()) {
       return undefined;
     }

@@ -62,7 +62,6 @@ export const Page = () => {
                     title="JSON Feed"
                     href="/feeds/feed.json"
                 />
-                {/* TODO: this is not generated anywhere?! */}
                 {page.canonicalPath ? (
                     <link rel="canonical" href={"https://docs.webiny.com" + page.canonicalPath} />
                 ) : null}

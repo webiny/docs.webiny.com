@@ -17,9 +17,7 @@ import {
   MdxCompiler,
   NavigationLoader,
   NavigationWriter,
-  DocumentRoot,
   DocumentRootWatcher,
-  CompositeDocumentRoot,
   DocumentRootVersions,
   Version,
   NavigationCache,
@@ -46,6 +44,8 @@ import { AbsolutePathProcessor } from "../../app/processors/AbsolutePathProcesso
 import { RemarkPluginsRunner } from "../../app/mdxCompiler/RemarkPluginsRunner";
 import { NextLinksRemarkPlugin } from "../../app/mdxCompiler/remark/NextLinksRemarkPlugin";
 import { FilteredMdxFileWriter } from "../../app/FilteredMdxFileWriter";
+import { VersionRoot } from "./VersionRoot";
+import { ProcessedFileWriter } from "../../app/ProcessedFileWriter";
 
 interface Config {
   rootDir: string;
@@ -83,18 +83,18 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
 
     this.versions = config.versionsProvider.getVersions();
 
-    const documentRoots = this.versions
+    const versionRoots = this.versions
       .getVersions()
       .filter(version => this.shouldProcessVersion(version))
-      .map(version => this.createDocumentRoot(version));
+      .map(version => this.createVersionRoot(version));
 
     this.documentRoot = new VersionedDocumentRoot(
       this.getVersionsFile(versionsFileAbsoluteOutputPath),
-      new CompositeDocumentRoot(documentRoots)
+      versionRoots
     );
 
     this.documentRootWatcher = new CompositeDocumentRootWatcher(
-      documentRoots.map(documentRoot => new DocumentRootWatcher(documentRoot))
+      versionRoots.map(documentRoot => new DocumentRootWatcher(documentRoot))
     );
   }
 
@@ -106,7 +106,7 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
     return this.documentRootWatcher;
   }
 
-  private createDocumentRoot(version: Version) {
+  private createVersionRoot(version: Version) {
     const config = this.config;
     const outputDir = config.outputDir;
     const versionedRootDir = `${config.rootDir}/${version}`;
@@ -144,7 +144,6 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
       this.versions,
       // We need this loader to point to the versioned docs root, and not a specific version.
       new MdxFileLoader<VersionedMdxFile>(
-        mdxProcessor,
         new VersionedMdxFileFactory(config.mdxFileFactory, version)
       )
     );
@@ -162,14 +161,17 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
 
     const mdxFileWriter = new FilteredMdxFileWriter(
       config.mdxFileOutputFilter,
-      new CompositeMdxFileWriter([
-        // In dev mode, we write the processed MDX file for debugging purposes.
-        this.appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
-        // Write sitemap XML file for each MDX file.
-        new SitemapFileWriter(outputDir),
-        // Write a JS file compiled from the MDX file.
-        new CompiledMdxFileWriter(outputDir, mdxCompiler)
-      ])
+      new ProcessedFileWriter(
+        mdxProcessor,
+        new CompositeMdxFileWriter([
+          // In dev mode, we write the processed MDX file for debugging purposes.
+          this.appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
+          // Write sitemap XML file for each MDX file.
+          new SitemapFileWriter(outputDir),
+          // Write a JS file compiled from the MDX file.
+          new CompiledMdxFileWriter(outputDir, mdxCompiler)
+        ])
+      )
     );
 
     const navigationLoader = new NavigationLoader(
@@ -184,7 +186,7 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
       mdxFileWriter
     );
 
-    return new DocumentRoot(navigationLoader, navigationWriter);
+    return new VersionRoot(version, navigationLoader, navigationWriter);
   }
 
   private shouldProcessVersion(version: Version) {

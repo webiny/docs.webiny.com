@@ -53,7 +53,7 @@ export class VersionedMdxFileLoader<T extends VersionedMdxFile = VersionedMdxFil
       return new ResolvedMdxFile(filePath, version);
     }
 
-    const previousVersion = this.versions.getPreviousVersion(version);
+    const previousVersion = this.versions.getOlderVersion(version);
 
     if (!previousVersion) {
       return undefined;
