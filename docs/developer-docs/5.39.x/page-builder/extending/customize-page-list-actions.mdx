@@ -1,0 +1,261 @@
+---
+id: 458e8d38
+title: Customize Page List Actions
+description: Learn how to add, replace, or remove actions in the Page List.
+---
+
+import pbAddPageAction from "./assets/pb-add-page-action.gif";
+import pbAddFolderAction from "./assets/pb-add-folder-action.gif";
+import pbDefaultActions from "./assets/pb-default-actions.gif";
+import pbPositionPageActions from "./assets/pb-position-page-action.png";
+import pbPositionFolderActions from "./assets/pb-position-folder-action.png";
+import pbDiscoverPageActions from "./assets/pb-discover-page-actions.png";
+import pbDiscoverFolderActions from "./assets/pb-discover-folder-actions.png";
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="info" title="Can I Use This?">
+
+This feature has been available since Webiny **v5.39.0**.
+
+</Alert>
+
+<Alert type="success" title="What you will learn">
+
+- how to add a custom action to the Page List
+- how to discover existing action names
+- how to change the position, remove, or replace an existing action
+
+</Alert>
+
+## Overview
+
+In Page Builder, pre-built actions empower users to edit, move or delete pages and folders directly from the page list table.
+
+There are two distinct types of actions: `FolderAction`, which is designed specifically for folders, and `PageAction`, which is designed specifically for individual page entries.
+
+<Image src={pbDefaultActions} title="Default table actions" />
+
+## Using the code examples
+
+The following code examples follow our usual configuration pattern. You must add the code from the examples to your `apps/admin/src/App.tsx`. Here's an example:
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { PageListConfig } from "@webiny/app-page-builder";
+import "./App.scss";
+
++ // You can destructure config components to make the code more readable and easier to work with.
++ const { Browser } = PageListConfig;
+
+export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <PageListConfig>
++         {* Config components go here. *}
++       </PageListConfig>
+      </Admin>
+    );
+};
+```
+
+## Folder Actions
+
+### Add a Folder Action
+
+To add a new action, use the `Browser.FolderAction` component and mount it within your Admin app. This component will serve as the foundation for your action.
+
+To help developers keep the UI consistent, you'll find a handy `OptionsMenuItem` component, inheriting UI rules and guidelines from the Webiny core package.
+
+Here is an example of creating a folder action component that copies the selected folder to the clipboard in JSON format.
+
+```tsx CopyFolderData.tsx
+import React from "react";
+import { ReactComponent as CopyIcon } from "@material-design-icons/svg/outlined/content_copy.svg";
+import { useFolder } from "@webiny/app-aco";
+import { useSnackbar } from "@webiny/app-admin";
+import { PageListConfig } from "@webiny/app-page-builder";
+
+export const CopyFolderData = () => {
+  const { folder } = useFolder();
+  const { showSnackbar } = useSnackbar();
+  const { OptionsMenuItem } = PageListConfig.Browser.FolderAction;
+
+  const copyJson = () => {
+    navigator.clipboard.writeText(JSON.stringify(folder, null, 2));
+    showSnackbar("JSON data copied to clipboard.");
+  };
+
+  if (!folder) {
+    return null;
+  }
+
+  return <OptionsMenuItem icon={<CopyIcon />} label={"Copy as JSON"} onAction={copyJson} />;
+};
+```
+
+You can pass the custom component to the folder action definition using the `element` prop.
+
+```tsx
+  <PageListConfig>
+    <Browser.FolderAction
+      name={"copy-json"}
+      element={<CopyFolderData />}
+    /> 
+  </PageListConfig> 
+```
+
+This is the whole process of registering a new folder action element.
+
+<Image src={pbAddFolderAction} title="Custom Folder Action" />
+
+
+### Discover Folder Actions
+
+This section demonstrates how you can discover the names of existing folder actions. This is important for further sections on positioning, removing, and replacing existing actions.
+
+The easiest way to discover existing folder actions is to use your browser's React Dev Tools plugins and search for the `BaseFolderAction`:
+
+<Image src={pbDiscoverFolderActions} title="Discover Existing Folder Actions" />
+
+### Position a Folder Action
+
+To position your custom folder action before or after an existing action, you can use the `before` and `after` props on the `<Browser.FolderAction>` element:
+
+```tsx
+<PageListConfig>
+  <Browser.FolderAction 
+    name={"copy-json"}
+    element={<CopyFolderData />}
+    before={"delete"}
+  />
+</PageListConfig>
+```
+
+<Image src={pbPositionFolderActions} title="Position Your Action Before Another Action" />
+
+### Remove a Folder Action
+
+You may want to remove an existing action. All you need to do is reference the action by name and pass a `remove` prop to the `<Browser.FolderAction>` element:
+
+```tsx
+<PageListConfig>
+  <Browser.FolderAction name={"delete"} remove />
+</PageListConfig>
+```
+
+### Replace a Folder Action
+
+To replace an existing action with a new action element, you need to reference an existing action by name and pass a new component via the `element` prop:
+
+```tsx
+<PageListConfig>
+  <Browser.FolderAction
+    name={"delete"}
+    element={<span>A new action!</span>}
+  />
+</PageListConfig>
+```
+
+## Page Actions
+
+### Add a Page Action
+
+To add a new action, use the `Browser.PageAction` component and mount it within your Admin app. This component will serve as the foundation for your action.
+
+To ensure consistency in the UI, developers can use two components that inherit rules and guidelines from the Webiny core package:
+
+- `OptionsMenuItem`: triggers a defined action
+- `OptionsMenuLink`: takes the user to a new location, such as a new web page
+
+Here is an example of creating a page action component that copies the selected page to the clipboard in JSON format.
+
+```tsx CopyPageData.tsx
+import React from "react";
+import { ReactComponent as CopyIcon } from "@material-design-icons/svg/outlined/content_copy.svg";
+import { useSnackbar } from "@webiny/app-admin";
+import { PageListConfig, usePage } from "@webiny/app-page-builder";
+
+export const CopyPageData = () => {
+  const { page } = usePage();
+  const { showSnackbar } = useSnackbar();
+  const { OptionsMenuItem } = PageListConfig.Browser.PageAction;
+
+  const copyJson = () => {
+    navigator.clipboard.writeText(JSON.stringify(page, null, 2));
+    showSnackbar("JSON data copied to clipboard.");
+  };
+
+  if (!page) {
+    return null;
+  }
+
+  return <OptionsMenuItem icon={<CopyIcon />} label={"Copy as JSON"} onAction={copyJson} />;
+};
+```
+
+You can pass the custom component to the page action definition using the `element` prop.
+
+```tsx
+  <PageListConfig>
+    <Browser.PageAction
+      name={"copy-json"}
+      element={<CopyPageData />}
+    /> 
+  </PageListConfig> 
+```
+
+This is the whole process of registering a new page action element.
+
+<Image src={pbAddPageAction} title="Custom Page Action" />
+
+
+### Discover Page Actions
+
+This section demonstrates how you can discover the names of existing page actions. This is important for further sections on positioning, removing, and replacing existing actions.
+
+The easiest way to discover existing page actions is to use your browser's React Dev Tools plugins and search for the `BasePageAction`:
+
+<Image src={pbDiscoverPageActions} title="Discover Existing Page Actions" />
+
+### Position a Page Action
+
+To position your custom page action before or after an existing action, you can use the `before` and `after` props on the `<Browser.PageAction>` element:
+
+```tsx
+<PageListConfig>
+  <Browser.PageAction 
+    name={"copy-json"}
+    element={<CopyPageData />}
+    before={"delete"}
+  />
+</PageListConfig>
+```
+
+<Image src={pbPositionPageActions} title="Position Your Action Before Another Action" />
+
+### Remove a Page Action
+
+You may want to remove an existing action. All you need to do is reference the action by name and pass a `remove` prop to the `<Browser.PageAction>` element:
+
+```tsx
+<PageListConfig>
+  <Browser.PageAction name={"delete"} remove />
+</PageListConfig>
+```
+
+### Replace a Page Action
+
+To replace an existing action with a new action element, you need to reference an existing action by name and pass a new component via the `element` prop:
+
+```tsx
+<PageListConfig>
+  <Browser.PageAction
+    name={"delete"} 
+    element={<span>A new action!</span>} 
+  />
+</PageListConfig>
+```

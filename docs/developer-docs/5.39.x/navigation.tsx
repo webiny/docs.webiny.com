@@ -25,6 +25,14 @@ export const Navigation = () => {
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
           </Group>
         </Group>
+        <Group title={"Page Builder"}>
+          <Group title={"Extending functionality"}>
+            <Page
+                link={"page-builder/extending/customize-page-list-actions"}
+                before={"page-builder/extending/customize-page-bulk-actions"}
+            />
+          </Group>
+        </Group>
         <Group title={"File Manager"}>
           <Group title={"Extending functionality"}>
             <Page
