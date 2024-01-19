@@ -28,6 +28,10 @@ export const Navigation = () => {
         <Group title={"File Manager"}>
           <Group title={"Extending functionality"}>
             <Page
+              link={"file-manager/extending/customize-file-list-actions"}
+              after={"file-manager/extending/customize-file-bulk-actions"}
+            />
+            <Page
               link={"file-manager/extending/customize-file-list-table-columns"}
               after={"file-manager/extending/customize-file-bulk-actions"}
             />
