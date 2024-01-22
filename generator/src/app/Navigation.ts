@@ -140,7 +140,8 @@ export class Navigation {
       {
         type: page.type,
         title: page.title || mdxFile.getTitle(),
-        link
+        link,
+        breadcrumbs: page.breadcrumbs
       },
       fileWasChanged ? mdxFile : undefined
     ];

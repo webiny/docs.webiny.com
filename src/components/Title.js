@@ -4,8 +4,9 @@ import Head from "next/head";
 export function Title({ suffix }) {
     const { page } = usePage();
     const version = page.version && !page.isLatest ? page.version : undefined;
-    const parts = [page.title, version,suffix]
-    const titleWithSuffix = parts.filter(Boolean).join(" | ")
+    const breadcrumbs = [...page.breadcrumbs].reverse();
+    const parts = [page.title, ...breadcrumbs, version, suffix];
+    const titleWithSuffix = parts.filter(Boolean).join(" | ");
 
     return (
         <Head>

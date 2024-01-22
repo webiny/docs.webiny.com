@@ -48,6 +48,7 @@ export const Draft = ({ children }: { children: React.ReactNode }) => {
 };
 
 interface GroupContext {
+  breadcrumbs: string[];
   linkPrefix?: string;
 }
 
@@ -55,10 +56,11 @@ const GroupContext = React.createContext<GroupContext | undefined>(undefined);
 
 interface GroupProviderProps {
   children: React.ReactNode;
+  breadcrumbs: string[];
   linkPrefix?: string;
 }
 
-const GroupProvider = ({ children, linkPrefix }: GroupProviderProps) => {
+const GroupProvider = ({ children, breadcrumbs = [], linkPrefix }: GroupProviderProps) => {
   const parentGroup = useGroup();
   const navigationRoot = useNavigationRoot();
 
@@ -71,7 +73,9 @@ const GroupProvider = ({ children, linkPrefix }: GroupProviderProps) => {
     .replace(/\/{2,}/, "/");
 
   return (
-    <GroupContext.Provider value={{ linkPrefix: combinedPrefix }}>{children}</GroupContext.Provider>
+    <GroupContext.Provider value={{ linkPrefix: combinedPrefix, breadcrumbs }}>
+      {children}
+    </GroupContext.Provider>
   );
 };
 
@@ -90,13 +94,16 @@ interface GroupProps {
 
 export const Group = ({ title, linkPrefix, children, remove, before, after }: GroupProps) => {
   const getId = useIdGenerator("collapsable");
+  const parentGroup = useGroup();
   const id = getId(title);
 
   const placeAfter = after !== undefined ? getId(after) : undefined;
   const placeBefore = before !== undefined ? getId(before) : undefined;
 
+  const breadcrumbs = [...(parentGroup?.breadcrumbs || []), title];
+
   return (
-    <GroupProvider linkPrefix={linkPrefix}>
+    <GroupProvider linkPrefix={linkPrefix} breadcrumbs={breadcrumbs}>
       <Property
         id={id}
         name={"items"}
@@ -143,10 +150,14 @@ export const Page = ({ title, link, file, remove, before, after, hidden = false 
   const parentGroup = useGroup();
 
   const linkPrefix = parentGroup ? parentGroup.linkPrefix : navigationRoot.linkPrefix;
+  const breadcrumbs = Array.from(
+    new Set([...(parentGroup?.breadcrumbs || []), title].filter(Boolean))
+  );
 
   return (
     <Property id={getId()} name={"items"} array remove={remove} before={before} after={after}>
       <Property id={getId("type")} name={"type"} value={"page"} />
+      <Property id={getId("breadcrumbs")} name={"breadcrumbs"} value={breadcrumbs} />
       <Property id={getId("hidden")} name={"hidden"} value={hidden} />
       <Property id={getId("directory")} name={"directory"} value={navigationRoot.directory} />
       {linkPrefix ? (

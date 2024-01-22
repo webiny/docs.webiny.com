@@ -1,6 +1,7 @@
 import { createContext, Fragment, useContext } from "react";
 import { useRouter } from "next/router";
 import titleCase from "titlecase";
+import { Breadcrumbs } from "./Breadcrumbs";
 
 const PageContext = createContext();
 
@@ -35,6 +36,9 @@ export const PageProvider = ({ Component, children }) => {
         ? undefined
         : getCanonicalPath(versions, pageData, router.pathname);
 
+    const navigation = layoutProps.navigation || [];
+    const breadcrumbs = new Breadcrumbs(navigation).find(router.pathname);
+
     const context = {
         MdxPage: Component,
         Layout: layoutProps.Layout || Fragment,
@@ -42,7 +46,8 @@ export const PageProvider = ({ Component, children }) => {
             versions,
             isLatest,
             canonicalPath,
-            navigation: layoutProps.navigation || [],
+            navigation,
+            breadcrumbs: breadcrumbs || [],
             ...pageData,
             docsearch,
             // TODO: handle sharecard; are we using it at all?
