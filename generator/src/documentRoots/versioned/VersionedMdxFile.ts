@@ -4,20 +4,22 @@ import { MdxData, MdxFile, Version } from "@webiny/docs-generator";
 export abstract class VersionedMdxFile extends MdxFile {
   protected version: Version;
   protected sourceVersion: Version;
-  protected canonicalVersion: Version;
+  protected canonicalVersion: Version | undefined;
 
   constructor(data: MdxData, version?: Version) {
     super(data);
     this.version = version || new Version("0.0.0");
     this.sourceVersion = new Version("0.0.0");
-    this.canonicalVersion = new Version("0.0.0");
+    this.canonicalVersion = undefined;
   }
 
   override clone(): any {
     const Klass = Object.getPrototypeOf(this).constructor;
     const clone = new Klass(this.props, this.version);
     clone.contents = this.contents;
-    clone.setCanonicalVersion(this.canonicalVersion);
+    if (this.canonicalVersion) {
+      clone.setCanonicalVersion(this.canonicalVersion);
+    }
     clone.setOutputPath(this.outputPath);
     return clone;
   }
@@ -31,7 +33,7 @@ export abstract class VersionedMdxFile extends MdxFile {
   }
 
   setCanonicalVersion(version: Version) {
-    if (version.gt(this.canonicalVersion)) {
+    if (version.gt(this.canonicalVersion) && version.gt(this.version)) {
       this.canonicalVersion = version;
     }
   }
@@ -40,7 +42,7 @@ export abstract class VersionedMdxFile extends MdxFile {
     const data = {
       ...super.getData(),
       version: this.version.getValue(),
-      canonicalVersion: this.canonicalVersion.getValue(),
+      canonicalVersion: this.canonicalVersion && this.canonicalVersion.getValue(),
       type: this.type
     };
 

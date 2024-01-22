@@ -27,7 +27,11 @@ export class Version {
     return this._version === version.getValue();
   }
 
-  gt(version: Version) {
+  gt(version: Version | undefined) {
+    if (version === undefined) {
+      return true;
+    }
+
     if (version.getValue() === "0.0.0") {
       return this._version !== "0.0.0";
     }
