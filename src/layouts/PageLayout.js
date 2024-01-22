@@ -19,7 +19,11 @@ export function PageLayout({ children }) {
             <article className={"prose md:prose-md prose-slate"}>
                 <ViewLatestVersion />
                 <SourceFile />
-                <PageHeader title={page.title} description={page.description} />
+                <PageHeader
+                    title={page.title}
+                    description={page.description}
+                    breadcrumbs={page.breadcrumbs}
+                />
                 <div className={"relative z-20 mt-8 dark:prose-dark pb-10"}>
                     <MDXProvider components={mdxComponents}>{children}</MDXProvider>
                 </div>

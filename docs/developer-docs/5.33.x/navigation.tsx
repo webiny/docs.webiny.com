@@ -10,12 +10,12 @@ export const Navigation = () => {
       <NavigationRoot directory={__dirname}>
         {/* Add new items. */}
         <Group title={"File Manager"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page link={"file-manager/extending/create-a-custom-file-manager-renderer"} />
           </Group>
         </Group>
         <Group title={"Headless CMS"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page link={"headless-cms/extending/content-models-via-code-storage-id"} />
           </Group>
         </Group>
