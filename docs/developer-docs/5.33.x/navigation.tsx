@@ -10,7 +10,7 @@ export const Navigation = () => {
       <NavigationRoot directory={__dirname}>
         {/* Add new items. */}
         <Group title={"Admin Area"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page link={"admin-area/extending/custom-dashboard"} />
           </Group>
         </Group>
