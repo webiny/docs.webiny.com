@@ -63,7 +63,7 @@ class VersionedAssetResolver {
       return filePath;
     }
 
-    const previousVersion = this.versions.getPreviousVersion(version);
+    const previousVersion = this.versions.getOlderVersion(version);
 
     if (!previousVersion) {
       return undefined;

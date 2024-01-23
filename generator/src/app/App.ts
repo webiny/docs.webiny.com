@@ -8,8 +8,7 @@ import {
   IDocumentRootWatcher,
   CompositeDocumentRoot,
   CompositeDocumentRootWatcher,
-  LinkValidationConsoleReporter,
-  IFile
+  LinkValidationConsoleReporter
 } from "../index";
 import { SitemapGenerator } from "./SitemapGenerator";
 

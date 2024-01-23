@@ -2,6 +2,7 @@ import React from "react";
 
 export interface NavigationPage {
   type: "page";
+  breadcrumbs: string[];
   title: string | null;
   hidden: boolean;
   directory: string;
@@ -12,6 +13,7 @@ export interface NavigationPage {
 
 export interface NavigationOutputPage {
   type: "page";
+  breadcrumbs: string[];
   title: string;
   link: string;
 }

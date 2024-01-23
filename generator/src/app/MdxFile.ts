@@ -53,6 +53,7 @@ export abstract class MdxFile {
     const Klass = Object.getPrototypeOf(this).constructor;
     const clone = new Klass(this.props);
     clone.contents = this.contents;
+    clone.setOutputPath(this.outputPath);
     return clone;
   }
 

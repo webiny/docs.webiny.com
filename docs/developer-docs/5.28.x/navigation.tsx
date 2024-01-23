@@ -39,7 +39,7 @@ export const Navigation = () => {
           <Page link={"headless-cms/basics/graphql-api"} />
           <Page link={"headless-cms/basics/using-graphql-api"} />
         </Group>
-        <Group title={"Extending functionality"}>
+        <Group title={"Extending Functionality"}>
           <Page link={"headless-cms/extending/content-models-via-code"} />
           <Page link={"headless-cms/extending/custom-field-type"} />
           <Page link={"headless-cms/extending/customize-entry-form-layout"} />
@@ -63,7 +63,7 @@ export const Navigation = () => {
           <Page link={"page-builder/theming/elements"} />
           <Page link={"page-builder/theming/layouts"} />
         </Group>
-        <Group title={"Extending functionality"}>
+        <Group title={"Extending Functionality"}>
           <Page link={"page-builder/extending/create-a-page-element"} />
           <Page link={"page-builder/extending/customize-an-existing-element"} />
           <Page link={"page-builder/extending/customize-button-callback-handler"} />
@@ -85,7 +85,7 @@ export const Navigation = () => {
         </Group>
       </Group>
       <Group title={"File Manager"}>
-        <Group title={"Extending functionality"}>
+        <Group title={"Extending Functionality"}>
           <Page link={"file-manager/extending/create-a-file-type-plugin"} />
         </Group>
       </Group>
@@ -94,7 +94,7 @@ export const Navigation = () => {
           <Page link={"admin-area/basics/framework"} />
           <Page link={"admin-area/basics/api-playground"} />
         </Group>
-        <Group title={"Extending functionality"}>
+        <Group title={"Extending Functionality"}>
           <Page link={"admin-area/extending/change-logo"} />
         </Group>
         <Group title={"New App Tutorial"}>

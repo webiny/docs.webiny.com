@@ -1,19 +1,14 @@
 import fs from "fs-extra";
 import frontMatter from "front-matter";
 import { mdbid } from "@webiny/utils";
-import { IMdxProcessor } from "../abstractions/IMdxProcessor";
 import { IMdxFileFactory } from "../abstractions/IMdxFileFactory";
 import { IMdxFileLoader } from "../abstractions/IMdxFileLoader";
 import { FrontMatterAttributes, MdxFile } from "./MdxFile";
-import { raw } from "concurrently/dist/src/defaults";
-import { getRawProjectId } from "next/dist/telemetry/project-id";
 
 export class MdxFileLoader<T extends MdxFile = MdxFile> implements IMdxFileLoader<T> {
-  private processor: IMdxProcessor<T>;
   private mdxFileFactory: IMdxFileFactory<T>;
 
-  constructor(processor: IMdxProcessor<T>, mdxFileFactory: IMdxFileFactory<T>) {
-    this.processor = processor;
+  constructor(mdxFileFactory: IMdxFileFactory<T>) {
     this.mdxFileFactory = mdxFileFactory;
   }
 
@@ -28,7 +23,7 @@ export class MdxFileLoader<T extends MdxFile = MdxFile> implements IMdxFileLoade
       rawBody: bodyWithId
     });
 
-    return this.processor.processMdx(rawMdxFile) as T;
+    return rawMdxFile;
   }
 
   async injectId(filePath: string, rawBody: string) {
