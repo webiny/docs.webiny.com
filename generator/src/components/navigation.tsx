@@ -145,6 +145,7 @@ interface PageProps {
 }
 
 export const Page = ({ title, link, file, remove, before, after, hidden = false }: PageProps) => {
+  const getPageId = useIdGenerator("");
   const getId = useIdGenerator(String(link || file));
   const navigationRoot = useNavigationRoot();
   const parentGroup = useGroup();
@@ -154,8 +155,18 @@ export const Page = ({ title, link, file, remove, before, after, hidden = false 
     new Set([...(parentGroup?.breadcrumbs || []), title].filter(Boolean))
   );
 
+  const placeAfter = after !== undefined ? getPageId(after) : undefined;
+  const placeBefore = before !== undefined ? getPageId(before) : undefined;
+
   return (
-    <Property id={getId()} name={"items"} array remove={remove} before={before} after={after}>
+    <Property
+      id={getId()}
+      name={"items"}
+      array
+      remove={remove}
+      before={placeBefore}
+      after={placeAfter}
+    >
       <Property id={getId("type")} name={"type"} value={"page"} />
       <Property id={getId("breadcrumbs")} name={"breadcrumbs"} value={breadcrumbs} />
       <Property id={getId("hidden")} name={"hidden"} value={hidden} />
