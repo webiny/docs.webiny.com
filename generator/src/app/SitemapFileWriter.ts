@@ -12,6 +12,12 @@ export class SitemapFileWriter implements IMdxFileWriter {
   }
 
   async output(mdxFile: MdxFile): Promise<IFile[]> {
+    const hasCanonicalVersion = mdxFile.getData().canonicalVersion;
+
+    if (hasCanonicalVersion) {
+      return []
+    }
+
     const filePath = `${this.relativeOutputPath}/${mdxFile
       .getOutputPath()
       .withExtension("sitemap")}`;

@@ -18,7 +18,7 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Page Builder"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page link={"page-builder/extending/customize-an-existing-element"} remove />
           </Group>
           <Group title={"Theming"}>
@@ -43,7 +43,7 @@ export const Navigation = () => {
             <Page link={"headless-cms/basics/using-graphql-api-filtering"} remove />
             <Page link={"headless-cms/basics/using-graphql-api-advanced-filtering"} />
           </Group>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page link={"headless-cms/extending/custom-sorting"} />
           </Group>
         </Group>

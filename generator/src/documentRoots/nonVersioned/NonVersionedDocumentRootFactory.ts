@@ -31,6 +31,7 @@ import { AppConfig } from "../../app/AppConfig";
 import { RemarkPluginsRunner } from "../../app/mdxCompiler/RemarkPluginsRunner";
 import { NextLinksRemarkPlugin } from "../../app/mdxCompiler/remark/NextLinksRemarkPlugin";
 import { AbsolutePathProcessor } from "../../app/processors/AbsolutePathProcessor";
+import { ProcessedFileWriter } from "../../app/ProcessedFileWriter";
 
 interface Config {
   rootDir: string;
@@ -75,10 +76,7 @@ export class NonVersionedDocumentRootFactory implements IDocumentRootFactory {
 
     const handbookProcessor = new CompositeMdxProcessor(mdxFileProcessors);
 
-    const mdxFileLoader = new MdxFileLoader(
-      handbookProcessor,
-      new NonVersionedMdxFileFactory(config.mdxFileFactory)
-    );
+    const mdxFileLoader = new MdxFileLoader(new NonVersionedMdxFileFactory(config.mdxFileFactory));
 
     const mdxCompiler = new MdxCompiler([
       RemarkPluginsRunner.create([
@@ -89,14 +87,17 @@ export class NonVersionedDocumentRootFactory implements IDocumentRootFactory {
       ])
     ]);
 
-    const mdxFileWriter = new CompositeMdxFileWriter([
-      // In dev mode, we write the processed MDX file for debugging purposes.
-      appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
-      // Write sitemap XML file for each MDX file.
-      new SitemapFileWriter(outputDir),
-      // Write a JS file compiled from the MDX file.
-      new CompiledMdxFileWriter(outputDir, mdxCompiler)
-    ]);
+    const mdxFileWriter = new ProcessedFileWriter(
+      handbookProcessor,
+      new CompositeMdxFileWriter([
+        // In dev mode, we write the processed MDX file for debugging purposes.
+        appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
+        // Write sitemap XML file for each MDX file.
+        new SitemapFileWriter(outputDir),
+        // Write a JS file compiled from the MDX file.
+        new CompiledMdxFileWriter(outputDir, mdxCompiler)
+      ])
+    );
 
     const navigationLoader = new NavigationLoader(
       navigationSourcePath,

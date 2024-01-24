@@ -9,13 +9,18 @@ export const Navigation = () => {
       <BaseNavigation />
       <NavigationRoot directory={__dirname}>
         {/* Add new items. */}
+        <Group title={"Admin Area"}>
+          <Group title={"Extending Functionality"}>
+            <Page link={"admin-area/extending/custom-dashboard"} />
+          </Group>
+        </Group>
         <Group title={"File Manager"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page link={"file-manager/extending/create-a-custom-file-manager-renderer"} />
           </Group>
         </Group>
         <Group title={"Headless CMS"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page link={"headless-cms/extending/content-models-via-code-storage-id"} />
           </Group>
         </Group>

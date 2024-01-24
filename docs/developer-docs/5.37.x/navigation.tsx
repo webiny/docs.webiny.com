@@ -10,7 +10,7 @@ export const Navigation = () => {
       {/* Add new items. */}
       <NavigationRoot directory={__dirname}>
         <Group title={"Headless CMS"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-filters"}
               after={"headless-cms/extending/custom-field-type"}
@@ -28,14 +28,14 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"File Manager"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page link={"file-manager/extending/customize-file-filters"} />
             <Page link={"file-manager/extending/customize-file-fields"} />
             <Page link={"file-manager/extending/customize-file-key"} />
           </Group>
         </Group>
         <Group title={"Page Builder"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page
               link={"page-builder/extending/lexical-editor"}
               after={"page-builder/extending/extend-page-settings"}
@@ -46,7 +46,7 @@ export const Navigation = () => {
           <Page link={"enterprise/teams"} />
         </Group>
         <Group title={"Admin Area"}>
-          <Group title={"Extending functionality"}>
+          <Group title={"Extending Functionality"}>
             <Page link={"admin-area/extending/cognito-federation"} />
             <Page link={"admin-area/extending/graphql-request-batching"} />
           </Group>

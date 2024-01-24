@@ -1,0 +1,51 @@
+---
+id: 118958a9
+title: Custom Dashboard
+description: Learn how to replace the default Dashboard, and implement a custom one.
+---
+
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+
+<CanIUseThis since={"5.33.0"} />
+
+<WhatYouWillLearn>
+
+- how to replace the default Webiny dashboard
+
+</WhatYouWillLearn>
+
+## Overview
+
+Replacing the default dashboard is a very quick and straightforward process. The `@webiny/app-serverless-cms` packages exposes a `Dashboard` component, which you can decorate using the `createComponentPlugin` utility, and replace the contents of the whole dashboard.
+
+## Replace the Default Dashboard
+
+To replace the dashboard, go to `apps/admin/src/App.tsx` in your Webiny project, and apply the following code changes:
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
++ import { Admin, Dashboard, createComponentPlugin, useSecurity } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
+import "./App.scss";
+
++ // Create a component plugin (decorator).
++ const MyDashboard = createComponentPlugin(Dashboard, () => {
++     return function MyDashboard() {
++         const { identity } = useSecurity();
++
++         return <h3>Hi, {identity?.displayName}!</h3>;
++     };
++ });
+
+export const App = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <MyDashboard />
+      </Admin>
+    );
+};
+```
+
+When your custom component is rendered, it has access to all context providers within the Admin app, so you're free to do whatever you need. In this example, we fetch the current identity to display the user's name.
