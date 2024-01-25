@@ -5,8 +5,12 @@ description: January 16, 2024
 ---
 
 import { GithubRelease } from "@/components/GithubRelease";
+import { Video } from "@/components/Video";
 
 import hcmsDefaultTable from "./assets/hcms-default-table.png";
+import hcmsRteHtmlOutput from "./assets/hcms-rte-html-output.png";
+import hcmsEditFileDrawer from "./assets/hcms-edit-file-drawer.mp4";
+import fmAccessControl from "./assets/fm-access-control.png";
 
 <GithubRelease version={"5.39.0"} />
 
@@ -31,11 +35,11 @@ On top of that, searching for entries and sorting based on the date/time or iden
 
 <Alert type={"info"}>
 
-  Content entries created with Webiny's Headless CMS are versioned. In other words, they consist of one or more revisions. For more info, check out the related [user guides](/docs/user-guides/headless-cms/essentials/glossary).
+Content entries created with Webiny's Headless CMS are versioned. In other words, they consist of one or more revisions. For more info, check out the related [user guides](/docs/user-guides/headless-cms/essentials/glossary).
 
 </Alert>
 
-In order to tackle these issues, with this release, we're revamping the date/time and identity-related meta fields. Essentially, we're creating two groups of meta fields: revision-specific and entry-specific. 
+In order to tackle these issues, with this release, we're revamping the date/time and identity-related meta fields. Essentially, we're creating two groups of meta fields: revision-specific and entry-specific.
 
 Revision-specific fields contain the `revision` prefix in their name, and, as the name suggests, they contain revision-level information. For example, the `revisionCreatedOn` meta field contains the date/time when a revision of a content entry was created.
 
@@ -58,6 +62,22 @@ Starting with this release, when deploying Webiny, an [AWS Step Functions](https
 And despite the fact that, at the moment, the state machine is only utilized internally, this still means that, in order to deploy Webiny successfully, proper [AWS Identity and Access Management (IAM)](https://aws.amazon.com/iam/) permissions (allowed actions) need to be in place.
 
 For additional information, please refer to the [Deployments - New IAM Permissions Requirements](/docs/release-notes/5.39.0/upgrade-guide#3-2-deployments-new-iam-permissions-requirements) upgrade guide.
+
+### Project Level TS Config
+
+Until this release, we've always copied the entire `tsconfig.build.json` file into user's projects. Over time, we learned that this is difficult to maintain, and makes it harder to tweak the config without affecting user's projects.
+
+With this release, you'll notice that your `tsconfig.build.json` file now simply extends our default config from `@webiny/project-utils`. When going through the upgrade process, make sure you transfer any changes you might have made to the new config file. You only need to do this once, since our changes will never again be done on your project tsconfig file.
+
+```json tsconfig.build.json
+{
+  "extends": "@webiny/project-utils/configs/tsconfig.build.json",
+  "compilerOptions": {
+    "typeRoots": ["node_modules/@types", "./types"]
+  },
+  "exclude": ["node_modules", "dist", "**jest**", "**resources.js"]
+}
+```
 
 ## Deployments
 
@@ -82,13 +102,20 @@ about the different database setups Webiny supports.
 
 ### Node.js v18 ([#3561](https://github.com/webiny/webiny-js/pull/3561))
 
-With this release we have updated the system to Node.js `v18`.
-Unfortunately, there are some breaking changes coming with the dependency updates:
+With this release we have updated the system to Node.js `v18`. Unfortunately, there are some breaking changes coming with the dependency updates:
 
 - `aws-sdk` has been bumped to `3.425.0` - because the `v2.x.x` does not work with the Node.js `v18`
-- `dynamodb-toolbox` has been bumped to `0.9.2` - because the previous version, we were using, does not work with `aws-sdk` `v3.x.x`
+- `dynamodb-toolbox` has been bumped to `0.9.2` - because the previous version we were using, does not work with `aws-sdk` `v3.x.x`
 
-This was a quite large update, with over **750** files changed in our repository, so if you encounter any issues - please let us know.
+This was quite an update, with over **750** files changed in our repository, so if you encounter any issues - please let us know. Also, you'll notice that we now have a package for interacting with the AWS SDK, called `@webiny/aws-sdk`. This package only exports AWS clients that we actually use in Webiny.
+
+<Alert type="warning" title={"AWS SDK in AWS Lambda Functions"}>
+
+  In **Node.js 18.x** runtime, the default AWS SDK version is **v3**. See [the official AWS blog](https://aws.amazon.com/blogs/compute/node-js-18-x-runtime-now-available-in-aws-lambda/) for details. 
+  
+  We've updated our webpack bundling config to follow this change. This means that `aws-sdk@2` is no longer excluded from bundling. Instead, `@aws-sdk/*` packages are now excluded from bundling, since these are always available in the Lambda runtime.
+
+</Alert>
 
 ### Multi-Event Handler ([#3710](https://github.com/webiny/webiny-js/pull/3710))
 
@@ -97,9 +124,9 @@ Until this release, the Lambda Handler was only able to handle a single type of 
 For example, if you wanted to have a Lambda function which handled the **S3** event, you had to import the `createHandler` function from `@webiny/handler-aws/s3`.
 
 From now on, for all AWS events we support, you can use the `createHandler` function from `@webiny/handler-aws` package.
-Of course, you can still use the old way of importing specific `createHandler` (s3, dynamodb, etc...) - we will not remove those.
+You can still use the old way of importing specific handler factories (s3, dynamodb, etc...), so this change is completely backwards compatible.
 
-To find out more about the Handlers, please read [this](/docs/core-development-concepts/basics/routes-and-events) article.
+To find out more about our Lambda event handlers, please read [this](/docs/core-development-concepts/basics/routes-and-events) article.
 
 ## Admin
 
@@ -111,11 +138,50 @@ Using these APIs, developers can now easily add new columns, replace existing on
 
 <Image src={hcmsDefaultTable} alt="Headless CMS - Table Columns and Actions" />
 
-## Other
+### DrawerLeft and DrawerRight Components ([#3778](https://github.com/webiny/webiny-js/pull/3778))
+
+Webiny uses the Material Design drawers in many modules of the system. The main issue with them is that, by design, they're meant to only be used on the left side of the screen. But from the UX perspective, it's sometimes beneficial to have them open on the right side (like the File Details drawer, for example).
+
+To make it easy for the core team, but also other developers, to create drawers on both sides of the screen, we've now exported two new components `DrawerLeft` and `DrawerRight`, and we handle the technical implementation and positioning of those.
+
+```tsx
+import { DrawerRight, DrawerLeft } from "@webiny/ui/Drawer";
+```
+
+To find more details and code samples, visit the [PR](https://github.com/webiny/webiny-js/pull/3778).
+
+## File Manager
+
+### New Asset Delivery Mechanism
+
+This release marks a big step in how Webiny handles file delivery, in terms of how flexible it now is. Until now, file delivery was a very rigid, hardcoded process, where you could only serve files off S3 without any additional logic, you couldn't control cache headers, change how assets are transformed, none of that.
+
+With this release, we've completely rewritten the entire mechanism. The new delivery mechanism is connected to the entire Webiny SDK, and you can now write your own routing, resolution, and delivery logic (including caching and transformation). From within the Asset Delivery Lambda, you are now free to interact with Headless CMS, Security, or any other Webiny app. Your custom plugins will also exist in the execution context of the Asset Delivery Lambda function.
+
+After upgrading to 5.39.0, you won't notice any differences comparing to your current setup. But under the hood, there's a lot going on, and we will dedicate some documentation articles to explain how you can customize the asset delivery.
+
+## Headless CMS
+
+### Add support for rich text field output renderers ([#3835](https://github.com/webiny/webiny-js/pull/3835))
+
+Rich text content has always been a challenge to handle, and it very much depends on the requirements of each particular project. Webiny uses [Lexical Editor](https://lexical.dev/) as its default rich text editor, but Webiny users can implement different editors like Quill, Editor.js, etc. That makes it very hard for the core team to keep everything compatible, since every editor works with a different data structure.
+
+To make it easier to consume the data delivered through our Headless CMS, we've added support for rich text field renderers on the API side. By default, we provide HTML output for the default Lexical editor, but you can decorate the default implementation, and even add a custom one. You might even want to output Markdown, which is now possible.
+
+<Image src={hcmsRteHtmlOutput} alt="Headless CMS - RTE Field Output as HTML" />
+
+
+### Edit File in Content Entry Form ([#3823](https://github.com/webiny/webiny-js/pull/3823))
+
+As a content creator, you can now jump right into the File Details Drawer from the Content Entry form. When you hover over a file preview, you'll now find a small pencil icon, which will load the file data, and open the drawer. This is the same drawer you see in the main File Manager view, but this way, it's easier to jump to the file editing, without wasting time on file lookup.
+
+<Video src={hcmsEditFileDrawer} alt="Headless CMS - Edit File Drawer" />
+
+## Other Improvements
 
 ### Webiny CLI - Introducing the `webiny open` Command
 
-With this release, we're introducing the new `webiny open` Webiny CLI command.
+With this release, we're introducing a new `webiny open` Webiny CLI command.
 
 The new command enables users to quickly open Admin or Website app in their default browser. For example:
 
@@ -135,3 +201,18 @@ Note that, for local development, the apps are still spun up locally in the same
 
 </Alert>
 
+### Lambda Code Splitting
+
+This release added various new features which do not run on every request to the API. To optimize cold starts, and reduce the size of the main code bundle, we've now enabled support for code splitting, via [dynamic imports](https://webpack.js.org/guides/code-splitting/#dynamic-imports). This allows us to split away large dependencies which are rarely used, like for example, JSDOM (used when parsing HTML or rendering Lexical to HML).
+
+You're welcome to analyze your custom code, and see which parts of your plugins could be good candidates for code splitting.
+
+## Enterprise 
+
+### Private Files
+
+Private Files is a new feature, which is a part of the [Advanced Access Control Layer (AACL)](/docs/enterprise/aacl/introduction) set of features, available with the Webiny Enterprise license. This feature allows you to protect the files, managed via the File Manager, from unauthorized access.
+
+In this first iteration of the feature, a file can either be `public`, or `private`. Files set to `private` will require a valid identity to be present in the request. To keep track of the user's credentials, we're storing the `idToken`, which is otherwise sent via HTTP headers, into a cookie, set on the API domain. 
+
+<Image src={fmAccessControl} alt="File Manager - Access Control" />
