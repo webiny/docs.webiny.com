@@ -79,6 +79,25 @@ With this release, you'll notice that your `tsconfig.build.json` file now simply
 }
 ```
 
+### File Manager - New File Delivery Mechanism
+
+This release marks a big step in how Webiny handles file delivery, in terms of how flexible it now is. Until now, file delivery was a very rigid, hardcoded process, where you could only serve files off S3 without any additional logic, you couldn't control cache headers, change how files are transformed, none of that.
+
+With this release, we've completely rewritten the entire file delivery. The new delivery mechanism is connected to the entire Webiny SDK, and you can now write your own routing, resolution, and delivery logic (including caching and transformation). From within the File Delivery Lambda, you are now free to interact with Headless CMS, Security, or any other Webiny app. Your custom plugins will also exist in the execution context of the File Delivery Lambda function.
+
+After upgrading to 5.39.0, you won't notice any differences comparing to your current setup. But under the hood, there's a lot going on, and we will dedicate some documentation articles to explain how you can customize the file delivery.
+
+<Alert type="info" title="What do I need to do?">
+
+  If you're just using Webiny without any customizations to the File Manager, just go through the
+  upgrade process, and you're good to go. 
+  
+  If you're generating files in the S3 bucket beyond what
+  Webiny does via its File Manager, then we recommend you get in touch with us, and describe your
+  use case, so we can provide guidance on how to configure the routing for your custom files.
+
+</Alert>
+
 ## Deployments
 
 ### Introducing Support for Amazon OpenSearch Service ([#3612](https://github.com/webiny/webiny-js/pull/3612))
@@ -111,9 +130,9 @@ This was quite an update, with over **750** files changed in our repository, so 
 
 <Alert type="warning" title={"AWS SDK in AWS Lambda Functions"}>
 
-  In **Node.js 18.x** runtime, the default AWS SDK version is **v3**. See [the official AWS blog](https://aws.amazon.com/blogs/compute/node-js-18-x-runtime-now-available-in-aws-lambda/) for details. 
-  
-  We've updated our webpack bundling config to follow this change. This means that `aws-sdk@2` is no longer excluded from bundling. Instead, `@aws-sdk/*` packages are now excluded from bundling, since these are always available in the Lambda runtime.
+In **Node.js 18.x** runtime, the default AWS SDK version is **v3**. See [the official AWS blog](https://aws.amazon.com/blogs/compute/node-js-18-x-runtime-now-available-in-aws-lambda/) for details.
+
+We've updated our webpack bundling config to follow this change. This means that `aws-sdk@2` is no longer excluded from bundling. Instead, `@aws-sdk/*` packages are now excluded from bundling, since these are always available in the Lambda runtime.
 
 </Alert>
 
@@ -150,16 +169,6 @@ import { DrawerRight, DrawerLeft } from "@webiny/ui/Drawer";
 
 To find more details and code samples, visit the [PR](https://github.com/webiny/webiny-js/pull/3778).
 
-## File Manager
-
-### New Asset Delivery Mechanism
-
-This release marks a big step in how Webiny handles file delivery, in terms of how flexible it now is. Until now, file delivery was a very rigid, hardcoded process, where you could only serve files off S3 without any additional logic, you couldn't control cache headers, change how assets are transformed, none of that.
-
-With this release, we've completely rewritten the entire mechanism. The new delivery mechanism is connected to the entire Webiny SDK, and you can now write your own routing, resolution, and delivery logic (including caching and transformation). From within the Asset Delivery Lambda, you are now free to interact with Headless CMS, Security, or any other Webiny app. Your custom plugins will also exist in the execution context of the Asset Delivery Lambda function.
-
-After upgrading to 5.39.0, you won't notice any differences comparing to your current setup. But under the hood, there's a lot going on, and we will dedicate some documentation articles to explain how you can customize the asset delivery.
-
 ## Headless CMS
 
 ### Add support for rich text field output renderers ([#3835](https://github.com/webiny/webiny-js/pull/3835))
@@ -169,7 +178,6 @@ Rich text content has always been a challenge to handle, and it very much depend
 To make it easier to consume the data delivered through our Headless CMS, we've added support for rich text field renderers on the API side. By default, we provide HTML output for the default Lexical editor, but you can decorate the default implementation, and even add a custom one. You might even want to output Markdown, which is now possible.
 
 <Image src={hcmsRteHtmlOutput} alt="Headless CMS - RTE Field Output as HTML" />
-
 
 ### Edit File in Content Entry Form ([#3823](https://github.com/webiny/webiny-js/pull/3823))
 
@@ -207,12 +215,12 @@ This release added various new features which do not run on every request to the
 
 You're welcome to analyze your custom code, and see which parts of your plugins could be good candidates for code splitting.
 
-## Enterprise 
+## Enterprise
 
 ### Private Files
 
 Private Files is a new feature, which is a part of the [Advanced Access Control Layer (AACL)](/docs/enterprise/aacl/introduction) set of features, available with the Webiny Enterprise license. This feature allows you to protect the files, managed via the File Manager, from unauthorized access.
 
-In this first iteration of the feature, a file can either be `public`, or `private`. Files set to `private` will require a valid identity to be present in the request. To keep track of the user's credentials, we're storing the `idToken`, which is otherwise sent via HTTP headers, into a cookie, set on the API domain. 
+In this first iteration of the feature, a file can either be `public`, or `private`. Files set to `private` will require a valid identity to be present in the request. To keep track of the user's credentials, we're storing the `idToken`, which is otherwise sent via HTTP headers, into a cookie, set on the API domain.
 
 <Image src={fmAccessControl} alt="File Manager - Access Control" />
