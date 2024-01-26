@@ -4,12 +4,9 @@ title: Background Tasks
 description: You will learn about Background Tasks, how to create new definitions, how to trigger them and how to handle the task run.
 ---
 
-
-
 import {Alert} from "@/components/Alert";
 import {CanIUseThis} from "@/components/CanIUseThis";
 import {WhatYouWillLearn} from "@/components/WhatYouWillLearn";
-
 import backgroundTaskStepFunction from "./backgroundTasks/bg-task-step-function.png";
 
 <Alert type="danger" title="Use with caution!">
@@ -20,9 +17,9 @@ import backgroundTaskStepFunction from "./backgroundTasks/bg-task-step-function.
 
 <WhatYouWillLearn>
 
-- How Background Tasks work.
-- How to define your own Background Task.
-- What to be careful about.
+- how Background Tasks work
+- how to define your own Background Task
+- what to be careful about
 
 </WhatYouWillLearn>
 
@@ -31,15 +28,19 @@ import backgroundTaskStepFunction from "./backgroundTasks/bg-task-step-function.
 In the 5.39.0 version of Webiny we have introduced a Background Task feature.
 This feature enables our users to run operations which take a long time to finish - more than available 15 minutes timeout of the AWS Lambda.
 
+The Background Task run limit is 1 year, which is the maximum execution time for the AWS Step Function.
+
 This functionality uses the AWS Event Bridge, AWS Step Function and AWS Lambda to run the Background Tasks.
 
-The Background Task Lambda code is same as the one in our GraphQL API, with more memory assigned to it.
+<Alert type="warning" title="AWS Lambda Timeout">
+  AWS Lambda has a maximum timeout of 15 minutes. If you think your code takes longer than 15 minutes to finish, you must split it into smaller chunks. Read more about it <a href="#the-is-close-to-timeout-method">here</a>.
+</Alert>
 
 ## How It Works
 
-1. A user can trigger the task either via API call or directly via the code.
+1. A user can trigger the task either via [GraphQL API mutation](#trigger-a-background-task) or directly via the [code](#).
 2. As soon as the task is triggered, Webiny sends an EventBridge Event with task information: task ID and definition identifier.
-3. The EventBridge Event triggers the Step Function.
+3. The EventBridge triggers the Step Function.
 4. The Step Function runs the Lambda function in a loop until the task is done.
 
 ### Step Function Definition
@@ -110,15 +111,15 @@ Possible response statuses are:
 
 ##### Done Status
 
-This status signalizes that the Background Task Lambda handler has finished its job and that the Step Function should finish as well.
+This status signalizes that the Background Task Lambda handler has finished its job and that the Step Function will finish as well.
 
 ##### Error Status
 
-This status signalizes that the Background Task Lambda handler has finished its job with an error and that the Step Function should finish as well, in an error state.
+This status signalizes that the Background Task Lambda handler has finished its job with an error and that the Step Function will finish as well, in an error state.
 
 ##### Aborted Status
 
-This status signalizes that the Background Task Lambda handler has finished its job with an abort and that the Step Function should finish as well, in an abort state.
+This status signalizes that the Background Task Lambda handler has finished its job with an abort and that the Step Function will finish as well, in an abort state.
 
 ##### Continue Status
 
@@ -156,7 +157,7 @@ The step function will finish in a success state.
 
 #### Aborted
 
-This state is called when the Step Function Background Task Lambda handler returns an aborted status, and the `CheckStatus` state determines that the status is aborted.
+This state is called when the Step Function Background Task Lambda handler returns an abort status, and the `CheckStatus` state determines that the status is aborted.
 
 The step function will finish in a success state, as the abort state was triggered by the user.
 
@@ -221,7 +222,7 @@ In the examples we will provide, we will use the public task definition, as the 
 
 ### Handling The Task Run
 
-When you define the task, you need to provide the `run` method, as it is the method getting executed when the task is being handled.
+When you define the task, you need to provide the `run` method, as it is the method getting executed when the task is being executed.
 The `run` method receives an object parameter with the following variables, defined in the interface [`ITaskRunParams`](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/tasks/src/types.ts#L241) :
 
 - context
@@ -231,10 +232,10 @@ The `run` method receives an object parameter with the following variables, defi
 - isAborted
 - store
 
-#### The `context` Variable
+#### The `context` Object
 
-Via the `context` variable, you can access whole Webiny system.
-The base interface of the `context` variable is [Context](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/tasks/src/types.ts#L237), but you can pass your own, which must extend the base interface.
+Via the `context` object, you can access whole Webiny system.
+The base interface of the `context` object is [Context](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/tasks/src/types.ts#L237), but you can pass your own, which must extend the base interface.
 
 You can pass your own interface/type of the `context` variable when defining the task:
 ```typescript
@@ -251,9 +252,9 @@ const myTask = createTaskDefinition<MyCustomContext>({
 });
 ```
 
-#### The `input` Variable
+#### The `input` Object
 
-The `input` variable is the input which was sent to the task when it was triggered.
+The `input` object is the input which was sent to the task when it was triggered.
 
 By default, it is of plain object type `Record<string, any>`, but you can pass your own type/interface when defining the task:
 ```typescript
@@ -274,9 +275,9 @@ const myTask = createTaskDefinition<MyCustomContext, MyCustomInput>({
 });
 ```
 
-#### The `response` Variable
+#### The `response` Object
 
-The `response` variable handles the output from the task run.
+The `response` object handles the output from the task run.
 Available methods are:
 - done
 - continue
@@ -285,7 +286,7 @@ Available methods are:
 
 ##### The `done` Method
 
-This method signalizes that the task has finished its job and that the Step Function should finish as well.
+This method signalizes that the task has finished its job and that the Step Function will finish as well.
 It also signalizes that task status should be set to `success`. Optional message will be stored as well.
 ```typescript
 import {createTaskDefinition} from "@webiny/tasks";
@@ -331,12 +332,12 @@ const myTask = createTaskDefinition({
 ```
 
 <Alert type="danger">
-  If you are setting waiting time for the `continue` method, note that the maximum waiting time is 355 days, which is almost the maximum time for the AWS Step Function.
+  If you are setting waiting time for the `continue` method, note that the maximum waiting time is 355 days, which is almost the maximum life time for the AWS Step Function.
 </Alert>
 
 ##### The `error` Method
 
-This method signalizes that the task has finished its job with an error and that the Step Function should finish as well, in an error state.
+This method signalizes that the task has finished its job with an error and that the Step Function will finish as well, in an error state.
 It also signalizes that task status should be set to `error`.
 ```typescript
 import {createTaskDefinition} from "@webiny/tasks";
@@ -356,11 +357,11 @@ const myTask = createTaskDefinition({
 });
 ````
 
-##### The `aborted` Method
+##### The `abort` Method
 
 This method signalizes that the task was aborted by the user. Note that this is not an error, but a user triggered abort.
 
-When you write your code, you must check if the task was aborted via the `isAborted()` method, and if it was, you must return the `aborted` response.
+When you write your code, you must check if the task was aborted via the `isAborted()` method, and if it was, you must return the `abort` response.
 This is meant to be used while the task has some code which loops continuously, like reading a lot of records from the database, with paginating through the records.
 
 ```typescript
@@ -385,7 +386,368 @@ const myTask = createTaskDefinition({
 });
 ````
 
+#### The `isCloseToTimeout` Method
 
+The `isCloseToTimeout` method is a method which returns a boolean value, which tells you if the Lambda instance is close to the timeout.
+This is useful when you have a lot of code to run, or you have some idea that the code will take some time to execute, and you want to check if you have enough time to finish the code execution.
+
+```typescript
+import {createTaskDefinition} from "@webiny/tasks";
+
+interface MyInput {
+    after?: null | undefined;
+}
+
+const myTask = createTaskDefinition<Context, MyInput>({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run({response, isCloseToTimeout, input}) {
+        let dbReadParams = {
+            ...input,
+        };
+        let result: DbResponse;
+        while ((result = await listFromDb(dbReadParams))) {
+          // do your magic...
+          
+          // assign the cursor to the after property of the dbReadParams
+          dbReadParams.after = result.cursor;
+          if (isCloseToTimeout()) {
+              // on next iteration, we want to continue with new dbReadParams 
+              return response.continue(dbReadParams);
+          }
+          // continue with the loop
+        }
+        return response.done();
+    }
+});
+```
+
+The `isCloseToTimeout` method accepts an optional parameter, which is a number of seconds under which will this method return `true`. The default is `180` seconds.
+
+<Alert type="warning">
+
+  As a developer, you are responsible for checking if the task is close to the timeout, and for handling the task run accordingly.
+
+  Webiny provides you with the background task mechanism, but you must handle the task run, and timeouts, yourself.
+
+</Alert>
+
+#### The `isAborted` Method
+
+The `isAborted` method is a method which returns a boolean value, which tells you if the task was aborted by the user.
+
+```typescript
+import {createTaskDefinition} from "@webiny/tasks";
+
+const myTask = createTaskDefinition({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run({response, isAborted, input}) {
+        let dbReadParams = {
+            ...input,
+        };
+        let result: DbResponse | null = null;
+        while ((result = await listFromDb(dbReadParams))) {
+          if (isAborted()) {
+              return response.abort();
+          }
+          // continue with the loop
+        }
+        return response.done();
+    }
+});
+````
+
+#### The `store` Object
+
+The `store` object is of `ITaskManagerStore` interface type, which is defined [here](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/tasks/src/runner/abstractions/TaskManagerStore.ts#L42).
+
+It is used for storing and retrieving data from the task run, including task logs.
+
+Available methods on the object are:
+- `getTask`
+- `getStatus`
+- `updateTask`
+- `updateInput`
+- `getInput`
+- `addInfoLog`
+- `addErrorLog`
+
+### Logging
+
+Because the Background Task Lambda handler can be executed multiple times, depending on the developer response, the logging has been implemented on per iteration base.
+
+It means that each of the execution iteration gets its own record, which contain individual logs from that execution iteration.
+
+<Alert type="warning" title="Logging">
+
+  Do not use the `addInfoLog` and `addErrorLog` methods for a lot of logging, or logging large amounts of data.
+  
+  The logs are stored in the database as you send them, and if you send a lot of logs, or large logs, you will hammer the database.
+  
+  Use the logs only for important information, like starting/finishing a part of a task.
+
+</Alert>
+
+## GraphQL API
+
+The Background Tasks do not have a section in the Admin UI yet, so they are accessible only via the GraphQL API.
+
+### List All Background Task Definitions
+
+```graphql
+query ListTaskDefinitions {
+  backgroundTasks {
+    listDefinitions {
+      data {
+        id
+        title
+        description
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### List All Background Task Runs
+```graphql
+query ListTasks {
+  backgroundTasks {
+    listTasks {
+      data {
+        id
+        startedOn
+        finishedOn
+        name
+        definitionId
+        executionName
+        eventResponse
+        taskStatus
+        input
+        # ... more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### Trigger a Background Task
+
+```graphql
+mutation TriggerATask {
+  backgroundTasks {
+    triggerTask(definition: testingRun, input: {
+      someVariableForTestingRunTaskToReceive: "someValue",
+      yetAnotherVariableForTestingRunTaskToReceive: "anotherValue"
+    }) {
+      data {
+        id
+        # ... more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### Abort a Background Task
+
+```graphql
+mutation AbortATask {
+  backgroundTasks {
+    # message is optional
+    abortTask(id: "yourTaskId", message: "My Reason for aborting the task") {
+      data {
+        id
+        # ... more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### List Background Task Logs
+
+```graphql
+query ListBackgroundTaskLogs {
+  backgroundTasks(where: {
+    # you can list logs from a certain task if you like
+    task: "yourTaskId"
+  }) {
+    listLogs {
+      data {
+        id
+        createdOn
+        task {
+          id
+          name
+        }
+        executionName
+        iteration
+        items {
+          message
+          createdOn
+          type
+          data
+          error
+        }
+      }
+    }
+  }
+}
+```
+
+## Code API
+
+For examples, we will assume you are somewhere in the code where you have access to the Webiny `context` object.
+
+### List All Background Task Definitions
+
+```typescript
+const results = await context.tasks.listDefinitions();
+```
+
+### List All Background Task Runs
+
+```typescript
+const results = await context.tasks.listTasks({
+    // all properties are optional
+    where: {},
+    sort: [],
+    limit: 100,
+    after: null
+});
+```
+
+### Trigger a Background Task
+
+```typescript
+const result = await context.tasks.trigger({
+    definition: "myTaskDefinition",
+    // optional input for the task run
+    input: {
+        variableToPassAsInput: "someValue"
+    },
+    // optional name for the task run
+    name: "My Custom Task Name"
+});
+```
+
+### Abort a Background Task
+
+```typescript
+const result = await context.tasks.trigger({
+    id: "yourTaskId",
+    // optional message
+    message: "My Reason for aborting the task"
+});
+```
+
+### List Background Task Logs
+
+```typescript
+const results = await context.tasks.listLogs({
+    // all properties are optional
+    where: {},
+    sort: [],
+    limit: 100,
+    after: null
+});
+```
+
+## Built-in Background Tasks
+
+Webiny ships with a few of built-in Background Tasks. Some of them are used only internally (like clearing Cloudfront file cache), and some of them can be used publicly (Elasticsearch reindexing).
+
+### Test Task
+
+The test task is a task which is used for testing the Background Task mechanism.
+Its definition is available [here](https://github.com/webiny/webiny-js/blob/de38392959f2692d1feb08945a3588cd80e4924c/packages/tasks/src/tasks/testingRunTask.ts#L3).
+
+
+### Elasticsearch Reindexing Task
+
+<Alert type="info" title="Elasticsearch And OpenSearch Only!">
+  This task will only get shipped with Elasticsearch and OpenSearch Webiny system.
+</Alert>
+
+
+The Elasticsearch/OpenSearch Reindexing is the first task we implemented via the Background Task mechanism.
+Basically, it is a task which scans through the DynamoDB Elasticsearch table and pushes the data into the specific Elasticsearch/OpenSearch index.
+Internally it is a bit more than that, but this is the basic idea. You can check the [definition](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/api-elasticsearch-tasks/src/tasks/reindexing/reindexingTaskDefinition.ts#L12) and the [runner](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/api-elasticsearch-tasks/src/tasks/reindexing/ReindexingTaskRunner.ts#L40) code for more information.
+
+The task can be triggered either via code or via the GraphQL API.
+
+#### Triggering the Task Via Code
+
+Let's say that you have a Page Builder lifecycle event hook which triggers the task when the page is published, but only on index which contains the word `page` in its name.
+```typescript
+const myHook = () => {
+    return new ContextPlugin(async(context) => {
+        context.pageBuilder.onPageAfterPublish(async() => {
+            await context.tasks.trigger({
+                definition: "elasticsearchReindexing",
+                input: {
+                    matching: "page"
+                }
+            });
+        })
+    });
+};
+```
+
+#### Triggering The Task Via GraphQL API
+
+The task can be triggered via the GraphQL API, with the following mutation:
+```graphql
+mutation TriggerTask {
+  backgroundTasks {
+    triggerTask(definition: elasticsearchReindexing, input: {
+      matching: "page"
+    }) {
+      data {
+        id
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+The task disables indexing on all matching indexes, and enables it when the task is finished.
+This is done to reduce the strain on the Elasticsearch/OpenSearch cluster as the reindexing operation is a heavy one.
+
+## Permissions
+
+To run, abort, list and view the Background Tasks, the user must have a `Full Access`. In future releases we will fine grain the permissions.
 
 <Alert title="Resumable Background Tasks" type="warning">
   Currently, Background Tasks are not using the Task Token, so they are not resumable. We will be
