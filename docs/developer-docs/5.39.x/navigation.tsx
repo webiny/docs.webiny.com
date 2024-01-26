@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigation as BaseNavigation } from "../5.38.x/navigation";
-import { Group, Page, NavigationRoot } from "@webiny/docs-generator";
+import { Group, NavigationRoot, Page } from "@webiny/docs-generator";
 
 export const Navigation = () => {
   return (
@@ -28,8 +28,8 @@ export const Navigation = () => {
         <Group title={"Page Builder"}>
           <Group title={"Extending Functionality"}>
             <Page
-                link={"page-builder/extending/customize-page-list-actions"}
-                before={"page-builder/extending/customize-page-bulk-actions"}
+              link={"page-builder/extending/customize-page-list-actions"}
+              before={"page-builder/extending/customize-page-bulk-actions"}
             />
           </Group>
         </Group>
@@ -43,6 +43,11 @@ export const Navigation = () => {
               link={"file-manager/extending/customize-file-list-table-columns"}
               after={"file-manager/extending/customize-file-bulk-actions"}
             />
+          </Group>
+        </Group>
+        <Group title={"Core Development Concepts"}>
+          <Group title={"Basics"}>
+            <Page link={"core-development-concepts/basics/background-tasks"} />
           </Group>
         </Group>
       </NavigationRoot>

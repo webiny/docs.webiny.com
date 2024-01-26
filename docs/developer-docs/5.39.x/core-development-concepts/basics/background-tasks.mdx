@@ -1,0 +1,164 @@
+---
+id: 8f6fo7e4
+title: Background Tasks
+description: You will learn about Background Tasks, how to create new definitions, how to trigger them and how to handle the task run.
+---
+
+import { Alert } from "@/components/Alert";
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+
+import backgroundTaskStepFunction from "./backgroundTasks/bg-task-step-function.png";
+
+<Alert type="danger" title="Use with caution!">
+  This feature is experimental and is subject to change in future releases.
+</Alert>
+
+<CanIUseThis since={"5.39.0"} />
+
+<WhatYouWillLearn>
+
+- How Background Tasks work.
+- How to define your own Background Task.
+- What to be careful about.
+
+</WhatYouWillLearn>
+
+## About
+
+In the 5.39.0 version of Webiny we have introduced a Background Task feature.
+This feature enables our users to run operations which take a long time to finish - more than available 15 minutes timeout of the AWS Lambda.
+
+This functionality uses the AWS Event Bridge, AWS Step Function and AWS Lambda to run the Background Tasks.
+
+The Background Task Lambda code is same as the one in our GraphQL API, with more memory assigned to it.
+
+## How It Works
+
+1. A user can trigger the task either via API call or directly via the code.
+2. As soon as the task is triggered, Webiny sends an EventBridge Event with task information: task ID and definition identifier.
+3. The EventBridge Event triggers the Step Function.
+4. The Step Function runs the Lambda function in a loop until the task is done.
+
+### Step Function Definition
+
+We defined our Step Function as simple as possible, with a lot of error handling, as we did not want to have complex logic in the Step Function itself.
+
+The Pulumi definition for the Step Function is available [here](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/pulumi-aws/src/apps/api/backgroundTask/definition.ts#L13).
+
+<Image src={backgroundTaskStepFunction} alt="Background Task Step Function Definition" />
+
+### Step Function States
+
+#### TransformEvent
+
+This state is responsible for transforming the EventBridge Event into the Background Task Lambda handler input.
+
+It is required as we want to have simple Background Task Lambda handler input, without any additional information.
+This is what the Step Function receives from the EventBridge:
+
+```json
+{
+  "version": "0",
+  "id": "37eb2fb9-6c54-48cf-afba-e0ea2988305a",
+  "detail-type": "WebinyBackgroundTask",
+  "source": "webiny-api-tasks",
+  "account": "xxxxxxxxxxx",
+  "time": "2024-01-1T15:30:00Z",
+  "region": "eu-central-1",
+  "resources": [],
+  "detail": {
+    "webinyTaskId": "65b26a4af5a5d9fc684af039",
+    "webinyTaskDefinitionId": "myTaskDefinition",
+    "tenant": "root",
+    "locale": "en-US"
+  }
+}
+```
+
+and this is what we need to run a Background Task Lambda handler:
+
+```json
+{
+  "webinyTaskId": "65b26a4af5a5d9fc684af039",
+  "webinyTaskDefinitionId": "myTaskDefinition",
+  "locale": "en-US",
+  "tenant": "root"
+}
+```
+
+So, basically, this state is responsible for removing all the unnecessary information from the EventBridge Event.
+
+#### Run
+
+This state is responsible for running the Background Task Lambda. It runs the Lambda, with the input from the previous state, and waits for the response.
+
+When it receives a response from the Lambda handler, it is sent to the `CheckStatus` state.
+
+#### CheckStatus
+
+This state is responsible for checking the status of the Background Task Lambda Handler response.
+
+Possible response statuses are:
+
+- done
+- error
+- aborted
+- continue
+
+##### Done Status
+
+This status signalizes that the Background Task Lambda handler has finished its job and that the Step Function should finish as well.
+
+##### Error Status
+
+This status signalizes that the Background Task Lambda handler has finished its job with an error and that the Step Function should finish as well, in an error state.
+
+##### Aborted Status
+
+This status signalizes that the Background Task Lambda handler has finished its job with an abort and that the Step Function should finish as well, in an abort state.
+
+##### Continue Status
+
+This status signalizes that the Background Task Lambda handler has not finished its job and that the Step Function should continue running the Lambda handler.
+
+When user ends current execution of the Background Task Lambda handler, they can also include a waiting time for the next handler run.
+This can be used when the task needs to wait for some external service to finish its job, before the next handler run.
+The task must contain the logic for checking if the external service has finished its job, and continue the task execution accordingly.
+
+#### UnknownError
+
+This state is called when the Step Function Background Task Lambda handler has an unknown error (`Run` state).
+This should not happen as the Webiny code always returns a proper response, and everything is wrapped in a `try/catch` block - with the error response in the catch block.
+
+But, if it happens, for some really strange reason, the Step Function will finish in an error state.
+
+#### UnknownStatus
+
+This state is called when the Step Function Background Task Lambda handler returns an unknown status, and the `CheckStatus` state determines that the status is unknown.
+This should not happen as the Webiny code gives all the tools to the user to return a proper response, and everything is wrapped in a `try/catch` block - with the error response in the catch block.
+
+But, if it happens, for some really strange reason, the Step Function will finish in an error state.
+
+#### Error
+
+This state is called when the Step Function Background Task Lambda handler returns an error status, and the `CheckStatus` state determines that the status is error.
+
+The Step function will finish in an error state.
+
+#### Done
+
+This state is called when the Step Function Background Task Lambda handler returns a done status, and the `CheckStatus` state determines that the status is done.
+
+The step function will finish in a success state.
+
+#### Aborted
+
+This state is called when the Step Function Background Task Lambda handler returns an aborted status, and the `CheckStatus` state determines that the status is aborted.
+
+The step function will finish in a success state, as the abort state was triggered by the user.
+
+<Alert title="Resumable Background Tasks" type="warning">
+  Currently, Background Tasks are not using the Task Token, so they are not resumable. We will be
+  working on the solution for this in the future.
+</Alert>
