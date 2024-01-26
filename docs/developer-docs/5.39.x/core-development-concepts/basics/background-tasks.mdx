@@ -196,7 +196,7 @@ const myPublicTaskDefinition = createTaskDefinition({
     title: "A Task Accessible Via API",
     async run(params) {
         // your code here
-    }
+    },
 });
 // private task
 const myPrivateTaskDefinition = createPrivateTaskDefinition({
@@ -215,6 +215,19 @@ export const handler = createHandler({
         myPublicTaskDefinition,
         myPrivateTaskDefinition
     ]
+});
+```
+
+#### Advanced Definition
+
+```typescript
+const myPublicTaskDefinition = createTaskDefinition({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run(params) {
+        // your code here
+    },
+    maxIterations: 1000,// default is 500
 });
 ```
 
@@ -744,6 +757,33 @@ mutation TriggerTask {
 
 The task disables indexing on all matching indexes, and enables it when the task is finished.
 This is done to reduce the strain on the Elasticsearch/OpenSearch cluster as the reindexing operation is a heavy one.
+
+## What To Be Careful About
+
+### Lambda Timeout
+
+AWS Lambda can run up to 15 minutes. Webiny provides a mechanism for checking on how much time is there left before the Lambda times out, but it is up to the developer to use it. You can read about it [here](#the-is-close-to-timeout-method).
+
+### Step Function Timeout
+
+AWS Step Function can live up to 1 year. This is the maximum time for the Step Function, set by AWS, and it cannot be increased.
+
+### Step Function Execution Limit
+
+AWS Step Function has a hard limit of 25,000 state changes - executions. It cannot be increased.
+
+### Step Function State Change Limit
+
+AWS Step Function does not provide a built-in mechanism to limit the number of state changes on each task run.
+
+This means that a task can go into the loop and execute up to 25,000 times, which is something that we want to avoid, or at least, control it.
+
+What Webiny does to help with this is count the number of the Lambda handler executions, and if the number is greater than defined, it will end the task with an error.
+
+Default limit: `500`.
+
+To change the limit, see [`maxIterations`](#how-to-define-a-background-task) parameter when defining the Background Task.
+
 
 ## Permissions
 
