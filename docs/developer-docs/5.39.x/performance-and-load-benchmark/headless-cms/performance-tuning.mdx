@@ -1,5 +1,5 @@
 ---
-id: aafeaa3d
+id: 55bd859f
 title: Performance Tuning
 description: How to tune Webiny Headless CMS performance for speed, reliability and scale.
 ---
@@ -22,13 +22,13 @@ Webiny, being built on top of a serverless infrastructure, takes the advantage o
 
 The main bottleneck we found when we stress-tested Webiny by inserting millions of records with thousands of user requests in parallel, is that it's the communication between DynamoDB and the OpenSearch cluster that should be tuned to match your traffic patterns. We say patterns because the tuning might differ if you're focused more on read operations than write operations, as well as the record sizes and frequency, many small-record writes, vs many big-record writes.
 
-In addition to the database side of things, the one additional item to consider is the burst capacity of AWS Lambda functions - which is an AWS hard limit and cannot be changed.
+In addition to the database side of things, the one additional item to consider is the burst capacity of Lambda functions - which is an AWS hard limit and cannot be changed.
 
-In this article, we'll focus on tuning the OpenSearch cluster, the DynamoDB Streams configuration and the AWS Lambda burst capacity. These are the only components you should tweak, while all others will handle and scale to your loads automatically.
+In this article, we'll focus on tuning the OpenSearch cluster, the DynamoDB Stream configuration and the Lambda burst capacity. These are the only components you should tweak, while all others will handle and scale to your loads automatically.
 
-### AWS Lambda burst capacity
+### Lambda burst capacity
 
-It's important to get yourself familiarized with how AWS Lambda functions scale. There are two parts to how they scale, the first is the "burst capacity". That's the most important one as that one **cannot be changed** and has a fixed value that depends on the AWS region where you deployed Webiny. The burst capacity determines the maximum amount of concurrent Lambda function executions for your initial period. That's like your 0 to 60 speed.
+It's important to get yourself familiarized with how Lambda functions scale. There are two parts to how they scale, the first is the "burst capacity". That's the most important one as that one **cannot be changed** and has a fixed value that depends on the AWS region where you deployed Webiny. The burst capacity determines the maximum amount of concurrent Lambda function executions for your initial period. That's like your 0 to 60 speed.
 
 The key here is to pick the right AWS region as the burst capacity differs drastically between some regions. Here's the list of the current burst capacity values per AWS region:
 
@@ -38,7 +38,7 @@ The key here is to pick the right AWS region as the burst capacity differs drast
 
 Once you are at the burst capacity, your functions will still scale in their concurrency, but at a slower pace, which is **500 additional instances each minute.** This is why it's important to pick a region with a higher burst capacity so that you have more room till you hit this 500 instances per minute threshold.
 
-The last important factor to mention about scaling AWS Lambda functions is that every AWS account gets a limit of 1,000 concurrent Lambda executions by default. This is counted across all of your AWS Lambda functions inside a single AWS region. This limit can be increased by raising a request inside your [AWS Service Quotas Dashboard](https://console.aws.amazon.com/servicequotas/home)
+The last important factor to mention about scaling Lambda functions is that every AWS account gets a limit of 1,000 concurrent Lambda executions by default. This is counted across all of your Lambda functions inside a single AWS region. This limit can be increased by raising a request inside your [AWS Service Quotas Dashboard](https://console.aws.amazon.com/servicequotas/home)
 
 **References:**
 
@@ -47,19 +47,11 @@ The last important factor to mention about scaling AWS Lambda functions is that 
 - https://aws.amazon.com/blogs/compute/understanding-aws-lambda-scaling-and-throughput/
 - https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html
 
-### DynamoDB Streams
+### DynamoDB Stream
 
-By default, in Webiny, all the API write requests only hit Amazon DynamoDB, regardless if you're using the Amazon DynamoDB or Amazon DynamoDB + Amazon OpenSearch database setup. 
+By default, in Webiny, all the API write requests only hit DynamoDB, regardless if you're using the DynamoDB-only instance, or the one with OpenSearch. This is because OpenSearch doesn't scale well when there's a big spike in write requests. Using DynamoDB to shield the OpenSearch cluster is a design decision that helps us scale Webiny to very large amounts of traffic.
 
-<Alert type="info">
-
-  Learn more about the different database setups in the Cloud Architecture's [introduction](/docs/{version}/architecture/introduction#different-database-setups) section.
-
-</Alert>
-
-This is because, in general, OpenSearch doesn't scale well when there's a big spike in write requests. Using Amazon DynamoDB to shield the OpenSearch cluster is a design decision that helps us scale Webiny to very large amounts of traffic.
-
-The data records, once written inside DynamoDB, get copied to OpenSearch in the background through [DynamoDB Streams](https://aws.amazon.com/blogs/compute/indexing-amazon-dynamodb-content-with-amazon-elasticsearch-service-using-aws-lambda/). Essentially, Amazon DynamoDB triggers an AWS Lambda function and gives it several last records that were written to DynamoDB, and then that function does a bulk-write request to OpenSearch.
+The data records, once written inside DynamoDB, get copied to OpenSearch in the background through a DynamoDB Stream. Essentially DynamoDB will trigger a Lambda function and give it several last records that were written to DynamoDB, and then that Lambda function does a bulk-write request to OpenSearch.
 
 This mechanism triggers with a delay, which is intentional. The delay is determined by configuring two parameters on DynamoDB Stream:
 
@@ -82,7 +74,7 @@ import { isResourceOfType } from "@webiny/pulumi";
 const PRODUCTION_ENVIRONMENTS = ["staging", "prod"];
 
 export default createCoreApp({
-  openSearch: true,
+  elasticSearch: true,
   pulumi: app => {
     // Let's apply configuration changes only for production-like environments (`staging` and `prod`).
     const environment = app.params.run["env"];
@@ -91,12 +83,12 @@ export default createCoreApp({
     }
 
     app.onResource(resource => {
-      // Adjust DynamoDB -> Amazon OpenSearch stream.
-      const isDynamoToOpenSearchEventSourceMapping =
+      // Adjust DynamoDB -> Amazon Elasticsearch stream.
+      const isDynamoToElasticEventSourceMapping =
         isResourceOfType(resource, aws.lambda.EventSourceMapping) &&
         resource.name === "dynamo-to-elastic";
 
-      if (isDynamoToOpenSearchEventSourceMapping) {
+      if (isDynamoToElasticEventSourceMapping) {
         // Increase the batch size and batching window.
         resource.config.batchSize(500);
         resource.config.maximumBatchingWindowInSeconds(30);
@@ -115,20 +107,20 @@ export default createCoreApp({
 - https://docs.aws.amazon.com/lambda/latest/dg/with-ddb.html#services-dynamodb-eventsourcemapping
 - https://github.com/webiny/webiny-js/blob/dev/packages/pulumi-aws/src/apps/core/CoreOpenSearch.ts#L212
 
-### Amazon OpenSearch Service
+### Elasticsearch Cluster
 
-Finally, the last component to tune is the settings of the cluster Amazon OpenSearch Service deploys. This consists of two steps:
+Finally, the last component to tune is the Elasticsearch cluster, which consists of two steps:
 
 1. correctly sizing the cluster
 2. updating the index refresh interval
 
 In the following text, we cover these two topics in more detail.
 
-#### OpenSearch Cluster Size
+#### Elasticsearch Cluster Size
 
-For production instances, we highly recommend having a multi-zone deployment. By default, if you deploy Webiny in [production deployment mode](/docs/architecture/introduction#development-and-production-deployment-modes) (i.e. with `--env=prod`), Webiny will automatically create a cluster in two availability zones, where each zone has one instance that's a type of `t3.medium.search`, that should be suitable for small to medium size projects. For all other environments, we deploy a single `t3.small.search` instance, which is only suitable for development purposes and shouldn't be used in production.
+For production instances, we highly recommend having a multi-zone deployment. By default, if you deploy Webiny with `--env=prod` flag, Webiny will automatically create a cluster in 2 availability zones, where each zone has 1 instance that's a type of `t3.medium.search`, this should be suitable for small to medium size projects. For all other environments, we deploy a single `t3.small.elasticsearch` instance, which is only suitable for development purposes and shouldn't be used in production.
 
-For larger projects, we recommend you scale up your OpenSearch cluster to something with more capacity. You can look at our [Headless CMS benchmark](/docs/{version}/performance-and-load-benchmark/headless-cms/write-benchmark) where we compare several different cluster configurations to get a sense of what might best suit your needs. Note that the benchmark has been performed with Amazon ElasticSearch Service, but the results are applicable to Amazon OpenSearch Service as well.
+For any larger projects, we recommend you scale up your OpenSearch cluster to something with more capacity. You can look at our [Headless CMS benchmark](/docs/{version}/performance-and-load-benchmark/headless-cms/write-benchmark) where we compare several different cluster configurations to get a sense of what might best suit your needs.
 
 To update your OpenSearch cluster configuration, you can follow this example:
 
@@ -142,7 +134,7 @@ import { isResourceOfType } from "@webiny/pulumi";
 const PRODUCTION_ENVIRONMENTS = ["staging", "prod"];
 
 export default createCoreApp({
-  openSearch: true,
+  elasticSearch: true,
   pulumi: app => {
     // Let's apply configuration changes only for production-like environments (`staging` and `prod`).
     const environment = app.params.run["env"];
@@ -151,14 +143,14 @@ export default createCoreApp({
     }
 
     app.onResource(resource => {
-      // Adjust Amazon OpenSearch Service domain.
-      const isOpenSearchDomain = isResourceOfType(resource, aws.opensearch.Domain);
+      // Adjust Amazon Elasticsearch domain.
+      const isElasticsearchDomain = isResourceOfType(resource, aws.elasticsearch.Domain);
 
-      if (isOpenSearchDomain) {
+      if (isElasticsearchDomain) {
         // Set the instance type and number of instances.
         resource.config.clusterConfig(() => {
           return {
-            instanceType: "t3.small.search",
+            instanceType: "t3.small.elasticsearch",
             instanceCount: 2
           };
         });
