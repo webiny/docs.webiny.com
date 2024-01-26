@@ -4,9 +4,11 @@ title: Background Tasks
 description: You will learn about Background Tasks, how to create new definitions, how to trigger them and how to handle the task run.
 ---
 
-import { Alert } from "@/components/Alert";
-import { CanIUseThis } from "@/components/CanIUseThis";
-import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+
+
+import {Alert} from "@/components/Alert";
+import {CanIUseThis} from "@/components/CanIUseThis";
+import {WhatYouWillLearn} from "@/components/WhatYouWillLearn";
 
 import backgroundTaskStepFunction from "./backgroundTasks/bg-task-step-function.png";
 
@@ -91,7 +93,7 @@ So, basically, this state is responsible for removing all the unnecessary inform
 
 #### Run
 
-This state is responsible for running the Background Task Lambda. It runs the Lambda, with the input from the previous state, and waits for the response.
+This state is responsible for running the Background Task Lambda. It runs the Lambda, with the input from the previous state - either `TransformEvent` or previous `Run` state, and waits for the response.
 
 When it receives a response from the Lambda handler, it is sent to the `CheckStatus` state.
 
@@ -157,6 +159,233 @@ The step function will finish in a success state.
 This state is called when the Step Function Background Task Lambda handler returns an aborted status, and the `CheckStatus` state determines that the status is aborted.
 
 The step function will finish in a success state, as the abort state was triggered by the user.
+
+### Background Task Lambda Handler
+
+The Background Task Lambda is deployed with the same code as our GraphQL API Lambda code, with an exception having more memory assigned.
+
+This way all of your custom code is deployed within the Background Task Lambda as well.
+
+The response of the Background Task Lambda handler is plain JSON, with the following structure:
+
+```typescript
+status: "done" | "error" | "continue" | "aborted";
+webinyTaskId: string;
+webinyTaskDefinitionId: string;
+tenant: string;
+locale: string;
+```
+
+But users do not need to worry about the response structure, as it is handled by the tools which are provided in the task run.
+
+### How To Define A Background Task
+
+First, you need to know that there are two types of Background Tasks:
+- public ones - can be called via GraphQL API or the code
+- private ones - can be called only through the code
+
+Definition of the task is the same for both types of tasks, with a difference of the method name used to define the task:
+
+```typescript
+import { createTaskDefinition, createPrivateTaskDefinition } from "@webiny/tasks";
+
+// public task
+const myPublicTaskDefinition = createTaskDefinition({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run(params) {
+        // your code here
+    }
+});
+// private task
+const myPrivateTaskDefinition = createPrivateTaskDefinition({
+    id: "myPrivateTask",
+    title: "A Task Accessible Only Via The Code",
+    async run(params) {
+        // your code here
+    }
+});
+
+// of course, you must load the task definition in the plugins array in createHandler method.
+
+export const handler = createHandler({
+    plugins: [
+        // ...rest of plugins
+        myPublicTaskDefinition,
+        myPrivateTaskDefinition
+    ]
+});
+```
+
+In the examples we will provide, we will use the public task definition, as the code is the same for both types of tasks.
+
+### Handling The Task Run
+
+When you define the task, you need to provide the `run` method, as it is the method getting executed when the task is being handled.
+The `run` method receives an object parameter with the following variables, defined in the interface [`ITaskRunParams`](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/tasks/src/types.ts#L241) :
+
+- context
+- input
+- response
+- isCloseToTimeout
+- isAborted
+- store
+
+#### The `context` Variable
+
+Via the `context` variable, you can access whole Webiny system.
+The base interface of the `context` variable is [Context](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/tasks/src/types.ts#L237), but you can pass your own, which must extend the base interface.
+
+You can pass your own interface/type of the `context` variable when defining the task:
+```typescript
+import {createTaskDefinition} from "@webiny/tasks";
+import {MyCustomContext} from "./types";
+
+const myTask = createTaskDefinition<MyCustomContext>({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run({context}) {
+        // context is of type MyCustomContext
+        await context.yourCustomMethod();
+    }
+});
+```
+
+#### The `input` Variable
+
+The `input` variable is the input which was sent to the task when it was triggered.
+
+By default, it is of plain object type `Record<string, any>`, but you can pass your own type/interface when defining the task:
+```typescript
+import {createTaskDefinition} from "@webiny/tasks";
+import {MyCustomContext} from "./types";
+
+interface MyCustomInput {
+    myCustomProperty: string;
+}
+
+const myTask = createTaskDefinition<MyCustomContext, MyCustomInput>({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run({input}) {
+        // input is of type MyCustomInput
+        const {myCustomProperty} = input;
+    }
+});
+```
+
+#### The `response` Variable
+
+The `response` variable handles the output from the task run.
+Available methods are:
+- done
+- continue
+- error
+- aborted
+
+##### The `done` Method
+
+This method signalizes that the task has finished its job and that the Step Function should finish as well.
+It also signalizes that task status should be set to `success`. Optional message will be stored as well.
+```typescript
+import {createTaskDefinition} from "@webiny/tasks";
+
+const myTask = createTaskDefinition({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run({response}) {
+        return response.done("Optional message about the task getting done.");
+    }
+});
+```
+
+##### The `continue` Method
+
+This method signalizes that the task has not finished its job and that the Step Function should continue running the Lambda handler.
+
+Note that the `continue` method MUST receive some data, which is of same type as the input variable, as the first parameter.
+
+Why? Because the data you send into `continue` is the data you will receive on the next iteration of the task run as the `input` variable.
+
+The `continue` method accepts a second, optional, parameter via which you can set waiting time for the next task run.
+You can either send a `seconds` property, which takes a number, or a `date` property, which takes a `Date` object.
+
+```typescript
+import {createTaskDefinition} from "@webiny/tasks";
+
+const myTask = createTaskDefinition({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run({input, response}) {
+        return response.continue({
+            ...input,
+            aChangedInputProperty: 1,
+        },
+            // optional options
+        {
+            seconds: 30, // wait 30 seconds before the next task run
+            date: new Date("2024-02-25T00:00:00Z") // wait until the specified date before the next task run
+        });
+    }
+});
+```
+
+<Alert type="danger">
+  If you are setting waiting time for the `continue` method, note that the maximum waiting time is 355 days, which is almost the maximum time for the AWS Step Function.
+</Alert>
+
+##### The `error` Method
+
+This method signalizes that the task has finished its job with an error and that the Step Function should finish as well, in an error state.
+It also signalizes that task status should be set to `error`.
+```typescript
+import {createTaskDefinition} from "@webiny/tasks";
+
+const myTask = createTaskDefinition({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run({response}) {
+        return response.error({
+            message: "Error message",
+            code: "ERROR_CODE",
+            data: {
+                // optional data
+            }
+        });
+    }
+});
+````
+
+##### The `aborted` Method
+
+This method signalizes that the task was aborted by the user. Note that this is not an error, but a user triggered abort.
+
+When you write your code, you must check if the task was aborted via the `isAborted()` method, and if it was, you must return the `aborted` response.
+This is meant to be used while the task has some code which loops continuously, like reading a lot of records from the database, with paginating through the records.
+
+```typescript
+import {createTaskDefinition} from "@webiny/tasks";
+
+const myTask = createTaskDefinition({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run({response, isAborted, input}) {
+        let dbReadParams = {
+            ...input,
+        };
+        let result: DbResponse | null = null;
+        while ((result = await listFromDb(dbReadParams))) {
+          if (isAborted()) {
+              return response.abort();
+          }
+          // continue with the loop
+        }
+        return response.done();
+    }
+});
+````
+
+
 
 <Alert title="Resumable Background Tasks" type="warning">
   Currently, Background Tasks are not using the Task Token, so they are not resumable. We will be
