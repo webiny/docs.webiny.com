@@ -21,8 +21,23 @@ export const Navigation = () => {
             <Page link={"file-manager/essentials/tagging-files"} />
             <Page link={"file-manager/essentials/file-aliases"} />
             <Page link={"file-manager/essentials/bulk-actions"} />
+          </Group>
         </Group>
-      </Group>
+
+        <Separator />
+
+        <Group title={"Advanced Publishing Workflow"}>
+          <Group title={"Essentials"}>
+            <Page title="Introduction" link={"apw/essentials/introduction-to-apw"} />
+            <Page title="APW User Guides Outline" link={"apw/essentials/apw-user-guides-outline-users-creation"} />
+            <Page link={"apw/essentials/define-workflow"} />
+            <Page link={"apw/essentials/submit-record-for-review"} />
+            <Page link={"apw/essentials/review-record"} />
+            <Page link={"apw/essentials/submit-change"} />
+            <Page link={"apw/essentials/provide-sign-off"} />
+            <Page link={"apw/essentials/scheduled-publishing"} />
+          </Group>
+        </Group>
 
       </NavigationRoot>
     </BaseNavigation>
