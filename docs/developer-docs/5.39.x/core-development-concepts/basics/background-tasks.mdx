@@ -47,7 +47,7 @@ This functionality uses the AWS Event Bridge, AWS Step Function and AWS Lambda t
 
 We defined our Step Function as simple as possible, with a lot of error handling, as we did not want to have complex logic in the Step Function itself.
 
-The Pulumi definition for the Step Function is available [here](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/pulumi-aws/src/apps/api/backgroundTask/definition.ts#L13).
+The Pulumi definition for the Step Function is available [here](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/pulumi-aws/src/apps/api/backgroundTask/definition.ts#L13).
 
 <Image src={backgroundTaskStepFunction} alt="Background Task Step Function Definition" />
 
@@ -220,23 +220,46 @@ export const handler = createHandler({
 
 #### Advanced Definition
 
+To see all available parameters, and information about the properties, for the task definition, check the [`ITaskDefinition`](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/tasks/src/types.ts#L328) interface. 
+
 ```typescript
-const myPublicTaskDefinition = createTaskDefinition({
-    id: "myPublicTask",
-    title: "A Task Accessible Via API",
+const syncArticles = createTaskDefinition({
+    id: "syncArticles",
+    title: "Sync Articles",
+    description: "A task which syncs Webiny articles with another system.",
+    // optional when defined via the createTaskDefinition or createPrivateTaskDefinition method
+    maxIterations: 1000,
     async run(params) {
-        // your code here
+        // your code which syncs articles with another system
     },
-    maxIterations: 1000,// default is 500
+    onBeforeTrigger: async({context, input}) => {
+        // check if articles are already syncing
+        // if yes, throw an error
+    },
+    onDone: async({context, task}) => {
+        // notify another system that articles are synced
+    },
+    onError: async({context, task}) => {
+        // notify another system that articles are not synced due to an error
+    },
+    onAbort: async({context, task}) => {
+        // notify another system that articles are not synced due to user aborting the task
+    },
+    onMaxIterations: async({context, task}) => {
+        // notify another system that articles are not synced due to reaching max iterations of the task
+    },
 });
 ```
 
-In the examples we will provide, we will use the public task definition, as the code is the same for both types of tasks.
+There are few more properties, which should not be used yet:
+ - `fields` - not implemented yet
+ - `isPrivate` - set automatically when a user defines a test taks via `createPrivateTaskDefinition`
+
 
 ### Handling The Task Run
 
 When you define the task, you need to provide the `run` method, as it is the method getting executed when the task is being executed.
-The `run` method receives an object parameter with the following variables, defined in the interface [`ITaskRunParams`](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/tasks/src/types.ts#L241) :
+The `run` method receives an object parameter with the following variables, defined in the interface [`ITaskRunParams`](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/tasks/src/types.ts#L265) :
 
 - context
 - input
@@ -248,7 +271,7 @@ The `run` method receives an object parameter with the following variables, defi
 #### The `context` Object
 
 Via the `context` object, you can access whole Webiny system.
-The base interface of the `context` object is [Context](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/tasks/src/types.ts#L237), but you can pass your own, which must extend the base interface.
+The base interface of the `context` object is [Context](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/tasks/src/types.ts#L261), but you can pass your own, which must extend the base interface.
 
 You can pass your own interface/type of the `context` variable when defining the task:
 ```typescript
@@ -473,7 +496,7 @@ const myTask = createTaskDefinition({
 
 #### The `store` Object
 
-The `store` object is of `ITaskManagerStore` interface type, which is defined [here](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/tasks/src/runner/abstractions/TaskManagerStore.ts#L42).
+The `store` object is of `ITaskManagerStore` interface type, which is defined [here](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/tasks/src/runner/abstractions/TaskManagerStore.ts#L42).
 
 It is used for storing and retrieving data from the task run, including task logs.
 
@@ -698,7 +721,7 @@ Webiny ships with a few of built-in Background Tasks. Some of them are used only
 ### Test Task
 
 The test task is a task which is used for testing the Background Task mechanism.
-Its definition is available [here](https://github.com/webiny/webiny-js/blob/de38392959f2692d1feb08945a3588cd80e4924c/packages/tasks/src/tasks/testingRunTask.ts#L3).
+Its definition is available [here](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/tasks/src/tasks/testingRunTask.ts#L3).
 
 
 ### Elasticsearch Reindexing Task
@@ -710,7 +733,7 @@ Its definition is available [here](https://github.com/webiny/webiny-js/blob/de38
 
 The Elasticsearch/OpenSearch Reindexing is the first task we implemented via the Background Task mechanism.
 Basically, it is a task which scans through the DynamoDB Elasticsearch table and pushes the data into the specific Elasticsearch/OpenSearch index.
-Internally it is a bit more than that, but this is the basic idea. You can check the [definition](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/api-elasticsearch-tasks/src/tasks/reindexing/reindexingTaskDefinition.ts#L12) and the [runner](https://github.com/webiny/webiny-js/blob/34aab967ee5088974323762edb0507261727d0a4/packages/api-elasticsearch-tasks/src/tasks/reindexing/ReindexingTaskRunner.ts#L40) code for more information.
+Internally it is a bit more than that, but this is the basic idea. You can check the [definition](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/api-elasticsearch-tasks/src/tasks/reindexing/reindexingTaskDefinition.ts#L12) and the [runner](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/api-elasticsearch-tasks/src/tasks/reindexing/ReindexingTaskRunner.ts#L40) code for more information.
 
 The task can be triggered either via code or via the GraphQL API.
 
@@ -776,13 +799,13 @@ AWS Step Function has a hard limit of 25,000 state changes - executions. It cann
 
 AWS Step Function does not provide a built-in mechanism to limit the number of state changes on each task run.
 
-This means that a task can go into the loop and execute up to 25,000 times, which is something that we want to avoid, or at least, control it.
+This means that a task can go into unwanted loop and execute up to 25,000 times, which is something that we want to avoid, or at least, control it.
 
 What Webiny does to help with this is count the number of the Lambda handler executions, and if the number is greater than defined, it will end the task with an error.
 
 Default limit: `500`.
 
-To change the limit, see [`maxIterations`](#how-to-define-a-background-task) parameter when defining the Background Task.
+To change the limit, see [`maxIterations`](#advanced-definition) parameter when defining the Background Task.
 
 
 ## Permissions
