@@ -1,0 +1,113 @@
+---
+id: 8c6fo7e4
+title: How to define a Background Task
+description: You will learn about Background Tasks, how to create new definitions, how to trigger them and how to handle the task run.
+---
+
+import {Alert} from "@/components/Alert";
+import {CanIUseThis} from "@/components/CanIUseThis";
+import {WhatYouWillLearn} from "@/components/WhatYouWillLearn";
+
+<Alert type="danger" title="Use with caution!">
+  This feature is experimental and is subject to change in future releases.
+</Alert>
+
+<CanIUseThis since={"5.39.0"} />
+
+<WhatYouWillLearn>
+
+- how to define your own Background Task
+
+</WhatYouWillLearn>
+
+
+## Overview
+
+First, you need to know that there are two types of Background Tasks:
+- public ones - can be called via GraphQL API or the code
+- private ones - can be called only through the code
+
+Definition of the task is the same for both types of tasks, with a difference of the method name used to define the task.
+
+
+## Basic Definition
+
+To see all available properties, and information about the properties, for the task definition, check the [`ITaskDefinition`](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/tasks/src/types.ts#L328) interface.
+
+There are few properties, which should not be used:
+ - `fields` - not implemented yet
+ - `isPrivate` - set automatically when a user defines a test taks via `createPrivateTaskDefinition`
+
+### Public Task
+```typescript
+import { createTaskDefinition } from "@webiny/tasks";
+
+const myPublicTaskDefinition = createTaskDefinition({
+    id: "myPublicTask",
+    title: "A Task Accessible Via API",
+    async run({response}) {
+        // your code here
+        return response.done();
+    }
+});
+```
+
+### Private Task
+```typescript
+import { createPrivateTaskDefinition } from "@webiny/tasks";
+
+const myPrivateTaskDefinition = createPrivateTaskDefinition({
+    id: "myPrivateTask",
+    title: "A Task Accessible Only Via The Code",
+    async run({response}) {
+        // your code here
+        return response.done();
+    }
+});
+```
+
+## Advanced Definition
+ 
+
+```typescript
+const syncArticles = createTaskDefinition({
+    id: "syncArticles",
+    title: "Sync Articles",
+    description: "A task which syncs Webiny articles with another system.",
+    // optional when defined via the createTaskDefinition or createPrivateTaskDefinition method
+    // default value is 500
+    maxIterations: 1000,
+    async run({response}) {
+        // your code which syncs articles with another system
+        return response.done();
+    },
+    onBeforeTrigger: async({context, input}) => {
+        // check if articles are already syncing
+        // if yes, throw an error
+    },
+    onDone: async({context, task}) => {
+        // notify another system that articles are synced
+    },
+    onError: async({context, task}) => {
+        // notify another system that articles are not synced due to an error
+    },
+    onAbort: async({context, task}) => {
+        // notify another system that articles are not synced due to user aborting the task
+    },
+    onMaxIterations: async({context, task}) => {
+        // notify another system that articles are not synced due to reaching max iterations of the task
+    },
+});
+```
+
+## Registering the Task
+
+Of course, as all other Webiny plugins, users must register the task definition in the `plugins` array of the `createHandler` function.
+```typescript
+export const handler = createHandler({
+    plugins: [
+        // ...rest of plugins
+        myTaskDefinition
+    ]
+});
+```
