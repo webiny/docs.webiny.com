@@ -1,0 +1,377 @@
+---
+id: 268cc9e4
+title: Routes and Events
+description: You will learn about new handlers for routes and events, and how to add new routes and event definitions.
+---
+
+
+import {Alert} from "@/components/Alert";
+import {CanIUseThis} from "@/components/CanIUseThis";
+import {WhatYouWillLearn} from "@/components/WhatYouWillLearn";
+
+<CanIUseThis since={"5.39.0"} />
+
+<WhatYouWillLearn>
+
+- How routing works.
+- How to add new events.
+- How to add new routes.
+
+</WhatYouWillLearn>
+
+## About
+
+In the 5.31.0 version of Webiny we have refactored our handler package (`@webiny/handler`) to use [fastify](https://github.com/fastify/fastify).
+Fastify has a quite extensive [documentation](https://www.fastify.io/docs/latest/), so feel free to check it out if you need to modify our default behavior.
+
+Fastify enables us to:
+
+- add the possibility to add new [routes](https://www.fastify.io/docs/latest/Reference/Routes/) and event handling
+- consistent [`request`](https://www.fastify.io/docs/latest/Reference/Request/) and [`reply`](https://www.fastify.io/docs/latest/Reference/Reply/) (formerly response in our system) methods throughout the system
+- a lot of request [lifecycle events](https://www.fastify.io/docs/latest/Reference/Lifecycle/) for users to hook into
+- implement some other cloud service, at some point, more easily
+
+The `@webiny/handler` package does not differentiate between incoming Lambda requests, that is left to the `@webiny/handler-aws` package, which has a possibility to handle few types of events:
+
+- API Gateway Event
+- EventBridge Event
+- SQS Event
+- SNS Event
+- S3 Event
+- DynamoDB Stream Event
+- Raw Event - this one is different from the others, we will go into details in a separate section
+
+### The Main `createHandler` Method
+
+This method is a simple one, as its only job is to choose the specific event handler to be used based on the event it receives.
+
+There is only one `createHandler` to be used and it can be imported from `@webiny/handler-aws`.
+
+```typescript
+import { createHandler } from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    // ... plugins
+  ],
+  debug: process.env.DEBUG === "true"
+});
+```
+
+This `createHandler` method will handle all incoming events, except the Raw event, which is handled by the `createRawHandler` method, imported from the `@webiny/handler-aws` or `createHandler` imported from `@webiny/handler-aws/raw`.
+
+### Event Specific Handlers
+
+The underlying event handlers, which the main `createHandler` chooses depending on the event type, actually initialize the Webiny system.
+They will initialize [`fastify`](https://fastify.dev/docs/latest/), context and everything which is defined by plugins that were passed on.
+
+There are multiple event handlers shipped with our system, but if we missed something that you need - and is an AWS event type, feel free to open an issue or a PR.
+
+#### API Gateway Route (Event)
+
+This handler uses [@fastify/aws-lambda](https://github.com/fastify/aws-lambda-fastify) in the background to handle API Gateway events. It transforms [APIGatewayEvent](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/aws-lambda/trigger/api-gateway-proxy.d.ts#L60) into the request which `fastify` understands, and it is then used throughout the system.
+
+For this handler to work it requires at least one [RoutePlugin](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler/src/plugins/RoutePlugin.ts) to be initialized. It always returns [LambdaResponse](https://github.com/fastify/aws-lambda-fastify/blob/master/index.d.ts#L13) defined in the `@fastify/aws-lambda` package.
+
+```typescript
+import { createHandler, createApiGatewayRoute } from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    createApiGatewayRoute(({ onPost }) => {
+      onPost("/my-url", async (request, reply) => {
+        return iWillHandleThisRequest(request, reply);
+      });
+    })
+  ]
+});
+```
+
+Just note that the `Route` is actually an event, we just call it a route because it is a API Gateway route.
+
+#### Raw Handler, Event Handler and Event
+
+This handler uses a nice `fastify` feature that allows you to run any route you have previously defined. So basically, on initialization of the handler we add some dummy route (something like `webiny-raw-event`) and then run it via the `.inject()` method on `fastify` instance.
+This is the same procedure being used in the `@fastify/aws-lambda` package.
+The difference is that our Raw handler can return either [APIGatewayProxyResult](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/aws-lambda/trigger/api-gateway-proxy.d.ts#L135) or anything else that is directly sent from the [EventPlugin](https://github.com/webiny/webiny-js/blob/754c402e5df49ffb4cd07f8c53574ebe5e125f04/packages/handler/src/plugins/EventPlugin.ts).
+
+```ts
+import { createRawHandler, createRawEventHandler } from "@webiny/handler-aws";
+
+interface MyEventType {
+  id: string;
+  data: Record<string, any>;
+}
+
+const handler = createRawHandler({
+  plugins: [
+    createRawEventHandler<MyEventType>(async ({ event, context }) => {
+      const result = await transformRawEventIntoSomethingUseable(event);
+
+      await pushToSQS(event);
+    })
+  ]
+});
+```
+
+#### S3 Event
+
+```ts
+import { createHandler, createS3EventHandler } from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    createS3EventHandler(async ({ event, context }) => {
+      await deleteFileFromDynamoDb({ context, event });
+    })
+  ]
+});
+```
+
+#### EventBridge Event
+
+```ts
+import { createHandler, createEventBridgeEventHandler } from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    createEventBridgeEventHandler(async ({ event, context }) => {
+      const result = doSomethingWithEventBridgeEvent({ context, event });
+
+      await storeResultIntoDynamoDB(result);
+    })
+  ]
+});
+```
+
+#### SQS Event
+
+```ts
+import { createHandler, createSQSEventHandler } from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    createSQSEventHandler(async ({ event, context }) => {
+      const result = doSomethingWithSQSEvent({ context, event });
+
+      await triggerAnotherLambda(result);
+    })
+  ]
+});
+```
+
+#### SNS Event
+
+```ts
+import { createHandler, createSNSEventHandler } from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    createSNSEventHandler(async ({ event, context }) => {
+      const result = doSomeMagic({ context, event });
+
+      await doSomeMoreMagic(result);
+    })
+  ]
+});
+```
+
+#### DynamoDB Event
+
+```ts
+import { createHandler, createDynamoDBEventHandler } from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    createDynamoDBEventHandler(async ({ event, context }) => {
+      const result = doSomethingWithDynamoDBEvent({ context, event });
+
+      await transferResultToAnotherService(result);
+    })
+  ]
+});
+```
+
+<Alert type="info">
+  You can define as much routes and events as you like in a single `createHandler` method.
+</Alert>
+
+## Adding New Routes
+
+Adding new routes is quite simple, but you need to add them via both Pulumi code and the RoutePlugin.
+
+The Pulumi code goes into `apps/api/webiny.application.ts`. You must add the new route there, check out the example below, where we are adding a `[POST]/webiny` route.
+
+```ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+import { ApiGraphql } from "@webiny/pulumi-aws";
+
+export default createApiApp({
+  pulumi: app => {
+    const graphQLModule = app.getModule(ApiGraphql);
+
+    graphQLModule.addRoute({
+      // name must be in kebab-case
+      name: "webiny",
+      // path must start with /
+      path: "/webiny",
+      // all http methods allowed + ANY to catch all requests
+      method: "POST"
+    });
+  }
+});
+```
+
+Next thing you need to do is to add it into the `apps/api/graphql/src/index.ts` file via the `RoutePlugin` or `createApiGatewayRoute` method:
+
+```ts apps/api/graphql/src/index.ts
+// ... other imports
+import { createHandler, createApiGatewayRoute } from "@webiny/handler-aws";
+
+export const handler = createHandler({
+  plugins: [
+    // ... other plugins
+    createApiGatewayRoute(({ onPost }) => {
+      onPost("/webiny", async (request, reply) => {
+        // we can log the whole request body
+        console.log(request.body);
+
+        // and we can send some reply
+        return reply
+          .headers({
+            "x-route-example": "yes"
+          })
+          .send({
+            everything: {
+              ok: true
+            }
+          });
+      });
+    })
+  ],
+  http: { debug }
+});
+```
+
+<Alert type="warning">
+  Security checks will be done as on the <strong>/graphql</strong> endpoint. If you need
+  customizations, feel free to add them.
+</Alert>
+
+<Alert type="danger">Routes can be added only when initializing the handler.</Alert>
+
+## Adding Event Handler
+
+Adding event handlers is even simpler than adding routes. You just need to add the event handler for the Event type you need and that is it - no need for Pulumi code.
+
+### Example
+
+Let's say you created a part of code which sends out an SQS message, and you want to have a Lambda which handles that message.
+
+Good example would be if you want to run some calculation, asynchronously, from our GraphQL Lambda.
+You would insert an SQS Message and in turn it would trigger a Lambda which you have defined. That lambda should have code similar to this:
+
+```ts
+import { createHandler, createSQSEventHandler } from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    // other plugins
+    createSQSEventHandler(async ({ request, reply, event, context, lambdaContext }) => {
+      // the "context" variable is the same as in our system - as long as you haven't changed Webiny's default plugin loader
+      // because it is an sqs event, you know the type of the "event" variable and you can handle it from there
+      const result = await someHeavyCalculation(event);
+
+      // maybe store that result into the database?
+      await storeResult(result);
+
+      return reply.send({
+        ok: true
+      });
+    })
+  ]
+});
+```
+
+#### Multiple Event Handlers in a Single Handler
+
+```ts
+import {
+  createHandler,
+  createSQSEventHandler,
+  createDynamoDBEventHandler
+} from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    // This event handler will only be triggered when an SQS event is received.
+    createSQSEventHandler(async ({ request, reply, event, context, lambdaContext }) => {
+      // the "context" variable is the same as in our system - as long as you haven't changed Webiny's default plugin loader
+      // because it is a sqs event, you know the type of the "event" variable, and you can handle it from there
+      const result = await someHeavyCalculationOnSQSEvent(event);
+
+      // maybe store that result into the database?
+      await storeResult(result);
+
+      return reply.send({
+        ok: true
+      });
+    }),
+    // This event handler will only be triggered when a DynamoDB event is received.
+    createDynamoDBEventHandler(async ({ request, reply, event, context, lambdaContext }) => {
+      const result = await heavyCalculationOnlyOnDynamoDBStreamEvent(event);
+
+      return reply.send({
+        result
+      });
+    })
+  ]
+});
+```
+
+#### Multiple Event Handlers of a Same Type in a Single Handler
+
+You can define multiple event handlers, for example DynamoDB event handlers, in a single handler.
+
+They will be executed in reverse order, meaning that the last one defined will be executed first.
+
+There are few things to note:
+
+- You should call `await next();` in your event handler, otherwise the next event handler will not be executed.
+- You can return anything you want to from your event handler, just note that the next event handler will receive that value as a result if the `await next();` call.
+
+```ts
+import { createHandler, createDynamoDBEventHandler } from "@webiny/handler-aws";
+
+const handler = createHandler({
+  plugins: [
+    // This event handler will be triggered second.
+    createDynamoDBEventHandler(async ({ request, reply, event, context, lambdaContext }) => {
+      const result = await heavyCalculation(event);
+
+      return {
+        result
+      };
+    }),
+    // This event handler will be triggered first.
+    createDynamoDBEventHandler(async ({ request, reply, event, context, lambdaContext, next }) => {
+      // this is how we trigger the second event handler (the one defined above)
+      const resultFromPreviousEventHandler = await next();
+      const result = await anotherHeavyCalculation(resultFromPreviousEventHandler, event);
+
+      return reply.send({
+        ...resultFromPreviousEventHandler,
+        ...result
+      });
+    })
+  ]
+});
+```
+
+### Event Handler Response
+
+When handling an event, you can either return the `reply` object or something else, what ever you like.
+Basically, when you return the `reply`, a standard [APIGatewayProxyResult](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/aws-lambda/trigger/api-gateway-proxy.d.ts#L135) is created out of the data, headers and cookies you sent.
+When you return anything else other than the `reply`, it is returned as the result of the handler, and the Lambda itself.
+
+For example, you can send plain text or object to get the response of the Lambda without the need to parse the `APIGatewayProxyResult`.

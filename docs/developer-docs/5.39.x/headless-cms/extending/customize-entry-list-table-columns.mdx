@@ -1,0 +1,280 @@
+---
+id: 5062453d
+title: Customize Entry List Table Columns
+description: Learn how to add, replace, or remove columns in the Entry List Table.
+---
+
+import hcmsCustomCellRenderer from "./assets/hcms-custom-cell-renderer.png";
+import hcmsDefaultTable from "./assets/hcms-default-table.png";
+import hcmsDiscoverColumn from "./assets/hcms-discover-column.png";
+import hcmsHideableColumn from "./assets/hcms-hideable-column.gif";
+import hcmsSimpleColumn from "./assets/hcms-simple-column.png";
+import hcmsSortableColumn from "./assets/hcms-sortable-column.gif";
+import hcmsVisibleColumn from "./assets/hcms-visible-column.gif";
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="info" title="Can I Use This?">
+
+This feature has been available since Webiny **v5.39.0**.
+
+</Alert>
+
+<Alert type="success" title="What you will learn">
+
+- how to add a column
+- how to discover existing column names
+- how to change the position, remove, or replace a column
+
+</Alert>
+
+## Overview
+
+The Entry List Table is a UI component that displays entries for a specific CMS model. By default, the table shows pre-defined columns such as:
+
+- **Name**: presenting the `title` field data
+- **Author**: presenting the `createdBy` field
+- **Created**: presenting the `createdOn` field
+- **Modified**: presenting the `savedOn` field
+- **Status**: presenting the `status` and `version` fields
+
+<Image src={hcmsDefaultTable} title="Default table columns" />
+
+## Using the code examples
+
+The following code examples follow our usual configuration pattern. You need to add the code from the examples to your `apps/admin/src/App.tsx`. Here's an example:
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
+import "./App.scss";
+
++ // You can destructure config components to make the code more readable and easier to work with.
++ const { Browser } = ContentEntryListConfig;
+
+export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <ContentEntryListConfig>
++         {* Config components go here. *}
++       </ContentEntryListConfig>
+      </Admin>
+    );
+};
+```
+
+<Alert type="info" title="Content entry setup">
+
+The code examples below are based on a content model called `Property` with the following fields:
+
+- `title` text input
+- `price` number input
+- `currency` text input with [ISO 4217 currency codes](https://en.wikipedia.org/wiki/ISO_4217#List_of_ISO_4217_currency_codes) predefined values
+
+</Alert>
+
+## Add a Column
+
+To add a new column, use the `Browser.Column` component and mount it within your Admin app. This component will serve as the foundation for your columns.
+
+### Simple Column
+
+Here is an example of creating a column to show the `price` field data within the table. 
+The `Browser.Column` component receives the following mandatory props:
+
+- `name` used to target the field you want to show and serves as a unique identifier
+- `header` used for formatting the column header
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.Column
+    name={"price"}
+    header={"Price"}
+    modelIds={["property"]}
+  />   
+</ContentEntryListConfig> 
+```
+
+By declaring the `modelIds` prop, you can define in which Content Model Entry List you want to show your column. If you exclude this prop, the column will be registered for all models in the system. For instance, in the given example, next time you open the `property` content model, the newly defined column will be shown.
+
+This is the whole process of registering a column.
+
+<Image src={hcmsSimpleColumn} title="Define a simple custom column" />
+
+### Custom Column Cell Rendering
+
+Sometimes, you may want to modify how the data in a cell is displayed using a specific component. This allows you to have full control over how the information is presented.
+
+For example, you could create a `CellPrice` component that shows a simple dash for folder rows and displays the price value along with the selected currency for content entries.
+
+```tsx
+export const CellPrice = () => {
+  // You can destructure child methods to make the code more readable and easier to work with.
+  const { useTableRow, isFolderRow } = ContentEntryListConfig.Browser.Table.Column;
+  // useTableRow() allows you to access the entire data of the current row.
+  const { row } = useTableRow();
+
+  // isFolderRow() allows for custom rendering when the current row is a folder.
+  if (isFolderRow(row)) {
+    return <>{"-"}</>;
+  }
+
+  const currency = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: row.currency // Let's use the currency defined in the entry.
+  });
+
+  // Let's render the entry price.
+  return <>{currency.format(row.price)}</>;
+};
+```
+
+Using the `cell` prop, you can pass the custom component to the column definition.
+
+```diff-tsx
+  <ContentEntryListConfig>
+    <Browser.Column
+      name={"price"}
+      header={"Price"}
+      modelIds={["property"]}
++     cell={<PriceCell />}
+    />   
+  </ContentEntryListConfig> 
+```
+
+<Image src={hcmsCustomCellRenderer} title="Define a custom cell renderer" />
+
+### Sortable Column
+You can enable sorting by setting the `sortable` property, so users can sort the table by clicking on a column header. Make sure that the field you want to sort by is included in the available sorting options of the model.
+
+```diff-tsx
+  <ContentEntryListConfig>
+    <Browser.Column
+      name={"price"}
+      header={"Price"}
+      modelIds={["property"]}
++     sortable={true}
+    />   
+  </ContentEntryListConfig> 
+```
+
+<Image src={hcmsSortableColumn} title="Define a sortable column" />
+
+### Custom column size
+To set the initial size of a column, you can use the `size` property. By default, the size is set to `100`.
+
+However, this is not a value in pixels but more of a proportion with the other columns within the table. If you want to double the size of a specific column, you can pass `200` as the value.
+
+In addition, you can allow or disallow users to adjust the column width according to their preferences by defining the `resizable` prop.
+
+```diff-tsx
+  <ContentEntryListConfig>
+    <Browser.Column
+      name={"price"}
+      header={"Price"}
+      modelIds={["property"]}
++     size={75}
++     resizable={false} // The column is not resizable by the user. 
+    />   
+  </ContentEntryListConfig> 
+```
+
+### Custom column visibility
+
+The `visible` property in data tables is crucial for user experience. By default, the column is visible to users. But, it can be set to hide by default, which is useful when dealing with large datasets.
+
+Users have the ability to show/hide columns by using the column settings menu.
+
+```diff-tsx
+  <ContentEntryListConfig>
+    <Browser.Column
+      name={"price"}
+      header={"Price"}
+      modelIds={["property"]}
++     visible={false}
+    />   
+  </ContentEntryListConfig> 
+```
+
+<Image src={hcmsVisibleColumn} title="Define column visibility" />
+
+In addition to controlling the initial visibility of columns, you can further enhance user customization with the `hideable` feature.
+
+When the `hideable` property is set to false, users are restricted from dynamically toggling the visibility of the column. In this scenario, the column remains fixed and visible, adhering to the configuration set by developers.
+
+```diff-tsx
+  <ContentEntryListConfig>
+    <Browser.Column
+      name={"price"}
+      header={"Price"}
+      modelIds={["property"]}
++     hideable={false}
+    />   
+  </ContentEntryListConfig> 
+```
+
+<Image src={hcmsHideableColumn} title="Prevent users from toggling column visibility" />
+
+### Custom column class names
+
+You can easily add custom CSS class names to columns using the `className` property. The class names provided will be injected in both the column header and cell.
+
+```diff-tsx
+  <ContentEntryListConfig>
+    <Browser.Column
+      name={"price"}
+      header={"Price"}
+      modelIds={["property"]}
++     className={"custom-price-className"}
+    />   
+  </ContentEntryListConfig> 
+```
+
+## Discover Columns
+
+This section demonstrates how you can discover the names of existing columns. This is important for further sections on positioning, removing, and replacing columns.
+
+The easiest way to discover existing columns is to use your browser's React Dev Tools plugins and search for the `BaseColumns`:
+
+<Image src={hcmsDiscoverColumn} title="Discover existing columns" />
+
+## Position a Column
+
+To position your column before or after an existing column, you can use the `before` and `after` props on the `<Browser.Table.Column>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.Table.Column 
+    name={"price"}
+    header={"Price"} 
+    before={"status"} 
+  />
+</ContentEntryListConfig>
+```
+
+## Remove a Column
+
+Sometimes you might want to remove an existing column. All you need to do is reference the column by name and pass a `remove` prop to the `<Browser.Table.Column>` element:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.Table.Column name={"savedOn"} remove />
+</ContentEntryListConfig>
+```
+
+## Replace a Column
+
+To replace an existing column with a new cell renderer, you need to reference an existing column by name and pass a new component via the `cell` prop:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.Table.Column 
+    name={"status"} 
+    header={"Custom Status"} 
+    cell={<span>{"Custom Status Cell"}</span>} 
+  />
+</ContentEntryListConfig>
+```
