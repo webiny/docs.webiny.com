@@ -1,0 +1,219 @@
+---
+id: aafeaa3b
+title: Use Existing Amazon VPC
+description: Learn how to deploy a Webiny project into an existing Amazon Virtual Private Cloud (Amazon VPC).
+---
+
+<CanIUseThis enterprise={true} since={"5.34.6"} />
+
+<WhatYouWillLearn>
+
+- how to deploy a Webiny project into an existing Amazon Virtual Private Cloud (Amazon VPC)
+
+</WhatYouWillLearn>
+
+## Overview
+
+When a Webiny project is deployed in [production mode](/docs/{version}/architecture/deployment-modes/introduction), it is deployed into a new [Amazon Virtual Private Cloud (Amazon VPC)](https://aws.amazon.com/vpc/), with already configured public and private subnets, security groups, and so on.
+
+And although this may work for multiple types of users and projects, when it comes to enterprise organizations, often times a fully configured Amazon VPC is already in place and there's no need to create a new one. In those cases, deploying a Webiny project into the existing Amazon VPC makes more sense.
+
+In this article, we describe how enterprise organizations can deploy their Webiny project into an existing Amazon VPC.
+
+<Alert type={"info"}>
+
+When it comes to the code, this article tries to keep as simple as possible. For a more advanced example, one which demonstrates how to introduce better code organization and make the code more maintainable, please check out [this advanced usage example](https://github.com/webiny/webiny-examples/tree/master/use-existing-amazon-vpc-advanced-usage).
+
+</Alert>
+
+## Configuration
+
+In order to deploy Webiny into an existing Amazon VPC, we need to apply four configuration changes to four default project applications that are included in every Webiny project:
+
+1. Core (`apps/core`)
+2. API (`apps/api`)
+3. Admin (`apps/admin`)
+4. Website (`apps/website`)
+
+For all applications, changes will be applied in application’s respective `webiny.application.ts` file. Note that all the changes are essentially the same: we use the `vpc.existingVpc` option to pass relevant existing Amazon VPC-related resources: [private subnet](https://docs.aws.amazon.com/vpc/latest/userguide/configure-subnets.html) and [security group](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html) IDs.
+
+Let’s take a look at the changes that need to be made.
+
+<Alert type={"info"}>
+
+The following examples were created using a brand new Webiny project, initialized with the [Amazon DynamoDB + Amazon OpenSearch database setup](/docs/{version}/architecture/introduction#different-database-setups). That's why we'll encounter the `openSearch` flag (set to `true`) in Core and API applications' `webiny.application.ts` configuration files.
+
+Projects that are using the Amazon DynamoDB setup don't have this parameter set.
+
+</Alert>
+
+<Alert type={"danger"}>
+
+Changing VPC settings on an existing Amazon OpenSearch cluster may cause a complete redeployment, causing all data to be lost! Check out the [Launching your Amazon OpenSearch Service domains within a VPC](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html) article to learn more.
+
+</Alert>
+
+### 1. Core (`apps/core`)
+
+The Core application's `webiny.application.ts` file should look like the following:
+
+```diff-ts apps/core/webiny.application.ts
+- import { createCoreApp } from "@webiny/serverless-cms-aws";
++ import { createCoreApp } from "@webiny/serverless-cms-aws/enterprise";
+
++ const OPENSEARCH_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
++ const OPENSEARCH_SECURITY_GROUPS = ["security-group-id-1"];
++
++ const LAMBDA_FUNCTIONS_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
++ const LAMBDA_FUNCTIONS_SECURITY_GROUPS = ["security-group-id-1"];
+
+export default createCoreApp({
+    pulumiResourceNamePrefix: "wby-",
+    openSearch: true, // Only present in Amazon DynamoDB + Amazon OpenSearch database setup.
++   vpc: {
++       useExistingVpc: {
++           # Don't get confused with `elasticSearch` being used in the name.
++           # This will still work for Amazon DynamoDB + Amazon OpenSearch database setup.
++           elasticSearchDomainVpcConfig: {
++               subnetIds: OPENSEARCH_PRIVATE_SUBNETS,
++               securityGroupIds: OPENSEARCH_SECURITY_GROUPS
++           },
++           lambdaFunctionsVpcConfig: {
++               subnetIds: LAMBDA_FUNCTIONS_PRIVATE_SUBNETS,
++               securityGroupIds: LAMBDA_FUNCTIONS_SECURITY_GROUPS
++           }
++       }
++   }
+});
+```
+
+Note that, if the Webiny project is being deployed into the production environment, two private subnets need to specified via `OPENSEARCH_PRIVATE_SUBNETS` and `LAMBDA_FUNCTIONS_PRIVATE_SUBNETS` arrays. This is because the OpenSearch cluster that Webiny deploys relies on two instances that are deployed into two different private subnets. For environments other than production, specifying a single private subnet will suffice.
+
+<Alert type={"info"}>
+
+Production deployment means deploying your Webiny project into `prod` environment, via the [`webiny deploy`](https://www.webiny.com/docs/core-development-concepts/basics/project-deployment) command: `yarn webiny deploy --env prod`.
+
+More on the development and production modes can be found here:
+[https://www.webiny.com/docs/architecture/deployment-modes/introduction](https://www.webiny.com/docs/architecture/deployment-modes/introduction)
+
+</Alert>
+
+<Alert type={"info"}>
+
+In the above code, we can also utilize the `process.env.WEBINY_ENV` environment variable in order to determine into
+which environment a Webiny project is being deployed. This can enable us to specify private subnets conditionally,
+using different values depending on the environment.
+
+</Alert>
+
+### 2. API (`apps/api`)
+
+The API application's `webiny.application.ts` file should look like the following:
+
+```diff-ts apps/api/webiny.application.ts
+- import { createApiApp } from "@webiny/serverless-cms-aws";
++ import { createApiApp } from "@webiny/serverless-cms-aws/enterprise";
++
++ const LAMBDA_FUNCTIONS_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
++ const LAMBDA_FUNCTIONS_SECURITY_GROUPS = ["security-group-id-1"];
+
+export default createApiApp({
+    pulumiResourceNamePrefix: "wby-",
+    openSearch: true,  // Only present in Amazon DynamoDB + Amazon OpenSearch database setup.
++   vpc: {
++       useExistingVpc: {
++           lambdaFunctionsVpcConfig: {
++               subnetIds: LAMBDA_FUNCTIONS_PRIVATE_SUBNETS,
++               securityGroupIds: LAMBDA_FUNCTIONS_SECURITY_GROUPS
++           }
++       }
++   }
+});
+```
+
+As we can see, in this configuration file we’re providing the necessary VPC-related parameters for AWS Lambda functions that the application deploys.
+
+### 3. Admin (`apps/admin`)
+
+The Admin application's `webiny.application.ts` file should look like the following:
+
+```diff-ts apps/admin/webiny.application.ts
+- import { createAdminApp } from "@webiny/serverless-cms-aws";
++ import { createAdminApp } from "@webiny/serverless-cms-aws/enterprise";
+
+export default createAdminApp({
+    pulumiResourceNamePrefix: "wby-"
+});
+```
+
+In this config, no VPC-related parameters need to be specified. Essentially it’s the same config that users have when they create a brand new Webiny project, except this time the `createAdminApp` function is imported from the `enterprise` folder.
+
+### 4. Website (`apps/website`)
+
+The Website application's `webiny.application.ts` file should look like the following:
+
+```diff-ts apps/website/webiny.application.ts
+- import { createWebsiteApp } from "@webiny/serverless-cms-aws";
++ import { createWebsiteApp } from "@webiny/serverless-cms-aws/enterprise";
++
++ const LAMBDA_FUNCTIONS_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
++ const LAMBDA_FUNCTIONS_SECURITY_GROUPS = ["security-group-id-1"];
+
+export default createWebsiteApp({
+    pulumiResourceNamePrefix: "wby-",
++   vpc: {
++       useExistingVpc: {
++           lambdaFunctionsVpcConfig: {
++               subnetIds: LAMBDA_FUNCTIONS_PRIVATE_SUBNETS,
++               securityGroupIds: LAMBDA_FUNCTIONS_SECURITY_GROUPS
++           }
++       }
++   }
+});
+```
+
+Like with the [API](https://www.notion.so/Deploying-Webiny-Into-An-Existing-Amazon-VPC-fb0b596143614279bf56c96432f3d7ae) project application, again, in this configuration file we’re providing the necessary VPC-related parameters for AWS Lambda functions that the project application deploys.
+
+## Testing
+
+Once the above changes have been applied, we’re ready to do a test deployment, which can be done via the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command:
+
+```tsx
+yarn webiny deploy --env prod
+```
+
+At the end of the deployment process, you should receive relevant URLs in the terminal, where the installation process can be completed.
+
+<Alert type={"info"}>
+
+For more information on installing Webiny, check out the [Install Webiny](https://www.webiny.com/docs/get-started/install-webiny) article.
+
+</Alert>
+
+## Additional Notes
+
+### Internet Gateway / NAT Gateway Deployment
+
+Note that for a Webiny project to work as expected, an Amazon VPC must have an [Internet](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html) and [NAT](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html) gateways deployed. This is because access to public internet is required on a couple of occasions:
+
+1. **Amazon Cognito** - Webiny's application code interacts with Amazon Cognito via AWS SDK. May not be needed if the organization doesn't plan to rely on Amazon Cognito as their identity provider.
+2. **Amazon CloudFront** - Webiny's application code interacts with Amazon CloudFront via AWS SDK
+3. **Webiny Control Panel (WCP)** - [Webiny Control Panel (WCP)](/docs/wcp/overview)-linked Webiny projects also frequently interact with app's public HTTP API (`api.webiny.com`)
+4. **Webiny's Prerendering Service** - for website performance reasons, whenever a user publishes a page created with Webiny’s Page Builder application, behind the scenes, an AWS Lambda function is triggered, which issues HTTP requests to published page’s URL (a public CloudFront URL). May not be needed if the organization doesn't plan to use the Page Builder application.
+
+### VPC Endpoints
+
+Users can use [Amazon VPC endpoints](https://docs.aws.amazon.com/whitepapers/latest/aws-privatelink/what-are-vpc-endpoints.html) in order to further secure communication between different services a Webiny project is relying on. At the moment, this is possible for:
+
+1. DynamoDB (gateway)
+2. S3 (gateway)
+3. SQS (interface)
+4. EventBridge (interface)
+
+Note that VPC endpoints are configured within the provided existing Amazon VPC. This is mainly because organizations have full control of their environment, and are able to do this.
+
+<Alert type={"info"}>
+
+In case Amazon VPC endpoints need to be created via a Webiny project and its cloud infrastructure code, this can be achieved with a couple of minor additions in the Core application’s [`webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.34.5/packages/cwp-template-aws/template/ddb-es/apps/core/webiny.application.ts) configuration file.
+
+</Alert>

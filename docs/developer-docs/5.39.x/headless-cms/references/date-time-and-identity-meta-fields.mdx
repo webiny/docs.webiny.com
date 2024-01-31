@@ -1,0 +1,111 @@
+---
+id: bdf137d5
+title: Date/Time and Identity (On/By) Meta Fields
+description: Learn about the date/time and identity-related meta fields that are available for content entries.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="info" title="Can I use this?">
+
+The new meta fields outlined in this article are available since **v5.39.0**.
+
+</Alert>
+
+## Introduction
+
+Apart from the fields that are defined in a content model by the user, all content entries also have a set of date/time and identity-related meta fields. A couple of examples:
+
+- `revisionCreatedOn` - the date/time when an entry revision was created
+- `revisionFirstPublishedOn` - the date/time when an entry revision was first published
+- `createdOn` - the date/time when an entry was created
+- `lastPublishedOn` - the date/time when an entry was last published
+
+These meta fields are automatically populated by the system, and they can be used to display information about the entry, such as when it was created, modified, or published, and by whom.
+
+Developers can use these fields when querying entries, for example via the [Headless CMS GraphQL API](/docs/headless-cms/basics/graphql-api):
+
+```graphql
+query {
+  listVideos(where: { createdBy: "some-user-id" }, sort: [createdOn_DESC]) {
+    data {
+      id
+      title
+      description
+      revisionCreatedBy {
+        id
+        type
+        displayName
+      }
+      revisionCreatedOn
+      createdBy {
+        id
+        type
+        displayName
+      }
+      createdOn
+    }
+  }
+}
+```
+
+They can also use them in their custom JavaScript (TypeScript) code, for example, when hooking onto [lifecycle events](/docs/headless-cms/references/lifecycle-events):
+
+```typescript
+new ContextPlugin<CmsContext>(async context => {
+  context.cms.onEntryAfterDelete.subscribe(async ({ entry }) => {
+    console.log(`Entry created by ${entry.createdBy.displayName} was deleted.`);
+    console.log(`Note that entry was last published on ${entry.lastPublishedOn}.`)
+  });
+});
+```
+
+## Revision-level and Entry-level Meta Fields
+
+The meta fields are available at two levels: revision-level and entry-level.
+
+Revision-level fields include the `revision` prefix in their names, and they contain information about the revision of an entry. For example, `revisionCreatedOn` is the date/time when the revision was created, and `revisionCreatedBy` is the identity of the user who created the revision.
+
+On the other hand, entry-level fields do not contain the `revision` prefix in their names, and they contain information about the entry itself. For example, `createdOn` is the date/time when the entry was created, and `createdBy` is the identity of the user who created the entry. These fields do not change when a revision is created, modified, or published, nor if new revisions are created, modified, or published.
+
+## Meta Fields
+
+The following table lists all the date/time and identity-related meta fields that are available for content entries.
+
+### Revision-level Meta Fields
+
+| Field                      | Description                                               |
+| -------------------------- | --------------------------------------------------------- |
+| `revisionCreatedOn`        | The date/time when an entry revision was created.         |
+| `revisionModifiedOn`       | The date/time when an entry revision was last modified.   |
+| `revisionSavedOn`          | The date/time when an entry revision was last saved.      |
+| `revisionFirstPublishedOn` | The date/time when an entry revision was first published. |
+| `revisionLastPublishedOn`  | The date/time when an entry revision was last published.  |
+| `revisionCreatedBy`        | The user who created an entry revision.                   |
+| `revisionModifiedBy`       | The user who last modified an entry revision.             |
+| `revisionSavedBy`          | The user who last saved an entry revision.                |
+| `revisionFirstPublishedBy` | The user who first published an entry revision.           |
+| `revisionLastPublishedBy`  | The user who last published an entry revision.            |
+
+### Entry-level Meta Fields
+
+| Field              | Description                                      |
+| ------------------ | ------------------------------------------------ |
+| `createdOn`        | The date/time when an entry was created.         |
+| `modifiedOn`       | The date/time when an entry was last modified.   |
+| `savedOn`          | The date/time when an entry was last saved.      |
+| `firstPublishedOn` | The date/time when an entry was first published. |
+| `lastPublishedOn`  | The date/time when an entry was last published.  |
+| `createdBy`        | The user who created an entry.                   |
+| `modifiedBy`       | The user who last modified an entry.             |
+| `savedBy`          | The user who last saved an entry.                |
+| `firstPublishedBy` | The user who first published an entry.           |
+| `lastPublishedBy`  | The user who last published an entry.            |
+
+## FAQ
+
+### What is the difference between `modified` and `saved` meta fields?
+
+The difference between `modified` and `saved` meta fields is that `modified` fields can be `null` if the entry has not been modified yet, while `saved` is never `null` because it is updated even when the entry is created.
+
+So, if we were to create a new entry, the `createdOn` and `savedOn` fields would have the same value, but the `modifiedOn` field would be `null` because the entry has not been modified yet. Only after the first update, the `modifiedOn` field would have a value different from `null`. Actually, after the first update, the `savedOn` and `modifiedOn` will always have the same value.

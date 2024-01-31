@@ -1,0 +1,179 @@
+---
+id: 724fa9d7
+title: Date/Time and Identity (On/By) Meta Fields
+description: Learn about the new date/time and identity-related meta fields, and how to handle the breaking changes.
+---
+
+## Introduction
+
+import { Alert } from "@/components/Alert";
+
+As mentioned in the [changelog](docs/release-notes/5.39.0/changelog#headless-cms-revamped-date-time-and-identity-on-by-meta-fields), with this release, we’ve revamped the date/time and identity-related meta fields. In order to do this, we had to introduce a couple of Headless CMS-related breaking changes.
+
+Will these breaking changes affect you? It depends on if you've been adding custom code in your project, in which you are also relying on the existing content entry meta fields, like `ownedBy`, `publishedOn`, or `createdOn`. For example, you may have have been using these in your:
+
+1. custom Headless CMS-related GraphQL API queries or mutations
+2. custom Headless CMS-related JavaScript (TypeScript) code (for example, [lifecycle events](/docs/headless-cms/references/lifecycle-events))
+
+If you don't have any of the above, you can safely skip this article. Otherwise, please read on.
+
+<Alert type={"info"}>
+  To learn more about the new date/time and identity-related meta fields, please refer to the{" "}
+  <a href={"/docs/headless-cms/references/date-time-and-identity-meta-fields"}>
+    Entry Date/Time and Identity (On/By) Meta Fields
+  </a>{" "}
+  guide.
+</Alert>
+
+## Breaking Changes and How to Handle Them
+
+In the following sections, we outline all of the breaking changes you need to be aware of, and how to properly handle them.
+
+### 1. Removed `ownedBy` Field
+
+Prior to this release, every content entry had an `ownedBy` field, which was a reference to the user who initially created the entry. Its value would not change even if the entry was later updated by another user, nor it would change if a new revision was created.
+
+With this release, we've removed this field because it's no longer necessary. Instead, you use the `createdBy` field.
+
+Note that, previously, the `createdBy` field was representing a revision-level value, but now it's an entry-level value. If you really need to access the revision-level value, you can do so by using the new `revisionCreatedBy` field.
+
+### 2. Removed `publishedOn` Field
+
+Prior to this release, every content entry had a `publishedOn` field, which held the date/time when the entry revision was published.
+
+With this release, we've removed this field because it's no longer necessary. Instead, you use the new set of fields:
+
+- `firstPublishedOn` - holds the date/time when the entry was first published
+- `firstPublishedBy` - holds the identity of the user who first published the entry
+- `lastPublishedOn` - holds the date/time when the entry was last published
+- `lastPublishedBy` - holds the identity of the user who last published the entry
+
+Note that if you need to access the revision-level value, you can do so by using the new revision-level fields:
+
+- `revisionFirstPublishedOn` - holds the date/time when the entry revision was first published
+- `revisionFirstPublishedBy` - holds the identity of the user who first published the entry revision
+- `revisionLastPublishedOn` - holds the date/time when the entry revision was last published
+- `revisionLastPublishedBy` - holds the identity of the user who last published the entry revision
+
+### 3. Existing Meta Field Values Are Now Entry-level, Not Revision-level
+
+Apart from the removal of above-mentioned fields, we've also changed the behaviour of the existing meta fields. Prior to this release, all of the meta fields contained revision-level values. With this release, they contain entry-level values.
+
+- `createdOn` -  now represents when an entry was created
+- `savedOn` -    now represents when an entry was last saved
+- `createdBy` -  now represents by whom an entry was created
+- `modifiedBy` - now represents by whom an entry was last modified
+
+Note that, if you perhaps need to access the revision-level value, you can use the new `revisionCreatedOn`, `revisionSavedOn`, `revisionCreatedBy`, and `revisionModifiedBy` fields, respectively.
+
+### 4. Removed Options On Publish Entry Mutation
+
+With the [5.38.1](/docs/release-notes/5.38.1/changelog#skipping-the-update-of-saved-on-and-published-on-fields-when-publishing-an-entry-3718) release, we've introduced the ability to skip updating the `savedOn` and now removed `publishedOn` fields upon publishing a content entry. This was done by introducing the `options` GraphQL input on the existing `publish{MODEL_ID}` mutation:
+
+```graphql
+mutation {
+  publishVideo(
+    revision: "video-xyz"
+    options: { updatePublishedOn: false, updateSavedOn: false }
+  ) {
+    data {
+      id
+      title
+      description
+    }
+  }
+}
+```
+
+Essentially, this was introduced as an advanced feature, for users who were migrating to Webiny from another system and who needed to import their data, with the original `savedOn` and `publishedOn` values preserved. However, with this release, we've decided to remove these options, because they're no longer necessary.
+
+Previously, migrating an entry from a another system to Webiny would consist of two steps:
+1. Create a new entry via the `create{MODEL_NAME}` GraphQL mutation, and, among other fields, set the `savedOn` and `publishedOn` values to the original values from the other system.
+2. Publish the entry with the `updatePublishedOn` and `updateSavedOn` options set to `false`, so that the original `savedOn` and `publishedOn` values are preserved (without these options, the `savedOn` and `publishedOn` values would be updated to the current date/time).
+
+With this release, you can now simply do the following:
+1. Create a new entry via the `create{MODEL_NAME}` GraphQL mutation, with the `savedOn` and `publishedOn` values set to the original values from the other system, but also with the `status` of the entry immediately set to `published`.
+
+```graphql
+mutation {
+  createVideo(
+    data: {
+      status: "published"
+      title: "Test"
+      description: "Test description."
+    }
+  ) {
+    data {
+      id
+      title
+      description
+    }
+  }
+}
+
+```
+
+This way, you can create and publish entries in a single step, and preserve the original `savedOn` and `publishedOn` values.
+
+So, to summarize, with this release, you can no longer skip updating the `savedOn` and `publishedOn` fields upon publishing an entry. Instead, you can simply create and publish an entry in a single step, and preserve the original `savedOn` and `publishedOn` values.
+
+## Data Migration
+
+This release includes a data migration that will automatically migrate *all existing content entries* to use the new meta fields. Because of this, note that the duration of the migration varies, depending on the number of content entries stored in your database. For larger projects, for example with hundreds of thousands of content entries, the migration can take up to 15-30 minutes to complete.
+
+The migration is run automatically after the **API** project application is deployed.
+
+### Assignments
+
+The migration will perform the following revision-level and entry-level field value assignments on each content entry.
+
+<Alert type={"info"}>
+
+  The code for what is described below can be found in our [GitHub repository](https://github.com/webiny/webiny-js/blob/next/packages/migrations/src/migrations/5.39.0/002/utils/assignNewMetaFields.ts).
+
+</Alert>
+
+#### Revision-level fields
+
+The revision-level fields are:
+
+1. `revisionCreatedOn`
+2. `revisionModifiedOn`
+3. `revisionSavedOn`
+4. `revisionCreatedBy`
+5. `revisionModifiedBy`
+6. `revisionSavedBy`
+7. `revisionFirstPublishedOn`
+8. `revisionFirstPublishedBy`
+9. `revisionLastPublishedOn`
+10. `revisionLastPublishedBy`
+
+The migration will perform the following assignments on each content entry:
+
+1. The existing `createdOn`, `savedOn`, `createdBy`, and `modifiedBy` field values will be copied to the new `revisionCreatedOn`, `revisionSavedOn`, `revisionCreatedBy`, and `revisionModifiedBy` fields, respectively.
+2. The newly introduced `revisionSavedBy` field will be populated with the value of the existing `modifiedBy` field. If it doesn't exist, `createdBy` field value will be used instead.
+3. If the `modifiedBy` field value exists, the newly introduced `revisionModifiedOn` field will be populated with the value of the existing `savedOn` field.
+4. The `publishedOn` field value will be used to set the value of the newly introduced `revisionFirstPublishedOn` and `revisionLastPublishedOn` fields.
+5. Existing `modifiedBy` field value (or `createdBy` if `modifiedBy` doesn't exist) will be used to set the value of the newly introduced `revisionFirstPublishedBy` and `revisionLastPublishedBy` fields. 
+
+#### Entry-level fields
+
+The entry-level fields are:
+
+1. `createdOn`
+2. `modifiedOn`
+3. `savedOn`
+4. `createdBy`
+5. `modifiedBy`
+6. `savedBy`
+7. `firstPublishedOn`
+8. `firstPublishedBy`
+9. `lastPublishedOn`
+10. `lastPublishedBy`
+
+The migration will perform the following assignments on each content entry:
+
+1. `createdOn` field will be populated with the value of the existing `createdOn` field from the oldest revision of a given entry.
+2. `createdBy` field will be populated with the value of the existing `ownedBy` field.
+3. The `modifiedOn`, `savedOn`, `modifiedBy`, and `savedBy` entry-level fields will be populated with the values of the latest revision of a given entry. 
+4. The four publishing-related field values will be taken from the latest published revision of a given entry. These fields are: `firstPublishedOn`, `firstPublishedBy`, `lastPublishedOn`, and `lastPublishedBy`.  

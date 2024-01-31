@@ -1,0 +1,91 @@
+---
+id: 8a6fo7e4
+title: Built-in Background Tasks
+description: You will learn about Background Tasks, how to create new definitions, how to trigger them and how to handle the task run.
+---
+
+import {Alert} from "@/components/Alert";
+import {CanIUseThis} from "@/components/CanIUseThis";
+import {WhatYouWillLearn} from "@/components/WhatYouWillLearn";
+
+<Alert type="danger" title="Use with caution!">
+  This feature is experimental and is subject to change in future releases.
+</Alert>
+
+<CanIUseThis since={"5.39.0"} />
+
+<WhatYouWillLearn>
+
+- what are available built-in Background Tasks
+- how to run built-in Background Tasks
+
+</WhatYouWillLearn>
+
+## Built-in Background Tasks
+
+Webiny ships with a few of built-in Background Tasks. Some of them are used only internally (like clearing Cloudfront file cache), and some of them can be used publicly (Elasticsearch reindexing).
+
+### Test Task
+
+The test task is a task which is used for testing the Background Task mechanism.
+Its definition is available [here](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/tasks/src/tasks/testingRunTask.ts#L3).
+
+
+### Elasticsearch Reindexing Task
+
+<Alert type="info" title="Elasticsearch And OpenSearch Only!">
+  This task will only get shipped with Elasticsearch and OpenSearch Webiny system.
+</Alert>
+
+
+The Elasticsearch/OpenSearch Reindexing is the first task we implemented via the Background Task mechanism.
+Basically, it is a task which scans through the DynamoDB Elasticsearch table and pushes the data into the specific Elasticsearch/OpenSearch index.
+Internally it is a bit more than that, but this is the basic idea. You can check the [definition](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/api-elasticsearch-tasks/src/tasks/reindexing/reindexingTaskDefinition.ts#L12) and the [runner](https://github.com/webiny/webiny-js/blob/abb442c6d67c97980b8053c5e53db7fb4fec88b4/packages/api-elasticsearch-tasks/src/tasks/reindexing/ReindexingTaskRunner.ts#L40) code for more information.
+
+The task can be triggered either via code or via the GraphQL API.
+
+#### Triggering the Task Via Code
+
+Let's say that you have a Page Builder lifecycle event hook which triggers the task when the page is published, but only on index which contains the word `page` in its name.
+```typescript
+const myHook = () => {
+    return new ContextPlugin(async(context) => {
+        context.pageBuilder.onPageAfterPublish(async() => {
+            await context.tasks.trigger({
+                definition: "elasticsearchReindexing",
+                input: {
+                    matching: "page"
+                }
+            });
+        })
+    });
+};
+```
+
+#### Triggering The Task Via GraphQL API
+
+The task can be triggered via the GraphQL API, with the following mutation:
+```graphql
+mutation TriggerTask {
+  backgroundTasks {
+    triggerTask(definition: elasticsearchReindexing, input: {
+      matching: "page"
+    }) {
+      data {
+        id
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+The task disables indexing on all matching indexes, and enables it when the task is finished.
+This is done to reduce the strain on the Elasticsearch/OpenSearch cluster as the reindexing operation is a heavy one.
+
+
