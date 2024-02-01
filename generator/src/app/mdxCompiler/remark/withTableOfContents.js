@@ -37,7 +37,8 @@ module.exports.withTableOfContents = () => {
                     .join("");
 
                 const customAnchor = getAnchor(title);
-                title = escape(removeAnchor(title));
+                // title = escape(removeAnchor(title));
+                title = removeAnchor(title);
                 let slug = customAnchor ?? slugify(title);
 
                 let allOtherSlugs = contents.flatMap(entry => [
@@ -126,8 +127,6 @@ module.exports.withTableOfContents = () => {
                     `<Heading id="${slugify(title)}"$1`
                 );
             }
-
-            const endOfLoop = node;
         }
 
         addExport(tree, "tableOfContents", contents);
