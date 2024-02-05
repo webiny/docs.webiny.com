@@ -20,6 +20,10 @@ export const Navigation = () => {
               link={"headless-cms/extending/customize-entry-list-table-columns"}
               after={"headless-cms/extending/customize-entry-list-bulk-actions"}
             />
+            <Page
+              link={"headless-cms/extending/create-rich-text-content-renderer"}
+              after={"headless-cms/extending/custom-field-type"}
+            />
           </Group>
           <Group title={"References"}>
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />

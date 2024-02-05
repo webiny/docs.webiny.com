@@ -1,0 +1,87 @@
+---
+id: 47e4973f
+title: Create a Rich Text Content Renderer
+description: Learn how to implement a custom rich text content renderer, or enhance the default one.
+---
+
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { Image } from "@/components/Image";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+import hcmsRteHtmlOutput from "./assets/hcms-rte-html-output.png";
+
+<CanIUseThis since={"5.39.0"} />
+
+<WhatYouWillLearn>
+
+- how to add a custom rich text content renderer
+
+</WhatYouWillLearn>
+
+## Overview
+
+Headless CMS contains a rich text content field, which allows users to create content using a rich text editor. By default, Webiny uses the [Lexical Editor](https://lexical.dev/), but developers are able to implement whatever editor they want for their projects. This means that the data stored into the database can, and most likely will, be very different between various rich text editors.
+
+The Headless CMS GraphQL schema exposes a `format` parameter on rich text fields, to allow content consumers to request a specific format to be returned to them from the API. Out of the box, Webiny provides an HTML renderer for its default Lexical editor implementation. However, your project might use a different rich text editor, or you might want to support a different output format, for example, markdown.
+
+<Image src={hcmsRteHtmlOutput} alt="Headless CMS HTML Output" />
+
+<Alert type="warning" title="Plugin Registration">
+
+Code examples below demonstrate the creation of plugin instances which need to be registered in the `apps/api/graphql/src/index.ts`. Simply import your plugins, and append them to the bottom of the plugins array in the handler definition.
+
+</Alert>
+
+## Create a Custom Renderer
+
+<Alert type="warning" title={"Create a plugin file"}>
+
+The code example is pointing to a file which doesn't yet exist in your project. Create this file, or place the code into a different location of choice.
+
+</Alert>
+
+To create a custom renderer, create a plugin similar to the one shown in the code example below.
+
+```ts apps/api/graphql/src/plugins/richTextRenderer.ts
+import { createRichTextRenderer } from "@webiny/api-headless-cms";
+
+export const myRichTextRenderer = () => {
+  return createRichTextRenderer("html", contents => {
+    // `contents` is the raw CMS field value that comes from the storage layer.
+
+    // Lazy load your content renderer/converter, and run it.
+    return import(/* webpackChunkName: "myHTMLRenderer" */ "./myHTMLRenderer").then(
+      ({ myHTMLRenderer }) => {
+        return myHTMLRenderer(contents);
+      }
+    );
+  });
+};
+```
+
+This creates a renderer that is executed when the content consumer specifies `html` as the output format of the rich text field in the GraphQL query. `myHTMLRenderer` is a fictional function to demonstrate the use of the plugin. The implementation of the actual HTML (or any other format) rendering will depend on the rich text editor that you use in your project, and the format you're rendering to.
+
+You've probably noticed the use of the dynamic import, and the `webpackChunkName` inline comment. We highly recommend you use code splitting to only load your renderer when it's actually being used. This will reduce the size of the main code bundle that the Lambda function will have to process for common request processing. The `webpackChunkName` is recommended for easier debugging, as this name will be used as the chunk name, when the code bundle is built.
+
+## Intercept Existing Renderer
+
+Sometimes, you might want to let the default renderer do its job, but fine tune the output before returning it to the consumer. This way, you can build multiple plugins that form a chain of transformations.
+
+```ts
+import { createRichTextRenderer } from "@webiny/api-headless-cms";
+
+createRichTextRenderer<string>({
+  format: "html",
+  async render(contents, next) {
+    // Call the previous renderer!
+    const html = await next(contents);
+
+    // In case the previous renderer doesn't exist, or returns a falsy value, return a fallback HTML value.
+    if (!html) {
+      return "<span>Fallback output!</span>";
+    }
+
+    // Further process the HTML.
+    return `${html}<br/><span>An additional comment!</span>`;
+  }
+});
+```
