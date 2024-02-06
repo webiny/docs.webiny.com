@@ -1,0 +1,226 @@
+---
+id: 38fe75ab
+title: Private Models
+description: Learn about Private models and how to create them
+---
+
+import { Alert } from "@/components/Alert";
+import YouTube from "@/components/YouTube";
+
+<Alert type="info" title="Can I Use This?">
+
+This feature is available since Webiny **v5.38.0**.
+
+</Alert>
+
+<Alert type="success" title="What you will learn">
+
+- what is private models
+- how to create private model
+
+</Alert>
+
+## Introduction
+
+Content models is a main building block in Headless CMS. The first step to storing information in a Headless CMS is to create a [content model](/docs/{version}/user-guides/headless-cms/essentials/glossary#content-model).
+
+
+Let's delve into the details of both public and private models and how you can leverage them in Webiny.
+
+## Public Models
+Public models in Webiny are those content models that are visible within the admin app. These models come with a generated navigation menu, allowing easy access to content entries through the user interface.
+
+Creating public models involves the conventional process of logging into the admin app and using the user interface to design a content model or with . The result is the automatic generation of an API, including a GraphQL type and a set of resolvers for seamless data interaction.
+Alternatively, you can also build public models through code using a [plugin](/docs/headless-cms/extending/content-models-via-code-storage-id).
+
+## Private Models
+Private models, in contrast, remain hidden from the admin app UI. These models are defined programmatically through a plugin. While the schema and resolvers aren't auto-generated, developers have the freedom to design them on the backend or API.
+
+### Use Cases
+Private models find their significance in scenarios where UI visibility is not necessary. They don't generate a navigation menu, UI, or expose content models in the CMS API endpoints.
+
+### Examples
+In Webiny, we used private models in various apps. Notable examples include the file manager, folders component, and advanced filters in the Headless CMS UI. These applications showcase the power and flexibility of private models in developing tailored UIs.
+
+## Building Private Model
+Let's walk through the process of building a private model, taking `Book` model with `title` and `price` fields as an example.
+
+### Model Definition
+Utilize the `createPrivateModelDefinition` utility, specifying parameters such as model name, model ID, and fields.
+
+```tsx book.model.ts
+import { createPrivateModelDefinition, CmsModelPlugin } from "@webiny/api-headless-cms";
+import { createModelField } from "./createModelField";
+import { ContextPlugin } from "@webiny/handler";
+import { CmsContext } from "@webiny/api-headless-cms/types";
+
+const required = () => {
+    return {
+        name: "required",
+        message: "Value is required."
+    };
+};
+
+const titleField = () => {
+    return createModelField({
+        label: "Title",
+        type: "text",
+        validation: [required()]
+    });
+};
+
+const priceField = () => {
+    return createModelField({
+        label: "Price",
+        type: "number",
+        validation: [required()]
+    });
+};
+
+export const BOOK_MODEL_ID = "pvBook";
+
+export const createBookModelDefinition = () => {
+    const fields = [
+        titleField(),
+        priceField(),
+    ];
+
+    return createPrivateModelDefinition({
+        name: "PvBook",
+        modelId: BOOK_MODEL_ID,
+        titleFieldId: "title",
+        fields
+    });
+};
+
+export default [
+    new ContextPlugin((context: CmsContext) => {
+        context.plugins.register([
+            new CmsModelPlugin(createBookModelDefinition())
+        ]);
+    })
+];
+
+
+```
+
+```tsx createModelField.ts
+
+import { CmsModelField } from "@webiny/api-headless-cms/types";
+
+export interface CreateModelFieldParams
+    extends Omit<CmsModelField, "id" | "storageId" | "fieldId"> {
+    fieldId?: string;
+}
+
+export const createModelField = (params: CreateModelFieldParams): CmsModelField => {
+    const {
+        label,
+        fieldId: initialFieldId,
+        type,
+        tags,
+        settings = {},
+        listValidation = [],
+        validation = [],
+        multipleValues = false,
+        predefinedValues = {
+            values: [],
+            enabled: false
+        }
+    } = params;
+
+    const fieldId = initialFieldId ? initialFieldId : label;
+
+    return {
+        id: fieldId,
+        storageId: `${type}@${fieldId}`,
+        fieldId,
+        label,
+        type,
+        settings,
+        tags,
+        listValidation,
+        validation,
+        multipleValues,
+        predefinedValues
+    };
+};
+
+```
+
+
+### Plugin Registration
+Register the model definition as a plugin using CMSModelPlugin.
+
+As a next step, we will register the content model plugin in the API application.
+Let's make the following changes in `apps/api/graphql/src/index.ts` file:
+
+```diff-js apps/api/graphql/src/index.ts
+(...)
+
+// Import the content model group and content model
++ import bookModelPlugin from './plugins/private-models/book.model'
+
+export default [
+     // Rest of the plugins
+     (...)
+     createContentHeadlessCmsGraphQL({ debug }),
+    scaffoldsPlugins(),
++   bookModelPlugin
+];
+```
+
+### CRUD Operations
+Interact with the storage layer using the CMS SDK. Perform CRUD operations on the private model, simplifying data management.
+
+```tsx CmsBooksStorage.ts
+
+import { CmsModel, HeadlessCms } from "@webiny/api-headless-cms/types";
+import { Security } from "@webiny/api-security/types";
+
+interface ModelContext {
+    tenant: string;
+    locale: string;
+}
+
+export class CmsFilesStorage {
+    private readonly cms: HeadlessCms;
+    private readonly security: Security;
+    private readonly model: CmsModel;
+
+
+    private constructor(
+        bookModel: CmsModel,
+        cms: HeadlessCms,
+        security: Security,
+    ) {
+        this.model = bookModel;
+        this.cms = cms;
+        this.security = security;
+    }
+
+    private modelWithContext({ tenant, locale }: ModelContext): CmsModel {
+        return { ...this.model, tenant, locale };
+    }
+
+    async create({ book }: any): Promise<any> {
+        const model = this.modelWithContext(book);
+        const entry = await this.security.withoutAuthorization(() => {
+            return this.cms.createEntry(model, {
+                ...book
+            });
+        });
+        return entry
+    }
+
+}
+
+```
+
+### GraphQL Schema
+Our CURD operations are ready, now let's learn how to make it accessible through GraphQL API. 
+For this, we will use `GraphQLSchemaPlugin`. Whenever you want to add something new to GraphQL in Webiny, you register a `GraphQLSchemaPlugin` and specify type definitions and resolvers. 
+
+For detailed code examples and further exploration, please refer to the attached video. 
+<YouTube id="iKeew6xvUb8" />
+
