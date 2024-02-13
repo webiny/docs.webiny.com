@@ -1,0 +1,43 @@
+---
+id: 40ac68cc
+title: Webiny 5.39.1 Changelog
+description: See what's new in Webiny version 5.39.1.
+---
+
+<GithubRelease version={"5.39.1"} />
+
+## Page Builder
+
+### Duplicate Page Inside the Original Page Folder ([#3866](https://github.com/webiny/webiny-js/pull/3866))
+
+When duplicating a page, the copy of the page would be assigned to the root folder, instead of the folder where the source page was located. This is now fixed, and the page duplicate is assigned to the same page as its original.
+
+### Set a Higher Limit on `listPageElements` Method ([#3863](https://github.com/webiny/webiny-js/pull/3863))
+
+Currently, if you call the `context.pageBuilder.listPageElements()` method, it simply forwards the call to the storage layer, which has a default limit set to `10`. This is now fixed by passing an explicit limit of `1000` to the storage layer, which should be more than enough considering that these elements are only used in the page editor sidebar.
+
+## Advanced Content Organization
+
+### Ensure Folder Permissions Are Set Immediately ([#3849](https://github.com/webiny/webiny-js/pull/3849))
+
+This fix ensures that, when a user issues a `createFolder` or `updateFolder` mutation, the folder has its permissions set correctly, which was not the case for DDB+ES/DDB+OS projects. In these projects, if a user created a new folder via the UI, the correct permissions were visible only after a user reloads the app. This has to do with the eventual consistency of Elasticsearch/Amazon OpenSearch, and the way we originally implemented cache invalidation. With this release, we've improved cache handling, and this issue is no longer present.
+
+## File Manager
+
+### Add `cache-control` Header to Asset Reply ([#3857](https://github.com/webiny/webiny-js/pull/3857))
+
+We've fixed an issue with asset caching in the browser and CDN, by setting the appropriate `cache-control` header on public assets, in systems that do not use the "Private Files" feature.
+
+
+## Deployment
+
+### Add IAM Service Role Check for Amazon OpenSearch Service ([#3854](https://github.com/webiny/webiny-js/pull/3854))
+
+We've added the Amazon OpenSearch Service-related IAM service role check to the deployment process. It works the same way we had it with Elasticsearch, so if you're using Webiny with the DDB+OS setup, the deployment process will make sure you have the IAM permissions necessary to work with the OpenSearch service, or fail early, if you don't.
+
+
+## GraphQL API
+
+### Apply Response Headers Modifiers on OPTIONS Requests
+
+We have a plugin to modify HTTP response headers, which you can create using the `createModifyResponseHeaders` factory from the `@webiny/handler` package. But, these plugins were not being applied on OPTIONS requests. With this release, we've addressed that, and you can now fully control the response headers, no matter the request method. 
