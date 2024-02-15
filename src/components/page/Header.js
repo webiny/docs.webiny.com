@@ -142,6 +142,13 @@ export function NavItems() {
                     </a>
                 </Link>
             </li>
+            <li>
+                <Link href="/docs/handbook/company/why-webiny-exists" legacyBehavior>
+                    <a className={`text-nav-subdirectory ${activeClass("handbook")}`}>
+                        Company Handbook
+                    </a>
+                </Link>
+            </li>
         </>
     );
 }
