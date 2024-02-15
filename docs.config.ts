@@ -91,13 +91,12 @@ export default {
     }),
 
     /* Handbook */
-    (!process.env.VERCEL_ENV || preview) &&
-      new NonVersionedDocumentRootConfig({
-        rootDir: path.resolve("docs/handbook"),
-        linkPrefix: "/docs/handbook",
-        outputDir: path.resolve("src/pages"),
-        pageLayout: "@/layouts/HandbookLayout",
-        mdxFileFactory: (data: MdxData) => new HandbookMdxFile(data)
-      })
+    new NonVersionedDocumentRootConfig({
+      rootDir: path.resolve("docs/handbook"),
+      linkPrefix: "/docs/handbook",
+      outputDir: path.resolve("src/pages"),
+      pageLayout: "@/layouts/HandbookLayout",
+      mdxFileFactory: (data: MdxData) => new HandbookMdxFile(data)
+    })
   ]
 };
