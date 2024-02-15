@@ -4,8 +4,6 @@ import { Page, Group, NavigationRoot } from "@webiny/docs-generator";
 export const Navigation = () => {
   return (
     <NavigationRoot directory={__dirname}>
-      <Group title={"Welcome!"}>
-        
         <Group title={"About the company"} linkPrefix={"company"}>
           <Page file={"./company/why-webiny-exists"} />
           <Page file={"./company/our-values"} />
@@ -17,13 +15,6 @@ export const Navigation = () => {
           <Page file={"./company/how-we-ensure-quality"} />
           <Page file={"./company/why-we-chose-serverless"} />
         </Group>
-
-        <Page file={"./introduction"} link={"introduction"} />
-        <Group title={"Engineering"} linkPrefix={"engineering"}>
-          <Page file={"./engineering/cypress"} />
-          <Page file={"./engineering/cypress.mdx"} link={"testing/cypress"} />
-        </Group>
-      </Group>
     </NavigationRoot>
   );
 };
