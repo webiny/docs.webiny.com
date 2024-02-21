@@ -49,6 +49,9 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Core Development Concepts"}>
+          <Group title={"Basics"}>
+            <Page link={"core-development-concepts/basics/get-started-developer-guide"} />
+          </Group>
           <Group title={"Extending and Customizing"}>
             <Page link={"core-development-concepts/extending-and-customizing/lexical-tools"} />
           </Group>
