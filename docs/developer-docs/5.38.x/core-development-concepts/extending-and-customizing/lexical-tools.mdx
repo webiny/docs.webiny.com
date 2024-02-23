@@ -36,7 +36,7 @@ In the browser environment, you can simply use the `DOMParser` class.
 ```ts Parse HTML to a DOM document in the browser
 const html = `<p>My input HTML</p>`;
 const parser = new DOMParser();
-const document = parser.parseFromString(html, "text/html");
+const domDocument = parser.parseFromString(html, "text/html");
 ```
 
 ### Node.js Usage
@@ -58,7 +58,7 @@ import JSDOM from "jsdom";
 
 const html = `<p>My input HTML</p>`;
 const { window } = new JSDOM(html);
-const document = window.document;
+const domDocument = window.document;
 ```
 
 ### Convert DOM to Lexical State
@@ -129,3 +129,75 @@ const document = getDomDocument();
 // Parse DOM document to Lexical state.
 const lexicalState = parser(document);
 ```
+
+## Lexical to HTML
+
+To convert raw Lexical state to HTML, Lexical editor requires DOM to be present on the `global` object.
+
+### Browser Usage
+
+In the browser environment, DOM is present by definition, so no extra steps are necessary.
+
+### Node.js Usage
+
+In the Node.js environment, first install a DOM library of choice. We'll use JSDOM:
+
+```shell Install JSDOM
+// NPM
+npm i jsdom
+
+// Yarn
+yarn add jsdom
+```
+
+Then use it to setup the environment:
+
+```ts Setup the necessary DOM objects
+const dom = new jsdom.JSDOM();
+global.window = dom.window;
+global.document = dom.window.document;
+global.DocumentFragment = dom.window.DocumentFragment;
+```
+
+To see a real-life example of this setup, have a look at our [default Lexical to HTML implementation](https://github.com/webiny/webiny-js/blob/v5.39.0/packages/api-headless-cms/src/htmlRenderer/LexicalRenderer.ts).
+
+Once DOM objects are configured, you can render your Lexical state to HTML. Webiny provides a Lexical transformer utility, which allows to render to various output formats.
+
+### Render to an HTML string
+
+To convert Lexical state to plain HTML string, use the `toHtml` method. This will simply output everything as a `string`.
+
+```ts Convert Lexical state to an HTML string
+import { createLexicalStateTransformer } from "@webiny/lexical-converter";
+
+const transformer = createLexicalStateTransformer();
+const html = transformer.toHtml(lexicalState);
+```
+
+### Render to an array of objects
+
+To convert Lexical state to an array of objects, where each object represents a top-level block element, use the `flatten` method. Each block will be converted to a standalone HTML string, and you will also get an instance of the Lexical Node object along with the block HTML.
+
+```ts Convert Lexical state to an array of objects
+import { createLexicalStateTransformer } from "@webiny/lexical-converter";
+
+const transformer = createLexicalStateTransformer();
+const output = transformer.flatten(lexicalState);
+```
+
+The output of this method will look something like this:
+
+```ts Pseudo-code demonstrating the output of the flatten method
+const output = [
+  {
+    node: expect.any(HeadingNode),
+    html: `<h1 dir="ltr"><span style=\"white-space: pre-wrap;\">Heading</span></h1>`
+  },
+  {
+    node: expect.any(ParagraphNode),
+    html: `<p dir="ltr"><br></p>`
+  }
+];
+```
+
+To see various use cases for these methods, have a look at the [test file](https://github.com/webiny/webiny-js/blob/v5.39.0/packages/lexical-converter/__tests__/stateTransformer.test.ts).

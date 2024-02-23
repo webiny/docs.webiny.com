@@ -25,6 +25,8 @@ The Headless CMS GraphQL schema exposes a `format` parameter on rich text fields
 
 <Image src={hcmsRteHtmlOutput} alt="Headless CMS HTML Output" />
 
+To inspect the implementation of our built-in Lexical-to-HTML renderer, see the [source code on Github](https://github.com/webiny/webiny-js/blob/v5.39.0/packages/api-headless-cms/src/htmlRenderer/createLexicalHTMLRenderer.ts).
+
 <Alert type="warning" title="Plugin Registration">
 
 Code examples below demonstrate the creation of plugin instances which need to be registered in the `apps/api/graphql/src/index.ts`. Simply import your plugins, and append them to the bottom of the plugins array in the handler definition.
@@ -64,7 +66,9 @@ You've probably noticed the use of the dynamic import, and the `webpackChunkName
 
 ## Intercept Existing Renderer
 
-Sometimes, you might want to let the default renderer do its job, but fine tune the output before returning it to the consumer. This way, you can build multiple plugins that form a chain of transformations.
+Sometimes, you might want to let the default renderer do its job, but fine tune the output before returning it to the consumer. This way, you can build multiple plugins that form a chain of transformations. 
+
+When there are multiple plugins registered to handle the same format, a chain is created, where the last plugin registered will be the first one executed. You will be able to call the next plugin in the chain using the `next` callback. This way you can completely intercept all previous plugins, and either skip them all together, or execute them at will.
 
 ```ts
 import { createRichTextRenderer } from "@webiny/api-headless-cms";
