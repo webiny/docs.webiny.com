@@ -29,10 +29,6 @@ export const Navigation = () => {
               link={"headless-cms/extending/customize-entry-list-bulk-actions"}
               after={"headless-cms/extending/customize-entry-list-filters"}
             />
-            <Page
-              link={"headless-cms/extending/private-models"}
-              after={"headless-cms/extending/customize-entry-list-bulk-actions"}
-            />
           </Group>
         </Group>
         <Group title={"File Manager"}>

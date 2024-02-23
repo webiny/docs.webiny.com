@@ -1,7 +1,7 @@
 ---
 id: 38fe75ab
 title: Private Models
-description: Learn about Private models and how to create them
+description: Learn about private models and how to create them
 ---
 
 import { Alert } from "@/components/Alert";
@@ -10,20 +10,20 @@ import apiPlayground from "./assets/private-model-api-playground.png";
 
 <Alert type="info" title="Can I Use This?">
 
-This feature is available since Webiny **v5.38.0**.
+This feature is available since Webiny **v5.39.2**.
 
 </Alert>
 
 <Alert type="success" title="What you will learn">
 
 - what is private model
-- how to create private model
+- how to create a private model
 
 </Alert>
 
 ## Introduction
 
-Content models is a main building block in Headless CMS. The first step to storing information in a Headless CMS is to create a [content model](/docs/{version}/user-guides/headless-cms/essentials/glossary#content-model).
+Content models are a main building block in Headless CMS. The first step to storing information in a Headless CMS is to create a [content model](/docs/{version}/user-guides/headless-cms/essentials/glossary#content-model).
 
 Let's delve into the details of both public and private models and how you can leverage them in Webiny.
 
@@ -43,15 +43,14 @@ Private models find their significance in scenarios where UI visibility is not n
 In Webiny, we used private models in various apps. Notable examples include the file manager, folders component, and advanced filters in the Headless CMS UI. These applications showcase the power and flexibility of private models in developing tailored UIs.
 
 ## Building a Private `Book` Model
-Let's walk through the process of building a private model, taking `Book` model with `title` and `price` fields as an example.
-We will also implement to create book and list books operations on this model. 
+Let's walk through the process of building a private model, taking the `Book` model with `title` and `price` fields as an example.
+We will also implement to create book and list books operations on this model.
 
 ### Step 1: Create a Book App
-We will start with creating a Book App, this app is collection of various plugins that is need for Private models.
-In simple words, the Book App is a package which contains various plugins, we will look into each plugins in upcoming steps.
+We will start by creating a Book App, which is a collection of various plugins needed for Private models.
+In simple terms, the Book App is a package containing various plugins. We will explore each plugin in the upcoming steps.
 
-Create a directory `packages/books` at Webiny project root, and create `package.json` and `tsconfig.json` files.
-
+Create a directory named `packages/books` at the root of the Webiny project, and create `package.json` and `tsconfig.json` files.
 
 ```json package.json
 {
@@ -59,7 +58,6 @@ Create a directory `packages/books` at Webiny project root, and create `package.
   "main": "./src/index.ts"
 }
 ```
-
 
 ```json tsconfig.json
 {
@@ -71,7 +69,7 @@ Create a directory `packages/books` at Webiny project root, and create `package.
 }
 ```
 
-And now create a `src` directory under the `packages/books`, we will write our custom code in this directory.
+Now, create an `src` directory under the `packages/books` directory. We will write our custom code in this directory.
 
 ### Step 2: Define Model Definition
 
@@ -114,13 +112,11 @@ export const createBookModelDefinition = () => {
         ]
     });
 };
-
 ```
 
-And now create file `src/createModelField.ts` containing a utility function for creating model fields.
+And now create a file `src/createModelField.ts` containing a utility function for creating model fields.
 
 ```tsx createModelField.ts
-
 import { CmsModelField } from "@webiny/api-headless-cms/types";
 
 export interface CreateModelFieldParams
@@ -164,22 +160,23 @@ export const createModelField = (params: CreateModelFieldParams): CmsModelField 
 ```
 
 ### Step 3: Implement CRUD Operations
-Now, private model `Book` is ready, now the next step is to perform CRUD operations on the private model.
-In this example, we will demostrate two operations, Create Book and List Books.
-We will do it in following three steps.
+Now that the private model `Book` is ready, the next step is to perform CRUD operations on the private model. In this example, we will demonstrate two operations: Create Book and List Books. We will do this in the following three steps.
 
-#### Step 3.1: Define Context and various types
+#### Step 3.1: Define Context and Various Types
+We will use these Context and types further, so for now, let's define them.
 
-We will use these Context and types further, so for now, let's define it.  
-
-Create a file `src/types.ts` file.
+Create a file named `src/types.ts`.
 
 ```tsx types.ts
 import type { Context as BaseContext } from "api-graphql/src/types";
-import { BooksContext } from "./index";
-import { Book } from "./books.crud";
 
-export interface Context extends BaseContext, BooksContext {}
+export interface Book {
+    id: string;
+    title: string;
+    price: number;
+}
+
+export type CreateBookInput = Pick<Book, "title" | "price">;
 
 export interface BooksStorageOperationsListResponseMeta {
     hasMoreItems: boolean;
@@ -197,38 +194,36 @@ export interface BooksStorageOperationsListParams {
     after?: string | null;
     search?: string;
 }
-```
-
-#### Step 3.2 Defines interfaces & methods for creating and listing books
-
-In this step, we will defines interfaces for book objects, input for creating books, and methods for creating and listing books.
-
-Create `src/books.crud.ts` file.
-
-```tsx books.crud.ts
-
-import {
-    BooksStorageOperationsListParams,
-    BooksStorageOperationsListResponse
-} from "./types"
-
-export interface Book {
-    id: string;
-    title: string;
-    price: number;
-}
-
-export type CreateBookInput = Pick<Book, "title" | "price">;
 
 export interface IBooksCrud {
     createBook(data: CreateBookInput): Promise<Book>;
     listBooks(params: BooksStorageOperationsListParams): Promise<BooksStorageOperationsListResponse>;
 }
 
-interface IBooksStorage {
+export interface IBooksStorage {
     create(book: CreateBookInput): Promise<Book>;
     list(params: BooksStorageOperationsListParams): Promise<BooksStorageOperationsListResponse>;
 }
+
+export interface BooksContext {
+    books: IBooksCrud;
+}
+
+export interface Context extends BaseContext, BooksContext {}
+```
+
+#### Step 3.2: Define Interfaces & Methods for Creating and Listing Books
+In this step, we will define interfaces for book objects, input for creating books, and methods for creating and listing books.
+
+Create a file named `src/books.crud.ts`.
+
+```tsx books.crud.ts
+import {
+    BooksStorageOperationsListParams,
+    CreateBookInput,
+    IBooksCrud,
+    IBooksStorage
+} from "./types"
 
 export class BooksCrud implements IBooksCrud {
     private storage: IBooksStorage;
@@ -246,24 +241,22 @@ export class BooksCrud implements IBooksCrud {
     }
 }
 
-/**
+/*
  * You also add lifecycle event and permission checks here.:
  * - add lifecycle events (optional)
  * - add permission checks (optional)
  */
-
 ```
 
-#### Step 3.3 : Implement storage functionality
+#### Step 3.3: Implement Storage Functionality
+Now we will implement storage functionality for the private model and interact with the storage layer using the CMS SDK. We will define a class `BooksStorage` with methods for creating and listing books and for converting CMS entries to book objects.
 
-Now we will Implement storage functionality for the private model and will interact with the storage layer using the CMS SDK. We will defines a class `BooksStorage` with methods for creating and listing books, and for converting CMS entries to book objects.
-
-Create `src/books.storage.ts` file.
+Create a file named `src/books.storage.ts`.
 
 ```tsx books.storage.ts
 import { CmsEntry, CmsModel, HeadlessCms } from "@webiny/api-headless-cms/types";
 import { Security } from "@webiny/api-security/types";
-import { Book, CreateBookInput } from "./books.crud";
+import { Book, CreateBookInput } from "./types";
 import {
     BooksStorageOperationsListParams,
     BooksStorageOperationsListResponse
@@ -352,15 +345,13 @@ export class BooksStorage {
         return [entries.map(entry => this.getBookFromEntry(entry)), meta];
     }
 }
-
 ```
 
 ### Step 4: Define GraphQL Schema
 
-Our CURD operations are ready, now let's learn how to make it accessible through GraphQL API. 
-For this, we will use `GraphQLSchemaPlugin`. Whenever you want to add something new to GraphQL in Webiny, you register a `GraphQLSchemaPlugin` and specify type definitions and resolvers. Here we will define type definitions and resolvers for querying and mutating books.
+Our CRUD operations are ready. Now, let's learn how to make them accessible through the GraphQL API. For this, we will use `GraphQLSchemaPlugin`. Whenever you want to add something new to GraphQL in Webiny, you register a `GraphQLSchemaPlugin` and specify type definitions and resolvers. Here, we will define type definitions and resolvers for querying and mutating books.
 
-Create a file `src/books.graphql.ts`.
+Create a file named `src/books.graphql.ts`.
 
 ```tsx books.graphql.ts
 import {
@@ -375,7 +366,6 @@ interface CreateBookInput {
     title: string;
     price: number;
 }
-
 
 export const booksGraphql = new GraphQLSchemaPlugin<Context>({
     typeDefs: /* GraphQL */ `
@@ -417,7 +407,8 @@ export const booksGraphql = new GraphQLSchemaPlugin<Context>({
             listBooks(
                 limit: Int
                 search: String
-                after: String): BooksListResponse
+                after: String
+            ): BooksListResponse
         }
 
         extend type Mutation {
@@ -444,7 +435,7 @@ export const booksGraphql = new GraphQLSchemaPlugin<Context>({
             async listBooks(_, args, context) {
                 try {
                     const { limit, after, search } = args as BooksStorageOperationsListParams;
-                    const [books, meta] = await context.books.listBooks({ limit, after, search })
+                    const [books, meta] = await context.books.listBooks({ limit, after, search });
                     return new ListResponse(books, meta);
                 } catch (err) {
                     return new ErrorResponse(err);
@@ -469,12 +460,12 @@ export const booksGraphql = new GraphQLSchemaPlugin<Context>({
 
 ### Step 5: Create Book App and Register Plugins
 
-As a next step, we will register all the plugins that we created earlier, i.e.
-- Private model that we created in Step 2
-- CURD operations defined in Step 3
-- GraphQL schema plugin created in Step 4
+As the next step, we will register all the plugins that we created earlier, i.e.
+- the private model created in Step 2
+- the CRUD operations defined in Step 3
+- and the GraphQL schema plugin created in Step 4
 
-Let's register all this plugins, create `src/books.app.ts` file. This file sets up the context plugin for handling CRUD operations and GraphQL schema plugin for exposing CRUD operations via GraphQL.
+Let's register all these plugins. Create a `src/books.app.ts` file. This file sets up the context plugin for handling CRUD operations and the GraphQL schema plugin for exposing CRUD operations via GraphQL.
 
 ```tsx books.app.ts
 import { ContextPlugin } from "@webiny/handler-aws";
@@ -525,26 +516,17 @@ export const createBooksApp = () => {
         context.plugins.register(booksGraphql);
     });
 };
-
 ```
 
 ### Step 6: Export the App
 Create an index file `src/index.ts`, export the created app.
 
 ```tsx index.ts
-import { IBooksCrud } from "./books.crud";
-
-export interface BooksContext {
-    books: IBooksCrud;
-}
-
 export { createBooksApp } from "./books.app";
-
 ```
 
 ### Step 7: Register the Book App in Webiny
-As a next step, we will register the Book App in the Headless CMS application.
-Let's make the following changes in `apps/api/graphql/src/index.ts` file:
+As the next step, we will register the Book App in the Headless CMS application. Let's make the following changes in `apps/api/graphql/src/index.ts` file:
 
 ```diff-js apps/api/graphql/src/index.ts
 (...)
@@ -561,10 +543,9 @@ export default [
 ];
 ```
 
-
 ### Step 8: Deploy the application
 
-1. Run the `yarn` command from Webiny project root to build our newly created package.
+1. Run the `yarn` command from the Webiny project root to build our newly created package.
 
 2. Run the deploy command
 ```
@@ -572,9 +553,7 @@ yarn webiny deploy apps/api --env dev
 ```
 
 ### Step 9: Testing
-Once the application is deployed, you will able to see Query and Mutation related to Book model.
-
-<Image src={apiPlayground} title="API Playground" />
+Once the application is deployed, you will be able to see Query and Mutation related to the Book model.
 
 Here are two example Query and Mutation that you can try in API playground.
 
@@ -616,7 +595,7 @@ query listBook {
 
 ## Next Steps
 
-For detailed code examples and further exploration, please refer to the attached video. 
+For detailed code examples and further exploration, please refer to the attached video.
 <YouTube id="iKeew6xvUb8" />
 
 
