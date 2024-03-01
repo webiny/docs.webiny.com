@@ -1,0 +1,152 @@
+---
+id: 77bd4b4d
+title: Webiny 5.39.2 Changelog
+description: See what's new in Webiny version 5.39.2.
+---
+
+import securityPermissions from "./assets/security-permissions.png";
+import emailWorks from "./assets/email-works.png";
+
+<GithubRelease version={"5.39.2"} />
+
+## Headless CMS
+
+### Ability to Immediately Publish Entries When Using `createEntryRevisionFrom` Method ([#3894](https://github.com/webiny/webiny-js/pull/3894))
+
+With the 5.39.0 release, we've improved the existing `create{MODEL_NAME}` GraphQL mutation that's used for creating new content entries. More specifically, we've introduced the ability to create and immediately publish a content entry. For example:
+
+```graphql
+mutation {
+  createVideo(
+    data: {
+      status: "published"
+      title: "Test"
+      description: "Test description."
+    }
+  ) {
+    data {
+      id
+      title
+      description
+    }
+  }
+}
+```
+
+With this release, we've added the same ability to the `createEntryRevisionFrom` mutation, which is used for creating new revisions of existing content entry revisions. For example:
+
+```graphql
+mutation {
+  createVideoFrom(
+    revision: "5f9e3e3e3e3e3e3e3e3e3e3e#0001"
+    data: {
+      status: "published"
+      title: "Test"
+      description: "Test description."
+    }
+  ) {
+    data {
+      id
+      title
+      description
+    }
+  }
+}
+```
+
+Running the above mutation will create a new revision of the existing content entry revision, and immediately publish it.
+
+### Content Models Defined Via Code - Ability to Disable Authorization ([#3865](https://github.com/webiny/webiny-js/pull/3865))
+
+With this release, upon defining content models programmatically, developers now also have the ability to disable authorization checks for the content model and its entries. This can be useful when you want to quickly grant full access to all authenticated users, without the need to have the required security permissions in place, defined via the Security application. 
+
+<Image src={securityPermissions} alt="Security Permissions Defined via the Security Application" />
+
+The existing [Define Content Models via Code](/docs/headless-cms/extending/content-models-via-code#disable-authorization-for-content-models-and-entries) article has been updated to include this new feature.
+
+### Addressing Invalid `TYPE` Field Value ([#3893](https://github.com/webiny/webiny-js/pull/3893))
+
+We've addressed an issue where, for one or more CMS content entries, their internal `TYPE` field value was not being set correctly. Although this issue wasn't causing any problems while using Webiny, for some users that are using the [Amazon DynamoDB + Amazon ElasticSearch database setup](/docs/5.38.x/architecture/introduction#different-database-setups), it did cause an issue when running the 5.39.0 data migration. This issue has been resolved.
+
+#### Data Migrations
+
+Note that, with this release, the new `5.39.2-001` data migration has been introduced, which fixes the `TYPE` field value for all existing content entries and again tries to perform [the meta fields data migration](/docs/release-notes/5.39.0/date-time-and-identity-meta-fields#data-migration) on entries that weren't migrated with the initial `5.39.0-001` data migration included with the 5.39.0 release.
+
+### New Authorization-related Utilities ([#3865](https://github.com/webiny/webiny-js/pull/3865))
+
+With this release, we've introduced a new property on the CMS context object, called `accessControl`. Essentially, this property is a reference to the [`AccessControl`](https://github.com/webiny/webiny-js/blob/dev/packages/api-headless-cms/src/crud/AccessControl/AccessControl.ts) class instance, which is used to perform authorization checks on content model groups, models, and entries.
+
+The methods that the instance exposes can be useful when you want to perform authorization checks in your custom code, like custom GraphQL resolvers, GraphQL field resolvers, lifecycle event handlers, etc.
+
+For example, the following code snippet demonstrates how you can use the `accessControl` property to ensure that the current user has the required permissions to read entries for a given model:
+
+```ts
+import { Context } from "../../types";
+import { CmsGraphQLSchemaPlugin } from "@webiny/api-headless-cms";
+
+new CmsGraphQLSchemaPlugin<Context>({
+  typeDefs: /* GraphQL */ `
+    extend type Mutation {
+      myCustomMutation: ProductResponse
+    }
+  `,
+  resolvers: {
+    Mutation: {
+      [`myCustomMutation`]: async (_, args, context) => {
+        // Retrieve and validate the model
+        const model = await context.cms.getModel("product");
+
+        // Ensure user can read entries for given model.
+        await context.cms.accessControl.ensureCanAccessEntry({
+          model,
+          rwd: "r"
+        });
+
+        // Proceed with the mutation logic...
+      }
+    }
+  }
+});
+```
+
+#### Deprecation Notice
+
+Note that the new `accessControl` property is a successor to the existing `permissions` property, which is now deprecated and will be removed in the upcoming 5.40.0 quarterly release. We will address and further document this change in the upcoming release notes.
+
+### E-mail Validator - Allow `+` Character In E-mail Addresses ([#3907](https://github.com/webiny/webiny-js/pull/3907))
+
+We've addressed an issue with the built-in email validator, which would not allow the `+` character in the email addresses. This issue has been resolved, and the email validator now correctly allows the `+` character in the email addresses.
+
+<Image src={emailWorks} alt={'E-mail Validator - Allow "+" Character In E-mail Addresses'} />
+
+## Folder Level Permissions (FLP)
+
+<Alert type="info">
+
+  To learn more about the Folder Level Permissions feature, please refer to the [Folder Level Permissions](/docs/enterprise/aacl/folder-level-permissions) documentation.
+
+</Alert>
+
+### Performance Improvements ([#3902](https://github.com/webiny/webiny-js/pull/3902))
+
+Prior to this release, Webiny instances that had a large number of folders and subfolders would experience a performance hit when listing the folders, which is happening across multiple applications in the Admin Area, like File Manager, Headless CMS, and Page Builder. In this case, not only it would take a long time to list the folders, but also, in some cases, the Admin Area would become unresponsive.
+
+With this release, we've optimized the internal code of Webiny's Folder Level Permissions feature, which has resulted in a significant performance improvement. Now, the folders are listed much faster, and the Admin Area is more responsive. 
+
+### Ensure Permissions Are Correctly Propagated To Nested Folders ([#3890](https://github.com/webiny/webiny-js/pull/3890))
+
+We've addressed an issue where, in some cases, the folder level permissions weren't being correctly propagated to the nested folders. This issue has been resolved. For example, despite the fact that a user was marked as an owner of a folder, they still would not be able to manage folder level permissions for the nested folders. This issue has been resolved. 
+
+### Prioritize Full Access Permissions Over Custom Ones ([#3889](https://github.com/webiny/webiny-js/pull/3889))
+
+Prior to this release, it was possible for a user to restrict access to a full-access user (a user who has full access to all the content entries). 
+
+This is no longer possible. With this release, we've made sure that the full-access permissions always take precedence over any custom permissions. This means that, if a user has full access to a folder, they will always have full access to all the content entries within that folder, regardless of any custom permissions that might be in place.
+
+## Page Builder
+
+### Fix Last Used Tab State ([#3892](https://github.com/webiny/webiny-js/pull/3892))
+
+In the Page Builder sidebar, when the element is activated, there are 2 tabs available to the user: **Style** and **Element**. The system keeps track of the tab that was last used via the browser's local storage, and activates that tab when the user switches between the elements. However, there was an edge case which would reset the tab to the first one, and reset the value in the local storage.
+
+This edge case was caused by the `Tabs` component in our `@webiny/ui` package, where we had a few methods exposed via the [imperative API](https://react.dev/reference/react/useImperativeHandle), which would cause an uncontrollable sequence of callbacks to execute. With this PR, the imperative API was removed from the Tabs component. All the existing usages of the imperative API (via `ref`) were refactored to use simple components props.
