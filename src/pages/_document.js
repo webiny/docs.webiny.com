@@ -123,6 +123,7 @@ export default class Document extends NextDocument {
                     ></script>
 
                     <script
+                        async
                         src="https://widget.kapa.ai/kapa-widget.bundle.js"
                         data-website-id="adf5b788-64b9-4dfb-8a26-3a193248da4e"
                         data-project-name="Webiny"
