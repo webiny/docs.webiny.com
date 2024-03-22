@@ -6,7 +6,6 @@ description: Learn how to upgrade Webiny from 5.38.x to 5.40.0.
 
 import { Alert } from "@/components/Alert";
 import { AdditionalNotes } from "@/components/upgrade/AdditionalNotes";
-import iamUserGroupsSearch from "./assets/iam-user-groups-search.png";
 
 <Alert type="success" title="What you’ll learn">
 
@@ -43,65 +42,13 @@ yarn webiny upgrade
 
 ### 3. Breaking Changes❗
 
-#### 3.1 Headless CMS - Date/Time and Identity (On/By) Meta Fields
+#### 3.1 Removed Deprecated APIs
 
-As mentioned in the [changelog](docs/release-notes/5.40.0/changelog#headless-cms-revamped-date-time-and-identity-on-by-meta-fields), with this release, we’ve revamped the date/time and identity-related meta fields. In order to do this, we had to introduce a couple of Headless CMS-related breaking changes.
+As mentioned in the [changelog](/docs/release-notes/5.40.0/changelog#removed-deprecated-ap-is-4051), with this release, we've removed a couple of backend JavaScript APIs that were marked as deprecated in previous releases.
 
-Will these breaking changes affect you? It depends on if you've been adding custom code in your project, in which you are also relying on the existing content entry meta fields, like `ownedBy`, `publishedOn`, or `createdOn`. For example, you may have have been using these in your:
+Essentially, we've removed a couple of older methods used for subscribing to lifecycle events and also for performing Headless CMS-related security permissions checks.
 
-1. custom Headless CMS-related GraphQL API queries or mutations
-2. custom Headless CMS-related JavaScript (TypeScript) code (for example, [lifecycle events](/docs/headless-cms/references/lifecycle-events))
-
-If you don't have any of the above, you can safely skip this section. Otherwise, please take a look at the [Date/Time and Identity (On/By) Meta Fields](/docs/release-notes/5.40.0/date-time-and-identity-meta-fields) article.
-
-#### 3.2 Deployments - New IAM Permissions Requirements
-
-As mentioned in the [changelog](/docs/release-notes/5.40.0/changelog#deployments-new-iam-permissions-requirements), starting with this release, when deploying Webiny, an [AWS Step Functions](https://aws.amazon.com/step-functions/) state machine will also be created in the process.
-
-And despite the fact that, at the moment, the state machine is only utilized internally, this still means that, in order to deploy Webiny successfully, proper [AWS Identity and Access Management (IAM)](https://aws.amazon.com/iam/) permissions need to be in place.
-
-For new users, this is not an issue because we've updated our [Deploy Webiny Project AWS CloudFormation template](/docs/infrastructure/aws/configure-aws-credentials#and-quot-deploy-webiny-project-and-quot-aws-cloud-formation-template) to include the required permissions. However, for existing users, this means that, in order to deploy Webiny successfully, they'll need to update the permissions attached to the IAM user or role they're using to deploy Webiny.
-
-Ultimately, no matter if you're using the mentioned AWS CloudFormation template or not, the following additional permissions need to be attached to the IAM user or role you're using to deploy Webiny:
-
-```yaml
-# AWS Step Functions
-- Effect: Allow
-  Action:
-    - states:CreateStateMachine
-    - states:DeleteStateMachine
-    - states:DescribeStateMachine
-    - states:ListTagsForResource
-    - states:TagResource
-    - states:UntagResource
-    - states:ListStateMachines
-    - states:UpdateStateMachine
-
-  Resource: arn:aws:states:*:*:stateMachine:wby-*
-```
-
-<Alert type={'warning'} title={'Important'}>
-
-Be careful with the `arn:aws:states:*:*:stateMachine:wby-*` resource and the last `wby-*` section. If you're using a
-custom Pulumi resource name prefix (set via `webiny.application.ts` files), you'll need to update this accordingly.
-
-For example, if using `my-123-prefix-` as the custom Pulumi resource name prefix, then the resource should be set to `arn:aws:states:*:*:stateMachine:my-123-prefix-*`. So, instead of ending with `wby-*`, the resource now ends with `my-123-prefix-*`.
-
-For more information on custom Pulumi resource name prefixes, see [Pulumi Resource Name Prefixes](/docs/infrastructure/basics/modify-cloud-infrastructure#pulumi-resource-name-prefixes).
-
-</Alert>
-
-If you're using the AWS CloudFormation template, you can add these to the deployed [`DeployWebinyProjectGroup2` IAM group](https://github.com/webiny/webiny-js/blob/next/docs/DEPLOY_WEBINY_PROJECT_CF_TEMPLATE.yaml#L255-L266), simply via the [AWS Console](https://us-east-1.console.aws.amazon.com/iam/home#/groups):
-
-<Image src={iamUserGroupsSearch} alt="Search for the DeployWebinyProjectGroup2 IAM group" />
-
-#### 3.3 Project Level TS Config
-
-You'll notice that your `tsconfig.build.json` file now simply extends our default config from `@webiny/project-utils`. Make sure you transfer any changes you might have introduced to the original config, into this new config. From this point on, any changes introduced by Webiny will be contained within our base config, to keep your potential changes intact. 
-
----
-
-You can now proceed with the next step, which is redeploying your Webiny project.
+Before deploying, please refer to the separate [Deprecated APIs](/docs/release-notes/5.40.0/deprecated-apis) article, and make sure to update your project code, if need be.
 
 ### 4. Deploy Your Project
 
