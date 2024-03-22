@@ -1,0 +1,179 @@
+---
+id: cd0e6f97
+title: Deprecated APIs
+description: Learn about the deprecated APIs and their replacements in this guide.
+---
+
+import { Alert } from "@/components/Alert";
+
+## Overview
+
+As mentioned in the [changelog](/docs/release-notes/5.40.0/changelog#removed-deprecated-ap-is-4051), with this release, we've removed a couple of backend JavaScript APIs that were marked as deprecated in previous releases.
+
+In this guide, we'll go through the list of deprecated APIs and their replacements.
+
+## Headless CMS
+
+We've removed a set of security permissions checking-related methods that were accessible via the `context.cms.permissions` object. To provide more context, here's an example of how the object could've been used in a simple `CmsGraphQLSchemaPlugin` plugin:
+
+```ts
+import { CmsGraphQLSchemaPlugin } from "@webiny/api-headless-cms";
+import { ErrorResponse, Response } from "@webiny/handler-graphql";
+
+new CmsGraphQLSchemaPlugin<Context>({
+  typeDefs: /* GraphQL */ `
+    extend type Query {
+      myListVideos: VideosListResponse
+    }
+  `,
+  resolvers: {
+    Query: {
+      myListVideos: async (_, __, context) => {
+        // Ensure user can read entries.
+        const hasAccess = await context.cms.permissions.entries.ensure({
+          rwd: "r"
+        });
+
+        if (!hasAccess) {
+          throw new ErrorResponse({
+            message: "Unauthorized: Insufficient access rights."
+          });
+        }
+
+        // ...
+      }
+    }
+  }
+});
+```
+
+In the example above, the `context.cms.permissions.entries.ensure` method is used to check if the current user has the required permissions to read entries. 
+
+With this release, the `context.cms.permissions` object has been removed. Instead, you should use the `context.cms.accessControl` object to perform the same checks.
+
+<Alert type="info">
+
+  With this [5.39.2](/docs/release-notes/5.39.2/changelog#new-authorization-related-utilities-3865) release, we’ve introduced a new property on the CMS context object, called `accessControl`. Essentially, this property is a reference to the [AccessControl](https://github.com/webiny/webiny-js/blob/dev/packages/api-headless-cms/src/crud/AccessControl/AccessControl.ts) class instance, which is used to perform authorization checks on content model groups, models, and entries.
+
+</Alert>
+
+If we were to rewrite the previous example using the new `context.cms.accessControl` object, it would look like this:
+
+```diff-ts
+import { CmsGraphQLSchemaPlugin } from "@webiny/api-headless-cms";
+import { ErrorResponse, Response } from "@webiny/handler-graphql";
+
+new CmsGraphQLSchemaPlugin<Context>({
+  typeDefs: /* GraphQL */ `
+    extend type Query {
+      myListVideos: VideosListResponse
+    }
+  `,
+  resolvers: {
+    Query: {
+      myListVideos: async (_, __, context) => {
+        // Ensure user can read entries.
++       const model = await context.cms.getModel("myVideo");
++       const hasAccess = await context.cms.accessControl.canAccessEntry({
++         model,
++         rwd: "r"
++       });
+
+        if (!hasAccess) {
+          throw new ErrorResponse({
+            message: "Unauthorized: Insufficient access rights."
+          });
+        }
+
+        // ...
+      }
+    }
+  }
+});
+```
+
+## Page Builder
+
+Multiple legacy methods used for subscribing to Page Builder application's lifecycle events have been removed.
+
+<Alert type="info">
+
+  Learn more about lifecycle events in the [Lifecycle Events](/docs/page-builder/references/lifecycle-events) article.
+
+</Alert>
+
+### Pages
+
+| Deprecated API           | Description                                             | Replacement API          |
+| ------------------------ | ------------------------------------------------------- | ------------------------ |
+| `onBeforePageCreate`     | Triggered before a page is created                      | `onPageBeforeCreate`     |
+| `onAfterPageCreate`      | Triggered after a page is created                       | `onPageAfterCreate`      |
+| `onBeforePageCreateFrom` | Triggered before a page is created from a page revision | `onPageBeforeCreateFrom` |
+| `onAfterPageCreateFrom`  | Triggered after a page is created from a page revision  | `onPageAfterCreateFrom`  |
+| `onBeforePageUpdate`     | Triggered before a page is updated                      | `onPageBeforeUpdate`     |
+| `onAfterPageUpdate`      | Triggered after a page is updated                       | `onPageAfterUpdate`      |
+| `onBeforePageDelete`     | Triggered before a page is deleted                      | `onPageBeforeDelete`     |
+| `onAfterPageDelete`      | Triggered after a page is deleted                       | `onPageAfterDelete`      |
+| `onBeforePagePublish`    | Triggered before a page is published                    | `onPageBeforePublish`    |
+| `onAfterPagePublish`     | Triggered after a page is published                     | `onPageAfterPublish`     |
+| `onBeforePageUnpublish`  | Triggered before a page is unpublished                  | `onPageBeforeUnpublish`  |
+| `onAfterPageUnpublish`   | Triggered after a page is unpublished                   | `onPageAfterUnpublish`   |
+
+### Menus
+
+| Deprecated API       | Description                        | Replacement API      |
+| -------------------- | ---------------------------------- | -------------------- |
+| `onBeforeMenuCreate` | Triggered before a menu is created | `onMenuBeforeCreate` |
+| `onAfterMenuCreate`  | Triggered after a menu is created  | `onMenuAfterCreate`  |
+| `onBeforeMenuUpdate` | Triggered before a menu is updated | `onMenuBeforeUpdate` |
+| `onAfterMenuUpdate`  | Triggered after a menu is updated  | `onMenuAfterUpdate`  |
+| `onBeforeMenuDelete` | Triggered before a menu is deleted | `onMenuBeforeDelete` |
+| `onAfterMenuDelete`  | Triggered after a menu is deleted  | `onMenuAfterDelete`  |
+
+### Page Categories
+
+| Deprecated API           | Description                            | Replacement API          |
+| ------------------------ | -------------------------------------- | ------------------------ |
+| `onBeforeCategoryCreate` | Triggered before a category is created | `onCategoryBeforeCreate` |
+| `onAfterCategoryCreate`  | Triggered after a category is created  | `onCategoryAfterCreate`  |
+| `onBeforeCategoryUpdate` | Triggered before a category is updated | `onCategoryBeforeUpdate` |
+| `onAfterCategoryUpdate`  | Triggered after a category is updated  | `onCategoryAfterUpdate`  |
+| `onBeforeCategoryDelete` | Triggered before a category is deleted | `onCategoryBeforeDelete` |
+| `onAfterCategoryDelete`  | Triggered after a category is deleted  | `onCategoryAfterDelete`  |
+
+### Page Builder Settings
+
+| Deprecated API           | Description                                        | Replacement API          |
+| ------------------------ | -------------------------------------------------- | ------------------------ |
+| `onBeforeSettingsUpdate` | Triggered before Page Builder settings are updated | `onSettingsBeforeUpdate` |
+| `onAfterSettingsUpdate`  | Triggered after Page Builder settings are updated  | `onSettingsAfterUpdate`  |
+
+### Page Builder Installation
+
+| Deprecated API    | Description                                | Replacement API         |
+| ----------------- | ------------------------------------------ | ----------------------- |
+| `onBeforeInstall` | Triggered before Page Builder is installed | `onSystemBeforeInstall` |
+| `onAfterInstall`  | Triggered after Page Builder is installed  | `onSystemAfterInstall`  |
+
+## I18N
+
+Multiple legacy methods used for subscribing to I18N application's lifecycle events have been removed.
+
+### Locales
+
+| Deprecated API           | Description                            | Replacement API          |
+| ------------------------ | -------------------------------------- | ------------------------ |
+| `onBeforeLocaleCreate` | Triggered before a locale is created | `onLocaleBeforeCreate` |
+| `onAfterLocaleCreate`  | Triggered after a locale is created  | `onLocaleAfterCreate`  |
+| `onBeforeLocaleUpdate` | Triggered before a locale is updated | `onLocaleBeforeUpdate` |
+| `onAfterLocaleUpdate`  | Triggered after a locale is updated  | `onLocaleAfterUpdate`  |
+| `onBeforeLocaleDelete` | Triggered before a locale is deleted | `onLocaleBeforeDelete` |
+| `onAfterLocaleDelete`  | Triggered after a locale is deleted  | `onLocaleAfterDelete`  |
+
+
+### Installation
+
+| Deprecated API    | Description                                | Replacement API         |
+| ----------------- | ------------------------------------------ | ----------------------- |
+| `onBeforeInstall` | Triggered before Page Builder is installed | `onSystemBeforeInstall` |
+| `onAfterInstall`  | Triggered after Page Builder is installed  | `onSystemAfterInstall`  |
