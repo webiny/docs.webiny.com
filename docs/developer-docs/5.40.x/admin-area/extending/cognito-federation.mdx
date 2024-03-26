@@ -11,10 +11,11 @@ import externalOidc from "./assets/externalOidc.png";
 import onlyExternal from "./assets/onlyExternal.png";
 import cognitoGoogle from "./assets/cognito-google.png";
 import cognitoOutput from "./assets/core-output.png";
+import userMenu from "./assets/userMenu.png";
 
 <CanIUseThis>
 
-- public providers support is available since <strong>v5.37.6</strong>
+- social providers support is available since <strong>v5.37.6</strong>
 - OpenID Connect (OIDC) support is available since <strong>v5.40.0</strong>
 
 </CanIUseThis>
@@ -22,7 +23,7 @@ import cognitoOutput from "./assets/core-output.png";
 <WhatYouWillLearn>
 
 - how to configure federated identity providers in the Admin app
-- how to configure public IdPs (Facebook, Google, Apple, Amazon)
+- how to configure social IdPs (Facebook, Google, Apple, Amazon)
 - how to configure OpenID Connect (OIDC) IdPs
 
 </WhatYouWillLearn>
@@ -31,16 +32,12 @@ import cognitoOutput from "./assets/core-output.png";
 
 Out of the box, Webiny comes with an AWS Cognito setup to manage its admin users. There's a preconfigured Cognito User Pool dedicated to admin users. This user pool doesn't allow external users to sign-up, which means that new admin user accounts can only be created by a Webiny admin, from within the Admin app.
 
-In this article, we show the process of configuring your Webiny project to use external identity providers (both public and custom). We cover 3 scenarios:
-
-- 1. Cognito with public IdPs (Facebook, Google, Amazon, Apple)
-- 2. Cognito with external OIDC IdP
-- 3. only external OIDC IdP
+In this article, we show the process of configuring your Webiny project to use external identity providers (both social and custom).
 
 <Gallery>
-  <Image src={cognitoGoogle} title={"Cognito with Public IdP"} />
+  <Image src={cognitoGoogle} title={"Cognito with Social IdP"} />
   <Image src={externalOidc} title={"Cognito with External OIDC IdP"} />
-  <Image src={onlyExternal} title={"Only External OIDC IdP"} />
+  <Image src={onlyExternal} title={"Custom Login Screen"} />
 </Gallery>
 
 <Alert type="warning" title={"Update Your AWS Permissions!"}>
@@ -49,7 +46,7 @@ If your project was created before **v5.37.6**, and you used our [AWS Cloudforma
 
 </Alert>
 
-## Cognito with Public IdPs
+## Cognito with Social IdPs
 
 In this article, we're using Google as the identity provider of choice. To set up a Google Cloud project and obtain the `client_id` and `client_secret`, [follow the official documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-social-idp.html). In particular, see the **To register an app with Google** section.
 
@@ -125,7 +122,7 @@ yarn webiny output core --env=dev
 
 Cognito will be handling the communication with the external identity providers, and creating the `idToken` which is then sent to the API from the Admin app. This means that the authentication process remains the same as with regular Cognito users. However, external user profiles do not exist in the Admin app, and cannot be mapped to a security group or a team using their profile.
 
-To help Webiny map your external users to specific user groups, we need to add the group information to the identity object , generated in the authentication process.
+To help Webiny map your external users to specific user groups, we need to add the group information to the identity object, generated in the authentication process.
 
 Open your `apps/api/graphql/src/security.ts` file, and update the existing `cognitoAuthentication` configuration:
 
@@ -161,10 +158,21 @@ yarn webiny deploy api --env=dev
 
 ### Configure Admin App
 
-We need to update the default Cognito configuration in the Admin app, to enable sign in via Google:
+We need to update the default Cognito configuration in the Admin app, to enable sign in via Google. We also need a component to render the Google sign in button, so we'll use the `react-social-login-buttons` package from NPM, to get a styled button.
+
+<Alert type="info" title={"Custom Component"}>
+
+You are free to skip this step and render whatever component you want. The important bit is that you call the `signIn` callback that is passed to you as a prop, which initiates the sign-in process.
+
+</Alert>
+
+```bash Install react-social-login-buttons
+yarn workspace admin add react-social-login-buttons
+```
 
 ```tsx apps/admin/src/App.tsx
 import React from "react";
+import { GoogleLoginButton } from "react-social-login-buttons";
 import { Admin } from "@webiny/app-serverless-cms";
 import { Cognito, CreateAuthenticationConfig } from "@webiny/app-admin-users-cognito";
 import "./App.scss";
@@ -177,7 +185,9 @@ const cognitoConfig: CreateAuthenticationConfig = {
     scope: ["profile", "email", "openid"],
     responseType: "token"
   },
-  federatedProviders: [{ name: "google" }]
+  federatedProviders: [
+    { name: "google", component: ({ signIn }) => <GoogleLoginButton onClick={signIn} /> }
+  ]
 };
 
 export const App: React.FC = () => {
@@ -220,3 +230,321 @@ yarn webiny watch admin --env=dev
 Once your app is up and running, you should see the following login screen:
 
 <Image src={cognitoGoogle} title={"Using Google IdP to Sign Into the Admin App"} />
+
+## Cognito with OIDC IdPs
+
+Using OpenID Connect, you can connect your user pool with almost any remote IdP. Before you begin configuring your Webiny project, you need to obtain some information from the remote IdP: `client_id`, `client_secret`, and `oidc_issuer`.
+
+Here's an example of the `oidc_issuer`, just so you have an idea of what you're looking for in your remote IdP: `https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_12345678`
+
+AWS documentation provides detailed instructions on [registering with an OIDC IdP](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-oidc-idp.html), so please consult the official documentation before proceeding with this article. You only need to read `Step 1.` of the AWS guide to get the information you need.
+
+<Alert type="info" title={"Remote IdP Callback URL"}>
+
+While configuring the remote IdP, at one point you will have to specify the callback URL pointing to the user pool deployed by Webiny. Since you don't know the exact URL until you deploy your configured Webiny project, temporarily specify any random URL, and then come back and update the URL after you finish the Webiny infrastructure setup.
+
+</Alert>
+
+### Configure AWS Infrastructure
+
+Cognito resources are part of the Core app, which is responsible for stateful resources (databases, user pools, S3 buckets, etc.). To configure Cognito to use federated identity providers, we need to modify the `webiny.application.ts` file of the `core` app. Webiny provides a utility to facilitate the configuration of infrastructure resources involved.
+
+Once you have your `client_id`, `client_secret`, and `oidc_issuer` ready, you can store them in your project's `.env` file, like so:
+
+```dotenv .env
+REMOTE_IDP_CLIENT_ID=your_remote_idp_client_id
+REMOTE_IDP_CLIENT_SECRET=your_remote_idp_client_secret
+REMOTE_IDP_ISSUER=your_remote_idp_issuer_url
+```
+
+```ts apps/core/webiny.application.ts
+import { createCoreApp, configureAdminCognitoFederation } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+  pulumiResourceNamePrefix: "wby-",
+  pulumi(app) {
+    configureAdminCognitoFederation(app, {
+      // Provide a name for the user pool domain.
+      domain: "webiny-admin",
+      // Whitelist callback URLs (can be localhost or real domain).
+      callbackUrls: ["http://localhost:3001"],
+      // Configure external identity providers.
+      identityProviders: [
+        {
+          name: "MyIDP",
+          type: "oidc",
+          providerDetails: {
+            attributes_request_method: "POST",
+            authorize_scopes: "email profile openid",
+            client_id: String(process.env.REMOTE_IDP_CLIENT_ID),
+            client_secret: String(process.env.REMOTE_IDP_CLIENT_SECRET),
+            oidc_issuer: String(process.env.REMOTE_IDP_ISSUER)
+          }
+        }
+      ]
+    });
+  }
+});
+```
+
+<Alert type={"warning"} title={"Provider Name"}>
+
+AWS has [very strict rules](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateIdentityProvider.html#API_CreateIdentityProvider_RequestSyntax) around the `name` of your custom provider. Our advice is to keep your names really simple: no spaces, [a-zA-Z], maximum length of 32 characters. This will save you a lot of headache.
+
+</Alert>
+  
+<Alert type={"info"} title={"Multiple Identity Providers"}>
+
+You can add multiple identity providers to your Cognito user pool. Simply add more identity provider configs to the `identityProviders` array.
+
+</Alert>
+
+<Alert type="warning" title={"Real Callback URLs"}>
+
+Note that for development purposes, it's enough to have just the `localhost` defined in the `callbackUrls`. This article assumes that you'll be researching this feature in a development environment, on localhost.
+
+However, once you deploy your Admin app, and want to use the real Cloudfront URL, or a custom domain, you'll need to go back to this config, and update the `callbackUrls` with the live URL. You'll also need to redeploy your `core` app for your config to apply.
+
+</Alert>
+
+Once the config of your identity provider is in place, you need to deploy your `core` app, to apply the new infrastructure configuration:
+
+```shell
+yarn webiny deploy core --env=dev
+```
+
+Once deployed, you need to update the callback URL on your remote IdP, so it can connect to your Webiny user pool. To get the domain name, copy the value of `cognitoUserPoolDomain` output from the following command:
+
+```shell
+yarn webiny output core --env=dev
+```
+
+<Image src={cognitoOutput} title={"Core App Output"} />
+
+The final callback URL might look something like this: `https://{domainName}.auth.{region}.amazoncognito.com/oauth2/idpresponse`. The `/oauth2/idpresponse` part may vary depending on the IdP you're using, so consult the documentation of your remote IdP.
+
+### Configure GraphQL API
+
+Cognito will be handling the communication with the external identity providers, and creating the `idToken` which is then sent to the API from the Admin app. This means that the authentication process remains the same as with regular Cognito users. However, external user profiles do not exist in the Admin app, and cannot be mapped to a security group or a team using their profile.
+
+To help Webiny map your external users to specific user groups, we need to add the group information to the identity object, generated in the authentication process.
+
+Open your `apps/api/graphql/src/security.ts` file, and update the existing `cognitoAuthentication` configuration:
+
+```ts apps/api/graphql/src/security.ts
+// ...
+cognitoAuthentication({
+  region: String(process.env.COGNITO_REGION),
+  userPoolId: String(process.env.COGNITO_USER_POOL_ID),
+  identityType: "admin",
+  getIdentity({ identity, token }) {
+    const federatedIdentity = Boolean(token.identities);
+
+    return {
+      ...identity,
+      group: federatedIdentity ? "full-access" : undefined
+    };
+  }
+});
+// ...
+```
+
+In this basic example, we're checking if the token contains the `identities` claim, which is only present on tokens of identities coming from external IdPs. If so, we map those identities to a `full-access` user group.
+
+`group` is an identity attribute which Webiny uses to map the identity to the specified user group. This gives identities their permissions, which are then used in the authorization process. If this attribute is not set (or is `undefined`), Webiny will attempt to load the user group using a user profile, which exist only for users created via the Admin app.
+
+With this approach, we can manage group mapping programmatically, and decide where the mapping information is coming from. We might fetch the group slug from the `idToken` claim (which can be managed outside Webiny, within Cognito, or within the external identity provider), or we can use a hardcoded map (as we do in this example, using the `full-access` group slug).
+
+Once the config is in place, you need to deploy your `api` app:
+
+```shell
+yarn webiny deploy api --env=dev
+```
+
+### Configure Admin App
+
+We need to update the default Cognito configuration in the Admin app, to enable sign in via the custom IdP. In the `federatedProviders` config key, you can specify one or more federated providers, and use the same `name` you used in the infrastructure setup. You also have the ability to specify the component that will be used to render the UI for your IdP (usually a button).
+
+```tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito, CreateAuthenticationConfig } from "@webiny/app-admin-users-cognito";
+import "./App.scss";
+
+const cognitoConfig: CreateAuthenticationConfig = {
+  oauth: {
+    domain: String(process.env.REACT_APP_USER_POOL_DOMAIN),
+    redirectSignIn: "http://localhost:3001",
+    redirectSignOut: "http://localhost:3001",
+    scope: ["profile", "email", "openid"],
+    responseType: "token"
+  },
+  federatedProviders: [
+    {
+      name: "MyIDP",
+      component: ({ signIn }) => <ButtonPrimary onClick={signIn}>Sign in via My IDP</ButtonPrimary>
+    }
+  ]
+};
+
+export const App: React.FC = () => {
+  return (
+    <Admin>
+      <Cognito config={cognitoConfig} />
+    </Admin>
+  );
+};
+```
+
+<Alert type="warning" title={"Real Callback URLs"}>
+
+Notice the use of `localhost` redirect URLs. In your staging and production environments, you'll
+need to update these values to reflect the domains of your deployed systems.
+
+</Alert>
+
+And lastly, we need to get the value of `REACT_APP_USER_POOL_DOMAIN` environment variable in the code above. Its value is the fully qualified Cognito User Pool domain, which lives in the Core app. It looks something like this: `webiny-admin.auth.us-east-1.amazoncognito.com`, and is generated once the User Pool Domain is created in your AWS infrastructure.
+
+To pull this value from the Core app, and inject it into the Admin app, there's a utility provided by Webiny. Update your `apps/admin/webiny.config.ts` file like so:
+
+```ts apps/admin/webiny.config.ts
+import {
+  createAdminAppConfig,
+  configureAdminCognitoUserPoolDomain
+} from "@webiny/serverless-cms-aws";
+
+export default createAdminAppConfig(modifier => {
+  configureAdminCognitoUserPoolDomain(modifier);
+});
+```
+
+To run and test the new identity provider, start your Admin app:
+
+```shell
+yarn webiny watch admin --env=dev
+```
+
+Once your app is up and running, you should see the following login screen:
+
+<Image src={externalOidc} title={"Using external OIDC IdP"} />
+
+## Customizing the Sign-In Screen
+
+Sometimes, you might want to only allow your users to sign in via a remote IdP, and completely hide the default Cognito sign in via username/password. You might also want to change the title and the description of the screen, implement a completely different UI.
+
+The following example demonstrates how you can apply a decorator to the default `SignIn` component, and modify its props:
+
+```tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito, CreateAuthenticationConfig, Components } from "@webiny/app-admin-users-cognito";
+import { ButtonPrimary } from "@webiny/ui/Button";
+import "./App.scss";
+
+const cognitoConfig: CreateAuthenticationConfig = {
+  oauth: {
+    domain: String(process.env.REACT_APP_USER_POOL_DOMAIN),
+    redirectSignIn: "http://localhost:3001",
+    redirectSignOut: "http://localhost:3001",
+    scope: ["profile", "email", "openid"],
+    responseType: "token"
+  },
+  federatedProviders: [
+    {
+      name: "MyIDP",
+      component: ({ signIn }) => <ButtonPrimary onClick={signIn}>Sign in via My IDP</ButtonPrimary>
+    }
+  ]
+};
+
+// Decorate the SignIn view, and customize props.
+const SignInDecorator = Components.SignIn.createDecorator(Original => {
+  return function SignIn(props) {
+    return (
+      <Original
+        {...props}
+        allowSignInWithCredentials={false}
+        title={"Sign In"}
+        description={"You will be taken to an external service to complete the sign in process."}
+      />
+    );
+  };
+});
+
+export const App: React.FC = () => {
+  return (
+    <Admin>
+      <Cognito config={cognitoConfig} />
+      {/* Register the decorator! */}
+      <SignInDecorator />
+    </Admin>
+  );
+};
+```
+
+Notice the use of `allowSignInWithCredentials` prop. This tells the system that the username/password UI should not be rendered. There are other props, like `footer` (which allows you to render a footer), and a `content`, which allows you to completely replace the main content of the login screen, and render everything yourself.
+
+The result of this customization looks like this:
+
+<Image src={onlyExternal} title={"External IdP Only"} />
+
+## Disable Default User Management
+
+By default, the `@webiny/app-admin-users-cognito` package provides the sign-in UI, but also a module to manage admin users that are stored in the default Cognito user pool. When using external IdPs, you can't really manage users from outside of the IdP control panel. In that case, the user management module provided by Webiny is of no use.
+
+To only use the sign-in UI provided by Webiny, you only need to swap the `Cognito` component, for `CognitoLogin`. Here's a full example:
+
+```tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import {
+  CognitoLogin,
+  CreateAuthenticationConfig,
+  Components
+} from "@webiny/app-admin-users-cognito";
+import { ButtonPrimary } from "@webiny/ui/Button";
+import "./App.scss";
+
+const cognitoConfig: CreateAuthenticationConfig = {
+  oauth: {
+    domain: String(process.env.REACT_APP_USER_POOL_DOMAIN),
+    redirectSignIn: "http://localhost:3001",
+    redirectSignOut: "http://localhost:3001",
+    scope: ["profile", "email", "openid"],
+    responseType: "token"
+  },
+  federatedProviders: [
+    {
+      name: "MyIDP",
+      component: ({ signIn }) => <ButtonPrimary onClick={signIn}>Sign in via My IDP</ButtonPrimary>
+    }
+  ]
+};
+
+// Decorate the SignIn view, and customize props.
+const SignInDecorator = Components.SignIn.createDecorator(Original => {
+  return function SignIn(props) {
+    return (
+      <Original
+        {...props}
+        allowSignInWithCredentials={false}
+        title={"Sign In"}
+        description={"You will be taken to an external service to complete the sign in process."}
+      />
+    );
+  };
+});
+
+export const App: React.FC = () => {
+  return (
+    <Admin>
+      <CognitoLogin config={cognitoConfig} userMenuItems={{ userInfo: true, signOut: true }} />
+      <SignInDecorator />
+    </Admin>
+  );
+};
+```
+
+The entire Cognito configuration is the same. The only difference is the component you import from `@webiny/app-admin-users-cognito`. With the `CognitoLogin` component, you only get the most necessary things registered into the system. You also get an ability to control which user menu items will be visible in the top-right user menu, because, regardless of your IdP, you need to allow users to sign out.
+
+<Image src={userMenu} title={"User Menu Items"} />
