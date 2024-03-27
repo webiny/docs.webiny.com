@@ -1,0 +1,47 @@
+---
+id: aafeaa2a
+title: File Download
+description: Learn about the necessary cloud infrastructure resources on which the API project application relies on to download files.
+---
+
+import { Alert } from "@/components/Alert";
+import fmDownload from "./assets/webiny_api_fm_download.png";
+
+<Alert type="success" title="What you’ll learn">
+
+- how file downloads are handled by the deployed cloud infrastructure and application code
+
+</Alert>
+
+## Diagram
+
+<Alert type="info">
+
+For brevity, the diagram doesn't include network-level cloud infrastructure resources, like region, VPC, availability zones, and so on. Check out the [Deployment Modes](/docs/{version}/architecture/deployment-modes/introduction) section if you're interested in that aspect of the deployed cloud infrastructure.
+
+</Alert>
+
+<Alert type="info">
+
+Note that the stateful resources like Amazon S3, Amazon Cognito, Amazon DynamoDB and Amazon OpenSearch are deployed as part of the [Core](/docs/{version}/architecture/core/overview) project application. These are still included in the diagram, just so it's more clear to the reader.
+
+</Alert>
+
+<Image src={fmDownload} title="Webiny Cloud Infrastructure - API - File Download" shadow={false} />
+
+## Description
+
+The diagram shows what happens every time a client tries to download a binary file.
+
+The flow consists of the following four steps:
+
+1. The client issues a GET `/download/{file-key}` HTTP request, which reaches the Amazon API Gateway <diagram-letter>B</diagram-letter>, which then invokes the File Manager's Download AWS Lambda function <diagram-letter>G3</diagram-letter>.
+2. The Download AWS Lambda function extracts the file key from the received HTTP request, and then fetches the file from the S3 bucket <diagram-letter>G1</diagram-letter>.
+3. As a base64 encoded string, the file is returned to the Amazon API Gateway <diagram-letter>B</diagram-letter>, which transforms it to an actual binary, and sends it back to the Amazon CloudFront <diagram-letter>A</diagram-letter>.
+4. Amazon CloudFront <diagram-letter>A</diagram-letter> receives the file, caches it, and sends it back to the client.
+
+<Alert type="info">
+
+Visit the [Working with binary media types for REST APIs](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings.html) article to learn more about how Amazon API Gateway deals with binary files.
+
+</Alert>

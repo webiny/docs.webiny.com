@@ -43,11 +43,11 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Webiny Enterprise"}>
+          <Page link={"enterprise/cognito-federation"} />
           <Page link={"enterprise/teams"} />
         </Group>
         <Group title={"Admin Area"}>
           <Group title={"Extending Functionality"}>
-            <Page link={"admin-area/extending/cognito-federation"} />
             <Page link={"admin-area/extending/graphql-request-batching"} />
           </Group>
         </Group>
