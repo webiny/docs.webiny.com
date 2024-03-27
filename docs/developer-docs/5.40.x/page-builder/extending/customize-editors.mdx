@@ -1,0 +1,211 @@
+---
+id: d5e75eec
+title: Customize Editors
+description: Learn how to customize page builder editors
+---
+
+import { Alert } from "@/components/Alert";
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { Gallery } from "@/components/Image";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+import baseEditor from "./assets/editors-base-editor.png";
+import pageEditor from "./assets/editors-page-editor.png";
+import blockEditor from "./assets/editors-block-editor.png";
+import dropdownMenuDots from "./assets/editors-page-editor-dropdown-dots.png";
+import dropdownMenu from "./assets/editors-page-editor-dropdown-open.png";
+
+<CanIUseThis since="5.40.0" />
+
+<WhatYouWillLearn>
+
+- how editors work
+- how to add/remove/replace existing widgets
+- how to customize widget layouts
+
+</WhatYouWillLearn>
+
+## Overview
+
+Webiny Page Builder app provides different editors for various purposes. There's a Block Editor to build reusable content blocks, a Template Editor to build page templates, and a Page Editor to build pages using templates, blocks, or fully from scratch. These editors share the same underlying framework, which makes them customizable.
+
+<Gallery>
+  <Image src={pageEditor} title={"Page Editor"} />
+  <Image src={blockEditor} title={"Block Editor"} />
+</Gallery>
+
+## Base Editor
+
+All editors share the same base editor, with the core mechanics, plugins, and UI widgets already in place. Individual editor configs add the specifics: variations of widgets, settings, behavior.
+
+Out of the box, the base editor has 4 top-level widgets: `TopBar`, `Toolbar`, `Content`, and `Sidebar`. Furthermore, within these top-level widgets, there are groups of child widgets, which allow you to target specific positions when adding new widgets. For example, the display mode selector (laptop, tablet, mobile) you see on the image below, belongs to the `center` group of the `TopBar` widget. We'll cover each top-level widget in depth, in the following sections.
+
+<Image src={baseEditor} title={"Base Editor"} />
+
+## Using the Code Examples
+
+The following code examples follow our usual configuration pattern. You need to add the code from
+the examples to your `apps/admin/src/App.tsx`. Here's an example:
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { PageEditorConfig } from "@webiny/app-page-builder";
+import "./App.scss";
+
+export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <PageEditorConfig>
++           {* Config components go here. *}
++       </PageEditorConfig>
+      </Admin>
+    );
+};
+```
+
+In the following sections, we'll only be showing the code that is related to the configuration itself. The rest of the code shown above will be omitted.
+
+## Discover Widgets
+
+In the code examples, we'll be referring to existing widgets by their name.
+
+TODO: add screenshot from dev tools showing custom DOM elements `pb-editor-widgets`, and `pb-editor-widget`
+
+## Choosing an Editor to Customize
+
+When you want to customize an editor, first you need to know which editor you want to customize, as customizations are scoped to a specific editor. Once you know what editor you want to target, use the right config component:
+
+```ts
+// For Block Editor
+import { BlockEditorConfig } from "@webiny/app-page-builder";
+
+// For Template Editor
+import { TemplateEditorConfig } from "@webiny/app-page-builder";
+
+// For Page Editor
+import { PageEditorConfig } from "@webiny/app-page-builder";
+```
+
+In this article, we will focus on the Page Editor, as it's usually the main editor developers want to customize. However, all the techniques and patterns shown the examples below apply to all editors.
+
+## TopBar Widget
+
+The top-level `TopBar` widget has 3 widget groups: `left`, `center`, and `actions`.
+
+### Add a Widget
+
+To add a new widget, access the `TopBar` config component, and mount a `TopBar.Widget` element, specifying a `name` of your widget, a `group` it belongs to, and an `element`, which is a React element.
+
+```tsx
+const { TopBar } = PageEditorConfig;
+
+<PageEditorConfig>
+  <TopBar.Widget name={"demoWidget"} group={"left"} element={<span>Demo Widget</span>} />
+</PageEditorConfig>;
+```
+
+### Position a Widget
+
+To position a widget before or after another widget, use the `before` or `after` props to specify the name of the existing widget.
+
+```tsx
+const { TopBar } = PageEditorConfig;
+
+<PageEditorConfig>
+  {/* Position a new widget after the "buttonBack" widget. */}
+  <TopBar.Widget
+    name={"demoWidget"}
+    group={"left"}
+    element={<span>Demo Widget</span>}
+    after={"buttonBack"}
+  />
+  {/* Change the position of an existing widget. */}
+  <TopBar.Widget name={"buttonBack"} after={"title"} />
+</PageEditorConfig>;
+```
+
+### Remove a Widget
+
+To remove an existing widget, reference it by `name`, and add a `remove` prop.
+
+```tsx
+const { TopBar } = PageEditorConfig;
+
+<PageEditorConfig>
+  <TopBar.Widget name={"buttonBack"} remove />
+</PageEditorConfig>;
+```
+
+### Replace a Widget
+
+To replace an existing widget, reference the existing widget by name, and specify a different `element` prop.
+
+```tsx
+const { TopBar } = PageEditorConfig;
+
+<PageEditorConfig>
+  <TopBar.Widget name={"buttonBack"} element={<span>Back button</span>} />
+</PageEditorConfig>;
+```
+
+### Generic Actions
+
+The `actions` widget group is one of the most commonly customized, so we provided several higher level components to make adding actions even easier, comparing to other generic widgets.
+
+```tsx
+const { TopBar } = PageEditorConfig;
+
+// Define a component that will handle your action logic.
+const MySettings = () => {
+  const doSomething = () => {
+    alert("My Settings were clicked!");
+  };
+
+  return <button onClick={doSomething}>My Settings</button>;
+};
+
+<PageEditorConfig>
+  <TopBar.Action name={"mySettings"} element={<MySettings />} />
+</PageEditorConfig>;
+```
+
+<Alert type={"info"} title={"All the config props are supported!"}>
+
+Note that all the same props are supported on the `TopBar.Action` config component: `before`,
+`after`, and `remove`.
+
+</Alert>
+
+### Dropdown Actions
+
+Page Editor provides one extra menu for secondary actions, which is not present in other editors.
+
+<Gallery>
+  <Image src={dropdownMenuDots} title="Secondary Actions" />
+  <Image src={dropdownMenu} title="Secondary Actions Menu" />
+</Gallery>
+
+To register a dropdown menu action, use the `TopBar.DropdownAction` config component. We also provide a `TopBar.DropdownAction.MenuItem` component to render the actual menu item.
+
+```tsx
+// Import an icon to use in the menu item.
+import { ReactComponent as EditIcon } from "@material-design-icons/svg/round/edit.svg";
+
+const { TopBar } = PageEditorConfig;
+
+const MyDropdownAction = () => {
+  const myAction = () => {
+    alert("MyAction was clicked!");
+  };
+
+  return (
+    <TopBar.DropdownAction.MenuItem label={"My Action"} onClick={myAction} icon={<EditIcon />} />
+  );
+};
+
+<PageEditorConfig>
+  <TopBar.DropdownAction name={"myDropdownAction"} element={<MyDropdownAction />} />
+</PageEditorConfig>;
+```
