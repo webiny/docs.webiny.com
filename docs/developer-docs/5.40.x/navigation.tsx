@@ -35,6 +35,10 @@ export const Navigation = () => {
               link={"page-builder/extending/customize-page-list-actions"}
               before={"page-builder/extending/customize-page-bulk-actions"}
             />
+            <Page
+              link={"page-builder/extending/customize-editors"}
+              before={"page-builder/extending/customize-page-list-actions"}
+            />
           </Group>
         </Group>
         <Group title={"File Manager"}>
