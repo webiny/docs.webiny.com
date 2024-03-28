@@ -15,6 +15,8 @@ import dropdownMenuDots from "./assets/editors-page-editor-dropdown-dots.png";
 import dropdownMenu from "./assets/editors-page-editor-dropdown-open.png";
 import discoverElements from "./assets/editors-discover-elements.png";
 import elementProperties from "./assets/editors-element-properties.png";
+import editorFrame from "./assets/editors-custom-frame.png";
+import undoRedo from "./assets/editors-undo-redo.png";
 
 <CanIUseThis since="5.40.0" />
 
@@ -249,3 +251,213 @@ const { ElementProperty } = PageEditorConfig;
   <ElementProperty name={"background"} remove />
 </PageEditorConfig>;
 ```
+
+## Editor Layout
+
+The editor, and the top-level elements, each have their own `Layout` component, which controls how that particular element is rendered. This means that you can change every element individually, but also change the entire editor layout.
+
+<Alert type="warning" title="A word of caution!">
+
+Editor styles, element positioning, scrollable panels, drag&drop behavior, a lot of it depends
+on various CSS positioning techniques and tricks. The top-level elements are mostly `position: fixed`, and will require some fiddling with CSS.
+
+</Alert>
+
+For reference, here are some links to Github, where each of the Layout component implementation can be found:
+
+- [Editor Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Layout.tsx)
+- [TopBar Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/TopBar/Layout.tsx)
+- [Toolbar Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Toolbar/Layout.tsx)
+- [Content Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Content/Layout.tsx)
+- [Sidebar Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Sidebar/Layout.tsx)
+
+### Add Custom Editor Frame
+
+This example demonstrates how you can decorate the default editor layout and add custom panels. We'll add a new panel above the default TopBar element, and also a new toolbar to the left of the existing Toolbar element.
+
+<Alert type="info">You can copy the following code example in its entirety.</Alert>
+
+```tsx apps/admin/src/EditorLayout.tsx
+import styled from "@emotion/styled";
+import { PageEditorConfig } from "@webiny/app-page-builder";
+
+const { Ui } = PageEditorConfig;
+
+/**
+ * Some constants to apply tweaks to CSS.
+ */
+const oldTopBar = 64;
+const newTopBar = 64;
+const newToolbar = 64;
+
+/**
+ * Create a styled component that will serve as a root for all default element tweaks.
+ * All top-level editor elements have a "data-role" attribute to make it easy to target them via CSS selectors.
+ */
+const StyledEditor = styled.div`
+  [data-role="top-bar-layout"] {
+    box-shadow: none;
+    border: 1px solid #e9e9e9;
+    top: ${newTopBar}px;
+    width: calc(100vw - ${newToolbar}px);
+    right: 0;
+  }
+
+  [data-role="toolbar-layout"] {
+    top: calc(${newTopBar}px + ${oldTopBar}px);
+    height: calc(100vh - ${oldTopBar + newTopBar}px);
+    left: ${newToolbar}px;
+    border-left: 1px solid #e9e9e9;
+  }
+
+  [data-role="toolbar-drawers"] {
+    top: calc(${newTopBar}px + ${oldTopBar}px);
+    /* This fixes the position of the drawer when it's opened. */
+    aside.mdc-drawer--open {
+      top: calc(${newTopBar}px + ${oldTopBar}px);
+      margin-left: calc(54px + ${newToolbar}px);
+    }
+  }
+
+  [data-role="content-layout"] {
+    top: calc(${newTopBar}px + ${oldTopBar}px);
+    left: ${newToolbar}px;
+    width: calc(100vw - 415px - ${newToolbar}px);
+    margin-top: 24px;
+  }
+  [data-role="sidebar-layout"] {
+    top: calc(${newTopBar}px + ${oldTopBar}px);
+  }
+
+  [data-role="content-breadcrumbs"] {
+    left: calc(55px + ${newToolbar}px);
+  }
+`;
+
+const CustomTopBar = styled.div`
+  width: 100%;
+  background-color: white;
+  height: ${newTopBar}px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  border-right: 1px solid var(--mdc-theme-on-background);
+`;
+
+const CustomToolbar = styled.div`
+  width: ${newToolbar}px;
+  background-color: white;
+  height: calc(100vh - ${newTopBar}px);
+  position: fixed;
+  top: ${newTopBar}px;
+  left: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--mdc-theme-on-background);
+`;
+
+export const EditorLayout = Ui.Layout.createDecorator(OriginalLayout => {
+  return function Layout() {
+    return (
+      /* Wrap the original layout with the new styled component to apply CSS tweaks. */
+      <StyledEditor>
+        {/* Add a custom top bar element. */}
+        <CustomTopBar />
+        {/* Add a custom toolbar element. */}
+        <CustomToolbar />
+        {/* Render the original layout. */}
+        <OriginalLayout />
+      </StyledEditor>
+    );
+  };
+});
+```
+
+Enable this editor configuration in the `apps/admin/src/App.tsx` as described in the [Using the Code Examples](#using-the-code-examples) section. Simply mount your `<EditorLayout />` as a child of `<PageEditorConfig>`:
+
+```tsx
+import { EditorLayout } from "./EditorLayout";
+
+<PageEditorConfig>
+  <EditorLayout />
+</PageEditorConfig>;
+```
+
+The result will look like this:
+
+<Image src={editorFrame} title="Custom Editor Frame" />
+
+### Move Undo/Redo Buttons to the TopBar
+
+By default, Undo and Redo actions are displayed in the `Toolbar` element, with the action tooltip opening to the right. Simply moving them to the `TopBar` will not change the direction of the tooltip. So in this next code example, we'll demonstrate how you can reimplement these buttons yourself, position them in the `TopBar`, and remove the default ones from the `Toolbar`.
+
+<Alert type="info">You can copy the following code example in its entirety.</Alert>
+
+```tsx apps/admin/src/UndoRedo.tsx
+import React from "react";
+import { ReactComponent as UndoIcon } from "@material-design-icons/svg/round/undo.svg";
+import { ReactComponent as RedoIcon } from "@material-design-icons/svg/round/redo.svg";
+import { useActiveElement, useEventActionHandler } from "@webiny/app-page-builder/editor";
+import { IconButton } from "@webiny/ui/Button";
+import { Tooltip } from "@webiny/ui/Tooltip";
+
+const Undo = () => {
+  /* Our editor already exposes an "undo" event which you can simply trigger via a hook. */
+  const { undo } = useEventActionHandler();
+  const [, setActiveElement] = useActiveElement();
+
+  const onClick = () => {
+    undo();
+    setActiveElement(null);
+  };
+
+  return (
+    <Tooltip placement={"bottom"} content={"Undo"}>
+      <IconButton icon={<UndoIcon />} onClick={onClick} />
+    </Tooltip>
+  );
+};
+
+const Redo = () => {
+  /* Our editor already exposes "redo" function which you can simply invoke. */
+  const { redo } = useEventActionHandler();
+  const [, setActiveElement] = useActiveElement();
+
+  const onClick = () => {
+    setActiveElement(null);
+    redo();
+  };
+  return (
+    <Tooltip placement={"bottom"} content={"Redo"}>
+      <IconButton icon={<RedoIcon />} onClick={onClick} />
+    </Tooltip>
+  );
+};
+
+export const UndoRedo = () => {
+  return (
+    <>
+      {/* Add your new elements to TopBar, and position them before the "Revisions" dropdown menu. */}
+      <Ui.TopBar.Action name={"undo"} element={<Undo />} before={"dropdownMenuRevisions"} />
+      <Ui.TopBar.Action name={"redo"} element={<Redo />} before={"dropdownMenuRevisions"} />
+      {/* Remove the undo/redo buttons from the Toolbar. */}
+      <Ui.Toolbar.Element name={"undo"} remove />
+      <Ui.Toolbar.Element name={"redo"} remove />
+    </>
+  );
+};
+```
+
+And again, enable this configuration, just like you did in the previous section:
+
+```tsx apps/admin/src/App.tsx
+import { UndoRedo } from "./UndoRedo";
+
+<PageEditorConfig>
+  <UndoRedo />
+</PageEditorConfig>;
+```
+
+The result of this configuration will look like this:
+
+<Image src={undoRedo} title="Move Undo/Redo Buttons to TopBar" />
