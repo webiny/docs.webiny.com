@@ -17,6 +17,8 @@ import discoverElements from "./assets/editors-discover-elements.png";
 import elementProperties from "./assets/editors-element-properties.png";
 import editorFrame from "./assets/editors-custom-frame.png";
 import undoRedo from "./assets/editors-undo-redo.png";
+import customSidebar from "./assets/editors-custom-sidebar.png";
+import customProperty from "./assets/editors-custom-property.gif";
 
 <CanIUseThis since="5.40.0" />
 
@@ -252,6 +254,64 @@ const { ElementProperty } = PageEditorConfig;
 </PageEditorConfig>;
 ```
 
+### Update an Element
+
+To update an element via your custom element properties, use the `useUpdateElement` hook. In this example,
+
+```tsx apps/admin/src/CustomProperty.tsx
+import React, { useCallback } from "react";
+import styled from "@emotion/styled";
+import { PageEditorConfig } from "@webiny/app-page-builder";
+import { useActiveElement, useUpdateElement } from "@webiny/app-page-builder/editor";
+import { ButtonPrimary } from "@webiny/ui/Button";
+
+/* Sidebar content has no default styles, so we need to take care of styling ourselves. */
+const StyledButton = styled(ButtonPrimary)`
+  margin: 16px;
+`;
+
+export const SetButtonText = () => {
+  const [activeElement] = useActiveElement();
+  const updateElement = useUpdateElement();
+
+  const setButtonText = useCallback(() => {
+    if (!activeElement) {
+      return;
+    }
+
+    /* Update the element by passing the full object you want to have in the page state. */
+    updateElement({
+      ...activeElement,
+      data: {
+        ...activeElement.data,
+        buttonText: "Get in touch to get a free demo!"
+      }
+    });
+  }, [activeElement]);
+
+  /* Only render this property for "button" elements. */
+  if (!activeElement || activeElement.type !== "button") {
+    return null;
+  }
+
+  return <StyledButton onClick={setButtonText}>Update Text</StyledButton>;
+};
+
+const { ElementProperty } = PageEditorConfig;
+
+<PageEditorConfig>
+  <ElementProperty
+    name={"setButtonText"}
+    element={<SetButtonText />}
+    group={ElementProperty.STYLE}
+  />
+</PageEditorConfig>;
+```
+
+The result of this little plugin is shown in the video:
+
+<Image src={customProperty} title="Custom Property to Update Button Text" />
+
 ## Editor Layout
 
 The editor, and the top-level elements, each have their own `Layout` component, which controls how that particular element is rendered. This means that you can change every element individually, but also change the entire editor layout.
@@ -271,7 +331,7 @@ For reference, here are some links to Github, where each of the Layout component
 - [Content Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Content/Layout.tsx)
 - [Sidebar Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Sidebar/Layout.tsx)
 
-### Add Custom Editor Frame
+### Add a Custom Editor Frame
 
 This example demonstrates how you can decorate the default editor layout and add custom panels. We'll add a new panel above the default TopBar element, and also a new toolbar to the left of the existing Toolbar element.
 
@@ -461,3 +521,159 @@ import { UndoRedo } from "./UndoRedo";
 The result of this configuration will look like this:
 
 <Image src={undoRedo} title="Move Undo/Redo Buttons to TopBar" />
+
+### Customize the Sidebar
+
+Out of the box, Webiny provides config components to add the most common things to the `Sidebar`, like element actions, and element properties. The default `Sidebar` is organized into two main groups: `style` and `element`, which group related element properties together. These groups are rendered using regular tabs.
+
+However, you might want to completely change how the `Sidebar` is rendered. This section demonstrates how you can easily move things around, change the `Sidebar` layout, add custom groups, etc.
+
+In this example we will:
+
+- change the `Sidebar` layout from tabs to accordion
+- render the `style` and `element` properties in one group, called "Element Properties"
+- add a new group for custom properties, or any other functionality you want to add, called "Custom Properties"
+- move the element actions from their default position in the "Element" tab, to the top of the `Sidebar`
+- remove the default "Click to Activate" widget, which is usually visible when no element is activated in the editor
+- add an "Element Data" accordion, only visible in development mode (while developing on localhost)
+
+<Alert type="info">You can copy the following code example in its entirety.</Alert>
+
+```tsx apps/admin/src/CustomSidebar.tsx
+import React from "react";
+import styled from "@emotion/styled";
+import { ReactComponent as StarIcon } from "@material-design-icons/svg/round/star.svg";
+import { ReactComponent as ScienceIcon } from "@material-design-icons/svg/round/science.svg";
+import { ReactComponent as DebugIcon } from "@material-design-icons/svg/round/bug_report.svg";
+import { PageEditorConfig } from "@webiny/app-page-builder";
+import { useActiveElement } from "@webiny/app-page-builder/editor";
+import { Accordion, AccordionItem } from "@webiny/ui/Accordion";
+import { Elevation } from "@webiny/ui/Elevation";
+
+const { Ui } = PageEditorConfig;
+
+const StyledAccordionItem = styled(AccordionItem)`
+  .webiny-ui-accordion-item__content {
+    padding: 0 !important;
+  }
+`;
+
+const StyledElevation = styled(Elevation)`
+  box-shadow: 1px 0px 5px 0px rgba(128, 128, 128, 1);
+  position: fixed;
+  right: 0;
+  top: 65px;
+  height: 100%;
+  width: 300px;
+  z-index: 1;
+`;
+
+const Actions = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+const CustomProperties = styled.div`
+  margin: 16px;
+`;
+
+const ScrollableContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 65px - 48px);
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 1px;
+  }
+  &::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: darkgrey;
+    outline: 1px solid slategrey;
+  }
+`;
+
+/* Decorate the default Sidebar layout and render a completely custom one. */
+const SidebarWithAccordion = Ui.Sidebar.Layout.createDecorator(() => {
+  return function Sidebar() {
+    const [activeElement] = useActiveElement();
+
+    /* Make accordions non-interactive, if no element is activated in the editor. */
+    const isInteractive = !!activeElement;
+
+    return (
+      <StyledElevation z={1}>
+        {/* When sidebar content overflows the viewport height, we want the sidebar to become scrollable. */}
+        <ScrollableContainer>
+          <Accordion>
+            <Actions>
+              {/* Render element actions. */}
+              <Ui.Elements scope={"elementActions"} />
+            </Actions>
+            <StyledAccordionItem
+              title={"Element Properties"}
+              description={"Built-in element properties."}
+              icon={<StarIcon />}
+              interactive={isInteractive}
+            >
+              {/* Render `style` and `element` properties together. */}
+              <Ui.Sidebar.Elements group={"style"} />
+              <Ui.Sidebar.Elements group={"element"} />
+            </StyledAccordionItem>
+            <StyledAccordionItem
+              title={"Custom Properties"}
+              description={"Custom element properties."}
+              icon={<ScienceIcon />}
+              interactive={isInteractive}
+            >
+              <CustomProperties>Your custom element properties can go here!</CustomProperties>
+            </StyledAccordionItem>
+
+            {/* In development, print active element data for debugging purposes. */}
+            {process.env.NODE_ENV === "development" ? (
+              <StyledAccordionItem
+                title={"Element Data"}
+                description={"Element data for debugging."}
+                icon={<DebugIcon />}
+                interactive={isInteractive}
+              >
+                {activeElement ? <pre>{JSON.stringify(activeElement, null, 2)}</pre> : null}
+              </StyledAccordionItem>
+            ) : (
+              <></>
+            )}
+          </Accordion>
+        </ScrollableContainer>
+      </StyledElevation>
+    );
+  };
+});
+
+export const CustomSidebar = () => {
+  return (
+    <>
+      {/* Apply the Sidebar decorator. */}
+      <SidebarWithAccordion />
+      {/* Remove unwanted elements from the default UI. */}
+      <Ui.Sidebar.Element name={"elementActions"} remove />
+      <Ui.Sidebar.Element name={"elementInactive"} remove />
+      <Ui.Sidebar.Element name={"styleInactive"} remove />
+    </>
+  );
+};
+```
+
+And again, enable the configuration:
+
+```tsx apps/admin/src/App.tsx
+import { CustomSidebar } from "./CustomSidebar";
+
+<PageEditorConfig>
+  <CustomSidebar />
+</PageEditorConfig>;
+```
+
+The result of this configuration will look like this:
+
+<Image src={customSidebar} title="Custom Sidebar" />
