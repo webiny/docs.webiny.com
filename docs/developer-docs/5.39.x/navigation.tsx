@@ -21,6 +21,10 @@ export const Navigation = () => {
               after={"headless-cms/extending/customize-entry-list-bulk-actions"}
             />
             <Page
+              link={"headless-cms/extending/create-rich-text-content-renderer"}
+              after={"headless-cms/extending/custom-field-type"}
+            />
+            <Page
               link={"headless-cms/extending/private-models"}
               after={"headless-cms/extending/custom-sorting"}
             />
