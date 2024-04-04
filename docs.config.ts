@@ -6,7 +6,9 @@ import {
   NonVersionedDocumentRootConfig,
   VersionedDocumentRootConfig,
   LinkValidator,
-  MdxFileFilter
+  MdxFileFilter,
+  VersionsProvider,
+  NonVersionedVariableProcessor
 } from "@webiny/docs-generator";
 import { DeveloperDocsMdxFile } from "./docs/developer-docs/DeveloperDocsMdxFile";
 import { HandbookMdxFile } from "./docs/handbook/HandbookMdxFile";
@@ -80,17 +82,21 @@ export default {
       linkPrefix: "/docs",
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/ReleaseNotesLayout",
-      mdxFileFactory: (data: MdxData) => new ReleaseNotesMdxFile(data)
+      mdxFileFactory: (data: MdxData) => new ReleaseNotesMdxFile(data),
+      mdxFileProcessors: [
+        new NonVersionedVariableProcessor(
+          new VersionsProvider(path.resolve("docs/developer-docs")).getVersions()
+        )
+      ]
     }),
 
     /* Handbook */
-    (!process.env.VERCEL_ENV || preview) &&
-      new NonVersionedDocumentRootConfig({
-        rootDir: path.resolve("docs/handbook"),
-        linkPrefix: "/docs/handbook",
-        outputDir: path.resolve("src/pages"),
-        pageLayout: "@/layouts/HandbookLayout",
-        mdxFileFactory: (data: MdxData) => new HandbookMdxFile(data)
-      })
+    new NonVersionedDocumentRootConfig({
+      rootDir: path.resolve("docs/handbook"),
+      linkPrefix: "/docs/handbook",
+      outputDir: path.resolve("src/pages"),
+      pageLayout: "@/layouts/HandbookLayout",
+      mdxFileFactory: (data: MdxData) => new HandbookMdxFile(data)
+    })
   ]
 };

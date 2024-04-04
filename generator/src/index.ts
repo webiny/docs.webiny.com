@@ -52,5 +52,7 @@ export * from "./app/processors/PageDataProcessor";
 export * from "./app/processors/DocsearchProcessor";
 export * from "./app/processors/PageNavigationProcessor";
 export * from "./documentRoots/nonVersioned/NonVersionedDocumentRootConfig";
+export * from "./documentRoots/nonVersioned/NonVersionedVariableProcessor";
 export * from "./documentRoots/versioned/VersionedMdxFile";
 export * from "./documentRoots/versioned/VersionedDocumentRootConfig";
+export * from "./documentRoots/versioned/VersionedVariableProcessor";

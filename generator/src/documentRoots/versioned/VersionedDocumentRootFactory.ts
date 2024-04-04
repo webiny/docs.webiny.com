@@ -37,7 +37,7 @@ import { VersionedAssetResolverFactory } from "./VersionedAssetResolverFactory";
 import { VersionedDocumentRoot } from "./VersionedDocumentRoot";
 import { VersionsFile } from "./VersionsFile";
 import { VersionedMdxFile } from "./VersionedMdxFile";
-import { VariableProcessor } from "./VariableProcessor";
+import { VersionedVariableProcessor } from "./VersionedVariableProcessor";
 import { VersionedMdxFileFactoryCallable } from "./VersionedDocumentRootConfig";
 import { VersionsProcessor } from "./VersionsProcessor";
 import { AbsolutePathProcessor } from "../../app/processors/AbsolutePathProcessor";
@@ -127,7 +127,7 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
       // Inject navigation file import.
       new PageNavigationProcessor(`@/${navigationRelativeOutputPath}`),
       // Inject variable values (`{version}`, `{exact:...}`).
-      new VariableProcessor(this.versions),
+      new VersionedVariableProcessor(this.versions),
       ...config.mdxFileProcessors
     ];
 
