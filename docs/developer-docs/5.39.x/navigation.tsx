@@ -28,6 +28,10 @@ export const Navigation = () => {
               link={"headless-cms/extending/private-models"}
               after={"headless-cms/extending/custom-sorting"}
             />
+            <Page
+              link={"headless-cms/extending/website-users"}
+              after={"headless-cms/extending/private-models"}
+            />
           </Group>
           <Group title={"References"}>
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
