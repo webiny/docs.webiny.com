@@ -69,6 +69,9 @@ export const Navigation = () => {
             <Page link={"core-development-concepts/background-tasks/built-in-background-tasks"} />
             <Page link={"core-development-concepts/background-tasks/what-to-be-careful-about"} />
           </Group>
+          <Group title={"Basics"}>
+            <Page link={"core-development-concepts/basics/developer-onboarding-guide"} />
+          </Group>
         </Group>
       </NavigationRoot>
     </>
