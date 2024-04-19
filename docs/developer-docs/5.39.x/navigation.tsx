@@ -24,6 +24,10 @@ export const Navigation = () => {
               link={"headless-cms/extending/create-rich-text-content-renderer"}
               after={"headless-cms/extending/custom-field-type"}
             />
+            <Page
+              link={"headless-cms/extending/private-models"}
+              after={"headless-cms/extending/custom-sorting"}
+            />
           </Group>
           <Group title={"References"}>
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
