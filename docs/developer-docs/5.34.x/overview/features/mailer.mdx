@@ -118,7 +118,7 @@ const handler = createHandler({
 
 When creating the transport via `createTransport`, you will get the `settings` and the `context` variables. The `settings` variable contains whatever was defined in either environment variables or the values which were stored via the Mailer Settings UI.
 
-## The Default Transport Is Not Working For Me!
+### The Default Transport Is Not Working For Me!
 
 If the default transport is not working for you, you can create your own transport.
 
@@ -134,11 +134,40 @@ You can create your own transport if you do not like ours. You just need to use 
 ```typescript
 import { createTransport } from "@webiny/api-mailer";
 
-const transport = createTransport(async ({ settings, context }) => {
-  return myOwnImplementationOfTheTransport({
-    ...settings
-  });
+const transport = createTransport(async params => {
+    const { context, settings } = params;
+
+    if (!settings?.user || !settings?.password) {
+        throw new Error("There are no username and password in the settings. This will not work.");
+    }
+    
+    const myCustomSender = initializeYourCustomSender();
+
+    return {
+        name: "webiny.mailer.myCustomTransport",
+        send: async data => {
+            try {
+                const result = await myCustomSender({
+                    ...data,
+                    envelope: {
+                        user: settings.user,
+                        pass: settings.password
+                    }
+                });
+                return {
+                    result,
+                    error: null,
+                };
+            } catch (ex) {
+                return {
+                    result: null,
+                    error: ex
+                };
+            }
+        }
+    };
 });
+
 
 // register in your handler
 
