@@ -9,7 +9,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
       <Group title={"Headless CMS"}>
         <Group title={"Essentials"}>
-          <Page link={"headless-cms/essentials/advanced-search-filter-builder"} />
+          <Page link={"headless-cms/advanced/advanced-search-filter-builder"} />
         </Group>
       </Group>
 
@@ -18,10 +18,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group title={"Security"}>
         <Group title={"Essentials"}>
         <Page link={"security/essentials/user-creation"} />
-        <Page link={"security/essentials/team-creation"} />
-        <Page link={"security/essentials/assign-team"} />
         <Page link={"security/essentials/role-creation"} />
         <Page link={"security/essentials/assign-role"} />
+        <Page link={"security/essentials/team-creation"} />
+        <Page link={"security/essentials/assign-team"} />
         <Page link={"security/essentials/api-key-creation"} />
         <Page link={"security/essentials/folder-level-permission-in-headless-cms"} />
         </Group>
