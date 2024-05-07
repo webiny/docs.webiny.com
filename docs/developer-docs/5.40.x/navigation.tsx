@@ -38,6 +38,13 @@ export const Navigation = () => {
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
           </Group>
         </Group>
+        <Group title={"File Manager"}>
+          <Group title={"Extending Functionality"}>
+            <Page link={"file-manager/extending/customize-file-preview"}  />
+            <Page link={"file-manager/extending/create-a-file-type-plugin"} remove/>
+
+          </Group>
+        </Group>
         <Group title={"Page Builder"}>
           <Group title={"Extending Functionality"}>
             <Page

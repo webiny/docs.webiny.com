@@ -1,0 +1,100 @@
+---
+id: 4f89c18b
+title: Customize File Preview
+description: Learn how to customize file preview for specific types of files.
+---
+
+import fmFileDetailsGroupFields from "./assets/fm-group-fields.png";
+
+import fmFilesPreviews from "./assets/fm-files-previews.png";
+
+<CanIUseThis since={"5.40.0"} />
+
+<WhatYouWillLearn>
+
+- how to customize file preview for specific types of files
+
+</WhatYouWillLearn>
+
+## Overview
+
+In File Manager, every file has a preview. For example, in the following screenshot, we can see that the second image file has a small thumbnail immediately shown to the user. This makes it easier to quickly identity the file the user is looking for.
+
+<Image src={fmFilesPreviews} title="Preview of Files" />
+
+On the other hand, the first video file does not have any preview being displayed, simply because this functionality is not available out of the box. 
+
+But, if required, this can be implemented, which is what we cover in this article. 
+
+## Getting Started
+
+To get started, we first scaffold a new Admin extension in the `/extensions/customFilePreview` folder, via the following command:     
+
+```bash
+yarn webiny scaffold new-extension --type admin --name customFilePreview
+```
+
+## File Preview For Specific File Type
+
+In the following snippet of code, we show how we can introduce a custom file preview for `video/quicktime` file type.
+
+```tsx extensions/customFilePreview/src/index.tsx
+import React from "react";
+import { FileManagerViewConfig, useFile } from "@webiny/app-file-manager";
+
+// To make the code more readable, we immediately destructure child components.
+const { Browser, FileDetails } = FileManagerViewConfig;
+
+const VideoQtFileType = () => {
+    const { file } = useFile();
+    return (
+        <div>
+            <p style={{ fontSize: 50 }}>📽️</p>
+            <br />
+            <p>{file.name}</p>
+            <p>{file.size} bytes</p>
+        </div>
+    );
+};
+
+export const createExtension = () => {
+    return (
+        <>
+            <FileManagerViewConfig>
+                {/* Ensures custom preview is applied in file browser (grid view). */}
+                <Browser.Grid.Item.Thumbnail
+                    type={"video/quicktime"}
+                    element={<VideoQtFileType />}
+                />
+
+                {/* Ensures custom preview is applied in file details. */}
+                <FileDetails.Preview.Thumbnail
+                    type={"video/quicktime"}
+                    element={<VideoQtFileType />}
+                />
+            </FileManagerViewConfig>
+        </>
+    );
+};
+```
+
+## Using Glob Patterns
+
+It's worth pointing out that the `type` property of `Browser.Grid.Item.Thumbnail` and `FileDetails.Preview.Thumbnail` components also accepts a [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern. This makes it easier to assign a custom file preview for multiple types of files.  
+
+In the following example, we're using `video/*` as the file type, in order to have our custom file preview being used for all video types of files.
+
+```tsx
+<FileManagerViewConfig>
+    {/* Ensures custom preview is applied in file browser (grid view). */}
+    <Browser.Grid.Item.Thumbnail type={"video/*"} element={<VideoQtFileType />} />
+
+    {/* Ensures custom preview is applied in file details. */}
+    <FileDetails.Preview.Thumbnail type={"video/*"} element={<VideoQtFileType />} />
+</FileManagerViewConfig>;
+```
+<Alert type={"info"}>
+
+  Internally, glob matching is performed using the [minimatch](https://www.npmjs.com/package/minimatch) library.
+
+</Alert>
