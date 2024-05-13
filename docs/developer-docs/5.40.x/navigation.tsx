@@ -41,6 +41,7 @@ export const Navigation = () => {
         <Group title={"File Manager"}>
           <Group title={"Extending Functionality"}>
             <Page link={"file-manager/extending/customize-file-preview"}  />
+            <Page link={"file-manager/extending/customize-file-actions"}  />
             <Page link={"file-manager/extending/create-a-file-type-plugin"} remove/>
 
           </Group>

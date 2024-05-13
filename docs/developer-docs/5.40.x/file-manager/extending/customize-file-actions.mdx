@@ -1,0 +1,127 @@
+---
+id: cf32d9df
+title: Customize File Actions
+description: Learn how to customize file actions in File Manager, either globally or for specific file types.
+---
+
+import fmFilesActions from "./assets/fm-files-actions.png";
+import fmFilesActions2 from "./assets/fm-files-actions-2.png";
+import fmFilesGridActionPlay from "./assets/fm-files-grid-action-play.png";
+import fmFilesGridDetailsActionPlay from "./assets/fm-files-details-action-play.png";
+
+<CanIUseThis since={"5.40.0"} />
+
+<WhatYouWillLearn>
+
+- how to customize file actions globally (for all types of files)
+- how to customize file actions for specific types of files
+
+</WhatYouWillLearn>
+
+## Overview
+
+Files in File Manager can have different actions associated with them. These actions are displayed in the file browser (when hovering over a file) and file details panel. 
+
+<Image src={fmFilesActions} title="File Actions In File Browser" />
+
+<Image src={fmFilesActions2} title="File Actions In File Details Panel" />
+
+On top of the built-in actions, it's also possible to add custom actions, which can be displayed for all files or only for specific file types. 
+
+In this guide, we show how to add custom actions for all files and for specific file types.
+
+<ExtensionsGettingStarted type={"admin"} name={"customFileActions"} dependencies={"@webiny/app-file-manager"} />
+
+## Global File Actions
+
+Introducing a custom file action involves creating a React component that will be displayed as an action. This component is then added to the file browser and file details panel.
+
+In the following code, we're adding a custom **Play Video** action that will be displayed for all types of files; both in the file browser (grid view) and file details panel.
+
+```tsx extensions/customFileActions/src/index.tsx
+import React from "react";
+import { FileManagerViewConfig } from "@webiny/app-file-manager";
+import { ReactComponent as PlayIcon } from "./video.svg";
+
+// To make the code more readable, we immediately destructure child components.
+const { Browser, FileDetails } = FileManagerViewConfig;
+
+const PlayVideo = () => {
+    return (
+        <FileDetails.Action.IconButton
+            label={"Play Video"}
+            icon={<PlayIcon />}
+            onAction={() => {
+                alert("In the future, this will be useful.");
+            }}
+        />
+    );
+};
+
+export const createExtension = () => {
+    return (
+        <>
+            <FileManagerViewConfig>
+                {/* Ensures custom is applied in file browser (grid view). */}
+                <Browser.Grid.Item.Action name={"playVideo"} element={<PlayVideo />} />
+
+                {/* Ensures custom preview is applied in file details. */}
+                <FileDetails.Action name={"playVideo"} element={<PlayVideo />} />
+            </FileManagerViewConfig>
+        </>
+    );
+};
+```
+
+With this code in place, the **Play Video** action will be displayed for all files in the file browser (grid view) and file details panel.
+
+<Image src={fmFilesGridActionPlay} title="File Browser - Play Video Action" />
+
+<Image src={fmFilesGridDetailsActionPlay} title="File Details Panel - Play Video Action" />
+
+## File Type Specific File Actions
+
+Besides global actions, we can also introduce actions for specific file types. 
+
+To ensure the action is only displayed for a specific file type, in the `PlayVideo` React component, we use the `useFile` hook to get the current file and check its `type` property. If the file type is not `video/quicktime`, we return `null` and the action is not displayed.
+
+```diff-tsx extensions/customFileActions/src/index.tsx
+import React from "react";
++ import { FileManagerViewConfig, useFile } from "@webiny/app-file-manager";
+import { ReactComponent as PlayIcon } from "./video.svg";
+
+// To make the code more readable, we immediately destructure child components.
+const { Browser, FileDetails } = FileManagerViewConfig;
+
+const PlayVideo = () => {
++   // Exit if the file type is not "video/quicktime".
++   const { file } = useFile();
++   if (file.type !== "video/quicktime") {
++       return null;
++   }
+    
+    return (
+        <FileDetails.Action.IconButton
+            label={"Play Video"}
+            icon={<PlayIcon />}
+            onAction={() => {
+                alert("In the future, this will be useful.");
+            }}
+        />
+    );
+};
+
+export const createExtension = () => {
+    return (
+        <>
+            <FileManagerViewConfig>
+                {/* Ensures custom is applied in file browser (grid view). */}
+                <Browser.Grid.Item.Action name={"playVideo"} element={<PlayVideo />} />
+
+                {/* Ensures custom preview is applied in file details. */}
+                <FileDetails.Action name={"playVideo"} element={<PlayVideo />} />
+            </FileManagerViewConfig>
+        </>
+    );
+};
+```
