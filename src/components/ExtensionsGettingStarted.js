@@ -4,17 +4,27 @@ import Link from "next/link";
 
 export const ExtensionsGettingStarted = ({ type = "", name, location, dependencies }) => {
     const ucFirstType = type.charAt(0).toUpperCase() + type.slice(1);
-    let scaffoldCommand = `yarn webiny scaffold new-extension --type ${type} --name ${name}`;
+    let scaffoldCommandParts = [
+        "yarn webiny scaffold new-extension",
+        `--type ${type}`,
+        `--name ${name}`
+    ];
+
     if (location) {
-        scaffoldCommand += ` --location ${location}`;
+        scaffoldCommandParts.push(`--location ${location}`);
     }
 
     if (dependencies) {
         const commaSeparatedDependencies = Array.isArray(dependencies)
             ? dependencies.join(",")
             : dependencies;
-        scaffoldCommand += ` --dependencies ${commaSeparatedDependencies}`;
+        scaffoldCommandParts.push(`--dependencies ${commaSeparatedDependencies}`);
     }
+
+    const scaffoldCommand =
+        scaffoldCommandParts.length > 3
+            ? scaffoldCommandParts.join(" \\\n\t")
+            : scaffoldCommandParts.join(" ");
 
     const watchCommand = `yarn webiny watch ${type} --env ENVIRONMENT_NAME`;
 
@@ -23,7 +33,7 @@ export const ExtensionsGettingStarted = ({ type = "", name, location, dependenci
             <Heading level={2}>Getting Started</Heading>
             <p>
                 To get started, we first scaffold a new <strong>{ucFirstType} extension</strong> in
-                the <code>extensions/customFilePreview</code> folder, via the following command:
+                the <code>{location || `/extensions/${name}`}</code> folder, via the following command:
             </p>
             <p>
                 <pre className={"language-bash"}>{scaffoldCommand}</pre>
