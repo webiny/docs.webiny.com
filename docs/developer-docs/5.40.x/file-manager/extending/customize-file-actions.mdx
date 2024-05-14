@@ -26,27 +26,36 @@ Files in File Manager can have different actions associated with them. These act
 
 <Image src={fmFilesActions2} title="File Actions In File Details Panel" />
 
-On top of the built-in actions, it's also possible to add custom actions, which can be displayed for all files or only for specific file types. 
+On top of the built-in actions, it's also possible to add custom actions, which can be displayed for all types of files (global actions) or for specific file types. 
 
-In this guide, we show how to add custom actions for all files and for specific file types.
+In this guide, we show how to add custom actions for both scenarios.
 
-<ExtensionsGettingStarted type={"admin"} name={"customFileActions"} dependencies={"@webiny/app-file-manager"} />
+<ExtensionsGettingStarted type={"admin"} name={"customFileActions"} dependencies={"@webiny/app-file-manager,@material-design-icons/svg"} />
 
 ## Global File Actions
 
-Introducing a custom file action involves creating a React component that will be displayed as an action. This component is then added to the file browser and file details panel.
-
-In the following code, we're adding a custom **Play Video** action that will be displayed for all types of files; both in the file browser (grid view) and file details panel.
+In the following snippet of code, we show how we can introduce a file action that will be displayed for all types of files.
 
 ```tsx extensions/customFileActions/src/index.tsx
 import React from "react";
-import { FileManagerViewConfig } from "@webiny/app-file-manager";
-import { ReactComponent as PlayIcon } from "./video.svg";
+import { FileManagerViewConfig, useFile } from "@webiny/app-file-manager";
+import { ReactComponent as PlayIcon } from "@material-design-icons/svg/round/play_arrow.svg";
 
 // To make the code more readable, we immediately destructure child components.
 const { Browser, FileDetails } = FileManagerViewConfig;
 
-const PlayVideo = () => {
+const GridItemAction = () => {
+    return (
+        <Browser.Grid.Item.Action.IconButton
+            icon={<PlayIcon />}
+            onAction={() => {
+                alert("In the future, this will be useful.");
+            }}
+        />
+    );
+};
+
+const FileDetailsAction = () => {
     return (
         <FileDetails.Action.IconButton
             label={"Play Video"}
@@ -58,22 +67,21 @@ const PlayVideo = () => {
     );
 };
 
-export const createExtension = () => {
+export const Extension = () => {
     return (
         <>
             <FileManagerViewConfig>
-                {/* Ensures custom is applied in file browser (grid view). */}
-                <Browser.Grid.Item.Action name={"playVideo"} element={<PlayVideo />} />
-
-                {/* Ensures custom preview is applied in file details. */}
-                <FileDetails.Action name={"playVideo"} element={<PlayVideo />} />
+                <Browser.Grid.Item.Action name={"playVideo"} element={<GridItemAction />} />
+                <FileDetails.Action name={"playVideo"} element={<FileDetailsAction />} />
             </FileManagerViewConfig>
         </>
     );
 };
 ```
 
-With this code in place, the **Play Video** action will be displayed for all files in the file browser (grid view) and file details panel.
+As we can see, we created two components, `GridItemAction` and `FileDetailsAction`, which represent the action in the file browser (grid view) and file details panel, respectively. Once created, we register these components as actions with the `FileManagerViewConfig` component and its `Browser.Grid.Item.Action` and `FileDetails.Action` components.
+
+With this code in place, the **Play Video** action will be displayed for all types of files, both in the file browser (grid view) and file details panel.
 
 <Image src={fmFilesGridActionPlay} title="File Browser - Play Video Action" />
 
@@ -83,23 +91,38 @@ With this code in place, the **Play Video** action will be displayed for all fil
 
 Besides global actions, we can also introduce actions for specific file types. 
 
-To ensure the action is only displayed for a specific file type, in the `PlayVideo` React component, we use the `useFile` hook to get the current file and check its `type` property. If the file type is not `video/quicktime`, we return `null` and the action is not displayed.
+To do that, in the `GridItemAction` and `FileDetailsAction` components, we use the `useFile` hook to get the current file and check its `type` property. If the file type is not `video/quicktime`, we return `null` and the action is not displayed.
 
 ```diff-tsx extensions/customFileActions/src/index.tsx
 import React from "react";
 + import { FileManagerViewConfig, useFile } from "@webiny/app-file-manager";
-import { ReactComponent as PlayIcon } from "./video.svg";
+import { ReactComponent as PlayIcon } from "@material-design-icons/svg/round/play_arrow.svg";
 
 // To make the code more readable, we immediately destructure child components.
 const { Browser, FileDetails } = FileManagerViewConfig;
 
-const PlayVideo = () => {
-+   // Exit if the file type is not "video/quicktime".
+const GridItemAction = () => {
++    const { file } = useFile();
++    if (file.type !== "video/quicktime") {
++        return null;
++    }
+
+    return (
+        <Browser.Grid.Item.Action.IconButton
+            icon={<PlayIcon />}
+            onAction={() => {
+                alert("In the future, this will be useful.");
+            }}
+        />
+    );
+};
+
+const FileDetailsAction = () => {
 +   const { file } = useFile();
 +   if (file.type !== "video/quicktime") {
 +       return null;
 +   }
-    
+
     return (
         <FileDetails.Action.IconButton
             label={"Play Video"}
@@ -111,15 +134,12 @@ const PlayVideo = () => {
     );
 };
 
-export const createExtension = () => {
+export const Extension = () => {
     return (
         <>
             <FileManagerViewConfig>
-                {/* Ensures custom is applied in file browser (grid view). */}
-                <Browser.Grid.Item.Action name={"playVideo"} element={<PlayVideo />} />
-
-                {/* Ensures custom preview is applied in file details. */}
-                <FileDetails.Action name={"playVideo"} element={<PlayVideo />} />
+                <Browser.Grid.Item.Action name={"playVideo"} element={<GridItemAction />} />
+                <FileDetails.Action name={"playVideo"} element={<FileDetailsAction />} />
             </FileManagerViewConfig>
         </>
     );
