@@ -70,6 +70,9 @@ export const Navigation = () => {
           <Group title={"Background Tasks"}>
             <Page link={"core-development-concepts/background-tasks/about-background-tasks"} />
             <Page link={"core-development-concepts/background-tasks/how-background-tasks-work"} />
+            <Page link={"core-development-concepts/basics/plugins"} remove/>
+            <Page link={"core-development-concepts/basics/importing-plugins"} remove/>
+            <Page link={"core-development-concepts/basics/extensions"} />
             <Page
               link={"core-development-concepts/background-tasks/how-to-define-a-background-task"}
             />

@@ -25,7 +25,7 @@ The most straightforward way to define content models and content model groups w
 
 ### Using Plugins
 
-And although we can get pretty far by defining content models and content model groups via the Admin Area, on the other hand, we can also do this within our application code, by registering one or more [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins. Once defined, content models and content model groups can be then used via the Admin Area in the same way as if they were created regularly, via the Content Model Editor.
+And although we can get pretty far by defining content models and content model groups via the Admin Area, on the other hand, we can also do this within our application code, by registering one or more plugins. Once defined, content models and content model groups can be then used via the Admin Area in the same way as if they were created regularly, via the Content Model Editor.
 
 Some of the benefits of this approach are:
 
@@ -36,132 +36,110 @@ Some of the benefits of this approach are:
 
 In the following sections, we cover a couple of examples that show how to define content models and content model groups via plugins.
 
-## Examples
+<ExtensionsGettingStarted type={"api"} name={"models"} dependencies={"@webiny/api-headless-cms"} />
 
-<Alert type="success">
-
-Note that we **NEVER** set the `storageId` property value as it is created automatically out of the field `id` and `type` property values.
-
-To find out more about the `storageId` property, and understand why it exists, please read [this](/docs/headless-cms/extending/content-models-via-code-storage-id) article.
-
-</Alert>
-
-### Basic Example
+## Basic Example
 
 In this example, we will explore how to define a simple **Product** content model, that belongs to the **E-Commerce** content model group.
 
-#### Create Content Model Group and Content Model Plugins
+### Create Content Model Group and Content Model Plugins
 
-We will create the content group and content model by defining the `CmsGroupPlugin` and `CmsModelPlugin` plugins, respectively.
-Both plugins can be defined within a single file.  
-Let's create a [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/graphql/src/plugins/models.ts) file in the `apps/api/graphql/src/plugins` directory.
+To create the content model group and content model, we use `createCmsGroupPlugin` and `createCmsModelPlugin` plugin factories.
 
-```ts apps/api/graphql/src/plugins/models.ts
-import { createCmsGroupPlugin, createCmsModelPlugin, createModelField } from "@webiny/api-headless-cms";
+```ts extensions/models/src/index.ts
+import {
+  createCmsGroupPlugin,
+  createCmsModelPlugin,
+  createModelField
+} from "@webiny/api-headless-cms";
 
-export default [
+export const createExtension = () => {
+  return [
     // Defines a new "E-Commerce" content models group.
     createCmsGroupPlugin({
-        id: "ecommerce",
-        name: "E-Commerce",
-        description: "E-Commerce content model group",
-        slug: "e-commerce",
-        icon: "fas/shopping-cart"
+      id: "ecommerce",
+      name: "E-Commerce",
+      description: "E-Commerce content model group",
+      slug: "e-commerce",
+      icon: "fas/shopping-cart"
     }),
 
     // Defines a new "Product" content model.
     createCmsModelPlugin({
-        name: "Product",
-        modelId: "product",
-        description: "Product content model",
-        group: {
-            id: "ecommerce",
-            name: "E-Commerce"
-        },
-        fields: [
-            createModelField({
-                fieldId: "productName",
-                type: "text",
-                label: "Product Name",
-                helpText: "A short product name",
-                renderer: { name: "text-input" },
-                validation: [
-                    {
-                        name: "required",
-                        message: "Value is required."
-                    }
-                ]
-            }),
-            createModelField({
-                fieldId: "productSku",
-                type: "text",
-                label: "SKU",
-                placeholderText: "SKU = Stock Keeping Unit",
-                renderer: { name: "text-input" }
-            }),
-            createModelField({
-                fieldId: "productPrice",
-                type: "number",
-                label: "Price",
-                renderer: { name: "text-input" }
-            })
-        ],
-        layout: [["productName"], ["productSku", "productPrice"]],
-        titleFieldId: "productName"
+      name: "Product",
+      modelId: "product",
+      description: "Product content model",
+      group: {
+        id: "ecommerce",
+        name: "E-Commerce"
+      },
+      fields: [
+        createModelField({
+          fieldId: "productName",
+          type: "text",
+          label: "Product Name",
+          helpText: "A short product name",
+          renderer: { name: "text-input" },
+          validation: [
+            {
+              name: "required",
+              message: "Value is required."
+            }
+          ]
+        }),
+        createModelField({
+          fieldId: "productSku",
+          type: "text",
+          label: "SKU",
+          placeholderText: "SKU = Stock Keeping Unit",
+          renderer: { name: "text-input" }
+        }),
+        createModelField({
+          fieldId: "productPrice",
+          type: "number",
+          label: "Price",
+          renderer: { name: "text-input" }
+        })
+      ],
+      layout: [["productName"], ["productSku", "productPrice"]],
+      titleFieldId: "productName"
     })
-];
-
+  ];
+};
 ```
 
-#### Register the Plugins
-
-As a next step, we will register the content model group and content model plugin in the Headless CMS application.
-Let's make the following changes in `apps/api/graphql/src/index.ts` file:
-
-```diff-js apps/api/graphql/src/index.ts
-(...)
-
-// Import the content model group and content model
-+ import eCommerceGroupAndModels from "./plugins/models";
-
-export default [
-     // Rest of the plugins
-     (...)
-     createHeadlessCmsGraphQL({ debug }),
-    scaffoldsPlugins(),
-+   ...eCommerceGroupAndModels
-];
-```
-
-Once plugins are registered successfully, we should be able to see the following two items in our Admin Area main menu:
+With this code in place, we should be able to see the following two items in our Admin Area main menu:
 
 ![Product and E-Commerce Items in the Admin Area Main Menu](./assets/content-models-plugins/basics-plugins-work.png)
 
-<Alert type="success">
+As shown in the example, the `createCmsModelPlugin` lets us define all of the content model's properties, like its name, ID (`modelId`), a content model group to which it belongs to, and most importantly, all of the fields that it consists of.
 
-With the [`webiny watch`](/docs/core-development-concepts/basics/watch-command) command up and running, the performed application code changes should be automatically rebuilt and redeployed into the cloud.
+All of the fields of a single content model are defined via the `fields` property, which is an array of [`CmsModelField`](https://github.com/webiny/webiny-js/blob/c3d4955bf74e7ffdb9628867e3b23cdfe64ea8dc/packages/api-headless-cms/src/types.ts#L109) objects, which we create via the `createModelField` factory function.
 
-</Alert>
-
-As shown in the example, the [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) receives a [`CmsContentModel`](https://github.com/webiny/webiny-js/blob/46d72f3cb5ce60988eac6065086ce4acf5c365bc/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) object upon instantiation. It lets us define all of the content model's properties, like its name, ID (`modelId`), a content model group to which it belongs to, and most importantly, all of the fields that it consists of.
-
-All of the fields of a single content model are defined via the [`fields`](https://github.com/webiny/webiny-js/blob/c3d4955bf74e7ffdb9628867e3b23cdfe64ea8dc/packages/api-headless-cms/src/types.ts#L345) property, which is an array of [`CmsModelField`](https://github.com/webiny/webiny-js/blob/c3d4955bf74e7ffdb9628867e3b23cdfe64ea8dc/packages/api-headless-cms/src/types.ts#L109) objects. Note that some of the properties that we need to define for each field are simpler than others, for example `label` or `placeholderText`. On the other hand, properties like `type`, `renderer.name`, and `validation.name` contain values that actually reference other registered plugins. In case an invalid reference was provided, an error will be thrown and you will have to make corrections.
+Note that some of the properties that we need to define for each field are simpler than others, for example `label` or `placeholderText`. On the other hand, properties like `type`, `renderer.name`, and `validation.name` contain values that actually reference other plugins. In case an invalid reference was provided, an error will be thrown and you will have to make corrections.
 
 <Alert type="info">
 
-All available [field types (`type`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/graphqlFields), [field renderers (`renderer.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/app-headless-cms/src/admin/plugins/fieldRenderers), and [field validators (`validators.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/validators) can be found in our GitHub repository.
+All available [field types
+(`type`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/graphqlFields), [field
+renderers
+(`renderer.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/app-headless-cms/src/admin/plugins/fieldRenderers),
+and [field validators
+(`validators.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/validators) can be
+found in our GitHub repository.
 
 </Alert>
 
 <Alert type="success">
 
-Want to learn how to create your own custom field type? Check out the [Create a Custom Field Type](/docs/{version}/headless-cms/extending/custom-field-type) how-to guide.
+Want to learn how to create your own custom field type? Check out the [Create a Custom Field Type](/docs/{version}/headless-cms/extending/custom-field-type)
+how-to guide.
 
 </Alert>
 
 Finally, note that both the **Product** content model and the **E-Commerce** content model group will be available for all existing locales and tenants. If you're interested in defining a content model only for a specific locale or tenant, check out the examples below.
 
-### Advanced Examples
+## Advanced Examples
 
 In the example above, we created a simple model. Now let’s take this further and create a little more advanced model.
 We will see how to create a reference field and add multiple validations to a field.
@@ -169,7 +147,7 @@ We will see how to create a reference field and add multiple validations to a fi
 Let's start by creating a category model, which will have a name field with unique and required validation.
 Later, we will refer to this category model from the product model.
 
-#### Category Model with Multiple Validations
+### Category Model with Multiple Validations
 
 As discussed earlier, we need to define a `CmsModelPlugin` plugin to create a model.
 Add the following code to the [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/graphql/src/plugins/models.ts) file that we created earlier.
@@ -211,7 +189,7 @@ createCmsModelPlugin({
 Here you can see we added the `required` and `unique` validation for the category name field.
 You can explore all the available [field validators](https://github.com/webiny/webiny-js/tree/v5.26.0/packages/api-headless-cms/src/content/plugins/validators) in our GitHub repository.
 
-#### Add Category Reference Field in the Product Model
+### Add Category Reference Field in the Product Model
 
 Now let's use the Category Model as a reference field in the Product model.
 We will update the Product model that we created earlier. The `ref` field type is used to create the reference field.
@@ -257,7 +235,7 @@ And you should be able to see the following Product model.
 
 ![Product Model](./assets/content-models-plugins/product-model.png)
 
-#### Product Review Model With Object Field
+### Product Review Model With Object Field
 
 In this example, we will explore how to use an `object` field and allow multiple values for this object field. As discussed earlier, we need to define a `CmsModelPlugin` plugin to create a model. Add the following code to the [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/graphql/src/plugins/models.ts) file that we created earlier.
 
@@ -382,7 +360,7 @@ And you should be able to see the following Product Review model.
 
 ![Product Model](./assets/content-models-plugins/product-review-model.png)
 
-#### Disable Authorization For Content Models and Entries
+### Disable Authorization For Content Models and Entries
 
 With this [5.39.2 release](/docs/release-notes/5.39.2/changelog#content-models-defined-via-code-ability-to-disable-authorization-3865), upon defining content models programmatically, developers now also have the ability to disable authorization checks for the content model and its entries. This can be useful when you want to quickly grant full access to all **authenticated** users, without the need to have the required security permissions in place, defined via the Security application.
 
@@ -392,54 +370,18 @@ Additionally, in case the [Folder Level Permissions](/docs/enterprise/aacl/folde
 
 The following example demonstrates how to disable authorization for a content model and its entries.
 
-```diff-ts apps/api/graphql/src/plugins/models.ts
-// Defines a "Public Product" content model.
+```diff-ts extensions/models/src/index.ts
+// Defines a new "Product" content model.
 createCmsModelPlugin({
     name: "Product",
     modelId: "product",
-    description: "Product content model, accessible to all authenticated users.",
+    description: "Product content model",
   
-+   // Disable authorization for the content model and its entries. All 
++   // Disable authorization for the content model and its entries. All
 +   // authenticated users will have full access to the content model and its entries.
-+   authorization: false, 
++   authorization: false,
   
-    group: {
-      id: "ecommerce",
-      name: "E-Commerce"
-    },
-    fields: [
-      {
-        id: "productName",
-        fieldId: "productName",
-        type: "text",
-        label: "Product Name",
-        helpText: "A short product name",
-        renderer: { name: "text-input" },
-        validation: [
-          {
-            name: "required",
-            message: "Value is required."
-          }
-        ]
-      },
-      {
-        id: "productSku",
-        fieldId: "productSku",
-        type: "text",
-        label: "SKU",
-        placeholderText: "SKU = Stock Keeping Unit",
-        renderer: { name: "text-input" }
-      },
-      {
-        id: "productPrice",
-        fieldId: "productPrice",
-        type: "number",
-        label: "Price",
-        renderer: { name: "text-input" }
-      }
-    ],
-    layout: [["productName"], ["productSku", "productPrice"]],
-    titleFieldId: "productName",
+    // The rest of the properties...
 });
 ```
 
@@ -449,64 +391,65 @@ With the `authorization` property set to `false`, base authorization checks are 
 
 In this example, we show how we can define content models and content model groups only for a specific locale, in our case, the `en-US`.
 
-```ts apps/api/graphql/src/plugins/models.ts
-import { CmsGroupPlugin, CmsModelPlugin } from "@webiny/api-headless-cms";
-import { CmsContext } from "@webiny/api-headless-cms/types";
-import { ContextPlugin } from "@webiny/handler";
+```ts extensions/models/src/index.ts
+import { createContextPlugin } from "@webiny/api-serverless-cms";
+import { createCmsGroupPlugin, createCmsModelPlugin } from "@webiny/api-headless-cms";
 
-export default [
-    new ContextPlugin((context: CmsContext) => {
-        // Only register needed plugins if the current content locale is set to "en-US".
-        if (context.i18nContent.getLocale().code !== "en-US") {
-            return;
-        }
+export const createExtension = () => {
+    return [
+        createContextPlugin(context => {
+            // Only register needed plugins if the current 
+            // content locale is set to "en-US".
+            const contentLocale = context.i18n.getContentLocale();
+            if (!contentLocale || contentLocale.code !== "en-US") {
+                return;
+            }
 
-        context.plugins.register([
-            new CmsGroupPlugin({
-               ...
-            }),
-            new CmsModelPlugin({
-                ...
-            })
-        ]);
-    })
-];
+            // Register content model and group plugins.
+            context.plugins.register([
+                createCmsGroupPlugin({
+                    // ...
+                }),
+                createCmsModelPlugin({
+                    // ...
+                })
+            ]);
+        })
+    ];
+};
 ```
 
-Note that we've used the [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/handler/src/plugins/ContextPlugin.ts#L7) first, in order to be able to access the dynamic `context` object, and the `context.i18nContent.getLocale` method. Once we've determined that the `en-US` is the current locale, we proceed by registering the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins, as seen in the previous example.
-
-<Alert type="success">
-
-In Admin Area, user's current local is sent with every issued HTTP request, via the `x-i18n-locale` header.
-
-</Alert>
+Note that we've used the `createContextPlugin` first in order to create a new context plugin and to first be able to access the dynamic `context` object and the `context.i18nContent.getLocale` method. Once we've determined that the `en-US` is the current locale, we proceed by registering the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins, as seen in the previous example.
 
 ### Define a Content Model Only for a Specific Tenant
 
 In this example, we show how we can define content models and content model groups only for a specific tenant, in our case, the `root`.
 
-```ts apps/api/graphql/src/plugins/models.ts
-import { CmsGroupPlugin, CmsModelPlugin } from "@webiny/api-headless-cms";
-import { CmsContext } from "@webiny/api-headless-cms/types";
-import { ContextPlugin } from "@webiny/handler";
+```ts extensions/models/src/index.ts
+import { createContextPlugin } from "@webiny/api-serverless-cms";
+import { createCmsGroupPlugin, createCmsModelPlugin } from "@webiny/api-headless-cms";
 
-export default [
-    new ContextPlugin((context: CmsContext) => {
-        // Only register needed plugins if the current tenant is set to "root".
-        if (context.tenancy.getCurrentTenant().id !== "root") {
-            return;
-        }
+export const createExtension = () => {
+    return [
+        createContextPlugin(context => {
+            // Only register needed plugins if the current tenant is set to "root".
+            const currentTenant = context.tenancy.getCurrentTenant();
+            if (currentTenant.id !== "root") {
+                return;
+            }
 
-        context.plugins.register([
-            new CmsGroupPlugin({
-               ...
-            }),
-            new CmsModelPlugin({
-                ...
-            })
-        ]);
-    })
-];
+            // Register content model and group plugins.
+            context.plugins.register([
+                createCmsGroupPlugin({
+                    // ...
+                }),
+                createCmsModelPlugin({
+                    // ...
+                })
+            ]);
+        })
+    ];
+};
 ```
 
 As we can see, like in the previous example, we're again utilizing the [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/handler/src/plugins/ContextPlugin.ts#L7) first, in order to be able to access the dynamic `context` object, and the `context.tenancy.getCurrentTenant` method. Once we've determined that the `root` is the current tenant, we proceed by registering the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins.
