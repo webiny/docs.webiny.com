@@ -2,8 +2,12 @@ import React from "react";
 import { Heading } from "./Heading";
 import Link from "next/link";
 
+const extensionTypeLabel = {
+    admin: "Admin extension",
+    api: "API extension"
+};
+
 export const ExtensionsGettingStarted = ({ type = "", name, location, dependencies }) => {
-    const ucFirstType = type.charAt(0).toUpperCase() + type.slice(1);
     let scaffoldCommandParts = [
         "yarn webiny scaffold new-extension",
         `--type ${type}`,
@@ -32,8 +36,9 @@ export const ExtensionsGettingStarted = ({ type = "", name, location, dependenci
         <>
             <Heading level={2}>Getting Started</Heading>
             <p>
-                To get started, we first scaffold a new <strong>{ucFirstType} extension</strong> in
-                the <code>{location || `/extensions/${name}`}</code> folder, via the following command:
+                To get started, we first scaffold a new <strong>{extensionTypeLabel[type]}</strong>{" "}
+                in the <code>{location || `/extensions/${name}`}</code> folder, via the following
+                command:
             </p>
             <p>
                 <pre className={"language-bash"}>{scaffoldCommand}</pre>
