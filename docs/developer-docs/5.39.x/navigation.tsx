@@ -10,6 +10,12 @@ export const Navigation = () => {
       {/* Add new items. */}
       <NavigationRoot directory={__dirname}>
         {/* Add new groups and pages here. */}
+        <Group title={"Get Started"}>
+          <Page
+              link={"get-started/welcome"}
+              before={"get-started/install-webiny"}
+          />
+        </Group>
         <Group title={"Headless CMS"}>
           <Group title={"Extending Functionality"}>
             <Page
