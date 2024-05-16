@@ -28,11 +28,13 @@ export function VersionedLayout({ titleSuffix, children, ...props }) {
                         </div>
                         <article className={"DocSearch-content prose md:prose-md prose-slate"}>
                             <ViewLatestVersion />
-                            <PageHeader
-                                title={page.title}
-                                description={page.description}
-                                breadcrumbs={page.breadcrumbs}
-                            />
+                            {page.showPageHeader ? (
+                                <PageHeader
+                                    title={page.title}
+                                    description={page.description}
+                                    breadcrumbs={page.breadcrumbs}
+                                />
+                            ) : null}
                             <div className={"relative z-20 mt-8 dark:prose-dark"}>
                                 <MDXProvider components={mdxComponents}>{children}</MDXProvider>
                             </div>
