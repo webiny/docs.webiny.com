@@ -40,10 +40,9 @@ export const Navigation = () => {
         </Group>
         <Group title={"File Manager"}>
           <Group title={"Extending Functionality"}>
-            <Page link={"file-manager/extending/customize-file-preview"}  />
-            <Page link={"file-manager/extending/customize-file-actions"}  />
-            <Page link={"file-manager/extending/create-a-file-type-plugin"} remove/>
-
+            <Page link={"file-manager/extending/customize-file-preview"} />
+            <Page link={"file-manager/extending/customize-file-actions"} />
+            <Page link={"file-manager/extending/create-a-file-type-plugin"} remove />
           </Group>
         </Group>
         <Group title={"Page Builder"}>
@@ -67,12 +66,17 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Core Development Concepts"}>
+          <Group title={"Basics"}>
+            <Page link={"core-development-concepts/basics/plugins"} remove />
+            <Page link={"core-development-concepts/basics/importing-plugins"} remove />
+            <Page
+              link={"core-development-concepts/basics/extensions"}
+              before={"core-development-concepts/basics/tools-and-libraries"}
+            />
+          </Group>
           <Group title={"Background Tasks"}>
             <Page link={"core-development-concepts/background-tasks/about-background-tasks"} />
             <Page link={"core-development-concepts/background-tasks/how-background-tasks-work"} />
-            <Page link={"core-development-concepts/basics/plugins"} remove/>
-            <Page link={"core-development-concepts/basics/importing-plugins"} remove/>
-            <Page link={"core-development-concepts/basics/extensions"} />
             <Page
               link={"core-development-concepts/background-tasks/how-to-define-a-background-task"}
             />

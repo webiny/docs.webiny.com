@@ -7,7 +7,13 @@ const extensionTypeLabel = {
     api: "API extension"
 };
 
-export const ExtensionsGettingStarted = ({ type = "", name, location, dependencies }) => {
+export const ExtensionsGettingStarted = ({
+    type = "",
+    name,
+    location,
+    dependencies,
+    scaffoldCommandExtraInfo
+}) => {
     let scaffoldCommandParts = [
         "yarn webiny scaffold new-extension",
         `--type ${type}`,
@@ -43,6 +49,7 @@ export const ExtensionsGettingStarted = ({ type = "", name, location, dependenci
             <p>
                 <pre className={"language-bash"}>{scaffoldCommand}</pre>
             </p>
+            {scaffoldCommandExtraInfo && <p>{scaffoldCommandExtraInfo}</p>}
             <p>
                 Once the extension is scaffolded, in order to start developing, we run the following
                 <code>

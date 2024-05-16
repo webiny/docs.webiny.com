@@ -36,15 +36,20 @@ Some of the benefits of this approach are:
 
 In the following sections, we cover a couple of examples that show how to define content models and content model groups via plugins.
 
-<ExtensionsGettingStarted type={"api"} name={"models"} dependencies={"@webiny/api-headless-cms"} />
+<ExtensionsGettingStarted
+  type={"api"}
+  name={"models"}
+  dependencies={"@webiny/api-headless-cms"}
+  scaffoldCommandExtraInfo={<>Since we'll be using a couple of utilities from the <code>@webiny/api-headless-cms</code> package, we've immediately included it in the list of dependencies.</>}
+/>
 
 ## Basic Example
 
-In this example, we will explore how to define a simple **Product** content model, that belongs to the **E-Commerce** content model group.
+In this example, we show how to define a simple **Product** content model, that belongs to the **E-Commerce** content model group.
 
 ### Create Content Model Group and Content Model Plugins
 
-To create the content model group and content model, we use `createCmsGroupPlugin` and `createCmsModelPlugin` plugin factories.
+To create the content model group and content model, we use `createCmsGroupPlugin` and `createCmsModelPlugin` plugin factories, as shown in the following code snippet.
 
 ```ts extensions/models/src/index.ts
 import {
@@ -108,36 +113,38 @@ export const createExtension = () => {
 };
 ```
 
-With this code in place, we should be able to see the following two items in our Admin Area main menu:
+As we can see, upon calling the `createCmsGroupPlugin` plugin factory, we get to define a content model group, which consists of the following properties:
 
-![Product and E-Commerce Items in the Admin Area Main Menu](./assets/content-models-plugins/basics-plugins-work.png)
+- `id` - a unique identifier of the content model group
+- `name` - the name of the content model group
+- `description` - a short description of the content model group
+- `slug` - a unique identifier of the content model group, used in URLs
+- `icon` - the icon of the content model group (more info in the [FAQ](#what-are-the-values-that-i-can-pass-to-the-icon-property-of-the-cms-group-plugin-plugin) section)
 
-As shown in the example, the `createCmsModelPlugin` lets us define all of the content model's properties, like its name, ID (`modelId`), a content model group to which it belongs to, and most importantly, all of the fields that it consists of.
+Furthermore, upon calling the `createCmsModelPlugin` plugin factory, we get to define all of our content model's properties, like its name, ID (`modelId`), a content model group to which it belongs to, and most importantly, all of the fields that it consists of.
 
-All of the fields of a single content model are defined via the `fields` property, which is an array of [`CmsModelField`](https://github.com/webiny/webiny-js/blob/c3d4955bf74e7ffdb9628867e3b23cdfe64ea8dc/packages/api-headless-cms/src/types.ts#L109) objects, which we create via the `createModelField` factory function.
+Fields of a content model are defined via the `fields` property, which is an array of [`CmsModelField`](https://github.com/webiny/webiny-js/blob/next/packages/api-headless-cms/src/types/modelField.ts#L23) objects, which we create via the `createModelField` factory function.
 
 Note that some of the properties that we need to define for each field are simpler than others, for example `label` or `placeholderText`. On the other hand, properties like `type`, `renderer.name`, and `validation.name` contain values that actually reference other plugins. In case an invalid reference was provided, an error will be thrown and you will have to make corrections.
 
 <Alert type="info">
 
-All available [field types
-(`type`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/graphqlFields), [field
-renderers
-(`renderer.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/app-headless-cms/src/admin/plugins/fieldRenderers),
-and [field validators
-(`validators.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/validators) can be
-found in our GitHub repository.
+  All available [field types (`type`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/graphqlFields), [field renderers (`renderer.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/app-headless-cms/src/admin/plugins/fieldRenderers), and [field validators (`validators.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/validators) can be found in our GitHub repository.
 
 </Alert>
 
 <Alert type="success">
 
-Want to learn how to create your own custom field type? Check out the [Create a Custom Field Type](/docs/{version}/headless-cms/extending/custom-field-type)
-how-to guide.
+  Want to learn how to create your own custom field type? Check out the [Create a Custom Field Type](/docs/{version}/headless-cms/extending/custom-field-type)
+  how-to guide.
 
 </Alert>
 
-Finally, note that both the **Product** content model and the **E-Commerce** content model group will be available for all existing locales and tenants. If you're interested in defining a content model only for a specific locale or tenant, check out the examples below.
+Ultimately, with this code in place, we should be able to see the following two items in our Admin Area main menu:
+
+![Product and E-Commerce Items in the Admin Area Main Menu](./assets/content-models-plugins/basics-plugins-work.png)
+
+Note that both the **Product** content model and the **E-Commerce** content model group will be available for all existing locales and tenants. If you're interested in defining a content model only for a specific locale or tenant, check out the examples below.
 
 ## Advanced Examples
 
@@ -376,11 +383,11 @@ createCmsModelPlugin({
     name: "Product",
     modelId: "product",
     description: "Product content model",
-  
+
 +   // Disable authorization for the content model and its entries. All
 +   // authenticated users will have full access to the content model and its entries.
 +   authorization: false,
-  
+
     // The rest of the properties...
 });
 ```
@@ -396,26 +403,26 @@ import { createContextPlugin } from "@webiny/api-serverless-cms";
 import { createCmsGroupPlugin, createCmsModelPlugin } from "@webiny/api-headless-cms";
 
 export const createExtension = () => {
-    return [
-        createContextPlugin(context => {
-            // Only register needed plugins if the current 
-            // content locale is set to "en-US".
-            const contentLocale = context.i18n.getContentLocale();
-            if (!contentLocale || contentLocale.code !== "en-US") {
-                return;
-            }
+  return [
+    createContextPlugin(context => {
+      // Only register needed plugins if the current
+      // content locale is set to "en-US".
+      const contentLocale = context.i18n.getContentLocale();
+      if (!contentLocale || contentLocale.code !== "en-US") {
+        return;
+      }
 
-            // Register content model and group plugins.
-            context.plugins.register([
-                createCmsGroupPlugin({
-                    // ...
-                }),
-                createCmsModelPlugin({
-                    // ...
-                })
-            ]);
+      // Register content model and group plugins.
+      context.plugins.register([
+        createCmsGroupPlugin({
+          // ...
+        }),
+        createCmsModelPlugin({
+          // ...
         })
-    ];
+      ]);
+    })
+  ];
 };
 ```
 
@@ -430,25 +437,25 @@ import { createContextPlugin } from "@webiny/api-serverless-cms";
 import { createCmsGroupPlugin, createCmsModelPlugin } from "@webiny/api-headless-cms";
 
 export const createExtension = () => {
-    return [
-        createContextPlugin(context => {
-            // Only register needed plugins if the current tenant is set to "root".
-            const currentTenant = context.tenancy.getCurrentTenant();
-            if (currentTenant.id !== "root") {
-                return;
-            }
+  return [
+    createContextPlugin(context => {
+      // Only register needed plugins if the current tenant is set to "root".
+      const currentTenant = context.tenancy.getCurrentTenant();
+      if (currentTenant.id !== "root") {
+        return;
+      }
 
-            // Register content model and group plugins.
-            context.plugins.register([
-                createCmsGroupPlugin({
-                    // ...
-                }),
-                createCmsModelPlugin({
-                    // ...
-                })
-            ]);
+      // Register content model and group plugins.
+      context.plugins.register([
+        createCmsGroupPlugin({
+          // ...
+        }),
+        createCmsModelPlugin({
+          // ...
         })
-    ];
+      ]);
+    })
+  ];
 };
 ```
 
@@ -556,40 +563,43 @@ Here are a couple of examples of specifying icons from solid, regular, and brand
 ### What Is the Purpose of `titleFieldId` in the Content Model Definition?
 
 The `titleFieldId` in a content model is used to specify which field should be used as the title for the entries of that content model. This is a `text` field that provides a human-readable summary of each entry.
-For example, in a blog post content model, you might have fields like `id`, `title`, `body`, `author`, etc. By setting `titleFieldId` to `title`, you're telling Webiny to use the `title` field as the display name for each blog post in the **admin interface** (content entry listing screen).
-Here's an example:
 
-```ts
-const myModel = createCmsModelPlugin({
-  modelId: "myModel",
-  fields: [
-    {
-      id: "id",
-      type: "number",
-      fieldId: "id",
-      label: "ID",
-      settings: {}
-    },
-    {
-      id: "title",
-      type: "text",
-      fieldId: "title",
-      label: "Title",
-      settings: {}
-    }
-    // other fields...
-  ],
-  layout: [],
-  group: {
-    id: "group",
-    name: "Group"
-  },
-  name: "My Model",
-  description: "",
+For example, a blog post content model might consists of three fields: Title, Body, and Author. By setting `titleFieldId` to the Title field (its field ID: `title`), the value of the field will be used as the title for each blog post in the list of all blog posts.
 
-  // Here, `title` field is used as the title for each entry.
-  titleFieldId: "title"
-});
+```diff-ts
+import {
+    createCmsModelPlugin,
+    createModelField
+} from "@webiny/api-headless-cms";
+
+export const createExtension = () => {
+    return [
+        createCmsModelPlugin({
+            name: "Blog Post",
+            modelId: "blogPost",
+            group: {
+                id: "group",
+                name: "Group"
+            },
+            fields: [
+                createModelField({
+                    id: "id",
+                    type: "number",
+                    fieldId: "id",
+                    label: "ID"
+                }),
+                createModelField({
+                    id: "title",
+                    type: "text",
+                    fieldId: "title",
+                    label: "Title"
+                })
+                // Other fields...
+            ],
+
++           // Here, `title` field is used as the title for each entry.
++           titleFieldId: "title"
+        })
+    ];
+};
 ```
-
-In this example, the `title` field is used as the title for each entry of the `myModel` content model. This means that in the admin interface (content entry listing screen), the value of the `title` field will be used as the display name for each entry.
