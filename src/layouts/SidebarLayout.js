@@ -99,6 +99,13 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
 });
 
 const HorizontalLine = () => {
+    // hide horizontal line when inside a sub-menu
+    const router = useRouter();
+    const showFullMenu = (router.pathname=="/docs/get-started/welcome");
+    if(!showFullMenu){
+        return null;
+    }
+
     return (
         <div className="pr-[10px] my-[20px]">
             <div className="border-b-[1px] border-neutral-200 dark:border-dark-grey-2 w-full -ml-[10px]"></div>
@@ -109,54 +116,64 @@ const HorizontalLine = () => {
 const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth = 0 }, ref) => {
     const [showMenu, setShowMenu] = useState(false);
 
+    const router = useRouter();
+    const showFullMenu = (router.pathname=="/docs/get-started/welcome"); // remove the hardcoded value
+    const applyActiveClass = !showFullMenu && isActiveChild;
+
     useEffect(() => {
         if (isActiveChild) {
             setShowMenu(true);
         }
     }, [isActiveChild]);
 
+    /*
+    hide all child elements when inside a group 
+    the only exception is when we're inside the very first group
+    this should be improved so that we actually have a page /docs/welcome that acts like a homepage (instead of /docs/getting-started/welcome)
+    */
+   
+    if(!isActiveChild && !showFullMenu){
+        return null
+    }
+
+    // generate menu icon, but ideally it should be defined inside the navigation file
+    const menuIcon = '/docs-menu-icons/'+title.toLowerCase().replace(' ', '-')+'.svg';
+
     return (
         <>
             {/* top level */}
-            <li
-                href="#"
-                onClick={() => setShowMenu(!showMenu)}
-                className="root-element relative flex items-center cursor-pointer h-[30px] mt-[5px] mb-[3px]"
-            >
-                <div
-                    className={`${
-                        depth === 0 ? "absolute left-[-15px] top-[9px]" : "ml-[15px] mr-[12px]"
-                    }`}
-                >
-                    <div
-                        className={
-                            "transition-all transform duration-300 " + (showMenu ? "rotate-90" : "")
-                        }
-                        alt="collapsable"
-                    >
-                        <Arrow
-                            className={clsx({
-                                "stroke-dark-blue dark:stroke-white": depth === 0,
-                                "stroke-light-grey-3 dark:stroke-light-grey-4": true
-                            })}
-                        />
+            {!showFullMenu && <li>
+                <Link className="" href="/docs/get-started/welcome">
+                    <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 9V8.3C9 6.61984 9 5.77976 8.67302 5.13803C8.3854 4.57354 7.92646 4.1146 7.36197 3.82698C6.72024 3.5 5.88016 3.5 4.2 3.5H1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M3.5 6L1 3.5L3.5 1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Back to home
                     </div>
-                </div>
-                <button
-                    className={clsx({
-                        "font-bold text-nav-subdirectory text-dark-purple dark:text-light-grey":
-                            isActiveChild && depth > 0,
-                        "text-nav-subdirectory font-normal text-dark-purple dark:text-light-grey":
-                            (!showMenu && depth > 0 && !isActiveChild) ||
-                            (!isActiveChild && showMenu && depth > 0),
-                        "text-dark-blue dark:text-light-grey font-semibold text-nav-directory":
-                            depth === 0
-                    })}
-                >
-                    {title}
-                </button>
+                </Link>
+            </li>}
+            <li
+                className={"root-element relative flex items-center cursor-pointer "+(applyActiveClass ? 'h-[40px] mt-[-15px] mb-6' : 'h-[30px] mt-[5px] mb-[3px]')}
+            >
+                {subElements[0].link ? <Link 
+                    href={subElements[0].link}>
+                        <div className={"flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group "+(applyActiveClass ? "text-orange" : '')}>
+                            <div 
+                                className={
+                                    "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange"
+                                    +(applyActiveClass ? " bg-light-orange dark:bg-dark-orange" : " grayscale")}
+                                >
+                                <img src={menuIcon} title={title} />
+                            </div>
+                            <span className={(applyActiveClass ? "leading-5 mb-0 text-orange text-base font-semibold" : "leading-5 text-sm font-medium")}>{title}</span>
+                        </div>
+                    </Link>
+                : title}
+                
             </li>
-            {subElements.length ? (
+
+            {(subElements.length && !showFullMenu ) ? (
                 <ul
                     className={
                         "transition-all duration-300 " +
