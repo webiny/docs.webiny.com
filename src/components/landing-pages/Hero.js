@@ -2,7 +2,7 @@ import webinyLogo from './assets/webiny-logo.svg';
 
 export const Hero = () => {
     return <section className="bg-white dark:bg-dark-theme">
-        <div className="grid max-w-screen-xl p-2 md:px-4 md:py-8 mx-auto lg:gap-8 xl:gap-0 lg:py-2 lg:grid-cols-12 items-center">
+        <div className="grid max-w-screen-xl p-2 md:px-4 md:py-8 md:mt-[-40px] mx-auto lg:gap-8 xl:gap-0 lg:py-8 lg:grid-cols-12 items-center">
             <div className="mr-auto place-self-center lg:col-span-7">
                 <h1 className="max-w-2xl my-4 text-4xl md:text-2xl font-extrabold tracking-tight leading-none md:text-3xl xl:text-5xl dark:text-white">
                     <span className="text-orange">Webiny</span> Documentation

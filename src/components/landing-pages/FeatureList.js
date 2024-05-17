@@ -24,14 +24,14 @@ export const FeatureList = ({items}) => {
                 </p>
             </div>
             <div className="lg:mt-0 lg:col-span-4 lg:flex justify-end">
-                <ul className="list-none not-prose m-0">
+                <ul className="list-none not-prose sm:mb-4 lg:mb-0 mt-0">
                 {items.map((item, index)=>{
                     return (index%2==0 && <ListItem key={index+'-'+item.link} label={item.label} link={item.link} Icon={item.icon} />);
                 })}
                 </ul>
             </div>
             <div className="lg:mt-0 lg:col-span-4 lg:flex justify-end">
-            <ul className="list-none not-prose m-0">
+            <ul className="list-none not-prose sm:mb-4 lg:mb-0 mt-0">
                 {items.map((item, index)=>{
                     return (index%2!==0 && <ListItem key={index+'-'+item.link} label={item.label} link={item.link} Icon={item.icon} />);
                 })}

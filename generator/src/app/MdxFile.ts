@@ -9,6 +9,7 @@ export interface FrontMatterAttributes {
   id?: string;
   slug?: string;
   pageHeader?: boolean;
+  fullWidth?: boolean;
 }
 
 class FilePath {
@@ -127,7 +128,8 @@ export abstract class MdxFile {
       title: this.getTitle(),
       description: this.getDescription(),
       type: this.type,
-      showPageHeader: this.attributes.pageHeader ?? true
+      showPageHeader: this.attributes.pageHeader ?? true,
+      fullWidth: this.attributes.fullWidth ?? false
     };
   }
 
