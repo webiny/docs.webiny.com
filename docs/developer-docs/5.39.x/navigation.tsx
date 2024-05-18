@@ -44,8 +44,9 @@ export const Navigation = () => {
         <Group 
           title={"Page Builder"}
           icon={"/docs-menu-icons/page-builder.svg"}
-          link={"headless-cms/overview"}
+          link={"page-builder/overview"}
           >
+            <Page link={"page-builder/overview"} hidden={true}/>
           <Group title={"Extending Functionality"}>
             <Page
               link={"page-builder/extending/customize-page-list-actions"}
