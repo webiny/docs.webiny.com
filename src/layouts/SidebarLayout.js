@@ -68,7 +68,7 @@ function nearestScrollableContainer(el) {
 }
 
 const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
-    const { type, title, link, items, isActive, isActiveChild } = element;
+    const { type, title, link, icon, items, isActive, isActiveChild } = element;
 
     if (type === "group" && depth !== 1) {
         return (
@@ -76,6 +76,8 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 subElements={items}
                 isActiveChild={isActiveChild}
                 title={title}
+                link={link}
+                icon={icon}
                 ref={ref}
                 depth={depth}
             />
@@ -101,8 +103,8 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
 const HorizontalLine = () => {
     // hide horizontal line when inside a sub-menu
     const router = useRouter();
-    const showFullMenu = (router.pathname=="/docs/get-started/welcome");
-    if(!showFullMenu){
+    const showFullMenu = router.pathname == "/docs/get-started/welcome";
+    if (!showFullMenu) {
         return null;
     }
 
@@ -113,90 +115,132 @@ const HorizontalLine = () => {
     );
 };
 
-const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth = 0 }, ref) => {
-    const [showMenu, setShowMenu] = useState(false);
+const Collapsable = forwardRef(
+    ({ title, link, icon, subElements = [], isActiveChild, depth = 0 }, ref) => {
+        const [showMenu, setShowMenu] = useState(false);
 
-    const router = useRouter();
-    const showFullMenu = (router.pathname=="/docs/get-started/welcome"); // remove the hardcoded value
-    const applyActiveClass = !showFullMenu && isActiveChild;
+        const router = useRouter();
+        const showFullMenu = router.pathname.endsWith("/get-started/welcome"); // remove the hardcoded value
+        const applyActiveClass = !showFullMenu && isActiveChild;
 
-    useEffect(() => {
-        if (isActiveChild) {
-            setShowMenu(true);
+        useEffect(() => {
+            if (isActiveChild) {
+                setShowMenu(true);
+            }
+        }, [isActiveChild]);
+
+        /**
+         * hide all child elements when inside a group.
+         * the only exception is when we're inside the very first group.
+         * this should be improved so that we actually have a page /docs/welcome that acts like a homepage (instead of /docs/getting-started/welcome)
+         */
+
+        if (!isActiveChild && !showFullMenu) {
+            return null;
         }
-    }, [isActiveChild]);
 
-    /*
-    hide all child elements when inside a group 
-    the only exception is when we're inside the very first group
-    this should be improved so that we actually have a page /docs/welcome that acts like a homepage (instead of /docs/getting-started/welcome)
-    */
-   
-    if(!isActiveChild && !showFullMenu){
-        return null
-    }
+        // generate a menu icon
+        const menuIcon = icon ? <img src={icon} title={title} /> : null;
 
-    // generate menu icon, but ideally it should be defined inside the navigation file
-    const menuIcon = '/docs-menu-icons/'+title.toLowerCase().replace(' ', '-')+'.svg';
-
-    return (
-        <>
-            {/* top level */}
-            {!showFullMenu && <li>
-                <Link className="" href="/docs/get-started/welcome">
-                    <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4">
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 9V8.3C9 6.61984 9 5.77976 8.67302 5.13803C8.3854 4.57354 7.92646 4.1146 7.36197 3.82698C6.72024 3.5 5.88016 3.5 4.2 3.5H1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M3.5 6L1 3.5L3.5 1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Back to home
-                    </div>
-                </Link>
-            </li>}
-            <li
-                className={"root-element relative flex items-center cursor-pointer "+(applyActiveClass ? 'h-[40px] mt-[-15px] mb-6' : 'h-[30px] mt-[5px] mb-[3px]')}
-            >
-                {subElements[0].link ? <Link 
-                    href={subElements[0].link}>
-                        <div className={"flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group "+(applyActiveClass ? "text-orange" : '')}>
-                            <div 
-                                className={
-                                    "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange"
-                                    +(applyActiveClass ? " bg-light-orange dark:bg-dark-orange" : " grayscale")}
+        return (
+            <>
+                {/* top level */}
+                {!showFullMenu && (
+                    <li>
+                        <Link className="" href="/docs/get-started/welcome">
+                            <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4">
+                                <svg
+                                    width="10"
+                                    height="10"
+                                    viewBox="0 0 10 10"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
                                 >
-                                <img src={menuIcon} title={title} />
+                                    <path
+                                        d="M9 9V8.3C9 6.61984 9 5.77976 8.67302 5.13803C8.3854 4.57354 7.92646 4.1146 7.36197 3.82698C6.72024 3.5 5.88016 3.5 4.2 3.5H1"
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                    <path
+                                        d="M3.5 6L1 3.5L3.5 1"
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    />
+                                </svg>
+                                Back to home
                             </div>
-                            <span className={(applyActiveClass ? "leading-5 mb-0 text-orange text-base font-semibold" : "leading-5 text-sm font-medium")}>{title}</span>
-                        </div>
-                    </Link>
-                : title}
-                
-            </li>
-
-            {(subElements.length && !showFullMenu ) ? (
-                <ul
+                        </Link>
+                    </li>
+                )}
+                <li
                     className={
-                        "transition-all duration-300 " +
-                        clsx({
-                            "ml-[18px] ": depth > 0,
-                            "transform opacity-1 overflow-visible": showMenu,
-                            "max-h-0 transform opacity-0 overflow-hidden": !showMenu
-                        })
+                        "root-element relative flex items-center cursor-pointer " +
+                        (applyActiveClass
+                            ? "h-[40px] mt-[-15px] mb-6"
+                            : "h-[30px] mt-[5px] mb-[3px]")
                     }
                 >
-                    {subElements.map((navElement, index) => (
-                        <NavTreeElement
-                            key={index}
-                            element={navElement}
-                            ref={ref}
-                            depth={depth + 1}
-                        />
-                    ))}
-                </ul>
-            ) : null}
-        </>
-    );
-});
+                    {link ? (
+                        <Link href={link}>
+                            <div
+                                className={
+                                    "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
+                                    (applyActiveClass ? "text-orange" : "")
+                                }
+                            >
+                                <div
+                                    className={
+                                        "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
+                                        (applyActiveClass
+                                            ? " bg-light-orange dark:bg-dark-orange"
+                                            : " grayscale")
+                                    }
+                                >
+                                    {menuIcon}
+                                </div>
+                                <span
+                                    className={
+                                        applyActiveClass
+                                            ? "leading-5 mb-0 text-orange text-base font-semibold"
+                                            : "leading-5 text-sm font-medium"
+                                    }
+                                >
+                                    {title}
+                                </span>
+                            </div>
+                        </Link>
+                    ) : (
+                        title
+                    )}
+                </li>
+
+                {subElements.length && !showFullMenu ? (
+                    <ul
+                        className={
+                            "transition-all duration-300 " +
+                            clsx({
+                                "ml-[18px] ": depth > 0,
+                                "transform opacity-1 overflow-visible": showMenu,
+                                "max-h-0 transform opacity-0 overflow-hidden": !showMenu
+                            })
+                        }
+                    >
+                        {subElements.map((navElement, index) => (
+                            <NavTreeElement
+                                key={index}
+                                element={navElement}
+                                ref={ref}
+                                depth={depth + 1}
+                            />
+                        ))}
+                    </ul>
+                ) : null}
+            </>
+        );
+    }
+);
 
 const Page = forwardRef(({ title, link, isActive, depth = 0 }, ref) => {
     return (
@@ -267,8 +311,15 @@ function Nav({ nav }) {
 
                 navItem.isActive = isActive;
             } else if (navItem.type === "group") {
-                setIsActive(navItem.items);
+                // If group link matches current pathname, mark it as active, and process child items to deactivate them.
+                if (navItem.link === router.pathname) {
+                    navItem.isActiveChild = true;
+                    setIsActive(navItem.items);
+                    return;
+                }
 
+                // If group link does not match the current pathname, try to find an active child item.
+                setIsActive(navItem.items);
                 const isActiveChild = navItem.items.some(
                     link => link.isActive || link.isActiveChild
                 );

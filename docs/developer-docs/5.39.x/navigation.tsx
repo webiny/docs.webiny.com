@@ -10,17 +10,15 @@ export const Navigation = () => {
       {/* Add new items. */}
       <NavigationRoot directory={__dirname}>
         {/* Add new groups and pages here. */}
-        <Group title={"Get Started"}>
-          <Page
-              link={"get-started/welcome"}
-              before={"get-started/install-webiny"}
-          />
+        <Group title={"Get Started"} link={"get-started/welcome"}>
+          <Page link={"get-started/welcome"}/>
         </Group>
-        <Group title={"Headless CMS"}>
-          <Page
-              link={"headless-cms/overview"}
-              after={"headless-cms/extending/customize-entry-list-bulk-actions"}
-            />
+        <Group
+          title={"Headless CMS"}
+          icon={"/docs-menu-icons/headless-cms.svg"}
+          link={"headless-cms/overview"}
+        >
+          <Page link={"headless-cms/overview"} hidden={true} />
           <Group title={"Extending Functionality"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-actions"}

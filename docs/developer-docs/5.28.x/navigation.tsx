@@ -5,10 +5,18 @@ import { Navigation as SharedNavigation } from "../shared/navigation";
 export const Navigation = () => {
   return (
     <NavigationRoot directory={__dirname}>
-      <Group title={"Get Started"}>
+      <Group
+        title={"Get Started"}
+        icon={"/docs-menu-icons/get-started.svg"}
+        link={"get-started/install-webiny"}
+      >
         <Page link={"get-started/install-webiny"} />
       </Group>
-      <Group title={"Webiny Overview"}>
+      <Group
+        title={"Webiny Overview"}
+        icon={"/docs-menu-icons/webiny-overview.svg"}
+        link={"overview/introduction"}
+      >
         <Page link={"overview/introduction"} />
         <Page link={"overview/pricing"} />
         <Group title={"Applications"}>

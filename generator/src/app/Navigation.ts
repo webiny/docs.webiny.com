@@ -27,6 +27,7 @@ export class Navigation {
   private readonly mdxFiles: MdxFile[] = [];
   private readonly mdxFileCache: NavigationCache;
   private navigationData: NavigationOutputData = [];
+  private pageByLink = new Map<string, string>();
 
   private constructor(
     mdxFileLoader: IMdxFileLoader,
@@ -88,9 +89,14 @@ export class Navigation {
 
     await Promise.all(promises);
 
-    return this.traversePages<WithId<NavigationPage>, NavigationOutputPage>(tempOutput, page => {
-      return map.get(page.id) as NavigationOutputPage;
-    });
+    const withResolvedLinks = this.traversePages<WithId<NavigationPage>, NavigationOutputPage>(
+      tempOutput,
+      page => {
+        return map.get(page.id) as NavigationOutputPage;
+      }
+    );
+
+    return this.traverseGroups(withResolvedLinks);
   }
 
   private traversePages<TPageIn extends NavigationPage, TPageOut>(
@@ -119,11 +125,26 @@ export class Navigation {
       .filter(Boolean) as NavigationTree<TPageOut>["items"];
   }
 
+  private traverseGroups(
+    nodes: NavigationTree<NavigationOutputPage>["items"]
+  ): NavigationTree<NavigationOutputPage>["items"] {
+    return nodes.map(node => {
+      if (node.type === "group") {
+        return {
+          ...node,
+          link: node.link ? this.pageByLink.get(node.link) : undefined,
+          items: this.traverseGroups(node.items) as any
+        };
+      }
+
+      return node;
+    });
+  }
+
   private async resolveLink(
     page: NavigationPage
   ): Promise<[NavigationOutputPage, MdxFile | undefined]> {
     const filePath = `${(page.file ?? page.link ?? "").replace(".mdx", "")}.mdx`;
-
     const mdxFile = await this.mdxFileLoader.load(path.join(page.directory, filePath));
 
     const outputFileName = this.getOutputFileName(page, mdxFile);
@@ -134,6 +155,11 @@ export class Navigation {
     const fileWasChanged = this.mdxFileCache.isFileDifferentFromCache(link, mdxFile);
     if (fileWasChanged) {
       this.mdxFileCache.set(link, mdxFile);
+    }
+
+    // We need to track source link to a resolved link, to be able to inject the resolved link into groups.
+    if (page.link) {
+      this.pageByLink.set(page.link, link);
     }
 
     return [
