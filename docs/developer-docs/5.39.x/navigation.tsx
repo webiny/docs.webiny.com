@@ -54,11 +54,7 @@ export const Navigation = () => {
             />
           </Group>
         </Group>
-        <Group 
-          title={"File Manager"}
-          icon={"/docs-menu-icons/file-manager.svg"}
-          link={"headless-cms/overview"}
-          >
+        <Group title={"File Manager"}>
           <Group title={"Extending Functionality"}>
             <Page
               link={"file-manager/extending/customize-file-list-actions"}

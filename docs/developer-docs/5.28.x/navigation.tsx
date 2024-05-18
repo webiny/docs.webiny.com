@@ -42,7 +42,11 @@ export const Navigation = () => {
         </Group>
       </Group>
       <Separator />
-      <Group title={"Headless CMS"}>
+      <Group 
+        title={"Headless CMS"}
+        icon={"/docs-menu-icons/headless-cms.svg"}
+        link={"headless-cms/basics/graphql-api"}
+        >
         <Group title={"Basics"}>
           <Page link={"headless-cms/basics/graphql-api"} />
           <Page link={"headless-cms/basics/using-graphql-api"} />
@@ -64,7 +68,11 @@ export const Navigation = () => {
           <Page link={"headless-cms/references/storage-transform-plugin"} />
         </Group>
       </Group>
-      <Group title={"Page Builder"}>
+      <Group 
+        title={"Page Builder"}
+        icon={"/docs-menu-icons/page-builder.svg"}
+        link={"page-builder/theming/introduction"}
+        >
         <Group title={"Theming"}>
           <Page link={"page-builder/theming/introduction"} />
           <Page link={"page-builder/theming/colors"} />
@@ -83,7 +91,11 @@ export const Navigation = () => {
           <Page link={"page-builder/references/plugins"} />
         </Group>
       </Group>
-      <Group title={"Form Builder"}>
+      <Group 
+        title={"Form Builder"}
+        icon={"/docs-menu-icons/form-builder.svg"}
+        link={"form-builder/theming/introduction"}
+        >
         <Group title={"Theming"}>
           <Page link={"form-builder/theming/introduction"} />
           <Page link={"form-builder/theming/layouts"} />
@@ -92,12 +104,20 @@ export const Navigation = () => {
           <Page link={"form-builder/references/plugins"} />
         </Group>
       </Group>
-      <Group title={"File Manager"}>
+      <Group 
+        title={"File Manager"}
+        icon={"/docs-menu-icons/file-manager.svg"}
+        link={"file-manager/extending/create-a-file-type-plugin"}
+        >
         <Group title={"Extending Functionality"}>
           <Page link={"file-manager/extending/create-a-file-type-plugin"} />
         </Group>
       </Group>
-      <Group title={"Admin Area"}>
+      <Group 
+        title={"Admin Area"}
+        icon={"/docs-menu-icons/admin.svg"}
+        link={"admin-area/basics/framework"}
+        >
         <Group title={"Basics"}>
           <Page link={"admin-area/basics/framework"} />
           <Page link={"admin-area/basics/api-playground"} />
@@ -116,7 +136,11 @@ export const Navigation = () => {
         </Group>
       </Group>
       <Separator />
-      <Group title={"Core Development Concepts"}>
+      <Group 
+        title={"Core Development Concepts"}
+        icon={"/docs-menu-icons/core-dev-concepts.svg"}
+        link={"core-development-concepts/basics/tools-and-libraries"}
+        >
         <Group title={"Basics"}>
           <Page link={"core-development-concepts/basics/tools-and-libraries"} />
           <Page link={"core-development-concepts/basics/plugins"} />
@@ -184,7 +208,11 @@ export const Navigation = () => {
           <Page link={"core-development-concepts/security-framework/react-security"} />
         </Group>
       </Group>
-      <Group title={"Infrastructure"}>
+      <Group 
+        title={"Infrastructure"}
+        icon={"/docs-menu-icons/infrastructure.svg"}
+        link={"infrastructure/basics/introduction"}
+        >
         <Group title={"Basics"}>
           <Page link={"infrastructure/basics/introduction"} />
           <Page link={"infrastructure/basics/environments"} />
@@ -204,7 +232,11 @@ export const Navigation = () => {
           <Page link={"infrastructure/additional-resources/connect-custom-domain"} />
         </Group>
       </Group>
-      <Group title={"Architecture"}>
+      <Group 
+        title={"Architecture"}
+        icon={"/docs-menu-icons/architecture.svg"}
+        link={"architecture/introduction"}
+        >
         <Page link={"architecture/introduction"} />
         <Group title={"API Architecture"}>
           <Page link={"architecture/api/introduction"} />
@@ -228,7 +260,11 @@ export const Navigation = () => {
         </Group>
       </Group>
       <Separator />
-      <Group title={"Webiny Enterprise"}>
+      <Group 
+        title={"Webiny Enterprise"}
+        icon={"/docs-menu-icons/enterprise.svg"}
+        link={"enterprise/multi-tenancy"}
+        >
         <Page link={"enterprise/multi-tenancy"} />
         <Page link={"enterprise/theme-manager"} />
         <Page link={"enterprise/okta-integration"} />

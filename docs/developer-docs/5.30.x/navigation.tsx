@@ -14,7 +14,12 @@ export const Navigation = () => {
             <Page link={"overview/features/mailer"} />
           </Group>
         </Group>
-        <Group title={"Webiny Control Panel"} after={"Webiny Enterprise"}>
+        <Group 
+          title={"Webiny Control Panel"} 
+          after={"Webiny Enterprise"}
+          icon={"/docs-menu-icons/wcp.svg"}
+          link={"wcp/overview"}
+          >
           <Page link={"wcp/overview"} />
           <Page link={"wcp/link-a-project"} />
         </Group>
