@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { useRouter } from "next/router";
+
 export const Section = ({children}) => {
     return <section className="bg-white dark:bg-dark-theme border-solid mb-8">{children}</section>
 }
@@ -23,8 +26,13 @@ export const SectionRow = ({children}) => {
     </div>
 }
 
-export const SectionBox = ({Icon, title, children, learnMoreLink})=> {
-    return <div className="flex-1 group bg-white dark:bg-dark-theme border-solid border border-light-grey rounded-xl p-2 dark:border-dark-grey-2 mb-8 md:mb-6">
+export const SectionBox = ({Icon=null, title, children, learnMoreLink})=> {
+    const router = useRouter();
+
+    return <div 
+                className="flex-1 group bg-white dark:bg-dark-theme border-solid border border-light-grey rounded-xl p-2 dark:border-dark-grey-2 mb-8 md:mb-6"
+                onClick={()=>{router.push(learnMoreLink)}}
+            >
         <div className="p-2 mx-auto lg:py-2 items-center border-light-grey rounded-xl bg-gradient-to-b from-light-grey-6 to-white dark:from-dark-grey-5 to-black">
             <div className="mr-auto md:m-2 cursor-pointer">
                 {Icon && <div className="flex duration-200 mb-2 w-[48px] h-[48px] rounded bg-light-grey-7 justify-center items-center grayscale group-hover:grayscale-0 group-hover:bg-light-orange dark:bg-dark-grey-2 dark:group-hover:bg-dark-orange">
@@ -38,7 +46,7 @@ export const SectionBox = ({Icon, title, children, learnMoreLink})=> {
                     {children}
                 </div>
                 {learnMoreLink && <div className="md:mt-4 not-prose text-orange dark:text-orange group-hover:underline font-semibold md:text-xs dark:text-light-grey-6">
-                    <a href={learnMoreLink}>Learn more →</a>
+                    <Link href={learnMoreLink}>Learn more →</Link>
                 </div>
                 }
             </div>

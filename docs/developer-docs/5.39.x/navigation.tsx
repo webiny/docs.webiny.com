@@ -18,7 +18,7 @@ export const Navigation = () => {
           icon={"/docs-menu-icons/headless-cms.svg"}
           link={"headless-cms/overview"}
         >
-          <Page link={"headless-cms/overview"} hidden={true} />
+          <Page link={"headless-cms/overview"} hidden={true}/>
           <Group title={"Extending Functionality"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-actions"}
@@ -41,7 +41,11 @@ export const Navigation = () => {
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
           </Group>
         </Group>
-        <Group title={"Page Builder"}>
+        <Group 
+          title={"Page Builder"}
+          icon={"/docs-menu-icons/page-builder.svg"}
+          link={"headless-cms/overview"}
+          >
           <Group title={"Extending Functionality"}>
             <Page
               link={"page-builder/extending/customize-page-list-actions"}
@@ -49,7 +53,11 @@ export const Navigation = () => {
             />
           </Group>
         </Group>
-        <Group title={"File Manager"}>
+        <Group 
+          title={"File Manager"}
+          icon={"/docs-menu-icons/file-manager.svg"}
+          link={"headless-cms/overview"}
+          >
           <Group title={"Extending Functionality"}>
             <Page
               link={"file-manager/extending/customize-file-list-actions"}

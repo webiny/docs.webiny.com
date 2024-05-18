@@ -1,7 +1,14 @@
+import { useRouter } from "next/router";
 
 const ListItem = ({label, Icon, link}) => {
+    const router = useRouter();
+
     return (<li className="mb-4 last:mb-0" >
-        <a className="flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group" href={link}>
+        <a 
+            className="flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group" 
+            href={link}
+            onClick={(e) => {e.preventDefault(); router.push(link)}}
+        >
             <div className="flex duration-200 justify-self-center mr-2 w-[48px] h-[48px] rounded bg-light-grey-7 justify-center items-center grayscale group-hover:grayscale-0 group-hover:bg-light-orange dark:bg-dark-grey-2 dark:group-hover:bg-dark-orange">
                 <Icon />
             </div>

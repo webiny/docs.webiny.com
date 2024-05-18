@@ -148,7 +148,7 @@ const Collapsable = forwardRef(
                 {!showFullMenu && (
                     <li>
                         <Link className="" href="/docs/get-started/welcome">
-                            <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4">
+                            <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4 mt-2">
                                 <svg
                                     width="10"
                                     height="10"
@@ -178,7 +178,7 @@ const Collapsable = forwardRef(
                     className={
                         "root-element relative flex items-center cursor-pointer " +
                         (applyActiveClass
-                            ? "h-[40px] mt-[-15px] mb-6"
+                            ? "h-[40px] mt-[-5px] mb-4"
                             : "h-[30px] mt-[5px] mb-[3px]")
                     }
                 >
