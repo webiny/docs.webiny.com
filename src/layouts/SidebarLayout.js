@@ -179,7 +179,7 @@ const Collapsable = forwardRef(
                         "root-element relative flex items-center cursor-pointer " +
                         (applyActiveClass
                             ? "h-[40px] mt-[-5px] mb-4"
-                            : "h-[30px] mt-[5px] mb-[3px]")
+                            : "h-[30px] mt-[10px] mb-[10px]")
                     }
                 >
                     {link ? (
@@ -204,7 +204,7 @@ const Collapsable = forwardRef(
                                     className={
                                         applyActiveClass
                                             ? "leading-5 mb-0 text-orange text-base font-semibold"
-                                            : "leading-5 text-sm font-medium"
+                                            : "leading-5 mb-0 text-sm font-base"
                                     }
                                 >
                                     {title}
