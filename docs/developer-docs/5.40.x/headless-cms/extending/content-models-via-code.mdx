@@ -1,7 +1,7 @@
 ---
 id: aafeaa1b
 title: Define Content Models via Code
-description: Learn how to define content models and content model groups through code.
+description: Learn how to define content models and content model groups programmatically.
 ---
 
 import { Alert } from "@/components/Alert";
@@ -9,7 +9,7 @@ import securityPermissions from "./assets/security-permissions.png";
 
 <Alert type="success" title="What you'll learn">
 
-- how to define content models and content model groups via plugins
+- how to define content models and content model groups programmatically
 
 </Alert>
 
@@ -23,14 +23,14 @@ The most straightforward way to define content models and content model groups w
 
 ![Defining Content Models and Content Model Groups via the Admin Area Application](./assets/content-models-plugins/content-models-group-editor.png)
 
-### Using Plugins
+### Programmatically
 
-And although we can get pretty far by defining content models and content model groups via the Admin Area, on the other hand, we can also do this within our application code, by registering one or more plugins. Once defined, content models and content model groups can be then used via the Admin Area in the same way as if they were created regularly, via the Content Model Editor.
+And although we can get pretty far by defining content models and content model groups via the Admin Area, on the other hand, we can also do this within our application code, by creating a new extension. Once defined, content models and content model groups can be then used via the Admin Area in the same way as if they were created regularly, via the Content Model Editor.
 
 Some of the benefits of this approach are:
 
 - content models and content model groups get to be stored in version control
-- since everything is done via code, in some case we may receive additional flexibility
+- since everything is done programmatically, in some case we may receive additional flexibility
 - by default, defined content models and content model groups are available for all available locales and tenants
 - basically, only developers have the ability to perform changes on content models and content model groups
 
@@ -40,80 +40,84 @@ In the following sections, we cover a couple of examples that show how to define
   type={"api"}
   name={"models"}
   dependencies={"@webiny/api-headless-cms"}
-  scaffoldCommandExtraInfo={<>Since we'll be using a couple of utilities from the <code>@webiny/api-headless-cms</code> package, we've immediately included it in the list of dependencies.</>}
+  scaffoldCommandExtraInfo={
+    <>
+      Since we'll be using a couple of utilities from the <code>@webiny/api-headless-cms</code>{" "}
+      package, we've immediately included it in the list of dependencies. Also, note that the scaffolded
+      files can be used for all of the examples shown in this guide.
+    </>
+  }
 />
 
 ## Basic Example
 
-In this example, we show how to define a simple **Product** content model, that belongs to the **E-Commerce** content model group.
+In this example, we define a simple **Product** content model, that belongs to the **E-Commerce** content model group.
 
-### Create Content Model Group and Content Model Plugins
-
-To create the content model group and content model, we use `createCmsGroupPlugin` and `createCmsModelPlugin` plugin factories, as shown in the following code snippet.
+To create a content model group and a content model, we use `createCmsGroupPlugin` and `createCmsModelPlugin` plugin factories, as shown in the following code snippet.
 
 ```ts extensions/models/src/index.ts
 import {
-  createCmsGroupPlugin,
-  createCmsModelPlugin,
-  createModelField
+    createCmsGroupPlugin,
+    createCmsModelPlugin,
+    createModelField
 } from "@webiny/api-headless-cms";
 
 export const createExtension = () => {
-  return [
-    // Defines a new "E-Commerce" content models group.
-    createCmsGroupPlugin({
-      id: "ecommerce",
-      name: "E-Commerce",
-      description: "E-Commerce content model group",
-      slug: "e-commerce",
-      icon: "fas/shopping-cart"
-    }),
+    return [
+        // Defines a new "E-Commerce" content models group.
+        createCmsGroupPlugin({
+            id: "ecommerce",
+            name: "E-Commerce",
+            description: "E-Commerce content model group",
+            slug: "e-commerce",
+            icon: "fas/shopping-cart"
+        }),
 
-    // Defines a new "Product" content model.
-    createCmsModelPlugin({
-      name: "Product",
-      modelId: "product",
-      description: "Product content model",
-      group: {
-        id: "ecommerce",
-        name: "E-Commerce"
-      },
-      fields: [
-        createModelField({
-          fieldId: "productName",
-          type: "text",
-          label: "Product Name",
-          helpText: "A short product name",
-          renderer: { name: "text-input" },
-          validation: [
-            {
-              name: "required",
-              message: "Value is required."
-            }
-          ]
-        }),
-        createModelField({
-          fieldId: "productSku",
-          type: "text",
-          label: "SKU",
-          placeholderText: "SKU = Stock Keeping Unit",
-          renderer: { name: "text-input" }
-        }),
-        createModelField({
-          fieldId: "productPrice",
-          type: "number",
-          label: "Price",
-          renderer: { name: "text-input" }
+        // Defines a new "Product" content model.
+        createCmsModelPlugin({
+            name: "Product",
+            modelId: "product",
+            description: "Product content model",
+            group: {
+                id: "ecommerce",
+                name: "E-Commerce"
+            },
+            fields: [
+                createModelField({
+                    fieldId: "name",
+                    type: "text",
+                    label: "name",
+                    helpText: "A short product name",
+                    renderer: { name: "text-input" },
+                    validation: [
+                        {
+                            name: "required",
+                            message: "Value is required."
+                        }
+                    ]
+                }),
+                createModelField({
+                    fieldId: "productSku",
+                    type: "text",
+                    label: "SKU",
+                    placeholderText: "SKU = Stock Keeping Unit",
+                    renderer: { name: "text-input" }
+                }),
+                createModelField({
+                    fieldId: "productPrice",
+                    type: "number",
+                    label: "Price",
+                    renderer: { name: "text-input" }
+                })
+            ],
+            layout: [["name"], ["productSku", "productPrice"]],
+            titleFieldId: "name"
         })
-      ],
-      layout: [["productName"], ["productSku", "productPrice"]],
-      titleFieldId: "productName"
-    })
-  ];
+    ];
 };
 ```
 
-As we can see, upon calling the `createCmsGroupPlugin` plugin factory, we get to define a content model group, which consists of the following properties:
+As we can see, first we define a new content model group via the `createCmsGroupPlugin` plugin factory. The following properties are required:
 
 - `id` - a unique identifier of the content model group
 - `name` - the name of the content model group
@@ -129,243 +133,270 @@ Note that some of the properties that we need to define for each field are simpl
 
 <Alert type="info">
 
-  All available [field types (`type`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/graphqlFields), [field renderers (`renderer.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/app-headless-cms/src/admin/plugins/fieldRenderers), and [field validators (`validators.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/validators) can be found in our GitHub repository.
+All available [field types
+(`type`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/graphqlFields), [field
+renderers
+(`renderer.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/app-headless-cms/src/admin/plugins/fieldRenderers),
+and [field validators
+(`validators.name`)](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms/src/validators) can be
+found in our GitHub repository.
 
 </Alert>
 
 <Alert type="success">
 
-  Want to learn how to create your own custom field type? Check out the [Create a Custom Field Type](/docs/{version}/headless-cms/extending/custom-field-type)
-  how-to guide.
+Want to learn how to create your own custom field type? Check out the [Create a Custom Field Type](/docs/{version}/headless-cms/extending/custom-field-type)
+how-to guide.
 
 </Alert>
 
 Ultimately, with this code in place, we should be able to see the following two items in our Admin Area main menu:
 
-![Product and E-Commerce Items in the Admin Area Main Menu](./assets/content-models-plugins/basics-plugins-work.png)
+![E-Commerce Group and Product Model](./assets/content-models-plugins/basics-plugins-work.png)
 
 Note that both the **Product** content model and the **E-Commerce** content model group will be available for all existing locales and tenants. If you're interested in defining a content model only for a specific locale or tenant, check out the examples below.
 
-## Advanced Examples
+## More Examples
 
-In the example above, we created a simple model. Now let’s take this further and create a little more advanced model.
-We will see how to create a reference field and add multiple validations to a field.
+### Model Field with Multiple Validators
 
-Let's start by creating a category model, which will have a name field with unique and required validation.
-Later, we will refer to this category model from the product model.
+In this example, we define a new **Product Category** content model, which consists of a single field: **Name**. We also add two validators to the field: `required` and `unique`.
 
-### Category Model with Multiple Validations
+<Alert type={"info"}>
 
-As discussed earlier, we need to define a `CmsModelPlugin` plugin to create a model.
-Add the following code to the [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/graphql/src/plugins/models.ts) file that we created earlier.
+  A list of all available field validators can be found in our [GitHub repository](https://github.com/webiny/webiny-js/tree/v5.39.0/packages/api-headless-cms/src/validators).
 
-```ts apps/api/graphql/src/plugins/models.ts
-// Defines a new "Category" content model.
-createCmsModelPlugin({
-  name: "Category",
-  modelId: "category",
-  description: "Product category."
-  group: {
-    id: "ecommerce",
-    name: "E-Commerce"
-  },
-  fields: [
-    {
-      id: "categoryName",
-      fieldId: "categoryName",
-      type: "text",
-      label: "Category Name",
-      renderer: { name: "text-input" },
-      validation: [
-        {
-          name: "required",
-          message: "Value is required."
-        },
-        {
-          name: "unique",
-          message: "Field value must be unique."
-        }
-      ]
-    }
-  ],
-  layout: [["categoryName"]],
-  titleFieldId: "categoryName"
-});
+</Alert>
+
+```diff-ts extensions/models/src/index.ts
+import { createCmsModelPlugin, createModelField } from "@webiny/api-headless-cms";
+
+export const createExtension = () => {
+    return [
+        createCmsGroupPlugin({
+            // E-Commerce content model group.
+        }),
+        createCmsModelPlugin({
+            name: "Product Category",
+            modelId: "productCategory",
+            description: "Product category.",
+            group: {
+                id: "ecommerce",
+                name: "E-Commerce"
+            },
+            fields: [
+                createModelField({
+                    id: "name",
+                    fieldId: "name",
+                    type: "text",
+                    label: "Name",
+                    renderer: { name: "text-input" },
+
+                    // Validators for the field.
+                    validation: [
+                        {
+                            // Ensure the field value is required.
+                            name: "required",
+                            message: "Value is required."
+                        },
+                        {
+                            // Ensure the field value is unique.
+                            name: "unique",
+                            message: "Field value must be unique."
+                        }
+                    ]
+                })
+            ],
+            layout: [["name"]],
+            titleFieldId: "name"
+        })
+    ];
+};
 ```
 
-Here you can see we added the `required` and `unique` validation for the category name field.
-You can explore all the available [field validators](https://github.com/webiny/webiny-js/tree/v5.26.0/packages/api-headless-cms/src/content/plugins/validators) in our GitHub repository.
+### Reference Fields
 
-### Add Category Reference Field in the Product Model
+In this example, we add a new field to the **Product** content model that we created in the [basic example](#basic-example). The new field is called **Category**, and it is a reference field that references the **Product Category** content model.
 
-Now let's use the Category Model as a reference field in the Product model.
-We will update the Product model that we created earlier. The `ref` field type is used to create the reference field.
+```diff-ts extensions/models/src/index.ts
+import {
+    createCmsGroupPlugin,
+    createCmsModelPlugin,
+    createModelField
+} from "@webiny/api-headless-cms";
 
-```diff-js apps/api/graphql/src/plugins/models.ts
-export default [
-  (...)
-  fields: [
-     (...)
-     {
-       id: "productPrice",
-       fieldId: "productPrice",
-       type: "number",
-       label: "Price",
-       renderer: { name: "text-input" },
-     },
-+    {
-+      id: "productCategory",
-+      fieldId: "productCategory",
-+      type: "ref",
-+      label: "Category",
-+      renderer: { name: "ref-input" },
-+      settings: {
-+        models: [
-+          {
-+            modelId: "category"
-+          }
-+        ]
-+      }
-+    }
-  ],
-
-  // Add productCategory field in the layout
-+ layout: [["productName"], ["productSku", "productPrice"], ["productCategory"]],
-  titleFieldId: "productName"
-  (...)
-]
+export const createExtension = () => {
+    return [
+        createCmsGroupPlugin({
+            // E-Commerce content model group.
+        }),
+        createCmsModelPlugin({
+            // Product category content model.
+        }),
+        createCmsModelPlugin({
+            name: "Product",
+            modelId: "product",
+            description: "Product content model",
+            group: {
+                id: "ecommerce",
+                name: "E-Commerce"
+            },
+            fields: [
+                createModelField({
+                    fieldId: "name",
+                    type: "text",
+                    label: "name",
+                    helpText: "A short product name",
+                    renderer: { name: "text-input" },
+                    validation: [
+                        {
+                            name: "required",
+                            message: "Value is required."
+                        }
+                    ]
+                }),
+                createModelField({
+                    fieldId: "productSku",
+                    type: "text",
+                    label: "SKU",
+                    placeholderText: "SKU = Stock Keeping Unit",
+                    renderer: { name: "text-input" }
+                }),
+                createModelField({
+                    fieldId: "productPrice",
+                    type: "number",
+                    label: "Price",
+                    renderer: { name: "text-input" }
+                }),
++               createModelField({
++                   id: "productCategory",
++                   fieldId: "productCategory",
++                   type: "ref",
++                   label: "Category",
++                   renderer: { name: "ref-input" },
++                   settings: {
++                       models: [
++                           {
++                               modelId: "productCategory"
++                           }
++                       ]
++                   }
++               })
+            ],
++           layout: [["name"], ["productSku", "productPrice"], ["productCategory"]],
+            titleFieldId: "name"
+        })
+    ];
+};
 ```
 
-With the [`webiny watch`](/docs/core-development-concepts/basics/watch-command) command up and running,
-the performed application code changes should be automatically rebuilt and redeployed into the cloud.
-And you should be able to see the following Product model.
+The following screenshot shows the **Product** content model with the **Category** reference field.
 
 ![Product Model](./assets/content-models-plugins/product-model.png)
 
-### Product Review Model With Object Field
+### Object Fields
 
-In this example, we will explore how to use an `object` field and allow multiple values for this object field. As discussed earlier, we need to define a `CmsModelPlugin` plugin to create a model. Add the following code to the [`models.ts`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/content-model-plugins/basic/api/code/graphql/src/plugins/models.ts) file that we created earlier.
+In this example, we define a new **Product Review** content model, which consists of three fields: **Reviewer Name**, **Rating**, and **Review**. 
 
-```ts apps/api/graphql/src/plugins/models.ts
-// Defines a "Product Review" content model.
-createCmsModelPlugin({
-  name: "Product Review",
-  modelId: "productReview",
-  description: "Product Review content model",
-  group: {
-    id: "ecommerce",
-    name: "E-Commerce"
-  },
-  fields: [
-    {
-      id: "reviewerName",
-      fieldId: "reviewerName",
-      type: "text",
-      label: "Reviewer Name",
-      helpText: "Name of Reviewer",
-      renderer: { name: "text-input" },
-      validation: [
-        {
-          name: "required",
-          message: "Reviewer name is required."
-        }
-      ]
-    },
-    {
-      id: "productRating",
-      fieldId: "productRating",
-      type: "number",
-      label: "Rating",
-      helpText: "Number of stars out of 5",
-      renderer: { name: "text-input" }
-    },
-    {
-      id: "review",
-      fieldId: "review",
-      type: "object",
-      label: "Product Review",
-      helpText: "Product Review from the reviewer",
-      multipleValues: true,
-      renderer: {
-        name: "objects"
-      },
-      settings: {
-        fields: [
-          {
-            id: "reviewTitle",
-            fieldId: "reviewTitle",
-            type: "text",
-            label: "Review Title",
-            helpText: "Review Title",
-            renderer: {
-              name: "text-input"
+The **Review** field is an **object** field that consists of two subfields: **Review Title** and **Review Description**. Also, via the `multipleValues: true` flag, the **Review** field is set to allow multiple values. In other words, a single product review can consist of multiple review titles and descriptions.
+
+```ts extensions/models/src/index.ts
+import { createCmsModelPlugin, createModelField } from "@webiny/api-headless-cms";
+
+export const createExtension = () => {
+    return [
+        createCmsGroupPlugin({
+            // E-Commerce content model group.
+        }),
+        createCmsModelPlugin({
+            name: "Product Review",
+            modelId: "productReview",
+            description: "Review of a product",
+            group: {
+                id: "ecommerce",
+                name: "E-Commerce"
             },
-            validation: [
-              {
-                name: "required",
-                message: "Review Title is required."
-              }
-            ]
-          },
-          {
-            id: "reviewDescription",
-            fieldId: "reviewDescription",
-            type: "text",
-            label: "Review Description",
-            helpText: "Review Description",
-            renderer: {
-              name: "text-input"
-            },
-            validation: [
-              {
-                name: "required",
-                message: "Review Description is required."
-              }
-            ]
-          }
-        ],
-        layout: [["reviewTitle"], ["reviewDescription"]]
-      }
-    }
-  ],
-  layout: [["reviewerName"], ["productRating"], ["review"]],
-  titleFieldId: "reviewerName"
-});
+            fields: [
+                createModelField({
+                    id: "reviewerName",
+                    fieldId: "reviewerName",
+                    type: "text",
+                    label: "Reviewer Name",
+                    helpText: "Name of Reviewer",
+                    renderer: { name: "text-input" },
+                    validation: [
+                        {
+                            name: "required",
+                            message: "Reviewer name is required."
+                        }
+                    ]
+                }),
+                createModelField({
+                    id: "productRating",
+                    fieldId: "productRating",
+                    type: "number",
+                    label: "Rating",
+                    helpText: "Number of stars out of 5",
+                    renderer: { name: "text-input" }
+                }),
+                createModelField({
+                    id: "review",
+                    fieldId: "review",
+                    type: "object",
+                    label: "Product Review",
+                    helpText: "Product review from a reviewer",
+
+                    // Allow multiple values for the field. In other words, 
+                    // a single product review can consist of multiple review
+                    // titles and descriptions.
+                    multipleValues: true,
+
+                    // The "objects" renderer is used to render the object field, when the field
+                    // is set to allow multiple values. In case the field is set to allow a single
+                    // value, the "object" renderer is used.
+                    renderer: { name: "objects" },
+
+                    settings: {
+                        fields: [
+                            createModelField({
+                                id: "reviewTitle",
+                                fieldId: "reviewTitle",
+                                type: "text",
+                                label: "Review title",
+                                renderer: { name: "text-input" },
+                                validation: [
+                                    {
+                                        name: "required",
+                                        message: "Review title is required."
+                                    }
+                                ]
+                            }),
+                            createModelField({
+                                id: "reviewDescription",
+                                fieldId: "reviewDescription",
+                                type: "text",
+                                label: "Review description",
+                                renderer: { name: "text-input" },
+                                validation: [
+                                    {
+                                        name: "required",
+                                        message: "Review description is required."
+                                    }
+                                ]
+                            })
+                        ],
+                        layout: [["reviewTitle"], ["reviewDescription"]]
+                    }
+                })
+            ],
+            layout: [["reviewerName"], ["productRating"], ["review"]],
+            titleFieldId: "reviewerName"
+        })
+    ];
+};
+
 ```
 
-In the example above, the `review` field is of type `object` and allows multiple values. To define an object field with multiple values, we set the following properties:
-
-- `field` property to `object`
-- `multipleValues` property to `true`
-- and `renderer` property to `objects`. e.g.
-
-```ts
-(...)
-fieldId: "review",
-type: "object",
-multipleValues: true,
-renderer: {
-  name: "objects"
-},
-(...)
-```
-
-If you want an object field with a single value, set the `multipleValues` property to `false`. Please note that in this case, the `renderer` property will be `object`, not `objects`. e.g.
-
-```ts
-(...)
-multipleValues: false,
-renderer: {
-  name: "object"
-}
-(...)
-```
-
-With the [`webiny watch`](/docs/core-development-concepts/basics/watch-command) command up and running,
-the performed application code changes should be automatically rebuilt and redeployed into the cloud.
-And you should be able to see the following Product Review model.
-
-![Product Model](./assets/content-models-plugins/product-review-model.png)
 
 ### Disable Authorization For Content Models and Entries
 
@@ -378,7 +409,6 @@ Additionally, in case the [Folder Level Permissions](/docs/enterprise/aacl/folde
 The following example demonstrates how to disable authorization for a content model and its entries.
 
 ```diff-ts extensions/models/src/index.ts
-// Defines a new "Product" content model.
 createCmsModelPlugin({
     name: "Product",
     modelId: "product",
@@ -426,7 +456,7 @@ export const createExtension = () => {
 };
 ```
 
-Note that we've used the `createContextPlugin` first in order to create a new context plugin and to first be able to access the dynamic `context` object and the `context.i18nContent.getLocale` method. Once we've determined that the `en-US` is the current locale, we proceed by registering the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins, as seen in the previous example.
+As we can see, we've used the `createContextPlugin` first in order to create a new context plugin and to first be able to access the dynamic `context` object and the `context.i18nContent.getLocale` method. Once we've determined that the `en-US` is the current locale, we proceed by registering the neccessary plugins.
 
 ### Define a Content Model Only for a Specific Tenant
 
@@ -459,25 +489,27 @@ export const createExtension = () => {
 };
 ```
 
-As we can see, like in the previous example, we're again utilizing the [`ContextPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/handler/src/plugins/ContextPlugin.ts#L7) first, in order to be able to access the dynamic `context` object, and the `context.tenancy.getCurrentTenant` method. Once we've determined that the `root` is the current tenant, we proceed by registering the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) and [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugins.
+As we can see, like in the previous example, we're again utilizing the `createContextPlugin` plugin factory, in order to be able to access the dynamic `context` object, and the `context.tenancy.getCurrentTenant` method. Once we've determined that the `root` is the current tenant, we proceed by registering the necessary plugins.
 
-## Immutable Code Definitions
+## Best Practices
 
-You can do what ever you want with the models via code. For that reason, there are things you need to be really careful about. We cannot prevent you from changing anything, so you need to be watchful for these pitfalls.
+When defining content models programmatically, there are a couple of best practices that you should follow.
 
-You should **never** change `modelId` property of the model definition.
+### Some Field Properties Must Never Change
 
-There are also few field properties which must **never** change, if you want to keep your data.
+When defining content models programmatically, there are a couple of properties that should not be changed once the content model is created. Changing these properties can lead to data loss, and in some cases, even to data corruption.
 
-Properties are:
+When it comes to content models, the `modelId` property of the content model should never be changed. Changing the `modelId` property can lead to data loss, as the data stored in the database will no longer be associated with the content model.
 
-- `id`
-- `storageId` - if you have created it manually
-- `type`
-- `multipleValues`
-- `predefinedValues` - you can add values but do not remove them
+When it comes to content model fields, the following properties should not be changed:
 
-Also, if you have defined anything in `settings` property of the field, be careful about these properties:
+1. `id`
+2. `storageId` (if you have defined it manually)
+3. `type`
+4. `multipleValues`
+5. `predefinedValues` (you can add values but do not remove them)
+
+Furthermore, within the `settings` object, the following properties should not be changed:
 
 - `settings.fields` - same rules apply as for the parent field
 - `settings.models` - you can add models but do not remove them
@@ -485,36 +517,47 @@ Also, if you have defined anything in `settings` property of the field, be caref
 
 ## FAQ
 
-### Can content models (and groups) defined via plugins be edited via Admin Area?
+### Can content models (and groups) defined programmatically be edited via Admin Area?
 
-Content models and content model groups that were defined via plugins cannot be edited via Admin Area (via the Content Model Editor and Content Model Groups module). All of the changes need to be done within the application code.
+Content models and content model groups that were defined programmatically cannot be edited via Admin Area (via the Content Model Editor and Content Model Groups module). All of the changes need to be done within the application code.
 
-### How to set a default value of a field?
+### How to set a default value For a field?
 
-You can set a default value to a field using the `defaultValue` property. Let's extend the [tutorial above](#create-content-model-group-and-content-model-plugins) and
-set the default value of the `Product Name` attribute.
+You can set a default value for a field using the `defaultValue` property. For example:
 
 ```diff-ts
-(...)
-fields: [
-  {
-    id: "productName",
-    fieldId: "productName",
-    type: "text",
-    label: "Product Name",
-    helpText: "A short product name",
-    renderer: { name: "text-input" },
-+   settings: {
-+       defaultValue: "You can set the default name of any product here"
-+   }
-    validation: [
-      {
-        name: "required",
-        message: "Value is required."
-      }
-    ]
-  }
-(...)
+import { createCmsModelPlugin, createModelField } from "@webiny/api-headless-cms";
+
+export const createExtension = () => {
+    return [
+        createCmsModelPlugin({
+            name: "Blog Post",
+            modelId: "blogPost",
+            group: {
+                id: "group",
+                name: "Group"
+            },
+            fields: [
+                createModelField({
+                    id: "id",
+                    type: "number",
+                    fieldId: "id",
+                    label: "ID"
+                }),
+                createModelField({
+                    id: "title",
+                    type: "text",
+                    fieldId: "title",
+                    label: "Title",
++                   settings: {
++                       defaultValue: "Untitled"
++                   }
+                })
+                // Other fields...
+            ]
+        })
+    ];
+};
 ```
 
 In short, you will need to add `settings.defaultValue` property to define a default value to a field.
@@ -525,21 +568,9 @@ When it comes to security, both ways of defining content models and content mode
 
 ### Can I convert a content model that was defined via Admin Area into a plugin (and vice-versa)?
 
-You can, but it will require a bit of manual work. For example, if you wanted to convert a content model that was defined via Admin Area into a plugin, you would have to find it directly in the database, and copy the data into your application code and try to fit it into the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) plugin.
+You can, but this will require a bit of manual work. You will have to find the content model record directly in the Amazon DynamoDB table, and copy the data into your application code and try to fit it into the `createCmsModelPlugin` plugin factory.
 
 If you're doing this and require additional assistance, feel free to contact us over our community [Slack](https://www.webiny.com/slack).
-
-### What's the difference between the `id` and `fieldId` properties in the [`CmsModelPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsModelPlugin.ts#L4) plugin?
-
-Both `id` and `fieldId` properties represent unique IDs of the field. We can assign any string value to them, but, for easier maintenance, we suggest you use a [camelCase](https://en.wikipedia.org/wiki/Camel_case) version of the actual name of the field. So, if the name of the field was **Author Name**, then we'd use `authorName` as the `id` and `fieldId`.
-
-There is a difference in how these two IDs are used internally within Headless CMS' application code, but this is more important when a content model is defined regularly, via the [Content Model Editor](#via-the-admin-area). In case where a content model is defined via a plugin, we can simply use the same value for both fields.
-
-<Alert type="info">
-
-Note that the `id` property must be unique throughout all the models.
-
-</Alert>
 
 ### What are the values that I can pass to the `icon` property of the [`CmsGroupPlugin`](https://github.com/webiny/webiny-js/blob/v5.21.0/packages/api-headless-cms/src/content/plugins/CmsGroupPlugin.ts#L4) plugin?
 
@@ -567,10 +598,7 @@ The `titleFieldId` in a content model is used to specify which field should be u
 For example, a blog post content model might consists of three fields: Title, Body, and Author. By setting `titleFieldId` to the Title field (its field ID: `title`), the value of the field will be used as the title for each blog post in the list of all blog posts.
 
 ```diff-ts
-import {
-    createCmsModelPlugin,
-    createModelField
-} from "@webiny/api-headless-cms";
+import { createCmsModelPlugin, createModelField } from "@webiny/api-headless-cms";
 
 export const createExtension = () => {
     return [
