@@ -11,6 +11,8 @@ import { SearchButton } from "@/components/page/Search";
 
 import { scroll } from "@/css/scroll.module.css";
 
+const HOME_PAGE = '/docs/get-started/welcome'
+
 const Arrow = ({ className }) => {
     return (
         <svg
@@ -103,7 +105,7 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
 const HorizontalLine = () => {
     // hide horizontal line when inside a sub-menu
     const router = useRouter();
-    const showFullMenu = router.pathname == "/docs/get-started/welcome";
+    const showFullMenu = router.pathname == HOME_PAGE;
     if (!showFullMenu) {
         return null;
     }
@@ -120,8 +122,9 @@ const Collapsable = forwardRef(
         const [showMenu, setShowMenu] = useState(false);
 
         const router = useRouter();
-        const showFullMenu = router.pathname.endsWith("/get-started/welcome"); // remove the hardcoded value
-        const applyActiveClass = !showFullMenu && isActiveChild;
+        const showFullMenu = router.pathname.endsWith(HOME_PAGE);
+        const applyActiveClass = (!showFullMenu && isActiveChild);
+        const isHomepage = link == HOME_PAGE;
 
         useEffect(() => {
             if (isActiveChild) {
@@ -147,7 +150,7 @@ const Collapsable = forwardRef(
                 {/* top level */}
                 {!showFullMenu && (
                     <li>
-                        <Link className="" href="/docs/get-started/welcome">
+                        <Link href={HOME_PAGE}>
                             <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4 mt-2">
                                 <svg
                                     width="10"
@@ -179,7 +182,8 @@ const Collapsable = forwardRef(
                         "root-element relative flex items-center cursor-pointer " +
                         (applyActiveClass
                             ? "h-[40px] mt-[-5px] mb-4"
-                            : "h-[30px] mt-[10px] mb-[10px]")
+                            : "h-[30px] mt-[10px] mb-[10px]"
+                        )
                     }
                 >
                     {link ? (
@@ -187,13 +191,13 @@ const Collapsable = forwardRef(
                             <div
                                 className={
                                     "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
-                                    (applyActiveClass ? "text-orange" : "")
+                                    (applyActiveClass || isHomepage ? "text-orange font-semibold" : "")
                                 }
                             >
                                 <div
                                     className={
                                         "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
-                                        (applyActiveClass
+                                        (applyActiveClass || isHomepage
                                             ? " bg-light-orange dark:bg-dark-orange"
                                             : " grayscale")
                                     }
