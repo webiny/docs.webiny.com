@@ -1,4 +1,3 @@
-import webinyLogo from './assets/webiny-logo.svg';
 import webinyLogo2 from './assets/webiny-docs-logo.svg';
 
 export const Hero = () => {
