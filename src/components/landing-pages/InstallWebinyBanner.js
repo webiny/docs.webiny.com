@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+import {useRouter} from "next/router";
+import {linkClick} from './utils';
 
 export const InstallWebinyBanner = () => {
     const router = useRouter();
@@ -16,7 +17,7 @@ export const InstallWebinyBanner = () => {
             <div className="lg:mt-0 lg:col-span-4 lg:flex justify-end">
                 <a 
                     href="/docs/get-started/install-webiny"
-                    onClick={(e) => {e.preventDefault(); router.push("/docs/get-started/install-webiny")}}
+                    onClick={(e) => {e.preventDefault(); linkClick(router, "/docs/get-started/install-webiny")}}
                     className="inline-flex items-center justify-center px-4 py-2.5 text-base font-medium text-center text-white bg-orange rounded-lg hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-900 dark:text-white">
                         Get Started
                 </a>
