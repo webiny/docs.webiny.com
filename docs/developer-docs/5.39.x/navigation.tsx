@@ -13,6 +13,14 @@ export const Navigation = () => {
         <Group title={"Get Started"} link={"get-started/welcome"}>
           <Page link={"get-started/welcome"}/>
         </Group>
+        <Group 
+          title={"Webiny Overview"}
+          icon={"/docs-menu-icons/webiny-overview.svg"}
+          link={"overview/why-and-when-to-use-webiny"}
+          >
+          <Page link={"overview/why-and-when-to-use-webiny"} before="overview/pricing" />
+          <Page link={"overview/introduction"} remove />
+        </Group>
         <Group
           title={"Headless CMS"}
           icon={"/docs-menu-icons/headless-cms.svg"}
