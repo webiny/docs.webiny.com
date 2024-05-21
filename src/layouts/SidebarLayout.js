@@ -117,14 +117,244 @@ const HorizontalLine = () => {
     );
 };
 
+const getDocsSection = () => {
+    const router = useRouter();
+    
+    if(router.pathname.startsWith('/docs/user-guides/')){
+        return 'user-docs';
+    }else if(router.pathname.startsWith('/docs/release-notes/')){
+        return 'release-notes';
+    }else if(router.pathname.startsWith('/docs/handbook/')){
+        return 'handbook';
+    }
+
+    return 'developer-docs';
+}
+
+const DeveloperDocsRootSectionWithIcon = ({applyActiveClass, link, isHomepage, menuIcon, title}) => {
+    return <li
+        className={
+            "root-element relative flex items-center cursor-pointer " +
+            (applyActiveClass
+                ? "h-[40px] mt-[-5px] mb-4"
+                : "h-[30px] mt-[10px] mb-[10px]"
+            )
+        }
+        >
+            {link ? (
+                <Link href={link}>
+                    <div
+                        className={
+                            "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
+                            (applyActiveClass || isHomepage ? "text-orange font-semibold" : "")
+                        }
+                    >
+                        <div
+                            className={
+                                "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
+                                (applyActiveClass || isHomepage
+                                    ? " bg-light-orange dark:bg-dark-orange"
+                                    : " grayscale")
+                            }
+                        >
+                            {menuIcon}
+                        </div>
+                        <span
+                            className={
+                                applyActiveClass
+                                    ? "leading-5 mb-0 text-orange text-base font-semibold"
+                                    : "leading-5 mb-0 text-sm font-base"
+                            }
+                        >
+                            {title}
+                        </span>
+                    </div>
+                </Link>
+            ) : (
+                title
+            )}
+        </li>;
+}
+
+const DeveloperDocsSectionWithExpandedSubitems = forwardRef(({applyActiveClass, link, isHomepage, menuIcon, title, subElements, depth}, ref) => {
+    return <>
+        {/* top level */}
+            <li>
+                <Link href={HOME_PAGE}>
+                    <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4 mt-2">
+                        <svg
+                            width="10"
+                            height="10"
+                            viewBox="0 0 10 10"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                d="M9 9V8.3C9 6.61984 9 5.77976 8.67302 5.13803C8.3854 4.57354 7.92646 4.1146 7.36197 3.82698C6.72024 3.5 5.88016 3.5 4.2 3.5H1"
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                            <path
+                                d="M3.5 6L1 3.5L3.5 1"
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+                        Back to home
+                    </div>
+                </Link>
+            </li>
+        <li
+            className={
+                "root-element relative flex items-center cursor-pointer " +
+                (applyActiveClass
+                    ? "h-[40px] mt-[-5px] mb-4"
+                    : "h-[30px] mt-[10px] mb-[10px]"
+                )
+            }
+        >
+            {link ? (
+                <Link href={link}>
+                    <div
+                        className={
+                            "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
+                            (applyActiveClass || isHomepage ? "text-orange font-semibold" : "")
+                        }
+                    >
+                        <div
+                            className={
+                                "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
+                                (applyActiveClass || isHomepage
+                                    ? " bg-light-orange dark:bg-dark-orange"
+                                    : " grayscale")
+                            }
+                        >
+                            {menuIcon}
+                        </div>
+                        <span
+                            className={
+                                applyActiveClass
+                                    ? "leading-5 mb-0 text-orange text-base font-semibold"
+                                    : "leading-5 mb-0 text-sm font-base"
+                            }
+                        >
+                            {title}
+                        </span>
+                    </div>
+                </Link>
+            ) : (
+                title
+            )}
+        </li>
+
+        {subElements.length ? (
+            <ul
+                className={
+                    "transition-all duration-300 transform opacity-1 overflow-visible " +
+                    clsx({
+                        "ml-[18px] ": depth > 0,
+                    })
+                }
+            >
+                {subElements.map((navElement, index) => (
+                    <NavTreeElement
+                        key={index}
+                        element={navElement}
+                        ref={ref}
+                        depth={depth + 1}
+                    />
+                ))}
+            </ul>
+        ) : null}
+    </>
+});
+
+const GenericMenuSection = forwardRef(({depth, isActiveChild, title, subElements}, ref) => {
+    const [showMenu, setShowMenu] = useState(false);
+
+    useEffect(() => {
+        if (isActiveChild) {
+            setShowMenu(true);
+        }
+    }, [isActiveChild]);
+
+    return (
+        <>
+            {/* top level */}
+            <li
+                href="#"
+                onClick={() => setShowMenu(!showMenu)}
+                className="root-element relative flex items-center cursor-pointer h-[30px] mt-[5px] mb-[3px]"
+            >
+                <div
+                    className={`${
+                        depth === 0 ? "absolute left-[-15px] top-[9px]" : "ml-[15px] mr-[12px]"
+                    }`}
+                >
+                    <div
+                        className={
+                            "transition-all transform duration-300 " + (showMenu ? "rotate-90" : "")
+                        }
+                        alt="collapsable"
+                    >
+                        <Arrow
+                            className={clsx({
+                                "stroke-dark-blue dark:stroke-white": depth === 0,
+                                "stroke-light-grey-3 dark:stroke-light-grey-4": true
+                            })}
+                        />
+                    </div>
+                </div>
+                <button
+                    className={clsx({
+                        "font-bold text-nav-subdirectory text-dark-purple dark:text-light-grey":
+                            isActiveChild && depth > 0,
+                        "text-nav-subdirectory font-normal text-dark-purple dark:text-light-grey":
+                            (!showMenu && depth > 0 && !isActiveChild) ||
+                            (!isActiveChild && showMenu && depth > 0),
+                        "text-dark-blue dark:text-light-grey font-semibold text-nav-directory":
+                            depth === 0
+                    })}
+                >
+                    {title}
+                </button>
+            </li>
+            {subElements.length ? (
+                <ul
+                    className={
+                        "transition-all duration-300 " +
+                        clsx({
+                            "ml-[18px] ": depth > 0,
+                            "transform opacity-1 overflow-visible": showMenu,
+                            "max-h-0 transform opacity-0 overflow-hidden": !showMenu
+                        })
+                    }
+                >
+                    {subElements.map((navElement, index) => (
+                        <NavTreeElement
+                            key={index}
+                            element={navElement}
+                            ref={ref}
+                            depth={depth + 1}
+                        />
+                    ))}
+                </ul>
+            ) : null}
+        </>
+    );
+});
+
 const Collapsable = forwardRef(
     ({ title, link, icon, subElements = [], isActiveChild, depth = 0 }, ref) => {
         const [showMenu, setShowMenu] = useState(false);
 
         const router = useRouter();
-        const showFullMenu = router.pathname.endsWith(HOME_PAGE);
-        const applyActiveClass = (!showFullMenu && isActiveChild);
-        const isHomepage = link == HOME_PAGE;
+        const isDeveloperDocs = getDocsSection() == 'developer-docs';
+        const isHomepage = router.pathname.endsWith(HOME_PAGE);
+        const menuIcon = icon ? <img src={icon} title={title} /> : null;
+        const applyActiveClass = isActiveChild;
 
         useEffect(() => {
             if (isActiveChild) {
@@ -132,117 +362,47 @@ const Collapsable = forwardRef(
             }
         }, [isActiveChild]);
 
-        /**
-         * hide all child elements when inside a group.
-         * the only exception is when we're inside the very first group.
-         * this should be improved so that we actually have a page /docs/welcome that acts like a homepage (instead of /docs/getting-started/welcome)
-         */
-
-        if (!isActiveChild && !showFullMenu) {
-            return null;
+        // if not developer docs section then use the GenericMenuSection to render
+        if(!isDeveloperDocs){
+            return <GenericMenuSection 
+                        depth={depth} 
+                        isActiveChild={isActiveChild} 
+                        title={title} 
+                        subElements={subElements} 
+                        ref={ref} 
+                    />;
+        }else{
+            // if we're not within an active element, and we're not on the homepage it means we iterating over internal groups of pages
+            // in that case we don't want to show anything
+            if (!isActiveChild && !isHomepage) {
+                return null;
+            }
+            
+            // we're rendering developer docs section
+            if(isHomepage){
+                // on homepage we render only to top level group name with icon
+                return <DeveloperDocsRootSectionWithIcon 
+                            isActiveChild={isActiveChild} 
+                            title={title} 
+                            menuIcon={menuIcon} 
+                            link={link} 
+                            applyActiveClass={applyActiveClass} 
+                        />
+            }else{
+                // if we're in developer docs, but not on the homepage, that means we need to render the section with all the pages for this group
+                //DeveloperDocsSectionWithExpandedSubitems = (applyActiveClass, link, isHomepage, menuIcon, title, subElements, depth, ref) => {
+                return <DeveloperDocsSectionWithExpandedSubitems 
+                            isActiveChild={isActiveChild} 
+                            title={title} 
+                            menuIcon={menuIcon} 
+                            link={link} 
+                            applyActiveClass={applyActiveClass}
+                            subElements={subElements}
+                            depth={depth}
+                            ref={ref}
+                        />
+            }
         }
-
-        // generate a menu icon
-        const menuIcon = icon ? <img src={icon} title={title} /> : null;
-
-        return (
-            <>
-                {/* top level */}
-                {!showFullMenu && (
-                    <li>
-                        <Link href={HOME_PAGE}>
-                            <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4 mt-2">
-                                <svg
-                                    width="10"
-                                    height="10"
-                                    viewBox="0 0 10 10"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="M9 9V8.3C9 6.61984 9 5.77976 8.67302 5.13803C8.3854 4.57354 7.92646 4.1146 7.36197 3.82698C6.72024 3.5 5.88016 3.5 4.2 3.5H1"
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <path
-                                        d="M3.5 6L1 3.5L3.5 1"
-                                        stroke="currentColor"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                                Back to home
-                            </div>
-                        </Link>
-                    </li>
-                )}
-                <li
-                    className={
-                        "root-element relative flex items-center cursor-pointer " +
-                        (applyActiveClass
-                            ? "h-[40px] mt-[-5px] mb-4"
-                            : "h-[30px] mt-[10px] mb-[10px]"
-                        )
-                    }
-                >
-                    {link ? (
-                        <Link href={link}>
-                            <div
-                                className={
-                                    "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
-                                    (applyActiveClass || isHomepage ? "text-orange font-semibold" : "")
-                                }
-                            >
-                                <div
-                                    className={
-                                        "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
-                                        (applyActiveClass || isHomepage
-                                            ? " bg-light-orange dark:bg-dark-orange"
-                                            : " grayscale")
-                                    }
-                                >
-                                    {menuIcon}
-                                </div>
-                                <span
-                                    className={
-                                        applyActiveClass
-                                            ? "leading-5 mb-0 text-orange text-base font-semibold"
-                                            : "leading-5 mb-0 text-sm font-base"
-                                    }
-                                >
-                                    {title}
-                                </span>
-                            </div>
-                        </Link>
-                    ) : (
-                        title
-                    )}
-                </li>
-
-                {subElements.length && !showFullMenu ? (
-                    <ul
-                        className={
-                            "transition-all duration-300 " +
-                            clsx({
-                                "ml-[18px] ": depth > 0,
-                                "transform opacity-1 overflow-visible": showMenu,
-                                "max-h-0 transform opacity-0 overflow-hidden": !showMenu
-                            })
-                        }
-                    >
-                        {subElements.map((navElement, index) => (
-                            <NavTreeElement
-                                key={index}
-                                element={navElement}
-                                ref={ref}
-                                depth={depth + 1}
-                            />
-                        ))}
-                    </ul>
-                ) : null}
-            </>
-        );
     }
 );
 
