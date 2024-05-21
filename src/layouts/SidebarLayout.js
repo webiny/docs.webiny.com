@@ -135,7 +135,7 @@ const DeveloperDocsRootSectionWithIcon = ({applyActiveClass, link, isHomepage, m
     return <li
         className={
             "root-element relative flex items-center cursor-pointer " +
-            (applyActiveClass
+            (applyActiveClass && !isHomepage
                 ? "h-[40px] mt-[-5px] mb-4"
                 : "h-[30px] mt-[10px] mb-[10px]"
             )
@@ -146,13 +146,13 @@ const DeveloperDocsRootSectionWithIcon = ({applyActiveClass, link, isHomepage, m
                     <div
                         className={
                             "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
-                            (applyActiveClass || isHomepage ? "text-orange font-semibold" : "")
+                            (applyActiveClass ? "text-orange font-semibold" : "")
                         }
                     >
                         <div
                             className={
                                 "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
-                                (applyActiveClass || isHomepage
+                                (applyActiveClass
                                     ? " bg-light-orange dark:bg-dark-orange"
                                     : " grayscale")
                             }
@@ -176,7 +176,7 @@ const DeveloperDocsRootSectionWithIcon = ({applyActiveClass, link, isHomepage, m
         </li>;
 }
 
-const DeveloperDocsSectionWithExpandedSubitems = forwardRef(({applyActiveClass, link, isHomepage, menuIcon, title, subElements, depth}, ref) => {
+const DeveloperDocsSectionWithExpandedSubitems = forwardRef(({isActiveChild, link, menuIcon, title, subElements, depth}, ref) => {
     return <>
         {/* top level */}
             <li>
@@ -209,7 +209,7 @@ const DeveloperDocsSectionWithExpandedSubitems = forwardRef(({applyActiveClass, 
         <li
             className={
                 "root-element relative flex items-center cursor-pointer " +
-                (applyActiveClass
+                (isActiveChild
                     ? "h-[40px] mt-[-5px] mb-4"
                     : "h-[30px] mt-[10px] mb-[10px]"
                 )
@@ -220,13 +220,13 @@ const DeveloperDocsSectionWithExpandedSubitems = forwardRef(({applyActiveClass, 
                     <div
                         className={
                             "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
-                            (applyActiveClass || isHomepage ? "text-orange font-semibold" : "")
+                            (isActiveChild ? "text-orange font-semibold" : "")
                         }
                     >
                         <div
                             className={
                                 "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
-                                (applyActiveClass || isHomepage
+                                (isActiveChild
                                     ? " bg-light-orange dark:bg-dark-orange"
                                     : " grayscale")
                             }
@@ -235,7 +235,7 @@ const DeveloperDocsSectionWithExpandedSubitems = forwardRef(({applyActiveClass, 
                         </div>
                         <span
                             className={
-                                applyActiveClass
+                                isActiveChild
                                     ? "leading-5 mb-0 text-orange text-base font-semibold"
                                     : "leading-5 mb-0 text-sm font-base"
                             }
@@ -348,18 +348,19 @@ const GenericMenuSection = forwardRef(({depth, isActiveChild, title, subElements
 
 const Collapsable = forwardRef(
     ({ title, link, icon, subElements = [], isActiveChild, depth = 0 }, ref) => {
-        const [showMenu, setShowMenu] = useState(false);
+        const [showMenu, setShowMenu] = useState(0);
+        //const [activeSubItem, setActiveSubItem] = useState(false);
 
         const router = useRouter();
         const isDeveloperDocs = getDocsSection() == 'developer-docs';
         const isHomepage = router.pathname.endsWith(HOME_PAGE);
         const menuIcon = icon ? <img src={icon} title={title} /> : null;
-        const applyActiveClass = isActiveChild;
+        const applyActiveClass = router.pathname == link;
 
         useEffect(() => {
-            if (isActiveChild) {
-                setShowMenu(true);
-            }
+            //if (isActiveChild) {
+                setShowMenu(showMenu++);
+            //}
         }, [isActiveChild]);
 
         // if not developer docs section then use the GenericMenuSection to render
@@ -382,21 +383,28 @@ const Collapsable = forwardRef(
             if(isHomepage){
                 // on homepage we render only to top level group name with icon
                 return <DeveloperDocsRootSectionWithIcon 
-                            isActiveChild={isActiveChild} 
                             title={title} 
                             menuIcon={menuIcon} 
                             link={link} 
                             applyActiveClass={applyActiveClass} 
+                            isHomepage={isHomepage}
                         />
             }else{
                 // if we're in developer docs, but not on the homepage, that means we need to render the section with all the pages for this group
                 //DeveloperDocsSectionWithExpandedSubitems = (applyActiveClass, link, isHomepage, menuIcon, title, subElements, depth, ref) => {
+                console.log('subitems:'+title);
+                console.log('isActiveChild:'+isActiveChild);
+                console.log('showMenu:'+showMenu);
+
+
+                if(showMenu>0){
+                    return null;
+                }
                 return <DeveloperDocsSectionWithExpandedSubitems 
                             isActiveChild={isActiveChild} 
                             title={title} 
                             menuIcon={menuIcon} 
                             link={link} 
-                            applyActiveClass={applyActiveClass}
                             subElements={subElements}
                             depth={depth}
                             ref={ref}
@@ -523,7 +531,7 @@ function Nav({ nav }) {
                 if (scrollable.scrollTop > top || scrollable.scrollTop < bottom) {
                     scrollable.scrollTop = top - scrollRect.height / 2 + activeItemRect.height / 2;
                 }
-            }, 500);
+            }, 200);
         }
     }, [router.pathname]);
 
