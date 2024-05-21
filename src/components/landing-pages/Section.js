@@ -41,7 +41,7 @@ export const SectionBox = ({Icon=null, title, children, learnMoreLink})=> {
                 <h4 className="md:my-0 md:mb-2 md:text-base font-bold md:leading-6 leading-none dark:text-white">
                     {title}
                 </h4>
-                <div className="md:mt-0 not-prose text-light-grey-4 md:text-xs dark:text-light-grey">
+                <div className="md:mt-0 not-prose text-light-grey-4 md:text-[0.8rem] leading-5 dark:text-light-grey">
                     {children}
                 </div>
                 {learnMoreLink && <div className="md:mt-4 not-prose text-orange dark:text-orange group-hover:underline font-semibold md:text-xs dark:text-light-grey-6">
