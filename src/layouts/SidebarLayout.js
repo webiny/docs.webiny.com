@@ -348,20 +348,11 @@ const GenericMenuSection = forwardRef(({depth, isActiveChild, title, subElements
 
 const Collapsable = forwardRef(
     ({ title, link, icon, subElements = [], isActiveChild, depth = 0 }, ref) => {
-        const [showMenu, setShowMenu] = useState(0);
-        //const [activeSubItem, setActiveSubItem] = useState(false);
-
         const router = useRouter();
         const isDeveloperDocs = getDocsSection() == 'developer-docs';
         const isHomepage = router.pathname.endsWith(HOME_PAGE);
         const menuIcon = icon ? <img src={icon} title={title} /> : null;
         const applyActiveClass = router.pathname == link;
-
-        useEffect(() => {
-            //if (isActiveChild) {
-                setShowMenu(showMenu++);
-            //}
-        }, [isActiveChild]);
 
         // if not developer docs section then use the GenericMenuSection to render
         if(!isDeveloperDocs){
@@ -392,14 +383,6 @@ const Collapsable = forwardRef(
             }else{
                 // if we're in developer docs, but not on the homepage, that means we need to render the section with all the pages for this group
                 //DeveloperDocsSectionWithExpandedSubitems = (applyActiveClass, link, isHomepage, menuIcon, title, subElements, depth, ref) => {
-                console.log('subitems:'+title);
-                console.log('isActiveChild:'+isActiveChild);
-                console.log('showMenu:'+showMenu);
-
-
-                if(showMenu>0){
-                    return null;
-                }
                 return <DeveloperDocsSectionWithExpandedSubitems 
                             isActiveChild={isActiveChild} 
                             title={title} 
@@ -478,20 +461,22 @@ function Nav({ nav }) {
 
     function setIsActive(nav) {
         for (const navItem of nav) {
+            navItem.isActive = false;
+            navItem.isActiveChild = false;
             if (navItem.type === "page") {
                 const isActive = navItem.link === router.pathname;
-
                 navItem.isActive = isActive;
             } else if (navItem.type === "group") {
                 // If group link matches current pathname, mark it as active, and process child items to deactivate them.
                 if (navItem.link === router.pathname) {
                     navItem.isActiveChild = true;
                     setIsActive(navItem.items);
-                    return;
+                    continue;
                 }
-
+                
                 // If group link does not match the current pathname, try to find an active child item.
                 setIsActive(navItem.items);
+                
                 const isActiveChild = navItem.items.some(
                     link => link.isActive || link.isActiveChild
                 );
@@ -569,7 +554,7 @@ export function VersionedSidebarLayout({ children }) {
     const navigation = useNavigation();
     const { page } = usePage();
     const nav = page.navigation;
-
+    
     return (
         <SidebarContext.Provider value={{ nav }}>
             <Wrapper allowOverflow={true}>
