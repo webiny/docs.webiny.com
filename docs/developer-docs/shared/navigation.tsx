@@ -8,7 +8,12 @@ export const Navigation = () => {
       <Group title={"Infrastructure"} after={"Core Development Concepts"}>
         <Page link={"infrastructure/additional-resources/reset-state-without-redeploy"} />
       </Group>
-      <Group title={"Performance & Load Benchmark"} after={"Architecture"}>
+      <Group 
+        title={"Performance & Load Benchmark"} 
+        after={"Architecture"}
+        icon={"/docs-menu-icons/benchmark.svg"}
+        link={"performance-and-load-benchmark/introduction"}
+        >
         <Page link={"performance-and-load-benchmark/introduction"} />
         <Page link={"performance-and-load-benchmark/code"} />
         <Group title={"Headless CMS"}>
@@ -19,17 +24,33 @@ export const Navigation = () => {
           <Page link={"performance-and-load-benchmark/page-builder/deliver-a-page"} />
         </Group>
       </Group>
-      <Group title={"Release Management"}>
+      <Group 
+        title={"Release Management"}
+        icon={"/docs-menu-icons/release-management.svg"}
+        link={"release-management/branching-strategy"}
+        >
         <Page link={"release-management/branching-strategy"} />
         <Page link={"release-management/unstable-releases"} />
       </Group>
-      <Group title={"Community Plugins"}>
+      <Group 
+        title={"Community Plugins"}
+        icon={"/docs-menu-icons/community-plugins.svg"}
+        link={"community-plugins/introduction"}
+        >
         <Page link={"community-plugins/introduction"} />
       </Group>
-      <Group title={"Webiny Telemetry"}>
+      <Group 
+        title={"Webiny Telemetry"}
+        icon={"/docs-menu-icons/telemetry.svg"}
+        link={"webiny-telemetry/webiny-telemetry"}
+        >
         <Page link={"webiny-telemetry/webiny-telemetry"} />
       </Group>
-      <Group title={"Write with Webiny"}>
+      <Group 
+        title={"Write with Webiny"}
+        icon={"/docs-menu-icons/write.svg"}
+        link={"write-with-webiny/write-with-webiny"}
+        >
         <Page link={"write-with-webiny/write-with-webiny"} />
       </Group>
       <Messages />

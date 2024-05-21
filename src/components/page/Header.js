@@ -124,7 +124,7 @@ export function NavItems() {
     return (
         <>
             <li>
-                <Link href="/docs/get-started/install-webiny" legacyBehavior>
+                <Link href="/docs/get-started/welcome" legacyBehavior>
                     <a className={`text-nav-subdirectory ${activeClass("docs")}`}>Developer Docs</a>
                 </Link>
             </li>
