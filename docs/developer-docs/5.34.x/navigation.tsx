@@ -20,6 +20,7 @@ export const Navigation = () => {
         <Group title={"Page Builder"}>
           <Group title={"Extending Functionality"}>
             <Page link={"page-builder/extending/customize-an-existing-element"} remove />
+            <Page link={"page-builder/extending/customize-website-settings"} />
           </Group>
           <Group title={"Theming"}>
             <Page
