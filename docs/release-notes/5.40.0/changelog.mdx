@@ -1,12 +1,11 @@
 ---
 id: f9083bbc
 title: Webiny 5.40.0 Changelog
-description: April 3rd, 2024
+description: See what's new in Webiny version 5.40.0.
 ---
 
-
-import {Alert} from "@/components/Alert";
-import {GithubRelease} from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+import { GithubRelease } from "@/components/GithubRelease";
 import pulumiOutputHidden from "./assets/pulumi-output-hidden.png";
 import gracefulErrorHandling from "./assets/graceful-error-handling.png";
 import refreshedWebinyInfoCommand from "./assets/refreshed-webiny-info-command.png";
@@ -20,7 +19,10 @@ import lockedScreen1 from "./assets/locked-1.png";
 import lockedScreen2 from "./assets/locked-2.png";
 import forceUnlock from "./assets/force-unlock.png";
 import forcefullyUnlocked from "./assets/forcefully-unlocked.png";
-import contextPluginFullTypes from "./assets/context-plugin-full-types.png"
+import contextPluginFullTypes from "./assets/context-plugin-full-types.png";
+import lexicalLinkEditor1 from "./assets/lexical-link-editor-1.png";
+import lexicalLinkEditor2 from "./assets/lexical-link-editor-2.png";
+import lexicalEditorToolbar from "./assets/lexical-editor-toolbar.png";
 
 <GithubRelease version={"5.40.0"} />
 
@@ -52,16 +54,16 @@ If you find any Webiny related issues, please report it on our Slack channel or 
 
 ### Introducing Trash Bin ([#3976](https://github.com/webiny/webiny-js/pull/3976) - [#4059](https://github.com/webiny/webiny-js/pull/4059))
 
-With this release, we are introducing the robust and indispensable Trash Bin feature for Headless CMS, ensuring that valuable data is always recoverable.
+With this release, we are introducing the indispensable Trash Bin feature for Headless CMS, ensuring that valuable data is always recoverable.
 
 <Image src={hcmsTrashBinOverview} title={"Trash Bin for Headless CMS"} />
 
 #### Key Features
 
-* **Soft Deletion**: users can move entries to the Trash Bin instead of permanent deletion, preserving data integrity.
-* **Efficient Navigation**: the Trash Bin is conveniently located at the bottom left-hand side of the app screen. Each content model has its own Trash Bin.
-* **User-Friendly Interface**: inside the Trash Bin, users can search, sort, and select records for restoration or permanent deletion using a familiar interface.
-* **Automated Cleanup**: to maintain system efficiency, a cron job empties the Trash Bin daily. Records older than 90 days are permanently purged during each cleanup.
+- **Soft Deletion**: users can move entries to the Trash Bin instead of permanent deletion, preserving data integrity.
+- **Efficient Navigation**: the Trash Bin is conveniently located at the bottom left-hand side of the app screen. Each content model has its own Trash Bin.
+- **User-Friendly Interface**: inside the Trash Bin, users can search, sort, and select records for restoration or permanent deletion using a familiar interface.
+- **Automated Cleanup**: to maintain system efficiency, a cron job purges eligible items from the Trash Bin daily. Records older than 90 days are permanently purged during each cleanup.
 
 #### Customize Retention Period
 
@@ -84,7 +86,10 @@ With this release, we are enhancing our Advanced Search Filter Builder adding th
 
 With the latest update, users now have the option to add reference fields in their search criteria using the easy-to-use Autocomplete input field. This means that users can search for the models that were defined during entry configuration and quickly select the referenced entry that best fits their requirements.
 
-<Image src={hcmsAcfReferenceField} title={"Advanced Search Filter's support for reference fields"} />
+<Image
+  src={hcmsAcfReferenceField}
+  title={"Advanced Search Filter's support for reference fields"}
+/>
 
 ### Introducing Record Locking Mechanism ([#4065](https://github.com/webiny/webiny-js/pull/4065))
 
@@ -95,22 +100,26 @@ The feature is only a UI feature and does not prevent users to update entries vi
 When a user starts to edit a record, the record is automatically locked for all other users. The lock is released when the user, editing the record, exits the editor or the lock time out occurs.
 Also, a user can be kicked out from the record by another user with sufficient privileges.
 
-<Image src={lockedScreen1} title={"Locked entry in the list"}/>
+<Image src={lockedScreen1} title={"Locked entry in the list"} />
 
-<Image src={lockedScreen2} title={"Locked entry when trying to edit it"}/>
+<Image src={lockedScreen2} title={"Locked entry when trying to edit it"} />
 
-<Image src={forceUnlock} title={"Force unlock the entry"}/>
+<Image src={forceUnlock} title={"Force unlock the entry"} />
 
-<Image src={forcefullyUnlocked} title={"Forcefully unlocked entry and redirect to the list"}/>
+<Image src={forcefullyUnlocked} title={"Forcefully unlocked entry and redirect to the list"} />
 
 By default, the locking timeout period is 1800 seconds (30 minutes). But if you want to change it, just set the environment variable, with value in seconds:
+
 ```bash
 # .env
 WEBINY_RECORD_LOCK_TIMEOUT=3600
 ```
 
-
 ## Page Builder
+
+### Next Level Editor Customization
+
+Page Builder editors (Block editor, Template editor, and Page editor) were rewritten to support a whole new level of customizations. You can now add/modify/remove almost any element in the editor UI, as well as change the layout of the editor itself, but also individual sections of the editor. Find more details and code examples in a dedicated article on [Editor Customization](/docs/page-builder/extending/customize-editors).
 
 ### Add Duplicate List and Bulk Action ([#3876](https://github.com/webiny/webiny-js/pull/3876))
 
@@ -120,9 +129,17 @@ Previously, the functionality was available exclusively within the page details 
 
 <Image src={pbDuplicatePage} title={"Duplicate list and bulk action"} />
 
+### Stable Element IDs ([#3977](https://github.com/webiny/webiny-js/pull/3977))
+
+Until this release, every time you loaded a page in the Page Editor, its content elements would get their `id` attribute regenerated. This had to do with using predefined (saved) blocks from the Block Editor. 
+
+Recently, this logic started causing problems and became a blocker for implementing some interesting features. With this release, we've fixed the logic of handling element IDs across all PB editors, and element IDs are not reliable and "stable". You can now confidently reference page elements by their IDs, and know that they won't change, until you delete them.
+
+For detailed explanation of what's happening in the process of blocks and variable interpolation, read [this PR](https://github.com/webiny/webiny-js/pull/3977).
+
 ## Development
 
-### Introducing Extensions ([#4111](https://github.com/webiny/webiny-js/pull/4111)) 
+### Introducing Extensions ([#4111](https://github.com/webiny/webiny-js/pull/4111))
 
 In our continuous effort to improve the developer experience, with this release, every Webiny project will now include the new `extensions` folder. As the name suggests, this folder is intended to store all custom extensions, making it easier to manage and maintain them.
 
@@ -132,27 +149,27 @@ Notice how the folder was named `extensions` instead of `plugins`. This was done
 <FileManagerViewConfig>
   {/* Ensures custom preview is applied in file browser (grid view). */}
   <Browser.Grid.Item.Thumbnail type={"video/quicktime"} element={<VideoQtFileType />} />
-  
+
   {/* Ensures custom preview is applied in file details. */}
   <FileDetails.Preview.Thumbnail type={"video/quicktime"} element={<VideoQtFileType />} />
 </FileManagerViewConfig>
 ```
 
-On the other hand, API extensions are done via one or more plugins. For example, when working with lifecycle events in the File Manager, the following code is used:  
+On the other hand, API extensions are done via one or more plugins. For example, when working with lifecycle events in the File Manager, the following code is used:
 
 ```ts
 import { createContextPlugin } from "@webiny/api-serverless-cms";
 
 export const customAliasesPlugin = createContextPlugin(context => {
-    context.fileManager.onFileBeforeCreate.subscribe(({ file }) => {
-        // Add custom logic here.
-    });
+  context.fileManager.onFileBeforeCreate.subscribe(({ file }) => {
+    // Add custom logic here.
+  });
 });
 ```
 
 So, to better reflect this, we've decided to use the `extensions` folder name, which is more generic and can be used for both types of extensions.
 
-Furthermore, in order to make it easier for developers to create new extensions, we've also introduced the **New Extension** scaffold that can be used to quickly create new API and Admin extensions. The scaffold will automatically create the necessary files and folder structure, allowing developers to immediately focus on the actual implementation. 
+Furthermore, in order to make it easier for developers to create new extensions, we've also introduced the **New Extension** scaffold that can be used to quickly create new API and Admin extensions. The scaffold will automatically create the necessary files and folder structure, allowing developers to immediately focus on the actual implementation.
 
 Ultimately, the goal is to make the extension creation process as seamless as possible, enabling developers to quickly and efficiently extend Webiny to meet their specific requirements. With the new `extensions` folder and the **New Extension** scaffold, we believe we've taken a significant step in that direction.
 
@@ -160,7 +177,7 @@ For more information, please refer to the new [Extensions](/docs/core-developmen
 
 #### Note on Backward Compatibility
 
-In terms of backward compatibility, note that all of the existing customizations will still work as expected. Optionally, you can move your custom extensions to the new `extensions` folder to keep your project organized.
+In terms of backward compatibility, note that all the existing customizations will still work as expected. Optionally, you can move your custom extensions to the new `extensions` folder to keep your project organized.
 
 #### Documentation
 
@@ -209,7 +226,7 @@ If you still want to see the Pulumi output, you can use the `--deployment-logs` 
 yarn webiny deploy --deployment-logs
 ```
 
-Note that, regardless of the `--deployment-logs` flag, Pulumi output will always be shown in CI environments and in case an error occurs. 
+Note that, regardless of the `--deployment-logs` flag, Pulumi output will always be shown in CI environments and in case an error occurs.
 
 #### Graceful Error Handling
 
@@ -223,7 +240,10 @@ Note that, at the moment, only a handful of errors are covered by this improveme
 
 After a successful full project deployment, Webiny CLI will now always show the project details.
 
-<Image src={alwaysShowingProjectDetails} title={"Always Showing Project Details After A Full Deployment"} />
+<Image
+  src={alwaysShowingProjectDetails}
+  title={"Always Showing Project Details After A Full Deployment"}
+/>
 
 Prior to this release, the project details would need to be fetched manually by running the `webiny info` command. This way, you can quickly see the project details after a deployment.
 
@@ -263,8 +283,30 @@ In case a production deployment with locally stored state files is detected, the
 
 ### Webiny Control Panel (WCP) Badge In Admin App
 
-A small WCP badge was added to the main menu in the Admin application. 
+A small WCP badge was added to the main menu in the Admin application.
 
-The badge is shown when your Webiny project is linked to the Webiny Control Panel (WCP). Also, by hovering over the badge, the project ID will be displayed in a tooltip. 
+The badge is shown when your Webiny project is linked to the Webiny Control Panel (WCP). Also, by hovering over the badge, the project ID will be displayed in a tooltip.
 
 <Image src={wcpBadgeInAdmin} title={"WCP Badge In Admin App"} />
+
+### New Form Package ([#4122](https://github.com/webiny/webiny-js/pull/4122))
+
+The `@webiny/form` package powers all Webiny forms across the entire Admin app. The previous version of this package was implemented years ago, and has not received any attention since. With this release, we've completely reimplemented the internals of the form, which allowed us to fix many weird glitches, optimize re-rendering, improve data validation, fix default value handling, and more.
+
+For example, the `defaultValue` prop now finally sets the default value defined on the `<Bind>` component directly into the form state, as soon as the form is rendered, so your UI will now correctly reflect the default values defined by you (this was mostly noticeable on `Select` and `RadioGroup` components).
+
+We've also covered the vast majority of use cases with Jest tests, which we're extremely happy about. However, if you do notice some differences comparing to previous versions of Webiny, please report them on our [Slack community channel](https://www.webiny.com/slack) or [GitHub repository](https://github.com/webiny/webiny-js/issues).
+
+### Lexical Editor ([#4103](https://github.com/webiny/webiny-js/pull/4103)) ([#4098](https://github.com/webiny/webiny-js/pull/4098)) ([#4133](https://github.com/webiny/webiny-js/pull/4133))
+
+The floating toolbar now hides itself when you click outside the editor container. This was particularly annoying in the Page Editor, when using Lexical in paragraphs or block variables.
+
+Link preview and editing UI was upgraded to improve the UX, and we also added support for `alt` text on links. The link preview/edit popup now also hides correctly when you click outside of it.
+
+Editor's toolbar items are now broken into multiple lines when needed (when there's not enough space for them to be shown in a single line).
+
+<Gallery>
+  <Image src={lexicalLinkEditor1} title={"Link Preview"} />
+  <Image src={lexicalLinkEditor2} title={"Link Editor"} />
+  <Image src={lexicalEditorToolbar} title={"Toolbar Wrapping"} />
+</Gallery>
