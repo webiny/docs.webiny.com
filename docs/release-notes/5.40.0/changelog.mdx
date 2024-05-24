@@ -23,6 +23,8 @@ import contextPluginFullTypes from "./assets/context-plugin-full-types.png";
 import lexicalLinkEditor1 from "./assets/lexical-link-editor-1.png";
 import lexicalLinkEditor2 from "./assets/lexical-link-editor-2.png";
 import lexicalEditorToolbar from "./assets/lexical-editor-toolbar.png";
+import conditionalValidation from "./assets/conditional-validation.gif";
+import hideMenuItems from "./assets/hide-menu-items.png";
 
 <GithubRelease version={"5.40.0"} />
 
@@ -46,39 +48,25 @@ There were a lot of changes from `8.x` to `14.2.2`, so please check the [RMWC ch
 
 Please check your project for any issues and update your code accordingly.
 
-If you find any Webiny related issues, please report it on our Slack channel or GitHub repository.
+If you find any Webiny related issues, please report them on our [Slack channel](https://www.webiny.com/slack) or [GitHub repository](https://github.com/webiny/webiny-js/issues).
 
 </Alert>
 
 ## Headless CMS
 
-### Introducing Trash Bin ([#3976](https://github.com/webiny/webiny-js/pull/3976) - [#4059](https://github.com/webiny/webiny-js/pull/4059))
+### Introducing Trash Bin ([#3976](https://github.com/webiny/webiny-js/pull/3976), [#4059](https://github.com/webiny/webiny-js/pull/4059))
 
 With this release, we are introducing the indispensable Trash Bin feature for Headless CMS, ensuring that valuable data is always recoverable.
 
 <Image src={hcmsTrashBinOverview} title={"Trash Bin for Headless CMS"} />
 
-#### Key Features
+Key features:
 
 - **Soft Deletion**: users can move entries to the Trash Bin instead of permanent deletion, preserving data integrity.
 - **Efficient Navigation**: the Trash Bin is conveniently located at the bottom left-hand side of the app screen. Each content model has its own Trash Bin.
 - **User-Friendly Interface**: inside the Trash Bin, users can search, sort, and select records for restoration or permanent deletion using a familiar interface.
 - **Automated Cleanup**: to maintain system efficiency, a cron job purges eligible items from the Trash Bin daily. Records older than 90 days are permanently purged during each cleanup.
-
-#### Customize Retention Period
-
-To customize how long deleted entries are kept, developers can adjust an environment variable. For instance, if you want to set the retention period to 7 days, follow these steps:
-
-1. Open the .env file.
-2. Add this lines:
-
-```
-WEBINY_TRASH_BIN_RETENTION_PERIOD_DAYS=7
-```
-
-3. Deploy the project.
-
-If you set the variable to 0, the default retention period (90 days) will be used.
+- **Configurable Retention Period**: to customize how long the deleted entries are kept, developers can adjust an environment `WEBINY_TRASH_BIN_RETENTION_PERIOD_DAYS` variable.
 
 ### Support for Reference Fields in Advanced Search Filter ([#3783](https://github.com/webiny/webiny-js/pull/3783))
 
@@ -110,10 +98,57 @@ Also, a user can be kicked out from the record by another user with sufficient p
 
 By default, the locking timeout period is 1800 seconds (30 minutes). But if you want to change it, just set the environment variable, with value in seconds:
 
-```bash
-# .env
+```dotenv .env
 WEBINY_RECORD_LOCK_TIMEOUT=3600
 ```
+
+### Content Entry Traverser ([#4072](https://github.com/webiny/webiny-js/pull/4072))
+
+Content entry traverser allows you to traverse any given content entry using the underlying content model AST, which is generated from the content model definition. The tool will automatically pair every key being visited with its field definition, generate its dotted path within the entry, and give you its value, so you can apply your logic to every available key/value pair.
+
+```ts Traverse a Content Entry
+// Get traverser instance.
+const traverser = await context.cms.getEntryTraverser("article");
+
+// Create a container for your custom output.
+const output: Record<string, any> = {};
+
+// We will skip values of the following field types.
+const skipFieldTypes = ["object", "dynamicZone"];
+
+// Traverse an entry, and create a flat object with value path as object key.
+traverser.traverse(entry, ({ field, value, path }) => {
+  /**
+   * Most of the time you won't care about complex fields like "object" and "dynamicZone", but only their child fields. The traverser will still go into the child fields, but this way you can conditionally apply your logic.
+   */
+  if (skipFieldTypes.includes(field.type)) {
+    return;
+  }
+
+  output[path] = value;
+});
+
+expect(output).toEqual({
+  title: "Article #1",
+  categories: [{ modelId: "category", entryId: "12345678" }],
+  "content.0.title": "Hero #1",
+  "content.1.settings.title": "Title",
+  "content.1.settings.seo.0.title": "title-0",
+  "content.1.settings.seo.1.title": "title-1"
+});
+```
+
+This tool is very useful in situations when you need to, for example, extract specific values from an entry, send them to an external API for processing, and then inject the processed values back to their original position in the source entry, asynchronously (via webhooks, for example).
+
+### Decoratable Hooks and Components
+
+Headless CMS now provides access to several key components and hooks which allow you to add all kinds of customizations to the default CMS functionality. You can now intercept content entry form `save` action, content entry `create`, `update`, `publish`, `unpublish`, `delete` actions, decorate them, add your own custom logic and UI (like confirmation dialogs, content validation, etc., add custom content providers that wrap the content entry form), and more.
+
+As an example of what this allows you to do, we've created this interesting example, where, depending on user's selection, some related field's validation and help text change. This is just one of many, many use cases that you can implement using decoration of hooks.
+
+<Image src={conditionalValidation} title={"Conditional Validation and Help Text"} />
+
+We'll cover various scenarios in our docs, but we want you to know that this is now possible, and if you're interested in a specific scenario, let us know on our [Slack community channel](https://www.webiny.com/slack), and we'll help you out.
 
 ## Page Builder
 
@@ -131,7 +166,7 @@ Previously, the functionality was available exclusively within the page details 
 
 ### Stable Element IDs ([#3977](https://github.com/webiny/webiny-js/pull/3977))
 
-Until this release, every time you loaded a page in the Page Editor, its content elements would get their `id` attribute regenerated. This had to do with using predefined (saved) blocks from the Block Editor. 
+Until this release, every time you loaded a page in the Page Editor, its content elements would get their `id` attribute regenerated. This had to do with using predefined (saved) blocks from the Block Editor.
 
 Recently, this logic started causing problems and became a blocker for implementing some interesting features. With this release, we've fixed the logic of handling element IDs across all PB editors, and element IDs are not reliable and "stable". You can now confidently reference page elements by their IDs, and know that they won't change, until you delete them.
 
@@ -289,15 +324,53 @@ The badge is shown when your Webiny project is linked to the Webiny Control Pane
 
 <Image src={wcpBadgeInAdmin} title={"WCP Badge In Admin App"} />
 
+### Ability to Hide Menu Items
+
+On the topic of menu items and that Webiny Version widget we mentioned in the previous section, you can now finally decorate every menu item, and decide what you want to do with it: hide, replace, apply conditional logic, etc. So you'll finally be able to hide Webiny Version widget so many of you wanted to do 😂
+
+The following image shows Webiny Admin navigation without the following menu items: Github, Slack, Documentation, Webiny Version, Tenant Manager.
+
+<Image src={hideMenuItems} title="Hide Menu Items" />
+
+The code to achieve this is as simple as this:
+
+```diff-tsx
+import React from "react";
++ import { Admin, AddMenu } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
+import "./App.scss";
+
++ const HideMenuItems = AddMenu.createDecorator(Original => {
++     const skip = ["github", "documentation", "slack", "version"];
++
++     return function AddMenu(props) {
++         if (skip.includes(props.name)) {
++             return null;
++         }
++
++         return <Original {...props} />;
++     };
++ });
+
+export const App = () => {
+    return (
+        <Admin>
+            <Cognito />
++            <HideMenuItems />
+        </Admin>
+    );
+};
+```
+
 ### New Form Package ([#4122](https://github.com/webiny/webiny-js/pull/4122))
 
-The `@webiny/form` package powers all Webiny forms across the entire Admin app. The previous version of this package was implemented years ago, and has not received any attention since. With this release, we've completely reimplemented the internals of the form, which allowed us to fix many weird glitches, optimize re-rendering, improve data validation, fix default value handling, and more.
+The `@webiny/form` package powers all Webiny forms across the entire Admin app. The previous version of this package was implemented years ago, and has not received any attention since. With this release, we've completely reimplemented the internals of the form, which allowed us to fix many weird glitches, improve data validation, fix default value handling, and more.
 
-For example, the `defaultValue` prop now finally sets the default value defined on the `<Bind>` component directly into the form state, as soon as the form is rendered, so your UI will now correctly reflect the default values defined by you (this was mostly noticeable on `Select` and `RadioGroup` components).
+For example, the `defaultValue` prop now finally sets the default value defined on the `<Bind>` component directly into the form state, as soon as the form is rendered, so your UI will now correctly reflect the default values (this was mostly noticeable on `Select` and `RadioGroup` components).
 
 We've also covered the vast majority of use cases with Jest tests, which we're extremely happy about. However, if you do notice some differences comparing to previous versions of Webiny, please report them on our [Slack community channel](https://www.webiny.com/slack) or [GitHub repository](https://github.com/webiny/webiny-js/issues).
 
-### Lexical Editor ([#4103](https://github.com/webiny/webiny-js/pull/4103)) ([#4098](https://github.com/webiny/webiny-js/pull/4098)) ([#4133](https://github.com/webiny/webiny-js/pull/4133))
+### Lexical Editor ([#4103](https://github.com/webiny/webiny-js/pull/4103), [#4098](https://github.com/webiny/webiny-js/pull/4098), [#4133](https://github.com/webiny/webiny-js/pull/4133))
 
 The floating toolbar now hides itself when you click outside the editor container. This was particularly annoying in the Page Editor, when using Lexical in paragraphs or block variables.
 
@@ -310,3 +383,13 @@ Editor's toolbar items are now broken into multiple lines when needed (when ther
   <Image src={lexicalLinkEditor2} title={"Link Editor"} />
   <Image src={lexicalEditorToolbar} title={"Toolbar Wrapping"} />
 </Gallery>
+
+## Enterprise Features
+
+<EnterpriseFeaturesNotice />
+
+### Cognito Federation with OIDC Providers ([#4052](https://github.com/webiny/webiny-js/pull/4052))
+
+We now support integration with any OpenID Connect (OIDC) identity provider via Amazon Cognito. This means you can use Webiny, and log into the Admin app, using almost any identity provider on the planet.
+
+For more details, read the [Cognito Federation](/docs/enterprise/cognito-federation) guide.
