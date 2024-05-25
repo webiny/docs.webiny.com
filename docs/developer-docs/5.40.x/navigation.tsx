@@ -13,6 +13,10 @@ export const Navigation = () => {
         <Group title={"Admin Area"}>
           <Group title={"Extending Functionality"}>
             <Page link={"admin-area/extending/custom-dashboard"} />
+            <Page
+              link={"admin-area/extending/customize-navigation"}
+              after={"admin-area/extending/custom-dashboard"}
+            />
           </Group>
         </Group>
         <Group title={"Headless CMS"}>

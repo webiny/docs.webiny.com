@@ -1,0 +1,102 @@
+---
+id: 571ea043
+title: Customize Navigation
+description: Learn how to customize menu items in the main navigation of the Admin app.
+---
+
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+
+<CanIUseThis since={"5.40.0"} />
+
+<WhatYouWillLearn>
+
+- how to customize navigation menu items
+
+</WhatYouWillLearn>
+
+## Overview
+
+Webiny navigation consists of a three-level menu, and a single-level menu footer. In the following sections we show how you can add new menus, menu items, and also intercept the definition of every existing menu item.
+
+## Using the Code Examples
+
+The following code examples follow our usual configuration pattern. You need to add the code from
+the examples to your `apps/admin/src/App.tsx`. We highly recommend using our [Extensions](/docs/{version}/core-development-concepts/basics/extensions) to organize your code in a scalable and portable manner.
+
+## Add a New Menu and Menu Item
+
+Let's say you're building a new app, and you want to add a new section to the existing `Settings` menu. To achieve that, you need to reference the `settings` menu by its name, and add child menu elements:
+
+```tsx
+import { AddMenu, Plugins } from "@webiny/app-admin";
+
+export const Extension = () => {
+  return (
+    <Plugins>
+      <AddMenu name={"settings"}>
+        <AddMenu name={"settings.myApp"} label={"My App"}>
+          <AddMenu
+            name={"settings.myApp.general"}
+            label={"General"}
+            path={"/settings/my-app/general"}
+          />
+        </AddMenu>
+      </AddMenu>
+    </Plugins>
+  );
+};
+```
+
+Following this example, you can add completely new menus for your apps, or add menu items to existing menus.
+
+## Add a Footer Menu Item
+
+To add a menu item to the footer of the navigation, you need to tag it with a `footer` tag. Optionally, you can pin it to the top or the bottom of the list by using the `pin` prop.
+
+```tsx
+import { AddMenu, Plugins } from "@webiny/app-admin";
+
+export const Extension = () => {
+  return (
+    <Plugins>
+      <AddMenu
+        name={"apiPlayground"}
+        label={"API Playground"}
+        path={"/api-playground"}
+        icon={<Icon />}
+        tags={["footer"]}
+      />
+    </Plugins>
+  );
+};
+```
+
+## Hide Menu Items
+
+To hide menu items, we need to create a decorator for the `AddMenu` component, which will allow us to intercept every `<AddMenu>` element in the system, and decide what to do with it. This allows you not only to hide the menu, but also change labels, icons, etc.
+
+```tsx
+import { AddMenu, Plugins } from "@webiny/app-admin";
+
+const HideMenuItems = AddMenu.createDecorator(Original => {
+  // Define menu names you want to hide.
+  const skip = ["github", "documentation", "slack", "version"];
+
+  return function AddMenu(props) {
+    if (skip.includes(props.name)) {
+      return null;
+    }
+
+    return <Original {...props} />;
+  };
+});
+
+export const Extension = () => {
+  return (
+    <Plugins>
+      <HideMenuItems />
+    </Plugins>
+  );
+};
+```
