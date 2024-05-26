@@ -28,7 +28,7 @@ Let's imagine you want to extract `text`, `long-text`, and `rich-text` field val
 
 ```ts Extract values on each content entry update
 createContextPlugin(context => {
-  context.cms.onEntryAfterUpdate(async ({ model, entry }) => {
+  context.cms.onEntryAfterUpdate.subscribe(async ({ model, entry }) => {
     // We only want to process content entries of the "article" model.
     if (model.modelId !== "article") {
       return;
@@ -43,8 +43,8 @@ createContextPlugin(context => {
     // Whitelist filed types to process.
     const includeFieldTypes = ["text", "long-text", "rich-text"];
 
-    // Traverse the content entry.
-    traverser.traverse(entry, ({ field, value, path }) => {
+    // Traverse the content entry values.
+    traverser.traverse(entry.values, ({ field, value, path }) => {
       if (!includeFieldTypes.includes(field.type)) {
         return;
       }
@@ -63,7 +63,7 @@ What we did here is as follows:
 - subscribed to the `onEntryAfterUpdate` lifecycle events
 - requested a traverser object for a specific content model
 - defined a list of field types we're interested in
-- ran a traverser on the `entry` which we received in the event payload
+- ran a traverser on the entry values which we received in the event payload
 - collect `path` and `value` of the fields we're interested in
 
 `path` is an interesting property, because it does a lot of thinking for you. If you have a content model with nested objects, dynamic zones, maybe even arrays of objects, the `path` will point to an exact depth and array index of the current value being visited.
