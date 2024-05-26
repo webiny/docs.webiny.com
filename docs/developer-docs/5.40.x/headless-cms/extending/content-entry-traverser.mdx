@@ -1,0 +1,84 @@
+---
+id: d974fa06
+title: Content Entry Traverser
+description: Learn about the Content Entry Traverser, and how to dynamically extract values from content entries
+---
+
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+
+<CanIUseThis since={"5.40.0"} />
+
+<WhatYouWillLearn>
+
+- what is a Content Entry Traverser
+- how to extract values from any content entry
+
+</WhatYouWillLearn>
+
+## Overview
+
+Content entry traverser is a utility which allows you to traverse a content entry, and run a callback for every available value. If you've ever used Abstract Syntax Trees (AST), then this should be very familiar. A traverser is created using a given content model. Using the content model definition, the traverser can then reliably visit every key/value pair in the give content entry, and give you its context: field definition, current key path within the entry, etc.
+
+A tool like this is very handy when you need to process a content entry based on some criteria, extract some field values, apply asynchronous transformations (e.g., translations using an external system), and so on.
+
+## Using a Traverser
+
+Let's imagine you want to extract `text`, `long-text`, and `rich-text` field values from an `article` content model, each time a content entry is saved:
+
+```ts Extract values on each content entry update
+createContextPlugin(context => {
+  context.cms.onEntryAfterUpdate(async ({ model, entry }) => {
+    // We only want to process content entries of the "article" model.
+    if (model.modelId !== "article") {
+      return;
+    }
+
+    // Get a traverser for a desired content model.
+    const traverser = await context.cms.getEntryTraverser(model.modelId);
+
+    // Create a container for your extracted values.
+    const output: Record<string, any> = {};
+
+    // Whitelist filed types to process.
+    const includeFieldTypes = ["text", "long-text", "rich-text"];
+
+    // Traverse the content entry.
+    traverser.traverse(entry, ({ field, value, path }) => {
+      if (!includeFieldTypes.includes(field.type)) {`
+        return;
+      }
+
+      output[path] = value;
+    });
+
+    // Do something with the `output`!
+  });
+});
+```
+
+What we did here is as follows:
+
+- created a `Context` plugin for the GraphQL API
+- subscribed to the `onEntryAfterUpdate` lifecycle events
+- requested a traverser object for a specific content model
+- defined a list of field types we're interested in
+- ran a traverser on the `entry` which we received in the event payload
+- collect `path` and `value` of the fields we're interested in
+
+`path` is an interesting property, because it does a lot of thinking for you. If you have a content model with nested objects, dynamic zones, maybe even arrays of objects, the `path` will point to an exact depth and array index of the current value being visited.
+
+Here's an imaginary output you could get from a relatively complex content model:
+
+```json Example Data
+{
+  "title": "Article #1",
+  "description": "This is our first article.",
+  "content.0.title": "Hero #1",
+  "content.1.settings.title": "Title",
+  "content.1.settings.seo.0.title": "title-0",
+  "content.1.settings.seo.1.title": "title-1"
+}
+```
+
+Now you can further process the extracted data, send it to remote APIs, etc. The exact value path allows you to easily set the value back to its original position in the content entry, granted the entry doesn't change in the meantime (in which case you might set your data to a wrong index).
