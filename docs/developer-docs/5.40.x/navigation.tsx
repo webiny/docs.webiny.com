@@ -13,6 +13,10 @@ export const Navigation = () => {
         <Group title={"Admin Area"}>
           <Group title={"Extending Functionality"}>
             <Page link={"admin-area/extending/custom-dashboard"} />
+            <Page
+              link={"admin-area/extending/customize-navigation"}
+              after={"admin-area/extending/custom-dashboard"}
+            />
           </Group>
         </Group>
         <Group title={"Headless CMS"}>
@@ -33,6 +37,7 @@ export const Navigation = () => {
               link={"headless-cms/extending/private-models"}
               after={"headless-cms/extending/custom-sorting"}
             />
+            <Page link={"headless-cms/extending/content-entry-traverser"} />
           </Group>
           <Group title={"References"}>
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
@@ -50,6 +55,10 @@ export const Navigation = () => {
             <Page
               link={"page-builder/extending/customize-page-list-actions"}
               before={"page-builder/extending/customize-page-bulk-actions"}
+            />
+            <Page
+              link={"page-builder/extending/customize-editors"}
+              before={"page-builder/extending/customize-page-list-actions"}
             />
           </Group>
         </Group>
