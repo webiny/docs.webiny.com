@@ -11,6 +11,8 @@ import { SearchButton } from "@/components/page/Search";
 
 import { scroll } from "@/css/scroll.module.css";
 
+const HOME_PAGE = '/docs/get-started/welcome'
+
 const Arrow = ({ className }) => {
     return (
         <svg
@@ -68,7 +70,7 @@ function nearestScrollableContainer(el) {
 }
 
 const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
-    const { type, title, link, items, isActive, isActiveChild } = element;
+    const { type, title, link, icon, items, isActive, isActiveChild } = element;
 
     if (type === "group" && depth !== 1) {
         return (
@@ -76,6 +78,8 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 subElements={items}
                 isActiveChild={isActiveChild}
                 title={title}
+                link={link}
+                icon={icon}
                 ref={ref}
                 depth={depth}
             />
@@ -99,6 +103,13 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
 });
 
 const HorizontalLine = () => {
+    // hide horizontal line when inside a sub-menu
+    const router = useRouter();
+    const showFullMenu = router.pathname == HOME_PAGE;
+    if (!showFullMenu) {
+        return null;
+    }
+
     return (
         <div className="pr-[10px] my-[20px]">
             <div className="border-b-[1px] border-neutral-200 dark:border-dark-grey-2 w-full -ml-[10px]"></div>
@@ -106,7 +117,161 @@ const HorizontalLine = () => {
     );
 };
 
-const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth = 0 }, ref) => {
+const getDocsSection = () => {
+    const router = useRouter();
+    
+    if(router.pathname.startsWith('/docs/user-guides/')){
+        return 'user-docs';
+    }else if(router.pathname.startsWith('/docs/release-notes/')){
+        return 'release-notes';
+    }else if(router.pathname.startsWith('/docs/handbook/')){
+        return 'handbook';
+    }
+
+    return 'developer-docs';
+}
+
+const DeveloperDocsRootSectionWithIcon = ({applyActiveClass, link, isHomepage, menuIcon, title}) => {
+    return <li
+        className={
+            "root-element relative flex items-center cursor-pointer " +
+            (applyActiveClass && !isHomepage
+                ? "h-[40px] mt-[-5px] mb-4"
+                : "h-[30px] mt-[10px] mb-[10px]"
+            )
+        }
+        >
+            {link ? (
+                <Link href={link}>
+                    <div
+                        className={
+                            "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
+                            (applyActiveClass ? "text-orange font-semibold" : "")
+                        }
+                    >
+                        <div
+                            className={
+                                "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
+                                (applyActiveClass
+                                    ? " bg-light-orange dark:bg-dark-orange"
+                                    : " grayscale")
+                            }
+                        >
+                            {menuIcon}
+                        </div>
+                        <span
+                            className={
+                                applyActiveClass
+                                    ? "leading-5 mb-0 text-orange text-base font-semibold"
+                                    : "leading-5 mb-0 text-sm font-base"
+                            }
+                        >
+                            {title}
+                        </span>
+                    </div>
+                </Link>
+            ) : (
+                title
+            )}
+        </li>;
+}
+
+const DeveloperDocsSectionWithExpandedSubitems = forwardRef(({isActiveChild, link, menuIcon, title, subElements, depth}, ref) => {
+    return <>
+        {/* top level */}
+            <li>
+                <Link href={HOME_PAGE}>
+                    <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4 mt-2">
+                        <svg
+                            width="10"
+                            height="10"
+                            viewBox="0 0 10 10"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                d="M9 9V8.3C9 6.61984 9 5.77976 8.67302 5.13803C8.3854 4.57354 7.92646 4.1146 7.36197 3.82698C6.72024 3.5 5.88016 3.5 4.2 3.5H1"
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                            <path
+                                d="M3.5 6L1 3.5L3.5 1"
+                                stroke="currentColor"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+                        Back to home
+                    </div>
+                </Link>
+            </li>
+        <li
+            className={
+                "root-element relative flex items-center cursor-pointer " +
+                (isActiveChild
+                    ? "h-[40px] mt-[-5px] mb-4"
+                    : "h-[30px] mt-[10px] mb-[10px]"
+                )
+            }
+        >
+            {link ? (
+                <Link href={link}>
+                    <div
+                        className={
+                            "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
+                            (isActiveChild ? "text-orange font-semibold" : "")
+                        }
+                    >
+                        <div
+                            className={
+                                "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
+                                (isActiveChild
+                                    ? " bg-light-orange dark:bg-dark-orange"
+                                    : " grayscale")
+                            }
+                        >
+                            {menuIcon}
+                        </div>
+                        <span
+                            className={
+                                isActiveChild
+                                    ? "leading-5 mb-0 text-orange text-base font-semibold"
+                                    : "leading-5 mb-0 text-sm font-base"
+                            }
+                        >
+                            {title}
+                        </span>
+                    </div>
+                </Link>
+            ) : (
+                title
+            )}
+        </li>
+
+        {subElements.length ? (
+            <ul
+                className={
+                    "transition-all duration-300 transform opacity-1 overflow-visible " +
+                    clsx({
+                        "ml-[18px] ": depth > 0,
+                    })
+                }
+            >
+                {subElements.map((navElement, index) => (
+                    <NavTreeElement
+                        key={index}
+                        element={navElement}
+                        ref={ref}
+                        depth={depth + 1}
+                    />
+                ))}
+            </ul>
+        ) : null}
+    </>
+});
+
+const GenericMenuSection = forwardRef(({depth, isActiveChild, title, subElements}, ref) => {
     const [showMenu, setShowMenu] = useState(false);
 
     useEffect(() => {
@@ -181,6 +346,57 @@ const Collapsable = forwardRef(({ title, subElements = [], isActiveChild, depth 
     );
 });
 
+const Collapsable = forwardRef(
+    ({ title, link, icon, subElements = [], isActiveChild, depth = 0 }, ref) => {
+        const router = useRouter();
+        const isDeveloperDocs = getDocsSection() == 'developer-docs';
+        const isHomepage = router.pathname.endsWith(HOME_PAGE);
+        const menuIcon = icon ? <img src={icon} title={title} /> : null;
+        const applyActiveClass = router.pathname == link;
+
+        // if not developer docs section then use the GenericMenuSection to render
+        if(!isDeveloperDocs){
+            return <GenericMenuSection 
+                        depth={depth} 
+                        isActiveChild={isActiveChild} 
+                        title={title} 
+                        subElements={subElements} 
+                        ref={ref} 
+                    />;
+        }else{
+            // if we're not within an active element, and we're not on the homepage it means we iterating over internal groups of pages
+            // in that case we don't want to show anything
+            if (!isActiveChild && !isHomepage) {
+                return null;
+            }
+            
+            // we're rendering developer docs section
+            if(isHomepage){
+                // on homepage we render only to top level group name with icon
+                return <DeveloperDocsRootSectionWithIcon 
+                            title={title} 
+                            menuIcon={menuIcon} 
+                            link={link} 
+                            applyActiveClass={applyActiveClass} 
+                            isHomepage={isHomepage}
+                        />
+            }else{
+                // if we're in developer docs, but not on the homepage, that means we need to render the section with all the pages for this group
+                //DeveloperDocsSectionWithExpandedSubitems = (applyActiveClass, link, isHomepage, menuIcon, title, subElements, depth, ref) => {
+                return <DeveloperDocsSectionWithExpandedSubitems 
+                            isActiveChild={isActiveChild} 
+                            title={title} 
+                            menuIcon={menuIcon} 
+                            link={link} 
+                            subElements={subElements}
+                            depth={depth}
+                            ref={ref}
+                        />
+            }
+        }
+    }
+);
+
 const Page = forwardRef(({ title, link, isActive, depth = 0 }, ref) => {
     return (
         <li
@@ -245,13 +461,22 @@ function Nav({ nav }) {
 
     function setIsActive(nav) {
         for (const navItem of nav) {
+            navItem.isActive = false;
+            navItem.isActiveChild = false;
             if (navItem.type === "page") {
                 const isActive = navItem.link === router.pathname;
-
                 navItem.isActive = isActive;
             } else if (navItem.type === "group") {
+                // If group link matches current pathname, mark it as active, and process child items to deactivate them.
+                if (navItem.link === router.pathname) {
+                    navItem.isActiveChild = true;
+                    setIsActive(navItem.items);
+                    continue;
+                }
+                
+                // If group link does not match the current pathname, try to find an active child item.
                 setIsActive(navItem.items);
-
+                
                 const isActiveChild = navItem.items.some(
                     link => link.isActive || link.isActiveChild
                 );
@@ -291,7 +516,7 @@ function Nav({ nav }) {
                 if (scrollable.scrollTop > top || scrollable.scrollTop < bottom) {
                     scrollable.scrollTop = top - scrollRect.height / 2 + activeItemRect.height / 2;
                 }
-            }, 500);
+            }, 200);
         }
     }, [router.pathname]);
 
@@ -329,7 +554,7 @@ export function VersionedSidebarLayout({ children }) {
     const navigation = useNavigation();
     const { page } = usePage();
     const nav = page.navigation;
-
+    
     return (
         <SidebarContext.Provider value={{ nav }}>
             <Wrapper allowOverflow={true}>
