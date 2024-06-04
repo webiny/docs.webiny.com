@@ -10,7 +10,9 @@ export function useHomepage() {
     // because of that we need to route to a different homepage based on which version the user is looking at
     let url;
 
-    if (semver.gte(page.version.replace("x", "0"), "5.39.0")) {
+    if (!page.version) {
+        url = "/docs/get-started/welcome";
+    } else if (semver.gte(page.version.replace("x", "0"), "5.39.0")) {
         url = "/docs/{version}/get-started/welcome";
     } else {
         url = "/docs/{version}/get-started/install-webiny";
