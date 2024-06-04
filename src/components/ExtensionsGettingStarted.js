@@ -42,7 +42,7 @@ export const ExtensionsGettingStarted = ({
         <>
             <Heading level={2}>Getting Started</Heading>
             <p>
-                To get started, we first scaffold a new <strong>{extensionTypeLabel[type]}</strong>{" "}
+                To get started, we first scaffold a new <a href={"/docs/core-development-concepts/basics/extensions"}>{extensionTypeLabel[type]}</a>{" "}
                 in the <code>{location || `/extensions/${name}`}</code> folder, via the following
                 command:
             </p>
