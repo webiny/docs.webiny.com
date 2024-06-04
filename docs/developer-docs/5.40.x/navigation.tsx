@@ -1,11 +1,11 @@
 import React from "react";
-import { Navigation as BaseNavigation } from "../5.38.x/navigation";
+import { Navigation as BaseNavigation } from "../5.39.x/navigation";
 import { Group, NavigationRoot, Page } from "@webiny/docs-generator";
 
 export const Navigation = () => {
   return (
     <>
-      {/* Inherit navigation from 5.38.x. */}
+      {/* Inherit navigation from 5.39.x. */}
       <BaseNavigation />
       {/* Add new items. */}
       <NavigationRoot directory={__dirname}>
@@ -43,13 +43,6 @@ export const Navigation = () => {
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
           </Group>
         </Group>
-        <Group title={"File Manager"}>
-          <Group title={"Extending Functionality"}>
-            <Page link={"file-manager/extending/customize-file-preview"} />
-            <Page link={"file-manager/extending/customize-file-actions"} />
-            <Page link={"file-manager/extending/create-a-file-type-plugin"} remove />
-          </Group>
-        </Group>
         <Group title={"Page Builder"}>
           <Group title={"Extending Functionality"}>
             <Page
@@ -62,8 +55,11 @@ export const Navigation = () => {
             />
           </Group>
         </Group>
-        <Group title={"File Manager"}>
+        <Group title={"File Manager"} link={"file-manager/extending/customize-file-preview"}>
           <Group title={"Extending Functionality"}>
+            <Page link={"file-manager/extending/customize-file-preview"} />
+            <Page link={"file-manager/extending/customize-file-actions"} />
+            <Page link={"file-manager/extending/create-a-file-type-plugin"} remove />
             <Page
               link={"file-manager/extending/customize-file-list-actions"}
               after={"file-manager/extending/customize-file-bulk-actions"}

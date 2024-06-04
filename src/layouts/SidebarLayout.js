@@ -1,5 +1,6 @@
 import { useNavigation } from "@/components/page/Navigation";
 import { VersionSelector } from "@/components/page/VersionSelector";
+import { useHomepage } from "@/hooks/useHomepage";
 import { usePage } from "@/hooks/usePage";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -10,8 +11,6 @@ import { Dialog } from "@headlessui/react";
 import { SearchButton } from "@/components/page/Search";
 
 import { scroll } from "@/css/scroll.module.css";
-
-const HOME_PAGE = '/docs/get-started/welcome'
 
 const Arrow = ({ className }) => {
     return (
@@ -105,7 +104,9 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
 const HorizontalLine = () => {
     // hide horizontal line when inside a sub-menu
     const router = useRouter();
-    const showFullMenu = router.pathname == HOME_PAGE;
+    const { homepageUrl } = useHomepage();
+    const showFullMenu = router.pathname === homepageUrl;
+
     if (!showFullMenu) {
         return null;
     }
@@ -119,27 +120,33 @@ const HorizontalLine = () => {
 
 const getDocsSection = () => {
     const router = useRouter();
-    
-    if(router.pathname.startsWith('/docs/user-guides/')){
-        return 'user-docs';
-    }else if(router.pathname.startsWith('/docs/release-notes/')){
-        return 'release-notes';
-    }else if(router.pathname.startsWith('/docs/handbook/')){
-        return 'handbook';
+
+    if (router.pathname.startsWith("/docs/user-guides/")) {
+        return "user-docs";
+    } else if (router.pathname.startsWith("/docs/release-notes/")) {
+        return "release-notes";
+    } else if (router.pathname.startsWith("/docs/handbook/")) {
+        return "handbook";
     }
 
-    return 'developer-docs';
-}
+    return "developer-docs";
+};
 
-const DeveloperDocsRootSectionWithIcon = ({applyActiveClass, link, isHomepage, menuIcon, title}) => {
-    return <li
-        className={
-            "root-element relative flex items-center cursor-pointer " +
-            (applyActiveClass && !isHomepage
-                ? "h-[40px] mt-[-5px] mb-4"
-                : "h-[30px] mt-[10px] mb-[10px]"
-            )
-        }
+const DeveloperDocsRootSectionWithIcon = ({
+    applyActiveClass,
+    link,
+    isHomepage,
+    menuIcon,
+    title
+}) => {
+    return (
+        <li
+            className={
+                "root-element relative flex items-center cursor-pointer " +
+                (applyActiveClass && !isHomepage
+                    ? "h-[40px] mt-[-5px] mb-4"
+                    : "h-[30px] mt-[10px] mb-[10px]")
+            }
         >
             {link ? (
                 <Link href={link}>
@@ -173,105 +180,109 @@ const DeveloperDocsRootSectionWithIcon = ({applyActiveClass, link, isHomepage, m
             ) : (
                 title
             )}
-        </li>;
-}
+        </li>
+    );
+};
 
-const DeveloperDocsSectionWithExpandedSubitems = forwardRef(({isActiveChild, link, menuIcon, title, subElements, depth}, ref) => {
-    return <>
-        {/* top level */}
-            <li>
-                <Link href={HOME_PAGE}>
-                    <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4 mt-2">
-                        <svg
-                            width="10"
-                            height="10"
-                            viewBox="0 0 10 10"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                d="M9 9V8.3C9 6.61984 9 5.77976 8.67302 5.13803C8.3854 4.57354 7.92646 4.1146 7.36197 3.82698C6.72024 3.5 5.88016 3.5 4.2 3.5H1"
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                            <path
-                                d="M3.5 6L1 3.5L3.5 1"
-                                stroke="currentColor"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        </svg>
-                        Back to home
-                    </div>
-                </Link>
-            </li>
-        <li
-            className={
-                "root-element relative flex items-center cursor-pointer " +
-                (isActiveChild
-                    ? "h-[40px] mt-[-5px] mb-4"
-                    : "h-[30px] mt-[10px] mb-[10px]"
-                )
-            }
-        >
-            {link ? (
-                <Link href={link}>
-                    <div
+const DeveloperDocsSectionWithExpandedSubitems = forwardRef(
+    ({ isActiveChild, link, menuIcon, title, subElements, depth }, ref) => {
+        const { homepageUrl } = useHomepage();
+
+        return (
+            <>
+                {/* top level */}
+                <li>
+                    <Link href={homepageUrl}>
+                        <div className="flex gap-2 items-center cursor-pointer hover:text-orange mb-4 mt-2">
+                            <svg
+                                width="10"
+                                height="10"
+                                viewBox="0 0 10 10"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    d="M9 9V8.3C9 6.61984 9 5.77976 8.67302 5.13803C8.3854 4.57354 7.92646 4.1146 7.36197 3.82698C6.72024 3.5 5.88016 3.5 4.2 3.5H1"
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                                <path
+                                    d="M3.5 6L1 3.5L3.5 1"
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                />
+                            </svg>
+                            Back to home
+                        </div>
+                    </Link>
+                </li>
+                <li
+                    className={
+                        "root-element relative flex items-center cursor-pointer " +
+                        (isActiveChild ? "h-[40px] mt-[-5px] mb-4" : "h-[30px] mt-[10px] mb-[10px]")
+                    }
+                >
+                    {link ? (
+                        <Link href={link}>
+                            <div
+                                className={
+                                    "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
+                                    (isActiveChild ? "text-orange font-semibold" : "")
+                                }
+                            >
+                                <div
+                                    className={
+                                        "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
+                                        (isActiveChild
+                                            ? " bg-light-orange dark:bg-dark-orange"
+                                            : " grayscale")
+                                    }
+                                >
+                                    {menuIcon}
+                                </div>
+                                <span
+                                    className={
+                                        isActiveChild
+                                            ? "leading-5 mb-0 text-orange text-base font-semibold"
+                                            : "leading-5 mb-0 text-sm font-base"
+                                    }
+                                >
+                                    {title}
+                                </span>
+                            </div>
+                        </Link>
+                    ) : (
+                        title
+                    )}
+                </li>
+
+                {subElements.length ? (
+                    <ul
                         className={
-                            "flex justify-items-start text-dark-grey dark:text-light-grey dark:hover:text-orange hover:text-orange no-underline items-center group " +
-                            (isActiveChild ? "text-orange font-semibold" : "")
+                            "transition-all duration-300 transform opacity-1 overflow-visible " +
+                            clsx({
+                                "ml-[18px] ": depth > 0
+                            })
                         }
                     >
-                        <div
-                            className={
-                                "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
-                                (isActiveChild
-                                    ? " bg-light-orange dark:bg-dark-orange"
-                                    : " grayscale")
-                            }
-                        >
-                            {menuIcon}
-                        </div>
-                        <span
-                            className={
-                                isActiveChild
-                                    ? "leading-5 mb-0 text-orange text-base font-semibold"
-                                    : "leading-5 mb-0 text-sm font-base"
-                            }
-                        >
-                            {title}
-                        </span>
-                    </div>
-                </Link>
-            ) : (
-                title
-            )}
-        </li>
+                        {subElements.map((navElement, index) => (
+                            <NavTreeElement
+                                key={index}
+                                element={navElement}
+                                ref={ref}
+                                depth={depth + 1}
+                            />
+                        ))}
+                    </ul>
+                ) : null}
+            </>
+        );
+    }
+);
 
-        {subElements.length ? (
-            <ul
-                className={
-                    "transition-all duration-300 transform opacity-1 overflow-visible " +
-                    clsx({
-                        "ml-[18px] ": depth > 0,
-                    })
-                }
-            >
-                {subElements.map((navElement, index) => (
-                    <NavTreeElement
-                        key={index}
-                        element={navElement}
-                        ref={ref}
-                        depth={depth + 1}
-                    />
-                ))}
-            </ul>
-        ) : null}
-    </>
-});
-
-const GenericMenuSection = forwardRef(({depth, isActiveChild, title, subElements}, ref) => {
+const GenericMenuSection = forwardRef(({ depth, isActiveChild, title, subElements }, ref) => {
     const [showMenu, setShowMenu] = useState(false);
 
     useEffect(() => {
@@ -349,49 +360,56 @@ const GenericMenuSection = forwardRef(({depth, isActiveChild, title, subElements
 const Collapsable = forwardRef(
     ({ title, link, icon, subElements = [], isActiveChild, depth = 0 }, ref) => {
         const router = useRouter();
-        const isDeveloperDocs = getDocsSection() == 'developer-docs';
-        const isHomepage = router.pathname.endsWith(HOME_PAGE);
+        const { homepageUrl } = useHomepage();
+        const isDeveloperDocs = getDocsSection() === "developer-docs";
+        const isHomepage = router.pathname.endsWith(homepageUrl);
         const menuIcon = icon ? <img src={icon} title={title} /> : null;
         const applyActiveClass = router.pathname == link;
 
         // if not developer docs section then use the GenericMenuSection to render
-        if(!isDeveloperDocs){
-            return <GenericMenuSection 
-                        depth={depth} 
-                        isActiveChild={isActiveChild} 
-                        title={title} 
-                        subElements={subElements} 
-                        ref={ref} 
-                    />;
-        }else{
+        if (!isDeveloperDocs) {
+            return (
+                <GenericMenuSection
+                    depth={depth}
+                    isActiveChild={isActiveChild}
+                    title={title}
+                    subElements={subElements}
+                    ref={ref}
+                />
+            );
+        } else {
             // if we're not within an active element, and we're not on the homepage it means we iterating over internal groups of pages
             // in that case we don't want to show anything
             if (!isActiveChild && !isHomepage) {
                 return null;
             }
-            
+
             // we're rendering developer docs section
-            if(isHomepage){
+            if (isHomepage) {
                 // on homepage we render only to top level group name with icon
-                return <DeveloperDocsRootSectionWithIcon 
-                            title={title} 
-                            menuIcon={menuIcon} 
-                            link={link} 
-                            applyActiveClass={applyActiveClass} 
-                            isHomepage={isHomepage}
-                        />
-            }else{
+                return (
+                    <DeveloperDocsRootSectionWithIcon
+                        title={title}
+                        menuIcon={menuIcon}
+                        link={link}
+                        applyActiveClass={applyActiveClass}
+                        isHomepage={isHomepage}
+                    />
+                );
+            } else {
                 // if we're in developer docs, but not on the homepage, that means we need to render the section with all the pages for this group
                 //DeveloperDocsSectionWithExpandedSubitems = (applyActiveClass, link, isHomepage, menuIcon, title, subElements, depth, ref) => {
-                return <DeveloperDocsSectionWithExpandedSubitems 
-                            isActiveChild={isActiveChild} 
-                            title={title} 
-                            menuIcon={menuIcon} 
-                            link={link} 
-                            subElements={subElements}
-                            depth={depth}
-                            ref={ref}
-                        />
+                return (
+                    <DeveloperDocsSectionWithExpandedSubitems
+                        isActiveChild={isActiveChild}
+                        title={title}
+                        menuIcon={menuIcon}
+                        link={link}
+                        subElements={subElements}
+                        depth={depth}
+                        ref={ref}
+                    />
+                );
             }
         }
     }
@@ -473,10 +491,10 @@ function Nav({ nav }) {
                     setIsActive(navItem.items);
                     continue;
                 }
-                
+
                 // If group link does not match the current pathname, try to find an active child item.
                 setIsActive(navItem.items);
-                
+
                 const isActiveChild = navItem.items.some(
                     link => link.isActive || link.isActiveChild
                 );
@@ -554,7 +572,7 @@ export function VersionedSidebarLayout({ children }) {
     const navigation = useNavigation();
     const { page } = usePage();
     const nav = page.navigation;
-    
+
     return (
         <SidebarContext.Provider value={{ nav }}>
             <Wrapper allowOverflow={true}>
