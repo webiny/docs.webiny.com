@@ -85,7 +85,7 @@ const useGroup = () => {
 
 interface GroupProps {
   title: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   icon?: string;
   link?: string;
   /**

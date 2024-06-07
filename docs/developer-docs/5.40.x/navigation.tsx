@@ -18,6 +18,7 @@ export const Navigation = () => {
               after={"admin-area/extending/custom-dashboard"}
             />
           </Group>
+          <Group title={"New App Tutorial"} remove={true} />
         </Group>
         <Group title={"Headless CMS"}>
           <Group title={"Extending Functionality"}>
