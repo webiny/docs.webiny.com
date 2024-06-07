@@ -5,6 +5,7 @@ description: See what's new in Webiny version 5.39.7.
 ---
 
 import { GithubRelease } from "@/components/GithubRelease";
+import oldGqlFields from "./assets/old-gql-fields.png";
 
 <GithubRelease version={"5.39.7"} />
 
@@ -21,31 +22,46 @@ With the [5.39.0 release](/docs/release-notes/5.39.0/changelog), we've removed t
 1. `publishedOn`
 2. `ownedBy` 
 
-These fields were removed because they were replaced with the new meta fields. 
+These fields were removed because they were replaced with the [new meta fields](/docs/release-notes/5.39.0/changelog#headless-cms-revamped-date-time-and-identity-on-by-meta-fields). 
 
-However, based on the user feedback, we've realized keeping these fields at least on the GraphQL schema level is important, as some users are still using them in their applications.
+However, based on the user feedback, we've realized keeping these fields at least on the GraphQL schema level is helpful, as some users might still be using them in their existing applications (applications that are not yet updated to use the new meta fields).
 
-So, we've decided to bring back these fields to the GraphQL schema. They are marked as **deprecated**, and we recommend using the new meta fields instead. In the future, these fields will be removed from the GraphQL schema. 
+So, in order to make things a bit easier, on the GraphQL schema level, we've decided to bring back these fields. 
+
+<Image src={oldGqlFields} alt={<>Old <code>publishedOn</code> and <code>ownedBy</code> GraphQL Meta Fields Used In a GraphQL Query</>} />
+
+Note that these fields are marked as **deprecated**, and, when possible, we recommend using the new meta fields instead. Also, as mentioned, these fields have only been brought back on the GraphQL schema level. Trying to access these fields via one of the JavaScript APIs will result in an error.
+
+Ultimately, note that we plan to again remove these fields, with the 5.41.0 release. 
 
 ### Made New Meta Fields Nullable (GraphQL Schema Level) ([#4156](https://github.com/webiny/webiny-js/pull/4156))
 
-On top of bringing back the `publishedOn` and `ownedBy` fields, we've also changed the new **non-nullable** entry meta fields and make them nullable.
+On top of bringing back the `publishedOn` and `ownedBy` fields, again, on the GraphQL level, we've also changed the new **non-nullable** entry meta fields and make them nullable. To be specific, we're talking about the following eight fields:
 
-This change was made to ensure a better experience while performing the 5.39.x data migration. Without this change, while the data migration is being performed, in most cases users with large data sets would be unable to use Headless CMS in the Admin app.
+1. `createdOn`
+2. `savedOn`
+3. `revisionCreatedOn`
+4. `revisionSavedOn`
+5. `createdBy`
+6. `savedBy`
+7. `createdByUser`
+8. `savedByUser`
 
-## Page Builder
+This change was made to ensure a better experience while performing the 5.39.x data migration. Without this change, while the data migration is being performed, in most cases, users with large data sets would be unable to use Headless CMS in the Admin app. This would happen simply because, while issuing GraphQL queries, the new meta fields would be required to be present, but, due to the data migration being in progress, these fields would not be present.
 
-### Website Settings Form - Fixed an Issue Related to Locale Switching ([#4157](https://github.com/webiny/webiny-js/pull/4157))
-
-In case a user switched to a different locale, submitting Page Builder's Website settings form would result in an error. This issue has now been resolved, and the Website settings form now works as expected, regardless of the locale being used. 
+With this change, the new meta fields are now nullable, and, as a result, users can continue using Headless CMS in the Admin app, even while the data migration is in progress.
 
 ## Data Migrations
 
 ### Further Improving the 5.39.6-001 Data Migration ([#4154](https://github.com/webiny/webiny-js/pull/4154))
 
-We had to again revisit the 5.39.6-001 data migration. This is because the migration was taking too long to complete when large data sets were involved. We've now optimized the migration process, and it should now be much faster than before, in some cases up to 10 times faster.
+For this release, we've again invested some time in further improving the data migration that was introduced with the [5.39.6-001 release](/docs/release-notes/5.39.6/changelog#improving-the-5-39-0-meta-fields-data-migration-4115). 
 
-Note that the improved data migration is not automatically executed, and that, by default, the migration will still be executed as it was before. If you want to execute the optimized migration, please take a look at the linked pull request for more information.
+The is because we've noticed that the data migration was simply taking too long to complete when large data sets were involved. So, we've now implemented multiple performance improvements.
+
+As a result, the data migration should now be significantly faster. In some cases, the data migration time has been reduced even by 10 times.
+
+Note that the improved data migration is not automatically executed, and that, by default, the migration will still be executed as it was before. If you want to execute the new optimized migration, there will be a couple of manual steps involved. For more information, please take a look at the linked GitHub [pull request](https://github.com/webiny/webiny-js/pull/4154).
 
 ### Introducing the `WEBINY_MIGRATION_LOG_STREAMING` Environment Variable ([#4136](https://github.com/webiny/webiny-js/pull/4136) [#4139](https://github.com/webiny/webiny-js/pull/4139))
 
@@ -64,3 +80,9 @@ WEBINY_MIGRATION_LOG_STREAMING=false webiny deploy api --env=dev
   Regardless of the `WEBINY_MIGRATION_LOG_STREAMING` environment variable being used or not, the applicable data migrations will always be executed and all the data migration logs will still be available in the Amazon CloudWatch logs.
 
 </Alert>
+
+## Page Builder
+
+### Website Settings Form - Fixed an Issue Related to Locale Switching ([#4157](https://github.com/webiny/webiny-js/pull/4157))
+
+In case a user switched to a different locale, submitting Page Builder's Website settings form would result in an error. This issue has now been resolved, and the Website settings form now works as expected, regardless of the locale being used. 
