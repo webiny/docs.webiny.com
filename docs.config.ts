@@ -16,13 +16,17 @@ import { UserGuideMdxFile } from "./docs/user-guides/UserGuideMdxFile";
 import { UserGuidesVersionProvider } from "./docs/user-guides/UserGuidesVersionProvider";
 import { ReleaseNotesMdxFile } from "./docs/release-notes/ReleaseNotesMdxFile";
 
+// @ts-expect-error
+import { redirects } from "./vercel.json";
+
 const preview = process.env.VERCEL_ENV === "preview" || process.env.NODE_ENV === "development";
 
 /**
  * Sometimes, we want to use links unknown to the LinkValidator, but which are located under the same domain.
  * Use this array to whitelist such links.
+ * We also whitelist all links that are defined in `vercel.json` redirects.
  */
-const linkWhitelist: string[] = ["/forms/product-demo", "/slack"];
+const linkWhitelist: string[] = [...redirects.map(r => r.source), "/forms/product-demo", "/slack"];
 
 /**
  * If you want to only build specific versions in the Vercel preview deployment,
@@ -40,12 +44,16 @@ const filterByEnvironment = (version: Version) => {
   return true;
 };
 
+const existsInDocs = (link: string) => {
+  return fs.pathExists(path.join(__dirname, `src/pages/${link}.js`));
+};
+
 export default {
   projectRootDir: __dirname,
   cleanOutputDir: path.resolve("src/pages/docs"),
   sitemapOutputPath: path.resolve("public/algolia/sitemap.xml"),
   linkValidator: new LinkValidator(linkWhitelist, link => {
-    return fs.pathExists(path.join(__dirname, `src/pages/${link}.js`));
+    return existsInDocs(link);
   }),
   documentRoots: [
     /* Developer Docs */
