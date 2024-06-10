@@ -13,7 +13,7 @@ export const Navigation = () => {
         <Group title={"Get Started"} link={"get-started/welcome"}>
           <Page link={"get-started/welcome"}/>
         </Group>
-        <Group 
+        <Group
           title={"Webiny Overview"}
           icon={"/docs-menu-icons/webiny-overview.svg"}
           link={"overview/why-and-when-to-use-webiny"}
@@ -44,12 +44,13 @@ export const Navigation = () => {
               link={"headless-cms/extending/private-models"}
               after={"headless-cms/extending/custom-sorting"}
             />
+            <Page link={"headless-cms/extending/lexical-editor"} />
           </Group>
           <Group title={"References"}>
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
           </Group>
         </Group>
-        <Group 
+        <Group
           title={"Page Builder"}
           icon={"/docs-menu-icons/page-builder.svg"}
           link={"page-builder/overview"}
