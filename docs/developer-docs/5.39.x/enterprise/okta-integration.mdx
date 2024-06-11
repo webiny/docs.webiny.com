@@ -107,10 +107,9 @@ export default ({ documentClient }: { documentClient: DocumentClient }) => [
     createSecurityGraphQL({
 +       /**
 +        * For Okta, we must provide custom logic to determine the "default" tenant for current identity.
-+        * Since we're not linking identities to tenants via DB records, we can just return the current tenant.
 +        */
 +       async getDefaultTenant(context) {
-+           return context.tenancy.getCurrentTenant();
++           return context.tenancy.getRootTenant();
 +       }
     }),
 
@@ -129,7 +128,7 @@ export default ({ documentClient }: { documentClient: DocumentClient }) => [
 +        */
 +       issuer: process.env.OKTA_ISSUER as string,
 +       /**
-+        * Construct the identity object and map token claims to arbitrary identity properties.
++        * Construct the identity object and optinally map token claims to arbitrary identity properties.
 +        */
 +       getIdentity({ token }) {
 +           return {
@@ -138,12 +137,6 @@ export default ({ documentClient }: { documentClient: DocumentClient }) => [
 +               displayName: token.name,
 +               group: token.webiny_group
 +           };
-+       },
-+       /**
-+        * Get the slug of a security group to fetch permissions from.
-+        */
-+       getGroupSlug(context) {
-+           return context.security.getIdentity().group;
 +       }
 +   }),
 
