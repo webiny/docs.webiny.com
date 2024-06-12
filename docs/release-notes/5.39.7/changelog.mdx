@@ -132,3 +132,41 @@ You can now use `process.env.WEBINY_ADMIN_ENV` in the Admin app, and `process.en
 We've added the ability to programmatically control whether an identity has access to the current tenant. This is done as part of the Auth0 configuration. A dedicated optional callback was added, called `canAccessTenant`, which allows you to implement custom logic for allowing or denying an identity access to the requested tenant. As this is part of the authorization process, this essentially means that, if denied access, the identity will have no permissions on the tenant, and will be treated as a public request.
 
 To learn more about this feature, check out the [Setup Auth0](/docs/enterprise/auth0-integration#8-tenant-access-control-optional) article.
+
+### Multiple Amazon Cognito Authenticators Now Work Together
+
+We've fixed an issue where having two or more Amazon Cognito authentication plugins in the **API** project application's security configuration would result in the Admin app not working as expected. More specifically, upon creating a new user, the process would fail with an error. And because a new user is being created during the initial Webiny installation process, this would result in the Admin app not being accessible at all. 
+
+An example of code that would cause this issue is shown below:
+
+```ts apps/api/graphql/src/security.ts
+// ...
+    // The default Cognito authentication plugin
+    cognitoAuthentication({
+        region: String(process.env.COGNITO_REGION),
+        userPoolId: String(process.env.COGNITO_USER_POOL_ID),
+        identityType: "admin"
+    }),
+
+    // The second Cognito authentication plugin
+    cognitoAuthentication({
+        region: String(process.env.WEBSITE_COGNITO_REGION),
+        userPoolId: String(process.env.WEBSITE_COGNITO_USER_POOL_ID),
+        identityType: "website-users",
+        getIdentity({ token, identityType}) {
+            return {
+                id: token.sub,
+                type: identityType,
+                displayName: `${token.given_name} ${token.family_name}`,
+                email: token.email,
+                firstName: token.given_name,
+                lastName: token.family_name,
+                group: token["custom:wby_website_group"]
+            }
+        }
+    }),
+
+// ...
+```
+
+With this release, the issue has been resolved, and you can now have multiple Amazon Cognito authenticators working together, without any issues.
