@@ -1,0 +1,172 @@
+---
+id: c46ec70b
+title: Webiny 5.39.7 Changelog
+description: See what's new in Webiny version 5.39.7.
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import oldGqlFields from "./assets/old-gql-fields.png";
+
+<GithubRelease version={"5.39.7"} />
+
+## Headless CMS
+
+### Unpublishing Content Entries - Ensuring All Internal Records Are Correctly Updated ([#4137](https://github.com/webiny/webiny-js/pull/4137))
+
+We've detected an issue where, upon unpublishing a content entry, an internal record was not correctly updated. This issue has now been resolved, and the internal records are now correctly updated when unpublishing content entries.
+
+### Brought Back `publishedOn` and `ownedBy` Entry Meta Fields (GraphQL Schema Level) ([#4156](https://github.com/webiny/webiny-js/pull/4156), [#4161](https://github.com/webiny/webiny-js/pull/4161))
+
+With the [5.39.0 release](/docs/release-notes/5.39.0/changelog), we've removed the following two content entry meta fields:
+
+1. `publishedOn`
+2. `ownedBy`
+
+These fields were removed because they were replaced with the [new meta fields](/docs/release-notes/5.39.0/changelog#headless-cms-revamped-date-time-and-identity-on-by-meta-fields).
+
+However, based on the user feedback, we've realized keeping these fields at least on the GraphQL schema level is helpful, as some users might still be using them in their existing applications (applications that are not yet updated to use the new meta fields).
+
+So, in order to make things a bit easier, on the GraphQL schema level, we've decided to bring back these fields.
+
+<Image
+  src={oldGqlFields}
+  alt={
+    <>
+      Old <code>publishedOn</code> and <code>ownedBy</code> GraphQL Meta Fields Used In a GraphQL
+      Query
+    </>
+  }
+/>
+
+Note that these fields are marked as **deprecated**, and, when possible, we recommend using the new meta fields instead. Also, as mentioned, these fields have only been brought back on the GraphQL schema level. Trying to access these fields via one of the JavaScript APIs will result in an error.
+
+Ultimately, note that we plan to again remove these fields, with the 5.41.0 release.
+
+### Made New Meta Fields Nullable (GraphQL Schema Level) ([#4156](https://github.com/webiny/webiny-js/pull/4156))
+
+On top of bringing back the `publishedOn` and `ownedBy` fields, again, on the GraphQL level, we've also changed the new **non-nullable** entry meta fields and make them nullable. To be specific, we're talking about the following eight fields:
+
+1. `createdOn`
+2. `savedOn`
+3. `revisionCreatedOn`
+4. `revisionSavedOn`
+5. `createdBy`
+6. `savedBy`
+7. `createdByUser`
+8. `savedByUser`
+
+This change was made to ensure a better experience while performing the 5.39.x data migration. Without this change, while the data migration is being performed, in most cases, users with large data sets would be unable to use Headless CMS in the Admin app. This would happen simply because, while issuing GraphQL queries, the new meta fields would be required to be present, but, due to the data migration being in progress, these fields would not be present.
+
+With this change, the new meta fields are now nullable, and, as a result, users can continue using Headless CMS in the Admin app, even while the data migration is in progress.
+
+## Data Migrations
+
+### Further Improving the 5.39.6-001 Data Migration ([#4154](https://github.com/webiny/webiny-js/pull/4154))
+
+For this release, we've again invested some time in further improving the data migration that was introduced with the [5.39.6-001 release](/docs/release-notes/5.39.6/changelog#improving-the-5-39-0-meta-fields-data-migration-4115).
+
+The is because we've noticed that the data migration was simply taking too long to complete when large data sets were involved. So, we've now implemented multiple performance improvements.
+
+As a result, the data migration should now be significantly faster. In some cases, the data migration time has been reduced even tenfold.
+
+Note that the improved data migration is not automatically executed, and that, by default, the migration will still be executed as it was before. If you want to execute the new optimized migration, there will be a couple of manual steps involved. For more information, please take a look at the linked GitHub [pull request](https://github.com/webiny/webiny-js/pull/4154).
+
+### Introducing the `WEBINY_MIGRATION_LOG_STREAMING` Environment Variable ([#4136](https://github.com/webiny/webiny-js/pull/4136) [#4139](https://github.com/webiny/webiny-js/pull/4139))
+
+Upon deploying the **API** project application, users can now use the `WEBINY_MIGRATION_LOG_STREAMING` environment variable in order to decide whether they want the data migration-related logs to be streamed into the terminal or not, during the deployment process.
+
+Note that, since the streaming of data migration logs is enabled by default, the `WEBINY_MIGRATION_LOG_STREAMING` variable is essentially only used when the user wants to disable the streaming of data migration logs.
+
+To disable the streaming of data migration logs, set the `WEBINY_MIGRATION_LOG_STREAMING` environment variable to `false`:
+
+```bash
+WEBINY_MIGRATION_LOG_STREAMING=false webiny deploy api --env=dev
+```
+
+<Alert type="info">
+
+Regardless of the `WEBINY_MIGRATION_LOG_STREAMING` environment variable being used or not, the applicable data migrations will always be executed and all the data migration logs will still be available in the Amazon CloudWatch logs.
+
+</Alert>
+
+### Add Support for Data Migration Skipping
+
+You can now force skip a migration by defining a `WEBINY_MIGRATION_SKIP_{MIGRATION_NAME}` environment variable in your `.env` file. A full example of the variable name would look something like this:
+
+```dotenv
+WEBINY_MIGRATION_SKIP_5_39_0_001=true
+```
+
+## Page Builder
+
+### Website Settings Form - Fixed an Issue Related to Locale Switching ([#4157](https://github.com/webiny/webiny-js/pull/4157))
+
+In case a user switched to a different locale, submitting Page Builder's Website settings form would result in an error. This issue has now been resolved, and the Website settings form now works as expected, regardless of the locale being used.
+
+### Enable History Snapshots on Element Drops
+
+With this release, we've fixed a sneaky issue with page history, which would sometimes cause elements to not be saved if you just dropped them into the page content, and immediately left the page editor. State history is now always enabled when elements are being dropped into the page content, and this will in turn always trigger an API call to persist the changes.
+
+## File Manager
+
+### Allow Underscores in File Aliases
+
+We've fixed the RegEx that was used to validate file aliases to allow the underscore (`_`) character.
+
+## Development
+
+### AWS Lambda Layers Deployed to `ap-east-1` Region
+
+Recently, several users ran into issues with `ap-east-1` region, because it's an opt-in region, and usually, layer maintainers do not have this region enabled in their AWS accounts. With this release, we've published the two Lambda layers, `sharp` and `chromium`, into the official Webiny AWS account, and have enabled them in the `ap-east-1` region.
+
+### Add `WEBINY_ADMIN_ENV` and `WEBINY_WEBSITE_ENV` Environment Variables
+
+Several users requested an ability to know which environment the React app is being built for, within React itself. Until now, there was a way to inject any piece of information from Pulumi into React apps, but since this is such a common thing, we've now added this information by default to our Admin and Website apps.
+
+You can now use `process.env.WEBINY_ADMIN_ENV` in the Admin app, and `process.env.WEBINY_WEBSITE_ENV` in the Website app, to get the value of the environment being built.
+
+## Enterprise
+
+### Auth0 Tenant Access Control
+
+We've added the ability to programmatically control whether an identity has access to the current tenant. This is done as part of the Auth0 configuration. A dedicated optional callback was added, called `canAccessTenant`, which allows you to implement custom logic for allowing or denying an identity access to the requested tenant. As this is part of the authorization process, this essentially means that, if denied access, the identity will have no permissions on the tenant, and will be treated as a public request.
+
+To learn more about this feature, check out the [Setup Auth0](/docs/enterprise/auth0-integration#8-tenant-access-control-optional) article.
+
+### Multiple Amazon Cognito Authenticators Now Work Together
+
+We've fixed an issue where having two or more Amazon Cognito authentication plugins in the **API** project application's security configuration would result in the Admin app not working as expected. More specifically, upon creating a new user, the process would fail with an error. And because a new user is being created during the initial Webiny installation process, this would result in the Admin app not being accessible at all. 
+
+An example of code that would cause this issue is shown below:
+
+```ts apps/api/graphql/src/security.ts
+// ...
+    // The default Cognito authentication plugin
+    cognitoAuthentication({
+        region: String(process.env.COGNITO_REGION),
+        userPoolId: String(process.env.COGNITO_USER_POOL_ID),
+        identityType: "admin"
+    }),
+
+    // The second Cognito authentication plugin
+    cognitoAuthentication({
+        region: String(process.env.WEBSITE_COGNITO_REGION),
+        userPoolId: String(process.env.WEBSITE_COGNITO_USER_POOL_ID),
+        identityType: "website-users",
+        getIdentity({ token, identityType}) {
+            return {
+                id: token.sub,
+                type: identityType,
+                displayName: `${token.given_name} ${token.family_name}`,
+                email: token.email,
+                firstName: token.given_name,
+                lastName: token.family_name,
+                group: token["custom:wby_website_group"]
+            }
+        }
+    }),
+
+// ...
+```
+
+With this release, the issue has been resolved, and you can now have multiple Amazon Cognito authenticators working together, without any issues.
