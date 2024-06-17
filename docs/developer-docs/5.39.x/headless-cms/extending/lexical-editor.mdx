@@ -1,0 +1,337 @@
+---
+id: b1a205e0
+title: Lexical Editor
+description: Configure the Lexical Editor in Headless CMS.
+---
+
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { Alert } from "@/components/Alert";
+import staticToolbar from "./assets/hcms-rte-static-toolbar.png";
+import discoverToolbarActions from "./assets/hcms-discover-toolbar-actions.png";
+
+<CanIUseThis since={"5.39.0"} />
+
+<WhatYouWillLearn>- how to customize the Lexical editor in Headless CMS</WhatYouWillLearn>
+
+## Overview
+
+Webiny uses [Lexical Editor](https://lexical.dev/) to allow users to create rich text content quickly. Lexical Editor is created by Meta, it’s open source, and very customizable. To learn more about how Lexical Editor works, check the [official docs](https://lexical.dev/docs/intro).
+
+In this article, we'll cover the Lexical Editor configuration for the Headless CMS Rich Text field. The configuration includes toolbar actions, plugins, and Lexical nodes.
+
+### Toolbar
+
+Headless CMS uses a static toolbar, which is always visible, unlike the [Page Builder](/docs/page-builder/extending/lexical-editor), which uses a floating toolbar. Webiny ships with a set of default actions, but you can add new actions, replace existing actions, or remove them completely.
+
+<Image src={staticToolbar} title="Static Rich Text Editor Toolbar" />
+
+#### Discover Actions
+
+When working with actions, you must know their names to be able to target them via code. The easiest way to discover existing actions is to use the React Dev Tools plugin for your browser, and inspect the toolbar action element. From there, you can look at the Fragment key value.
+
+<Image title="Discover Toolbar Actions" src={discoverToolbarActions} />
+
+We've also attached a table of known action names at the [bottom of the article](#built-in-toolbar-actions), for your convenience.
+
+#### Add an Action
+
+To add a new toolbar action, use the `<ToolbarAction>` component and mount it within your Admin app.
+
+```jsx apps/admin/src/App.tsx
+import React from "react";
+// ...
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+// Imports for the custom toolbar action
+import { FORMAT_TEXT_COMMAND } from "lexical";
+import { useRichTextEditor, useCurrentSelection } from "@webiny/lexical-editor";
+
+const MyCustomBoldActon = () => {
+  const { editor } = useRichTextEditor();
+  const { rangeSelection } = useCurrentSelection();
+  const isBoldSelected = rangeSelection ? rangeSelection.hasFormat("bold") : false;
+
+  const handleClick = () => {
+    editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className={"popup-item spaced " + (isBoldSelected ? "active" : "")}
+      aria-label="Format text as bold"
+    >
+      <i className="format bold" />
+    </button>
+  );
+};
+
+// Access the Heading element.
+const { ToolbarAction } = LexicalEditorConfig;
+
+export const App = () => {
+  return (
+    <Admin>
+      <Cognito />
+      <LexicalEditorConfig>
+        <ToolbarAction name={"myCustomBoldActon"} element={<MyCustomBoldActon />} />
+      </LexicalEditorConfig>
+    </Admin>
+  );
+};
+```
+
+<Alert type="info" title={"Important!"}>
+  The code snippet above shows the full process of applying Lexical editor customizations to your
+  project. The following sections of this article will only focus on the Lexical config components,
+  and the registration code will be omitted for brevity.
+</Alert>
+
+#### Replace an Action
+
+To replace an existing action with a new action element, reference the existing action by name, and pass a new element via the `element` prop:
+
+```jsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { ToolbarAction } = LexicalEditorConfig;
+
+<LexicalEditorConfig>
+  <ToolbarAction name={"bold"} element={<MyCustomBoldActon />} />
+</LexicalEditorConfig>;
+```
+
+#### Remove an Action
+
+To remove an action, reference the existing action by name, and pass a `remove` prop to the `<ToolbarAction>` element:
+
+```jsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { ToolbarAction } = LexicalEditorConfig;
+
+<LexicalEditorConfig>
+  <ToolbarAction name={"fontSize"} remove />
+</LexicalEditorConfig>;
+```
+
+#### Position an Action
+
+To position an existing or a new custom action, use `before` or `after` props on the `<ToolbarAction>` element:
+
+```jsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { ToolbarAction } = LexicalEditorConfig;
+
+<LexicalEditorConfig>
+  {/* Position your action before the `fontSize` action */}
+  <ToolbarAction name={"myCustomBoldActon"} element={<MyCustomBoldActon />} before={"fontSize"} />
+
+  {/* Position the existing `fontSize` action after some other action. */}
+  <ToolbarAction name={"fontSize"} after={"myCustomBoldActon"} />
+</LexicalEditorConfig>;
+```
+
+### Plugins
+
+Plugins allow you to hook into the Lexical editor state and develop custom functionality, show custom UI, etc. Please read the [official docs](https://lexical.dev/docs/react/plugins) for more information about the Lexical plugins.
+
+#### Add a Plugin
+
+To add a new Lexical plugin, you need to use the `<Plugin>` component and mount it within your Admin app.
+
+```tsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { Plugin } = LexicalEditorConfig;
+
+const MyPlugin = () => {
+  /* Implement your plugin logic here. */
+  return null;
+};
+
+<LexicalEditorConfig>
+  <Plugin name={"myPlugin"} element={<MyPlugin />} />
+</LexicalEditorConfig>;
+```
+
+Please refer to the [@webiny/lexical-editor](https://github.com/webiny/webiny-js/tree/next/packages/lexical-editor/src/plugins) package on our Github, for real life examples of plugins.
+
+#### Replace a Plugin
+
+To replace an existing plugin with a new plugin, reference the existing plugin by name, and pass a new element via the `element` prop:
+
+```jsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { Plugin } = LexicalEditorConfig;
+
+<LexicalEditorConfig>
+  <Plugin name={"link"} element={<CustomFloatingLinkEditorPlugin />} />
+</LexicalEditorConfig>;
+```
+
+#### Remove a Plugin
+
+To remove a plugin, reference the existing plugin by name, and pass a `remove` prop to the `<Plugin>` element:
+
+```jsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { Plugin } = LexicalEditorConfig;
+
+<LexicalEditorConfig>
+  <Plugin name={"link"} remove />
+</LexicalEditorConfig>;
+```
+
+#### Position a Plugin
+
+To position an existing or a custom plugin, use `before` or `after` props on the `<Plugin>` element:
+
+```jsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { Plugin } = LexicalEditorConfig;
+
+/* Add a new plugin after the `fontSize` plugin. */
+<LexicalEditorConfig>
+    <Plugin name={"newPlugin"} element={<NewPlugin />} after={"fontSize"} />
+</LexicalEditorConfig>
+
+/* Position the existing plugin before some other plugin. */
+<LexicalEditorConfig>
+    <Plugin name={"link"} before={"anotherPlugin"} />
+</LexicalEditorConfig>
+```
+
+#### Built-in Plugins
+
+| Component                | Name               | Description                                                                                   |
+| ------------------------ | ------------------ | --------------------------------------------------------------------------------------------- |
+| FontColorPlugin          | fontColor          | Apply font color to the text.                                                                 |
+| ListPlugin               | list               | Format the bullet and numbered lists.                                                         |
+| CodeHighlightPlugin      | codeHighlight      | Format code highlight.                                                                        |
+| TypographyPlugin         | typography         | Format and apply typography styles for the selected text block.                               |
+| LinkPlugin               | link               | Format text to link.                                                                          |
+| FloatingLinkEditorPlugin | floatingLinkEditor | Manage the form and position of the floating pop-up window where the user can edit the links. |
+| ImagesPlugin             | images             | Insert and edit an image.                                                                     |
+| QuotePlugin              | quote              | Format the selected text block to quote. This plugin will create quoteblock html tag.         |
+
+### Nodes
+
+Please read the [official docs](https://lexical.dev/docs/concepts/nodes) to learn what nodes are and why they're important.
+
+#### Add a Node
+
+To add a new Lexical node, use the `<Node>` component and mount it within your Admin app.
+
+```jsx apps/admin/src/App.tsx
+import { TextNode, EditorConfig, SerializedTextNode, Spread } from "lexical";
+
+type SerializedEmojiNode = Spread<{ className: string }, SerializedTextNode>;
+
+class EmojiNode extends TextNode {
+  __className: string;
+
+  static getType(): string {
+    return "emoji";
+  }
+
+  static clone(node: EmojiNode): EmojiNode {
+    return new EmojiNode(node.__className, node.__text, node.__key);
+  }
+
+  constructor(className: string, text: string, key?: NodeKey) {
+    super(text, key);
+    this.__className = className;
+  }
+
+  createDOM(config: EditorConfig): HTMLElement {
+    const dom = document.createElement("span");
+    const inner = super.createDOM(config);
+    dom.className = this.__className;
+    inner.className = "emoji-inner";
+    dom.appendChild(inner);
+    return dom;
+  }
+
+  static importJSON(serializedNode: SerializedEmojiNode): EmojiNode {
+    const node = $createEmojiNode(serializedNode.className, serializedNode.text);
+    node.setFormat(serializedNode.format);
+    node.setDetail(serializedNode.detail);
+    node.setMode(serializedNode.mode);
+    node.setStyle(serializedNode.style);
+    return node;
+  }
+}
+
+const { Node } = LexicalEditorConfig;
+
+<LexicalEditorConfig>
+  <Node name={"emojiNode"} node={EmojiNode} />
+</LexicalEditorConfig>;
+```
+
+Please check the official [Lexical documentation](https://github.com/facebook/lexical/blob/main/packages/lexical-playground/src/nodes/EmojiNode.tsx) for full example.
+
+#### Replace a Node
+
+To replace your custom Lexical node with a new node, reference the existing node by name, and pass a new node class via the `node` prop:
+
+```jsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { Node } = LexicalEditorConfig;
+
+<LexicalEditorConfig>
+  <Node name={"emojiNode"} node={MyExtendedEmojiNode} />
+</LexicalEditorConfig>;
+```
+
+#### Remove a Node
+
+To remove a node, reference the existing node by name, and pass a `remove` prop to the `<Node>` element:
+
+```jsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { Node } = LexicalEditorConfig;
+
+<LexicalEditorConfig>
+  <Node name={"emojiNode"} remove />
+</LexicalEditorConfig>;
+```
+
+#### Position a Node
+
+To position your nodes, you can use `before` and `after` props on the `<Node>` element:
+
+```jsx apps/admin/src/App.tsx
+import { LexicalEditorConfig } from "@webiny/app-headless-cms";
+
+const { Node } = LexicalEditorConfig;
+
+<LexicalEditorConfig>
+  <Node name={"emojiNode"} node={EmojiNode} after={"newNode"} />
+  <Node name={"newNode"} node={NewNode} before={"myExtendedEmojiNode"} />
+</LexicalEditorConfig>;
+```
+
+## Built-in Toolbar Actions
+
+| Component           | Name            | Description                                                                                                                         |
+| ------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| FontSizeAction      | `fontSize`      | Set font size.                                                                                                                      |
+| FontColorAction     | `fontColor`     | Change the font color of the text.                                                                                                  |
+| TypographyAction    | `typography`    | Apply typography styles specified in the theme for the particular selected block of text. For example paragraph, header, list, etc. |
+| BoldAction          | `boldAction`    | Set bold to the selected text.                                                                                                      |
+| ItalicAction        | `italic`        | Set the italic style to the text.                                                                                                   |
+| UnderlineAction     | `underline`     | Set underline style to the text.                                                                                                    |
+| CodeHighlightAction | `codeHighlight` | Apply code highlight to the text.                                                                                                   |
+| NumberedListAction  | `numberedList`  | Convert the header or paragraph text block into a numbered list.                                                                    |
+| BulletListAction    | `bulletList`    | Convert the header or paragraph text block into a bullet list.                                                                      |
+| ImageAction         | `image`         | Open File Manager where the user can select and insert one image at a time.                                                         |
+| LinkAction          | `link`          | Open a pop-up where the user can set the URL and convert the text to a link.                                                        |
+| QuoteAction         | `quote`         | Convert the selected text block to a quote.                                                                                         |

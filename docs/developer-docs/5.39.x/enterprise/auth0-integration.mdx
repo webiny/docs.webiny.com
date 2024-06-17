@@ -104,10 +104,9 @@ export default ({ documentClient }: { documentClient: DocumentClient }) => [
     createSecurityGraphQL({
 +       /**
 +        * For Auth0, we must provide custom logic to determine the "default" tenant for current identity.
-+        * Since we're not linking identities to tenants via DB records, we can just return the current tenant.
 +        */
 +       async getDefaultTenant(context) {
-+           return context.tenancy.getCurrentTenant();
++           return context.tenancy.getRootTenant();
 +       }
     }),
 
@@ -133,18 +132,11 @@ export default ({ documentClient }: { documentClient: DocumentClient }) => [
 +               id: token["sub"],
 +               type: "admin",
 +               displayName: token["name"],
-+               // Assign any custom values you might need.
++               // Assign Webiny security group (role) slug.
 +               group: token["group"]
++               // Assign any custom values you might need.
++               // ...
 +           };
-+       },
-+       /**
-+        * Get the slug of a security group to fetch permissions from.
-+        */
-+       getGroupSlug(context) {
-+           const identity = context.security.getIdentity();
-+
-+           // Return group slug you want to map this identity to.
-+           return identity["group"];
 +       }
 +   }),
 
@@ -293,4 +285,4 @@ export const App = () => {
 };
 ```
 
-Next time the system renders the **NotAuthorizedError** component, your decorator will intercept the output, and render your custom UI. 
+Next time the system renders the **NotAuthorizedError** component, your decorator will intercept the output, and render your custom UI.
