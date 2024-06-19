@@ -96,6 +96,9 @@ export const Navigation = () => {
             <Page link={"core-development-concepts/background-tasks/what-to-be-careful-about"} />
           </Group>
         </Group>
+        <Group title={"Webiny Enterprise"}>
+          <Page link={"enterprise/advanced-tenant-management"} after={"enterprise/cognito-federation"}/>
+        </Group>
       </NavigationRoot>
     </>
   );
