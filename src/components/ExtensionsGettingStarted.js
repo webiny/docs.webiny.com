@@ -15,7 +15,7 @@ export const ExtensionsGettingStarted = ({
     scaffoldCommandExtraInfo
 }) => {
     let scaffoldCommandParts = [
-        "yarn webiny scaffold new-extension",
+        "yarn webiny scaffold extension",
         `--type ${type}`,
         `--name ${name}`
     ];
