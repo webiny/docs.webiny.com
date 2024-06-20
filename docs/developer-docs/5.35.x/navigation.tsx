@@ -8,6 +8,11 @@ export const Navigation = () => {
       {/* Inherit navigation from 5.34.x. */}
       <BaseNavigation />
       <NavigationRoot directory={__dirname}>
+        <Group title={"Admin Area"}>
+          <Group title={"Extending Functionality"}>
+            <Page link={"admin-area/extending/custom-providers"} />
+          </Group>
+        </Group>
         <Group title={"Webiny Overview"}>
           <Group title={"Features"} linkPrefix={"features"}>
             <Page

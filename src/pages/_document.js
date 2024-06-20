@@ -129,14 +129,18 @@ export default class Document extends NextDocument {
                 </Head>
                 <body className="antialiased text-slate-500 dark:text-slate-400 dark:bg-dark-theme">
                     {/*<!-- Google Tag Manager (noscript) -->*/}
-                    <noscript><iframe 
-                        src="https://www.googletagmanager.com/ns.html?id=GTM-5TG2W9G"
-                        height="0" 
-                        width="0" 
-                        style={{
-                            "display":"none", 
-                            "visibility":"hidden"}}>
-                    </iframe></noscript>
+                    <noscript>
+                        <iframe
+                            title="Google Tag Manager"
+                            src="https://www.googletagmanager.com/ns.html?id=GTM-5TG2W9G"
+                            height="0"
+                            width="0"
+                            style={{
+                                display: "none",
+                                visibility: "hidden"
+                            }}
+                        ></iframe>
+                    </noscript>
                     {/*<!-- End Google Tag Manager (noscript) -->*/}
                     <Main />
                     <NextScript />

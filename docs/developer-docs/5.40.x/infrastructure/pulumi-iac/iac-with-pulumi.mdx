@@ -1,0 +1,128 @@
+---
+id: aafeab77
+title: Infrastructure as Code with Pulumi
+description: Learn what is Pulumi and how Webiny is utilizing it with your project applications.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you’ll learn">
+
+- what is Pulumi
+- how is Webiny utilizing Pulumi with your project applications
+- what are state files
+- what are backends
+
+</Alert>
+
+## Why Pulumi?
+
+For defining and deploying necessary cloud infrastructure Webiny relies on [Pulumi](https://www.pulumi.com/), a modern [infrastructure as code (IaC)](https://docs.aws.amazon.com/whitepapers/latest/introduction-devops-aws/infrastructure-as-code.html) solution.
+
+Webiny chose Pulumi as its default IaC solution for a couple of reasons:
+
+- cloud infrastructure is defined via code (TypeScript)
+- it supports multiple cloud providers (AWS, Azure, Google Cloud Platform, ...)
+- it provides multiple solutions for storing infrastructure state
+- a vibrant and rising community
+
+## A Closer Look
+
+Every Webiny project consists of four project applications:
+
+1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts))
+2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts))
+3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts))
+4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts))
+
+In the background, all of these applications are standalone [Pulumi projects](https://www.pulumi.com/docs/intro/concepts/project/#projects), which essentially means two things.
+
+1. every project application contains its own infrastructure-related code ([Pulumi program](https://www.pulumi.com/docs/intro/concepts/programming-model/#programs)), configuration, meta, and [state files](/docs/{version}/infrastructure/pulumi-iac/iac-with-pulumi#state-files)
+
+2. upon fully deploying a Webiny project via the [`webiny deploy`](/docs/core-development-concepts/basics/project-deployment) command, applications are deployed separately, one by one, in the same order as listed above
+
+<Alert type="info" title="Cloud Infrastructure">
+
+Read more about the cloud infrastructure resources that get deployed into your AWS account in our [Cloud
+Infrastructure](/docs/{version}/architecture/introduction) key topics section.
+
+</Alert>
+
+When it comes to the cloud infrastructure (Pulumi) code that defines all of the required resources, note that all of it is abstracted away from users and maintained internally by the Webiny team. This way, users do not have to worry about the cloud infrastructure code, and can focus on building their applications.
+
+<Alert type={"info"}>
+
+If you are interested in seeing the actual cloud infrastructure code, you can find it in our [GitHub
+repository](https://github.com/webiny/webiny-js/tree/next/packages/pulumi-aws/src/apps).
+
+</Alert>
+
+Still, in some cases, users may need to modify the cloud infrastructure code. For example, when they want to add a new AWS resource, or modify an existing one. In such cases, users can do so by modifying the `webiny.application.ts` files located in the root of each project application.
+
+<Alert type="info">
+
+  To learn more about how to modify the cloud infrastructure code, please refer to the [Modify Cloud
+  Infrastructure](/docs/infrastructure/basics/modify-cloud-infrastructure) article.
+
+</Alert>
+
+## State Files and Different Backends
+
+Pulumi state files describe at what state your cloud infrastructure is currently at. For example, it contains a list of all deployed resources, various metadata, configuration, and so on. State files are stored per Pulumi program stack, and by default, they are stored in the `.pulumi` folder, located in your project root.
+
+```text
+.pulumi
+├── apps
+│   ├── core
+│   │   ├── .pulumi
+│   │   │   ├── backups
+│   │   │   ├── history
+│   │   │   └── stacks
+│   ├── api
+│   │   ├── .pulumi
+│   │   │   ├── backups
+│   │   │   ├── history
+│   │   │   └── stacks
+│   ├── admin
+│   │   ├── .pulumi
+│   │   │   ├── backups
+│   │   │   ├── history
+│   │   │   └── stacks
+│   └── website
+│       ├── .pulumi
+│       │   ├── backups
+│       │   ├── history
+│       │   └── stacks
+│  
+└── (...)
+```
+
+Notice how in the `.pulumi` folder, the state files are organized per project application:
+
+- `apps/core` - **Core** project application's cloud infrastructure state files
+- `apps/api` - **API** project application's cloud infrastructure state files
+- `apps/admin` - **Admin Area** project application's cloud infrastructure state files
+- `apps/website` - **Website** project application's cloud infrastructure state files
+
+While in some cases, like local development, storing state files locally may work for you, in others, you may want to store these in a remote storage.
+
+This is where the concept of [Pulumi backends](https://www.pulumi.com/docs/intro/concepts/state/#state-and-backends) comes into play, which represent different storage services, that you can use for storing your state files.
+
+For example, you can create a simple Amazon S3 bucket, and choose to store your files in it. You can also use the Pulumi Service, which, in addition to storing state files, also provides a couple of other cool features.
+
+<Alert type="info">
+
+Learn more about state files and how to store them [Cloud Infrastructure State Files](/docs/{version}/core-development-concepts/ci-cd/cloud-infrastructure-state-files)
+article.
+
+</Alert>
+
+## FAQ
+
+### Are you using Pulumi's Automation API?
+
+Currently, Webiny is not using the [Automation API](https://www.pulumi.com/blog/automation-api-workflow/). It's actually using its own [Pulumi SDK](https://github.com/webiny/webiny-js/tree/v5/packages/pulumi-sdk) package, which is just a tiny wrapper over Pulumi CLI. Essentially, it enables programmatic use of the Pulumi CLI, which is similar to what the Automation API is also doing.
+
+### Is it possible to use a different infrastructure-as-code solution?
+
+Switching to a different infrastructure-as-code (IaC) solution would require a significant amount of work as it would involve rewriting almost all of the Webiny IaC code from scratch for a different IaC solution. **Therefore, we do not recommend it.**

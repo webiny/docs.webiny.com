@@ -1,0 +1,188 @@
+---
+id: aafeaa20
+title: Environment Variables
+description: Learn what are environment variables and how you can assign them.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- what are environment variables
+- how you can assign environment variables in your project applications
+
+</Alert>
+
+## Overview
+
+It's not unusual to have our application code rely on one or more [environment variables](https://en.wikipedia.org/wiki/Environment_variable). Different pieces of information, like for example, API keys, API URLs, different configuration parameters, or environment metadata, are just some of the things that our application might need in order to work as expected.
+
+Environment variables can be used with all three project applications that get shipped with every Webiny project:
+
+1. **API** ([`apps/api`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/ddb/apps/api))
+2. **Admin** ([`apps/admin`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/admin))
+3. **Website** ([`apps/website`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/cwp-template-aws/template/common/apps/website))
+
+Upon adding new environment variables, we use the following naming convention:
+
+```bash
+WEBINY_{APP_NAME}_{VARIABLE_NAME}
+```
+
+For example, in order to inject `MY_CUSTOM_ENV_VAR` variable into all three application, we'd define the following three environment variables:
+
+```bash
+WEBINY_API_MY_CUSTOM_ENV_VAR=...
+WEBINY_ADMIN_MY_CUSTOM_ENV_VAR=...
+WEBINY_WEBSITE_MY_CUSTOM_ENV_VAR=...
+```
+
+Note that, upon accessing added environment variables in the application code, you need to specify variable's full name, including the `WEBINY_{APP_NAME}_` prefix:
+
+```ts
+// In the API application code:
+const myCustomEnvVar = process.env["WEBINY_API_MY_CUSTOM_ENV_VAR"];
+
+// In the Admin application code:
+const myCustomEnvVar = process.env["WEBINY_ADMIN_MY_CUSTOM_ENV_VAR"];
+
+// In the Website application code:
+const myCustomEnvVar = process.env["WEBINY_WEBSITE_MY_CUSTOM_ENV_VAR"];
+```
+
+## How To Assign Environment Variables
+
+### Using `.env` File
+
+For development purposes, the recommended way to do it would be via the `.env` file, located in your project root.
+
+When you set up a brand new Webiny project, the content of the file might look similar to the following:
+
+```diff-bash .env
+# The region into which your project will be deployed.
+AWS_REGION=eu-central-1
+
+# Needed for project deployment.
+PULUMI_CONFIG_PASSPHRASE=9f174eea6ec6148dc1467s59b1112591
+PULUMI_SECRETS_PROVIDER=passphrase
+
++ WEBINY_API_MY_CUSTOM_ENV_VAR=some-random-value
+```
+
+From there, we can easily add additional environment variables, like we did with the `WEBINY_API_MY_CUSTOM_ENV_VAR`.
+
+### Using Terminal
+
+Apart from setting them via the shown `.env` file, environment variables can also be set using a terminal of your choice, and a command that's available on your operating system.
+
+For example, on Linux or MacOS, you can use the [export](https://www.geeksforgeeks.org/export-command-in-linux-with-examples/) command:
+
+```bash
+export AWS_PROFILE=my-profile
+```
+
+On Windows, you can utilize the [set](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/set_1) and [setx](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx) commands, for example:
+
+```bash
+setx AWS_PROFILE my-profile
+```
+
+This approach can be used both in development and CI/CD environments, although in case of the latter, using built-in methods for securely storing environment variables is recommended.
+
+### CI/CD
+
+Different CI/CD providers offer different options when it comes to setting environment variables. For example, [GitHub Actions](https://github.com/features/actions) enable this via [repository secrets](https://docs.github.com/en/actions/reference/encrypted-secrets). On the other hand, if using [AWS CodeBuild](https://aws.amazon.com/codebuild/), you can use the [AWS CodePipeline](https://aws.amazon.com/codepipeline/) service.
+
+Make sure to read the relevant documentation for best practices around how to properly set environment variables in your CI/CD provider.
+
+## Webiny Built-in Environment Variables
+
+### `DEBUG`
+
+In order to provide the best possible debugging experience, and at the same time, maintain a strong security posture, Webiny uses the `DEBUG` environment variable to determine what information needs to be revealed in case one or more errors were thrown in the application runtime.
+
+By default, the `DEBUG` environment variable is set to `true`, via the `.env` file located in your project root. For development purposes, this can useful as you'll get to see full error reports whenever an error has been returned from for example the GraphQL API, or maybe even in your React application code.
+
+On the other hand, for some pre-production and production environments, most probably you will want to not have this variable set to `true`, as in some cases, full error reports might reveal sensitive data, and may pose a security vulnerability.
+
+In the following text, we cover a couple of key features that are available while the `DEBUG` flag is set to `true`.
+
+#### Backend Error Reporting
+
+In case of a backend error, for example, an error in a GraphQL resolver function, by default, the client that issued the request will receive the following error response:
+
+```json
+{
+  "error": {
+    "name": "Error",
+    "message": "Internal Sever Error"
+  }
+}
+```
+
+As mentioned, the reason for the obscurity is primarily security, as we want to avoid potential leaking of sensitive information to the public.
+
+On the other hand, for development purposes, setting the `DEBUG` environment variable to `true`, will force the backend to return something like the following:
+
+```json
+{
+  "error": {
+    "name": "Error",
+    "message": "Unknown type\"Stringgg\". Did you mean \"String\"?",
+    "stack": "Error: Unknown type \"Stringgg\". Did you mean \"String\"?\n    at p (/var/task/handler.js:15:52587)\n    at x (/var/task/handler.js:45:166906)\n    at fe (/var/task/handler.js:126:504732)\n    at Ee (/var/task/handler.js:126:514113)\n    at t.createGraphQLSchema (/var/task/handler.js:57:373)\n    at handle (/var/task/handler.js:45:189370)\n    at /var/task/handler.js:45:187469\n    at new Promise (<anonymous>)\n    at i (/var/task/handler.js:45:187419)\n    at /var/task/handler.js:45:187592"
+  }
+}
+```
+
+<Alert type="info">
+
+You must redeploy your backend project application after updating the environment variables. Otherwise, the change will not be reflected.
+
+</Alert>
+
+#### Visual Feedback
+
+The `DEBUG` environment variable can also be used within your frontend (React) applications.
+
+If set to `true`, all errors detected in the application runtime will be presented within a clear error report, with all of the relevant information like the error message and a complete stack trace:
+
+![Error overlay in debug mode](./assets/environment-variables/error-overlay.png)
+
+### `WEBINY_ENABLE_VERSION_HEADER`
+
+The `WEBINY_ENABLE_VERSION_HEADER` environment variable is used to add the Webiny version header to all GraphQL response headers.
+By default, version headers are not set into the response headers. If you want the version headers to be included, you must set the environment variable to `true`.
+
+Only the `true` word will have effect. If you set it to anything else, `WEBINY_ENABLE_VERSION_HEADER` will be considered as `false` / not set.
+
+```bash
+WEBINY_ENABLE_VERSION_HEADER=true
+```
+
+When the environment variable is set to true it will add the `x-webiny-version` header. Which looks like this:
+
+```yaml
+x-webiny-version: 5.21.0
+```
+
+### `WEBINY_TRASH_BIN_RETENTION_PERIOD_DAYS`
+
+To manage how long deleted entries are retained within Webiny, developers can configure the retention period using the `WEBINY_TRASH_BIN_RETENTION_PERIOD_DAYS` environment variable.
+
+For example, setting `WEBINY_TRASH_BIN_RETENTION_PERIOD_DAYS=7` will preserve deleted entries for 7 days.
+
+Adjusting this variable allows developers to customize the retention period according to their needs. 
+
+Setting `WEBINY_TRASH_BIN_RETENTION_PERIOD_DAYS=0` will apply the default retention period of 90 days.
+
+## FAQ
+
+### Do I need to redeploy my applications when adding environment variables?
+
+If you are adding an **API** environment variable (prefix `WEBINY_API_`), then yes, you will need to redeploy the application.
+
+Otherwise, for **Admin** (prefix `WEBINY_ADMIN_`) and **Website** (prefix `WEBINY_WEBSITE_`) applications, a simple rerun of the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) command will do the trick.
+
+### Can you provide any details on how the root `.env` file is loaded?
+
+Behind the scenes, [Webiny CLI](/docs/{version}/core-development-concepts/basics/webiny-cli) uses the [`dotenv`](https://www.npmjs.com/package/dotenv) library in order to load the shown `.env` file. Note that the values that are defined in the `.env` file will not get assigned as environment variables if they were already assigned in the running process (e.g. via terminal, or as a secret in your CI/CD workflow). This is the default behaviour of the `dotenv` library.
