@@ -132,10 +132,9 @@ export default ({ documentClient }: { documentClient: DocumentClient }) => [
 +               id: token["sub"],
 +               type: "admin",
 +               displayName: token["name"],
-+               // Assign Webiny security group (role) slug.
++               // Assign a security group slug, to load user's permissions.
 +               group: token["group"]
 +               // Assign any custom values you might need.
-+               // ...
 +           };
 +       }
 +   }),
@@ -285,4 +284,40 @@ export const App = () => {
 };
 ```
 
-Next time the system renders the **NotAuthorizedError** component, your decorator will intercept the output, and render your custom UI.
+Next time the system renders the **NotAuthorizedError** component, your decorator will intercept the output, and render your custom UI. 
+
+## 8) Tenant Access Control (Optional)
+
+If you want to restrict which identity can access individual tenants, you can do it in an optional `canAccessTenant` function. 
+
+Let's imagine you want to restrict tenant access using the Auth0 client ID (it is stored in the idToken, in the `aud` claim). First you would assign the client ID value to your identity, and then, in the `canAccessTenant`, you would perform your checks:
+
+
+```diff-ts apps/api/graphql/src/security.ts
+createAuth0({
+    domain: String(process.env.AUTH0_DOMAIN),
+    getIdentity({ token }) {
+        return {
+            id: token["sub"],
+            type: "admin",
+            displayName: token["name"],
+            group: token["webiny_group"],
++           clientId: token["aud"]
+        };
+    },
++   canAccessTenant(context) {
++       const tenant = context.tenancy.getCurrentTenant();
++       const identity = context.security.getIdentity();
++
++       // For `root` tenant, you need to use environment variables, to always have a client ID value.
++       if (tenant.id === "root") {
++           return identity.clientId === process.env.AUTH0_CLIENT_ID;
++       }
++
++       // For all other tenants, read the value from tenant's settings.
++       return identity.clientId === tenant.settings.appClientId;
++   }
+})
+```
+
+The logic of these checks can be anything you want. The `context` object gives you programmatic access to all Webiny apps, and the `canAccessTenant` can also be asynchronous, so you're free to do whatever you need here.
