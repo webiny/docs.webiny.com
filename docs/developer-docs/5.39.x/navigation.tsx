@@ -27,6 +27,12 @@ export const Navigation = () => {
           link={"headless-cms/overview"}
         >
           <Page link={"headless-cms/overview"} hidden={true}/>
+          <Group title={"Basics"}>
+            <Page
+              link={"headless-cms/basics/content-modeling-best-practices"}
+              after={"headless-cms/basics/migrating-to-webiny"}
+            />
+          </Group>
           <Group title={"Extending Functionality"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-actions"}
