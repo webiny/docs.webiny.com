@@ -26,6 +26,7 @@ import lexicalEditorToolbar from "./assets/lexical-editor-toolbar.png";
 import conditionalValidation from "./assets/conditional-validation.gif";
 import hideMenuItems from "./assets/hide-menu-items.png";
 import fieldRendererSettings from "./assets/field-renderer-settings.png";
+import scaffoldEmptyWorkspace from "./assets/scaffold-empty-workspace.png";
 
 <GithubRelease version={"5.40.0"} />
 
@@ -227,6 +228,16 @@ Note that some of the existing documentation has already been updated to reflect
 
 In any case, if you encounter any issues, please report them on our [Slack community channel](https://www.webiny.com/slack).
 
+### Introducing Empty Workspace Scaffold ([#4172](https://github.com/webiny/webiny-js/pull/4172))
+
+We've introduced the **Empty Workspace** scaffold, which can be used to create a new workspace (package) in a Webiny project. 
+
+The scaffold will automatically create the necessary files and folder structure, allowing developers to immediately start working on their code.
+
+<Image src={scaffoldEmptyWorkspace} title={"Empty Workspace Scaffold"} />
+
+Usually, this scaffold can be used when in need to create various utilities or shared code, that is later imported in multiple places in your project. An example of such a workspace could be a shared library of all things related to Pulumi, where you might have customizations that need to be applied in multiple project applications / `webiny.application.ts` files.
+
 ### Introducing `@webiny/api-serverless-cms` Package
 
 With this release, we've introduced the `@webiny/api-serverless-cms` package, which contains some of the more frequently used plugin factory functions and utilities. At the moment, the package exports the following two plugin factory functions:
@@ -318,6 +329,34 @@ Although no breaking changes are expected, we've still compiled a list of all of
 We've seen a couple of cases where uses would still use locally stored [Pulumi](/docs/infrastructure/pulumi-iac/iac-with-pulumi) state files with their production environments. This is not recommended, so we've made it a bit harder to do so.
 
 In case a production deployment with locally stored state files is detected, the deployment will fail with an error message. Still, if the user wishes to bypass this check, they can append the new `--allow-local-state-files` flag to the deployment command.
+
+### Modifying Cloud Infrastructure - Easily Access Active Environment Via the New `env` Argument
+
+When modifying cloud infrastructure, via `webiny.application.ts` files, and, more specifically, the `pulumi` property, the callback that's passed to it will now also receive a new `env` object, which represents the environment into which the project is being deployed.
+
+The `env` object contains two properties:
+
+- `name` - the name of the environment
+- `isProduction` - a boolean value indicating whether the environment is considered a production environment
+
+Note that the `isProduction` value is calculated based on the list of production environment names that are defined via the existing [`productionEnvironments`](/docs/infrastructure/basics/modify-cloud-infrastructure#defining-multiple-production-environments) property in the `webiny.project.ts` file.
+
+An example of how the `env` object can be used is shown below:
+
+```ts apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+    pulumiResourceNamePrefix: "wby-",
+    pulumi: ({env, resources}) => {
+        // Only in production environments, increase the 
+        // memory size of the GraphQL function.
+        if (env.isProduction) {
+            resources.graphql.functions.graphql.config.memorySize(1024)
+        }
+    },
+});
+```
 
 ## Other Improvements
 

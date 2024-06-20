@@ -1,0 +1,621 @@
+---
+id: aafeaa18
+title: Modify Cloud Infrastructure
+description: Learn how to modify cloud infrastructure resources deployed by Webiny.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you’ll learn">
+
+- how to modify cloud infrastructure resources deployed by Webiny
+
+</Alert>
+
+## Overview
+
+Users use the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command to deploy their Webiny project, into an [environment](/docs/{version}/core-development-concepts/basics/project-deployment#environments) of their choice. During the deployment, apart from building the actual project applications, the command also ensures that a set of required cloud infrastructure resources is deployed.
+
+<Alert type="info">
+
+To deploy necessary cloud infrastructure resources, by default, Webiny relies on Pulumi, a modern infrastructure as code framework. Find out more in the following [IaC with Pulumi](/docs/{version}/infrastructure/pulumi-iac/iac-with-pulumi) key topic.
+
+</Alert>
+
+<Alert type="info">
+
+Read more about the cloud infrastructure resources that get deployed into your AWS account in our [Cloud Infrastructure](/docs/{version}/architecture/introduction) key topics section.
+
+</Alert>
+
+And although the cloud infrastructure resources that Webiny deploys are already configured in the best possible manner, there are still cases where some modifications might be needed. In some cases even, the deployed cloud infrastructure needs to be expanded by introducing additional resources into the mix.
+
+To do this, we rely on four `webiny.application.ts` configuration files, located in each of the four project application folders in every Webiny project:
+
+1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts))
+2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts))
+3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts))
+4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts))
+
+Which `webiny.application.ts` config file needs to be changed depends on the nature of the change that needs to be made.
+
+For example, let's imagine we want to adjust the configuration of the Amazon S3 bucket that's deployed for storing files uploaded via Webiny File Manager. Since this bucket is deployed as part of the **Core** project application, naturally, we'd want to apply changes via the [`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts) configuration file.
+
+The following example demonstrates how the bucket can be adjusted to enable [object versioning](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html), which essentially enables keeping multiple variants of an object in the same bucket:
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+  // By passing a callback function via the `pulumi` parameter, we gain the
+  // ability to modify project application's cloud infrastructure resources.
+  pulumi: ({ resources }) => {
+    // Cloud infrastructure resources can be referenced via the `resources`
+    // object. We then use resources' `config` objects to apply modifications.
+    const { fileManagerBucket } = resources;
+    fileManagerBucket.config.versioning({ enabled: true });
+  }
+});
+```
+
+As we can see, using the `pulumi` parameter, we've passed a relatively simple callback function that enables object versioning in two steps:
+
+1. references the relevant bucket via the `fileManagerBucket` const
+2. uses the reference to enable bucket versioning, via the `fileManagerBucket.config.versioning`
+
+Once the above code change has been made, all that is left to do is a redeploy by running the following command:
+
+```bash
+# Make sure to replace {env} with the actual name of the environment.
+yarn webiny deploy apps/core --env {env}
+```
+
+With the deployment successfully completed, the object versioning should be enabled for your project (for all files that are uploaded via Webiny File Manager).
+
+<Alert type="info">
+
+When redeploying, make sure to redeploy the project application within which the changes were actually made. In the above example, we've made changes within the **Core** application's `webiny.application.ts` file, meaning the **Core** application needs to be redeployed in order to actually see the changes.
+
+</Alert>
+
+## Examples
+
+In this section, we cover a couple of additional examples of modifying cloud infrastructure resources that get deployed with every Webiny project.
+
+### Tagging Cloud Infrastructure Resources
+
+The following example shows how to apply tags to all cloud infrastructure resources deployed as part of the **Core** project application. Note that the same approach can be used for all four applications.
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { tagResources } from "@webiny/pulumi-aws";
+
+export default createCoreApp({
+  pulumi: () => {
+    // We are assigning Owner and Contact tags, whose values
+    // are read from runtime environment variables.
+    tagResources({
+      Owner: String(process.env["OWNER"]),
+      Contact: String(process.env["CONTACT"])
+    });
+  }
+});
+```
+
+<Alert type={"info"}>
+
+Note that the `tagResources` function applies tags only to resources that can actually be tagged. Full list of resources can be found [here](https://github.com/webiny/webiny-js/blob/dev/packages/pulumi-aws/src/utils/tagResources.ts#L25).
+
+</Alert>
+
+### Pulumi Resource Name Prefixes
+
+By default, all cloud infrastructure resources deployed by Webiny are prefixed with the `wby-` prefix. If needed, this prefix can be changed via the `pulumiResourceNamePrefix` parameter, via the four `webiny.application.ts` configuration files, located in each of the four project application folders in every Webiny project:
+
+1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts))
+2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts))
+3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts))
+4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts))
+
+For example:
+
+```diff-ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
++     pulumiResourceNamePrefix: "my-custom-prefix-",
+});
+```
+
+Note that, in the above example, we've adjusted the prefix within the Core application's [`webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts) configuration file, but the same works with other applications as well.
+
+Furthermore, note that the prefix can also be assigned dynamically, via a callback function. The following example shows how we can dynamically assign the prefix based on the environment name.
+
+```diff-ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
++    pulumiResourceNamePrefix: ({ env }) => {
++        // We can retrieve the environment name via "run" parameters.
++        if (env.name === "prod") {
++            // Let's add the "prod" into the prefix.
++            return "wby-prod-";
++        }
++
++        // Not production? Just return the default prefix.
++        return "wby-";
++    }
+});
+```
+
+### Retrieving the Deployment Environment
+
+Upon running the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command, we specify the environment into which we want to deploy our project (or a specific project application). In more complex cases, we may need to retrieve the environment in order to conditionally apply different configuration to our cloud infrastructure.
+
+The following example shows how we can read the environment into which the application is being deployed.
+
+```diff-ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+  pulumiResourceNamePrefix: "wby-",
+  pulumi: ({ env }) => {
++   // We can retrieve the environment name via the `env` parameter.
++   if (env.name === "prod") {
++     // Apply additional configuration.
++   }
+  }
+});
+```
+
+Note that, in the above example, we've made the changes within the Core application's [`webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts) configuration file, but the same works with other applications as well.
+
+Furthermore, this approach can also be used with other parameters, not just `pulumi`. For example, we can use the same approach when defining the resource name prefix.
+
+```diff-ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+-    pulumiResourceNamePrefix: "wby-",
++    pulumiResourceNamePrefix: ({ env }) => {
++        // We can retrieve the environment name via the "env" parameter.
++        if (env.name === "prod") {
++            // Let's add the "prod" into the prefix.
++            return "wby-prod-";
++        }
++
++        // Not production? Just return the default prefix.
++        return "wby-";
++    }
+});
+```
+
+
+### Defining Multiple Production Environments
+
+Upon running the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command, when `prod` is passed as the environment name, a Webiny project is deployed in the so-called [production deployment mode](https://www.webiny.com/docs/architecture/deployment-modes/production).
+
+On order to use the production deployment mode for environments other than `prod`, we can use the `productionEnvironments` parameter. The following example shows how we can use the production mode for the `staging` environment:
+
+```diff-ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+  pulumiResourceNamePrefix: "wby-",
+
+  // Treats provided environments as production environments, which
+  // are deployed in production deployment mode.
++ productionEnvironments: ["prod", "staging"]
+});
+```
+
+Note that when specifying additional production environments, they should be specified across all project applications, meaning:
+
+1. **Core** ([`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts))
+2. **API** ([`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts))
+3. **Admin** ([`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts))
+4. **Website** ([`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts))
+
+### Determine If the Current Environment is Production
+
+In some cases, we may need to check if the environment, into which a project application is being deployed, is a production environment. The following example shows how we can determine if the environment is a production environment.
+
+```ts apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+    pulumiResourceNamePrefix: "wby-",
+    pulumi: ({ env, resources }) => {
+        // Only in production environments, increase the 
+        // memory size of the GraphQL function.
+        if (env.isProduction) {
+            resources.graphql.functions.graphql.config.memorySize(1024)
+        }
+    },
+});
+```
+
+Note that the `isProduction` value is calculated based on the list of production environment names that are defined via the [`productionEnvironments`](#defining-multiple-production-environments) property.
+
+### Increasing Memory Size for AWS Lambda Functions
+
+Increasing the memory size for AWS Lambda functions is a common practice when dealing with performance issues. The following example shows how we can increase the memory size for the **graphql** function, which is the function responsible for serving Webiny's GraphQL API:
+
+```diff-ts apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+    pulumiResourceNamePrefix: "wby-",
++   pulumi: ({ resources }) => {
++       // Set memory size to 1024 MB.
++       resources.graphql.functions.graphql.config.memorySize(1024);
++   }
+});
+```
+
+### Modifying AWS IAM Roles
+
+The following example demonstrates how we can modify the default AWS IAM role that's assigned to the AWS Lambda function that represents your GraphQL API (the one accessed via the `https://xyz.cloudfront.net/graphql` URL).
+
+```ts
+import * as aws from "@pulumi/aws";
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+  pulumiResourceNamePrefix: "wby-",
+  pulumi: ({ resources }) => {
+    const policy = new aws.iam.Policy("ses-policy", {
+      description: "This policy enables access to Amazon SES.",
+      policy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Action: ["ses:SendEmail"],
+            Resource: ["arn:aws:ses:*:*:identity/*"]
+          }
+        ]
+      }
+    });
+
+    new aws.iam.RolePolicyAttachment("graphql-role-ses-policy-attachment", {
+      role: resources.graphql.role.output.name,
+      policyArn: policy.arn
+    });
+  }
+});
+```
+
+<Alert type="info">
+
+To learn more about the default GraphQL API and differences between it and the Headless CMS GraphQL API, please check out the [Introduction](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api#introduction) section of the [Extend GraphQL API](/docs/{version}/core-development-concepts/extending-and-customizing/extend-graphql-api) article.
+
+</Alert>
+
+<Alert type="info">
+
+If you want to learn more about the main GraphQL API and how it works on the cloud infrastructure level, check out the [GraphQL Requests](/docs/{version}/architecture/api/graphql-requests) page of the [Cloud Infrastructure - API](/docs/{version}/architecture/api/overview) key topics section.
+
+</Alert>
+
+### Amazon OpenSearch (ElasticSearch) Service
+
+#### Adjusting Configuration
+
+Amazon OpenSearch Service is deployed as part of the **Core** project application. In order to make changes to it, we need to make changes in the `apps/core/webiny.application.ts` configuration file.
+
+Note that, depending on the version of Webiny you're using, you may be using either Amazon OpenSearch Service or Amazon ElasticSearch Service. The following examples cover both cases.
+
+<Alert type="info">
+
+  [Amazon OpenSearch Service](https://aws.amazon.com/opensearch-service/) was introduced with Webiny version [5.39.0](/docs/release-notes/5.39.0/changelog#introducing-support-for-amazon-open-search-service-3612). If you're using an older version of Webiny, you're using Amazon ElasticSearch Service.
+
+</Alert>
+
+##### Amazon OpenSearch Service
+
+The following example shows how we can adjust the configuration of the deployed domain when using Amazon OpenSearch Service (for projects created with Webiny version [5.39.0](/docs/release-notes/5.39.0/changelog#introducing-support-for-amazon-open-search-service-3612) or greater).
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { isResourceOfType } from "@webiny/pulumi";
+
+export default createCoreApp({
+  openSearch: true,
+
+  pulumi: ({ onResource }) => {
+    onResource(resource => {
+      if (isResourceOfType(resource, aws.opensearch.Domain)) {
+        // Set the instance type.
+        resource.config.clusterConfig(() => {
+          return {
+            instanceType: "t3.small.search"
+          };
+        });
+
+        // Set engine version.
+        resource.config.engineVersion("OpenSearch_2.11");
+
+        // Change advanced options.
+        resource.config.advancedOptions({
+          override_main_response_version: "false",
+          "rest.action.multi.allow_explicit_index": "true"
+        });
+
+        resource.opts.ignoreChanges = ["advancedOptions", "tags"];
+      }
+    });
+  }
+});
+```
+
+##### Amazon ElasticSearch Service
+
+The following example shows how we can adjust the configuration of the deployed domain when using Amazon ElasticSearch Service (for projects created before the [5.39.0 release](/docs/release-notes/5.39.0/changelog#introducing-support-for-amazon-open-search-service-3612)).
+
+```ts apps/core/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+import { isResourceOfType } from "@webiny/pulumi";
+
+export default createCoreApp({
+  elasticSearch: true,
+
+  pulumi: ({ onResource }) => {
+    onResource(resource => {
+      if (isResourceOfType(resource, aws.elasticsearch.Domain)) {
+        // Set the instance type.
+        resource.config.clusterConfig(() => {
+          return {
+            instanceType: "t3.small.elasticsearch"
+          };
+        });
+
+        // Set Elasticsearch version.
+        resource.config.elasticsearchVersion("7.7");
+
+        // Change advanced options.
+        resource.config.advancedOptions({
+          override_main_response_version: "false",
+          "rest.action.multi.allow_explicit_index": "true"
+        });
+
+        resource.opts.ignoreChanges = ["advancedOptions", "tags"];
+      }
+    });
+  }
+});
+```
+
+#### Using a Shared Amazon OpenSearch Service Domain
+
+For development purposes, sometimes it's reasonable to set up a single Amazon OpenSearch domain that will be shared across multiple environments your Webiny project is deployed into. This can be achieved via the `openSearch` parameter, via the two `webiny.application.ts` configuration files:
+
+1. [`apps/core/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.39.0/packages/cwp-template-aws/template/ddb/apps/core/webiny.application.ts)
+2. [`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.39.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts)
+
+```ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+// Here we're listing all environments that will use the shared OpenSearch domain.
+const ENVIRONMENTS_USING_SHARED_ES_DOMAIN = ["dev", "other-dev"];
+
+export default createCoreApp({
+  pulumiResourceNamePrefix: "wby-",
+  openSearch: ({ params }) => {
+    const { env } = params.run;
+    // We use the shared Amazon OpenSearch domain only when
+    // deploying into "dev" and "other-dev" environments.
+    if (ENVIRONMENTS_USING_SHARED_ES_DOMAIN.includes(env)) {
+      return {
+        domainName: "my-opensearch-shared-domain",
+        indexPrefix: `${env}_`
+      };
+    }
+
+    // We need to return `true` because we still want Webiny to deploy
+    // an Amazon Amazon OpenOpenSearch Service domain. Returning anything other than that will
+    // instruct Webiny not to deploy it, which will cause Webiny not
+    // to work as expected.
+    return true;
+  }
+});
+```
+
+```ts apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+// Here we're listing all environments that will use the shared OpenSearch domain.
+const ENVIRONMENTS_USING_SHARED_ES_DOMAIN = ["dev", "other-dev"];
+
+export default createApiApp({
+  pulumiResourceNamePrefix: "wby-",
+  openSearch: ({ params }) => {
+    const { env } = params.run;
+    // We use the shared Amazon OpenSearch domain only when
+    // deploying into "dev" and "other-dev" environments.
+    if (ENVIRONMENTS_USING_SHARED_ES_DOMAIN.includes(env)) {
+      return {
+        domainName: "my-opensearch-shared-domain",
+        indexPrefix: `${env}_`
+      };
+    }
+
+    // We need to return `true` because we still want Webiny to deploy
+    // an Amazon OpenSearch domain. Returning anything other than that will
+    // instruct Webiny not to deploy it, which will cause Webiny not
+    // to work as expected.
+    return true;
+  }
+});
+```
+
+Note that the configuration must be applied within both `webiny.application.ts` files. Once applied, in order for the changes to take effect, redeploying the **Core** and **API** applications is required. As usual, this can be done via the [`webiny deploy`](/docs/{version}/core-development-concepts/basics/project-deployment) command:
+
+```bash
+yarn webiny deploy core,api --env dev
+```
+
+Furthermore, note that, upon passing a shared Amazon OpenSearch Service domain, via the `indexPrefix` property, we can define the prefix that will be used with names of all OpenSearch [indexes](https://opensearch.org/docs/latest/im-plugin/) for the given environment. This is important because it allows us to have a single Amazon OpenSearch Service domain, but also have separate indexes for each environment. Without this, all environments would share the same indexes, which is not what we want because it would cause data from one environment to be visible in another.
+
+Finally, note that the sharing of Amazon OpenSearch Service domains is only recommended for development purposes. For production, it's recommended to have a separate Amazon OpenSearch Service domain for each environment.
+
+##### Cross-AWS Account Amazon OpenSearch Service Domain Sharing
+
+The above example demonstrates how to share an Amazon OpenSearch Service domain across multiple environments within the same AWS account. However, in some cases, we may need to share an Amazon OpenSearch Service domain across multiple AWS accounts.
+
+Unfortunately, at this time, we weren't able to provide full instructions on how to achieve this. If this is something you need, please reach out via our [Community Slack](https://www.webiny.com/slack) channel, and we'll be happy to help you out.
+
+### Other
+
+#### Creating a Cron Job with AWS Lambda and Amazon CloudWatch
+
+In this example, we introduce a new AWS Lambda function which is triggered once every minute.
+
+Note that the code assumes the AWS Lambda function's code is located in the `apps/api/myCronJob` folder. For the full code, please check our [webiny-examples](https://github.com/webiny/webiny-examples/tree/master/modifying-cloud-infrastructure/adding-aws-lambda-functions/create-a-cron-job) GitHub repository.
+
+```ts apps/api/webiny.application.ts
+import * as path from "path";
+import * as aws from "@pulumi/aws";
+import * as pulumi from "@pulumi/pulumi";
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+  pulumiResourceNamePrefix: "wby-",
+  pulumi({ paths }) {
+    const role = new aws.iam.Role("my-cron-job-fn-role", {
+      description: "My cron job Lambda function role.",
+      assumeRolePolicy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Action: "sts:AssumeRole",
+            Principal: {
+              Service: "lambda.amazonaws.com"
+            },
+            Effect: "Allow"
+          }
+        ]
+      }
+    });
+
+    new aws.iam.RolePolicyAttachment(`my-cron-job-fn-role-basic-execution-policy-attachment`, {
+      role,
+      policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole
+    });
+
+    const policy = new aws.iam.Policy("my-cron-job-fn-policy", {
+      description: "My cron job Lambda function policy.",
+      policy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            // Not recommended. Always use least-privilege principle.
+            Effect: "Allow",
+            Action: ["*"],
+            Resource: ["*"]
+          }
+        ]
+      }
+    });
+
+    new aws.iam.RolePolicyAttachment("my-cron-job-fn-role-policy-attachment", {
+      role: role.name,
+      policyArn: policy.arn
+    });
+
+    const simpleCronJobFunction = new aws.lambda.Function("my-cron-job-fn", {
+      runtime: aws.lambda.Runtime.NodeJS18dX,
+      handler: "handler.handler",
+      description: "A simple Lambda function that logs time (executed in my cron job).",
+      role: role.arn,
+      timeout: 30,
+      memorySize: 512,
+      code: new pulumi.asset.AssetArchive({
+        ".": new pulumi.asset.FileArchive(path.join(paths.workspace, "myCronJob/build"))
+      })
+    });
+
+    const eventRule = new aws.cloudwatch.EventRule("my-cron-job-fn-event-rule", {
+      description: `My cron job rule.`,
+      scheduleExpression: "rate(1 minute)",
+      isEnabled: true
+    });
+
+    new aws.lambda.Permission("my-cron-job-fn-events-permission", {
+      action: "lambda:InvokeFunction",
+      function: simpleCronJobFunction.arn,
+      principal: "events.amazonaws.com",
+      sourceArn: eventRule.arn
+    });
+
+    new aws.cloudwatch.EventTarget("my-cron-job-fn-event-target", {
+      rule: eventRule.name,
+      arn: simpleCronJobFunction.arn
+    });
+  }
+});
+```
+
+#### Adjusting Amazon CloudFront Distribution Configuration
+
+A single Webiny project deploys four Amazon CloudFront distributions: one for [API](/docs/{version}/architecture/api/overview), one for [Admin](/docs/{version}/architecture/admin/overview), and two for [Website](/docs/{version}/architecture/website/overview) project application.
+
+Therefore, if there's a need to apply a change across all distributions, the change needs to be applied via the following three `webiny.application.ts` configuration files:
+
+1. [`apps/api/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/ddb/apps/api/webiny.application.ts)
+2. [`apps/admin/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/admin/webiny.application.ts)
+3. [`apps/website/webiny.application.ts`](https://github.com/webiny/webiny-js/blob/v5.29.0/packages/cwp-template-aws/template/common/apps/website/webiny.application.ts)
+
+The following example demonstrates how we can adjust the TLS version for the distribution that's deployed as part of the API project application.
+
+```ts apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+  pulumi({ resources }) {
+    resources.cloudfront.config.viewerCertificate(config => {
+      return { ...config, minimumProtocolVersion: "TLSv1.2_2021" };
+    });
+  }
+});
+```
+
+Following the above example, say we want to add additional and serve specific static files from our `website` application, this can often be the case if you need to host files like a sitemap, domain validation files and similar. Adding those files to `website/public` folder will get them deployed to your S3 that's serving the `website` app, but the default CloudFront config won't allow you to access them. To fix this, you need to add a new configuration to your CloudFront distribution. The below example shows how to add a rule that allows you to serve any file uploaded inside `website/public/_static` folder. These files would then be accessible by visiting `https://your-domain.com/_static/your-file.txt`.
+
+```ts apps/website/webiny.application.ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteApp({
+  pulumiResourceNamePrefix: "wby-",
+  pulumi(app) {
+    app.resources.delivery.cloudfront.config.orderedCacheBehaviors(orderedCacheBehaviors => {
+      return [
+        ...orderedCacheBehaviors!,
+        {
+          compress: true,
+          allowedMethods: ["GET", "HEAD", "OPTIONS"],
+          cachedMethods: ["GET", "HEAD", "OPTIONS"],
+          forwardedValues: {
+            cookies: {
+              forward: "none"
+            },
+            headers: [],
+            queryString: false
+          },
+          pathPattern: "/_static/*",
+          viewerProtocolPolicy: "allow-all",
+          targetOriginId: app.resources.app.origin.originId,
+          // MinTTL <= DefaultTTL <= MaxTTL
+          minTtl: 0,
+          defaultTtl: 2592000, // 30 days
+          maxTtl: 2592000
+        }
+      ];
+    });
+  }
+});
+```
