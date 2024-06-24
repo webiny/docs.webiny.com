@@ -56,7 +56,10 @@ export const ExtensionsGettingStarted = ({
                     {fullExampleLink && (
                         <p>
                             The complete code shown in this article can also be found in our{" "}
-                            <a href={fullExampleLink} target={"_blank"}>webiny-examples</a> repository.
+                            <a href={fullExampleLink} target={"_blank"} rel="noreferrer">
+                                webiny-examples
+                            </a>{" "}
+                            repository.
                         </p>
                     )}
                 </Alert>
@@ -65,7 +68,10 @@ export const ExtensionsGettingStarted = ({
                     {fullExampleLink && (
                         <Alert type={"info"}>
                             The complete code shown in this article can also be found in our{" "}
-                            <a target={"_blank"} href={fullExampleLink}>webiny-examples</a> repository.
+                            <a target={"_blank"} rel="noreferrer" href={fullExampleLink}>
+                                webiny-examples
+                            </a>{" "}
+                            repository.
                         </Alert>
                     )}
                 </>
