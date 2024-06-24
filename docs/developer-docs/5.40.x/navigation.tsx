@@ -27,6 +27,9 @@ export const Navigation = () => {
               after={"headless-cms/extending/customize-entry-list-bulk-actions"}
             />
             <Page
+              link={"headless-cms/extending/content-entry-live-preview"}
+            />
+            <Page
               link={"headless-cms/extending/customize-entry-list-table-columns"}
               after={"headless-cms/extending/customize-entry-list-bulk-actions"}
             />
