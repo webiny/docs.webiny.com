@@ -46,9 +46,7 @@ export const ExtensionsGettingStarted = ({
                 in the <code>{location || `/extensions/${name}`}</code> folder, via the following
                 command:
             </p>
-            <p>
-                <pre className={"language-bash"}>{scaffoldCommand}</pre>
-            </p>
+            <pre className={"language-bash"}>{scaffoldCommand}</pre>
             {scaffoldCommandExtraInfo && <p>{scaffoldCommandExtraInfo}</p>}
             <p>
                 Once the extension is scaffolded, in order to start developing, we run the following
@@ -61,10 +59,8 @@ export const ExtensionsGettingStarted = ({
                     </Link>
                 </code>{" "}
                 command:
-                <p>
-                    <pre className={"language-bash"}>{watchCommand}</pre>
-                </p>
             </p>
+            <pre className={"language-bash"}>{watchCommand}</pre>
         </>
     );
 };
