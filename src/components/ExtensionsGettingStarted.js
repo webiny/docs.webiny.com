@@ -1,5 +1,6 @@
 import React from "react";
 import { Heading } from "./Heading";
+import { Alert } from "./Alert";
 import Link from "next/link";
 
 const extensionTypeLabel = {
@@ -12,7 +13,9 @@ export const ExtensionsGettingStarted = ({
     name,
     location,
     dependencies,
-    scaffoldCommandExtraInfo
+    scaffoldCommandExtraInfo,
+    fullExampleLink,
+    inProjectScaffoldLink
 }) => {
     let scaffoldCommandParts = [
         "yarn webiny scaffold extension",
@@ -41,8 +44,37 @@ export const ExtensionsGettingStarted = ({
     return (
         <>
             <Heading level={2}>Getting Started</Heading>
+            {inProjectScaffoldLink ? (
+                <Alert type={"info"}>
+                    <p>
+                        Run the following command to quickly set up this example directly in your
+                        project:
+                    </p>
+                    <pre className={"language-bash"}>
+                        yarn webiny scaffold extension --example {inProjectScaffoldLink}
+                    </pre>
+                    {fullExampleLink && (
+                        <p>
+                            The complete code shown in this article can also be found in our{" "}
+                            <a href={fullExampleLink} target={"_blank"}>webiny-examples</a> repository.
+                        </p>
+                    )}
+                </Alert>
+            ) : (
+                <>
+                    {fullExampleLink && (
+                        <Alert type={"info"}>
+                            The complete code shown in this article can also be found in our{" "}
+                            <a target={"_blank"} href={fullExampleLink}>webiny-examples</a> repository.
+                        </Alert>
+                    )}
+                </>
+            )}
             <p>
-                To get started, we first scaffold a new <a href={"/docs/core-development-concepts/basics/extensions"}>{extensionTypeLabel[type]}</a>{" "}
+                To get started, we first scaffold a new{" "}
+                <a href={"/docs/core-development-concepts/basics/extensions"}>
+                    {extensionTypeLabel[type]}
+                </a>{" "}
                 in the <code>{location || `/extensions/${name}`}</code> folder, via the following
                 command:
             </p>
