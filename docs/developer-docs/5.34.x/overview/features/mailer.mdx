@@ -4,7 +4,9 @@ title: Mailer
 description: Overview of the package used to send e-mails.
 ---
 
-import { Alert } from "@/components/Alert";
+
+
+import {Alert} from "@/components/Alert";
 
 <Alert type="success" title="What You’ll Learn">
 
@@ -24,6 +26,14 @@ The package uses `transports` to send e-mails. The `transport` is an implementat
 
 - Dummy Transport - does not send e-mails, just records them in an array which you can access later
 - SMTP Transport - sends e-mails with the use of [nodemailer](https://github.com/nodemailer/nodemailer) library
+
+<Alert type="info" title="Our built-in transport is not working for you?">
+
+  We provide a default STMP transport, which might not work for you. If that is the case, you can create your own transport.
+
+  Please check the [The Default Transport Is Not Working for Me!](#the-default-transport-is-not-working-for-me) section for more information.
+
+</Alert>
 
 ### Dummy Transport
 
@@ -108,6 +118,15 @@ const handler = createHandler({
 
 When creating the transport via `createTransport`, you will get the `settings` and the `context` variables. The `settings` variable contains whatever was defined in either environment variables or the values which were stored via the Mailer Settings UI.
 
+### The Default Transport Is Not Working For Me!
+
+If the default transport is not working for you, you can create your own transport.
+
+We cannot implement all the possible services and providers, so we provide our users with the ability to create their own transports.
+
+Please read the [Custom Transport](#custom-transport) section for more information.
+
+
 ## Custom Transport
 
 You can create your own transport if you do not like ours. You just need to use the `createTransport` method which returns the transport.
@@ -115,11 +134,40 @@ You can create your own transport if you do not like ours. You just need to use 
 ```typescript
 import { createTransport } from "@webiny/api-mailer";
 
-const transport = createTransport(async ({ settings, context }) => {
-  return myOwnImplementationOfTheTransport({
-    ...settings
-  });
+const transport = createTransport(async params => {
+    const { context, settings } = params;
+
+    if (!settings?.user || !settings?.password) {
+        throw new Error("There are no username and password in the settings. This will not work.");
+    }
+    
+    const myCustomSender = initializeYourCustomSender();
+
+    return {
+        name: "webiny.mailer.myCustomTransport",
+        send: async data => {
+            try {
+                const result = await myCustomSender({
+                    ...data,
+                    envelope: {
+                        user: settings.user,
+                        pass: settings.password
+                    }
+                });
+                return {
+                    result,
+                    error: null,
+                };
+            } catch (ex) {
+                return {
+                    result: null,
+                    error: ex
+                };
+            }
+        }
+    };
 });
+
 
 // register in your handler
 
@@ -130,6 +178,8 @@ const handler = createHandler({
   ]
 });
 ```
+
+Make sure that your transport is at the end of the plugins list, as it will then override our default transport.
 
 ## Usage
 

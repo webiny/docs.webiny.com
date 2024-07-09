@@ -1,0 +1,106 @@
+---
+id: aafeaa22
+title: Extend GraphQL API
+description: Learn how to extend Webiny's GraphQL API.
+---
+
+import { Alert } from "@/components/Alert";
+import listBooksQuery from "./assets/extend-graphql-api/list-books-query.png";
+
+<Alert type="success" title="What you'll learn">
+
+- how to extend Webiny's GraphQL API
+
+</Alert>
+
+## Introduction
+
+When it comes to backend HTTP API development, Webiny relies on [GraphQL](https://graphql.org/). In fact, all of the Webiny applications, such as [Page Builder](https://www.webiny.com/serverless-app/page-builder) and [Headless CMS](https://www.webiny.com/serverless-app/headless-cms), use it.
+
+In this article, we explain how to extend Webiny's main GraphQL API. Note that Webiny also provides a separate GraphQL API for the Headless CMS application, which can be [extended](/docs/{version}/headless-cms/extending/extend-graphql-api) as well.
+
+<Alert type="info">
+
+  To learn more about the Headless CMS GraphQL API, different API types, support for multiple locales, and more, make sure to check out the [Headless CMS GraphQL API](/docs/{version}/headless-cms/basics/graphql-api) key topic.
+
+</Alert>
+
+<ExtensionsGettingStarted
+  type={"api"}
+  name={"extendGraphqlApi"}
+  dependencies={"@webiny/api-serverless-cms"}
+  scaffoldCommandExtraInfo={
+    <>
+      In the example below, we'll be using the <code>createGraphQLSchemaPlugin</code> plugin factory from the <code>@webiny/api-serverless-cms</code> package, so we've included it in the list of dependencies.
+    </>
+  }
+/>
+
+## Extending the Main GraphQL API
+
+Let's extend Webiny's main GraphQL API with the new `listBooks` query.  
+
+To do this, we use the `createGraphQLSchemaPlugin` plugin factory from the `@webiny/api-serverless-cms` package:
+
+```ts extensions/extendGraphqlApi/src/index.ts
+import { createGraphQLSchemaPlugin } from "@webiny/api-serverless-cms";
+
+export const createExtension = () => {
+    return [
+        createGraphQLSchemaPlugin({
+            typeDefs: /* GraphQL */ `
+              type Book {
+                title: String
+                description: String
+              }
+              extend type Query {
+                # Returns a list of all users.
+                listBooks: [Book]
+              }
+            `,
+            resolvers: {
+              Query: {
+                listBooks: async (_, args, context) => {
+                  // In a real life application, these would be loaded from a database.
+                  const books = [
+                    { title: "First book", description: "This is the first book." },
+                    { title: "Second book", description: "This is the second book." }
+                  ];
+          
+                  return books;
+                }
+              }
+            }
+        })
+    ];
+};
+```
+
+With this code in place, we should be able to run the following GraphQL query: 
+
+```graphql
+{
+  listBooks {
+    title
+    description
+  }
+}
+```
+
+
+
+The easiest way to test it is by using the [API Playground](https://www.webiny.com/docs/admin-area/basics/api-playground) in the Admin app:
+
+<Image src={listBooksQuery} title={<>Testing the <code>listBooks</code> query in the API Playground</>} />
+
+<Alert type={"info"}>
+
+  Run `yarn webiny watch admin --env ENVIRONMENT_NAME` to start the Admin app in the development mode. Replace `ENVIRONMENT_NAME` with the name of the environment you're working on.
+
+</Alert>
+
+
+## Additional Examples
+
+- [Headless CMS - Extend the GraphQL API](/docs/{version}/headless-cms/extending/extend-graphql-api)
+- [Page Builder - Extend the GraphQL API](/docs/{version}/page-builder/extending/extend-graphql-api)

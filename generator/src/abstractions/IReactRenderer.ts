@@ -21,6 +21,8 @@ export interface NavigationOutputPage {
 export interface NavigationGroup<TChild> {
   type: "group";
   title: string;
+  icon?: string;
+  link?: string;
   items: TChild[];
 }
 

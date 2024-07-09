@@ -1,0 +1,322 @@
+---
+id: c3de8f81
+title: Customize Website Settings
+description: Learn how to add new website settings fields, and render them on the website.
+---
+
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+import socialNetworksAttributes from "./assets/customize-website-settings/social-networks-end-result.png";
+import customFooterIcons from "./assets/customize-website-settings/custom-footer-icons.png";
+
+<CanIUseThis since={"5.34.1"} />
+
+<WhatYouWillLearn>
+
+- how to add a website settings group in the Admin app
+- how to extend website settings GraphQL schema
+- how to render the new fields in the website app
+
+</WhatYouWillLearn>
+
+Webiny Page Builder provides a module for managing your most common website settings, like website URLs, homepage, favicon, logo, social media links, etc. However, sometimes you need to add your own settings. To add a new group of fields, store them to the database, and retrieve on the website, we need to do 3 things:
+
+1. Add new inputs to the Website Settings view in the Admin app
+2. Extend the GraphQL schema, so it is aware of the new fields
+3. Add the new field selection to the Website app, so they are returned by the GraphQL query
+
+The end result will look like this:
+
+<Gallery>
+  <Image src={socialNetworksAttributes} alt={"Social Networks group in the Admin app"} />
+  <Image src={customFooterIcons} alt={"Custom icons in the website footer"} />
+</Gallery>
+
+## Add a New Group of Fields
+
+First we need to create a component that will register the new group of fields. Create the following file in your `apps/admin/src` folder:
+
+```tsx apps/admin/src/SocialNetworks.tsx
+import React from "react";
+import gql from "graphql-tag";
+import { WebsiteSettingsConfig } from "@webiny/app-page-builder";
+import { Bind } from "@webiny/form";
+import { validation } from "@webiny/validation";
+import { Input } from "@webiny/ui/Input";
+
+const { Group, Element } = WebsiteSettingsConfig;
+
+const Network1 = () => {
+  return (
+    <Bind name={"network1"} validators={validation.create("url")}>
+      <Input label="Network 1" />
+    </Bind>
+  );
+};
+
+const Network2 = () => {
+  return (
+    <Bind name={"network2"} validators={validation.create("url")}>
+      <Input label="Network 2" />
+    </Bind>
+  );
+};
+
+export const SocialNetworks = () => {
+  const socialNetworks = gql`
+    {
+      network1
+      network2
+    }
+  `;
+
+  return (
+    <WebsiteSettingsConfig>
+      <Group name={"socialNetworks"} label={"Social Networks"} querySelection={socialNetworks}>
+        <Element name={"network1"} element={<Network1 />} />
+        <Element name={"network2"} element={<Network2 />} />
+      </Group>
+    </WebsiteSettingsConfig>
+  );
+};
+```
+
+With this we've created a new group called _Social Networks_, and told Webiny what fields to query and mutate when settings are saved. We also added two inputs to the settings form, and connected them to the form data using the `Bind` component (this establishes a bidirectional connection between the form and the input).
+
+Now register this component in the Admin app:
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
++ import { Admin, Plugins } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { SocialNetworks } from "./SocialNetworks";
+import "./App.scss";
+
+export const App = () => {
+    return (
+        <Admin>
+            <Cognito />
++           <Plugins>
++               <SocialNetworks />
++           </Plugins>
+        </Admin>
+    );
+};
+```
+
+At this point, the Admin app will throw an error saying that `network1` and `network2` fields do not exist in the GraphQL schema. Move on to the next section to update the schema.
+
+## Extend the GraphQL Schema
+
+In your GraphQL Lambda function, add the following plugin to the bottom of the plugins list. Note that you can't copy and paste this file; you'll have to add this manually into the source code.
+
+```ts apps/api/graphql/src/index.ts
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql";
+
+new GraphQLSchemaPlugin({
+  typeDefs: /* GraphQL */ `
+    extend type PbSettings {
+      network1: String
+      network2: String
+    }
+
+    extend input PbSettingsInput {
+      network1: String
+      network2: String
+    }
+  `
+});
+```
+
+With this we've extended the GraphQL schema, and added two new fields to the `PbSettings` type. You can add more elaborate types, make them nested, etc. For this example, this simple approach will suffice.
+
+Deploy your API, by running the following command:
+
+```bash
+yarn webiny deploy api --env=dev
+```
+
+Once deployed, reload your Admin app, and you should now be able to save your new fields.
+
+## Render Fields in the Website App
+
+Before we can render our new fields, we need to add them to the GraphQL query selection in the Website app. Create the following file in your Website app (you can copy and paste the whole file):
+
+```tsx apps/website/src/SocialNetworks.tsx
+import { useEffect } from "react";
+import gql from "graphql-tag";
+import { AddQuerySelectionPlugin } from "@webiny/app";
+import { plugins } from "@webiny/plugins";
+
+export const SocialNetworks = () => {
+  useEffect(() => {
+    plugins.register(
+      new AddQuerySelectionPlugin({
+        operationName: "PbGetSettings",
+        selectionPath: "pageBuilder.getSettings.data",
+        addSelection: gql`
+          {
+            network1
+            network2
+          }
+        `
+      })
+    );
+  }, []);
+
+  return null;
+};
+```
+
+When this component mounts in the Website app, it will register an `AddQuerySelectionPlugin` plugin, which will add your fields selection every time the `PbGetSettings` query is executed.
+
+Now register this component in the Website app:
+
+```diff-tsx apps/website/src/App.tsx
+import React from "react";
++ import { Plugins } from "@webiny/app";
+import { Website } from "@webiny/app-website";
++ import { SocialNetworks } from "./SocialNetworks";
+
+export const App = () => {
+    return (
++       <Website>
++           <Plugins>
++               <SocialNetworks />
++           </Plugins>
++       </Website>
+    );
+};
+```
+
+The last thing to do is to add your new fields to the website footer. To do that, we need to edit the website's `theme`. For simplicity, we've attached the whole file for you to copy and paste:
+
+```diff-tsx apps/theme/layouts/pages/Static/Footer.tsx
+import * as React from "react";
+import { Link } from "@webiny/react-router";
++ import { ReactComponent as RocketIcon } from "@material-design-icons/svg/round/rocket_launch.svg"
++ import { ReactComponent as StartIcon } from "@material-design-icons/svg/round/star.svg"
+import { ReactComponent as FacebookIcon } from "./assets/facebook-square-brands.svg";
+import { ReactComponent as TwitterIcon } from "./assets/twitter-square-brands.svg";
+import { ReactComponent as InstagramIcon } from "./assets/instagram-brands.svg";
+import { ReactComponent as LinkedInIcon } from "./assets/linkedin-brands.svg";
+
+import styled from "@emotion/styled";
+import { usePage } from "@webiny/app-page-builder-elements";
+
+export const Footer = () => {
+    const { layoutProps } = usePage();
++   const { name, logo, social, network1, network2 } = layoutProps["settings"];
++   const showSocial = social || network1 || network2;
+
+    return (
+        <FooterWrapper data-testid={"pb-footer"}>
+            <FooterBody>
+                <FooterLogo className={"logo"}>
+                    <Link to="/">{logo && logo.src && <img src={logo.src} alt={name} />}</Link>
+                    <div className={"copy"}>
+                        {name} © {new Date().getFullYear()}
+                    </div>
+                </FooterLogo>
++               {showSocial && (
+                    <FooterSocial className={"social"}>
++                       {social?.facebook && (
+                            <a href={social.facebook}>
+                                <FacebookIcon />
+                            </a>
+                        )}
++                       {social?.twitter && (
+                            <a href={social.twitter}>
+                                <TwitterIcon />
+                            </a>
+                        )}
++                       {social?.instagram && (
+                            <a href={social.instagram}>
+                                <InstagramIcon />
+                            </a>
+                        )}
++                       {social?.linkedIn && (
+                            <a href={social.linkedIn}>
+                                <LinkedInIcon />
+                            </a>
+                        )}
++                       {network1 && (
++                           <a href={network1}>
++                               <RocketIcon />
++                           </a>
++                       )}
++                       {network2 && (
++                           <a href={network2}>
++                               <StartIcon />
++                           </a>
++                       )}
+                    </FooterSocial>
+                )}
+            </FooterBody>
+        </FooterWrapper>
+    );
+};
+
+const FooterWrapper = styled.footer`
+    background-color: ${props => props.theme.styles.colors["color5"]};
+    height: 100px;
+`;
+
+const FooterBody = styled.div`
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    justify-content: space-between;
+    margin: 0 auto;
+    max-width: 1200px;
+
+    ${props => props.theme.breakpoints["tablet"]} {
+        flex-direction: column;
+    }
+`;
+
+const FooterLogo = styled.div`
+    align-items: center;
+    display: flex;
+    flex: 1;
+
+    a {
+        line-height: 80%;
+    }
+
+    img {
+        margin-right: 10px;
+        max-height: 25px;
+    }
+
+    .copy {
+        ${props => props.theme.styles.typography["paragraphs"].stylesById("paragraph2")}
+        color: ${props => props.theme.styles.colors["color4"]}
+    }
+`;
+
+const FooterSocial = styled.div`
+    text-align: right;
+
+    ${props => props.theme.breakpoints["tablet"]} {
+        margin-bottom: 15px;
+    }
+
+    a {
+        display: inline-block;
+
+        svg {
+            height: 25px;
+            margin-left: 10px;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+            color: ${props => props.theme.styles.colors["color4"]};
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+`;
+```

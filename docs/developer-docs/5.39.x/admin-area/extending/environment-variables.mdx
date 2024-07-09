@@ -1,0 +1,57 @@
+---
+id: de5a8cb0
+title: Environment Variables
+description: Learn how to inject environment variables into the admin app.
+---
+
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+
+<CanIUseThis since={"5.39.0"} />
+
+<WhatYouWillLearn>
+
+- how to inject new environment variables into the Admin app
+
+</WhatYouWillLearn>
+
+## Overview
+
+Admin app relies on several environment variables that get injected into React apps at build time using Pulumi state files. Sometimes, you might want to inject new variables, relevant to your project, and in this article we show you how to do just that.
+
+Note that the naming convention for environment variables is explained in a dedicated article on [Environment Variables](/docs/core-development-concepts/basics/environment-variables).
+
+## Inject Variables from Pulumi State
+
+Admin app config modifier contains a utility called `pulumiOutputToEnv`, which helps you load the Pulumi state of a specific app (for example, `core` or `api`), and use it modify the existing set of environment variables.
+
+```ts apps/admin/webiny.config.ts
+import { createAdminAppConfig } from "@webiny/serverless-cms-aws";
+import { ApiOutput } from "@webiny/pulumi-aws";
+
+export default createAdminAppConfig(({ config }) => {
+  config.pulumiOutputToEnv<ApiOutput>("apps/api", ({ output, env }) => {
+    return {
+      ...env,
+      WEBINY_ADMIN_MY_VAR: output.apiUrl
+    };
+  });
+});
+```
+
+The `ApiOutput` is a type definition of all the Pulumi outputs that Webiny ships by default. This gives you proper autocomplete on the `output` object.
+
+## Inject Arbitrary Variables
+
+Sometimes you will need to inject values that do not come from Pulumi, but from other sources, like `.env` file, or some other places you might have. In that case, use a `customEnv` method:
+
+```ts apps/admin/webiny.config.ts
+import { createAdminAppConfig } from "@webiny/serverless-cms-aws";
+
+export default createAdminAppConfig(({ config }) => {
+  config.customEnv(env => ({
+    ...env,
+    WEBINY_ADMIN_MY_VAR: process.env.MY_CUSTOM_VAR
+  }));
+});
+```

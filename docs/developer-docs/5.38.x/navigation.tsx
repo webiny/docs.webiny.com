@@ -53,6 +53,14 @@ export const Navigation = () => {
             <Page link={"core-development-concepts/extending-and-customizing/lexical-tools"} />
           </Group>
         </Group>
+        <Group title={"Webiny Overview"}>
+          <Group title={"Features"} linkPrefix={"features"}>
+            <Page
+              link={"overview/features/audit-logs"}
+              after={"overview/features/advanced-content-organization"}
+            />
+          </Group>
+        </Group>
       </NavigationRoot>
     </>
   );

@@ -1,0 +1,66 @@
+---
+id: cf21f2e1
+title: Custom Dashboard
+description: Learn how to replace the default Dashboard, and implement a custom one.
+---
+
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+import customDashboard from "./assets/custom-dashboard.png";
+
+<CanIUseThis since={"5.40.0"} />
+
+<WhatYouWillLearn>
+
+- how to replace the default Webiny dashboard
+
+</WhatYouWillLearn>
+
+## Overview
+
+In this article, we show how we can replace the default dashboard in the Webiny Admin app. This is useful when we want to create a custom dashboard that better suits our needs.
+
+<ExtensionsGettingStarted
+  type={"admin"}
+  name={"adminDashboard"}
+  dependencies={"@webiny/app-serverless-cms"}
+  fullExampleLink={"https://github.com/webiny/webiny-examples/tree/master/custom-dashboard"}
+/>
+
+## Replacing the Default Dashboard
+
+To replace the dashboard, in the `extensions/adminDashboard/src/index.tsx` file, we place the following code:
+
+```tsx extensions/adminDashboard/src/index.tsx
+import React from "react";
+import { Dashboard, useSecurity } from "@webiny/app-serverless-cms";
+
+// We create a new decorator called MyDashboard
+const MyDashboard = Dashboard.createDecorator(() => {
+  return function MyDashboard() {
+    const { identity } = useSecurity();
+
+    return (
+      <div style={{ padding: 50, textAlign: "center" }}>
+        <h3>Hi, {identity?.displayName}!</h3>
+      </div>
+    );
+  };
+});
+
+export const Extension = () => (
+  <>
+    <MyDashboard />
+  </>
+);
+```
+
+As we can see, we first define the `MyDashboard` React component, which is actually the decorated version of the original `Dashboard` component, imported from the `@webiny/app-serverless-cms` package.
+
+Note that, when we say decorated, we basically mean that the component has been wrapped with another component, which ultimately affects the functionality of the wrapped component, or, the decoratee.
+
+In our case, we are replacing the default `Dashboard` component that renders the default dashboard, with our own, which just renders a simple greeting message.
+
+To retrieve the currently logged in Admin user, we've also used the `useSecurity` React hook. As we can see, the hook lets us easily retrieve the currently logged-in identity, whose name we’re displaying on our custom dashboard.
+
+<Image src={customDashboard} alt="Custom Dashboard" />

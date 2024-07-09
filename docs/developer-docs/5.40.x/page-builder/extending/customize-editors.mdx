@@ -1,0 +1,679 @@
+---
+id: d5e75eec
+title: Customize Editors
+description: Learn how to customize page builder editors
+---
+
+import { Alert } from "@/components/Alert";
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { Gallery } from "@/components/Image";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+import baseEditor from "./assets/editors-base-editor.png";
+import pageEditor from "./assets/editors-page-editor.png";
+import blockEditor from "./assets/editors-block-editor.png";
+import dropdownMenuDots from "./assets/editors-page-editor-dropdown-dots.png";
+import dropdownMenu from "./assets/editors-page-editor-dropdown-open.png";
+import discoverElements from "./assets/editors-discover-elements.png";
+import elementProperties from "./assets/editors-element-properties.png";
+import editorFrame from "./assets/editors-custom-frame.png";
+import undoRedo from "./assets/editors-undo-redo.png";
+import customSidebar from "./assets/editors-custom-sidebar.png";
+import customProperty from "./assets/editors-custom-property.gif";
+
+<CanIUseThis since="5.40.0" />
+
+<WhatYouWillLearn>
+
+- how editors work
+- how to add/remove/replace existing elements
+- how to customize element layouts
+
+</WhatYouWillLearn>
+
+## Overview
+
+Webiny Page Builder app provides different editors for various purposes. There's a Block Editor to build reusable content blocks, a Template Editor to build page templates, and a Page Editor to build pages using templates, blocks, or fully from scratch. These editors share the same underlying framework, which makes them customizable.
+
+<Gallery>
+  <Image src={pageEditor} title={"Page Editor"} />
+  <Image src={blockEditor} title={"Block Editor"} />
+</Gallery>
+
+## Base Editor
+
+All editors share the same base editor, with the core mechanics, plugins, and UI elements already in place. Individual editor configs add the specifics: variations of elements, settings, behavior.
+
+Out of the box, the base editor has 4 top-level UI elements: `TopBar`, `Toolbar`, `Content`, and `Sidebar`. Furthermore, within these top-level elements, there are groups of child elements, which allow you to target specific positions when adding new elements. For example, the display mode selector (laptop, tablet, mobile) you see on the image below, belongs to the `center` group of the `TopBar` element. We'll cover each top-level element in depth, in the following sections.
+
+<Image src={baseEditor} title={"Base Editor"} />
+
+## Using the Code Examples
+
+The following code examples follow our usual configuration pattern. You need to add the code from
+the examples to your `apps/admin/src/App.tsx`. Here's an example:
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { PageEditorConfig } from "@webiny/app-page-builder";
+import "./App.scss";
+
+export const App: React.FC = () => {
+    return (
+      <Admin>
+        <Cognito />
++       <PageEditorConfig>
++           {* Config components go here. *}
++       </PageEditorConfig>
+      </Admin>
+    );
+};
+```
+
+In the following sections, we'll only be showing the code that is related to the configuration itself. The rest of the code shown above will be omitted.
+
+## Discover UI Elements
+
+In the code examples, we'll be referring to existing elements by their name. The most reliable way of discovering the element names and groups is by using your browser's developer tools, and simply inspecting the element you're interested in. Element groups are enclosed with a `pb-editor-ui-elements` DOM element, and individual elements with a `pb-editor-ui-element` DOM element. On these DOM elements, you'll be able to find the `data-group` and `data-name` attributes. That's what you're looking for.
+
+<Image src={discoverElements} title="Discover Elements via Developer Tools" />
+
+## Choosing an Editor to Customize
+
+When you want to customize an editor, first you need to know which editor you want to customize, as customizations are scoped to a specific editor. Once you know what editor you want to target, use the right config component:
+
+```ts
+// For Block Editor
+import { BlockEditorConfig } from "@webiny/app-page-builder";
+
+// For Template Editor
+import { TemplateEditorConfig } from "@webiny/app-page-builder";
+
+// For Page Editor
+import { PageEditorConfig } from "@webiny/app-page-builder";
+```
+
+In this article, we will focus on the Page Editor, as it's usually the main editor developers want to customize. However, all the techniques and patterns shown the examples below apply to all editors.
+
+## TopBar
+
+The top-level `TopBar` element has 3 element groups: `left`, `center`, and `actions`.
+
+### Add an Element
+
+To add a new element, use the `Ui.TopBar.Element` config component, give it a `name`, a `group` it belongs to, and an `element`, which is a React element.
+
+```tsx
+const { Ui } = PageEditorConfig;
+
+<PageEditorConfig>
+  <Ui.TopBar.Element name={"demoElement"} group={"left"} element={<span>Demo Element</span>} />
+</PageEditorConfig>;
+```
+
+### Position an Element
+
+To position a element before or after another element, use the `before` or `after` props to specify the name of the existing element.
+
+```tsx
+const { Ui } = PageEditorConfig;
+
+<PageEditorConfig>
+  {/* Position a new element after the "buttonBack" element. */}
+  <Ui.TopBar.Element
+    name={"demoElement"}
+    group={"left"}
+    element={<span>Demo Element</span>}
+    after={"buttonBack"}
+  />
+  {/* Change the position of an existing element. */}
+  <Ui.TopBar.Element name={"buttonBack"} after={"title"} />
+</PageEditorConfig>;
+```
+
+### Remove an Element
+
+To remove an existing element, reference it by `name`, and add a `remove` prop.
+
+```tsx
+const { Ui } = PageEditorConfig;
+
+<PageEditorConfig>
+  <Ui.TopBar.Element name={"buttonBack"} remove />
+</PageEditorConfig>;
+```
+
+### Replace an Element
+
+To replace an existing element, reference the existing element by name, and specify a different `element` prop.
+
+```tsx
+const { Ui } = PageEditorConfig;
+
+<PageEditorConfig>
+  <Ui.TopBar.Element name={"buttonBack"} element={<span>Back button</span>} />
+</PageEditorConfig>;
+```
+
+### Actions
+
+The `actions` element group is one of the most commonly customized, so we provided several higher level components to make adding actions even easier, comparing to other generic elements.
+
+```tsx
+const { Ui } = PageEditorConfig;
+
+// Define a component that will handle your action logic.
+const MySettings = () => {
+  const doSomething = () => {
+    alert("My Settings were clicked!");
+  };
+
+  return <button onClick={doSomething}>My Settings</button>;
+};
+
+<PageEditorConfig>
+  <Ui.TopBar.Action name={"mySettings"} element={<MySettings />} />
+</PageEditorConfig>;
+```
+
+<Alert type={"info"} title={"All the config props are supported!"}>
+
+Note that all the same props are supported on the `TopBar.Action` config component: `before`,
+`after`, and `remove`.
+
+</Alert>
+
+### Dropdown Actions
+
+For actions that you don't use often, or don't need to be visible in the `TopBar`, you can use the built-in `DropdownActions` menu.
+
+<Gallery>
+  <Image src={dropdownMenuDots} title="Secondary Actions" />
+  <Image src={dropdownMenu} title="Secondary Actions Menu" />
+</Gallery>
+
+To register a dropdown menu action, use the `TopBar.DropdownAction` config component. We also provide a `TopBar.DropdownAction.MenuItem` component to render the actual menu item.
+
+```tsx
+// Import an icon to use in the menu item.
+import { ReactComponent as EditIcon } from "@material-design-icons/svg/round/edit.svg";
+
+const { Ui } = PageEditorConfig;
+
+const MyDropdownAction = () => {
+  const myAction = () => {
+    alert("MyAction was clicked!");
+  };
+
+  return (
+    <Ui.TopBar.DropdownAction.MenuItem label={"My Action"} onClick={myAction} icon={<EditIcon />} />
+  );
+};
+
+<PageEditorConfig>
+  <Ui.TopBar.DropdownAction name={"myDropdownAction"} element={<MyDropdownAction />} />
+</PageEditorConfig>;
+```
+
+## Element Properties
+
+Every content element, like paragraph, heading, image, button, etc., has its own set of properties that can be tweaked by the content creators. These properties are rendered within the top-level `Sidebar` element, and are grouped into `style` and `element` groups, represented by **Style** and **Element** tabs, respectively.
+
+<Image src={elementProperties} title="Element Properties" />
+
+The plugins used to register these properties are [pb-editor-page-element-style-settings](/docs/{version}/page-builder/references/plugins#pb-editor-page-element-style-settings) for the `style` group, and [pb-editor-page-element-advanced-settings](/docs/{version}/page-builder/references/plugins#pb-editor-page-element-advanced-settings) for the `element` group.
+
+To see the implementation of the built-in element property plugins, please [refer to our Github](https://github.com/webiny/webiny-js/tree/next/packages/app-page-builder/src/editor/plugins/elementSettings).
+
+### Add a Property
+
+To add a new property, use the `ElementProperty` config component, give it a `name`, a `group` (use the constants defined on the `ElementProperty` component), and an `element` to render the property UI.
+
+```tsx
+const { ElementProperty } = PageEditorConfig;
+
+const MyProperty = () => {
+  return <button>My Custom Property</button>;
+};
+
+<PageEditorConfig>
+  <ElementProperty name={"myProperty"} group={ElementProperty.STYLE} element={<MyProperty />} />
+</PageEditorConfig>;
+```
+
+### Remove a Property
+
+To remove an element property, use the `ElementProperty` config component, and add a `remove` prop.
+
+```tsx
+const { ElementProperty } = PageEditorConfig;
+
+<PageEditorConfig>
+  <ElementProperty name={"background"} remove />
+</PageEditorConfig>;
+```
+
+### Update an Element
+
+To update an element via your custom element properties, use the `useUpdateElement` hook. In this example,
+
+```tsx apps/admin/src/CustomProperty.tsx
+import React, { useCallback } from "react";
+import styled from "@emotion/styled";
+import { PageEditorConfig } from "@webiny/app-page-builder";
+import { useActiveElement, useUpdateElement } from "@webiny/app-page-builder/editor";
+import { ButtonPrimary } from "@webiny/ui/Button";
+
+/* Sidebar content has no default styles, so we need to take care of styling ourselves. */
+const StyledButton = styled(ButtonPrimary)`
+  margin: 16px;
+`;
+
+export const SetButtonText = () => {
+  const [activeElement] = useActiveElement();
+  const updateElement = useUpdateElement();
+
+  const setButtonText = useCallback(() => {
+    if (!activeElement) {
+      return;
+    }
+
+    /* Update the element by passing the full object you want to have in the page state. */
+    updateElement({
+      ...activeElement,
+      data: {
+        ...activeElement.data,
+        buttonText: "Get in touch to get a free demo!"
+      }
+    });
+  }, [activeElement]);
+
+  /* Only render this property for "button" elements. */
+  if (!activeElement || activeElement.type !== "button") {
+    return null;
+  }
+
+  return <StyledButton onClick={setButtonText}>Update Text</StyledButton>;
+};
+
+const { ElementProperty } = PageEditorConfig;
+
+<PageEditorConfig>
+  <ElementProperty
+    name={"setButtonText"}
+    element={<SetButtonText />}
+    group={ElementProperty.STYLE}
+  />
+</PageEditorConfig>;
+```
+
+The result of this little plugin is shown in the video:
+
+<Image src={customProperty} title="Custom Property to Update Button Text" />
+
+## Editor Layout
+
+The editor, and the top-level elements, each have their own `Layout` component, which controls how that particular element is rendered. This means that you can change every element individually, but also change the entire editor layout.
+
+<Alert type="warning" title="A word of caution!">
+
+Editor styles, element positioning, scrollable panels, drag&drop behavior, a lot of it depends
+on various CSS positioning techniques and tricks. The top-level elements are mostly `position: fixed`, and will require some fiddling with CSS.
+
+</Alert>
+
+For reference, here are some links to Github, where each of the Layout component implementation can be found:
+
+- [Editor Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Layout.tsx)
+- [TopBar Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/TopBar/Layout.tsx)
+- [Toolbar Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Toolbar/Layout.tsx)
+- [Content Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Content/Layout.tsx)
+- [Sidebar Layout](https://github.com/webiny/webiny-js/blob/dev/packages/app-page-builder/src/editor/config/Sidebar/Layout.tsx)
+
+### Add a Custom Editor Frame
+
+This example demonstrates how you can decorate the default editor layout and add custom panels. We'll add a new panel above the default TopBar element, and also a new toolbar to the left of the existing Toolbar element.
+
+<Alert type="info">You can copy the following code example in its entirety.</Alert>
+
+```tsx apps/admin/src/EditorLayout.tsx
+import styled from "@emotion/styled";
+import { PageEditorConfig } from "@webiny/app-page-builder";
+
+const { Ui } = PageEditorConfig;
+
+/**
+ * Some constants to apply tweaks to CSS.
+ */
+const oldTopBar = 64;
+const newTopBar = 64;
+const newToolbar = 64;
+
+/**
+ * Create a styled component that will serve as a root for all default element tweaks.
+ * All top-level editor elements have a "data-role" attribute to make it easy to target them via CSS selectors.
+ */
+const StyledEditor = styled.div`
+  [data-role="top-bar-layout"] {
+    box-shadow: none;
+    border: 1px solid #e9e9e9;
+    top: ${newTopBar}px;
+    width: calc(100vw - ${newToolbar}px);
+    right: 0;
+  }
+
+  [data-role="toolbar-layout"] {
+    top: calc(${newTopBar}px + ${oldTopBar}px);
+    height: calc(100vh - ${oldTopBar + newTopBar}px);
+    left: ${newToolbar}px;
+    border-left: 1px solid #e9e9e9;
+  }
+
+  [data-role="toolbar-drawers"] {
+    top: calc(${newTopBar}px + ${oldTopBar}px);
+    /* This fixes the position of the drawer when it's opened. */
+    aside.mdc-drawer--open {
+      top: calc(${newTopBar}px + ${oldTopBar}px);
+      margin-left: calc(54px + ${newToolbar}px);
+    }
+  }
+
+  [data-role="content-layout"] {
+    top: calc(${newTopBar}px + ${oldTopBar}px);
+    left: ${newToolbar}px;
+    width: calc(100vw - 415px - ${newToolbar}px);
+    margin-top: 24px;
+  }
+  [data-role="sidebar-layout"] {
+    top: calc(${newTopBar}px + ${oldTopBar}px);
+  }
+
+  [data-role="content-breadcrumbs"] {
+    left: calc(55px + ${newToolbar}px);
+  }
+`;
+
+const CustomTopBar = styled.div`
+  width: 100%;
+  background-color: white;
+  height: ${newTopBar}px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  border-right: 1px solid var(--mdc-theme-on-background);
+`;
+
+const CustomToolbar = styled.div`
+  width: ${newToolbar}px;
+  background-color: white;
+  height: calc(100vh - ${newTopBar}px);
+  position: fixed;
+  top: ${newTopBar}px;
+  left: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--mdc-theme-on-background);
+`;
+
+export const EditorLayout = Ui.Layout.createDecorator(OriginalLayout => {
+  return function Layout() {
+    return (
+      /* Wrap the original layout with the new styled component to apply CSS tweaks. */
+      <StyledEditor>
+        {/* Add a custom top bar element. */}
+        <CustomTopBar />
+        {/* Add a custom toolbar element. */}
+        <CustomToolbar />
+        {/* Render the original layout. */}
+        <OriginalLayout />
+      </StyledEditor>
+    );
+  };
+});
+```
+
+Enable this editor configuration in the `apps/admin/src/App.tsx` as described in the [Using the Code Examples](#using-the-code-examples) section. Simply mount your `<EditorLayout />` as a child of `<PageEditorConfig>`:
+
+```tsx
+import { EditorLayout } from "./EditorLayout";
+
+<PageEditorConfig>
+  <EditorLayout />
+</PageEditorConfig>;
+```
+
+The result will look like this:
+
+<Image src={editorFrame} title="Custom Editor Frame" />
+
+### Move Undo/Redo Buttons to the TopBar
+
+By default, Undo and Redo actions are displayed in the `Toolbar` element, with the action tooltip opening to the right. Simply moving them to the `TopBar` will not change the direction of the tooltip. So in this next code example, we'll demonstrate how you can reimplement these buttons yourself, position them in the `TopBar`, and remove the default ones from the `Toolbar`.
+
+<Alert type="info">You can copy the following code example in its entirety.</Alert>
+
+```tsx apps/admin/src/UndoRedo.tsx
+import React from "react";
+import { ReactComponent as UndoIcon } from "@material-design-icons/svg/round/undo.svg";
+import { ReactComponent as RedoIcon } from "@material-design-icons/svg/round/redo.svg";
+import { useActiveElement, useEventActionHandler } from "@webiny/app-page-builder/editor";
+import { IconButton } from "@webiny/ui/Button";
+import { Tooltip } from "@webiny/ui/Tooltip";
+
+const Undo = () => {
+  /* Our editor already exposes an "undo" event which you can simply trigger via a hook. */
+  const { undo } = useEventActionHandler();
+  const [, setActiveElement] = useActiveElement();
+
+  const onClick = () => {
+    undo();
+    setActiveElement(null);
+  };
+
+  return (
+    <Tooltip placement={"bottom"} content={"Undo"}>
+      <IconButton icon={<UndoIcon />} onClick={onClick} />
+    </Tooltip>
+  );
+};
+
+const Redo = () => {
+  /* Our editor already exposes "redo" function which you can simply invoke. */
+  const { redo } = useEventActionHandler();
+  const [, setActiveElement] = useActiveElement();
+
+  const onClick = () => {
+    setActiveElement(null);
+    redo();
+  };
+  return (
+    <Tooltip placement={"bottom"} content={"Redo"}>
+      <IconButton icon={<RedoIcon />} onClick={onClick} />
+    </Tooltip>
+  );
+};
+
+export const UndoRedo = () => {
+  return (
+    <>
+      {/* Add your new elements to TopBar, and position them before the "Revisions" dropdown menu. */}
+      <Ui.TopBar.Action name={"undo"} element={<Undo />} before={"dropdownMenuRevisions"} />
+      <Ui.TopBar.Action name={"redo"} element={<Redo />} before={"dropdownMenuRevisions"} />
+      {/* Remove the undo/redo buttons from the Toolbar. */}
+      <Ui.Toolbar.Element name={"undo"} remove />
+      <Ui.Toolbar.Element name={"redo"} remove />
+    </>
+  );
+};
+```
+
+And again, enable this configuration, just like you did in the previous section:
+
+```tsx apps/admin/src/App.tsx
+import { UndoRedo } from "./UndoRedo";
+
+<PageEditorConfig>
+  <UndoRedo />
+</PageEditorConfig>;
+```
+
+The result of this configuration will look like this:
+
+<Image src={undoRedo} title="Move Undo/Redo Buttons to TopBar" />
+
+### Customize the Sidebar
+
+Out of the box, Webiny provides config components to add the most common things to the `Sidebar`, like element actions, and element properties. The default `Sidebar` is organized into two main groups: `style` and `element`, which group related element properties together. These groups are rendered using regular tabs.
+
+However, you might want to completely change how the `Sidebar` is rendered. This section demonstrates how you can easily move things around, change the `Sidebar` layout, add custom groups, etc.
+
+In this example we will:
+
+- change the `Sidebar` layout from tabs to accordion
+- render the `style` and `element` properties in one group, called "Element Properties"
+- add a new group for custom properties, or any other functionality you want to add, called "Custom Properties"
+- move the element actions from their default position in the "Element" tab, to the top of the `Sidebar`
+- remove the default "Click to Activate" widget, which is usually visible when no element is activated in the editor
+- add an "Element Data" accordion, only visible in development mode (while developing on localhost)
+
+<Alert type="info">You can copy the following code example in its entirety.</Alert>
+
+```tsx apps/admin/src/CustomSidebar.tsx
+import React from "react";
+import styled from "@emotion/styled";
+import { ReactComponent as StarIcon } from "@material-design-icons/svg/round/star.svg";
+import { ReactComponent as ScienceIcon } from "@material-design-icons/svg/round/science.svg";
+import { ReactComponent as DebugIcon } from "@material-design-icons/svg/round/bug_report.svg";
+import { PageEditorConfig } from "@webiny/app-page-builder";
+import { useActiveElement } from "@webiny/app-page-builder/editor";
+import { Accordion, AccordionItem } from "@webiny/ui/Accordion";
+import { Elevation } from "@webiny/ui/Elevation";
+
+const { Ui } = PageEditorConfig;
+
+const StyledAccordionItem = styled(AccordionItem)`
+  .webiny-ui-accordion-item__content {
+    padding: 0 !important;
+  }
+`;
+
+const StyledElevation = styled(Elevation)`
+  box-shadow: 1px 0px 5px 0px rgba(128, 128, 128, 1);
+  position: fixed;
+  right: 0;
+  top: 65px;
+  height: 100%;
+  width: 300px;
+  z-index: 1;
+`;
+
+const Actions = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+const CustomProperties = styled.div`
+  margin: 16px;
+`;
+
+const ScrollableContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 65px - 48px);
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 1px;
+  }
+  &::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: darkgrey;
+    outline: 1px solid slategrey;
+  }
+`;
+
+/* Decorate the default Sidebar layout and render a completely custom one. */
+const SidebarWithAccordion = Ui.Sidebar.Layout.createDecorator(() => {
+  return function Sidebar() {
+    const [activeElement] = useActiveElement();
+
+    /* Make accordions non-interactive, if no element is activated in the editor. */
+    const isInteractive = !!activeElement;
+
+    return (
+      <StyledElevation z={1}>
+        {/* When sidebar content overflows the viewport height, we want the sidebar to become scrollable. */}
+        <ScrollableContainer>
+          <Accordion>
+            <Actions>
+              {/* Render element actions. */}
+              <Ui.Elements scope={"elementActions"} />
+            </Actions>
+            <StyledAccordionItem
+              title={"Element Properties"}
+              description={"Built-in element properties."}
+              icon={<StarIcon />}
+              interactive={isInteractive}
+            >
+              {/* Render `style` and `element` properties together. */}
+              <Ui.Sidebar.Elements group={"style"} />
+              <Ui.Sidebar.Elements group={"element"} />
+            </StyledAccordionItem>
+            <StyledAccordionItem
+              title={"Custom Properties"}
+              description={"Custom element properties."}
+              icon={<ScienceIcon />}
+              interactive={isInteractive}
+            >
+              <CustomProperties>Your custom element properties can go here!</CustomProperties>
+            </StyledAccordionItem>
+
+            {/* In development, print active element data for debugging purposes. */}
+            {process.env.NODE_ENV === "development" ? (
+              <StyledAccordionItem
+                title={"Element Data"}
+                description={"Element data for debugging."}
+                icon={<DebugIcon />}
+                interactive={isInteractive}
+              >
+                {activeElement ? <pre>{JSON.stringify(activeElement, null, 2)}</pre> : null}
+              </StyledAccordionItem>
+            ) : (
+              <></>
+            )}
+          </Accordion>
+        </ScrollableContainer>
+      </StyledElevation>
+    );
+  };
+});
+
+export const CustomSidebar = () => {
+  return (
+    <>
+      {/* Apply the Sidebar decorator. */}
+      <SidebarWithAccordion />
+      {/* Remove unwanted elements from the default UI. */}
+      <Ui.Sidebar.Element name={"elementActions"} remove />
+      <Ui.Sidebar.Element name={"elementInactive"} remove />
+      <Ui.Sidebar.Element name={"styleInactive"} remove />
+    </>
+  );
+};
+```
+
+And again, enable the configuration:
+
+```tsx apps/admin/src/App.tsx
+import { CustomSidebar } from "./CustomSidebar";
+
+<PageEditorConfig>
+  <CustomSidebar />
+</PageEditorConfig>;
+```
+
+The result of this configuration will look like this:
+
+<Image src={customSidebar} title="Custom Sidebar" />

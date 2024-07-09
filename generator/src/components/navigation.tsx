@@ -85,14 +85,28 @@ const useGroup = () => {
 
 interface GroupProps {
   title: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  icon?: string;
+  link?: string;
+  /**
+   * Specify a prefix that will be added to all pages within this group.
+   */
   linkPrefix?: string;
   remove?: boolean;
   before?: string;
   after?: string;
 }
 
-export const Group = ({ title, linkPrefix, children, remove, before, after }: GroupProps) => {
+export const Group = ({
+  title,
+  icon,
+  link,
+  linkPrefix,
+  children,
+  remove,
+  before,
+  after
+}: GroupProps) => {
   const getId = useIdGenerator("collapsable");
   const parentGroup = useGroup();
   const id = getId(title);
@@ -114,6 +128,8 @@ export const Group = ({ title, linkPrefix, children, remove, before, after }: Gr
       >
         <Property id={`${id}.type`} name={"type"} value={"group"} />
         <Property id={`${id}.title`} name={"title"} value={title} />
+        {icon ? <Property id={`${id}.icon`} name={"icon"} value={icon} /> : null}
+        {link ? <Property id={`${id}.link`} name={"link"} value={link} /> : null}
         {children}
       </Property>
     </GroupProvider>

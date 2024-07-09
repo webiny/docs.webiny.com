@@ -10,7 +10,35 @@ export const Navigation = () => {
       {/* Add new items. */}
       <NavigationRoot directory={__dirname}>
         {/* Add new groups and pages here. */}
-        <Group title={"Headless CMS"}>
+        <Group title={"Get Started"} link={"get-started/welcome"}>
+          <Page link={"get-started/welcome"} />
+        </Group>
+        <Group title={"Admin Area"}>
+          <Group title={"Extending Functionality"}>
+            <Page link={"admin-area/extending/environment-variables"} />
+            <Page link={"admin-area/extending/webpack-config"} />
+          </Group>
+        </Group>
+        <Group
+          title={"Webiny Overview"}
+          icon={"/docs-menu-icons/webiny-overview.svg"}
+          link={"overview/why-and-when-to-use-webiny"}
+        >
+          <Page link={"overview/why-and-when-to-use-webiny"} before="overview/pricing" />
+          <Page link={"overview/introduction"} remove />
+        </Group>
+        <Group
+          title={"Headless CMS"}
+          icon={"/docs-menu-icons/headless-cms.svg"}
+          link={"headless-cms/overview"}
+        >
+          <Page link={"headless-cms/overview"} hidden={true} />
+          <Group title={"Basics"}>
+            <Page
+              link={"headless-cms/basics/content-modeling-best-practices"}
+              after={"headless-cms/basics/migrating-to-webiny"}
+            />
+          </Group>
           <Group title={"Extending Functionality"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-actions"}
@@ -32,12 +60,18 @@ export const Navigation = () => {
               link={"headless-cms/extending/website-users"}
               after={"headless-cms/extending/private-models"}
             />
+            <Page link={"headless-cms/extending/lexical-editor"} />
           </Group>
           <Group title={"References"}>
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
           </Group>
         </Group>
-        <Group title={"Page Builder"}>
+        <Group
+          title={"Page Builder"}
+          icon={"/docs-menu-icons/page-builder.svg"}
+          link={"page-builder/overview"}
+        >
+          <Page link={"page-builder/overview"} hidden={true} />
           <Group title={"Extending Functionality"}>
             <Page
               link={"page-builder/extending/customize-page-list-actions"}

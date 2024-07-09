@@ -1,0 +1,146 @@
+---
+id: aafeaa22
+title: Extend GraphQL API
+description: Learn how to use GraphQL plugins in order to expand your GraphQL API.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- how to use the [`CmsGraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/api-headless-cms/src/plugins/CmsGraphQLSchemaPlugin.ts) in order to extend an existing Headless CMS GraphQL API
+- how to use the [`GraphQLSchemaPlugin`] in order to extend an existing default GraphQL API
+
+</Alert>
+
+<Alert type="info">
+
+Use the [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) command to continuously deploy application code changes into the cloud and instantly see them in action. For quick (manual) testing, you can use the built-in [API Playground](/docs/{version}/admin-area/basics/api-playground).
+
+</Alert>
+
+## Introduction
+
+When it comes to HTTP API development, Webiny relies on [GraphQL](https://graphql.org/). In fact, all of the applications that are part of the Webiny Serverless CMS, for example [Page Builder](https://www.webiny.com/serverless-app/page-builder) or [Headless CMS](https://www.webiny.com/serverless-app/headless-cms), are using it to enable developers programmatic interaction via a client of their choice, for example, a browser.
+
+## Extending GraphQL API
+
+In general, when talking about extending an existing GraphQL API, we're usually referring to one or more of the following:
+
+- adding new [query or mutation](https://graphql.org/learn/queries/) GraphQL operations
+- adding new GraphQL [types](https://graphql.org/learn/schema/#object-types-and-fields)
+- extending existing GraphQL types with additional [fields](https://graphql.org/learn/queries/#fields)
+
+For example, we might want to add a new, Page Builder-related, `duplicatePage` mutation, that would be responsible for making copies of provided pages. Or, we might just want to add an extra field to the [`PbPage`](https://github.com/webiny/webiny-js/blob/v5.11.0/packages/api-page-builder/src/graphql/graphql/pages.gql.ts#L30) GraphQL type, so that we can store some additional data for each page.
+
+Depending on the application and the change we want to perform, some of the steps in the overall GraphQL extension process may differ, in all cases, we will want to start by registering a new [`GraphQLSchemaPlugin`] plugin.
+
+The plugin is registered within your GraphQL API's application code [`apps/api/graphql/src/plugins`] folder, and register it in the [`apps/api/graphql/src/index.ts`] entrypoint file. 
+
+
+The following is an example of a simple [`CmsGraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/api-headless-cms/src/plugins/CmsGraphQLSchemaPlugin.ts) plugin that extends the default GraphQL API with a new `listBooks` query.
+
+```ts apps/api/graphql/src/plugins/books.ts
+import { GraphQLSchemaPlugin } from "@webiny/handler-graphql";
+
+// Make sure to import the `Context` interface and pass it to the `CmsGraphQLSchemaPlugin`
+// plugin. Apart from making your application code type-safe, it will also make the
+// interaction with the `context` object is significantly easier.
+import { Context } from "~/types";
+
+export default new CmsGraphQLSchemaPlugin<Context>({
+  // Extend the `Query` type with the `Book` type and `listBooks` query field,
+  // which returns a list of all books previously saved in the database.
+  typeDefs: /* GraphQL */ `
+    type Book {
+      title: String
+      description: String
+    }
+    extend type Query {
+      # Returns a list of all users
+      listBooks: [Book]
+    }
+  `,
+  // In order for the `listBooks` to work, we also need to create a resolver function.
+  resolvers: {
+    Query: {
+      listBooks: async (_, args, context) => {
+        // In a real life application, these would be loaded from the database.
+        const books = [
+          { title: "First book", description: "This is the first book." },
+          { title: "Second book", description: "This is the second book." }
+        ];
+
+        // Finally, return the list of books using the `ListResponse` class instance.
+        return books;
+      }
+    }
+  }
+});
+```
+
+Once your plugin is ready, add it to the entrypoint like so: 
+
+```ts apps/api/graphql/src/index.ts
+//...
+import booksApi from './plugins/books'
+
+//...
+export const handler = createHandler({
+    plugins: [
+        createWcpContext(),
+        createWcpGraphQL(),
+        //...
+        booksApi
+        //...
+         ],
+    debug
+});
+```
+
+Declaring your API using `GraphQLSchemaPlugin` means your API will be registered under the default API, so your new query (`listBooks`) will be visible in the API playground under the Main API tab.
+
+```graphql
+{
+  listBooks {
+    title
+    description
+  }
+}
+```
+
+Executing the query should give us the following result:
+
+![Executing the new listBooks Query via API Playground](./assets/extend-graphql-api/list-books-query.png)
+
+<Alert type="success">
+
+To extend your default GraphQL API in no time, make sure to try the [Extend Admin Area](/docs/{version}/admin-area/new-app-tutorial/scaffolding) and [Extend GraphQL API](/docs/{version}/core-development-concepts/scaffolding/extend-graphql-api) scaffolds.
+
+</Alert>
+
+
+In case you wish to extend the Headless CMS API, you would just replace `GraphQLSchemaPlugin` with `CMSGraphQLSchemaPlugin` in your plugin, and everything else remains the same. Doing this your plugin will be visible under the "Headless CMS - Manage API" tab in the API Playground and you need to use the matching GraphQL URL. 
+
+```diff-tsx apps/api/graphql/src/plugins/books.ts
+- import { GraphQLSchemaPlugin } from "@webiny/handler-graphql";
++ import { CmsGraphQLSchemaPlugin } from "@webiny/api-headless-cms";
+//...
+
+```
+
+
+<Alert type="info">
+
+The [`CmsGraphQLSchemaPlugin`](https://github.com/webiny/webiny-js/blob/v5.35.0/packages/api-headless-cms/src/plugins/CmsGraphQLSchemaPlugin.ts) plugin is part of the [`@webiny/api-headless-cms`](https://github.com/webiny/webiny-js/tree/v5.35.0/packages/api-headless-cms) package, which can also be used to create new standalone GraphQL APIs.
+
+</Alert>
+
+
+
+## Additional Related Examples
+
+For more concrete examples, you can also visit the following guides which explain how to extend GraphQL types and operations that belong to different Webiny applications:
+
+- [Page Builder](/docs/{version}/page-builder/extending/extend-graphql-api)
+- [Headless CMS](/docs/{version}/headless-cms/extending/extend-graphql-api)

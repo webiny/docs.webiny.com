@@ -1,0 +1,314 @@
+---
+id: cd0e6f97
+title: Removed APIs
+description: Learn about the removed APIs in the 5.40.0 release and their replacements.
+---
+
+import { Alert } from "@/components/Alert";
+
+## Overview
+
+As mentioned in the [changelog](/docs/release-notes/5.40.0/changelog#removed-deprecated-ap-is-4051), with this release, we've removed a couple of frontend and backend JavaScript APIs that were marked as deprecated in previous releases.
+
+In this guide, we'll go through the list of deprecated APIs and their replacements.
+
+## Headless CMS
+
+### Removed Methods Related to Checking Security Permissions (Performing Authorization)
+
+We've removed a set of methods related to checking security permissions (performing authorization) that were accessible via the `context.cms.permissions` object. To provide more context, here's an example of how the object could've been used in a simple `CmsGraphQLSchemaPlugin` plugin:
+
+```ts
+import { CmsGraphQLSchemaPlugin } from "@webiny/api-headless-cms";
+import { ErrorResponse, Response } from "@webiny/handler-graphql";
+
+new CmsGraphQLSchemaPlugin<Context>({
+  typeDefs: /* GraphQL */ `
+    extend type Query {
+      myListVideos: VideosListResponse
+    }
+  `,
+  resolvers: {
+    Query: {
+      myListVideos: async (_, __, context) => {
+        // Ensure user can read entries.
+        const hasAccess = await context.cms.permissions.entries.ensure({
+          rwd: "r"
+        });
+
+        if (!hasAccess) {
+          throw new ErrorResponse({
+            message: "Unauthorized: Insufficient access rights."
+          });
+        }
+
+        // ...
+      }
+    }
+  }
+});
+```
+
+In the example above, the `context.cms.permissions.entries.ensure` method is used to check if the current user has the required permissions to read entries.
+
+With this release, the `context.cms.permissions` object has been removed. Instead, you should use the `context.cms.accessControl` object to perform the same checks.
+
+<Alert type="info">
+
+With this [5.39.2](/docs/release-notes/5.39.2/changelog#new-authorization-related-utilities-3865) release, we’ve introduced a new property on the CMS context object, called `accessControl`. Essentially, this property is a reference to the [AccessControl](https://github.com/webiny/webiny-js/blob/dev/packages/api-headless-cms/src/crud/AccessControl/AccessControl.ts) class instance, which is used to perform authorization checks on content model groups, models, and entries.
+
+</Alert>
+
+If we were to rewrite the previous example using the new `context.cms.accessControl` object, it would look like this:
+
+```diff-ts
+import { CmsGraphQLSchemaPlugin } from "@webiny/api-headless-cms";
+import { ErrorResponse, Response } from "@webiny/handler-graphql";
+
+new CmsGraphQLSchemaPlugin<Context>({
+  typeDefs: /* GraphQL */ `
+    extend type Query {
+      myListVideos: VideosListResponse
+    }
+  `,
+  resolvers: {
+    Query: {
+      myListVideos: async (_, __, context) => {
+        // Ensure user can read entries.
++       const model = await context.cms.getModel("myVideo");
++       const hasAccess = await context.cms.accessControl.canAccessEntry({
++         model,
++         rwd: "r"
++       });
+
+        if (!hasAccess) {
+          throw new ErrorResponse({
+            message: "Unauthorized: Insufficient access rights."
+          });
+        }
+
+        // ...
+      }
+    }
+  }
+});
+```
+
+### Renamed `createCmsModel` and `createCmsGroup` Plugin Factory Functions
+
+We've renamed the `createCmsModel` and `createCmsGroup` plugin factory functions to `createCmsModelPlugin` and `createCmsGroupPlugin`. By having a more explicit name of the function, we're making it more clear what the function actually does.
+
+With the 5.40.0 release, the old functions will be still available, but do note that they will be removed in the upcoming quarterly (5.41.0) release.
+
+## Page Builder
+
+Multiple legacy methods used for subscribing to Page Builder application's lifecycle events have been removed.
+
+<Alert type="info">
+
+Learn more about lifecycle events in the [Lifecycle Events](/docs/page-builder/references/lifecycle-events) article.
+
+</Alert>
+
+### Pages
+
+| Deprecated API           | Description                                             | Replacement API          |
+| ------------------------ | ------------------------------------------------------- | ------------------------ |
+| `onBeforePageCreate`     | Triggered before a page is created                      | `onPageBeforeCreate`     |
+| `onAfterPageCreate`      | Triggered after a page is created                       | `onPageAfterCreate`      |
+| `onBeforePageCreateFrom` | Triggered before a page is created from a page revision | `onPageBeforeCreateFrom` |
+| `onAfterPageCreateFrom`  | Triggered after a page is created from a page revision  | `onPageAfterCreateFrom`  |
+| `onBeforePageUpdate`     | Triggered before a page is updated                      | `onPageBeforeUpdate`     |
+| `onAfterPageUpdate`      | Triggered after a page is updated                       | `onPageAfterUpdate`      |
+| `onBeforePageDelete`     | Triggered before a page is deleted                      | `onPageBeforeDelete`     |
+| `onAfterPageDelete`      | Triggered after a page is deleted                       | `onPageAfterDelete`      |
+| `onBeforePagePublish`    | Triggered before a page is published                    | `onPageBeforePublish`    |
+| `onAfterPagePublish`     | Triggered after a page is published                     | `onPageAfterPublish`     |
+| `onBeforePageUnpublish`  | Triggered before a page is unpublished                  | `onPageBeforeUnpublish`  |
+| `onAfterPageUnpublish`   | Triggered after a page is unpublished                   | `onPageAfterUnpublish`   |
+
+### Menus
+
+| Deprecated API       | Description                        | Replacement API      |
+| -------------------- | ---------------------------------- | -------------------- |
+| `onBeforeMenuCreate` | Triggered before a menu is created | `onMenuBeforeCreate` |
+| `onAfterMenuCreate`  | Triggered after a menu is created  | `onMenuAfterCreate`  |
+| `onBeforeMenuUpdate` | Triggered before a menu is updated | `onMenuBeforeUpdate` |
+| `onAfterMenuUpdate`  | Triggered after a menu is updated  | `onMenuAfterUpdate`  |
+| `onBeforeMenuDelete` | Triggered before a menu is deleted | `onMenuBeforeDelete` |
+| `onAfterMenuDelete`  | Triggered after a menu is deleted  | `onMenuAfterDelete`  |
+
+### Page Categories
+
+| Deprecated API           | Description                            | Replacement API          |
+| ------------------------ | -------------------------------------- | ------------------------ |
+| `onBeforeCategoryCreate` | Triggered before a category is created | `onCategoryBeforeCreate` |
+| `onAfterCategoryCreate`  | Triggered after a category is created  | `onCategoryAfterCreate`  |
+| `onBeforeCategoryUpdate` | Triggered before a category is updated | `onCategoryBeforeUpdate` |
+| `onAfterCategoryUpdate`  | Triggered after a category is updated  | `onCategoryAfterUpdate`  |
+| `onBeforeCategoryDelete` | Triggered before a category is deleted | `onCategoryBeforeDelete` |
+| `onAfterCategoryDelete`  | Triggered after a category is deleted  | `onCategoryAfterDelete`  |
+
+### Page Builder Settings
+
+| Deprecated API           | Description                                        | Replacement API          |
+| ------------------------ | -------------------------------------------------- | ------------------------ |
+| `onBeforeSettingsUpdate` | Triggered before Page Builder settings are updated | `onSettingsBeforeUpdate` |
+| `onAfterSettingsUpdate`  | Triggered after Page Builder settings are updated  | `onSettingsAfterUpdate`  |
+
+### Page Builder Installation
+
+| Deprecated API    | Description                                | Replacement API         |
+| ----------------- | ------------------------------------------ | ----------------------- |
+| `onBeforeInstall` | Triggered before Page Builder is installed | `onSystemBeforeInstall` |
+| `onAfterInstall`  | Triggered after Page Builder is installed  | `onSystemAfterInstall`  |
+
+### `AppPbWebsiteSettings` Replaced with `WebsiteSettingsConfig`
+
+`AddPbWebsiteSettings` component to add website settings was replaced by `WebsiteSettingsConfig`. This was done to enable more features, and more control over the website settings view.
+
+Until this release, you would use `AddPbWebsiteSettings` like this:
+
+```tsx
+import React from "react";
+import gql from "graphql-tag";
+import { AddPbWebsiteSettings } from "@webiny/app-serverless-cms";
+
+const { Group, Element } = AddPbWebsiteSettings;
+
+export const SocialNetworks = () => {
+  const socialNetworks = gql`
+    {
+      network1
+    }
+  `;
+
+  return (
+    <Group name={"socialNetworks"} label={"Social Networks"} querySelection={socialNetworks}>
+      <Element>{/* Your UI goes here */}</Element>
+    </Group>
+  );
+};
+```
+
+If we were to rewrite the previous example using `WebsiteSettingsConfig`, it would look like this:
+
+```diff-tsx
+import React from "react";
+import gql from "graphql-tag";
++ import { WebsiteSettingsConfig } from "@webiny/app-page-builder";
+
++ const { Group, Element } = WebsiteSettingsConfig;
+
++ const MyElement = () => {
++   return <>{/* Your UI goes here */}</>
++ }
+
+export const SocialNetworks = () => {
+  const socialNetworks = gql`
+    {
+      network1
+    }
+  `;
+
+  return (
++   <WebsiteSettingsConfig>
+      <Group name={"socialNetworks"} label={"Social Networks"} querySelection={socialNetworks}>
++       <Element name={"myElement"} element={<MyElement />} />
+      </Group>
++   </WebsiteSettingsConfig>
+   );
+};
+```
+
+Notice how, besides the code itself, the import changed; the `WebsiteSettingsConfig` is now imported from `@webiny/app-page-builder`. With this new config, we recommend creating dedicated components for your elements. Usage of `children` prop is no longer supported.
+
+## I18N
+
+Multiple legacy methods used for subscribing to I18N application's lifecycle events have been removed.
+
+### Locales
+
+| Deprecated API         | Description                          | Replacement API        |
+| ---------------------- | ------------------------------------ | ---------------------- |
+| `onBeforeLocaleCreate` | Triggered before a locale is created | `onLocaleBeforeCreate` |
+| `onAfterLocaleCreate`  | Triggered after a locale is created  | `onLocaleAfterCreate`  |
+| `onBeforeLocaleUpdate` | Triggered before a locale is updated | `onLocaleBeforeUpdate` |
+| `onAfterLocaleUpdate`  | Triggered after a locale is updated  | `onLocaleAfterUpdate`  |
+| `onBeforeLocaleDelete` | Triggered before a locale is deleted | `onLocaleBeforeDelete` |
+| `onAfterLocaleDelete`  | Triggered after a locale is deleted  | `onLocaleAfterDelete`  |
+
+### Installation
+
+| Deprecated API    | Description                                | Replacement API         |
+| ----------------- | ------------------------------------------ | ----------------------- |
+| `onBeforeInstall` | Triggered before Page Builder is installed | `onSystemBeforeInstall` |
+| `onAfterInstall`  | Triggered after Page Builder is installed  | `onSystemAfterInstall`  |
+
+## File Manager
+
+### Removed `FileManagerFileTypePlugin` Class
+
+We've removed the `FileManagerFileTypePlugin` class, which was used to define custom file types in File Manager. More specifically, the class enabled developers to introduce custom file preview and custom file actions for all files of a specific type.
+
+With this release, instead of using the `FileManagerFileTypePlugin` class, developers are encouraged to implement custom file preview and custom file actions using the new React components, both of which is covered in the following guides:
+
+- [Custom File Preview](/docs/file-manager/extending/customize-file-preview)
+- [Custom File Actions](/docs/file-manager/extending/customize-file-actions)
+
+## Forms
+
+### Removed the `form` Object from `Bind` component and `useBind` Hook
+
+A reference to `form` was removed from the `<Bind>` component render prop, and `useBind` hook. You should now use the `useForm` hook to get a reference to the parent Form object. This was done to optimize re-rendering, and also make a clear separation between the form itself, and bindings to the UI.
+
+Until this release, you could get a reference to the `form` instance from Bind's render prop, like this:
+
+```tsx Pre 5.40.
+import { Form, Bind } from "@webiny/form";
+
+const MyView = () => {
+  return (
+    <Form>
+      {() => (
+        <Bind name="value" defaultValue={""}>
+          {({ value, onChange, form }) => (
+            /* Notice the `form` object in the render prop params. */
+            <span>Your UI that does something with the `form`.</span>
+          )}
+        </Bind>
+      )}
+    </Form>
+  );
+};
+```
+
+From 5.40.0 on, you will have to write this differently. More often than not, you're adding new inputs to existing forms via plugins, so you're just mounting `<Bind>` elements, or use the `useBind` hook. To get access to the form object, you'll need to use the `useForm` hook, like this:
+
+```tsx Post 5.40.
+import { Form, Bind } from "@webiny/form";
+
+const MyButton = () => {
+  // You can now access the form via a hook.
+  const form = useForm();
+
+  const handleClick = () => {
+    // Let's imagine you want to set some other field's value.
+    form.setValue("someOtherField", 123);
+  };
+
+  return (
+    <Bind name="value">
+      {({ value, onChange }) => (
+        // Notice the `form` object passed to the render prop function.
+        <button onClick={handleClick}>Button</button>
+      )}
+    </Bind>
+  );
+};
+
+// Let's imagine your component is mounted within some form in the Admin app.
+const MyView = () => {
+  return <Form>{() => <MyButton />}</Form>;
+};
+```
