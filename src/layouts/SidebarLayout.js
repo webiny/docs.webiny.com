@@ -361,13 +361,13 @@ const Collapsable = forwardRef(
     ({ title, link, icon, subElements = [], isActiveChild, depth = 0 }, ref) => {
         const router = useRouter();
         const { homepageUrl } = useHomepage();
-        const isDeveloperDocs = getDocsSection() === "developer-docs";
+        const isDeveloperOrUserDocs = ["developer-docs", "user-docs"].includes(getDocsSection());
         const isHomepage = router.pathname.endsWith(homepageUrl);
         const menuIcon = icon ? <img src={icon} title={title} /> : null;
         const applyActiveClass = router.pathname == link;
 
         // if not developer docs section then use the GenericMenuSection to render
-        if (!isDeveloperDocs) {
+        if (!isDeveloperOrUserDocs) {
             return (
                 <GenericMenuSection
                     depth={depth}
