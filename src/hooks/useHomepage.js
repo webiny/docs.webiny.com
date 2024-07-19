@@ -35,7 +35,11 @@ export function useHomepage() {
 
     let docsSection = getDocsSection();
     if (docsSection === "user-docs") {
-        url = "/docs/{version}/user-guides/overview";
+        if (!page.version) {
+            url = "/docs/user-guides/overview";
+        } else {
+            url = "/docs/{version}/user-guides/overview";
+        }
     }
 
     const homepageUrl = url.replace("/{version}/", page.isLatest ? "/" : `/${page.version}/`);
