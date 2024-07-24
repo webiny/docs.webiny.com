@@ -173,3 +173,32 @@ As long as the API key contains correct set of permissions, meaning no sensitive
 From this [Stack Exchange question](https://security.stackexchange.com/a/120244):
 
 > The `Authorization: {type} {credentials}` pattern was introduced by the W3C in HTTP 1.0, and has been reused in many places since. Many web servers support multiple methods of authorization. In those cases sending just the token isn't sufficient.
+
+### How can I disable introspection queries in the GraphQL?
+
+To prevent [introspection queries](https://graphql.org/learn/introspection/) in the GraphQL, you can use a `BeforeHandlerPlugin` to check the request body for introspection queries and respond with a 403 status if an introspection query is detected. Here is an example of how you can implement this:
+
+```ts
+import { BeforeHandlerPlugin } from "@webiny/handler";
+
+// Create a plugin to disable introspection queries
+const disableIntrospectionPlugin = new BeforeHandlerPlugin(async context => {
+    // Check if the request body contains a GraphQL query
+    const body = context.request.body as unknown as Record<string, any>;
+    if (!body?.query) {
+        return;
+    } else if ((body.query as string).includes("__schema") === false) {
+        return;
+    }
+
+    // Respond with a 403 status code if an introspection query is detected
+    context.reply
+        .send({
+            message: "Forbidden to execute introspection queries."
+        })
+        .status(403)
+        .hijack();
+});
+```
+
+We also have a [test](https://github.com/webiny/webiny-js/blob/next/packages/handler-graphql/__tests__/disableIntrospectionQuery.test.ts#L22) with code to disable the introspection plugin and here is the code for the [plugin](https://github.com/webiny/webiny-js/blob/next/packages/handler-graphql/__tests__/disableIntrospectionQuery.test.ts#L5-L4).
