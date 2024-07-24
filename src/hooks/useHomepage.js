@@ -8,11 +8,11 @@ export function useHomepage() {
     const getDocsSection = () => {
         const router = useRouter();
 
-        if (router.pathname.startsWith("/docs/user-guides/")) {
+        if (router.pathname.includes("/user-guides/")) {
             return "user-docs";
-        } else if (router.pathname.startsWith("/docs/release-notes/")) {
+        } else if (router.pathname.includes("/release-notes/")) {
             return "release-notes";
-        } else if (router.pathname.startsWith("/docs/handbook/")) {
+        } else if (router.pathname.includes("/handbook/")) {
             return "handbook";
         }
 
