@@ -4,11 +4,19 @@ import { Group, Page, NavigationRoot, Separator } from "@webiny/docs-generator";
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
   return (
     <NavigationRoot directory={__dirname} linkPrefix={"user-guides"}>
-      <Group title={"Get Started"}>
+      <Group
+        title={"Get Started"}
+        icon={"/docs-menu-icons/get-started.svg"}
+        link={"overview"}
+        >
         <Page link={"overview"} />
       </Group>
       <Separator />
-      <Group title={"Headless CMS"}>
+      <Group
+        title={"Headless CMS"}
+        icon={"/docs-menu-icons/headless-cms.svg"}
+        link={"headless-cms/essentials/glossary"}
+        >
         <Group title={"Essentials"}>
           <Page title={"Glossary"} link={"headless-cms/essentials/glossary"} />
           <Page link={"headless-cms/essentials/create-content-model"} />
@@ -26,7 +34,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         </Group>
       </Group>
       <Separator />
-      <Group title={"Page Builder"}>
+      <Group
+        title={"Page Builder"}
+        icon={"/docs-menu-icons/page-builder.svg"}
+        link={"page-builder/essentials/glossary"}
+      >
         <Group title={"Essentials"}>
           <Page title={"Glossary"} link={"page-builder/essentials/glossary"} />
           <Page title={"Overview"} link={"page-builder/essentials/overview"} />
@@ -45,7 +57,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         </Group>
       </Group>
       <Separator />
-      <Group title={"Form Builder"}>
+      <Group title={"Form Builder"}
+        icon={"/docs-menu-icons/form-builder.svg"}
+        link={"form-builder/essentials/create-form"}
+        >
         <Group title={"Essentials"}>
           <Page link={"form-builder/essentials/create-form"} />
           <Page link={"form-builder/essentials/using-reCAPTCHA-in-form"} />
