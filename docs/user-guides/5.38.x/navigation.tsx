@@ -6,7 +6,11 @@ export const Navigation = () => {
   return (
     <BaseNavigation>
       <NavigationRoot directory={__dirname}>
-        <Group title={"Headless CMS"}>
+        <Group
+          title={"Headless CMS"}
+          icon={"/docs-menu-icons/headless-cms.svg"}
+          link={"headless-cms/essentials/glossary"}
+          >
           <Group title={"Advanced"}>
             <Page link={"headless-cms/advanced/import-export-content-models"} />
           </Group>
@@ -14,7 +18,10 @@ export const Navigation = () => {
 
         <Separator />
 
-        <Group title={"File Manager"}>
+        <Group title={"File Manager"}
+          icon={"/docs-menu-icons/file-manager.svg"}
+          link={"file-manager/essentials/upload-file"}
+          >
           <Group title={"Essentials"}>
             <Page link={"file-manager/essentials/upload-file"} />
             <Page link={"file-manager/essentials/organizing-files"} />
@@ -26,7 +33,10 @@ export const Navigation = () => {
 
         <Separator />
 
-        <Group title={"Advanced Publishing Workflow"}>
+        <Group title={"Advanced Publishing Workflow"}
+          icon={"/docs-menu-icons/enterprise.svg"}
+          link={"apw/essentials/introduction-to-apw"}
+          >
           <Group title={"Essentials"}>
             <Page title="Introduction" link={"apw/essentials/introduction-to-apw"} />
             <Page title="APW User Guides Outline" link={"apw/essentials/apw-user-guides-outline-users-creation"} />
