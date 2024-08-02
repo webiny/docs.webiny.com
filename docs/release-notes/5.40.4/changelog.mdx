@@ -9,10 +9,42 @@ description: See what's new in Webiny version 5.40.4.
 ## Headless CMS
 
 ### Show Select Field Renderer Placeholder ([#4209](https://github.com/webiny/webiny-js/pull/4209))
+
 Prior to this release, the placeholder text was not displayed when a Select Box was defined as the renderer. This issue has been resolved, and now the select box correctly shows the provided text.
 
 ### Default Values Not Set in DynamicZone Template ([#4211](https://github.com/webiny/webiny-js/pull/4211))
+
 ...
 
 ### Trash Bin Validation Before Content Model Deletion ([#4212](https://github.com/webiny/webiny-js/pull/4212))
+
 With this release, we are improving the content model deletion process by ensuring that the trash bin is empty before the deletion is allowed. This enhancement introduces a specific error message to notify users if the trash bin for the selected content model is not empty.
+
+## Other
+
+### Improve Tracking of Form's Pristine State ([244b8a9](https://github.com/webiny/webiny-js/commit/244b8a9a7aefc2eac06155e3a69db7649aff3907), [4dcffa5](https://github.com/webiny/webiny-js/commit/4dcffa5008416dd9056bb4b360ed8b5fc756a867), [4a16b87](https://github.com/webiny/webiny-js/commit/4a16b8724abd9e53514fc7bcbbbeedfb26e39706))
+
+With this release, we've improved tracking of changes on forms. The form component not contains an `isPristine` flag, which tells developers whether the form was changed by the user, or is in its original (pristine) state.
+
+This, in turn, made it possible to correctly track changes on the Headless CMS forms (content model editor, content entry form), where we warn the user of unsaved changes, when navigating away from the respective routes.
+
+Until now, these warnings were often incorrectly shown. With this improvement to the form component, we're now able to correctly warn the user, and skip showing the warning when it's not needed.
+
+## Improve Change Detection in the DelayedOnChange Component
+
+The `DelayedOnChange` is a component that optimizes propagation of changes to the Form's state, when the user is typing content into the Input, Textarea, or RichTextEditor components. It delays the execution of the `onChange` callback, for as long as the user is actively changing the input.
+
+With the Lexical editor, however, there were issues with the value comparison, since Lexical stores its state as a complex object, and not a simple string value. These issues are now fixed, and `DelayedOnChange` works in a much more optimal way. This also fixes some situations where object values would cause constant re-render loops (especially when using Lexical).
+
+## Improve Lexical Editor
+
+Several improvements were done to the Lexical editor:
+
+1. We've improved the way Lexical editor executes the `onChange` callback. It now runs a lot less updates than before (doesn't execute if the state is the same).
+2. The editor no longer sets an empty state object into the Form's state, if the value of the editor is empty (no text was entered into the editor).
+3. We've updated Lexical deps to `0.16.1`.
+4. Lexical ships a dual build (CJS and ESM), which caused some issues for developers building custom editor actions. We've fixed the issue by forcing webpack to always resolve to the CJS build. In the future, this will be addressed by moving all Webiny packages to ESM.
+
+## Asset Delivery Cache Control Headers
+
+While building new pages for webiny.com, we've noticed an issue with video assets, where `cache-control` headers sent to the browser (and CDN) were not in sync with the S3 presigned URL expiration. This has now been fixed. Large files (which redirect to a presigned S3 URL) are cached for 7 days (that's a maximum expiration for presigned URLs imposed by AWS), after which the asset delivery will request a new presigned URL from AWS. Files smaller than 5MB will continue to be cached for a year. Caches are now in sync across the board, and will all expire at the same time.
