@@ -104,6 +104,11 @@ export const Navigation = () => {
             <Page link={"core-development-concepts/background-tasks/what-to-be-careful-about"} />
           </Group>
         </Group>
+        <Group title={"Webiny Enterprise"}>
+          <Group title={"Advanced Access Control Layer (AACL)"}>
+            <Page link={"enterprise/aacl/private-files"} />
+          </Group>
+        </Group>
       </NavigationRoot>
     </>
   );
