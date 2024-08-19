@@ -15,7 +15,7 @@ export const ExtensionsGettingStarted = ({
     dependencies,
     scaffoldCommandExtraInfo,
     fullExampleLink,
-    inProjectScaffoldLink
+    fullExampleDownloadLink
 }) => {
     let scaffoldCommandParts = [
         "yarn webiny scaffold extension",
@@ -44,14 +44,14 @@ export const ExtensionsGettingStarted = ({
     return (
         <>
             <Heading level={2}>Getting Started</Heading>
-            {inProjectScaffoldLink ? (
+            {fullExampleDownloadLink ? (
                 <Alert type={"info"}>
                     <p>
                         Run the following command to quickly set up this example directly in your
                         project:
                     </p>
                     <pre className={"language-bash"}>
-                        yarn webiny scaffold extension --example {inProjectScaffoldLink}
+                        yarn webiny scaffold extension {fullExampleDownloadLink}
                     </pre>
                     {fullExampleLink && (
                         <p>

@@ -1,0 +1,88 @@
+---
+id: a1b2c3d4
+title: Webiny 5.40.5 Changelog
+description: See what's new in Webiny version 5.40.5.
+---
+
+import webinyAboutFixed from "./assets/webiny-about-fixed.png";
+
+<GithubRelease version={"5.40.5"} />
+
+## Deployments
+
+### Updated Pulumi Package Versions ([#4216](https://github.com/webiny/webiny-js/pull/4216))
+
+We've updated Pulumi packages to the latest available versions.
+
+While the update wasn't a must-have, we still decided to do it in hope it helps Windows users, who have been experiencing a weird Pulumi issue  ([like this one](https://github.com/pulumi/pulumi/issues/16393)) upon deploying their project.
+
+## Webiny CLI
+
+### "New Extension" Scaffold - Direct Download of Existing Extensions ([#4206](https://github.com/webiny/webiny-js/pull/4206))
+
+With this release, we've done a couple of improvements to the **New Extension** scaffold, introduced with the [5.40.0 release](/docs/release-notes/5.40.0/changelog#introducing-extensions-4111).
+
+The most important being, the scaffold can now also be used to download existing extensions from the internet.
+
+For now, we'll be using this feature mainly in our documentation, to provide users with an easy way to quickly download and set up the extension that is covered in an article. For example, as it can be already seen in the [Change Logo](/docs/admin-area/extending/change-logo) article, users can now run the following command to download the `admin-logo` extension:
+
+```bash
+yarn webiny scaffold extension admin-logo
+```
+
+Note that we will slowly be updating our documentation to include this feature in all articles that cover extensions.
+
+
+### `webiny about` Command Now Showing Correct `@pulumi/pulumi` Package Version  ([#4216](https://github.com/webiny/webiny-js/pull/4216))
+
+By [updating Pulumi package versions](#updated-pulumi-package-versions-4216), we've also fixed an issue with the [`webiny about`](/docs/core-development-concepts/basics/webiny-cli#yarn-webiny-about) command, which would incorrectly report the `@pulumi/pulumi` package version.
+
+<Image src={webinyAboutFixed} style={{maxWidth: 600}} title={<><code>webiny about</code> Command Now Showing Correct <code>@pulumi/pulumi</code> Package Version</>}/>
+
+## Ported 5.39.9 Changes 
+
+With this release, we've ported the following changes from the [5.39.9 release](/docs/release-notes/5.39.9/changelog). This was done to ensure that all the 5.39.9 improvements are also available to projects that are using the `5.40.x` version of Webiny.
+
+### Headless CMS
+
+### Added Model ID and Used Index Name When Logging Ignored ES Response Errors ([#4186](https://github.com/webiny/webiny-js/pull/4186))
+
+<Alert type={"info"}>
+
+  This improvement only applies to projects that use [Amazon DynamoDB + Amazon OpenSearch database setup](/docs/architecture/introduction#different-database-setups).
+
+</Alert>
+
+We've improved the logging of **ignored** ElasticSearch response errors by adding the model ID and the index name to the log message. This will make it easier to identify which model and index the error is related to.
+
+Note that the errors we're referring to here are errors that are, in most cases, not critical to the operation of the system, which is the reason they are ignored in the first place. These errors are ignored because they are usually related to the fact that a record is not yet indexed, which is expected behavior in some cases.
+
+### Data Migrations
+
+#### Improved Disablement and Restoration of ElasticSearch Indexing Settings ([#4187](https://github.com/webiny/webiny-js/pull/4187))
+
+<Alert type={"info"}>
+
+  These improvements only apply to projects that use [Amazon DynamoDB + Amazon OpenSearch database setup](/docs/architecture/introduction#different-database-setups).
+
+</Alert>
+
+With this release, we've made a couple of improvements to the way ElasticSearch indexing settings are disabled and restored during data migrations. To provide context, when a data migration is run, we disable indexing on the index, perform the migration, and then restore the original settings. This is done to prevent indexing operations from happening during the migration, which speeds up the process and reduces the load on the database.
+
+The changes are as follows.
+
+First of all, when disabling indexing on an index, we no longer set the `number_of_replicas` setting to zero. Instead, we now do not touch this setting at all. This is because setting it to zero can cause data loss in case a shard is lost, as explained [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules.html#dynamic-index-settings), and also [here](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/tune-for-indexing-speed.html#_disable_refresh_and_replicas_for_initial_loads).
+
+Secondly, we've addressed an index settings restoration issue, which would happen if a user manually stopped a data migration and then reran it. More specifically, if a migration was stopped manually and then rerun, the restoration step would incorrectly again set the "disable indexing" settings. This is because it would use the index settings that were retrieved at the beginning of the new run, which, because the previous run has been manually stopped, still contain `refresh_interval: -1`. Ultimately, this setting would be applied when restoring index settings, effectively leaving the "indexing: disabled" setting still active.
+
+#### 5.39.6-001 Data Migration - Added Support For `WEBINY_MIGRATION_FORCE_EXECUTE_5_39_6_001` Environment Variable ([#4188](https://github.com/webiny/webiny-js/pull/4188))
+
+With this release, we've added the ability to force the execution of the improved `5.39.6-001` data migration by setting the `WEBINY_MIGRATION_FORCE_EXECUTE_5_39_6_001` environment variable to `true`. This can be useful in cases where the migration has already been run, but you want to rerun it.
+
+Note that this was already possible with all of the other data migrations, but the improved `5.39.6-001` data migration, that we released with the [5.39.6 release](/docs/release-notes/5.39.7/changelog#further-improving-the-5-39-6-001-data-migration-4154), did not support this feature. This has been fixed with this release.
+
+<Alert type={"info"}>
+
+  For more technical information on the improved `5.39.6-001` data migration, please refer to the original pull request ([#4154](https://github.com/webiny/webiny-js/pull/4154)).
+
+</Alert>
