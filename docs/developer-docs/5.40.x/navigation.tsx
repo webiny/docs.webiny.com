@@ -43,6 +43,11 @@ export const Navigation = () => {
             />
             <Page link={"headless-cms/extending/content-entry-traverser"} />
           </Group>
+          <Group title={"Notes App Tutorial"} after={"Integrations"}>
+            <Page link={"headless-cms/notes-app/introduction"} />
+            <Page link={"headless-cms/notes-app/webiny-infrastructure-setup"} />
+            <Page link={"headless-cms/notes-app/react-notes-app"} />
+          </Group>
           <Group title={"References"}>
             <Page link={"headless-cms/references/date-time-and-identity-meta-fields"} />
           </Group>

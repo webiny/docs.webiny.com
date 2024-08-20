@@ -56,10 +56,6 @@ export const Navigation = () => {
               link={"headless-cms/extending/private-models"}
               after={"headless-cms/extending/custom-sorting"}
             />
-            <Page
-              link={"headless-cms/extending/website-users"}
-              after={"headless-cms/extending/private-models"}
-            />
             <Page link={"headless-cms/extending/lexical-editor"} />
           </Group>
           <Group title={"References"}>
