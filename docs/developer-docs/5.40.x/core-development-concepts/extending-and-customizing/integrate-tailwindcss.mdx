@@ -1,0 +1,200 @@
+---
+id: aafeaa37
+title: Tailwind CSS
+description: Learn how to integrate Tailwind CSS in your Webiny project.
+---
+
+<WhatYouWillLearn>
+
+- how to integrate Tailwind CSS in your Webiny project
+
+</WhatYouWillLearn>
+
+## Overview
+
+[Tailwind CSS](https://tailwindcss.com/) is a popular utility-first CSS framework.
+It allows us to quickly build user interfaces with the help of a plethora of built-in CSS classes and without ever leaving our HTML.
+
+In this guide, we show how you can integrate Tailwind CSS into your Webiny project. Note that we'll do it within the **Website** React application, located in the `apps/website` folder. If needed, the same can be done within the **Admin** React application, located in the `apps/admin` folder.
+
+## Setting Up Tailwind CSS
+
+### Install Tailwind CSS via Yarn
+
+For starters, we install `tailwindcss` package and its peer-dependencies, by running the following command from the project root:
+
+```
+yarn add -D tailwindcss postcss autoprefixer
+```
+
+### Add Tailwind CSS to Webpack Configuration
+
+With all of the packages installed, we proceed by adding Tailwind CSS to PostCSS plugins inside the Webpack config:
+
+```js apps/website/webiny.config.ts
+import { createWebsiteAppConfig } from "@webiny/serverless-cms-aws";
+// @ts-ignore `traverseLoaders` has no type declarations.
+import { traverseLoaders } from "@webiny/project-utils/traverseLoaders";
+import tailwindcss from "tailwindcss";
+
+export default createWebsiteAppConfig(({ config }) => {
+  /**
+   * Add a webpack config modifier.
+   */
+  config.webpack(config => {
+    /**
+     * Traverse all loaders, find `postcss-loader`, and overwrite plugins.
+     */
+    traverseLoaders(config.module?.rules, (loader: any) => {
+      /**
+       * `loader` can also be a string, so check for `.loader` property.
+       */
+      if (loader.loader && loader.loader.includes("postcss-loader")) {
+        loader.options.postcssOptions.plugins = [
+          ...loader.options.postcssOptions.plugins(),
+          tailwindcss()
+        ];
+      }
+    });
+
+    return config;
+  });
+});
+```
+
+Note how we've used the [`traverseLoaders`](https://github.com/webiny/webiny-js/blob/next/packages/project-utils/traverseLoaders.js) helper function, imported from the `@webiny/project-utils` package.
+The function enables us to traverse all the loaders defined in `modules.rules` property of the Webpack config, and, upon doing that, modify it. In our case, we add Tailwind CSS plugins to the PostCSS loader (`postcss-loader`).
+
+### Create Your Tailwind CSS Configuration File
+
+As a next step, we need to generate our `tailwind.config.js` config file, by running the following command from the project root:
+
+```
+npx tailwindcss init
+```
+
+Once the config has been created, we need to update its `content` array to include paths to files we want Tailwind to process:
+
+```js tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./apps/theme/**/*.{scss,tsx}", "apps/website/{public,src}/*.{html,tsx}"],
+  theme: {
+    extend: {}
+  },
+  plugins: []
+};
+```
+
+<Alert type="info">
+
+We have created the `tailwind.config.js` file in the root of Webiny project as the fastest way to have a centralized config for all things Tailwind. If needed, individual config files can be created for Website and Admin apps, in their respective folders.
+
+</Alert>
+
+<Alert type="info">
+
+Learn more about configuring Tailwind in the [configuration documentation](https://tailwindcss.com/docs/configuration).
+
+</Alert>
+
+### Include Tailwind CSS Utilities
+
+Finally, we need to include Tailwind CSS utilities in our existing styles, which can be done via the `apps/website/src/App.scss` file:
+
+```scss apps/website/src/App.scss
+(...)
+
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+```
+
+### Quick Test
+
+With all of the above steps completed, Tailwind CSS is now ready to be used. We can now start our **Website** app locally, by running:
+
+```
+yarn webiny watch website --env dev
+```
+
+As a quick test, let's create a demo component, which will be part of the default static page layout that's included with every Webiny project.
+
+```tsx extensions/theme/src/layouts/pages/Static/TailwindHeader.tsx
+import React from "react";
+
+export const TailwindHeader = () => {
+  return (
+    <div className="mt-12 -mb-12 bg-gray-50">
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
+        <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+          <span className="block">Ready to dive in?</span>
+          <span className="block text-purple-600">Start your free trial today.</span>
+        </h2>
+        <div className="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+          <div className="inline-flex rounded-md shadow">
+            <a
+              href="#"
+              className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+            >
+              Get started
+            </a>
+          </div>
+          <div className="ml-3 inline-flex rounded-md shadow">
+            <a
+              href="#"
+              className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-purple-600 bg-white hover:bg-indigo-50"
+            >
+              Learn more
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+And now let's add it to the layout:
+
+```diff-tsx extensions/theme/src/layouts/pages/Static.tsx
+import React from "react";
+(...)
++ import { TailwindHeader } from "./Static/TailwindHeader";
+(...)
+
+const Static = ({ children }: { children: React.ReactNode }) => {
+    return (
+        <Layout>
+            <Global styles={globalStyles} />
+            <Header />
++           <TailwindHeader />
+            <main>{children}</main>
+            <Footer />
+        </Layout>
+    );
+};
+
+export default Static;
+```
+
+If we did everything correctly, we should be able to see the new section we just created, at the top of the page:
+
+![Website demo using tailwindcss](./assets/integrate-tailwindcss/tailwind-css-demo-website.png)
+
+<Alert type="warning" title={"Please note!"}>
+  <strong>
+    Webiny provides no guarantees in regards to issues that may occur after enabling Tailwind CSS.
+  </strong>
+  <br /> <br />
+  This guide should get you started with Tailwind CSS, but any issues with styles, or similar
+  irregularities that might occur after following this guide, are not something we'll be providing
+  support for. If you find better ways to use Tailwind CSS with Webiny, we'd be thrilled to see your
+  contribution to our repository.
+</Alert>
+
+## FAQ
+
+### Can I include Tailwind CSS directives?
+
+Yes, you can include the directives directly in `apps/website/src/App.scss`.
