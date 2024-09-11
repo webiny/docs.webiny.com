@@ -1,0 +1,71 @@
+---
+id: af8bc618
+title: Webiny 5.40.6 Changelog
+description: See what's new in Webiny version 5.40.6.
+---
+
+import revisionsSection from "./assets/revisions-section.png";
+import contentEntriesSection from "./assets/content-entries-section.png";
+
+<GithubRelease version={"5.40.6"} />
+
+## Ported 5.39.12 Changes
+
+With this release, we’ve ported the following changes from the 5.39.12 release. This was done to ensure that all the 5.39.12 improvements are also available to projects that are using the 5.40.x version of Webiny.
+
+### Headless CMS
+
+#### Various UI Improvements ([#4255](https://github.com/webiny/webiny-js/pull/4255)) ([#4260](https://github.com/webiny/webiny-js/pull/4260))
+
+A couple of improvements were made to the Headless CMS UI.
+
+##### Updating Lists Automatically
+
+For starters, in the content entry's Revisions tab, once a revision is deleted, the list of revisions will be automatically refreshed. Previously, users had to manually refresh the page to see the updated list of revisions, leading to a less than ideal user experience.
+
+<Image src={revisionsSection} alt={"Content Entry Revisions Section"} />
+
+The same improvement was made in the list of content entries. Previously, when a revision was deleted, the list of content entries was not automatically refreshed. Now, it is.
+
+<Image src={contentEntriesSection} alt={"Content Entries Section"} />
+
+##### Proper Redirecting After Deleting a Revision
+
+Next, when a user deletes a content entry revision, they will automatically be redirected to the previous revision. Previously, users were not redirected anywhere, and they had to manually navigate back to a different revision.
+
+Also, if the deleted revision was the last one, now, the user will be redirected back to the list of content entries.
+
+##### Added Success Message
+
+Finally, once a user deletes a content entry revision, a success message (snackbar) will be displayed at the bottom of the screen. This message will inform the user that the revision was successfully deleted and that they are being redirected to the previous content entry revision (or back to list of all content entries if the deleted revision was the last one).
+
+#### `createFrom` GraphQL Mutation - Previously Published Revision Is Now Correctly Marked as Unpublished ([#4258](https://github.com/webiny/webiny-js/pull/4258))
+
+Upon programmatically creating a new content entry revision using the `createFrom` GraphQL mutation, users have the ability to also immediately mark the revision as published. For example:
+
+```graphql
+mutation {
+  createVideoFrom(
+    revision: "5f9e3e3e3e3e3e3e3e3e3e3e#0001"
+    data: {
+      status: "published"
+      title: "Test"
+      description: "Test description."
+    }
+  ) {
+    data {
+      id
+      title
+      description
+    }
+  }
+}
+```
+
+And while this functionality did work, still, if a content entry already had an existing published revision, upon running the above mutation, the published revision's status would remain unchanged, when in fact it should've been changed to unpublished.
+
+With this release, we've addressed this issue. Now, when creating a new revision using the `createFrom` mutation, if the `status` field is set to `published`, the previously published revision will be automatically marked as unpublished.
+
+#### Ensure Field Values Are Preserved When Deleting Latest Revision ([#4253](https://github.com/webiny/webiny-js/pull/4253))
+
+When deleting the latest revision of a content entry, the field values of the previous revision were not being preserved. This was a bug, and with this release, we've fixed it. Now, when deleting the latest revision of a content entry, the field values of the previous revision will be preserved.
