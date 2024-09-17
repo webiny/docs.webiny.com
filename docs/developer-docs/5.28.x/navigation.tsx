@@ -42,7 +42,7 @@ export const Navigation = () => {
         </Group>
       </Group>
       <Separator />
-      <Group 
+      <Group
         title={"Headless CMS"}
         icon={"/docs-menu-icons/headless-cms.svg"}
         link={"headless-cms/basics/graphql-api"}
@@ -68,7 +68,7 @@ export const Navigation = () => {
           <Page link={"headless-cms/references/storage-transform-plugin"} />
         </Group>
       </Group>
-      <Group 
+      <Group
         title={"Page Builder"}
         icon={"/docs-menu-icons/page-builder.svg"}
         link={"page-builder/theming/introduction"}
@@ -91,7 +91,7 @@ export const Navigation = () => {
           <Page link={"page-builder/references/plugins"} />
         </Group>
       </Group>
-      <Group 
+      <Group
         title={"Form Builder"}
         icon={"/docs-menu-icons/form-builder.svg"}
         link={"form-builder/theming/introduction"}
@@ -104,7 +104,7 @@ export const Navigation = () => {
           <Page link={"form-builder/references/plugins"} />
         </Group>
       </Group>
-      <Group 
+      <Group
         title={"File Manager"}
         icon={"/docs-menu-icons/file-manager.svg"}
         link={"file-manager/extending/create-a-file-type-plugin"}
@@ -113,7 +113,7 @@ export const Navigation = () => {
           <Page link={"file-manager/extending/create-a-file-type-plugin"} />
         </Group>
       </Group>
-      <Group 
+      <Group
         title={"Admin Area"}
         icon={"/docs-menu-icons/admin.svg"}
         link={"admin-area/basics/framework"}
@@ -136,7 +136,7 @@ export const Navigation = () => {
         </Group>
       </Group>
       <Separator />
-      <Group 
+      <Group
         title={"Core Development Concepts"}
         icon={"/docs-menu-icons/core-dev-concepts.svg"}
         link={"core-development-concepts/basics/tools-and-libraries"}
@@ -186,11 +186,6 @@ export const Navigation = () => {
               "core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index"
             }
           />
-          <Page
-            link={
-              "core-development-concepts/extending-and-customizing/how-to-change-elasticsearch-index-name-to-contain-locale"
-            }
-          />
         </Group>
         <Group title={"CI/CD"}>
           <Page link={"core-development-concepts/ci-cd/introduction"} />
@@ -208,7 +203,7 @@ export const Navigation = () => {
           <Page link={"core-development-concepts/security-framework/react-security"} />
         </Group>
       </Group>
-      <Group 
+      <Group
         title={"Infrastructure"}
         icon={"/docs-menu-icons/infrastructure.svg"}
         link={"infrastructure/basics/introduction"}
@@ -232,7 +227,7 @@ export const Navigation = () => {
           <Page link={"infrastructure/additional-resources/connect-custom-domain"} />
         </Group>
       </Group>
-      <Group 
+      <Group
         title={"Architecture"}
         icon={"/docs-menu-icons/architecture.svg"}
         link={"architecture/introduction"}
@@ -260,7 +255,7 @@ export const Navigation = () => {
         </Group>
       </Group>
       <Separator />
-      <Group 
+      <Group
         title={"Webiny Enterprise"}
         icon={"/docs-menu-icons/enterprise.svg"}
         link={"enterprise/multi-tenancy"}
