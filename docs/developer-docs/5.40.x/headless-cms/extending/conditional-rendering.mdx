@@ -1,0 +1,237 @@
+---
+id: 9dccb312
+title: Conditional Rendering
+description: Learn how to programmatically control fields, validators, and field renderers.
+---
+
+import conditionalValidation from "./assets/conditional-validation.gif";
+import conditionalFields from "./assets/conditional-fields.gif";
+import conditionalRenderer from "./assets/conditional-renderer.gif";
+
+## Overview
+
+Most of the time, configuring your content model via the model editor will be enough. However, there are cases when you need to implement very specific business requirements, which you can only do through code. In this article we cover some of these scenarios.
+
+The idea behind all customizations in this article is quite simple: we create a decorator for the `FieldElement` component, which is responsible for rendering of every field in the content entry form. By decorating the component, we can control its props and modify them at runtime, wrap the component, add custom elements, or hide the field entirely.
+
+## Conditional Validation
+
+In this example, we want to change field validators depending on some other field value. We've defined a model with two dependent fields, `pricingClass` and `price`, where `price` field value validators depend on the value of the `pricingClass` field.
+
+<Image src={conditionalValidation} title={"Conditional Validation"} />
+
+<Alert type={"info"} title="Extension Available!">
+
+This example can be installed directly into your project by running:<br/>
+`yarn webiny scaffold extension headless-cms/conditional-validation`
+
+Extension source code, and the accompanying content model, can be found [here](https://github.com/webiny/webiny-examples/tree/master/headless-cms/conditional-validation).
+
+</Alert>
+
+```tsx Conditional Validation
+import React from "react";
+import { ContentEntryEditorConfig } from "@webiny/app-headless-cms";
+import { useForm } from "@webiny/form";
+
+const { FieldElement } = ContentEntryEditorConfig;
+
+const validators = {
+  low: {
+    helpText: "Enter value between 0 and 99.",
+    validators: [
+      {
+        name: "lte",
+        message: "Value is too high! Enter value lower than 100.",
+        settings: {
+          value: 99
+        }
+      }
+    ]
+  },
+  medium: {
+    helpText: "Enter value between 100 and 500.",
+    validators: [
+      {
+        name: "gte",
+        message: "Value is too low! Enter value between 100 and 500.",
+        settings: {
+          value: 100
+        }
+      },
+      {
+        name: "lte",
+        message: "Value is too high! Enter value between 100 and 500.",
+        settings: {
+          value: 500
+        }
+      }
+    ]
+  },
+  high: {
+    helpText: "Enter value above 500.",
+    validators: [
+      {
+        name: "gte",
+        message: "Value is too low! Enter value above 500.",
+        settings: {
+          value: 500
+        }
+      }
+    ]
+  }
+};
+
+type PricingClassValue = "low" | "medium" | "high" | undefined;
+
+const ConditionalValidation = FieldElement.createDecorator(Original => {
+  return function ConditionalRender(props) {
+    const form = useForm();
+    const pricingClass = form.getValue("pricingClass") as PricingClassValue;
+
+    const field = props.field;
+    if (field.fieldId === "price" && pricingClass !== undefined) {
+      return (
+        <Original
+          {...props}
+          field={{
+            ...field,
+            helpText: validators[pricingClass].helpText,
+            validation: validators[pricingClass].validators
+          }}
+        />
+      );
+    }
+
+    return <Original {...props} />;
+  };
+});
+
+export const Extension = () => {
+  return (
+    <>
+      <ContentEntryEditorConfig>
+        <ConditionalValidation modelIds={["conditionalValidation"]} />
+      </ContentEntryEditorConfig>
+    </>
+  );
+};
+```
+
+`FieldElement` decorators support a `modelIds` prop, which allows us to limit which models are affected by this customization.
+
+## Conditional Fields
+
+In this example, we want to show or hide a field depending on some other field value. We've defined a model with three fields, where the value of the `videoType` field affects the visibility of the other two fields, `videoUrl`, and `videoUpload`.
+
+<Image src={conditionalFields} title={"Conditional Fields"} />
+
+<Alert type={"info"} title="Extension Available!">
+
+This example can be installed directly into your project by running:<br/>
+`yarn webiny scaffold extension headless-cms/conditional-fields`
+
+Extension source code, and the accompanying content model, can be found [here](https://github.com/webiny/webiny-examples/tree/master/headless-cms/conditional-fields).
+
+</Alert>
+
+```tsx Conditional Fields
+import React from "react";
+import { ContentEntryEditorConfig } from "@webiny/app-headless-cms";
+import { useForm } from "@webiny/form";
+
+const { FieldElement } = ContentEntryEditorConfig;
+
+type VideoInputType = "url" | "upload" | undefined;
+
+const ConditionalFields = FieldElement.createDecorator(Original => {
+  return function ConditionalRender(props) {
+    const form = useForm();
+    const videoInputType = form.getValue("videoType") as VideoInputType;
+
+    const field = props.field;
+
+    if (field.fieldId === "videoUrl" && videoInputType !== "url") {
+      return null;
+    }
+
+    if (field.fieldId === "videoUpload" && videoInputType !== "upload") {
+      return null;
+    }
+
+    return <Original {...props} />;
+  };
+});
+
+export const Extension = () => {
+  return (
+    <>
+      <ContentEntryEditorConfig>
+        <ConditionalFields modelIds={["conditionalFields"]} />
+      </ContentEntryEditorConfig>
+    </>
+  );
+};
+```
+
+## Conditional Field Renderer
+
+In this example, we want to change the renderer of the field depending on the value of the `videoType` field. This allows us to show a different UI to the user, but use the same underlying field for data storage.
+
+<Image src={conditionalRenderer} title={"Conditional Field Renderer"} />
+
+<Alert type={"info"} title="Extension Available!">
+
+This example can be installed directly into your project by running:<br/>
+`yarn webiny scaffold extension headless-cms/conditional-renderer`
+
+Extension source code, and the accompanying content model, can be found [here](https://github.com/webiny/webiny-examples/tree/master/headless-cms/conditional-renderer).
+
+</Alert>
+
+```tsx Conditional Field Renderer
+import React from "react";
+import { ContentEntryEditorConfig } from "@webiny/app-headless-cms";
+import { useForm } from "@webiny/form";
+
+const { FieldElement } = ContentEntryEditorConfig;
+
+type VideoInputType = "url" | "upload" | undefined;
+
+const ConditionalRenderer = FieldElement.createDecorator(Original => {
+  return function ConditionalRender(props) {
+    const form = useForm();
+    const videoInputType = form.getValue("videoType") as VideoInputType;
+
+    const field = props.field;
+
+    if (field.fieldId === "video") {
+      const renderer = videoInputType === "url" ? "text-input" : "file-input";
+
+      return (
+        <Original
+          {...props}
+          field={{
+            ...field,
+            renderer: {
+              name: renderer
+            }
+          }}
+        />
+      );
+    }
+
+    return <Original {...props} />;
+  };
+});
+
+export const Extension = () => {
+  return (
+    <>
+      <ContentEntryEditorConfig>
+        <ConditionalRenderer modelIds={["conditionalRenderer"]} />
+      </ContentEntryEditorConfig>
+    </>
+  );
+};
+```
