@@ -1,0 +1,191 @@
+---
+id: 59e54e70
+title: How To Customize Elasticsearch Index
+description: Learn how to add customizations to the Elasticsearch Index.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- how to customize Elasticsearch index for each application
+
+</Alert>
+
+<Alert type="danger">This article requires advanced knowledge of the Elasticsearch.</Alert>
+
+## Overview
+
+### Where Do We Use The Elasticsearch Index?
+
+We use the Elasticsearch indexes for our File Manager, Form Builder, Headless CMS and Page Builder applications.
+
+In File Manager, Form Builder and Page Builder applications we use one index per tenant and locale combination, if locale specific indexes are set.
+
+In Headless CMS we use index for each tenant, locale and model combination because of the complexity of the data stored into Elasticsearch.
+
+By the default, we have a basic setup for applications that use Elasticsearch:
+
+- [common dynamic mapping for our system fields](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-elasticsearch/src/indexConfiguration/common.ts)
+- [the base mapping configuration for all indexes](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-elasticsearch/src/indexConfiguration/base.ts)
+
+Also, each of the applications has its own default plugin for the index:
+
+- File Manager Files [plugin](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-file-manager-ddb-es/src/elasticsearch/indices/base.ts)
+- Form Builder Forms and Submissions [plugin](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-form-builder-so-ddb-es/src/elasticsearch/indices/base.ts)
+- Headless CMS Entries [plugin](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-headless-cms-ddb-es/src/elasticsearch/indices/base.ts)
+- Page Builder Pages [plugin](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-page-builder-so-ddb-es/src/elasticsearch/indices/base.ts)
+
+Each of those plugins define how the Elasticsearch index for that particular application will look like when it is created. The plugins use [the base mapping configuration](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-elasticsearch/src/indexConfiguration/base.ts).
+
+<Alert type="info">
+  We do not store all the data into the Elasticsearch because there is no need for it (eg. Headless
+  CMS Models and Groups).
+</Alert>
+
+<Alert type="warning">
+  Elasticsearch index is created when adding new locale, which also includes the initial
+  installation of the system.
+</Alert>
+
+### When Would You Use The Possibility To Change The Elasticsearch Index?
+
+Good example on when to change the default index configuration, or add a new one, is when you are using a locale which is not supported by our default template, for example: Japanese.
+
+The Japanese Elasticsearch index configuration will look a lot different from our default one because of different text analyzers and mapping.
+
+There is official [Elasticsearch blog](https://www.elastic.co/blog/how-to-implement-japanese-full-text-search-in-elasticsearch) on how to implement Japanese full-text search.
+
+<Alert type="info">
+  The last added plugin is always used to create the index, assuming it is passing the `.canUse()`
+  check on the plugin.
+</Alert>
+
+## Available Plugins
+
+### File Manager
+
+For the File Manager Files we have the [FileElasticsearchIndexPlugin](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-file-manager-ddb-es/src/plugins/FileElasticsearchIndexPlugin.ts).
+
+### Form Builder
+
+For the Form Builder Forms and Submissions we have the [FormElasticsearchIndexPlugin](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-form-builder-so-ddb-es/src/plugins/FormElasticsearchIndexPlugin.ts).
+
+### Headless CMS
+
+For the Headless CMS Entries we have [CmsEntryElasticsearchIndexPlugin](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-headless-cms-ddb-es/src/plugins/CmsEntryElasticsearchIndexPlugin.ts).
+
+### Page Builder
+
+For the Page Builder Pages we have the [PageElasticsearchIndexPlugin](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-page-builder-so-ddb-es/src/plugins/definitions/PageElasticsearchIndexPlugin.ts).
+
+## How To Create Your Own Index Configuration?
+
+### Rules
+
+There is a single rule that you will need to follow if you want to successfully create the index with your configuration:
+
+The plugin you create will only get applied if the `.canUse()` method is passing the check.
+
+We intended it to be used to check if the index configuration can be applied given the locale that is set at the moment index is going to be created.
+
+<Alert type="info">
+  If you want the index configuration to be always applied, no matter the locale, just return `true`
+  in the `.canUse()` method in the plugin.
+</Alert>
+
+### How Are The Index Names Created?
+
+#### Overview
+
+Index name can contain dashes (-), underscores (\_), numbers (0-9) and english letters (a-z). It is created by our configuration method, so you do not need to worry about that.
+
+You can set the `ELASTICSEARCH_SHARED_INDEXES` environment variable to `true` to create a single index for all tenants for each application (or for each model in case of the Headless CMS), but we do not encourage it.
+
+Also, the `webiny.application.ts` configuration file, and, more specifically, via the `indexPrefix` property in the `elasticSearch` configuration section, it's also possible to prefix all index names with a custom prefix. To learn more, check out the [Using a Shared Amazon OpenSearch Service Domain](/docs/{version}/infrastructure/basics/modify-cloud-infrastructure#using-a-shared-amazon-open-search-service-domain) section.
+
+Use case for this would be for when you have multiple environments on a single Elasticsearch instance. You can prefix each environment indexes with, for example, `dev_`, `prod_`, `staging_`, `test_`, etc...
+
+#### File Manager
+
+Index name for the File Manager Files is built out of the `tenant id`, `locale code` if enabled, and `-file-manager` suffix.
+If your tenant is a `root` tenant, the index will look like `root-file-manager`.
+If your tenant is a `root` tenant, and you have locale (`en-US`) for index name enabled, the index will look like `root-en-us-file-manager`.
+
+You can see how the index name is created in [this](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-file-manager-ddb-es/src/configurations.ts) file.
+
+#### Form Builder
+
+Index name for the Form Builder Forms and Submissions is built out of the `tenant id`, `locale code` if enabled, and `-form-builder` suffix.
+If your tenant is a `root` tenant, the index will look like `root-form-builder`.
+If your tenant is a `root` tenant, and you have locale (`jp`) for index name enabled, the index will look like `root-jp-form-builder`.
+
+You can see how the index name is created in [this](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-form-builder-so-ddb-es/src/configurations.ts) file.
+
+#### Headless CMS
+
+Index name for the Headless CMS Entries is built out of `tenant id`, `-headless-cms`, `locale code` and `model id`.
+If your tenant is a `root` tenant, locale is `en-US` and model is `Articles`, the index will look like `root-headless-cms-en-us-articles`.
+
+You can see how the index name is created in [this](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-headless-cms-ddb-es/src/configurations.ts) file.
+
+#### Page Builder
+
+Index name for the Page Builder Pages is built out of the `tenant id`, `locale code` if enabled, and `-page-builder` suffix.
+If your tenant is a `root` tenant, the index will look like `root-page-builder`.
+If your tenant is a `root` tenant, and you have locale (`de-DE`) for index name enabled, the index will look like `root-de-de-page-builder`.
+
+You can see how the index name is created in [this](https://github.com/webiny/webiny-js/blob/83fe117e7a7ec9f2d916850cf9fc5148a866442a/packages/api-page-builder-so-ddb-es/src/configurations.ts) file.
+
+### Examples
+
+Headless CMS index plugin `CmsEntryElasticsearchIndexPlugin`, which disables mappings on a `largeText` field in `de` locale:
+
+```typescript
+import { base as baseConfiguration } from "@webiny/api-elasticsearch/indexConfiguration/base";
+import { CmsEntryElasticsearchIndexPlugin } from "@webiny/api-headless-cms-ddb-es/plugins/CmsEntryElasticsearchIndexPlugin";
+const plugin = new CmsEntryElasticsearchIndexPlugin({
+  body: {
+    ...baseConfiguration,
+    mappings: {
+      ...baseConfiguration.mappings,
+      properties: {
+        ...baseConfiguration.mappings.properties,
+        // we do not want to map a field with name "largeText"
+        largeText: {
+          enabled: false
+        }
+      }
+    }
+  },
+  locales: ["de"]
+});
+```
+
+Page Builder index plugin `PageElasticsearchIndexPlugin`, which disables indexing on a `largeText` field on all locales.
+
+```typescript
+import { base as baseConfiguration } from "@webiny/api-elasticsearch/indexConfiguration/base";
+import { PageElasticsearchIndexPlugin } from "@webiny/api-page-builder-so-ddb-es/plugins/definitions/PageElasticsearchIndexPlugin";
+const plugin = new PageElasticsearchIndexPlugin({
+  order: 351,
+  body: {
+    ...baseConfiguration,
+    mappings: {
+      ...baseConfiguration.mappings,
+      properties: {
+        ...baseConfiguration.mappings.properties,
+        // we do not want to index a field with name "largeText"
+        largeText: {
+          enabled: false
+        }
+      }
+    }
+  }
+});
+```
+
+### Useful Links
+
+- [Elasticsearch - Index Mapping](https://www.elastic.co/guide/en/elasticsearch/reference/7.17/mapping.html)
+- [Elasticsearch - Index Settings](https://www.elastic.co/guide/en/elasticsearch/reference/7.17/index-modules.html#index-modules-settings)
