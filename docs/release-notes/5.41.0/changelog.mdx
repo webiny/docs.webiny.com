@@ -35,4 +35,56 @@ import copySecurityPermissions from "./assets/copy-security-permissions.png";
 
 ### `beta` Introducing The New Watch Command (Local AWS Lambda Development) ([#4185](https://github.com/webiny/webiny-js/pull/4185))
 
-✍️
+From the early days, in order to perform both backend and frontend development, Webiny users would use the [`webiny watch`](/docs/core-development-concepts/basics/watch-command) command. And while this command works fine when it comes to frontend development (Admin, public website), we've come to a conclusion that it's not the best solution for backend development. 
+
+One of the reasons is the fact that, whenever a backend code change is made, the code needs to redeployed to AWS Lambda, which can take anywhere from 5 seconds, up to a minute, and even more. This can be a real productivity killer, especially when you're working on a feature that requires a lot of backend changes. Another reason is the inability to properly debug the backend code, as the `webiny watch` command doesn't provide a way to debug the code running in AWS Lambda.
+
+To address these issues, we've been experimenting with a new approach, which we like to call **Local AWS Lambda Development**, and which we're introducing in this release as a beta feature. 
+
+Essentially, this new feature allows you to run your AWS Lambda code locally, without the need to continuously deploy changes to AWS. This means that, whenever you make a change to your backend code, you can immediately see the results, without the need to wait for the code to be deployed to AWS Lambda. And not only that, you can also debug your code, as the code is running in your local environment.
+
+To give this new feature a try, you can add the following feature flag in your `webiny.project.ts` file:
+
+```diff-ts webiny.project.ts
+// ... 
+
+export default {
+    template: "@webiny/cwp-template-aws@5.41.00",
+    name: "my-webiny-project",
+    cli: {
+        plugins: [
+            // ...
+        ]
+    },
+    appAliases: {
+        // ...
+    },
++   featureFlags: {
++       newWatchCommand: true
++   }
+};
+```
+
+Once that's done, you'll need to deploy your **Core** and **API** project applications, which can be done by running the following command:
+
+```bash
+yarn webiny deploy core,api --env dev
+```
+
+Finally, after the deployment is finished, you can start the new watch command by running:
+
+```bash
+yarn webiny watch api --env dev
+```
+
+With all of these steps completed, you should be able to see the new watch command in action. To learn more, we've also created a new section in our existing [`watch command`](/docs/core-development-concepts/basics/watch-command) article, which explains how to use this new feature.
+
+We hope you'll find this new feature useful, and we're looking forward to hearing your feedback!
+
+<Alert type="info" title="Nice to know">
+
+  The initial inspiration for building this feature came from [Serverless Stack](https://github.com/sst/sst) and its [Live Lambda Development](https://docs.sst.dev/live-lambda-development) feature. Webiny's version of this feature is almost identical to the one provided by Serverless Stack, with a few minor differences.
+
+</Alert>
+
+ 
