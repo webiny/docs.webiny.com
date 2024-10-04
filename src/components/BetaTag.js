@@ -1,12 +1,11 @@
 export const BetaTag = () => {
     return (
         <span
-            style={{ fontSize: "11.5px !important" }}
             className={
-                "bg-orange inline-block text-white rounded px-1.5 font-black py-0 mr-1 leading-loose align-[4px]"
+                "not-prose bg-orange inline-block rounded px-1.5 py-0 mr-1 leading-none"
             }
         >
-            BETA
+            <div className={'inline-block text-white font-black text-[12px] align-[4px]'}>BETA</div>
         </span>
     );
 };

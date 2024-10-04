@@ -28,7 +28,7 @@ export const mdxComponents = {
     ExtensionsGettingStarted,
     ol: props => <ol {...props} style={{ "--start": props.start ?? 1 }} />,
     code: props => {
-        if (props.children === "beta") {
+        if (props.children === "beta-feature-tag") {
             return <BetaTag/>;
         }
         return <code {...props}></code>;
