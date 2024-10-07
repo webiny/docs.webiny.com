@@ -93,7 +93,7 @@ const getBgByType = type => {
     }
 };
 
-export function Alert({ type, children, title }) {
+export function Alert({ type = "info", children, title }) {
     return (
         <div
             className={clsx(
