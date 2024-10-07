@@ -9,19 +9,12 @@ export const Navigation = () => {
       <BaseNavigation />
       {/* Add new items. */}
       <NavigationRoot directory={__dirname}>
-        {/* Add new groups and pages here. */}
         <Group
-          title={"Core Development Concepts"}
-          icon={"/docs-menu-icons/core-dev-concepts.svg"}
-          link={"core-development-concepts/basics/extensions"}
+          title={"Security"}
+          icon={"/docs-menu-icons/page-builder.svg"}
+          link={"security/programmatically-create-roles-and-teams"}
         >
-          <Group title={"Security Framework"}>
-            <Page
-              link={
-                "core-development-concepts/security-framework/programmatically-create-roles-and-teams"
-              }
-            />
-          </Group>
+          <Page link={"security/programmatically-create-roles-and-teams"} />
         </Group>
       </NavigationRoot>
     </>
