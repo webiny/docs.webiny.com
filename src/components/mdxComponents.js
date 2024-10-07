@@ -11,7 +11,6 @@ import { ExternalLink } from "./ExternalLink";
 import { GithubRelease } from "./GithubRelease";
 import { ExtensionsGettingStarted } from "./ExtensionsGettingStarted";
 import { EnterpriseFeaturesNotice } from "./EnterpriseFeaturesNotice";
-import { Tag } from "./Tag";
 
 export const mdxComponents = {
     Heading,
@@ -27,13 +26,6 @@ export const mdxComponents = {
     EnterpriseFeaturesNotice,
     ExtensionsGettingStarted,
     ol: props => <ol {...props} style={{ "--start": props.start ?? 1 }} />,
-    code: props => {
-        if (props.children.startsWith("tag:")) {
-            const [, text] = props.children.split(":");
-            return <Tag text={text} />;
-        }
-        return <code {...props}></code>;
-    },
     a: forwardRef((props, _) => {
         if (props.href.startsWith("http")) {
             return <ExternalLink {...props} />;
