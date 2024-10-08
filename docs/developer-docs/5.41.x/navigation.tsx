@@ -11,10 +11,25 @@ export const Navigation = () => {
       <NavigationRoot directory={__dirname}>
         <Group
           title={"Security"}
-          icon={"/docs-menu-icons/page-builder.svg"}
-          link={"security/programmatically-create-roles-and-teams"}
+          after={"Headless CMS"}
+          icon={"/docs-menu-icons/wcp.svg"}
+          link={"security/extensions/programmatically-create-roles-and-teams"}
         >
-          <Page link={"security/programmatically-create-roles-and-teams"} />
+          <Group title={"Security Framework"}>
+            <Page link={"security/security-framework/introduction"} />
+            <Page link={"security/security-framework/api-security"} />
+            <Page link={"security/security-framework/react-security"} />
+          </Group>
+          <Group title={"Extensions"}>
+            <Page link={"security/extensions/programmatically-create-roles-and-teams"} />
+          </Group>
+        </Group>
+        <Group title={"Core Development Concepts"}>
+          <Group title={"Security Framework"} remove>
+            <Page link={"security/security-framework/introduction"} remove/>
+            <Page link={"security/security-framework/api-security"} remove/>
+            <Page link={"security/security-framework/react-security"} remove/>
+          </Group>
         </Group>
       </NavigationRoot>
     </>
