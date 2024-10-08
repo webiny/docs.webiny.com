@@ -11,7 +11,7 @@ export const Navigation = () => {
       <NavigationRoot directory={__dirname}>
         <Group
           title={"Security"}
-          after={"Headless CMS"}
+          after={"File Manager"}
           icon={"/docs-menu-icons/wcp.svg"}
           link={"security/overview"}
         >
