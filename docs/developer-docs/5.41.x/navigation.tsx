@@ -13,8 +13,9 @@ export const Navigation = () => {
           title={"Security"}
           after={"Headless CMS"}
           icon={"/docs-menu-icons/wcp.svg"}
-          link={"security/extensions/programmatically-create-roles-and-teams"}
+          link={"security/overview"}
         >
+          <Page link={"security/overview"} hidden={true} />
           <Group title={"Security Framework"}>
             <Page link={"security/security-framework/introduction"} />
             <Page link={"security/security-framework/api-security"} />
@@ -29,6 +30,11 @@ export const Navigation = () => {
             <Page link={"security/security-framework/introduction"} remove/>
             <Page link={"security/security-framework/api-security"} remove/>
             <Page link={"security/security-framework/react-security"} remove/>
+          </Group>
+        </Group>
+        <Group title={"Webiny Enterprise"}>
+          <Group title={"Advanced Access Control Layer (AACL)"}>
+            <Page link={"enterprise/aacl/teams"} />
           </Group>
         </Group>
       </NavigationRoot>
