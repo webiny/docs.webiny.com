@@ -27,9 +27,16 @@ export const Navigation = () => {
         </Group>
         <Group title={"Core Development Concepts"}>
           <Group title={"Security Framework"} remove>
-            <Page link={"security/security-framework/introduction"} remove/>
-            <Page link={"security/security-framework/api-security"} remove/>
-            <Page link={"security/security-framework/react-security"} remove/>
+            <Page link={"security/security-framework/introduction"} remove />
+            <Page link={"security/security-framework/api-security"} remove />
+            <Page link={"security/security-framework/react-security"} remove />
+          </Group>
+          <Group title={"Extending and Customizing"}>
+            <Page
+              link={
+                "core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index"
+              }
+            />
           </Group>
         </Group>
         <Group title={"Webiny Enterprise"}>

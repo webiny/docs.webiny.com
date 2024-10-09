@@ -4,8 +4,10 @@ title: Webiny 5.41.0 Changelog
 description: See what's new in Webiny version 5.41.0.
 ---
 
-import { Alert } from "@/components/Alert";
-import { GithubRelease } from "@/components/GithubRelease";
+
+
+import {Alert} from "@/components/Alert";
+import {GithubRelease} from "@/components/GithubRelease";
 import copySecurityPermissions from "./assets/copy-security-permissions.png";
 import multiRolesTeams from "./assets/multi-roles-teams.png";
 
@@ -147,5 +149,76 @@ Note that the Audit Logs feature is part of Webiny's enterprise offering. To lea
 <Alert type="info">
 
 In case you missed it, via the [Theme Manager](/docs/enterprise/theme-manager) application, users can create multiple themes that are used to style websites created with the Page Builder application.
+
+</Alert>
+
+## Background Tasks
+
+### A Background Task Step Function Is Now Triggered Via Direct AWS SDK call ([#4289](https://github.com/webiny/webiny-js/pull/4289))
+
+Prior to this version, a background task Step Function was triggered via an Event Bridge event. This caused problems when a background task had child tasks - sometimes child task failed but the parent did not know about it.
+
+Now we have a reference to the child task and the parent can check if the child task is actually running.
+
+It also allowed us to trigger a Step Function with a name - for easier debugging and referencing.
+
+## Elasticsearch and OpenSearch Shared Indexes ([#4306](https://github.com/webiny/webiny-js/pull/4306))
+
+In this release we have added the ability to make the Webiny share indexes via Pulumi configuration.
+
+To find out more about shared indexes, please read this article.
+
+
+To make the `OpenSearch` share indexes, you need to add the following configuration to your `webiny.project.ts` file:
+```typescript
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+    pulumiResourceNamePrefix: "wby-",
+    openSearch: {
+        sharedIndexes: true
+    }
+});
+```
+
+
+```typescript
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+    pulumiResourceNamePrefix: "wby-",
+    openSearch: {
+        sharedIndexes: true
+    }
+});
+```
+
+To make the `Elasticesearch` share indexes, you need to add the following configuration to your `webiny.project.ts` file:
+```typescript
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+    pulumiResourceNamePrefix: "wby-",
+    elasticSearch: {
+        sharedIndexes: true
+    }
+});
+```
+
+
+```typescript
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+    pulumiResourceNamePrefix: "wby-",
+    elasticSearch: {
+        sharedIndexes: true
+    }
+});
+```
+
+<Alert type="danger">
+
+  You should `NOT` change the `sharedIndexes` configuration after the initial deployment. If you do, you will lose all the data.
 
 </Alert>
