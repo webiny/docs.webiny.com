@@ -151,14 +151,14 @@ import React from "react";
 import { Admin } from "@webiny/app-serverless-cms";
 import { Cognito } from "@webiny/app-admin-users-cognito";
 + import { ContentEntryListConfig } from "@webiny/app-headless-cms";
-+ import { ReactComponent as SendIcon } from "@material-design-icons/svg/outlined/send.svg";
++ import { ReactComponent as SyncIcon } from "@material-design-icons/svg/outlined/sync.svg";
 import "./App.scss";
 
 + // You can destructure child components to make the code more readable and easier to work with.
 + const { BulkAction } = ContentEntryListConfig.Browser;
 + const { useWorker, useButtons, useDialog } = BulkAction;
 
-+ const ActionSendToExternal = () => {
++ const ActionSync = () => {
 +    // useButtons() exposes the button components also used internally: use these to keep the UI consistent.
 +    const { IconButton } = useButtons();
 +    // useWorker provides the selected items, method to process them and the result of the operation.
@@ -166,10 +166,10 @@ import "./App.scss";
 +    // useDialog provides methods to show confirmation and result dialogs.
 +    const { showConfirmationDialog, showResultsDialog } = useDialog();
 +
-+    const openSendToExternalServiceDialog = () =>
++    const openSyncDialog = () =>
 +      showConfirmationDialog({
-+        title: "Send to External Service",
-+        message: `You are about to send the selected entries. Are you sure you want to continue?`,
++        title: "Sync",
++        message: `You are about to sync the selected entries. Are you sure you want to continue?`,
 +        loadingLabel: `Processing`,
 +        execute: async () => {
 +          await worker.processInSeries(async ({ item, report }) => {
@@ -197,7 +197,7 @@ import "./App.scss";
 +               message: e.message
 +             });
 +           }
-+       }, 5 // Batch size, default value: 10);
++       }, 5); // Batch size, default value: 10
 +
 +       // Reset the selected items
 +       worker.resetItems();
@@ -205,7 +205,7 @@ import "./App.scss";
 +       // Show a dialog with the report from all operations
 +       showResultsDialog({
 +         results: worker.results,
-+         title: "Send to External Service",
++         title: "Sync",
 +         message: "Operation completed, here below you find the complete report:"
 +       });
 +     }
@@ -213,9 +213,9 @@ import "./App.scss";
 +
 +   return (
 +     <IconButton
-+       icon={<SendIcon />}
-+       onAction={openSendToExternalServiceDialog}
-+       label={`Send to external service`}
++       icon={<SyncIcon />}
++       onAction={openSyncDialog}
++       label={`Sync`}
 +       tooltipPlacement={"bottom"}
 +     />
 +   );
@@ -227,8 +227,8 @@ import "./App.scss";
         <Cognito />
 +       <ContentEntryListConfig>
 +         <BulkAction
-+           name={"send-to-external"}
-+           element={<ActionSendToExternal />}
++           name={"sync"}
++           element={<ActionSync />}
 +           modelIds={["article"]}
 +         />
 +       </ContentEntryListConfig>
