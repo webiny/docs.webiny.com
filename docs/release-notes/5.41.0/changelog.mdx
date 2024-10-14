@@ -4,10 +4,8 @@ title: Webiny 5.41.0 Changelog
 description: See what's new in Webiny version 5.41.0.
 ---
 
-
-
-import {Alert} from "@/components/Alert";
-import {GithubRelease} from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+import { GithubRelease } from "@/components/GithubRelease";
 import copySecurityPermissions from "./assets/copy-security-permissions.png";
 import multiRolesTeams from "./assets/multi-roles-teams.png";
 import hcmsBulkActionBackgroundTasks from "./assets/hcms-bulk-action-via-background-tasks.gif";
@@ -16,11 +14,7 @@ import hcmsBulkActionBackgroundTasks from "./assets/hcms-bulk-action-via-backgro
 
 ## Breaking Changes❗
 
-### Assigning Users To Multiple Teams - Property Renames
-
-✍️
-
-## Update Node.js to the Version 20
+### Updated Node.js to the Version 20
 
 We have updated the `Node.js` version, which runs the code which gets deployed, to `v20`.
 
@@ -30,22 +24,51 @@ Users should update their development machines and CI deployments to use `Node.j
 
 We have also updated the `engines` field in the `package.json` file to reflect this change.
 
-```json
-  "engines": {
-    "node": "~20.0.0"
+```diff-json
++  "engines": {
++    "node": "~20.0.0"
++  }
+```
+
+### Updated Typescript to the Version 4.9.5
+
+We have updated the `Typescript` version to `v4.9.5`.
+
+We also removed the `typescript` package from the `package.json` `resolutions`, so we are not forcing all the packages to use the same version.
+
+```diff-json
+  "resolutions": {
+    ....
+-    "typescript": "4.7.4",
+    ....
   }
 ```
 
-## Updated Typescript to the Version 4.9.5
-
-We have updated the `Typescript` version to `v4.9.5`.
+If you notice any issues with your project because of that, feel free to add version `4.9.5` into the `resolutions` field in your `package.json` file.
 
 <Alert type="warning" title="Check and Update Your Code">
   Users should check their code for the potential breaking changes and update their code
   accordingly.
 </Alert>
 
-Unfortunately, updating the Typescript to the `v5+` is a bit problematic because we need to change our build process. It will probably be done for the Webiny `v5.42.0` release.
+Unfortunately, updating the Typescript to the `v5+` is a bit problematic because we need to change our build process. It will probably be done for Webiny `v5.42.0` release.
+
+### Multiple Roles and Teams Assignments - Changes on the `Identity` Interface
+
+With the introduction of the [Multiple Roles and Teams Assignments (#4198)](/docs/release-notes/5.41.0/changelog#multiple-roles-and-teams-assignments-4198), we've done the following changes to the [`Identity`](https://github.com/webiny/webiny-js/blob/next/packages/api-authentication/src/types.ts#L28-L41) interface:
+
+- `group` property was deprecated, users should use `groups` instead
+- `team` property was deprecated, users should use `teams` instead
+
+These changes were done because a Webiny user can now be assigned to multiple roles and teams. Which is also why the new properties accept an array of strings (instead of a single string, as it was before).
+
+Note that the outlined changes are essentially only relevant for users who are using custom IdP implementations, like [Okta](/docs/enterprise/okta-integration) or [Auth0](/docs/enterprise/auth0-integration). This is because the [`Identity`](https://github.com/webiny/webiny-js/blob/next/packages/api-authentication/src/types.ts#L28-L41) interface and its `group` and `team` properties are only utilized in the context of custom IdP implementations. So, in case you're using a custom IdP implementation, make sure to update your code accordingly. For updated code examples, revisit the [Okta](/docs/enterprise/okta-integration) or [Auth0](/docs/enterprise/auth0-integration) integration articles.
+
+<Alert>
+
+  Note that if you continue using the old `group` and `team` properties, your code will still work. However, we recommend updating your code to use the new `groups` and `teams` properties, as the old properties will be removed in a future release.
+
+</Alert>
 
 ## Headless CMS
 
@@ -53,7 +76,10 @@ Unfortunately, updating the Typescript to the `v5+` is a bit problematic because
 
 We are excited to introduce a new enhancement in the Headless CMS: bulk actions handled through background tasks. This update streamlines large-scale content management processes, improving efficiency and providing a smoother user experience.
 
-<Image src={hcmsBulkActionBackgroundTasks} alt="Managing Entries With Bulk Actions Powered By Background Tasks" />
+<Image
+  src={hcmsBulkActionBackgroundTasks}
+  alt="Managing Entries With Bulk Actions Powered By Background Tasks"
+/>
 
 With this release, users can now perform the following bulk actions in the background without needing to process them in series on the client side:
 
@@ -70,6 +96,29 @@ Upon confirmation, the bulk action is processed by a background task, bypassing 
 
 At this stage, real-time status updates on background tasks are not supported. Users will need to manually refresh the page to see the current status of their tasks.
 
+## Page Builder
+
+### Prerendering Service - AWS Lambda Timeouts ([#4330](https://github.com/webiny/webiny-js/pull/4330))
+
+While prerendering a page that was just published, the Prerendering Service, or, more specifically, the AWS Lambda function that's responsible for prerendering the page, would sometimes run into an AWS Lambda timeout, causing the prerendering process to fail.
+
+<Alert>
+
+One of the examples where this issue would occur is when a page contained one or more YouTube embeds.
+
+</Alert>
+
+With this release, we've done a thorough investigation and identified the root cause of the issue. And although [the fix might not be ideal](https://github.com/webiny/webiny-js/pull/4330/files) at the code level, it _did_ show a significant improvement in the prerendering process, as the AWS Lambda timeouts were no longer an issue.
+
+We'll be monitoring the situation closely, and if we see that the issue persists, we'll be revisiting the code to come up with a more robust solution.
+
+<Alert>
+
+To learn more about the prerendering process Webiny's Page Builder app users to prerender published pages, check out
+the [Prerendering Pages](https://www.webiny.com/docs/architecture/website/prerendering-pages) article.
+
+</Alert>
+
 ## Security
 
 ### Multiple Roles and Teams Assignments ([#4198](https://github.com/webiny/webiny-js/pull/3976))
@@ -80,7 +129,8 @@ Prior to this release, Webiny users would only be able to possess one role, and 
 
 <Alert type="info">
 
-Note that the Teams feature is part of Webiny's enterprise offering. To learn more, please check out the [Teams](/docs/enterprise/aacl/teams) article.
+Note that the Teams feature is part of Webiny's enterprise offering. To learn more, please check out the
+[Teams](/docs/enterprise/aacl/teams) article.
 
 </Alert>
 
@@ -88,7 +138,7 @@ Note that the Teams feature is part of Webiny's enterprise offering. To learn mo
 
 With this release, we've added the ability to programmatically create roles and teams. This is especially useful when you need to create a large number of roles and teams, and you don't want to do it manually.
 
-To learn more, head over to the new [Programmatically Create Roles and Teams](/docs/core-development-concepts/security-framework/programmatically-create-roles-and-teams) article.
+To learn more, head over to the new [Programmatically Create Roles and Teams](/docs/security/extensions/programmatically-create-roles-and-teams) article.
 
 ### Copy Security Permissions Object ([#4303](https://github.com/webiny/webiny-js/pull/4303))
 
@@ -102,7 +152,8 @@ In order to make programmatic creation of roles and defining its permissions a b
 
 <Alert title="Beta Feature">
 
-This is a beta feature, and we're looking for feedback from the community. If you encounter any issues, please [let us know](https://www.webiny.com/slack).
+This is a beta feature, and we're looking for feedback from the community. If you encounter any issues, please [let us
+know](https://www.webiny.com/slack).
 
 </Alert>
 
@@ -154,7 +205,9 @@ We hope you'll find this new feature useful, and we're looking forward to hearin
 
 <Alert type="info" title="Nice to know">
 
-The initial inspiration for building this feature came from [Serverless Stack](https://github.com/sst/sst) and its [Live Lambda Development](https://docs.sst.dev/live-lambda-development) feature. Webiny's version of this feature is almost identical to the one provided by Serverless Stack, with a few minor differences.
+The initial inspiration for building this feature came from [Serverless Stack](https://github.com/sst/sst) and its
+[Live Lambda Development](https://docs.sst.dev/live-lambda-development) feature. Webiny's version of this feature is
+almost identical to the one provided by Serverless Stack, with a few minor differences.
 
 </Alert>
 
@@ -166,17 +219,127 @@ Because of an internal code issue, in Webiny projects that were using multiple t
 
 <Alert type="info">
 
-Note that the Audit Logs feature is part of Webiny's enterprise offering. To learn more, please check out the [Teams](/docs/enterprise/aacl/teams) article.
+Note that the Audit Logs feature is part of Webiny's enterprise offering. To learn more, please check out the
+[Teams](/docs/enterprise/aacl/teams) article.
 
 </Alert>
 
 <Alert type="info">
 
-In case you missed it, via the [Theme Manager](/docs/enterprise/theme-manager) application, users can create multiple themes that are used to style websites created with the Page Builder application.
+In case you missed it, via the [Theme Manager](/docs/enterprise/theme-manager) application, users can create multiple
+themes that are used to style websites created with the Page Builder application.
 
 </Alert>
 
-## Background Tasks
+## Deployments
+
+### Missing Permission In "Deploy Webiny Project" CloudFormation Template ([#4323](https://github.com/webiny/webiny-js/pull/4323))
+
+In order to deploy a Webiny project in a more controlled and secure manner, users can utilize the **Deploy Webiny Project** AWS CloudFormation template. Via three IAM user groups, the template deploys necessary ([least-privilege](https://en.wikipedia.org/wiki/Principle_of_least_privilege)) set of permissions into a specified AWS account, which also automatically get linked with a designated Amazon IAM user.
+
+With this release, we've addressed a couple of issues related to missing or incorrectly set permissions in the **Deploy Webiny Project** AWS CloudFormation template.
+
+<Alert type={"info"}>
+
+Learn more about the **Deploy Webiny Project** AWS CloudFormation template in our [Configure AWS
+Credentials](/docs/infrastructure/aws/configure-aws-credentials#deploy-webiny-project-aws-cloud-formation-template)
+article.
+
+</Alert>
+
+### Updated Pulumi Package Versions ([#4323](https://github.com/webiny/webiny-js/pull/4323/commits/7ce12e66ec7ddd7580ed702617c31a5c49ac0175))
+
+We've updated the minimum required versions of Pulumi packages. The updated versions are as follows:
+
+1. [`@pulumi/aws`](https://www.npmjs.com/package/@pulumi/aws): bumped from `^6.48.0"` to `^6.55.0`
+2. [`@pulumi/pulumi`](https://www.npmjs.com/package/@pulumi/pulumi): bumped from `^3.128.0"` to `^3.136.1`
+
+As we can see, we've only bumped the patch versions of these packages, which means that there shouldn't be any breaking changes. However, as a best practice, we recommend that you test your deployments in a non-production environment before deploying to production.
+
+<Alert type="info">
+
+Webiny projects are deployed with Pulumi - a modern infrastructure as code (IaC) solution. Check out the [Iac with
+Pulumi](/docs/infrastructure/pulumi-iac/iac-with-pulumi) topic to learn more.
+
+</Alert>
+
+### Elasticsearch and OpenSearch Shared Indexes ([#4306](https://github.com/webiny/webiny-js/pull/4306))
+
+In this release we have added the ability to make Webiny share indexes via Pulumi configuration.
+
+To find out more about shared indexes, please read [this](/docs/core-development-concepts/extending-and-customizing/how-to-customize-elasticsearch-index) article.
+
+To make Elasticsearch share indexes, you need to add the following configuration to your `apps/core/webiny.aplication.ts` file:
+
+```diff-ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+    pulumiResourceNamePrefix: "wby-",
+    openSearch: {
++        sharedIndexes: true
+    }
+});
+```
+
+And to the `apps/api/webiny.application.ts` file:
+
+```diff-ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+    pulumiResourceNamePrefix: "wby-",
+    openSearch: {
++        sharedIndexes: true
+    }
+});
+```
+
+To make Elasticsearch share indexes, you need to add the following configuration to your `apps/core/webiny.aplication.ts` file:
+
+```diff-ts
+import { createCoreApp } from "@webiny/serverless-cms-aws";
+
+export default createCoreApp({
+    pulumiResourceNamePrefix: "wby-",
+    elasticSearch: {
++        sharedIndexes: true
+    }
+});
+```
+
+And to the `apps/api/webiny.application.ts` file:
+
+```diff-ts
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+    pulumiResourceNamePrefix: "wby-",
+    elasticSearch: {
++        sharedIndexes: true
+    }
+});
+```
+
+<Alert type="danger">
+
+You should `NOT` change the `sharedIndexes` configuration after the initial deployment. If you do, you will lose all
+the data.
+
+</Alert>
+
+## Other Improvements
+
+### Introduced `robots.txt` For Admin and Website Apps ([#4329](https://github.com/webiny/webiny-js/pull/4329))
+
+For both Admin and Website apps, we've introduced the `robots.txt` file, which is now available in the following locations:
+
+1. `apps/admin/public/robots.txt`
+2. `apps/website/public/robots.txt`
+
+The `robots.txt` file is used to provide instructions to web robots (also known as web crawlers) about the pages that should be crawled or not crawled. By default, the `robots.txt` file is set to allow all web crawlers to crawl all pages for the Website app, and disallow all web crawlers from crawling all pages for the Admin app. In case of the Admin app, this is done to prevent search engines from indexing the Admin app pages.
+
+For projects that are being upgraded from a previous version of Webiny, the `robots.txt` file will be automatically created during the upgrade process.
 
 ### A Background Task Step Function Is Now Triggered Via Direct AWS SDK call ([#4289](https://github.com/webiny/webiny-js/pull/4289))
 
@@ -185,64 +348,3 @@ Prior to this version, a background task Step Function was triggered via an Even
 Now we have a reference to the child task and the parent can check if the child task is actually running.
 
 It also allowed us to trigger a Step Function with a name - for easier debugging and referencing.
-
-## Elasticsearch and OpenSearch Shared Indexes ([#4306](https://github.com/webiny/webiny-js/pull/4306))
-
-In this release we have added the ability to make the Webiny share indexes via Pulumi configuration.
-
-To find out more about shared indexes, please read this article.
-
-
-To make the `OpenSearch` share indexes, you need to add the following configuration to your `webiny.project.ts` file:
-```typescript
-import { createCoreApp } from "@webiny/serverless-cms-aws";
-
-export default createCoreApp({
-    pulumiResourceNamePrefix: "wby-",
-    openSearch: {
-        sharedIndexes: true
-    }
-});
-```
-
-
-```typescript
-import { createApiApp } from "@webiny/serverless-cms-aws";
-
-export default createApiApp({
-    pulumiResourceNamePrefix: "wby-",
-    openSearch: {
-        sharedIndexes: true
-    }
-});
-```
-
-To make the `Elasticesearch` share indexes, you need to add the following configuration to your `webiny.project.ts` file:
-```typescript
-import { createCoreApp } from "@webiny/serverless-cms-aws";
-
-export default createCoreApp({
-    pulumiResourceNamePrefix: "wby-",
-    elasticSearch: {
-        sharedIndexes: true
-    }
-});
-```
-
-
-```typescript
-import { createApiApp } from "@webiny/serverless-cms-aws";
-
-export default createApiApp({
-    pulumiResourceNamePrefix: "wby-",
-    elasticSearch: {
-        sharedIndexes: true
-    }
-});
-```
-
-<Alert type="danger">
-
-  You should `NOT` change the `sharedIndexes` configuration after the initial deployment. If you do, you will lose all the data.
-
-</Alert>
