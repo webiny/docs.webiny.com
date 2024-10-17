@@ -20,6 +20,8 @@ const LicenseMessage = ({ enterprise, business }) => {
             </p>
         );
     }
+
+    return null;
 };
 
 export const CanIUseThis = ({ since, enterprise = false, business = false, children }) => {
