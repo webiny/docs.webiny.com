@@ -1,0 +1,131 @@
+---
+id: aafeab72
+title: API Security
+description: Learn how security works in Webiny API.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- how security hooks into API request lifecycle
+- hooks and plugins provided by Webiny Security Framework
+
+</Alert>
+
+In this article, we cover how Webiny Security Framework (_WSF_ for short) works in the context of Webiny API, what hooks it introduces, and how it hooks into the existing request lifecycle hooks to perform its main tasks (like authentication and authorization).
+
+<Alert type="info">
+
+This article uses terms like authentication, authorization, identity, and permissions extensively. These terms are described in details in the [Introduction](/docs/core-development-concepts/security-framework/introduction) article. If you're not familiar with these terms, make sure you read that article first.
+
+</Alert>
+
+WSF itself, just as any other Webiny application, is a collection of plugins. When these plugins are registered into the application, WSF hooks into some request lifecycle hooks. By doing so, it adds new tools and introduces new hooks to allow developers write plugins for them.
+
+The term _hook_ is just used to denote that, at a certain point in time, plugins of that type will be processed (e.g., `context` hook means that plugins of type `context` will be processed).
+
+## Request Lifecycle
+
+To visualize the process of authentication, authorization, and better understand _when_ things are being executed, let's analyze the following diagram:
+
+![Request Lifecycle with Webiny Security Framework](./assets/api-security/request-lifecycle.png)
+
+The lifecycle of any request begins by invoking a Lambda function (`1`). Once invoked, function handler runs a series of hooks (`2`).
+
+### `context` Hook
+
+A new [context object](https://github.com/webiny/webiny-js/blob/next/packages/handler/src/createHandler.ts#L13-L19) is created for every Lambda function invocation and the `context` hook is processed to allow plugins to extend the context object, which is accessible across the application (e.g., in all resolvers of your GraphQL API). The context object serves as a central registry for data, utilities, etc.
+
+This is the hook WSF uses to create a _context.security_ object. All the existing Webiny applications depend on it to interact with WSF (to access identity, get permissions, etc.).
+
+Once the `context` hook has finished executing, Webiny executes the `before-handler` hook.
+
+### `before-handler` Hook
+
+The purpose of this hook is to allow developers execute arbitrary logic after the context object is fully built, but before request payload parsing begins. This is particularly useful for WSF, which, at this point, executes authentication.
+
+Authentication within WSF has no built-in logic. It simply runs the `security-authentication` hook (`3`). The developer is responsible for registering plugins to perform actual authentication:
+
+```ts Authentication plugin interface
+interface SecurityAuthenticationPlugin extends Plugin {
+  type: "security-authentication";
+  authenticate(context: Context): Promise<null | SecurityIdentity>;
+}
+```
+
+When an authentication plugin verifies the provided credentials, it returns an identity object containing the information retrieved from the [identity provider](https://en.wikipedia.org/wiki/Identity_provider) (e.g., Cognito, Auth0, etc.). The following Typescript interface describes the identity object returned from the authentication plugin:
+
+```ts Identity object interface
+interface SecurityIdentity {
+  id: string;
+  displayName: string;
+  type: string;
+  [key: string]: any;
+}
+```
+
+WSF only requires a couple of properties to work:
+
+- **id** - a unique identifier of the identity (e.g., email, phone number, ID retrieved from the identity provider, etc.)
+- **displayName** - a human-friendly string to describe the identity (e.g., _John M._, _ACME CMS Token_, _Slack Bot_ etc.)
+- **type** - a string that describes the type of the identity (e.g., `user`, `admin-user`, `api-key`, `personal-access-token`, etc. The type is useful in the authorization process, because different identities can have different authorization implementations.
+
+Your actual identity object can contain a lot more information which you can use in your authorization plugins or business logic. WSF, however, will only require the properties described above.
+
+<Alert type="info" title="Identity vs. User">
+
+Keep in mind that `identity` and `user` are not the same thing. A `user` is a superset of `identity`, meaning, it will have a lot more information associated with it. That information is often related to your project's business logic (user profile, payment info, addresses).
+
+Identity doesn't need to contain any of that information. A good example of this is an API key. API keys don't have profiles or addresses, but they will go through authentication process and produce an identity object.
+
+How you handle user information is up to you. You can include it as part of the authentication process and append all the info to the `SecurityIdentity` object we described previously, or you can add new utilities to the context object to retrieve user information based on the identity (e.g., create a `getUser()` function and implement that logic however you like).
+
+</Alert>
+
+### `handler` Hook
+
+After the `before-handler` hook, the system continues with the request processing by executing the `handler` hook. This hook passes the `context` object to every `handler` plugin until one of them returns a response (these will be covered in details in a dedicated article).
+
+How the request is being parsed, is irrelevant. It can be a GraphQL handler (`4`), a regular REST API handler, or something completely different. Think of this hook as a traditional _express_ application with middleware, where the request goes through a pipeline, until a response is returned.
+
+The important part is that some time during code execution (`4`) some part of your application will need to check for certain permissions. At that point, it will reach out to the WSF to fetch a permission. Here's an example using a GraphQL resolver:
+
+```ts The simplest authorization check using WSF
+export default async (parent, args, context) => {
+  // Check if the identity is authorized to execute this resolver
+  const permission = await context.security.getPermission("my-permission");
+
+  if (!permission) {
+    // Not authorized!
+    throw new NotAuthorizedError();
+  }
+
+  // Proceed with your logic
+};
+```
+
+When the code executes `context.security.getPermission(...)`, WSF will process the `security-authorization` hook (`3`) and return the matching permission object, if found.
+
+Same as with authentication plugins, the developer is responsible for registering authorization plugins in their project. If no plugins exist, the identity will have no permissions and won't be able to perform any operations that require authorization. To implement an authorization plugin, use the following interface:
+
+```ts Authorization plugin interface
+interface SecurityAuthorizationPlugin extends Plugin {
+  type: "security-authorization";
+  getPermissions(context: SecurityContext): Promise<SecurityPermission[]>;
+}
+```
+
+---
+
+If everything goes well, and your identity has the permissions to execute the requested operation, the request will be converted into a response in the `handler` hook and function invocation will end by sending the response (`5`) to the client who originally invoked the function.
+
+## FAQ
+
+### Where and how do I store permissions?
+
+Since authorization plugins are asynchronous, you can store your permissions anywhere, even on remote services. You can also generate permissions dynamically based on some identity information. As long as you can provide an array of permissions back to the security framework, everything will work smoothly.
+
+### Can I use the default user management implementation for my custom apps?
+
+Usually, we recommend managing your app's users separately from the default admin users. Every project is different, has different requirements (like signup, email confirmations, etc.), and it's faster and easier for you to create a custom user management module for your specific needs.
