@@ -5,7 +5,8 @@ import Link from "next/link";
 
 const extensionTypeLabel = {
     admin: "Admin extension",
-    api: "API extension"
+    api: "API extension",
+    pbElement: "Page Builder element"
 };
 
 export const ExtensionsGettingStarted = ({
@@ -39,7 +40,18 @@ export const ExtensionsGettingStarted = ({
             ? scaffoldCommandParts.join(" \\\n\t")
             : scaffoldCommandParts.join(" ");
 
-    const watchCommand = `yarn webiny watch ${type} --env ENVIRONMENT_NAME`;
+    let watchCommand = `yarn webiny watch ${type} --env ENVIRONMENT_NAME`;
+    if (type === "pbElement") {
+        watchCommand = (
+            <code className="language-bash">
+                <div className="token comment"># Starts the Admin app locally.</div>
+                <div className="token function">yarn webiny watch admin --env dev</div>
+                <br />
+                <div className="token comment"># Starts the Website app locally.</div>
+                <div className="token function">yarn webiny watch website --env dev</div>
+            </code>
+        );
+    }
 
     return (
         <>
