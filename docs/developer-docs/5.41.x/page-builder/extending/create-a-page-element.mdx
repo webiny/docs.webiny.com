@@ -62,63 +62,23 @@ Note that the spacecrafts data will be retrieved from a non-official public Spac
   fullExampleDownloadLink={"page-builder/custom-page-elements"}
 />
 
-## Getting Started
+## Overview
 
 ### Renderer React Component
 
-To create a custom page element, we first need to create a [renderer React component](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder-elements/src/types.ts#L129-L131) which, as the name itself suggests, renders it. As we'll be able to see, this is easily achieved via the [`createRenderer`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder-elements/src/createRenderer.tsx) factory function.
+To create a custom page element, the first step is to create a [renderer React component](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder-elements/src/types.ts#L129-L131) which, as the name itself suggests, renders it. As we'll be able to see, this is easily achieved via the [`createRenderer`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder-elements/src/createRenderer.tsx) factory function.
 
-### Plugins
+### Registering the Renderer
 
-Via a couple of plugins, the next step is registering the renderer React component within our project's **Admin** and **Website** apps.
+Via a couple of React components, the next step is registering the renderer React component within our project's **Admin** and **Website** apps.
 
-<Alert type={"info"}>
+For the **Admin** app, we first use the `PbEditorPageElementPlugin` React component, which enables us to introduce our custom page element into the Page Builder's page editor and enables users to drop the new element onto a page.
 
-In case you missed it, the **Admin** and **Website** apps are located in the `apps/admin` and `apps/website` folders of an existing Webiny project.
+After that, optionally, we use the `PbEditorPageElementAdvancedSettingsPlugin` React component, which lets us define all the related settings that are available to users upon dropping the page element onto a page. Since the page element we're building does contain settings that the user can adjust, we will need this plugin as well.
 
-</Alert>
-
-On the **Admin** app side, we first register the [`PbEditorPageElementPlugin`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder/src/types.ts#L498-L536) plugin, which enables us to introduce our custom page element into the Page Builder's page editor and enables users to drop the new element onto a page.
-
-After that, optionally, we register the [`PbEditorPageElementAdvancedSettingsPlugin`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder/src/types.ts#L642-L647) plugin, which lets us define all the related settings that are available to users upon dropping the page element onto a page. Since the page element we're building does contain settings that the user can adjust, we will need this plugin as well.
-
-When it comes to the **Website** app, here we register the [`PbRenderElementPlugin`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder/src/types.ts#L375-L380) plugin. With it, we ensure our renderer React component is utilized upon serving a published page to an actual website visitor. Note we'll also need this plugin on the **Admin** app side because previewing pages is possible there too, outside the page editor.
+When it comes to the **Website** app, here we use the `PbRenderElementPlugin` React component. With it, we ensure our renderer React component is used upon serving a published page to an actual website visitor. Note we'll also need to the same on the **Admin** app side because previewing pages is possible there too, outside the page editor.
 
 ![Page Preview In the Admin App](./assets/create-a-page-element/admin-page-preview.png)
-
-### Code Organization
-
-There are multiple approaches when it comes to where to place our custom page element code. In this tutorial, we will be placing all the code in the [`extensions/theme`](https://github.com/webiny/webiny-examples/tree/master/page-builder/spacex-page-element/extensions/theme) folder. More specifically, we'll create a new [`extensions/theme/src/pageElements`](https://github.com/webiny/webiny-examples/tree/master/page-builder/spacex-page-element/extensions/theme/src/pageElements) folder, and inside it, the new [`extensions/theme/src/pageElements/spaceX`](https://github.com/webiny/webiny-examples/tree/master/page-builder/spacex-page-element/extensions/theme/src/pageElements/spaceX) folder.
-
-<Alert type={"info"}>
-
-The
-[`extensions/theme/src/pageElements`](https://github.com/webiny/webiny-examples/tree/master/page-builder/spacex-page-element/extensions/theme/src/pageElements)
-folder can be further used as a folder for all of your custom page elements.
-
-</Alert>
-
-### Overview of Files
-
-Ultimately, in the [`extensions/theme/src/pageElements/spaceX`](https://github.com/webiny/webiny-examples/tree/master/page-builder/spacex-page-element/extensions/theme/src/pageElements/spaceX) folder, we'll end up with the following three files:
-
-1. [`SpaceX.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/spacex-page-element/extensions/theme/src/pageElements/spaceX/SpaceX.tsx) - contains the renderer React component
-2. [`admin.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/spacex-page-element/extensions/theme/src/pageElements/spaceX/admin.tsx) - contains the **Admin** app plugins
-3. [`website.ts`](https://github.com/webiny/webiny-examples/blob/master/page-builder/spacex-page-element/extensions/theme/src/pageElements/spaceX/website.ts) - contains the **Website** app plugin
-
-### Useful Webiny CLI Commands
-
-For easier development, both **Admin** and **Website** apps can be run and developed locally. This is done via the following two [`webiny watch`](/docs/{version}/core-development-concepts/basics/watch-command) commands:
-
-```bash
-yarn webiny watch admin --env YOUR_ENV
-```
-
-```bash
-yarn webiny watch website --env YOUR_ENV
-```
-
-If needed, both commands can be run at the same time, via two separate terminal sessions.
 
 ## Implementation
 
@@ -231,36 +191,14 @@ With this code in place, we're ready for the next step, which is registering the
 
 As previously mentioned, ensuring our custom renderer React component is actually used upon rendering a published page is done via the [`PbRenderElementPlugin`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder/src/types.ts#L375-L380) plugin. For this, we'll create a new [`extensions/theme/src/pageElements/spaceX/website.ts`](https://github.com/webiny/webiny-examples/blob/master/page-builder/spacex-page-element/extensions/theme/src/pageElements/spaceX/website.ts) file with the following code:
 
-```ts
-import { PbRenderElementPlugin } from "@webiny/app-page-builder/types";
+```tsx extensions/spaceXElement/src/website.tsx
+import React from "react";
+import { PbRenderElementPlugin } from "@webiny/app-website";
 import { SpaceX } from "./SpaceX";
 
-const plugin = {
-  name: "pb-render-page-element-space-x",
-  type: "pb-render-page-element",
-  elementType: "spaceX",
-  render: SpaceX
-} as PbRenderElementPlugin;
+export const Extension = () => <PbRenderElementPlugin elementType={"spaceX"} render={SpaceX} />;
 
-export default plugin;
 ```
-
-With this plugin in place, we need to register it within the **Website** app. This can be achieved via the [`apps/website/src/plugins/pageBuilder.ts`](https://github.com/webiny/webiny-examples/blob/master/page-builder/spacex-page-element/apps/website/src/plugins/pageBuilder.ts#L88) file:
-
-```diff-ts apps/website/src/plugins/pageBuilder.ts
-// The rest of code was removed for brevity.
-+ import spaceX from "theme/pageElements/spaceX/website";
-
-// ...
-
-export default [
-    // ...
-+   spaceX
-    // ...
-];
-```
-
-With the plugin registered, we're ready to move on to the next step, and that is the **Admin** app.
 
 ### Admin App
 
@@ -268,122 +206,70 @@ As previously mentioned, within the **Admin** app, we need two plugins: [`PbEdit
 
 For simplicity's sake, we'll again place all the code in a single file, this time in [`extensions/theme/src/pageElements/spaceX/admin.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/spacex-page-element/extensions/theme/src/pageElements/spaceX/admin.tsx):
 
-```tsx extensions/theme/src/pageElements/spaceX/admin.tsx
+```tsx extensions/spaceXElement/src/admin.tsx
 import React from "react";
-import { validation } from "@webiny/validation";
-import { Input } from "@webiny/ui/Input";
-import { ButtonPrimary } from "@webiny/ui/Button";
-import { Cell, Grid } from "@webiny/ui/Grid";
-import { Select } from "@webiny/ui/Select";
 import {
-  PbEditorPageElementAdvancedSettingsPlugin,
-  PbEditorPageElementPlugin
-} from "@webiny/app-page-builder/types";
-
+    PbEditorPageElementAdvancedSettingsPlugin,
+    PbEditorPageElementPlugin,
+    PbRenderElementPlugin
+} from "@webiny/app-page-builder";
 import { SpaceX, SpaceXElementData } from "./SpaceX";
+import { OnCreateActions } from "@webiny/app-page-builder/types";
+import { Element } from "@webiny/app-page-builder-elements/types";
+import { AdvancedSettings } from "./admin/AdvancedSettings";
 
 const INITIAL_ELEMENT_DATA: SpaceXElementData = {
-  variables: { type: "rockets", limit: "10", offset: "0" }
+    variables: { type: "rockets", limit: "10", offset: "0" }
 };
 
-export default [
-  // The `PbEditorPageElementPlugin` plugin.
-  {
-    name: "pb-editor-page-element-space-x",
-    type: "pb-editor-page-element",
-    elementType: "spaceX",
-    render: SpaceX,
-    toolbar: {
-      // We use `pb-editor-element-group-media` to put our new
-      // page element into the Media group in the left sidebar.
-      title: "SpaceX",
-      group: "pb-editor-element-group-media",
-      preview() {
-        // We can return any JSX / React code here. To keep it
-        // simple, we are simply returning the element's name.
-        return <>Space X Page Element</>;
-      }
-    },
+export const Extension = () => (
+    <>
+        <PbRenderElementPlugin elementType={"spaceX"} render={SpaceX} />
+        <PbEditorPageElementPlugin
+            elementType={"spaceX"}
+            render={({ element }) => <SpaceX element={element as Element} />}
+            toolbar={{
+                // We use `pb-editor-element-group-media` to put our new
+                // page element into the Media group in the left sidebar.
+                title: "SpaceX",
+                group: "pb-editor-element-group-media",
+                preview() {
+                    // We can return any JSX / React code here. To keep it
+                    // simple, we are simply returning the element's name.
+                    return <>Space X Page Element</>;
+                }
+            }}
+            // Defines which types of element settings are available to the user.
+            settings={[
+                "pb-editor-page-element-settings-delete",
+                "pb-editor-page-element-settings-visibility",
+                "pb-editor-page-element-style-settings-padding",
+                "pb-editor-page-element-style-settings-margin",
+                "pb-editor-page-element-style-settings-width",
+                "pb-editor-page-element-style-settings-height",
+                "pb-editor-page-element-style-settings-background"
+            ]}
+            // Defines onto which existing elements our element can be dropped.
+            // In most cases, using `["cell", "block"]` will suffice.
+            target={["cell", "block"]}
+            onCreate={OnCreateActions.OPEN_SETTINGS}
+            // `create` function creates the initial data for the page element.
+            create={options => {
+                return {
+                    type: "spaceX",
+                    elements: [],
+                    data: INITIAL_ELEMENT_DATA,
+                    ...options
+                };
+            }}
+        />
+        <PbEditorPageElementAdvancedSettingsPlugin
+            elementType={"spaceX"}
+            element={<AdvancedSettings />}
+        />
+    </>
+);
 
-    // Defines which types of element settings are available to the user.
-    settings: [
-      "pb-editor-page-element-settings-delete",
-      "pb-editor-page-element-settings-visibility",
-      "pb-editor-page-element-style-settings-padding",
-      "pb-editor-page-element-style-settings-margin",
-      "pb-editor-page-element-style-settings-width",
-      "pb-editor-page-element-style-settings-height",
-      "pb-editor-page-element-style-settings-background"
-    ],
-
-    // Defines onto which existing elements our element can be dropped.
-    // In most cases, using `["cell", "block"]` will suffice.
-    target: ["cell", "block"],
-    onCreate: "open-settings",
-
-    // `create` function creates the initial data for the page element.
-    create(options) {
-      return {
-        type: "spaceX",
-        elements: [],
-        data: INITIAL_ELEMENT_DATA,
-        ...options
-      };
-    }
-  } as PbEditorPageElementPlugin,
-
-  // The `PbEditorPageElementAdvancedSettingsPlugin` plugin.
-  {
-    name: "pb-editor-page-element-advanced-settings-space-x",
-    type: "pb-editor-page-element-advanced-settings",
-    elementType: "spaceX",
-    render({ Bind, submit }) {
-      // In order to construct the settings form, we're using the
-      // `@webiny/form`, `@webiny/ui`, and `@webiny/validation` packages.
-      return (
-        <>
-          <Grid>
-            <Cell span={12}>
-              <Bind name={"variables.type"}>
-                <Select label={"Type"} description={"Chose the record type you want to query."}>
-                  <option value="rockets">Rockets</option>
-                  <option value="dragons">Dragons</option>
-                </Select>
-              </Bind>
-            </Cell>
-            <Cell span={12}>
-              <Bind
-                name={"variables.limit"}
-                validators={validation.create("required,gte:0,lte:1000")}
-              >
-                <Input
-                  label={"Limit"}
-                  type="number"
-                  description={"Number of records to be returned."}
-                />
-              </Bind>
-            </Cell>
-            <Cell span={12}>
-              <Bind
-                name={"variables.offset"}
-                validators={validation.create("required,gte:0,lte:1000")}
-              >
-                <Input
-                  label={"Offset"}
-                  type="number"
-                  description={"Amount of records to be skipped."}
-                />
-              </Bind>
-            </Cell>
-            <Cell span={12}>
-              <ButtonPrimary onClick={submit}>Save</ButtonPrimary>
-            </Cell>
-          </Grid>
-        </>
-      );
-    }
-  } as PbEditorPageElementAdvancedSettingsPlugin
-];
 ```
 
 Before we register these plugins, note that, in order to construct the settings form, we're using the [`@webiny/form`](https://github.com/webiny/webiny-js/tree/v5.40.0/packages/form), [`@webiny/ui`](https://github.com/webiny/webiny-js/tree/v5.40.0/packages/ui), and [`@webiny/validation`](https://github.com/webiny/webiny-js/tree/v5.40.0/packages/validation) packages. Since the [`@webiny/ui`](https://github.com/webiny/webiny-js/tree/v5.40.0/packages/ui) is not installed within the [`extensions/theme`](https://github.com/webiny/webiny-examples/tree/master/page-builder/spacex-page-element/extensions/theme) package by default, we need to install it. This can be done via the following command, run from your project root:
@@ -396,35 +282,6 @@ When it comes to plugin registration, in total, there are three plugins we need 
 
 ![Page Preview In the Admin App](./assets/create-a-page-element/admin-page-preview.png)
 
-We register the two plugins via the [`apps/admin/src/plugins/pageBuilder/editorPlugins.ts`](https://github.com/webiny/webiny-examples/blob/master/page-builder/spacex-page-element/apps/admin/src/plugins/pageBuilder/editorPlugins.ts#L88) file:
-
-```diff-ts apps/admin/src/plugins/pageBuilder/editorPlugins.ts
-// Some of the code was removed for brevity.
-+ import spaceX from "theme/pageElements/spaceX/admin";
-
-// ...
-
-export default [
-    // ...
-+   spaceX
-    // ...
-];
-```
-
-The [`PbRenderElementPlugin`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder/src/types.ts#L375-L380) plugin can be registered via the [`apps/admin/src/plugins/pageBuilder/renderPlugins.ts`](https://github.com/webiny/webiny-examples/blob/master/page-builder/spacex-page-element/apps/admin/src/plugins/pageBuilder/renderPlugins.ts#L64) file:
-
-```diff-ts apps/admin/src/plugins/pageBuilder/renderPlugins.ts
-// The rest of code was removed for brevity.
-+ import spaceX from "theme/pageElements/spaceX/website";
-
-// ...
-
-export default [
-    // ...
-+   spaceX
-    // ...
-];
-```
 
 With all the plugins registered, we're now ready to give this a try locally in our browser.
 
