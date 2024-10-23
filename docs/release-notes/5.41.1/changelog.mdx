@@ -6,6 +6,76 @@ description: See what's new in Webiny version 5.41.1
 
 <GithubRelease version={"5.40.1"} />
 
+## Security
+
+### External Identity Providers - Assigning Groups Now Works As Expected ([#4349](https://github.com/webiny/webiny-js/pull/4349)]
+
+We've addressed a couple of issues related to assigning roles when using external identity providers like [Auth0](/docs/enterprise/auth0-integration) or [Okta](/docs/enterprise/okta-integration). 
+
+#### 1. `groups` Property Now Works As Expected
+
+Using Auth0 and assigning roles via the newly introduced `groups` property would not work:
+
+```diff-ts
+    /**
+     * Configure Auth0 authentication and authorization.
+     */
+    createAuth0({
+        /**
+         * `domain` is required for token verification.
+         */
+        domain: String(process.env.WEBINY_API_AUTH0_DOMAIN),
+        /**
+         * Construct the identity object and map token claims
+         * to arbitrary identity properties.
+         */
+        getIdentity({ token }) {
+            return {
+                id: token["sub"],
+                type: "admin",
+                displayName: token["name"],
+                
++               // This would not work.
++               group: "full-access",
+
+-               // This would not work.
+-               groups: ["full-access"],
+            };
+        }
+    }),
+```
+
+With this release, this has been addressed and both `group` and `groups` properties can now be used to assign roles when using external identity providers.
+
+Additionally, we've also addressed an issue where even the `group`  
+
+<Alert>
+
+  As mentioned in the [5.41.0 release notes](/docs/release-notes/5.41.0/changelog), the `group` property has been deprecated. Users are encouraged to use the `groups` property instead.
+
+</Alert>
+
+#### 2. Programmatically Created Roles Now Work As Expected
+
+When using external identity providers, trying to assign a role to a user that was programmatically created would not work. This has been addressed, and now users can assign roles to programmatically created users when using external identity providers.
+
+<Alert>
+
+  Programmatic creation of roles and teams has been introduced in the [5.41.0 release](/docs/release-notes/5.41.0/changelog#programmatic-creation-of-roles-and-teams-4303).
+
+</Alert>
+
+#### 3. Ability To Assign Teams ([#4349](https://github.com/webiny/webiny-js/pull/4349)]
+
+Since the introduction of the Teams feature, users were not able to assign teams to users when using external identity providers. We've addressed this issue, and now users can assign teams to users when using external identity providers.
+
+<Alert type="info">
+
+  Note that the Teams feature is part of Webiny's enterprise offering. To learn more, please check out the
+  [Teams](/docs/enterprise/aacl/teams) article.
+
+</Alert>
+
 ## Page Builder
 
 ### New "Page Builder Element" Extension ([#4342](https://github.com/webiny/webiny-js/pull/4342))
