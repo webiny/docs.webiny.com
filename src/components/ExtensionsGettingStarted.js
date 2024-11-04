@@ -19,7 +19,7 @@ export const ExtensionsGettingStarted = ({
     fullExampleDownloadLink
 }) => {
     let scaffoldCommandParts = [
-        "yarn webiny scaffold extension",
+        "yarn webiny extension",
         `--type ${type}`,
         `--name ${name}`
     ];
@@ -63,7 +63,7 @@ export const ExtensionsGettingStarted = ({
                         project:
                     </p>
                     <pre className={"language-bash"}>
-                        yarn webiny scaffold extension {fullExampleDownloadLink}
+                        yarn webiny extension {fullExampleDownloadLink}
                     </pre>
                     {fullExampleLink && (
                         <p>
