@@ -26,6 +26,9 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Core Development Concepts"}>
+          <Group title={"Basics"}>
+            <Page link={"core-development-concepts/basics/webiny-cli"} />
+          </Group>
           <Group title={"Security Framework"} remove>
             <Page link={"security/security-framework/introduction"} remove />
             <Page link={"security/security-framework/api-security"} remove />
