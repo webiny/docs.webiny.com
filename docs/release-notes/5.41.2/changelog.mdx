@@ -4,82 +4,57 @@ title: Webiny 5.41.2 Changelog
 description: See what's new in Webiny version 5.41.2
 ---
 
-import persistedSnackbars from "./assets/persisted-snackbars.png";
-import firstDeployment from "./assets/first-deployment-msg.png";
-import errorLoggingEventHandlers from "./assets/error-logging-event-handlers.png";
+import multiValueRenderers from "./assets/multi-value-renderers.png";
+import lexicalEditorTheme from "./assets/lexical-editor-theme.png";
 
 <GithubRelease version={"5.41.2"} />
 
 ## Headless CMS
 
-### Persisted Error Messages ([#4392](https://github.com/webiny/webiny-js/pull/4392))
+### Persist Error Snackbars ([#4392](https://github.com/webiny/webiny-js/pull/4392))
 
-Up until now, error messages in the Admin UI would disappear after a short period of time, making it difficult for users to read and understand them. 
+✍️
 
-With this change, error snackbars will now persist until the user dismisses them.
+### Improve Multi-Value Field Renderers ([#4404](https://github.com/webiny/webiny-js/pull/4404))
 
-<Image src={persistedSnackbars} alt="Persisted Error Snackbars" />
+We've improved the way multi-value field renderers work in the Headless CMS. The `DynamicSection` component (which powers all multi-value renderers) no longer adds the initial item UI, which was causing many issues with validation, and users were unable to remove that first item, which was also unintuitive.
+
+The labels and behavior is now standardized across all multi-value renderers, the field label looks the same, prints help text in the same place across all fields, and also counts the number of items in the data set. The initial item UI is no longer added, and users can remove all items from the data set.
+
+<Image src={multiValueRenderers} title="Multi-Value Field Renderers" />
+
+### Fix Entry Form Validation Errors
+
+We've fixed a bug where errors from the API were not correctly formatted, and were passed to the `Form` component in a wrong shape, resulting in errors not being shown in the UI. This is now fixed, and errors from the API are correctly displayed as validation messages, right below the input they belong to.
 
 ## Page Builder
 
-### Fixed Applying Separate Border Radius Values ([#4369](https://github.com/webiny/webiny-js/pull/4369))
+### Use Correct Keys Upon Applying Border Radius Separately ([#4369](https://github.com/webiny/webiny-js/pull/4369))
 
-We've fixed an issue where, in the Page Builder's page editor, applying separate border radius values (top left, top right, bottom right, bottom left) to a page element would not work as expected. This has now been addressed.
+### Expose New Page Element Control Overlay Features ([#4396](https://github.com/webiny/webiny-js/pull/4396))
+
+Developers can now hook into the page element control overlay using component decoration, and control several new props: `canDrag`, `canEdit`, `canHighlight`, and `canActivate`. This allows developers to customize each element behaviour based on user's permissions, page properties, etc.
+
+We've also introduced a new Page Editor hook, called `useMoveElement`, which gives developers a simple API to move elements up, down, left, or right, within the parent element.
 
 ## Deployments
 
 ### Website Cloudfront Distributions - Ignore Changes In `staging` Property ([#4401](https://github.com/webiny/webiny-js/pull/4401))
 
-Upon deploying Admin and Website applications, Webiny deploys a couple of Cloudfront distributions. Once initially deployed, during subsequent deployments, the distributions are only updated with the new changes. They are never recreated from scratch.
-
-<Alert>
-
-  Learn more about Webiny's cloud architecture in the [Cloud Architecture](/docs/architecture/introduction) documentation.
-
-</Alert>
-
-However, with the introduction of the new Pulumi version and because of a change in the way Pulumi handles the [`staging`](https://www.pulumi.com/registry/packages/aws/api-docs/cloudfront/distribution/#staging_nodejs) property, the Cloudfront distributions would actually be recreated on the next deployment, which is certainly not the desired behavior. Especially if a custom domain was already associated with the distribution.
-
-To fix this, we had to internally instruct Pulumi to ignore changes in the `staging` property, which will prevent the distributions from being recreated.
-
-
-<Alert type={"warning"}>
-
-  To this day, we've neved seen anybody relying on the `stating` property, so we're confident this change won't affect anyone. Still, if you are using it, please do give us a shout via our [community Slack](https://www.webiny.com/slack).
-
-</Alert>
-
+✍️
 
 ### Skip "First Deployment" Check When In CI Environment ([#4408](https://github.com/webiny/webiny-js/pull/4408))
 
-When users deploy their project for the first time via the [`webiny deploy`](/docs/core-development-concepts/basics/project-deployment) command, Webiny shows the following short message:
-
-<Image src={firstDeployment} alt="First Deployment Message" />
-
-And although this message can be helpful when really deploying for the first time from a local environment, it's not really necessary when deploying from a CI environment. In one particular case, we've even seen this message being shown incorrectly, despite the fact that the project was already deployed (more on this in the linked [pull request](https://github.com/webiny/webiny-js/pull/4408)).
-
-To address this, we've simply decided to skip this check when deploying from a CI environment.
+✍️
 
 ## Other Improvements
 
-### Lifecycle Event Handlers - Add Error Logging ([#4391](https://github.com/webiny/webiny-js/pull/4391)) 
+### Lifecycle Event Handlers - Add Error Logging ([#4391](https://github.com/webiny/webiny-js/pull/4391))
 
-We've added basic error logging during the execution of lifecycle event handlers.
+✍️
 
-This will help users debug issues because. Not only will they be able to see the newly added logs in their [Amazon CloudWatch logs](https://webiny.link/cloudwatch), but also, in their browser.
+### Improve Lexical Editor Theme Handling ([#4395](https://github.com/webiny/webiny-js/pull/4395))
 
-The following example shows a log that happened because of an error that occurred during the [`onEntryBeforePublish`](/docs/headless-cms/references/lifecycle-events#on-entry-before-publish) lifecycle event:
+We've improved Lexical theme handling, and you can now decorate the `RichTextEditor` component, and modify the classes of the Lexical editor. This is usually useful when you're adding third party plugins, which expect certain classes to exist, and you want to be able to define them, or override with your own classes.
 
-<Image src={errorLoggingEventHandlers} alt="Error Logging Event Handlers" shadow={false}/>
-
-<Alert>
-
-  In case you missed it, with the `DEBUG` env variable set to `true`, all the logs that occur during a single GraphQL HTTP request are actually forwarded to user's browser console.
-
-</Alert>
-
-<Alert>
-
-  The `DEBUG` env variable is usually used with dev and pre-prod Webiny instances. To learn more, check out the [Environment Variables](/docs/core-development-concepts/basics/environment-variables#debug) documentation.
-
-</Alert>
+<Image src={lexicalEditorTheme} title={"Lexical Theme Customization"} />
