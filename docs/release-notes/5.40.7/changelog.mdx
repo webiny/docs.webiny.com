@@ -1,116 +1,30 @@
 ---
-id: af8bc618
+id: 49d22f69
 title: Webiny 5.40.7 Changelog
 description: See what's new in Webiny version 5.40.7.
 ---
 
-import gqlTooltipsIssue from "./assets/gql-tooltips-issue.png";
-import fmTags from "./assets/fm-tags.png";
-import stModel1 from "./assets/st-model-1.png";
-import stModel2 from "./assets/st-model-2.png";
-import stModel3 from "./assets/st-model-3.png";
-import auth0AutoLogin from "./assets/auth0-auto-login.gif";
-
 <GithubRelease version={"5.40.7"} />
 
-## Headless CMS
+## Deployments
 
-### Introducing Single Entry Models (Beta) ([#4228](https://github.com/webiny/webiny-js/pull/4275) [#4298](https://github.com/webiny/webiny-js/pull/4298) [#4296](https://github.com/webiny/webiny-js/pull/4296))
+### Deployment of Amazon Cloudfront Distributions - Ignoring Changes In `staging` Property ([#4401](https://github.com/webiny/webiny-js/pull/4401))
 
-With this release, we're introducing a new feature called **Single Entry Models**.
+Upon deploying API, Admin, and Website applications, Webiny deploys Amazon Cloudfront distributions. Once initially deployed, during subsequent deployments, the distributions are only updated with the new changes. They are never recreated from scratch.
 
-As the name itself suggests, this feature allows users to create a model that can only have a single entry. This can be useful in various scenarios, such as when you need to create a model that represents a configuration, a settings object, or any other type of data that should only have a single entry.
+<Alert>
 
-The new feature can be accessed within the **New Content Model** dialog, where you can now specify whether the model should be a single entry model or not.
-
-Once the model is created, we can proceed by defining its fields, and, ultimately, by navigating to the single content entry (which is automatically created for us).
-
-The entry can be accessed as any other entry, via the Headless CMS section in the main menu.
-
-<Gallery>
-  <Image src={stModel1} title={"Creating a Single Entry Model"} />
-  <Image src={stModel2} title={"Accessing the Single Entry"} />
-  <Image src={stModel3} title={"Content Entry Form"} />
-</Gallery>
-
-<Alert type={"info"}>
-
-As this feature is still in beta, we'd love to hear your feedback on it. If you have any suggestions or ideas on how we could improve it, please let us know by creating a new issue in our [GitHub repository](https://www.github.com/webiny/webiny-js), or by reaching out to us on our [Slack channel](https://www.webiny.com/slack).
+  Learn more about Webiny's cloud architecture in the [Cloud Architecture](/docs/architecture/introduction) documentation.
 
 </Alert>
 
-### Deleting Entry Revision Incorrectly Moves Entire Entry to Trash ([#4275](https://github.com/webiny/webiny-js/pull/4275))
+However, with the introduction of the new Pulumi version and because of a change in the way Pulumi handles the [`staging`](https://www.pulumi.com/registry/packages/aws/api-docs/cloudfront/distribution/#staging_nodejs) property, the Cloudfront distributions would actually be recreated on the next deployment, which is certainly not the desired behavior. Especially if a custom domain was already associated with the distribution.
 
-We have resolved a bug that occurred when deleting a specific entry revision from the revision list. Previously, deleting a single revision inadvertently moved the entire entry to the trash bin rather than only removing the selected revision.
+To fix this, we had to internally instruct Pulumi to ignore changes in the `staging` property, which will prevent the distributions from being recreated.
 
-## File Manager
 
-### Responsive Stacking of Tag Matching Select ([#4241](https://github.com/webiny/webiny-js/pull/4241))
+<Alert type={"warning"}>
 
-In this release, we've improved the responsiveness of the tag filter section within the file manager. When the container width is limited, the select input for choosing tags matching now stacks vertically alongside the section title. This adjustment enhances the user experience on smaller screens by ensuring a more accessible and intuitive layout.
+  To this day, we've neved seen anybody relying on the `stating` property, so we're confident this change won't affect anyone. Still, if you are using it, please do give us a shout via our [community Slack](https://www.webiny.com/slack).
 
-<Image src={fmTags} alt={"File Manager Tags Matching Select Issue"} />
-
-## Page Builder
-
-### Fix Redirect for "Edit" Action in Page Builder ([#4271](https://github.com/webiny/webiny-js/pull/4271))
-
-In this release, we've resolved an issue where users encountered errors when clicking the "Edit" action in the page builder list. The fix ensures that the correct ID, including the revision number, is passed via the query string to the page editor, preventing navigation errors.
-
-### Fix Page Builder Template Selector UI ([#4284](https://github.com/webiny/webiny-js/pull/4284))
-
-In this release, we resolved the misalignment issue to ensure that the content in the left-hand side list of the template selector displays correctly. The issue likely originated from the introduction of the adjustable column feature ([#4179](https://github.com/webiny/webiny-js/pull/4179)).
-
-## Admin App
-
-### Fixed API Playground (GraphQL Playground) Tooltip Hiding Issue ([#4272](https://github.com/webiny/webiny-js/pull/4272))
-
-Over the past month or so, we've received multiple reports of users experiencing issues with the API Playground (GraphQL Playground) tooltip. Specifically, once shown, the tooltip would not hide, making it much harder to interact with the API Playground.
-
-<Image src={gqlTooltipsIssue} alt={"GraphQL Playground Tooltips Issue"} />
-
-With this release, we've resolved this issue. Now, the tooltip will hide as expected, making it easier to interact with the API Playground.
-
-Note that the GraphQL Playground that's being used in the Admin app is a third-party library that is no longer actively maintained. Because of this, we're currently looking into possible alternatives that we could use in the future.
-
-## Other Improvements
-
-### Website Pulumi App Service Manifest ([#4267](https://github.com/webiny/webiny-js/pull/4267))
-
-We've fixed permissions on website and admin app buckets, to allow API Lambda functions to read and write files in those buckets. As a natural next step, we've added the Website app service manifest, to store website domains, Cloudfront distribution ids, bucket names, etc.
-
-This now allows you to write GraphQL API plugins which interact with buckets created for the Admin and Website apps.
-
-### `CMD + Enter` Keyboard Shortcut Incorrectly Submits the Form (Without the Latest Input Value) ([#4295](https://github.com/webiny/webiny-js/pull/4295))
-
-If a user used `CMD + Enter` keyboard shortcut to submit the form, and if the shortcut was pressed "too quickly" after typing something into an input field, the form would be submitted with the previous value that was typed into the input field.
-
-From now on, the form will now be submitted with the latest value of the input field, regardless of how quickly the Cmd+Enter keyboard shortcut is pressed after typing something into the input field.
-
-### Ported Changes From Recent 5.39 Patch Releases
-
-With this release, we’ve ported multiple fixes and improvements that where released via four 5.39 patch releases, over the
-last couple of weeks. This way, all the fixes and improvements that were made are now also available in the latest version of Webiny.
-
-The following 5.39 patch releases were ported to 5.40.7:
-
-1. [5.39.12](/docs/release-notes/5.39.12/changelog)
-2. [5.39.13](/docs/release-notes/5.39.13/changelog)
-3. [5.39.14](/docs/release-notes/5.39.14/changelog)
-4. [5.39.15](/docs/release-notes/5.39.15/changelog)
-
-Make sure to check out the linked changelogs to see what changed in each of these patch releases.
-
-## Enterprise
-
-### Auth0 Support for Auto-Login ([#4285](https://github.com/webiny/webiny-js/pull/4285))
-
-We've upgraded the Auth0 implementation to allow your Auth0 widget to automatically initiate the login process, without having to click the log in button. Moreover, we've improved handling of redirects to/from Auth0, so Auth0 will always return to the URL which initiated the login process, unless configured differently.
-
-One of the benefits of using the auto-login feature is that you no longer have to use the `localstorage` to store your tokens. You can simply let Auth0 perform the authentication process on every app reload, and your users won't even notice it.
-
-<Image src={auth0AutoLogin} title="Auth0 Auto-Login" />
-
-### Improve InstallTenant Error Handling ([#4274](https://github.com/webiny/webiny-js/pull/4274))
-
-In the [Advanced Tenant Management](https://www.webiny.com/docs/enterprise/advanced-tenant-management) article we use the `InstallTenant` utility class, which performs automated tenant installation. With this release we've greatly improved error handling in this class, and made it possible to re-run installations on tenants that were previously partially installed (due to an error occurring during the installation, for whatever reason). 
+</Alert>
