@@ -2,6 +2,8 @@ import React from "react";
 import { Heading } from "./Heading";
 import { Alert } from "./Alert";
 import Link from "next/link";
+import { usePage } from "@/hooks/usePage";
+import { gte } from "semver";
 
 const extensionTypeLabel = {
     admin: "Admin extension",
@@ -18,11 +20,13 @@ export const ExtensionsGettingStarted = ({
     fullExampleLink,
     fullExampleDownloadLink
 }) => {
-    let scaffoldCommandParts = [
-        "yarn webiny extension",
-        `--type ${type}`,
-        `--name ${name}`
-    ];
+    const { page } = usePage();
+
+    const currentVersionWithPatchSetToZero = page.version.replace("x", "0");
+    const showNewCommand = gte(currentVersionWithPatchSetToZero, "5.41.0");
+    const command = showNewCommand ? "yarn webiny extension" : "yarn webiny scaffold extension";
+
+    let scaffoldCommandParts = [command, `--type ${type}`, `--name ${name}`];
 
     if (location) {
         scaffoldCommandParts.push(`--location ${location}`);
