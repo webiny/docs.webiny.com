@@ -67,7 +67,7 @@ export const ExtensionsGettingStarted = ({
                         project:
                     </p>
                     <pre className={"language-bash"}>
-                        yarn webiny extension {fullExampleDownloadLink}
+                        {command} {fullExampleDownloadLink}
                     </pre>
                     {fullExampleLink && (
                         <p>
