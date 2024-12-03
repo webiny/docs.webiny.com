@@ -1,0 +1,109 @@
+---
+id: 
+title: Smart SEO - OpenAI
+description: Learn how to integrate OpenAI with Webiny to build a SmartSEO tool for Headless CMS. This tool automatically generates SEO titles, descriptions, and tags for your articles.
+---
+
+import { Alert } from "@/components/Alert";
+import smartSEO from "./assets/smart-seo-open-ai/smart-seo.mp4";
+
+<Alert type="info" title="Can I Use This?">
+
+This feature is available since Webiny **v5.41.0**.
+
+</Alert>
+
+<Alert type="success" title="What you will learn">
+
+- how to integrate OpenAI with Webiny
+- how to generate SEO titles, descriptions, and tags for your articles with OpenAI
+
+</Alert>
+
+## Overview
+
+Webiny is AI model-agnostic platform. You can integrate with different models and craft tailored AI-experiences. You control which model and what AI-powered capabilities your users and content editors can use.
+
+In this tutorial, we will demonstrate how to integrate OpenAI with Webiny to build a SmartSEO tool for Headless CMS. This tool will automatically generate SEO titles and tags for your articles.
+
+You’ll create the content for your blog or article, and based on this content, OpenAI will provide SEO titles and tags to enhance your article’s search visibility.
+
+<Video src={smartSEO} controls={true} />
+
+## Getting Started
+
+Run the following command to set up this extension in your project.
+
+```bash
+yarn webiny extension headless-cms/smart-seo-open-ai
+```
+
+The SmartSEO extension code can be found in our [webiny-examples](https://github.com/webiny/webiny-examples/tree/master/headless-cms/smart-seo-open-ai) repository.
+
+## Set OpenAI API Key in Environment Variables
+
+Open the `.env` file in the root of your project and add the OpenAI API key to the `REACT_APP_OPEN_AI_API_KEY` environment variable as shown below:
+
+```bash
+REACT_APP_OPEN_AI_API_KEY=sk-proj-T2-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+For detailed instructions on creating an OpenAI API key, refer to their [official documentation](https://platform.openai.com/docs/quickstart#create-and-export-an-api-key).
+
+## Run the Project
+
+After downloading the extension to your project, run the [Webiny watch](/docs/core-development-concepts/basics/watch-command) command to see the Smart SEO functionality in action.
+
+```bash
+yarn webiny watch admin --env ENVIRONMENT_NAME
+```
+
+## Create Article Content Model
+
+If you're new to creating models in Webiny, refer to the [Create Content Model](/docs/user-guides/headless-cms/essentials/create-content-model) user guide.
+
+Alternatively, you can also import the `Article` content model; here is the  [import content model guide](/docs/user-guides/headless-cms/advanced/import-export-content-models#importing-content-models) and the [article.json file](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/article.json) for reference.
+
+We will create an `Article` content model with the following fields to manage and store articles:
+
+| Field             | Field Type | Field ID |
+| :----------       | :--------- | :--------- | 
+| Content           | Rich Text  | content |
+| SEO - Title       | Long text  | seoTitle |
+| SEO - Description | Long text  | seoDescription |
+| SEO - Meta Tags   | Object (with `Tag Name` and `Tag Value` Text Field)  | seoMetaTags |
+
+
+![Article](./assets/smart-seo-open-ai/article-model.png)
+
+## All Set!
+You’re now ready to generate SEO titles and tags for your articles using OpenAI. Simply navigate to the Article Model, create a new article, and click the “AI-Optimized SEO” button to generate SEO titles and tags effortlessly.
+
+<Video src={smartSEO} controls={true} />
+
+## Code Walkthrough
+
+Let’s walk through the code to understand how the Smart SEO extension operates. We’ve created a new [extension](/docs/core-development-concepts/basics/extensions) called `smart-seo-open-ai`, and we’ll review each plugin used in this extension one by one.
+
+### Field Tracker, ContentEntry Form Decorator
+In this example, we have an `Article` Model with four fields: `Content`, `SEO - Title`, `SEO - Description`, and `SEO - Meta Tags`. We will track these fields. Once the Content field is populated, we will send it to OpenAI, which will generate SEO-friendly titles and tags for the article. The generated title and tags will then be set in the respective `Title`, `Description` and `Tags` fields of the model.
+
+The concept is straightforward: we aim to track fields of interest, such as text inputs or rich text fields. The challenge lies in not knowing the exact location of these fields. They could be nested within objects, repeatable objects, or dynamic zone templates, making their placement unpredictable. Hardcoding paths to these fields is not a feasible solution. So, we will create the [Field Tracker](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/src/FieldTracker.tsx).
+
+[Field Tracker](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/src/FieldTracker.tsx) is a React context that tracks content model fields of interest. It enables you to extract data from these fields that can be send to OpenAI and update the fields with the response received.
+
+Here is the [code for the Field Tracker](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/src/FieldTracker.tsx), here we [decorated the ContentEntryForm](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/src/DecorateContentEntryForm.tsx) with a FieldTracker component.
+
+We’ve also [decorated the useBind hook](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/src/DecorateContentEntryFormBind.tsx) to integrate field tracking specifically for models. In this example, we are tracking rich-text fields and SEO-specific fields (`seoTitle`, `seoDescription`, `seoMetaTags`) in the `Article` model. This allows us to trigger dynamic updates and facilitate interactions with external services.
+
+**You can customize this decorator (file) to track fields from other models or different field types, tailoring it to your specific use case.**
+
+### Extract HTML from RichTextHtml (Lexical Editor)
+Webiny leverages the [Lexical text editor](https://lexical.dev/) for Rich Text Fields. However, for generating SEO-related information using OpenAI, we will send the HTML content (not the Lexical format). To achieve this, we need to extract the HTML content from the Rich Text field. For this purpose, we have created a [extractFromRichText transformer](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/src/extractFromRichText.ts) to handle the conversion.
+
+### Smart SEO
+This is the [primary plugin (SmartSeo.tsx)](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/src/SmartSeo.tsx) that integrates Webiny with OpenAI. It sends the HTML content to OpenAI and retrieves SEO-related information. The received data is then used to update the corresponding fields in the model.
+
+If you’ve noticed the AI-Optimized SEO button on the Content Entry form, it has been configured in this plugin using the [ContentEntryEditorConfig](https://github.com/webiny/webiny-examples/blob/63c125f10a1dfc3097e2d9da2c5b0d8c903c15ae/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/src/SmartSeo.tsx#L117).
+
+![AI-optimized SEO Button](./assets/smart-seo-open-ai/ai-optimize-button.png)
