@@ -8,7 +8,7 @@ import { gte } from "semver";
 const extensionTypeLabel = {
     admin: "Admin extension",
     api: "API extension",
-    pbElement: "Page Builder element"
+    pbElement: "Page Builder element extension"
 };
 
 export const ExtensionsGettingStarted = ({
