@@ -74,7 +74,7 @@ export const ExtensionsGettingStarted = ({
                     </pre>
                     {fullExampleLink && (
                         <p>
-                            Alternatively, continue reading to learn how to create this extension
+                            Alternatively, continue reading this article to learn how to create this extension
                             from scratch.
                         </p>
                     )}
