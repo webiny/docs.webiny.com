@@ -4,6 +4,7 @@ import { Alert } from "./Alert";
 import Link from "next/link";
 import { usePage } from "@/hooks/usePage";
 import { gte } from "semver";
+import { CopyButton } from "./CopyButton";
 
 const extensionTypeLabel = {
     admin: "Admin extension",
@@ -48,6 +49,7 @@ export const ExtensionsGettingStarted = ({
     if (type === "pbElement") {
         watchCommand = (
             <code className="language-bash">
+                <CopyButton text={scaffoldCommand} />
                 <div className="token comment"># Starts the Admin app locally.</div>
                 <div className="token function">yarn webiny watch admin --env dev</div>
                 <br />
@@ -61,21 +63,19 @@ export const ExtensionsGettingStarted = ({
         <>
             <Heading level={2}>Getting Started</Heading>
             {fullExampleDownloadLink ? (
-                <Alert type={"info"}>
+                <Alert type={"info"} title={"Quick Set Up"}>
                     <p>
-                        Run the following command to quickly set up this example directly in your
+                        Run the following command to quickly set up the extension in your Webiny
                         project:
                     </p>
-                    <pre className={"language-bash"}>
+                    <pre className={"language-bash relative"}>
+                        <CopyButton text={scaffoldCommand} />
                         {command} {fullExampleDownloadLink}
                     </pre>
                     {fullExampleLink && (
                         <p>
-                            The complete code shown in this article can also be found in our{" "}
-                            <a href={fullExampleLink} target={"_blank"} rel="noreferrer">
-                                webiny-examples
-                            </a>{" "}
-                            repository.
+                            Alternatively, continue reading to learn how to create this extension
+                            from scratch.
                         </p>
                     )}
                 </Alert>
@@ -87,7 +87,8 @@ export const ExtensionsGettingStarted = ({
                             <a target={"_blank"} rel="noreferrer" href={fullExampleLink}>
                                 webiny-examples
                             </a>{" "}
-                            repository.
+                            repository. Alternatively, continue reading to learn how to create this
+                            extension from scratch.
                         </Alert>
                     )}
                 </>
@@ -100,7 +101,11 @@ export const ExtensionsGettingStarted = ({
                 in the <code>{location || `/extensions/${name}`}</code> folder, via the following
                 command:
             </p>
-            <pre className={"language-bash"}>{scaffoldCommand}</pre>
+            <pre className={"language-bash relative"}>
+                <CopyButton text={scaffoldCommand} />
+                {scaffoldCommand}
+            </pre>
+
             {scaffoldCommandExtraInfo && <p>{scaffoldCommandExtraInfo}</p>}
             <p>
                 Once the extension is scaffolded, in order to start developing, we run the following
@@ -114,7 +119,7 @@ export const ExtensionsGettingStarted = ({
                 </code>{" "}
                 command:
             </p>
-            <pre className={"language-bash"}>{watchCommand}</pre>
+            <pre className={"language-bash relative"}>{watchCommand}</pre>
         </>
     );
 };
