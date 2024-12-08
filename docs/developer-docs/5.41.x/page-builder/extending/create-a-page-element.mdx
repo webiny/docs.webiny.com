@@ -1,0 +1,306 @@
+---
+id: f21d6523
+title: Create a Custom Page Element
+description: Learn how to create a custom page element that can be rendered on pages created with the Webiny's Page Builder app.
+---
+
+import elementInSidebar from "./assets/create-a-page-element/element-in-sidebar.png";
+import elementSettings from "./assets/create-a-page-element/page-element-settings.png";
+import elementInEditor from "./assets/create-a-page-element/element-in-editor.mp4";
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+  - how to create a custom page Builder element
+  - how to register plugins in Webiny applications
+
+</Alert>
+
+<Alert type="info">
+
+  The full code example used in this article is available in our
+  [webiny-examples](https://github.com/webiny/webiny-examples/tree/master/page-builder/spacex-page-element) GitHub
+  repository.
+
+</Alert>
+
+## Introduction
+
+Out of the box, Webiny's Page Builder app provides a plethora of ready-made page elements we can use to create both simple and complex pages for our website. Furthermore, on top of the default set, users can also create their custom page elements, which is what this article demonstrates.
+
+In this short article, we create a relatively simple page element that allows users to show a list of different [SpaceX](https://www.spacex.com/) rocket and dragon spacecrafts. Here's what the final result will look like:
+
+![SpaceX Page Element](./assets/create-a-page-element/preview.png)
+
+The custom page element will be available from the **Media** page elements category:
+
+<Image
+  title="SpaceX Page Element in the Elements Menu (Media category)"
+  src={elementInSidebar}
+  style={{ width: 450 }}
+/>
+
+Also, upon dropping the element onto a page, users will have the ability to adjust the following three settings:
+
+1. type of spacecrafts to be displayed (rockets or dragons)
+2. number of spacecrafts to be displayed
+3. pagination offset (number of spacecrafts we want to skip when retrieving the data)
+
+<Image
+  title="SpaceX Page Element in the Elements Menu (Media category)"
+  src={elementSettings}
+  style={{ width: 450 }}
+/>
+
+Note that the spacecrafts data will be retrieved from a non-official public SpaceX GraphQL HTTP API, located at https://spacex-production.up.railway.app/. Meaning, changing these settings will dictate the variables that will be included in GraphQL queries issued by the page element. More on this in the following sections.
+
+<ExtensionsGettingStarted
+  type={"pbElement"}
+  name={"spaceXElement"}
+  fullExampleLink={"https://github.com/webiny/webiny-examples/tree/master/page-builder/custom-page-elements"}
+  fullExampleDownloadLink={"page-builder/custom-page-elements"}
+  dependencies={["graphql-request@^6.0.0", "@webiny/ui", "@webiny/form", "@webiny/validation"]}
+/>
+
+## Overview
+
+### React Component
+
+To create a custom page element, the first step is to create a React component that renders it. As we'll be able to see, this is easily achieved via the [`createRenderer`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder-elements/src/createRenderer.tsx) factory function.
+
+### Registering the Renderer
+
+Via a couple of React components, the next step is registering the renderer React component within our project's **Admin** and **Website** apps.
+
+For this, we'll be utilizing the [`admin.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/custom-page-elements/extensions/spaceXElement/src/admin.tsx) and [`website.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/custom-page-elements/extensions/spaceXElement/src/website.tsx) entry points, that the Page Builder element extension has created for us. Within these files, we'll be registering the renderer React component via the `PbEditorPageElementPlugin` and `PbRenderElementPlugin` React components.
+
+
+![Page Preview In the Admin App](./assets/create-a-page-element/admin-page-preview.png)
+
+## Implementation
+
+### Renderer React Component
+
+As previously mentioned, in order to create a custom page element, we start off by creating a new renderer React component. To do that, we create the [`extensions/spaceXElement/src/SpaceX.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/custom-page-elements/extensions/spaceXElement/src/SpaceX.tsx) file with the following code:
+
+```tsx extensions/spaceXElement/src/SpaceX.tsx
+import React from "react";
+import { request } from "graphql-request";
+import { 
+    createRenderer, 
+    useRenderer, 
+    useLoader 
+} from "@webiny/app-page-builder-elements";
+
+// For simplicity, we're hard-coding the GraphQL HTTP API URL here.
+const GQL_API_URL = "https://spacex-production.up.railway.app/";
+
+// These are the necessary GraphQL queries we'll need in order to retrieve data.
+const QUERIES = {
+    rockets: /* GraphQL */ `
+        query listRockets($limit: Int, $offset: Int) {
+            data: rockets(limit: $limit, offset: $offset) {
+                id
+                name
+                description
+                wikipedia
+            }
+        }
+    `,
+    dragons: /* GraphQL */ `
+        query listDragons($limit: Int, $offset: Int) {
+            data: dragons(limit: $limit, offset: $offset) {
+                id
+                name
+                description
+                wikipedia
+            }
+        }
+    `
+};
+
+export interface Spacecraft {
+    id: string;
+    name: string;
+    description: string;
+    wikipedia: string;
+}
+
+// It's often useful to type the data that the page element will carry.
+export interface SpaceXElementData {
+    variables: {
+        limit: string;
+        offset: string;
+        type: "rockets" | "dragons";
+    };
+}
+
+// The renderer React component.
+export const SpaceX = createRenderer(() => {
+    // Let's retrieve the variables that were chosen by
+    // the user upon dropping the page element onto the page.
+    const { getElement } = useRenderer();
+    const element = getElement<SpaceXElementData>();
+    const { limit, offset, type } = element.data.variables;
+
+    // This is where we fetch the data.
+    // Note the `useLoader` React hook. With it, we're ensuring that the
+    // page element is rendered efficiently within a published page.
+    const { data, loading } = useLoader<Spacecraft[]>(() => {
+        return request(GQL_API_URL, QUERIES[type], {
+            limit: parseInt(limit),
+            offset: parseInt(offset)
+        }).then(res => res.data);
+    });
+
+    if (loading) {
+        return <>Loading...</>;
+    }
+
+    if (!data?.length) {
+        return <>Nothing to show.</>;
+    }
+
+    // If the data has been retrieved, we render it via a simple unordered list.
+    return (
+        <ul>
+            {data.map(item => (
+                <li key={item.id}>
+                    <h1>{item.name}</h1>
+                    <div>{item.description}</div>
+                    <br />
+                    <div>
+                        More info at&nbsp;
+                        <a href={item.wikipedia} target={"_blank"} rel={"noreferrer"}>
+                            {item.wikipedia}
+                        </a>
+                    </div>
+                </li>
+            ))}
+        </ul>
+    );
+});
+```
+
+Note that, in order to be able to issue remote GraphQL queries, we're using the [`graphql-request`](https://www.npmjs.com/package/graphql-request) package, which we've specified as a dependency upon running the [`webiny extension`](/docs/core-development-concepts/basics/webiny-cli#yarn-webiny-extension) command in the [Getting Started](#) section. Furthermore, for simplicity's sake, all the code is placed in a single file. Of course, it is possible to organize it across multiple files, if preferred.
+
+So, with this code in place, we're ready for the next step, which is registering the renderer React component within our **Admin** and **Website** apps.
+
+### Admin App
+
+Registering our custom page element within the **Admin** app is done via the [`extensions/spaceXElement/src/admin.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/custom-page-elements/extensions/spaceXElement/src/admin.tsx) entry point file, via three React components. 
+
+The first one is the `PbEditorPageElementPlugin` component, which is used to register the renderer React component within the page editor. The second one is the `PbRenderElementPlugin` component, which is used to register the renderer React component within the **Admin** app, outside the page editor. This is important because pages can also be previewed within the **Admin** app.
+
+![Page Preview In the Admin App](./assets/create-a-page-element/admin-page-preview.png)
+
+Finally, the `PbEditorPageElementAdvancedSettingsPlugin` React component is used to register the advanced settings React component within the page editor.
+
+The following code snippet shows the contents of the [`extensions/spaceXElement/src/admin.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/custom-page-elements/extensions/spaceXElement/src/admin.tsx) file:
+
+```tsx extensions/spaceXElement/src/admin.tsx
+import React from "react";
+import {
+    PbEditorPageElementAdvancedSettingsPlugin,
+    PbEditorPageElementPlugin,
+    PbRenderElementPlugin
+} from "@webiny/app-page-builder";
+import { SpaceX, SpaceXElementData } from "./SpaceX";
+import { OnCreateActions } from "@webiny/app-page-builder/types";
+import { Element } from "@webiny/app-page-builder-elements/types";
+import { AdvancedSettings } from "./admin/AdvancedSettings";
+
+const INITIAL_ELEMENT_DATA: SpaceXElementData = {
+    variables: { type: "rockets", limit: "10", offset: "0" }
+};
+
+export const Extension = () => (
+    <>
+        <PbRenderElementPlugin elementType={"spaceX"} render={SpaceX} />
+        <PbEditorPageElementPlugin
+            elementType={"spaceX"}
+            render={({ element }) => <SpaceX element={element as Element} />}
+            toolbar={{
+                // We use `pb-editor-element-group-media` to put our new
+                // page element into the Media group in the left sidebar.
+                title: "SpaceX",
+                group: "pb-editor-element-group-media",
+                preview() {
+                    // We can return any JSX / React code here. To keep it
+                    // simple, we are simply returning the element's name.
+                    return <>Space X Page Element</>;
+                }
+            }}
+            // Defines which types of element settings are available to the user.
+            settings={[
+                "pb-editor-page-element-settings-delete",
+                "pb-editor-page-element-settings-visibility",
+                "pb-editor-page-element-style-settings-padding",
+                "pb-editor-page-element-style-settings-margin",
+                "pb-editor-page-element-style-settings-width",
+                "pb-editor-page-element-style-settings-height",
+                "pb-editor-page-element-style-settings-background"
+            ]}
+            // Defines onto which existing elements our element can be dropped.
+            // In most cases, using `["cell", "block"]` will suffice.
+            target={["cell", "block"]}
+            onCreate={OnCreateActions.OPEN_SETTINGS}
+            // `create` function creates the initial data for the page element.
+            create={options => {
+                return {
+                    type: "spaceX",
+                    elements: [],
+                    data: INITIAL_ELEMENT_DATA,
+                    ...options
+                };
+            }}
+        />
+        <PbEditorPageElementAdvancedSettingsPlugin
+            elementType={"spaceX"}
+            element={<AdvancedSettings />}
+        />
+    </>
+);
+
+```
+
+
+When it comes to plugin registration, in total, there are three plugins we need to register within the **Admin** app. The two shown above, plus the previously created [`PbRenderElementPlugin`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder/src/types.ts#L375-L380) plugin. The [`PbRenderElementPlugin`](https://github.com/webiny/webiny-js/blob/v5.40.0/packages/app-page-builder/src/types.ts#L375-L380) is required because, as mentioned, pages can also be previewed within the **Admin** app, outside the page editor.
+
+![Page Preview In the Admin App](./assets/create-a-page-element/admin-page-preview.png)
+
+
+With all the plugins registered, we're now ready to give this a try locally in our browser.
+
+### Website App
+
+In order for our custom renderer React component to be used upon rendering a published page, we need to register it via the `PbRenderElementPlugin` plugin, via the [`website.tsx`](#) entry point file.
+
+```tsx extensions/spaceXElement/src/website.tsx
+import React from "react";
+import { PbRenderElementPlugin } from "@webiny/app-website";
+import { SpaceX } from "./SpaceX";
+
+export const Extension = () => <PbRenderElementPlugin elementType={"spaceX"} render={SpaceX} />;
+
+```
+
+## Testing
+
+With the above steps correctly completed, we should be able to see our custom page element in Page Builder's page editor and be able to drop it onto a page. The page element should also be correctly rendered when previewing the page, and also on the public website, once the page has been published.
+
+<Video src={elementInEditor} controls={true} />
+
+## Conclusion
+
+Creating custom page elements is certainly an interesting option when users need more than what the default set of page elements provides.
+
+On the code level, this could be creating completely custom (renderer) React components, including needed external NPM libraries, or even issuing remote HTTP requests to external HTTP APIs in order to retrieve data from standalone external systems.
+
+On the other hand, custom page elements also add additional flexibility by allowing content creators to tweak elements' settings and, ultimately, allowing them to achieve more with just a single page element.
+
+## Additional Examples
+
+- [Cards Page Element](https://github.com/webiny/webiny-examples/tree/master/page-builder/cards-page-element)
+- [Pages as Modal Content](https://github.com/webiny/webiny-examples/tree/master/page-builder/pages-as-modals)
