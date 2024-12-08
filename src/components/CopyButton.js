@@ -41,10 +41,9 @@ const ClipboardCheckIcon = (props = {}) => (
 );
 
 export const CopyButton = ({ text }) => {
-    const showCopyButton = useMemo(() => {
-        return true;
+    const canCopy = useMemo(() => {
         try {
-            return window.location.protocol === "https:";
+            return "clipboard" in navigator;
         } catch {
             return false;
         }
@@ -60,7 +59,7 @@ export const CopyButton = ({ text }) => {
         }
     }, [text]);
 
-    if (showCopyButton) {
+    if (!canCopy) {
         return null;
     }
 
