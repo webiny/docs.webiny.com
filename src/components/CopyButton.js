@@ -9,9 +9,9 @@ const ClipboardIcon = (props = {}) => (
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         className="lucide lucide-clipboard"
         {...props}
     >
@@ -28,9 +28,9 @@ const ClipboardCheckIcon = (props = {}) => (
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
         className="lucide lucide-clipboard-check"
         {...props}
     >
@@ -42,7 +42,6 @@ const ClipboardCheckIcon = (props = {}) => (
 
 export const CopyButton = ({ text }) => {
     const canCopy = useMemo(() => {
-      return true;
         try {
             return "clipboard" in navigator;
         } catch {
@@ -53,16 +52,16 @@ export const CopyButton = ({ text }) => {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = useCallback(() => {
+        if (!canCopy) {
+            console.log("Cannot copy to clipboard. Only works when deployed.");
+            return;
+        }
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
         if (navigator.clipboard) {
             navigator.clipboard.writeText(text);
         }
     }, [text]);
-
-    if (!canCopy) {
-        return null;
-    }
 
     let IconComponent = ClipboardIcon;
     if (copied) {

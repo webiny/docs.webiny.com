@@ -17,14 +17,6 @@ import { Alert } from "@/components/Alert";
 
 </Alert>
 
-<Alert type="info">
-
-The full code example used in this article is available in our
-[webiny-examples](https://github.com/webiny/webiny-examples/tree/master/page-builder/spacex-page-element) GitHub
-repository.
-
-</Alert>
-
 ## Introduction
 
 Out of the box, Webiny's Page Builder app provides a plethora of ready-made page elements we can use to create both simple and complex pages for our website. Furthermore, on top of the default set, users can also create their custom page elements, which is what this article demonstrates.
@@ -50,6 +42,8 @@ Also, upon dropping the element onto a page, users will have the ability to adju
 <Image title="Page Element Settings" src={elementSettings} style={{ width: 450 }} />
 
 Note that the spacecrafts data will be retrieved from a non-official public SpaceX GraphQL HTTP API, located at https://spacex-production.up.railway.app/. Meaning, changing these settings will dictate the variables that will be included in GraphQL queries issued by the page element. More on this in the following sections.
+
+## Getting Started
 
 <ExtensionsGettingStarted
   type={"pbElement"}
@@ -84,7 +78,11 @@ As previously mentioned, in order to create a custom page element, we start off 
 ```tsx extensions/spaceXElement/src/SpaceX.tsx
 import React from "react";
 import { request } from "graphql-request";
-import { createRenderer, useRenderer, useLoader } from "@webiny/app-page-builder-elements";
+import { 
+  createRenderer, 
+  useRenderer, 
+  useLoader 
+} from "@webiny/app-page-builder-elements";
 
 // For simplicity, we're hard-coding the GraphQL HTTP API URL here.
 const GQL_API_URL = "https://spacex-production.up.railway.app/";
@@ -176,13 +174,23 @@ export const SpaceX = createRenderer(() => {
 });
 ```
 
-Note that, in order to be able to issue remote GraphQL queries, we're using the [`graphql-request`](https://www.npmjs.com/package/graphql-request) package, which we've specified as a dependency upon running the [`webiny extension`](/docs/core-development-concepts/basics/webiny-cli#yarn-webiny-extension) command in the [Getting Started](#) section. Furthermore, for simplicity's sake, all the code is placed in a single file. Of course, it is possible to organize it across multiple files, if preferred.
+As we can see in the code, in order to be able to issue remote GraphQL queries, we're using the [`graphql-request`](https://www.npmjs.com/package/graphql-request) library, which we've specified as our extension's dependency upon running the [`webiny extension`](/docs/core-development-concepts/basics/webiny-cli#yarn-webiny-extension) command in the [Getting Started](#getting-started) section. 
+
+Note that our GraphQL query is called within the `useLoader` React hook. This is important because, essentially, this enables proper data caching when the page is published. This way, the page element is rendered efficiently, without the need to re-fetch the data each time the page is loaded.
+
+<Alert>
+
+  Learn more about the `useLoader` React hook in a separate article: [Loading Data in Page Elements](/docs/{version}/page-builder/extending/loading-data-in-page-elements).
+
+</Alert>
+
+Finally, we've created a simple unordered list to display the data that has been retrieved. The data is displayed in the form of a list of spacecrafts, with each item containing the spacecraft's name, description, and a link to its Wikipedia page. 
 
 So, with this code in place, we're ready for the next step, which is registering the renderer React component within our **Admin** and **Website** apps.
 
 ### Admin App
 
-Registering our custom page element within the **Admin** app is done via the [`extensions/spaceXElement/src/admin.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/custom-page-elements/extensions/spaceXElement/src/admin.tsx) entry point file, via three React components.
+Registering our custom page element within the **Admin** app is done via the [`extensions/spaceXElement/ksrc/admin.tsx`](https://github.com/webiny/webiny-examples/blob/master/page-builder/custom-page-elements/extensions/spaceXElement/src/admin.tsx) entry point file, via three React components.
 
 The first one is the `PbEditorPageElementPlugin` component, which is used to register the renderer React component within the page editor. The second one is the `PbRenderElementPlugin` component, which is used to register the renderer React component within the **Admin** app, outside the page editor. This is important because pages can also be previewed within the **Admin** app, for example:
 

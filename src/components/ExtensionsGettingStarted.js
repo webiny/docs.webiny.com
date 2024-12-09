@@ -72,7 +72,6 @@ export const ExtensionsGettingStarted = ({
 
     return (
         <>
-            <Heading level={2}>Getting Started</Heading>
             {fullExampleDownloadLink ? (
                 <Alert type={"info"} title={"Quick Set Up"}>
                     <p>
