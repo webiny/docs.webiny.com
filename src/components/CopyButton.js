@@ -42,6 +42,7 @@ const ClipboardCheckIcon = (props = {}) => (
 
 export const CopyButton = ({ text }) => {
     const canCopy = useMemo(() => {
+      return true;
         try {
             return "clipboard" in navigator;
         } catch {

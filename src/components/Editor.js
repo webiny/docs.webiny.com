@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import clsx from "clsx";
 import { highlightCode } from "./codeHighlight";
+import { CopyButton } from "@/components/CopyButton";
 
 function TabBar({ primary, secondary = [], showTabMarkers = true, children }) {
     return (
@@ -68,7 +69,8 @@ export function Editor({ children, ...props }) {
     return (
         <section className="code-block mt-[1.875rem] lg:mt-[2rem] mb-[1.875rem] lg:mb-[2rem] first:mt-0 last:mb-0 bg-code-tab rounded-[0.625rem] shadow-lg overflow-hidden dark:ring-1 dark:ring-white/10 dark:ring-inset">
             {props.title ? <TabBar primary={{ name: props.title }} showTabMarkers={false} /> : null}
-            <div className="children:my-0 children:!shadow-none children:bg-transparent children:rounded-none">
+            <div className="children:my-0 children:!shadow-none children:bg-transparent children:rounded-none relative">
+                <CopyButton text={code} />
                 <pre className={`language-${lang}`} tabIndex={0}>
                     <code
                         className={`language-${lang}`}

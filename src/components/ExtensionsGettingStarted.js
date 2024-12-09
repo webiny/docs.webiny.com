@@ -45,17 +45,28 @@ export const ExtensionsGettingStarted = ({
             ? scaffoldCommandParts.join(" \\\n\t")
             : scaffoldCommandParts.join(" ");
 
-    let watchCommand = `yarn webiny watch ${type} --env ENVIRONMENT_NAME`;
+    let watchCommand = (
+        <pre className={"language-bash relative"}>
+            <CopyButton text={scaffoldCommand} />
+            yarn webiny watch {type} --env dev
+        </pre>
+    );
+
     if (type === "pbElement") {
         watchCommand = (
-            <code className="language-bash">
-                <CopyButton text={scaffoldCommand} />
-                <div className="token comment"># Starts the Admin app locally.</div>
-                <div className="token function">yarn webiny watch admin --env dev</div>
-                <br />
-                <div className="token comment"># Starts the Website app locally.</div>
-                <div className="token function">yarn webiny watch website --env dev</div>
-            </code>
+            <>
+                <pre className={"language-bash relative block"}>
+                    <CopyButton text={"yarn webiny watch admin --env dev"} />
+                    <div className="token comment"># Starts the Admin app locally.</div>
+                    yarn webiny watch admin --env dev
+                </pre>
+
+                <pre className={"language-bash relative block"}>
+                    <CopyButton text={"yarn webiny watch website --env dev"} />
+                    <div className="token comment"># Starts the Website app locally.</div>
+                    yarn webiny watch website --env dev
+                </pre>
+            </>
         );
     }
 
@@ -74,8 +85,8 @@ export const ExtensionsGettingStarted = ({
                     </pre>
                     {fullExampleLink && (
                         <p>
-                            Alternatively, continue reading this article to learn how to create this extension
-                            from scratch.
+                            Alternatively, continue reading this article to learn how to create this
+                            extension from scratch.
                         </p>
                     )}
                 </Alert>
@@ -119,7 +130,7 @@ export const ExtensionsGettingStarted = ({
                 </code>{" "}
                 command:
             </p>
-            <pre className={"language-bash relative"}>{watchCommand}</pre>
+            {watchCommand}
         </>
     );
 };
