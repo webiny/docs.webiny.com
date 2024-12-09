@@ -52,15 +52,16 @@ export const CopyButton = ({ text }) => {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = useCallback(() => {
-        if (!canCopy) {
-            console.log("Cannot copy to clipboard. Only works when deployed.");
-            return;
-        }
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(text);
+
+        if (!canCopy) {
+            console.log("Cannot copy to clipboard. Only works when deployed.");
+            console.log(text);
+            return;
         }
+
+        navigator.clipboard.writeText(text);
     }, [text]);
 
     let IconComponent = ClipboardIcon;

@@ -1,5 +1,4 @@
 import React from "react";
-import { Heading } from "./Heading";
 import { Alert } from "./Alert";
 import Link from "next/link";
 import { usePage } from "@/hooks/usePage";
@@ -47,7 +46,7 @@ export const ExtensionsGettingStarted = ({
 
     let watchCommand = (
         <pre className={"language-bash relative"}>
-            <CopyButton text={scaffoldCommand} />
+            <CopyButton text={`yarn webiny watch ${type} --env dev`} />
             yarn webiny watch {type} --env dev
         </pre>
     );
@@ -79,7 +78,7 @@ export const ExtensionsGettingStarted = ({
                         project:
                     </p>
                     <pre className={"language-bash relative"}>
-                        <CopyButton text={scaffoldCommand} />
+                        <CopyButton text={command + " " + fullExampleDownloadLink} />
                         {command} {fullExampleDownloadLink}
                     </pre>
                     {fullExampleLink && (
