@@ -54,9 +54,9 @@ export function Editor({ children, ...props }) {
     const [code, setCode] = useState("");
     const lang = languageGuard.includes(props.lang) ? "shell" : props.lang;
 
-    useEffect(() => {
-        const isDiff = lang.startsWith("diff-");
+    const isDiff = lang.startsWith("diff-");
 
+    useEffect(() => {
         if (isDiff) {
             setTimeout(() => {
                 setCode(highlightCode(children, lang));
@@ -64,13 +64,13 @@ export function Editor({ children, ...props }) {
         } else {
             setCode(highlightCode(children, lang));
         }
-    }, [once]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [once, isDiff]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <section className="code-block mt-[1.875rem] lg:mt-[2rem] mb-[1.875rem] lg:mb-[2rem] first:mt-0 last:mb-0 bg-code-tab rounded-[0.625rem] shadow-lg overflow-hidden dark:ring-1 dark:ring-white/10 dark:ring-inset">
             {props.title ? <TabBar primary={{ name: props.title }} showTabMarkers={false} /> : null}
             <div className="children:my-0 children:!shadow-none children:bg-transparent children:rounded-none relative">
-                <CopyButton text={code} />
+                {!isDiff && <CopyButton text={children} />}
                 <pre className={`language-${lang}`} tabIndex={0}>
                     <code
                         className={`language-${lang}`}
