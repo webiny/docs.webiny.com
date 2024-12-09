@@ -10,17 +10,17 @@ export const Navigation = () => {
       <NavigationRoot directory={__dirname}>
         {/* Add new items. */}
         <Group title={"Admin Area"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page link={"admin-area/extending/custom-dashboard"} />
           </Group>
         </Group>
         <Group title={"File Manager"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page link={"file-manager/extending/create-a-custom-file-manager-renderer"} />
           </Group>
         </Group>
         <Group title={"Headless CMS"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page link={"headless-cms/extending/content-models-via-code-storage-id"} />
           </Group>
         </Group>

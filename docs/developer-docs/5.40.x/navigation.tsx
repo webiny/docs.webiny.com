@@ -11,7 +11,7 @@ export const Navigation = () => {
       <NavigationRoot directory={__dirname}>
         {/* Add new groups and pages here. */}
         <Group title={"Admin Area"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page link={"admin-area/extending/custom-dashboard"} />
             <Page
               link={"admin-area/extending/customize-navigation"}
@@ -21,7 +21,7 @@ export const Navigation = () => {
           <Group title={"New App Tutorial"} remove={true} />
         </Group>
         <Group title={"Headless CMS"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-actions"}
               after={"headless-cms/extending/customize-entry-list-bulk-actions"}
@@ -58,7 +58,7 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Page Builder"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page
               link={"page-builder/extending/customize-page-list-actions"}
               before={"page-builder/extending/customize-page-bulk-actions"}
@@ -70,7 +70,7 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"File Manager"} link={"file-manager/extending/customize-file-preview"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page link={"file-manager/extending/customize-file-preview"} />
             <Page link={"file-manager/extending/customize-file-actions"} />
             <Page link={"file-manager/extending/create-a-file-type-plugin"} remove />
