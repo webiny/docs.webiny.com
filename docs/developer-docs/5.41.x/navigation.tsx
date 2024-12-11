@@ -54,6 +54,11 @@ export const Navigation = () => {
             <Page link={"enterprise/aacl/teams"} />
           </Group>
         </Group>
+        <Group title={"Headless CMS"}>
+          <Group title={"Artificial intelligence (AI)"} after={"Basics"}>
+            <Page title={"Smart SEO - OpenAI"} link={"headless-cms/ai/smart-seo-open-ai"} />
+          </Group>
+        </Group>
       </NavigationRoot>
     </>
   );
