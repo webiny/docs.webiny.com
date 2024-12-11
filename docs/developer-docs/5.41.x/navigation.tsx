@@ -49,7 +49,7 @@ export const Navigation = () => {
         </Group>
         <Group title={"Headless CMS"}>
           <Group title={"Artificial intelligence (AI)"} after={"Basics"}>
-            <Page title={"Smart SEO - Open AI"} link={"headless-cms/ai/smart-seo-open-ai"} />
+            <Page title={"Smart SEO - OpenAI"} link={"headless-cms/ai/smart-seo-open-ai"} />
           </Group>
         </Group>
       </NavigationRoot>
