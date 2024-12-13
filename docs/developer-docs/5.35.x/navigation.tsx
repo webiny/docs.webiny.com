@@ -9,7 +9,7 @@ export const Navigation = () => {
       <BaseNavigation />
       <NavigationRoot directory={__dirname}>
         <Group title={"Admin Area"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page link={"admin-area/extending/custom-providers"} />
           </Group>
         </Group>

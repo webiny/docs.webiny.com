@@ -14,7 +14,7 @@ export const Navigation = () => {
           <Page link={"get-started/welcome"} />
         </Group>
         <Group title={"Admin Area"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page link={"admin-area/extending/environment-variables"} />
             <Page link={"admin-area/extending/webpack-config"} />
           </Group>
@@ -39,7 +39,7 @@ export const Navigation = () => {
               after={"headless-cms/basics/migrating-to-webiny"}
             />
           </Group>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-actions"}
               after={"headless-cms/extending/customize-entry-list-bulk-actions"}
@@ -68,7 +68,7 @@ export const Navigation = () => {
           link={"page-builder/overview"}
         >
           <Page link={"page-builder/overview"} hidden={true} />
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page
               link={"page-builder/extending/customize-page-list-actions"}
               before={"page-builder/extending/customize-page-bulk-actions"}
@@ -76,7 +76,7 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"File Manager"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page
               link={"file-manager/extending/customize-file-list-actions"}
               after={"file-manager/extending/customize-file-bulk-actions"}

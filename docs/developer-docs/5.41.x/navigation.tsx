@@ -49,6 +49,29 @@ export const Navigation = () => {
             />
           </Group>
         </Group>
+
+        <Group
+          title={"Page Builder"}
+          icon={"/docs-menu-icons/page-builder.svg"}
+          link={"page-builder/theming/introduction"}
+        >
+          <Group title={"extensions"}>
+            <Page
+              link={"page-builder/extending/loading-data-in-page-elements"}
+              after={"page-builder/extending/create-a-page-element"}
+            />
+            {/*<Group*/}
+            {/*  title={"Custom Page Elements"}*/}
+            {/*  before={"page-builder/extending/customize-page-list-actions"}*/}
+            {/*>*/}
+            {/*  <Page link={"page-builder/extending/create-a-page-element"} />*/}
+            {/*  <Page*/}
+            {/*    link={"page-builder/extending/loading-data-in-page-builder-elements"}*/}
+            {/*  />  */}
+            {/*</Group>*/}
+          </Group>
+        </Group>
+
         <Group title={"Webiny Enterprise"}>
           <Group title={"Advanced Access Control Layer (AACL)"}>
             <Page link={"enterprise/aacl/teams"} />
