@@ -40,15 +40,15 @@ Note that the `fields` object contains key-value pairs of content model fields, 
 
 ```tsx extensions/customCmsEntryFormLayout/src/index.tsx
 import React from "react";
-import { CmsContentFormRenderPlugin } from "@webiny/app-headless-cms";
+import { CmsContentFormRendererPlugin } from "@webiny/app-headless-cms";
 
 export const Extension = () => {
     return (
         <>
-            <CmsContentFormRenderPlugin
+            <CmsContentFormRendererPlugin
                 modelId={"pizza"}
                 render={({ fields }) => {
-                  return <div>{fields.title}</div>;
+                    return <div>{fields.title}</div>;
                 }}
             />
         </>
@@ -64,10 +64,13 @@ If we want to render UI based on user's permissions, we'll need to utilize the `
 ```tsx extensions/customCmsEntryFormLayout/src/index.tsx
 import React from "react";
 import { useSecurity } from "@webiny/app-serverless-cms";
+import { CmsContentFormRendererPlugin } from "@webiny/app-headless-cms";
 import { Grid, Cell } from "@webiny/ui/Grid";
 import { Tabs, Tab } from "@webiny/ui/Tabs";
 
-const renderPizzaLayout: CmsContentFormRenderPluginProps["render"] = ({ fields }) => {
+type CmsContentFormRendererProps = React.ComponentProps<typeof CmsContentFormRendererPlugin>;
+
+const PizzaLayout: CmsContentFormRendererProps["render"] = ({ fields }) => {
     // Access security identity.
     const { getPermission } = useSecurity();
 
@@ -75,30 +78,30 @@ const renderPizzaLayout: CmsContentFormRenderPluginProps["render"] = ({ fields }
     const bakeryPermission = getPermission("bakery");
 
     // Check if the user has the permission to edit a recipe.
-    const canEditRecipe = bakeryPermission && bakeryPermission.canEditRecipe === true;
+    const canEditRecipe = bakeryPermission && bakeryPermission["canEditRecipe"] === true;
 
     return (
         <Tabs>
             <Tab label="General">
                 <Grid>
-                    <Cell span={12}>{fields.name}</Cell>
+                    <Cell span={12}>{fields["name"]}</Cell>
                 </Grid>
                 <Grid>
-                    <Cell span={6}>{fields.price}</Cell>
-                    <Cell span={6}>{fields.numberOfIngredients}</Cell>
+                    <Cell span={6}>{fields["price"]}</Cell>
+                    <Cell span={6}>{fields["numberOfIngredients"]}</Cell>
                 </Grid>
             </Tab>
             {/* Hide the Recipe tab if the user doesn't have the required permission. */}
             {canEditRecipe && (
                 <Tab label="Recipe">
                     <Grid>
-                        <Cell span={12}>{fields.recipe}</Cell>
+                        <Cell span={12}>{fields["recipe"]}</Cell>
                     </Grid>
                 </Tab>
             )}
             <Tab label="History">
                 <Grid>
-                    <Cell span={12}>{fields.history}</Cell>
+                    <Cell span={12}>{fields["history"]}</Cell>
                 </Grid>
             </Tab>
         </Tabs>
@@ -108,7 +111,7 @@ const renderPizzaLayout: CmsContentFormRenderPluginProps["render"] = ({ fields }
 export const Extension = () => {
     return (
         <>
-            <CmsContentFormRenderPlugin modelId={"pizza"} render={renderPizzaLayout} />
+            <CmsContentFormRendererPlugin modelId="pizza" render={PizzaLayout} />
         </>
     );
 };
@@ -131,48 +134,58 @@ Using form data you can also render other UI elements, or even show/hide fields 
 ```diff-tsx extensions/customCmsEntryFormLayout/src/index.tsx
 import React from "react";
 import { useSecurity } from "@webiny/app-serverless-cms";
+import { CmsContentFormRendererPlugin } from "@webiny/app-headless-cms";
 import { Grid, Cell } from "@webiny/ui/Grid";
 import { Tabs, Tab } from "@webiny/ui/Tabs";
 + import { Alert } from "@webiny/ui/Alert";
 
-+ const renderPizzaLayout: CmsContentFormRenderPluginProps["render"] = ({ fields, data }) => {
-    const { getPermission } = useSecurity();
-    const bakeryPermission = getPermission("bakery");
-    const canEditRecipe = bakeryPermission && bakeryPermission.canEditRecipe === true;
+type CmsContentFormRendererProps = React.ComponentProps<typeof CmsContentFormRendererPlugin>;
 
-+   const priceTooLow = data.price < 20 && data.numberOfIngredients > 6;
++ const PizzaLayout: CmsContentFormRendererProps["render"] = ({ fields, data }) => {
+    // Access security identity.
+    const { getPermission } = useSecurity();
+
+    // Get the necessary permission.
+    const bakeryPermission = getPermission("bakery");
+
+    // Check if the user has the permission to edit a recipe.
+    const canEditRecipe = bakeryPermission && bakeryPermission["canEditRecipe"] === true;
+
+    const priceTooLow = data["price"] < 20 && data["numberOfIngredients"] > 6;
 
     return (
         <Tabs>
             <Tab label="General">
-+              {priceTooLow && (
++               {priceTooLow && (
 +                   <Grid>
 +                       <Cell span={12}>
 +                           <Alert type={"warning"} title={"Please double-check your input"}>
-+                               The price of <strong>{data.price}</strong> seems too low for a pizza
++                               The price of <strong>{data["price"]}</strong> seems too low for a pizza
 +                               with over <strong>6</strong> ingredients.
 +                           </Alert>
 +                       </Cell>
 +                   </Grid>
 +               )}
+
                 <Grid>
-                    <Cell span={12}>{fields.name}</Cell>
+                    <Cell span={12}>{fields["name"]}</Cell>
                 </Grid>
                 <Grid>
-                    <Cell span={6}>{fields.price}</Cell>
-                    <Cell span={6}>{fields.numberOfIngredients}</Cell>
+                    <Cell span={6}>{fields["price"]}</Cell>
+                    <Cell span={6}>{fields["numberOfIngredients"]}</Cell>
                 </Grid>
             </Tab>
+            {/* Hide the Recipe tab if the user doesn't have the required permission. */}
             {canEditRecipe && (
                 <Tab label="Recipe">
                     <Grid>
-                        <Cell span={12}>{fields.recipe}</Cell>
+                        <Cell span={12}>{fields["recipe"]}</Cell>
                     </Grid>
                 </Tab>
             )}
             <Tab label="History">
                 <Grid>
-                    <Cell span={12}>{fields.history}</Cell>
+                    <Cell span={12}>{fields["history"]}</Cell>
                 </Grid>
             </Tab>
         </Tabs>
@@ -182,7 +195,7 @@ import { Tabs, Tab } from "@webiny/ui/Tabs";
 export const Extension = () => {
     return (
         <>
-            <CmsContentFormRenderPlugin modelId={"pizza"} render={renderPizzaLayout} />
+            <CmsContentFormRendererPlugin modelId="pizza" render={PizzaLayout} />
         </>
     );
 };
