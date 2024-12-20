@@ -56,6 +56,7 @@ export const CopyButton = ({ text }) => {
         setTimeout(() => setCopied(false), 1500);
 
         if (!canCopy) {
+            alert("Cannot copy to clipboard. Only works when deployed.");
             console.log("Cannot copy to clipboard. Only works when deployed.");
             console.log(text);
             return;
