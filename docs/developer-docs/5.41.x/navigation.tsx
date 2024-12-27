@@ -26,6 +26,15 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Core Development Concepts"}>
+          <Group title={"Scaffolding"} remove={true}>
+            <Page link={"core-development-concepts/scaffolding/introduction"} hidden={true} />
+            <Page link={"core-development-concepts/scaffolding/extend-admin-area"} hidden={true} />
+            <Page link={"core-development-concepts/scaffolding/extend-graphql-api"} hidden={true} />
+            <Page
+              link={"core-development-concepts/scaffolding/full-stack-application"}
+              hidden={true}
+            />
+          </Group>
           <Group title={"Basics"}>
             <Page link={"core-development-concepts/basics/webiny-cli"} />
           </Group>
