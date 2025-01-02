@@ -10,7 +10,7 @@ export const Navigation = () => {
       {/* Add new items. */}
       <NavigationRoot directory={__dirname}>
         <Group title={"Page Builder"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page
               link={"page-builder/extending/customize-page-bulk-actions"}
               before={"page-builder/extending/create-a-page-element"}
@@ -24,7 +24,7 @@ export const Navigation = () => {
               after={"headless-cms/basics/using-graphql-api-advanced-filtering"}
             />
           </Group>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page
               link={"headless-cms/extending/customize-entry-list-bulk-actions"}
               after={"headless-cms/extending/customize-entry-list-filters"}
@@ -32,7 +32,7 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"File Manager"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page
               link={"file-manager/extending/customize-file-bulk-actions"}
               after={"file-manager/extending/customize-file-filters"}

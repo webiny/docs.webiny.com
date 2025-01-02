@@ -18,7 +18,7 @@ export const Navigation = () => {
         </Group>
 
         <Group title={"Admin Area"}>
-          <Group title={"Extending Functionality"}>
+          <Group title={"extensions"}>
             <Page link={"admin-area/extending/custom-routes"} />
           </Group>
         </Group>

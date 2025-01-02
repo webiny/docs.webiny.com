@@ -1,0 +1,131 @@
+---
+id: 87f9a3ff
+title: Loading Data in Page Builder Elements
+description: Learn how to efficiently load data in Page Builder elements using the useLoader React hook.
+---
+
+import { Alert } from "@/components/Alert";
+import { Gallery } from "@/components/Image";
+
+import dataLoadedWithLoader from "./assets/loading-data-in-page-elements/loaders-w-loader-1.gif";
+import dataLoadedWithoutLoader from "./assets/loading-data-in-page-elements/loaders-wo-loader-2.gif";
+
+<Alert type="success" title="What you'll learn">
+
+  - how to load data in Page Builder elements
+
+</Alert>
+
+
+## Introduction
+
+It's not uncommon to have a custom page element that loads data from an external remote HTTP API and displays it on the page.  
+
+For example, you might want to display a list of products or a list of blog posts that are loaded from [Webiny's Headless CMS GraphQL API](/docs/headless-cms/basics/graphql-api). Another examples is listing rocket and dragon spacecrafts from an external SpaceX API, which is covered in the [Create a Custom Page Element](/docs/page-builder/extending/create-a-page-element) guide.
+
+In this guide, we show how to efficiently load data in Page Builder elements using the `useLoader` React hook.
+
+## The `useLoader` React Hook
+
+The `useLoader` React hook is a utility hook that helps you load data in custom page elements. It's main purpose is to ensure that, once the data is loaded in the page prerendering process, it is captured and properly cached. This way, the loaded data is immediately available when the published page is delivered to the end user, which improves page performance and user experience.
+
+<Alert title={"Page Prerendering"}>
+
+  Pages created with the Webiny' Page Builder are prerendered when published. This means that the page is generated as a static HTML file and served to the end user. This is done to ensure the best possible performance and SEO.
+
+</Alert>
+
+### How It Works
+
+To better illustrate the difference between loading data with and without the `useLoader` hook, we can take a look at the following videos. 
+
+Both videos show a custom page element that loads a list of countries from a remote REST API. The first video shows the page element loading the data without the `useLoader` hook, while the second video shows the page element loading the data with the `useLoader` hook.
+
+<Gallery >
+  <Image src={dataLoadedWithoutLoader} alt={<>Loading data without the <code>useLoader</code> hook</>} />
+  <Image src={dataLoadedWithLoader} alt={<>Loading data with the <code>useLoader</code> hook</>} />
+</Gallery>
+
+As we can see, in the first video, in the network tab, the request for the `countries.json` file is made after the page is rendered. This causes the data to be displayed in the custom page element after the page is rendered, which results in a flicker effect. In the second video, the data is immediately available when the page is rendered, which results in a smooth and seamless user experience. 
+
+## Using the `useLoader` React Hook
+
+Let's analyze the code that was used to create the page element we saw in the videos above. More specifically, we'll be looking at the code of the React component that renders the custom page element. 
+
+<Alert>
+
+  If you're not familiar with creating custom page elements, you can learn more about it in the [Create a Custom Page Element](/docs/page-builder/extending/create-a-page-element) guide.
+ 
+</Alert>
+
+```tsx
+import React from "react";
+import { createRenderer, useLoader } from "@webiny/app-page-builder-elements";
+
+// The renderer React component.
+export const CountriesPageElement = createRenderer(() => {
+    const { data, error, loading } = useLoader<string[]>(() => {
+        // Returns a list of strings.
+        return fetch('https://my-api.com/countries.json').then(res => res.json())
+    });
+
+    if (loading) {
+        return <>Loading...</>;
+    }
+    
+    // Displaying an error message if the data fetching failed.
+    if (error) {
+        console.error("An error occurred while fetching data:", error);
+        return <>An error occurred: {error.message}</>;
+    }
+
+    if (!data) {
+        return <>No countries found.</>;
+    }
+
+    return (
+        <>
+            {data.map(countryName => (
+                <span
+                    key={countryName}
+                    style={{
+                        width: 130,
+                        padding: 4,
+                        display: "inline-block",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden"
+                    }}
+                >
+                    {countryName}
+                </span>
+            ))}
+        </>
+    );
+});
+```
+
+As we can see, the `useLoader` hook is used to load the data from the `https://my-api.com/countries.json` endpoint. Within the hook, we use the [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) function to make a request to the endpoint and load the data, which is just an array of strings (country names).
+
+Ultimately, the hook returns an object with two properties: `data` and `loading`. The `data` property contains the loaded data, while the `loading` property is a boolean that indicates whether the data is still being loaded.
+
+In the React component, we first check if the data is still loading. If it is, we display a **Loading...** message. If the data is not loading, we check if the data is available. If it is, we map over the array of country names and display them in a list. If the data is not available, we display a **No countries found.** message.
+
+### Error Handling
+
+The `useLoader` hook also provides an `error` property that contains an error object if the data fetching fails. In the React component, we check if the `error` property is set and display an error message if it is.
+
+```tsx
+if (error) {
+    console.error("An error occurred while fetching data:", error);
+    return <>An error occurred: {error.message}</>;
+}
+```
+
+This way, we can handle errors that occur during the data fetching process and display an appropriate error message to the user.
+
+Note that handling errors this way can also be useful when debugging issues that occur during prerendering, which can be difficult to debug otherwise. For example, if the data fetching failed during prerendering, the error message will be displayed in the rendered HTML, which can help identify the issue.
+
+## Conclusion
+
+In this guide, we learned how to efficiently load data in Page Builder elements using the `useLoader` React hook. By using this hook, we can ensure that the data is loaded in the page prerendering process and is immediately available when the published page is delivered to the end user. This improves page performance and user experience.
