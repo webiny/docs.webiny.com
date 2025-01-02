@@ -52,8 +52,8 @@ For detailed instructions on creating an OpenAI API key, refer to their [officia
 
 ## Deploy API application
 
-In this example, we created an **Article - Smart SEO** Content Model to demonstrate AI-powered capabilities. This content model is generated [programmatically](/docs/headless-cms/extending/content-models-via-code).
-Additionally, we [extended the Headless CMS GraphQL API](/docs/headless-cms/extending/extend-graphql-api) to generate SEO data using the OpenAI API, which creates SEO titles, descriptions, and tags for articles.
+In this example, we created an **Article - Smart SEO** Content Model to demonstrate AI-powered capabilities. This content model is generated programmatically via code.
+Additionally, we extended the Headless CMS GraphQL API to generate SEO data using the OpenAI API, which creates SEO titles, descriptions, and tags for articles.
 
 Details on this are covered in the sections below. For now, let’s deploy the API application that will create the Article - Smart SEO Content Model and extend Headless CMS GraphQL API to generate SEO data using OpenAI.
 
@@ -78,14 +78,14 @@ You’re now ready to generate SEO titles and tags for your articles using OpenA
 
 ## Code Walkthrough
 
-Let’s walk through the code to understand how the Smart SEO extension operates. We’ve created a new [extension](/docs/core-development-concepts/basics/extensions) called `smart-seo-open-ai`, and we’ll review each plugin used in this extension one by one.
+Let’s walk through the code to understand how the Smart SEO extension operates. We’ve created a new [extension](/docs/core-development-concepts/basics/extensions) called [`smart-seo-open-ai`](https://github.com/webiny/webiny-examples/tree/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi), and we’ll review each plugin used in this extension one by one.
 
 ### Field Tracker, ContentEntry Form Decorator
 In this example, we have an **Article - Smart SEO** Model with four fields: **Content**, **SEO - Title**, **SEO - Description**, and **SEO - Meta Tags**. We will track these fields. Once the Content field is populated, we will send it to OpenAI, which will generate SEO-friendly titles and tags for the article. The generated title and tags will then be set in the respective **Title**, **Description** and **Tags** fields of the model.
 
 The concept is straightforward: we aim to track fields of interest, such as text inputs or rich text fields. The challenge lies in not knowing the exact location of these fields. They could be nested within objects, repeatable objects, or dynamic zone templates, making their placement unpredictable. Hardcoding paths to these fields is not a feasible solution. So, we will create the [Field Tracker](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/FieldTracker.tsx).
 
-[Field Tracker](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/FieldTracker.tsx) is a React context that tracks content model fields of interest. It enables you to extract data from these fields that can be send to OpenAI and update the fields with the response received.
+**Field Tracker** is a React context that tracks content model fields of interest. It enables you to extract data from these fields that can be sent data to OpenAI and update fields with the received response.
 
 Here is the [code for the Field Tracker](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/FieldTracker.tsx), here we [decorated the `ContentEntryForm`](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/DecorateContentEntryForm.tsx) with a FieldTracker component.
 
@@ -102,20 +102,20 @@ Webiny leverages the [Lexical text editor](https://lexical.dev/) for Rich Text F
 
 ### Extend Headless CMS GraphQL API
 
-In this example, we [extended the Headless CMS GraphQL API](/docs/headless-cms/extending/extend-graphql-api) to generate SEO data using the OpenAI API. The [`generateSeo` plugin](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/api/src/generateSeo.ts) integrates Webiny with OpenAI. We crated a `GenerateSeo` query for the same.
+In this example, we [extended the Headless CMS GraphQL API](/docs/headless-cms/extending/extend-graphql-api) to generate SEO data using the OpenAI API. The [`generateSeo` plugin](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/api/src/generateSeo.ts) integrates Webiny with OpenAI. We created a `generateSeo` query for the same.
 
 To prevent exposing our OpenAI API key to the public, we avoid calling the OpenAI API from the client side. Instead, we handle it server-side by creating this `generateSeo` plugin that extends the Headless CMS GraphQL API for secure SEO data generation. This plugin sends content to OpenAI and retrieves SEO-related information.
 
 ### Smart SEO
 
-The [(`SmartSeo.tsx`) plugin](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/SmartSeo.tsx) sends HTML content to the `GenerateSeo` query (created by the `generateSeo` plugin mentioned earlier) and retrieves SEO-related information. The retrieved data is then used to update the relevant fields in the content model.
+The [`SmartSeo.tsx` plugin](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/SmartSeo.tsx) sends HTML content to the `generateSeo` query (created by the [generateSeo plugin](#extend-headless-cms-graph-ql-api) mentioned earlier) and retrieves SEO-related information. The retrieved data is then used to update the relevant fields in the content model.
 
-If you’ve noticed the AI-Optimized SEO button on the Content Entry form, it has been configured in this plugin using the [ContentEntryEditorConfig](https://github.com/webiny/webiny-examples/blob/0636eecf3a0e4bf7c6a0c4d96a2f35a06647f88e/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/SmartSeo.tsx#L108).
+If you’ve noticed the AI-Optimized SEO button on the Content Entry form, it has been configured in this plugin using the [ContentEntryEditorConfig](https://github.com/webiny/webiny-examples/blob/3c73e547b992e6d4b1ce67647ae056bbd05b43b3/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/SmartSeo.tsx#L118).
 
 <Alert type="info">
 
   We display the **AI-OPTIMIZED SEO** button on the Content Entry form for the content model with the ID `article`.
-  You can easily customize it to include your [content model IDs](https://github.com/webiny/webiny-examples/blob/0636eecf3a0e4bf7c6a0c4d96a2f35a06647f88e/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/SmartSeo.tsx#L114) to display this button on the respective content model entry forms.
+  You can easily customize it to include your [content model IDs](https://github.com/webiny/webiny-examples/blob/3c73e547b992e6d4b1ce67647ae056bbd05b43b3/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/admin/src/SmartSeo.tsx#L124) to display this button on the respective content model entry forms.
 
 </Alert>
 
@@ -129,7 +129,7 @@ In this example, we created an **Article - Smart SEO** Content Model with the ID
 
   Please note that the **article-smart-seo** content ID is referenced in the code. Refer to the sections above for guidance on customizing the code to align with your content model.
 
-  In your real project, you can remove this content model by either [deleting the corresponding api directory](https://github.com/webiny/webiny-examples/tree/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/api) or commenting out the [Article import in the index file](https://github.com/webiny/webiny-examples/blob/0636eecf3a0e4bf7c6a0c4d96a2f35a06647f88e/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/api/src/index.ts#L6).
+  In your real project, you can remove this content model by either [deleting the corresponding `Article.ts` file](https://github.com/webiny/webiny-examples/blob/master/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/api/src/Article.ts) or commenting out the [Article import in the index file](https://github.com/webiny/webiny-examples/blob/3c73e547b992e6d4b1ce67647ae056bbd05b43b3/headless-cms/smart-seo-open-ai/5.41.x/extensions/smartSeoOpenAi/api/src/index.ts#L6).
 
 </Alert>
 
