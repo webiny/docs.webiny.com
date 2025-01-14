@@ -63,7 +63,7 @@ export const CopyButton = ({ text }) => {
         }
 
         navigator.clipboard.writeText(text);
-    }, [text]);
+    }, [text, canCopy]);
 
     let IconComponent = ClipboardIcon;
     if (copied) {
