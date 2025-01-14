@@ -12,6 +12,7 @@ export const Navigation = () => {
         <Group title={"Core Development Concepts"}>
           <Group title={"Basics"} after={"Basics"}>
             <Page link={"core-development-concepts/basics/user-project-upgrade"} />
+            <Page link={"core-development-concepts/basics/logger"} />
           </Group>
         </Group>
       </NavigationRoot>

@@ -1,0 +1,177 @@
+---
+id: t92uhfadjsbfd
+title: Logger
+description: Learn about Logger which we internally use
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- what is the Logger
+- how to use the Logger
+
+</Alert>
+
+<Alert type="warning">
+  This feature will change in the future. We cannot guarantee the data integrity after the system upgrade (in minor version, eg. 5.42.x to 5.43.0)
+</Alert>
+
+## Overview
+
+Webiny logger is internal feature which we use to log errors and other information into a DynamoDB Log table.
+
+For Logger to work, we deploy a new DynamoDB table called `webiny-logs`.
+
+## How to Use Logger
+
+To use the Logger in your project, you can access it from the Webiny context.
+
+There are multiple levels of logging available:
+  - `debug`
+  - `notice`
+  - `info`
+  - `warn`
+  - `error`
+
+When you want to log something, you can use the following code:
+
+```typescript
+import type {Context} from "./types";
+import {ContextPlugin} from "@webiny/handler-aws";
+
+const myCustomPlugin = new ContextPlugin<Context>(async context => {
+    // some custom code
+    try {
+      await someAsyncFunction();
+    } catch(ex) {
+      const log = context.logger.withSource("where-did-the-log-come-from");
+      // it will log the message with the source "where-did-the-log-come-from"
+      // and the level "error"
+      log.error({
+        message: "Something is wrong with my custom code!",
+        error: ex
+      });
+      // maybe rethrow it?
+      throw ex;
+    }
+});
+```
+
+Note that the `where-did-the-log-come-from` is your custom string, which identifies where the log was created.
+
+This is something you can use to filter logs later.
+
+## How to Access Logger Logs?
+
+There are two ways to access the logs:
+  - directly from the DynamoDB table `webiny-logs`
+  - using the GraphQL API
+
+### DynamoDB Table
+
+You can access the logs directly from the DynamoDB table `webiny-logs`. The table has the following structure:
+
+```ts
+interface Log {
+  id: string;
+  createdOn: string;
+  tenant: string;
+  locale: string;
+  source: string;
+  type: string;
+  // this is the data that was logged - it's always compressed
+  data: {
+    compression: "GZIP",
+    value: string// compressed value
+  };
+}
+```
+
+The data is always compressed using GZIP, so you must decompress it before you can read it.
+
+### GraphQL API
+
+You can also access the logs using the GraphQL API on `/graphql` endpoint. There are multiple queries and mutations available:
+
+ - `listLogs` - to list all logs
+ - `getLog` - to get a single log
+ - `deleteLog` - to delete a single
+ - `deleteLogs` - to delete multiple logs
+ - `pruneLogs` - to delete all logs older than 60 seconds
+
+<Alert type="info">
+  
+  For detailed information on how to use the GraphQL API, check out the API Playground in your Webiny Admin UI.
+  
+</Alert>
+
+#### List Logs
+
+To list all logs, you can use the `listLogs` query. Here is an example of the query:
+
+```graphql
+query ListLogs {
+  logs {
+    listLogs(
+        where: {
+          tenant: "root",
+          source:"myCustomSource",
+          type: error
+        },
+        sort: DESC,
+        limit: 100,
+        after: "cursorFromPreviousRequest"
+) {
+      data {
+        id
+        type
+        source
+        data
+        createdOn
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+      meta {
+        hasMoreItems
+        cursor
+      }
+    }
+  }
+}
+```
+All arguments in `listTags` query are optional.
+
+You can filter the logs by `tenant`, `source` and `type`. Or you can just list all logs, without any filtering applied.
+
+#### Prune Logs
+
+To delete all logs older than 60 seconds, you can use the `pruneLogs` mutation. Here is an example of the mutation:
+
+```graphql
+mutation PruneLogs {
+  logs {
+    pruneLogs {
+      data {
+        task {
+          id
+        }
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+The `pruneLogs` mutation will actually start a background task that will delete the logs. The task ID will be returned in the response, so you can track its progress.
+
+If you try to prune logs while another prune task is running, you will get an error.
