@@ -111,6 +111,7 @@ export const Navigation = () => {
         </Group>
         <Group title={"Webiny Enterprise"}>
           <Page link={"enterprise/advanced-tenant-management"} after={"enterprise/cognito-federation"}/>
+          <Page link={"enterprise/okta-oidc-app-integration"} after={"enterprise/okta-integration"}/>
         </Group>
       </NavigationRoot>
     </>
