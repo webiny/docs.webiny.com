@@ -1,0 +1,132 @@
+---
+id: bd1e3140
+title: Webiny 5.42.0 Changelog
+description: See what's new in Webiny version 5.42.0.
+---
+
+
+
+
+import {Alert} from "@/components/Alert";
+import {GithubRelease} from "@/components/GithubRelease";
+import hcmsFullscreenEditor from "./assets/hcms-fullscreen-editor.gif";
+
+<GithubRelease version={"5.42.0"} />
+
+## Headless CMS
+
+### Fully Delete a Content Model and All Entries ([#4451](https://github.com/webiny/webiny-js/pull/4451))
+
+We have introduced the ability to fully delete a content model and all of its entries.
+
+When a user wants to delete a content model, it will start a process that will delete all of the content model's entries. Once all entries are deleted, the content model will be deleted as well. During that process, model is marked as being deleted and users cannot change it or its entries.
+
+<Alert type="danger">
+
+  Note that this process is irreversible. Once the content model and its entries are deleted, they cannot be restored. 
+  
+  Please use this feature with caution.
+
+</Alert>
+
+### Full-Screen Editor ([#4443](https://github.com/webiny/webiny-js/pull/4443))
+
+We’ve introduced a new full-screen editor for Headless CMS content entries, designed to provide a more spacious and user-friendly editing experience. This update enhances usability on smaller screens and offers a streamlined interface for live previews, making content editing more efficient.
+
+Additionally, the new design emphasizes improved focus on the content itself by reducing distractions and maximizing the workspace. This ensures that content creators can fully concentrate on their work without unnecessary visual clutter.
+
+The new design also aligns with the page builder editor, delivering a consistent experience across tools.
+
+<Image src={hcmsFullscreenEditor} title={"Full-Screen Editor for Headless CMS Entries"} />
+
+Please note that the live preview extension might require updates to remain compatible with the new editor. For more information on making the necessary changes, see [this pull request](https://github.com/webiny/webiny-examples/pull/173).
+
+If needed, the previous editor can be restored by enabling the `cmsLegacyEntryEditor: true` feature flag.
+
+## Development
+
+### Yarn 4.6.0 ([#4439](https://github.com/webiny/webiny-js/pull/4439) [#4482](https://github.com/webiny/webiny-js/pull/4482))
+
+In this release, we have updated Yarn to **4.6.0**. This was done to ensure compatibility with the latest version of Yarn and to take advantage of the latest features and improvements. 
+
+To learn more, check out the [upgrade guide](docs/release-notes/5.42.0/upgrade-guide).
+
+### Logger ([#4366](https://github.com/webiny/webiny-js/pull/4366))
+
+We have added a new `Logger` into to the system. This logger is primarily for our internal use, so we can log errors and other information to a DynamoDB Log table (new table is being deployed).
+
+<Alert type="warning">
+  
+  This feature will change in the future. We cannot guarantee the data integrity after the system upgrade (in minor version, eg. 5.42.x to 5.43.0)
+  
+</Alert>
+
+If you want to use logger in your project, you can read about it in [this article](/docs/core-development-concepts/basics/logger).
+
+### Updated Dependencies ([#4353](https://github.com/webiny/webiny-js/pull/4353) [#4338](https://github.com/webiny/webiny-js/pull/4338) [#4426](https://github.com/webiny/webiny-js/pull/4426) [#4430](https://github.com/webiny/webiny-js/pull/4430))
+
+We have updated a number of Webiny dependencies in this release. We will not list them here, because the list is quite long, and most of them do not affect our users projects.
+
+If there are any out of date (out of sync) packages in our users project, they will be informed about that during the upgrade process, and will be given an option to update them to the same version Webiny uses.
+
+To find out more about that part of the upgrade process, please read [this article](/docs/core-development-concepts/basics/user-project-upgrade).
+
+### Removed `apps/api/graphql/src/types.ts` File (New Projects Only)
+
+From now on, all new Webiny projects won't include the [`apps/api/graphql/src/types.ts`](https://github.com/webiny/webiny-js/blob/5.41.5/packages/cwp-template-aws/template/ddb/apps/api/graphql/src/types.ts) file anymore.
+
+This is because, basically, the file was used to export the `Context` interface, which users could then utilize while developing backend extensions. However, since the file can now be directly imported from the `@webiny/api-serverless-cms` package, we've decided to remove it.
+
+Note that this change is not a breaking change, as, for existing projects, the `types.ts` file will remain in place. However, for new projects, the file won't be included anymore.
+
+<Alert>
+
+  For existing projects, although not required, we recommend importing the `Context` interface from the `@webiny/api-serverless-cms` package, as it's the most up-to-date and type-safe way to do so.
+  
+</Alert>
+
+### `@webiny/api-serverless-cms` - Added `MailerContext` to `Context` Interface ([#4481](https://github.com/webiny/webiny-js/pull/4481))
+
+We've added the `MailerContext` to the `Context` interface that's exported from the `@webiny/api-serverless-cms` package.
+
+With this change, upon writing backend extensions, developers can now access the `context.mailer` object and all of its methods in a type-safe way. For example:
+
+```ts
+import { createContextPlugin } from "@webiny/api-serverless-cms";
+
+export const createExtension = () => {
+  return [
+    createContextPlugin(context => {
+      // Previously, accessing the `mailer` object would cause a TypeScript error.
+      context.mailer.sendMail({
+        to: "..."
+      });
+    })
+  ];
+};
+```
+
+## Deployments
+
+### Default Throttling Limits for Amazon Api Gateway Deployments ([#4496](https://github.com/webiny/webiny-js/pull/4496))
+
+We have added default throttling limits for API Gateway deployments:
+
+- `burst limit` - 5000 - maximum number of concurrent request
+- `rate limit` - 10000 - maximum number of allowed requests per second
+
+This is due to the [Terraform issue](https://github.com/terraform-aws-modules/terraform-aws-apigateway-v2/issues/45), which can cause a 429 error (too many requests).
+
+Of course, if needed, you can further modify these limits in your `webiny.application.ts` configuration files. 
+
+<Alert>
+
+  Check out the [Modify Cloud Infrastructure](/docs/infrastructure/basics/modify-cloud-infrastructure) to learn more about modifying the cloud infrastructure that Webiny deploys.
+
+</Alert>
+
+<Alert type={"warning"}>
+
+  We decided not to add these changes to previous versions of Webiny. Cloud infrastructure-related changes is not something we tend to introduce via patch releases. In case you need these changes in your project, please upgrade to the latest version of Webiny, or manually apply the changes to your project.
+
+</Alert>

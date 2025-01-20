@@ -118,9 +118,7 @@ const HorizontalLine = () => {
     );
 };
 
-const getDocsSection = () => {
-    const router = useRouter();
-
+const getDocsSection = router => {
     if (router.pathname.startsWith("/docs/user-guides/")) {
         return "user-docs";
     } else if (router.pathname.startsWith("/docs/release-notes/")) {
@@ -361,10 +359,13 @@ const Collapsable = forwardRef(
     ({ title, link, icon, subElements = [], isActiveChild, depth = 0 }, ref) => {
         const router = useRouter();
         const { homepageUrl } = useHomepage();
-        const isDeveloperOrUserDocs = ["developer-docs", "user-docs"].includes(getDocsSection());
+
+        const isDeveloperOrUserDocs = ["developer-docs", "user-docs"].includes(
+            getDocsSection(router)
+        );
         const isHomepage = router.pathname.endsWith(homepageUrl);
-        const menuIcon = icon ? <img src={icon} title={title} /> : null;
-        const applyActiveClass = router.pathname == link;
+        const menuIcon = icon ? <img src={icon} title={title} alt="" /> : null;
+        const applyActiveClass = router.pathname === link;
 
         // if not developer docs section then use the GenericMenuSection to render
         if (!isDeveloperOrUserDocs) {
