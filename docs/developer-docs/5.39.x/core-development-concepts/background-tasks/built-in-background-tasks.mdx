@@ -4,6 +4,7 @@ title: Built-in Background Tasks
 description: You will learn about Background Tasks, how to create new definitions, how to trigger them and how to handle the task run.
 ---
 
+
 import {Alert} from "@/components/Alert";
 import {CanIUseThis} from "@/components/CanIUseThis";
 import {WhatYouWillLearn} from "@/components/WhatYouWillLearn";
@@ -44,7 +45,7 @@ Internally it is a bit more than that, but this is the basic idea. You can check
 
 The task can be triggered either via code or via the GraphQL API.
 
-#### Triggering the Task Via Code
+##### Triggering the Task Via Code
 
 Let's say that you have a Page Builder lifecycle event hook which triggers the task when the page is published, but only on index which contains the word `page` in its name.
 ```typescript
@@ -62,7 +63,7 @@ const myHook = () => {
 };
 ```
 
-#### Triggering The Task Via GraphQL API
+##### Triggering the Task Via GraphQL API
 
 The task can be triggered via the GraphQL API, with the following mutation:
 ```graphql
@@ -89,3 +90,60 @@ The task disables indexing on all matching indexes, and enables it when the task
 This is done to reduce the strain on the Elasticsearch/OpenSearch cluster as the reindexing operation is a heavy one.
 
 
+### Elasticsearch Create Index Task
+
+<Alert type="info" title="Elasticsearch And OpenSearch Only!">
+  This task will only get shipped with Elasticsearch and OpenSearch Webiny system.
+</Alert>
+
+The Elasticsearch/OpenSearch Create Index task is a task which creates all missing indexes in the Elasticsearch/OpenSearch cluster.
+
+The task goes through all the CMS Models and creates indexes which do not exist.
+The task also creates Form Builder and Page Builder indexes.
+
+The task can be triggered either via code or via the GraphQL API, sam as all other tasks.
+
+##### Triggering the Task Via GraphQL API
+
+```graphql
+mutation TriggerCreateMissingIndexesTask {
+  backgroundTasks {
+    triggerTask(definition: elasticsearchCreateIndexes, input: {
+      matching: "string matching your index, or nothing"# optional
+    }) {
+      data {
+        id
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+Then you can check the task status and output with the following query:
+
+```graphql
+query GetCreateIndexTask {
+  backgroundTasks {
+    getTask(id:"id you got from task trigger") {
+      data {
+        id
+        name
+        taskStatus
+        output
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
