@@ -1,0 +1,122 @@
+---
+id: 5b449062
+title: Webiny 5.42.1 Changelog
+description: See what's new in Webiny version 5.42.1
+---
+
+import cmsSecurityPermissionsUi from "./assets/hcms-security-permissions-ui.png";
+
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"5.42.1"} />
+
+## Headless CMS
+
+### Consolidation of Headless CMS Backend Plugin Naming ([#4502](https://github.com/webiny/webiny-js/pull/4502))
+
+We noticed there were some naming-related inconsistencies in Headless CMS backend plugins. For example, when defining a new [content model](/docs/headless-cms/extending/content-models-via-code), users would use the `createCmsModelPlugin` factory function. On the other hand, when defining a [single entry model](/docs/release-notes/5.40.6/changelog#introducing-single-entry-models-beta-4228-4298-4296), they would use the `createSingleEntryModel` factory function.
+
+This PR not only consolidates the naming of these plugins but also exports them all via the `@webiny/api-serverless-cms` package. This way, users can import all CMS-related plugins from a single package.
+
+<Alert>
+
+  The existing [Define Content Models via Code](/docs/headless-cms/extending/content-models-via-code) article has been updated to reflect these changes.
+
+</Alert>
+
+## Security
+
+### Improving the Headless CMS Permissions UI/UX ([#4517](https://github.com/webiny/webiny-js/pull/4517))
+
+A couple of UI improvements have been made to the Headless CMS permissions section. Most importantly, the three sections: Content Model Groups, Content Models, and Content Entries, are now always expanded and visible. 
+
+<Image src={cmsSecurityPermissionsUi} alt="Headless CMS Security Permissions UI" />
+
+Previously, these sections would sometimes be shown and hidden in an unpredictable manner, which made it difficult to manage permissions.
+
+<Alert>
+
+  More information on the exact changes can be found in the linked [#4517](https://github.com/webiny/webiny-js/pull/4517) pull request.
+
+</Alert>
+
+
+### `configureAdminCognitoFederation` - Use Name Instead of Type Where Needed ([#4506](https://github.com/webiny/webiny-js/pull/4506), [#4541](https://github.com/webiny/webiny-js/pull/4541)) 
+
+Prior to this release, when setting up [Amazon Cognito Federation](/docs/enterprise/cognito-federation) and, more specifically, [modifying the AWS cloud infrastructure](/docs/enterprise/cognito-federation#configure-aws-infrastructure), specifying the `name` property upon defining an OIDC provider would cause a deployment error:
+
+```bash
+InvalidParameterException: The provider OIDC does not exist for User Pool eu-central-1_xxXXxxXX.
+```
+
+This has now been resolved. Users can now specify the name property when defining an OIDC provider, and the deployment will complete successfully.
+
+### Cognito Federation - Ensure Admin User Entry Creation ([#4534](https://github.com/webiny/webiny-js/pull/4534), [#4540](https://github.com/webiny/webiny-js/pull/4540), [#4551](https://github.com/webiny/webiny-js/pull/4551)) 
+
+When using external identity providers, like [Okta](/docs/enterprise/okta-integration) or [Auth0](/docs/enterprise/auth0-integration), Webiny creates internal Admin User entries in the database upon successful login events. These entries can later be used for different purposes. For example, this enables Webiny to list all users when assigning [folder level permissions](https://www.webiny.com/docs/enterprise/aacl/folder-level-permissions#overview). 
+
+With this release, we've fixed an issue where these Admin User entries were not being created when using external IdPs via [Cognito Federation](/www.webiny.com/docs/enterprise/cognito-federation).
+
+## Deployments
+
+### Fixed VPC Configuration for Production Deployment ([#4521](https://github.com/webiny/webiny-js/pull/4521))
+
+In case you missed it, Webiny can be deployed into two [deployment modes](/docs/architecture/deployment-modes/introduction): development and production. As the names suggest, the development mode is used for development and testing purposes, while the production mode is used for live applications.
+
+When comparing the two, the main difference is the usage of Amazon VPC (Virtual Private Cloud). In production mode, eligible cloud resources are deployed within a VPC, which provides an additional layer of security and isolation. 
+
+With this release, we've fixed an issue where the VPC configuration would not get applied when deploying in production mode, which is certainly not ideal.
+
+Note that this issue would only occur when using the `/enterprise` version of **Core**, **API**, and **Website** project applications, within respective `webiny.application.ts` files:
+
+```ts
+// apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws/enterprise";
+
+// apps/api/webiny.application.ts
+import { createApiApp } from "@webiny/serverless-cms-aws/enterprise";
+
+// apps/website/webiny.application.ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws/enterprise";
+```
+
+When not using the `/enterprise` version, the VPC configuration would be applied correctly.
+
+### Refreshing the CI/CD Scaffold ([#4526](https://github.com/webiny/webiny-js/pull/4526))
+
+We've refreshed the [GitHub Actions CI/CD](/docs/core-development-concepts/ci-cd/setup#git-hub-actions) scaffold to ensure it's up-to-date with the latest changes. One of the main changes is the update of Node.js version that was used to run the CI/CD pipeline. The version has been updated from 14 all the way to 20.
+
+## Other
+
+### Feature-Based Architecture for `app-aco` ([#4513](https://github.com/webiny/webiny-js/pull/4513))
+
+The `@webiny/app-aco` package now follows a feature-based architecture, improving modularity, maintainability, and scalability. The centralized `useFolders` hook has been replaced with dedicated hooks like `useCreateFolder()`, making the API more explicit and predictable.
+
+- **Better Maintainability** – Features are modular and easier to update.
+- **Improved Scalability** – New features can be added without affecting existing ones.
+- **Enhanced Developer Experience** – More focused hooks improve readability and usability.
+
+The `useFolders` hook is deprecated and will be removed in a future release. Update your code as follows:
+
+**Before (Deprecated)**
+```tsx
+import { useFolders } from "@webiny/app-aco";
+
+const { createFolder } = useFolders();
+```
+
+**After (New Approach)**
+```tsx
+import { useCreateFolder } from "@webiny/app-aco";
+
+const { createFolder } = useCreateFolder();
+```
+
+<Alert type="warning"> Migrate to the new hooks, as `useFolders` will be removed in a future release. </Alert> 
+
+
+### Improved Report Dialog for Bulk Actions ([#4550](https://github.com/webiny/webiny-js/pull/4550))
+
+In this release, we have enhanced the report dialog displayed after executing bulk actions. Previously, messages in the dialog were truncated when they exceeded the available space, making it difficult for users to view the full details of the operation.
+
+This enhancement improves the user experience by providing clearer feedback on bulk actions.
