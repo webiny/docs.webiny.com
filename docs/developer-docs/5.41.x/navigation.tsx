@@ -81,6 +81,11 @@ export const Navigation = () => {
           </Group>
         </Group>
 
+        <Group title={"Infrastructure"}>
+          <Group title={"Basics"}>
+            <Page link={"infrastructure/basics/service-manifests"} />
+          </Group>
+        </Group>
         <Group title={"Webiny Enterprise"}>
           <Group title={"Advanced Access Control Layer (AACL)"}>
             <Page link={"enterprise/aacl/teams"} />
