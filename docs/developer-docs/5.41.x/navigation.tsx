@@ -82,7 +82,7 @@ export const Navigation = () => {
         </Group>
 
         <Group title={"Infrastructure"}>
-          <Group title={"Basics"}>
+          <Group title={"Additional Resources"}>
             <Page link={"infrastructure/basics/service-manifests"} />
           </Group>
         </Group>
