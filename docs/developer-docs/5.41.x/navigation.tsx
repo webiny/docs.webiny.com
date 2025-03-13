@@ -83,7 +83,7 @@ export const Navigation = () => {
 
         <Group title={"Infrastructure"}>
           <Group title={"Additional Resources"}>
-            <Page link={"infrastructure/basics/service-manifests"} />
+            <Page link={"infrastructure/additional-resources/service-manifests"} />
           </Group>
         </Group>
         <Group title={"Webiny Enterprise"}>
