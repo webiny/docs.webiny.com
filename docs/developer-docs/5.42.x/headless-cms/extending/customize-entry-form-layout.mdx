@@ -1,3 +1,4 @@
+import Image from "next/image";
 ---
 id: 68ccc9a8
 title: Customize Entry Form Layout
@@ -5,6 +6,7 @@ description: How to create a custom form layout for content model data entry.
 ---
 
 import { Alert } from "@/components/Alert";
+import hmcsCustomEntryMetaTitle from "./assets/hmcs-custom-entry-title-meta.png.png";
 
 <CanIUseThis since={"5.28.0"} />
 
@@ -228,3 +230,76 @@ import { ContentEntryEditorConfig } from "@webiny/app-headless-cms";
     <ContentEntryEditorConfig.Width value={"80vw"} modelIds={["article", "author"]} />
 <ContentEntryEditorConfig>
 ```
+
+## Custom Meta and Title Elements
+
+You can now **customize the Meta and Title** sections in the **Content Entry Form** using **decoratable components**:
+
+- `ContentEntryForm.Header.Meta` – This section typically shows model information and status.
+- `ContentEntryForm.Header.Title` – This section displays the entry's title.
+
+### Example: Custom Meta for "article" Model
+The `Header.Meta` section typically shows model information and status. Let’s override it to display **custom metadata** when editing an "article" entry.
+
+```tsx
+import { ContentEntryEditorConfig, useContentEntry } from "@webiny/app-headless-cms";
+import { Typography } from "@webiny/ui/Typography";
+
+const CustomContentEntryFormMeta =
+    ContentEntryEditorConfig.ContentEntry.ContentEntryForm.Header.Meta.createDecorator(Original => {
+        return function decorate() {
+            const { contentModel } = useContentEntry();
+
+            // Apply custom meta only for the "article" model
+            if (contentModel.modelId !== "article") {
+                return <Original />;
+            }
+
+            return <Typography use={"body2"}>{"Custom meta"}</Typography>;
+        };
+    });
+
+```
+### Example: Custom Title for "article" Model 
+The `Header.Title` section displays the entry's title. Let’s modify it to show a custom title when editing an "article" entry.
+
+```tsx
+import { ContentEntryEditorConfig, useContentEntry } from "@webiny/app-headless-cms";
+import { Typography } from "@webiny/ui/Typography";
+
+const CustomContentEntryFormTitle =
+    ContentEntryEditorConfig.ContentEntry.ContentEntryForm.Header.Title.createDecorator(Original => {
+        return function decorate() {
+            const { entry, contentModel } = useContentEntry();
+
+            // Apply custom title only for the "article" model with a meta.title field
+            if (contentModel.modelId !== "article" || !entry?.meta?.title) {
+                return <Original />;
+            }
+
+            return <Typography use={"headline6"}>{`Custom Title: ${entry.meta.title}`}</Typography>;
+        };
+    });
+```
+
+### Applying Custom Components
+Now, let's register these custom components in the Admin app:
+
+```diff-tsx
+export const App = () => {
+    return (
+        <Admin>
+            <Cognito />
+            <Extensions />
+            <ContentEntryEditorConfig>
++               <CustomContentEntryFormMeta />
++               <CustomContentEntryFormTitle />
+            </ContentEntryEditorConfig>
+        </Admin>
+    );
+};
+```
+
+With these customizations, you now have full control over how meta information and titles appear in the Content Entry Form. Whether it's tweaking metadata or refining how titles are displayed, this approach allows third-party developers to tailor the experience to their needs.
+
+<Image src={hmcsCustomEntryMetaTitle} alt="Meta and Title Elements Decorated" />
