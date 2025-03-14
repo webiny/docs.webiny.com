@@ -2,7 +2,7 @@ import React from "react";
 import { Page, NavigationRoot, Group, Separator } from "@webiny/docs-generator";
 import { Navigation as BaseNavigation } from "../5.37.x/navigation";
 
-export const Navigation = () => {
+export const Navigation = ({ children }: { children: React.ReactNode }) => {
   return (
     <BaseNavigation>
       <NavigationRoot directory={__dirname}>
@@ -49,6 +49,7 @@ export const Navigation = () => {
           </Group>
         </Group>
 
+        {children}
       </NavigationRoot>
     </BaseNavigation>
   );
