@@ -1,0 +1,81 @@
+---
+id: 2fe1ef53
+title: Service Manifests
+description: Learn how to add infrastructure and other information to the Service Manifests.
+---
+
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+
+<CanIUseThis since={"5.41.0"} />
+
+<WhatYouWillLearn>
+
+- how to store information into a Service Manifest
+- how to read the Service Manifest in your Lambda functions
+
+</WhatYouWillLearn>
+
+## Overview
+
+Using your infrastructure information in your application source code is a very common requirement. Usually, you would store the infrastructure information (like ARNs, domain names, etc.) into Lambda function environment variables. This can work to a certain extent, but as the amount of environment variables grows, you will eventually hit a limit on how many variables you can assign to your Lambda function.
+
+Also, sometimes you will run into scenarios where you need information about resources that are not managed by the stack being deployed, so you won't be able to store that information in an environment variable.
+
+To overcome both of these limitations, we've created a utility called a _Service Manifest_. A Service Manifest allows you to store whatever information you need into Webiny's main DynamoDB table, and then use that information at application runtime.
+
+## Creating a Service Manifest
+
+To create your own manifest, you need to extend the base Pulumi program, and use the `addServiceManifest` method. In the following example, we demonstrate how you can store random values, as well as outputs from newly created Pulumi resources.
+
+You can call `app.addServiceManifest({ ... })` multiple times, and we'll deeply merge your manifests under the hood (using `lodash/merge`).
+
+```ts apps/api/webiny.application.ts
+import * as aws from "@pulumi/aws";
+import { createApiApp } from "@webiny/serverless-cms-aws";
+
+export default createApiApp({
+  pulumiResourceNamePrefix: "wby-",
+  pulumi(app) {
+    // An imaginary resource that you want to create.
+    const myLambda = app.addResource(aws.lambda.Function, {
+      name: "my-lambda",
+      config: {
+        // Your function config.
+      }
+    });
+
+    // Create your manifest!
+    app.addServiceManifest({
+      name: "my-manifest",
+      manifest: {
+        someApiKey: "my-api-key",
+        myLambdaArn: myLambda.output.arn
+      }
+    });
+  }
+});
+```
+
+Once your app is deployed, the Service Manifest will be written to the main DynamoDB table.
+
+## Using a Service Manifest
+
+To access the Service Manifest from your Lambda function code, use the `ServiceDiscovery` utility.
+
+```ts
+import { ServiceDiscovery } from "@webiny/api";
+
+// Load all service manifests.
+const manifests = await ServiceDiscovery.load();
+
+// Access your manifest by name.
+const myManifest = manifests["my-manifest"];
+
+// Access your information.
+const myLambdaArn = myManifest.myLambdaArn;
+```
+
+## Default Service Manifests
+
+Out of the box, Webiny writes service manifests when deploying the `api` and `website` apps. You can find the definitions of these manifests in the [api](https://github.com/webiny/webiny-js/blob/v5.41.0/packages/pulumi-aws/src/apps/api/createApiPulumiApp.ts#L321-L329) and [website](https://github.com/webiny/webiny-js/blob/v5.41.0/packages/pulumi-aws/src/apps/website/createWebsitePulumiApp.ts#L335-L363) pulumi apps.

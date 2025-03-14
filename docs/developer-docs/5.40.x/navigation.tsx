@@ -31,9 +31,7 @@ export const Navigation = () => {
               after={"headless-cms/extending/customize-entry-list-actions"}
               title={"Conditional Rendering"}
             />
-            <Page
-              link={"headless-cms/extending/content-entry-live-preview"}
-            />
+            <Page link={"headless-cms/extending/content-entry-live-preview"} />
             <Page
               link={"headless-cms/extending/customize-entry-list-table-columns"}
               after={"headless-cms/extending/customize-entry-list-bulk-actions"}
@@ -84,7 +82,10 @@ export const Navigation = () => {
             />
           </Group>
         </Group>
-        <Group title={"Core Development Concepts"}>
+        <Group
+          title={"Core Development Concepts"}
+          link={"core-development-concepts/basics/extensions"}
+        >
           <Group title={"Basics"}>
             <Page link={"core-development-concepts/basics/plugins"} remove />
             <Page link={"core-development-concepts/basics/importing-plugins"} remove />
@@ -110,8 +111,14 @@ export const Navigation = () => {
           </Group>
         </Group>
         <Group title={"Webiny Enterprise"}>
-          <Page link={"enterprise/advanced-tenant-management"} after={"enterprise/cognito-federation"}/>
-          <Page link={"enterprise/okta-oidc-app-integration"} after={"enterprise/okta-integration"}/>
+          <Page
+            link={"enterprise/advanced-tenant-management"}
+            after={"enterprise/cognito-federation"}
+          />
+          <Page
+            link={"enterprise/okta-oidc-app-integration"}
+            after={"enterprise/okta-integration"}
+          />
         </Group>
       </NavigationRoot>
     </>
