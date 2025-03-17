@@ -23,6 +23,14 @@ export const Navigation = () => {
             />
           </Group>
         </Group>
+        <Group title={"File Manager"}>
+          <Group title={"extensions"}>
+            <Page
+              link={"file-manager/extending/customize-folder-fields"}
+              after={"file-manager/extending/customize-file-list-actions"}
+            />
+          </Group>
+        </Group>
       </NavigationRoot>
     </>
   );
