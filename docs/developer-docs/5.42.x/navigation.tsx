@@ -15,6 +15,14 @@ export const Navigation = () => {
             <Page link={"core-development-concepts/basics/logger"} />
           </Group>
         </Group>
+        <Group title={"Headless CMS"}>
+          <Group title={"extensions"}>
+            <Page
+              link={"headless-cms/extending/customize-folder-fields"}
+              after={"headless-cms/extending/customize-entry-list-actions"}
+            />
+          </Group>
+        </Group>
       </NavigationRoot>
     </>
   );
