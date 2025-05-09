@@ -1,0 +1,156 @@
+---
+id: c3b9f42d
+title: Customize Folder Fields
+description: Learn how to add custom fields to the Folders.
+---
+
+import { Alert } from "@/components/Alert";
+import { CanIUseThis } from "@/components/CanIUseThis";
+import { Gallery } from "@/components/Image";
+import { WhatYouWillLearn } from "@/components/WhatYouWillLearn";
+import hcmsFoldersFieldsSchema from "./assets/hcms-folder-custom-fields-schema.png";
+import hcmsAdvancedDetails from "./assets/hcms-folder-custom-fields.png";
+import hcmsFieldRendererDecorator from "./assets/hcms-field-renderer-decorator.png";
+
+<CanIUseThis since={"5.42.3"} />
+
+<WhatYouWillLearn>
+
+- how to add custom folder fields to the Headless Cms
+- how to control field rendering in the UI
+
+</WhatYouWillLearn>
+
+## Overview
+
+Developers can extend the GraphQL schema and the Admin app's user interface by adding custom fields to Folders. Since our Headless CMS manages Folders, introducing a new field is as simple as defining it on the `Folder` model.
+
+Once the field is defined in the model, it will automatically appear in the GraphQL schema under the `extensions` field. Additionally, this new field will be available in the user interface for creating and editing Folders, alongside default fields like `title`, `slug`, and `parentId`.
+
+<Gallery>
+  <Image src={hcmsFoldersFieldsSchema} title={"Custom fields in the GraphQL schema"} />
+  <Image src={hcmsAdvancedDetails} title={"Custom fields in the Admin app"} />
+</Gallery>
+
+## Add a Field
+
+To add a new field, use the `createCmsFolderModelModifier` plugin factory, provided by the `@webiny/api-headless-cms-aco` package.
+
+<Alert type="warning">
+  The source code below only highlights the changes you need to make to your project file. The rest
+  of your file contents is not shown for better clarity.
+</Alert>
+
+```diff-ts apps/api/graphql/src/index.ts
+import {
+    createAcoHcmsContext,
++   createCmsFolderModelModifier
+} from "@webiny/api-headless-cms-aco";
+
+export const handler = createHandler({
+    plugins: [
+        // Other plugins were omitted for clarity.
+
+        // Add the following code after your existing plugins.
++       createCmsFolderModelModifier(({ modifier }) => {
++           modifier.addField({
++               id: "carMake",
++               fieldId: "carMake",
++               label: "Car Make",
++               type: "text",
++               renderer: {
++                   name: "text-input"
++               }
++           });
+
++           modifier.addField({
++               id: "year",
++               fieldId: "year",
++               label: "Year of manufacturing",
++               type: "number",
++               renderer: {
++                   name: "number-input"
++               }
++           });
+        })
+    ],
+    http: { debug }
+});
+```
+
+In this example, we add two fields: `carMake` and `year`. You can add as many fields as you like. The field definition is identical to that of the Headless CMS model field, and all the same rules and options apply. To learn more about programmatic model and field definition, visit [Define Content Models via Code](/docs/{version}/headless-cms/extending/content-models-via-code).
+
+Once the code shown above is applied, you need to deploy your API. Make sure to use the `--env` value that corresponds to your development environment.
+
+This plugin is specifically designed to add fields to folders related to CMS content models. It includes an optional `modelIds` property (`string[]`), allowing you to target specific models.
+
+In GraphQL, this plugin prefixes field IDs with `cms_` by default. If the `modelIds` property is specified, the field ID is prefixed with `cms_${modelId}_`.
+
+```shell
+yarn webiny deploy api --env=dev
+```
+
+After the deployment is done, your new fields should be visible in the GraphQL schema, and the UI, as demonstrated in the [Overview](#overview) section of this article.
+
+## Customizing Field Rendering
+
+To control how and when a specific field is rendered, you can configure a **field decorator**. Field decorators are higher-order components that let you intercept a component and apply custom logic to its rendering process.
+
+### Example: Conditionally Rendering a Field
+
+The following example demonstrates how to create a field decorator that applies a custom renderer to a specific field when a folder is being edited. When the specified conditions are met, the custom renderer is applied to that field.
+
+```diff-tsx apps/admin/src/App.tsx
+import React from "react";
+import { Admin } from "@webiny/app-serverless-cms";
+import { Cognito } from "@webiny/app-admin-users-cognito";
++ import { ContentEntryListConfig } from "@webiny/app-headless-cms";
++ import { useForm } from "@webiny/form";
++ import type { FolderItem } from "@webiny/app-aco/types";
+import "./App.scss";
+
++ const { Browser } = ContentEntryListConfig;
+
++ const ExtensionFieldDecorator = Browser.Folder.ExtensionField.createDecorator(Original => {
++   return function FieldDecorator(props) {
++     const form = useForm<FolderItem>();
++ 
++     if (form.data.id) {
++       return null;
++     }
++ 
++     return <Original {...props} />;
++   };
++ });
+
+export const App = () => {
+  return (
+    <Admin>
+      <Cognito />
++     <ContentEntryListConfig>
++       <ExtensionFieldDecorator id={"cms_year"} />
++     </ContentEntryListConfig>
+    </Admin>
+  );
+};
+```
+
+### Understanding the Implementation
+- `useForm` **Hook**: This hook provides access to the current form inside the New/Edit Folder dialog. By leveraging `useForm`, you can dynamically control field visibility and behavior based on the form properties.
+- `ExtensionFieldDecorator`: This decorator ensures the field is only rendered when specific conditions are met. In this case, the field is hidden if an existing folder is being edited.
+- `ContentEntryListConfig`: This component acts as a wrapper, enabling access to configuration utilities for the Headless CMS List view. It must be mounted as a parent of other config components to ensure the configurations are applied correctly.
+
+### Applying Custom Logic
+
+Using this approach, you can:
+
+- Conditionally display or hide fields based on folder or form properties.
+- Swap field renderers dynamically to fit different use cases.
+- Implement field-level access control by checking user permissions.
+
+Once you run your Admin app and navigate to the desired Content Model, edit an existing folder to see the custom renderer in action. While this example hides the field, you can extend it to include more advanced field customizations.
+
+<Image
+  src={hcmsFieldRendererDecorator}
+  title="Custom renderer is applied to 'carMake' field"
+/>

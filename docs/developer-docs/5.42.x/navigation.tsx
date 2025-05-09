@@ -20,6 +20,30 @@ export const Navigation = () => {
             <Page link={"core-development-concepts/basics/logger"} />
           </Group>
         </Group>
+        <Group title={"Headless CMS"}>
+          <Group title={"extensions"}>
+            <Page
+              link={"headless-cms/extending/customize-folder-fields"}
+              after={"headless-cms/extending/customize-entry-list-actions"}
+            />
+          </Group>
+        </Group>
+        <Group title={"File Manager"}>
+          <Group title={"extensions"}>
+            <Page
+              link={"file-manager/extending/customize-folder-fields"}
+              after={"file-manager/extending/customize-file-list-actions"}
+            />
+          </Group>
+        </Group>
+        <Group title={"Page Builder"}>
+          <Group title={"extensions"}>
+            <Page
+              link={"page-builder/extending/customize-folder-fields"}
+              after={"page-builder/extending/customize-page-bulk-actions"}
+            />
+          </Group>
+        </Group>
       </NavigationRoot>
     </>
   );
