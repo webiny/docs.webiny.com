@@ -142,7 +142,7 @@ export const Navigation = () => {
         link={"core-development-concepts/basics/tools-and-libraries"}
         >
         <Group title={"Basics"}>
-          <Page link={"core-development-concepts/basics/tools-and-libraries"} />
+          <Page link={"core-development-concepts/basics/tools-and-libraries"} hidden={true}/>
           <Page link={"core-development-concepts/basics/plugins"} />
           <Page link={"core-development-concepts/basics/importing-plugins"} />
           <Page link={"core-development-concepts/basics/webiny-cli"} />
@@ -223,7 +223,7 @@ export const Navigation = () => {
           <Page link={"infrastructure/aws/configure-aws-credentials"} />
           <Page link={"infrastructure/aws/use-aws-profiles"} />
         </Group>
-        <Group title={"Additional resources"}>
+        <Group title={"Additional Resources"}>
           <Page link={"infrastructure/additional-resources/connect-custom-domain"} />
         </Group>
       </Group>

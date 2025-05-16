@@ -9,6 +9,11 @@ export const Navigation = () => {
       <BaseNavigation />
       {/* Add new items. */}
       <NavigationRoot directory={__dirname}>
+        <Group title={"Webiny Overview"}>
+          <Group title={"Applications"}>
+            <Page link={"overview/applications/a-b-testing-and-personalization"} />
+          </Group>
+        </Group>
         <Group title={"Core Development Concepts"}>
           <Group title={"Basics"} after={"Basics"}>
             <Page link={"core-development-concepts/basics/user-project-upgrade"} />
