@@ -8,6 +8,7 @@ export const Navigation = () => {
       <Page link={"./lambda-edge-warning"} hidden={true} />
       <Page link={"./missing-stack-output"} hidden={true} />
       <Page link={"./webiny-package-versions-check"} hidden={true} />
+      <Page link={"./deployment-ddb-conditional-check-failed"} hidden={true} />
     </NavigationRoot>
   );
 };
