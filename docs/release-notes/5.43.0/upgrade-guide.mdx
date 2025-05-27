@@ -44,7 +44,52 @@ yarn webiny upgrade
 
 ### 3. Breaking Changes❗
 
-✍️
+#### Amazon OpenSearch Service - VPC Configuration Issue ([#4532](https://github.com/webiny/webiny-js/pull/4532))
+
+📝📝📝
+
+Prior to this release, when deploying a Webiny project with the [existing Amazon VPC](https://www.webiny.com/docs/enterprise/use-existing-amazon-vpc) configuration in place, the Amazon OpenSearch service that Webiny deploys would not get correctly attached to the specified Amazon VPC (related subnets and security groups).
+
+For example, the following configuration would not work as expected. Contrary to the expectation, the deployed Amazon OpenSearch cluster would not be attached to the specified `OPENSEARCH_PRIVATE_SUBNETS` subnets and `OPENSEARCH_SECURITY_GROUPS` security groups:
+
+```ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws/enterprise";
+
+const OPENSEARCH_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
+const OPENSEARCH_SECURITY_GROUPS = ["security-group-id-1"];
+
+const LAMBDA_FUNCTIONS_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
+const LAMBDA_FUNCTIONS_SECURITY_GROUPS = ["security-group-id-1"];
+
+export default createCoreApp({
+  pulumiResourceNamePrefix: "wby-",
+  openSearch: true,
+  vpc: {
+    useExistingVpc: {
+      elasticSearchDomainVpcConfig: {
+        subnetIds: OPENSEARCH_PRIVATE_SUBNETS,
+        securityGroupIds: OPENSEARCH_SECURITY_GROUPS
+      },
+      lambdaFunctionsVpcConfig: {
+        subnetIds: LAMBDA_FUNCTIONS_PRIVATE_SUBNETS,
+        securityGroupIds: LAMBDA_FUNCTIONS_SECURITY_GROUPS
+      }
+    }
+  }
+});
+```
+
+With this release, the underlying issue should no longer occur, and the above configuration will work as expected—with one minor change: instead of using `elasticSearchDomainVpcConfig`, users should now use `opensearchDomainVpcConfig`.
+
+For more information on this change and also how to upgrade your existing Webiny project, please refer to the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.
+
+##### Breaking Change❗
+
+Because of the fact that, with this fix in place, the VPC configuration now gets correctly attached to the Amazon OpenSearch cluster, redeploying an existing Webiny instance will cause the cluster to be **DESTROYED AND RECREATED**️, which means **all data in the existing cluster will be lost**❗
+
+Luckily, the data can be recreated via the [Elasticsearch Reindexing Task](https://www.webiny.com/docs/core-development-concepts/background-tasks/built-in-background-tasks#elasticsearch-reindexing-task).
+
+For more information on how to migrate your existing Webiny project to the new VPC configuration and also how to safely reindex your data, please refer to the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.
 
 ### 4. Deploy Your Project
 

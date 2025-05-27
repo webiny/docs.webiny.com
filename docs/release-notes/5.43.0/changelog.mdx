@@ -4,11 +4,20 @@ title: Webiny 5.43.0 Changelog
 description: See what's new in Webiny version 5.43.0.
 ---
 
-
-import {GithubRelease} from "@/components/GithubRelease";
+import { GithubRelease } from "@/components/GithubRelease";
 import samePackageVersions from "./assets/same-package-versions.png";
 
 <GithubRelease version={"5.43.0"} />
+
+## Breaking Changes❗
+
+### Amazon OpenSearch Service - VPC Configuration Issue ([#4532](https://github.com/webiny/webiny-js/pull/4532))
+
+Prior to this release, when deploying a Webiny project with the [existing Amazon VPC](https://www.webiny.com/docs/enterprise/use-existing-amazon-vpc) configuration in place, the Amazon OpenSearch service that Webiny deploys would not get correctly attached to the specified Amazon VPC (related subnets and security groups).
+
+Because of the fact that, with this release, the VPC configuration now gets correctly attached to the Amazon OpenSearch cluster, redeploying an existing Webiny instance will cause the cluster to be **DESTROYED AND RECREATED**️, which means **all data in the existing cluster will be lost**❗
+
+Luckily, the data can be recreated via the [Elasticsearch Reindexing Task](https://www.webiny.com/docs/core-development-concepts/background-tasks/built-in-background-tasks#elasticsearch-reindexing-task), which is something we cover in more detail in the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.
 
 ## Headless CMS
 
@@ -23,25 +32,50 @@ Record is unlocked by default after 30 seconds of the system not receiving a hea
 
 ## Deployments
 
-### ✍️ Fixed Existing VPCs Not Used With OpenSearch ([#4532](https://github.com/webiny/webiny-js/pull/4532)) 
+### Amazon OpenSearch Service - VPC Configuration Issue ([#4532](https://github.com/webiny/webiny-js/pull/4532))
 
-✍️
+Prior to this release, when deploying a Webiny project with the [existing Amazon VPC](https://www.webiny.com/docs/enterprise/use-existing-amazon-vpc) configuration in place, the Amazon OpenSearch service that Webiny deploys would not get correctly attached to the specified Amazon VPC (related subnets and security groups).
 
-## Development
+For example, the following configuration would not work as expected. Contrary to the expectation, the deployed Amazon OpenSearch cluster would not be attached to the specified `OPENSEARCH_PRIVATE_SUBNETS` subnets and `OPENSEARCH_SECURITY_GROUPS` security groups:
 
-### TypeScript 5.3.3 ([#4464](https://github.com/webiny/webiny-js/pull/4464))
+```ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws/enterprise";
 
-We have upgraded TypeScript to version `5.3.3`. At this point we cannot go any higher because of the `@rmwc/*` packages.
+const OPENSEARCH_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
+const OPENSEARCH_SECURITY_GROUPS = ["security-group-id-1"];
 
-Also, `fastify` was updated to 4.29.0 - which might affect users which are hooking into the `fastify` handler. If something is wrong in your code, the TypeScript build will break, and it is an easy fix - just check the fastify [docs](https://fastify.dev/docs/v4.29.x/).
+const LAMBDA_FUNCTIONS_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
+const LAMBDA_FUNCTIONS_SECURITY_GROUPS = ["security-group-id-1"];
 
-### Webiny Packages Versions ([#4628](https://github.com/webiny/webiny-js/pull/4628))
+export default createCoreApp({
+  pulumiResourceNamePrefix: "wby-",
+  openSearch: true,
+  vpc: {
+    useExistingVpc: {
+      elasticSearchDomainVpcConfig: {
+        subnetIds: OPENSEARCH_PRIVATE_SUBNETS,
+        securityGroupIds: OPENSEARCH_SECURITY_GROUPS
+      },
+      lambdaFunctionsVpcConfig: {
+        subnetIds: LAMBDA_FUNCTIONS_PRIVATE_SUBNETS,
+        securityGroupIds: LAMBDA_FUNCTIONS_SECURITY_GROUPS
+      }
+    }
+  }
+});
+```
 
-From now on, each time you run the Webiny CLI, it will check if all `@webiny/*` NPM packages in your project are using the same version. This is important because Webiny packages are tightly integrated, and having different versions can lead to unexpected issues.
+With this release, the underlying issue should no longer occur, and the above configuration will work as expected—with one minor change: instead of using `elasticSearchDomainVpcConfig`, users should now use `opensearchDomainVpcConfig`.
 
-The following screenshot shows an example of the CLI warning you about a version mismatch:
+For more information on this change and also how to upgrade your existing Webiny project, please refer to the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.
 
-<Image src={samePackageVersions} alt="Webiny package versions check" />
+#### Breaking Change❗
+
+Because of the fact that, with this fix in place, the VPC configuration now gets correctly attached to the Amazon OpenSearch cluster, redeploying an existing Webiny instance will cause the cluster to be **DESTROYED AND RECREATED**️, which means **all data in the existing cluster will be lost**❗
+
+Luckily, the data can be recreated via the [Elasticsearch Reindexing Task](https://www.webiny.com/docs/core-development-concepts/background-tasks/built-in-background-tasks#elasticsearch-reindexing-task).
+
+For more information on how to migrate your existing Webiny project to the new VPC configuration and also how to safely reindex your data, please refer to the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.
 
 ### Introducing the `webiny refresh` Command ([#4552](https://github.com/webiny/webiny-js/pull/4552))
 
@@ -60,3 +94,19 @@ yarn webiny refresh api --env dev
 ```
 
 Functionally, both commands do the same thing, but the new one is shorter and easier to remember.
+
+## Development
+
+### TypeScript 5.3.3 ([#4464](https://github.com/webiny/webiny-js/pull/4464))
+
+We have upgraded TypeScript to version `5.3.3`. At this point we cannot go any higher because of the `@rmwc/*` packages.
+
+Also, `fastify` was updated to 4.29.0 - which might affect users which are hooking into the `fastify` handler. If something is wrong in your code, the TypeScript build will break, and it is an easy fix - just check the fastify [docs](https://fastify.dev/docs/v4.29.x/).
+
+### Webiny Packages Versions ([#4628](https://github.com/webiny/webiny-js/pull/4628))
+
+From now on, each time you run the Webiny CLI, it will check if all `@webiny/*` NPM packages in your project are using the same version. This is important because Webiny packages are tightly integrated, and having different versions can lead to unexpected issues.
+
+The following screenshot shows an example of the CLI warning you about a version mismatch:
+
+<Image src={samePackageVersions} alt="Webiny package versions check" />
