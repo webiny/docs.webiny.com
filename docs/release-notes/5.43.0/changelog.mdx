@@ -11,19 +11,127 @@ import samePackageVersions from "./assets/same-package-versions.png";
 
 ## Breaking Changes❗
 
-### Amazon OpenSearch Service - VPC Configuration Issue ([#4532](https://github.com/webiny/webiny-js/pull/4532))
+### Existing Amazon VPC Feature - Addressed Amazon OpenSearch Service Configuration Issue ([#4532](https://github.com/webiny/webiny-js/pull/4532))
 
 Prior to this release, when deploying a Webiny project with the [existing Amazon VPC](https://www.webiny.com/docs/enterprise/use-existing-amazon-vpc) configuration in place, the Amazon OpenSearch service that Webiny deploys would not get correctly attached to the specified Amazon VPC (related subnets and security groups).
 
 Because of the fact that, with this release, the VPC configuration now gets correctly attached to the Amazon OpenSearch cluster, redeploying an existing Webiny instance will cause the cluster to be **DESTROYED AND RECREATED**️, which means **all data in the existing cluster will be lost**❗
 
-Luckily, the data can be recreated via the [Elasticsearch Reindexing Task](https://www.webiny.com/docs/core-development-concepts/background-tasks/built-in-background-tasks#elasticsearch-reindexing-task), which is something we cover in more detail in the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.
+If you're using the existing Amazon VPC configuration in your Webiny project, make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide. For more information about the change itself, check out the [dedicated changelog item](#existing-amazon-vpc-feature-addressed-amazon-open-search-service-configuration-issue-4532-1) below.
+
+### Folder Level Permissions - Editors Can Now Manage Folders ([#4615](https://github.com/webiny/webiny-js/pull/4615))
+
+Prior to this release, only users with **Owner** permissions could manage folders. With this update, users with **Editor** permissions can now also create, edit, and delete folders.
+
+This change is a breaking one, as it modifies the existing permissions structure. If you have custom permissions set up, you may need to adjust them to accommodate this new functionality.
+
+Make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide in case this change affects you. For more information about the change itself, check out the [dedicated changelog item](#editors-can-now-manage-folders-4615) below.
+
+## Advanced Content Organization (ACO)
+
+This release brings a significant upgrade to how folders and folder-level permissions are processed. This is a major step forward in improving the performance and usability of Webiny, especially for projects with a large number of folders and complex permission structures.
+
+In the following sections, we cover all of the key improvements and changes that come with this release.
+
+<Alert type="info">
+
+  To learn more about the Folder Level Permissions feature (FLP), please refer to the [Folder Level Permissions](/docs/enterprise/aacl/folder-level-permissions) documentation.
+
+</Alert>
+
+### Improved Folder Loading Performance ([#4615](https://github.com/webiny/webiny-js/pull/4615))
+
+We've vastly improved the performance of the Advanced Content Organization (ACO) feature, specifically in how folders are loaded and managed.
+
+Essentially, folders are now lazy-loaded, which means that only the folders you need to see are loaded at any given time. This greatly improves performance and scalability, especially for projects with a large number of folders.
+
+We've been testing the new folder loading mechanism with projects that have over 10,000 folders, and the results have been very positive. The new system is designed to handle large numbers of folders efficiently, making it easier to manage complex content structures.
+
+### Overridable Inherited Permissions ([#4630](https://github.com/webiny/webiny-js/pull/4630))
+
+Inherited permissions can now be overridden at any folder level, giving you more granular control over access. 
+
+For example, a specific user might be granted **Editor** permissions on a specific folder, while still inheriting **Viewer** permissions from a parent folder. Vice versa, a user can have **Viewer** permissions on a folder but be granted **Editor** permissions on a child folder.
+
+This flexibility allows for more complex permission structures, enabling you to tailor access to specific folders based on your project's needs.
+
+### Editors Can Now Manage Folders ([#4615](https://github.com/webiny/webiny-js/pull/4615))
+
+Prior to this release, only users with **Owner** permissions could manage folders. With this update, users with **Editor** permissions can now also create, edit, and delete folders.
+
+<Alert type={"danger"} title={"Breaking Change"}>
+
+  This change is a breaking one, as it modifies the existing permissions structure. If you have custom permissions set up, you may need to adjust them to accommodate this new functionality. 
+  
+  Make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide in case this change affects you.
+
+</Alert>
+
+### Introducing the "No Access" Permission ([#4624](https://github.com/webiny/webiny-js/pull/4624))
+
+On top of the existing **Viewer**, **Editor**, and **Owner** permission, we have introduced a new **No Access** permission. As the name itself suggests, the new permissions allows users to explicitly deny access to a folder for a specific user or team.
+
+Note that, once set, the **No Access** permission cannot be overridden. In other words, if a user has **No Access** permission on a folder, they will not be able to access it, regardless of any inherited permissions from parent folders. This is also the case for all folders that are children of the folder with **No Access** permission.
+
+### Folders - `path` Property and Enhanced Search Capabilities
+
+ACO's `Folder` entity now also includes a new `path` field, which is a string constructed from the folder's slug and its parent folders' slugs, creating a hierarchical representation of the folder's location within the content structure. This field is automatically generated and updated whenever a folder is created or modified. A couple of examples of the `path` field values are:
+
+- `/folder-1`
+- `/folder-1/folder-2`
+- `/folder-1/folder-2/folder-3`
+
+Which now also allows for more efficient searching and filtering of folders based on their paths. For example, via the `listFolders` GraphQL query, you can now filter folders based on their `path` value using the following operators:
+
+```
+path: string
+path_not: string
+path_contains: string
+path_not_contains: string
+path_in: string[]
+path_not_in: string[]
+path_startsWith: string
+path_not_startsWith: string
+```
+
+The following example demonstrates how to use the `path` field in a GraphQL query to list all child folders of a specific folder:
+
+
+```graphql
+{
+  aco {
+    listFolders(
+      where: { type: "some-model", path_startsWith: "folder-1/folder-2" }
+    ) {
+      data {
+        title
+      }
+    }
+  }
+}
+```
+
+#### Improved `getAncestors` Method
+
+Consequently, the `getAncestors` method has been optimized to leverage the new `path` field. Previously, this method would retrieve all folders to construct the ancestor tree, which could be inefficient for projects with a large number of folders.
+
+Now, it uses the `path` value to directly fetch only the relevant folders, significantly improving performance—especially for systems with a large number of folders.
+
+The following example demonstrates how to use the `getAncestors` method in a context plugin:
+
+```ts
+import { createContextPlugin } from "@webiny/api-serverless-cms";
+
+createContextPlugin(async ctx => {
+  const someFolder = await ctx.aco.folder.get("some-folder-id");
+  const ancestors = await ctx.aco.folder.getAncestors(someFolder);
+  
+  // Do something with the ancestors.
+  // ...
+});
+```
 
 ## Headless CMS
-
-### FLP - Improved Permissions Inheritance ([#4630](https://github.com/webiny/webiny-js/pull/4630))
-
-✍️
 
 ### Use Heartbeat In Record Locking Mechanism ([#4583](https://github.com/webiny/webiny-js/pull/4583))
 
@@ -32,7 +140,7 @@ Record is unlocked by default after 30 seconds of the system not receiving a hea
 
 ## Deployments
 
-### Amazon OpenSearch Service - VPC Configuration Issue ([#4532](https://github.com/webiny/webiny-js/pull/4532))
+### Existing Amazon VPC Feature - Addressed Amazon OpenSearch Service Configuration Issue ([#4532](https://github.com/webiny/webiny-js/pull/4532))
 
 Prior to this release, when deploying a Webiny project with the [existing Amazon VPC](https://www.webiny.com/docs/enterprise/use-existing-amazon-vpc) configuration in place, the Amazon OpenSearch service that Webiny deploys would not get correctly attached to the specified Amazon VPC (related subnets and security groups).
 
@@ -69,13 +177,13 @@ With this release, the underlying issue should no longer occur, and the above co
 
 For more information on this change and also how to upgrade your existing Webiny project, please refer to the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.
 
-#### Breaking Change❗
+<Alert type={"danger"} title={"Breaking Change"}>
 
-Because of the fact that, with this fix in place, the VPC configuration now gets correctly attached to the Amazon OpenSearch cluster, redeploying an existing Webiny instance will cause the cluster to be **DESTROYED AND RECREATED**️, which means **all data in the existing cluster will be lost**❗
+  Because of the fact that, with this fix in place, the VPC configuration now gets correctly attached to the Amazon OpenSearch cluster, redeploying an existing Webiny instance will cause the cluster to be **DESTROYED AND RECREATED**️, which means **all data in the existing cluster will be lost**❗
 
-Luckily, the data can be recreated via the [Elasticsearch Reindexing Task](https://www.webiny.com/docs/core-development-concepts/background-tasks/built-in-background-tasks#elasticsearch-reindexing-task).
+  If you're using the existing Amazon VPC configuration in your Webiny project, make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.  
 
-For more information on how to migrate your existing Webiny project to the new VPC configuration and also how to safely reindex your data, please refer to the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.
+</Alert>
 
 ### Introducing the `webiny refresh` Command ([#4552](https://github.com/webiny/webiny-js/pull/4552))
 
