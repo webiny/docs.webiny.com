@@ -25,7 +25,22 @@ Prior to this release, only users with **Owner** permissions could manage folder
 
 This change is a breaking one, as it modifies the existing permissions structure. If you have custom permissions set up, you may need to adjust them to accommodate this new functionality.
 
-Make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide in case this change affects you. For more information about the change itself, check out the [dedicated changelog item](#editors-can-now-manage-folders-4615) below.
+Make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide in case this change affects you.
+
+### `fastify` 4.29.0 ([#4464](https://github.com/webiny/webiny-js/pull/4464))
+
+While working on the [TypeScript 5.3.3](#type-script-5-3-3-4464) upgrade, the [`fastify`](https://fastify.dev/docs/v4.29.x/) NPM package was also updated to version `4.29.0`.
+
+In case your project contains custom code that directly interacts with `fastify`, you may need to update your code to be compatible with the new version. We recommend checking their official documentation for any breaking changes or updates that may affect your project.
+
+Make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide in case this change affects you.
+
+<Alert type="info">
+
+  Webiny uses [`fastify`](https://fastify.dev/docs/v4.29.x/) to power its GraphQL and REST APIs. The `fastify` package
+  is a high-performance web framework for Node.js, designed to be lightweight and efficient.
+
+</Alert>
 
 ## Advanced Content Organization (ACO)
 
@@ -35,7 +50,8 @@ In the following sections, we cover all of the key improvements and changes that
 
 <Alert type="info">
 
-  To learn more about the Folder Level Permissions feature (FLP), please refer to the [Folder Level Permissions](/docs/enterprise/aacl/folder-level-permissions) documentation.
+To learn more about the Folder Level Permissions feature (FLP), please refer to the [Folder Level
+Permissions](/docs/enterprise/aacl/folder-level-permissions) documentation.
 
 </Alert>
 
@@ -49,7 +65,7 @@ We've been testing the new folder loading mechanism with projects that have over
 
 ### Overridable Inherited Permissions ([#4630](https://github.com/webiny/webiny-js/pull/4630))
 
-Inherited permissions can now be overridden at any folder level, giving you more granular control over access. 
+Inherited permissions can now be overridden at any folder level, giving you more granular control over access.
 
 For example, a specific user might be granted **Editor** permissions on a specific folder, while still inheriting **Viewer** permissions from a parent folder. Vice versa, a user can have **Viewer** permissions on a folder but be granted **Editor** permissions on a child folder.
 
@@ -61,9 +77,11 @@ Prior to this release, only users with **Owner** permissions could manage folder
 
 <Alert type={"danger"} title={"Breaking Change"}>
 
-  This change is a breaking one, as it modifies the existing permissions structure. If you have custom permissions set up, you may need to adjust them to accommodate this new functionality. 
-  
-  Make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide in case this change affects you.
+This change is a breaking one, as it modifies the existing permissions structure. If you have custom permissions set
+up, you may need to adjust them to accommodate this new functionality.
+
+Make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide in case this
+change affects you.
 
 </Alert>
 
@@ -96,13 +114,10 @@ path_not_startsWith: string
 
 The following example demonstrates how to use the `path` field in a GraphQL query to list all child folders of a specific folder:
 
-
 ```graphql
 {
   aco {
-    listFolders(
-      where: { type: "some-model", path_startsWith: "folder-1/folder-2" }
-    ) {
+    listFolders(where: { type: "some-model", path_startsWith: "folder-1/folder-2" }) {
       data {
         title
       }
@@ -125,7 +140,7 @@ import { createContextPlugin } from "@webiny/api-serverless-cms";
 createContextPlugin(async ctx => {
   const someFolder = await ctx.aco.folder.get("some-folder-id");
   const ancestors = await ctx.aco.folder.getAncestors(someFolder);
-  
+
   // Do something with the ancestors.
   // ...
 });
@@ -133,10 +148,21 @@ createContextPlugin(async ctx => {
 
 ## Headless CMS
 
-### Use Heartbeat In Record Locking Mechanism ([#4583](https://github.com/webiny/webiny-js/pull/4583))
+### Heartbeat-Based Timeout Introduced in Record Locking ([#4583](https://github.com/webiny/webiny-js/pull/4583))
 
-We refactored the record locking mechanism to use the heartbeat instead of React `useEffect` to unlock the record.
-Record is unlocked by default after 30 seconds of the system not receiving a heartbeat signal.
+We've updated the Record Locking system to be more reliable and responsive. 
+
+Previously, records were unlocked using lifecycle-based triggers, which could lead to inconsistent behavior—especially if the client disconnected unexpectedly or didn’t clean up properly.
+
+Now, the locking mechanism uses a heartbeat signal to determine if a user is still actively editing a record. If the system doesn't receive a heartbeat for 30 seconds, the record is automatically unlocked and made available to others.
+
+This change makes collaborative editing more robust and helps prevent records from remaining locked due to crashes, lost connections, or idle sessions.
+
+<Alert type="info">
+
+  In case you missed it, with the [5.40.0 release](/docs/release-notes/5.40.0/changelog#introducing-record-locking-mechanism-4065), we introduced a new Record Locking mechanism that allows multiple users to collaborate on the same record without conflicts. This feature is particularly useful for teams working on content-heavy projects, as it prevents overwriting changes made by others.
+  
+</Alert>
 
 ## Deployments
 
@@ -179,9 +205,12 @@ For more information on this change and also how to upgrade your existing Webiny
 
 <Alert type={"danger"} title={"Breaking Change"}>
 
-  Because of the fact that, with this fix in place, the VPC configuration now gets correctly attached to the Amazon OpenSearch cluster, redeploying an existing Webiny instance will cause the cluster to be **DESTROYED AND RECREATED**️, which means **all data in the existing cluster will be lost**❗
+Because of the fact that, with this fix in place, the VPC configuration now gets correctly attached to the Amazon
+OpenSearch cluster, redeploying an existing Webiny instance will cause the cluster to be **DESTROYED AND RECREATED**️,
+which means **all data in the existing cluster will be lost**❗
 
-  If you're using the existing Amazon VPC configuration in your Webiny project, make sure to check out the [5.43.0 migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.  
+If you're using the existing Amazon VPC configuration in your Webiny project, make sure to check out the [5.43.0
+migration guide](/docs/release-notes/5.43.0/upgrade-guide) guide.
 
 </Alert>
 
@@ -207,9 +236,22 @@ Functionally, both commands do the same thing, but the new one is shorter and ea
 
 ### TypeScript 5.3.3 ([#4464](https://github.com/webiny/webiny-js/pull/4464))
 
-We have upgraded TypeScript to version `5.3.3`. At this point we cannot go any higher because of the `@rmwc/*` packages.
+TypeScript has been upgraded from version `4.9.5` to `5.3.3`.
 
-Also, `fastify` was updated to 4.29.0 - which might affect users which are hooking into the `fastify` handler. If something is wrong in your code, the TypeScript build will break, and it is an easy fix - just check the fastify [docs](https://fastify.dev/docs/v4.29.x/).
+Note that, at the time of this release, the `5.3.3` version is not the latest TypeScript version available. The latest version is `5.8.3`, but we have decided to stay on `5.3.3` for now, as it is the latest version that is compatible with all of our dependencies.
+
+### `fastify` 4.29.0 ([#4464](https://github.com/webiny/webiny-js/pull/4464))
+
+With the [TypeScript upgrade](#type-script-5-3-3-4464), the [`fastify`](https://fastify.dev/docs/v4.29.x/) NPM package was also updated to version `4.29.0`.
+
+In case your project contains custom code that directly interacts with `fastify`, you may need to update your code to be compatible with the new version. We recommend checking their official documentation for any breaking changes or updates that may affect your project.
+
+<Alert type="info">
+
+Webiny uses [`fastify`](https://fastify.dev/docs/v4.29.x/) to power its GraphQL and REST APIs. The `fastify` package
+is a high-performance web framework for Node.js, designed to be lightweight and efficient.
+
+</Alert>
 
 ### Webiny Packages Versions ([#4628](https://github.com/webiny/webiny-js/pull/4628))
 
