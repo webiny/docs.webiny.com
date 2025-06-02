@@ -1,0 +1,231 @@
+---
+id: 8e6fo7e4
+title: Background Task Management
+description: You will learn about Background Tasks, how to create new definitions, how to trigger them and how to handle the task run.
+---
+
+
+import {Alert} from "@/components/Alert";
+import {CanIUseThis} from "@/components/CanIUseThis";
+import {WhatYouWillLearn} from "@/components/WhatYouWillLearn";
+
+<CanIUseThis since={"5.39.0"}/>
+
+<WhatYouWillLearn>
+
+- how to use Background Tasks GraphQL API
+- how to use programmatic API
+
+</WhatYouWillLearn>
+
+
+## GraphQL API
+
+The Background Tasks do not have a section in the Admin UI yet, so they are accessible only via the GraphQL API.
+
+The endpoint for the tasks is `/graphql`.
+
+### Queries
+
+#### List All Background Task Definitions
+
+```graphql
+query ListTaskDefinitions {
+  backgroundTasks {
+    listDefinitions {
+      data {
+        id
+        title
+        description
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+#### List All Background Task Runs
+```graphql
+query ListTasks {
+  backgroundTasks {
+    listTasks {
+      data {
+        id
+        startedOn
+        finishedOn
+        name
+        definitionId
+        iterations
+        parentId
+        executionName
+        eventResponse
+        taskStatus
+        input
+        output
+        # ...more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+#### List Background Task Logs
+
+```graphql
+query ListBackgroundTaskLogs {
+  backgroundTasks {
+    listLogs(where: {
+    # you can list logs from a certain task if you like
+    task: "yourTaskId"
+  }) {
+      data {
+        id
+        createdOn
+        executionName
+        iteration
+        items {
+          message
+          createdOn
+          type
+          data
+          error
+        }
+      }
+    }
+  }
+}
+```
+
+### Mutations
+#### Trigger a Background Task
+
+```graphql
+mutation TriggerATask {
+  backgroundTasks {
+    triggerTask(definition: testingRun, input: {
+      someVariableForTestingRunTaskToReceive: "someValue",
+      yetAnotherVariableForTestingRunTaskToReceive: "anotherValue"
+    }) {
+      data {
+        id
+        definitionId
+        executionName
+        eventResponse
+        taskStatus
+        input
+        # ... more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+#### Abort a Background Task
+
+```graphql
+mutation AbortATask {
+  backgroundTasks {
+    # message is optional
+    abortTask(id: "yourTaskId", message: "My Reason for aborting the task") {
+      data {
+        id
+        createdOn
+        savedOn
+        startedOn
+        finishedOn
+        definitionId
+        iterations
+        name
+        input
+        output
+        # ... more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### Permissions
+
+To execute the mutations and queries for the Background Tasks, the user must have a `Full Access`. In future releases we will fine grain the permissions.
+
+## Code API
+
+For examples, we will assume you are somewhere in the code where you have access to the Webiny `context` object.
+
+### List All Background Task Definitions
+
+```typescript
+const results = await context.tasks.listDefinitions();
+```
+
+### List All Background Task Runs
+
+```typescript
+const results = await context.tasks.listTasks({
+    // all properties are optional
+    where: {},
+    sort: [],
+    limit: 100,
+    after: null
+});
+```
+
+### Trigger a Background Task
+
+```typescript
+const result = await context.tasks.trigger({
+    definition: "myTaskDefinition",
+    // optional input for the task run
+    input: {
+        variableToPassAsInput: "someValue"
+    },
+    // optional name for the task run
+    name: "My Custom Task Name"
+});
+```
+
+### Abort a Background Task
+
+```typescript
+const result = await context.tasks.trigger({
+    id: "yourTaskId",
+    // optional message
+    message: "My Reason for aborting the task"
+});
+```
+
+### List Background Task Logs
+
+```typescript
+const results = await context.tasks.listLogs({
+    // all properties are optional
+    where: {},
+    sort: [],
+    limit: 100,
+    after: null
+});
+```
