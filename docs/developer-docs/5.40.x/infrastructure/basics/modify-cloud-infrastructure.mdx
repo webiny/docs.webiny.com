@@ -265,24 +265,30 @@ import { createApiApp } from "@webiny/serverless-cms-aws";
 
 export default createApiApp({
   pulumiResourceNamePrefix: "wby-",
-  pulumi: ({ resources }) => {
-    const policy = new aws.iam.Policy("ses-policy", {
-      description: "This policy enables access to Amazon SES.",
-      policy: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Effect: "Allow",
-            Action: ["ses:SendEmail"],
-            Resource: ["arn:aws:ses:*:*:identity/*"]
-          }
-        ]
+  pulumi: ({ resources, addResource }) => {
+    const policy = addResource(aws.iam.Policy, {
+      name: "ses-policy",
+      config: {
+        description: "This policy enables access to Amazon SES.",
+        policy: {
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Action: ["ses:SendEmail"],
+              Resource: ["arn:aws:ses:*:*:identity/*"]
+            }
+          ]
+        }
       }
     });
 
-    new aws.iam.RolePolicyAttachment("graphql-role-ses-policy-attachment", {
-      role: resources.graphql.role.output.name,
-      policyArn: policy.arn
+    addResource(aws.iam.RolePolicyAttachment, {
+      name: "graphql-role-ses-policy-attachment",
+      config: {
+        role: resources.graphql.role.output.name,
+        policyArn: policy.output.arn
+      }
     });
   }
 });
@@ -483,76 +489,101 @@ import { createApiApp } from "@webiny/serverless-cms-aws";
 
 export default createApiApp({
   pulumiResourceNamePrefix: "wby-",
-  pulumi({ paths }) {
-    const role = new aws.iam.Role("my-cron-job-fn-role", {
-      description: "My cron job Lambda function role.",
-      assumeRolePolicy: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            Action: "sts:AssumeRole",
-            Principal: {
-              Service: "lambda.amazonaws.com"
-            },
-            Effect: "Allow"
-          }
-        ]
+  pulumi({ paths, addResource }) {
+    const role = addResource(aws.iam.Role, {
+      name: "my-cron-job-fn-role",
+      config: {
+        description: "My cron job Lambda function role.",
+        assumeRolePolicy: {
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Action: "sts:AssumeRole",
+              Principal: {
+                Service: "lambda.amazonaws.com"
+              },
+              Effect: "Allow"
+            }
+          ]
+        }
       }
     });
 
-    new aws.iam.RolePolicyAttachment(`my-cron-job-fn-role-basic-execution-policy-attachment`, {
-      role,
-      policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole
-    });
-
-    const policy = new aws.iam.Policy("my-cron-job-fn-policy", {
-      description: "My cron job Lambda function policy.",
-      policy: {
-        Version: "2012-10-17",
-        Statement: [
-          {
-            // Not recommended. Always use least-privilege principle.
-            Effect: "Allow",
-            Action: ["*"],
-            Resource: ["*"]
-          }
-        ]
+    addResource(aws.iam.RolePolicyAttachment, {
+      name: "my-cron-job-fn-role-basic-execution-policy-attachment",
+      config: {
+        role,
+        policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole
       }
     });
 
-    new aws.iam.RolePolicyAttachment("my-cron-job-fn-role-policy-attachment", {
-      role: role.name,
-      policyArn: policy.arn
+    addResource(aws.iam.Policy, {
+      name: "my-cron-job-fn-policy",
+      config: {
+        description: "My cron job Lambda function policy.",
+        policy: {
+          Version: "2012-10-17",
+          Statement: [
+            {
+              // Not recommended. Always use least-privilege principle.
+              Effect: "Allow",
+              Action: ["*"],
+              Resource: ["*"]
+            }
+          ]
+        }
+      }
     });
 
-    const simpleCronJobFunction = new aws.lambda.Function("my-cron-job-fn", {
-      runtime: aws.lambda.Runtime.NodeJS18dX,
-      handler: "handler.handler",
-      description: "A simple Lambda function that logs time (executed in my cron job).",
-      role: role.arn,
-      timeout: 30,
-      memorySize: 512,
-      code: new pulumi.asset.AssetArchive({
-        ".": new pulumi.asset.FileArchive(path.join(paths.workspace, "myCronJob/build"))
-      })
+    addResource(aws.iam.RolePolicyAttachment, {
+      name: "my-cron-job-fn-role-policy-attachment",
+      config: {
+        role,
+        policyArn: aws.iam.Policy.myCronJobFnPolicy.arn
+      }
     });
 
-    const eventRule = new aws.cloudwatch.EventRule("my-cron-job-fn-event-rule", {
-      description: `My cron job rule.`,
-      scheduleExpression: "rate(1 minute)",
-      isEnabled: true
+    const cronJobFnBuildFolderPath = path.join(paths.workspace, "myCronJob/build");
+    addResource(aws.lambda.Function, {
+      name: "my-cron-job-fn",
+      config: {
+        runtime: aws.lambda.Runtime.NodeJS18dX,
+        handler: "handler.handler",
+        description: "A simple Lambda function that logs time (executed in cron job).",
+        role: role.arn,
+        timeout: 30,
+        memorySize: 512,
+        code: new pulumi.asset.AssetArchive({
+          ".": new pulumi.asset.FileArchive(cronJobFnBuildFolderPath)
+        })
+      }
     });
 
-    new aws.lambda.Permission("my-cron-job-fn-events-permission", {
-      action: "lambda:InvokeFunction",
-      function: simpleCronJobFunction.arn,
-      principal: "events.amazonaws.com",
-      sourceArn: eventRule.arn
+    addResource(aws.cloudwatch.EventRule, {
+      name: "my-cron-job-fn-event-rule",
+      config: {
+        description: "My cron job rule.",
+        scheduleExpression: "rate(1 minute)",
+        isEnabled: true
+      }
     });
 
-    new aws.cloudwatch.EventTarget("my-cron-job-fn-event-target", {
-      rule: eventRule.name,
-      arn: simpleCronJobFunction.arn
+    addResource(aws.lambda.Permission, {
+      name: "my-cron-job-fn-events-permission",
+      config: {
+        action: "lambda:InvokeFunction",
+        function: simpleCronJobFunction.arn,
+        principal: "events.amazonaws.com",
+        sourceArn: eventRule.arn
+      }
+    });
+
+    addResource(aws.cloudwatch.EventTarget, {
+      name: "my-cron-job-fn-event-target",
+      config: {
+        rule: eventRule.name,
+        arn: simpleCronJobFunction.arn
+      }
     });
   }
 });
@@ -589,10 +620,10 @@ import { createWebsiteApp } from "@webiny/serverless-cms-aws";
 
 export default createWebsiteApp({
   pulumiResourceNamePrefix: "wby-",
-  pulumi(app) {
-    app.resources.delivery.cloudfront.config.orderedCacheBehaviors(orderedCacheBehaviors => {
+  pulumi({ resources }) {
+    resources.delivery.cloudfront.config.orderedCacheBehaviors(behaviors => {
       return [
-        ...orderedCacheBehaviors!,
+        ...behaviors!,
         {
           compress: true,
           allowedMethods: ["GET", "HEAD", "OPTIONS"],

@@ -1,0 +1,138 @@
+---
+id: bad5c115
+title: Upgrade from 5.42.x to 5.43.0
+description: Learn how to upgrade Webiny from 5.42.x to 5.43.0.
+---
+
+
+
+import {Alert} from "@/components/Alert";
+import {AdditionalNotes} from "@/components/upgrade/AdditionalNotes";
+
+<Alert type="success" title="What you’ll learn">
+
+  - how to upgrade Webiny from 5.42.x to 5.43.x
+
+</Alert>
+
+<Alert type="info">
+
+  Make sure to check out the [5.43.0 changelog](./changelog) to get familiar with the changes introduced in this
+  release.
+
+</Alert>
+
+## Step-by-Step Guide
+
+### 1. Upgrade Webiny Packages
+
+Upgrade all Webiny NPM packages by running the following command:
+
+```bash
+yarn up "@webiny/*@5.43.0"
+```
+
+Once the upgrade has finished, running the `yarn webiny --version` command in your terminal should return **5.43.0**.
+
+### 2. Run the Upgrade Command
+
+The next step is to run the project upgrade:
+
+```bash
+yarn webiny upgrade
+```
+
+### 3. Breaking Changes❗
+
+#### Amazon OpenSearch Service - VPC Configuration Issue ([#4532](https://github.com/webiny/webiny-js/pull/4532))
+
+Prior to this release, when deploying a Webiny project with the [existing Amazon VPC](https://www.webiny.com/docs/enterprise/use-existing-amazon-vpc) configuration in place, the Amazon OpenSearch service that Webiny deploys would not get correctly attached to the specified Amazon VPC (related subnets and security groups).
+
+For example, the following configuration would not work as expected. Contrary to the expectation, the deployed Amazon OpenSearch cluster would not be attached to the specified `OPENSEARCH_PRIVATE_SUBNETS` subnets and `OPENSEARCH_SECURITY_GROUPS` security groups:
+
+```ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws/enterprise";
+
+const OPENSEARCH_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
+const OPENSEARCH_SECURITY_GROUPS = ["security-group-id-1"];
+
+const LAMBDA_FUNCTIONS_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
+const LAMBDA_FUNCTIONS_SECURITY_GROUPS = ["security-group-id-1"];
+
+export default createCoreApp({
+  pulumiResourceNamePrefix: "wby-",
+  openSearch: true,
+  vpc: {
+    useExistingVpc: {
+      elasticSearchDomainVpcConfig: {
+        subnetIds: OPENSEARCH_PRIVATE_SUBNETS,
+        securityGroupIds: OPENSEARCH_SECURITY_GROUPS
+      },
+      lambdaFunctionsVpcConfig: {
+        subnetIds: LAMBDA_FUNCTIONS_PRIVATE_SUBNETS,
+        securityGroupIds: LAMBDA_FUNCTIONS_SECURITY_GROUPS
+      }
+    }
+  }
+});
+```
+
+With this release, the underlying issue should no longer occur, and the above configuration will work as expected—with one minor change: instead of using `elasticSearchDomainVpcConfig`, users should now use `opensearchDomainVpcConfig`. So, the above code should be updated to the following:
+
+```ts apps/core/webiny.application.ts
+import { createCoreApp } from "@webiny/serverless-cms-aws/enterprise";
+
+const OPENSEARCH_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
+const OPENSEARCH_SECURITY_GROUPS = ["security-group-id-1"];
+
+const LAMBDA_FUNCTIONS_PRIVATE_SUBNETS = ["private-subnet-id-1", "private-subnet-id-2"];
+const LAMBDA_FUNCTIONS_SECURITY_GROUPS = ["security-group-id-1"];
+
+export default createCoreApp({
+  pulumiResourceNamePrefix: "wby-",
+  openSearch: true,
+  vpc: {
+    useExistingVpc: {
+      opensearchDomainVpcConfig: {
+        subnetIds: OPENSEARCH_PRIVATE_SUBNETS,
+        securityGroupIds: OPENSEARCH_SECURITY_GROUPS
+      },
+      lambdaFunctionsVpcConfig: {
+        subnetIds: LAMBDA_FUNCTIONS_PRIVATE_SUBNETS,
+        securityGroupIds: LAMBDA_FUNCTIONS_SECURITY_GROUPS
+      }
+    }
+  }
+});
+```
+
+Once you have updated your Webiny project configuration, you will need to redeploy your project. 
+
+Note that, during deployment, the VPC configuration will now be correctly attached to the Amazon OpenSearch cluster. As a result, the previously deployed cluster will be **DESTROYED** and a new one created. This will result in the **loss of all data from the previous cluster**❗
+
+Luckily, the data can be recreated. Once the new cluster is deployed, the recreation can be done via the [Amazon OpenSearch - Reindexing Background Task](/docs/core-development-concepts/background-tasks/built-in-background-tasks#amazon-open-search-reindexing-background-task), which can be triggered via the GraphQL API or via a custom plugin. This can also be done manually, or alternatively, via a [post-deployment hook](https://www.webiny.com/docs/infrastructure/basics/build-and-deploy-hooks) script that you can add to your Webiny project.
+
+In case you need more help with this, especially when it comes to planning and executing the data migration, please reach out to us via our [community Slack](https://webiny.com/slack).
+
+#### Folder Level Permissions - Editors Can Now Manage Folders ([#4615](https://github.com/webiny/webiny-js/pull/4615))
+
+Prior to this release, only users with **Owner** permissions could manage folders. With this update, users with **Editor** permissions can now also create, edit, and delete folders.
+
+This change is a breaking one, as it modifies the existing permissions structure. If you have custom permissions set up, you may need to adjust them to accommodate this new functionality.
+
+#### `fastify` 4.29.0 ([#4464](https://github.com/webiny/webiny-js/pull/4464))
+
+While working on the [TypeScript 5.3.3](#type-script-5-3-3-4464) upgrade, the [`fastify`](https://fastify.dev/docs/v4.29.x/) NPM package was also updated to version `4.29.0`.
+
+In case your project contains custom code that directly interacts with `fastify`, you may need to update your code to be compatible with the new version. We recommend checking their official documentation for any breaking changes or updates that may affect your project.
+
+### 4. Deploy Your Project
+
+Proceed by redeploying your Webiny project:
+
+```bash
+# Execute in your project root.
+yarn webiny deploy --env {environment}
+```
+
+<AdditionalNotes />
