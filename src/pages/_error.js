@@ -1,10 +1,12 @@
 import { Layout } from "@/layouts/DocumentationLayout";
 import { PageLayout } from "@/layouts/PageLayout";
+import PageNotFound from "@/components/PageNotFound";
+
 
 export const Page404 = () => {
     return (
         <PageLayout>
-            <p>The page you're looking for doesn't exist.</p>
+            <PageNotFound/>
         </PageLayout>
     );
 };

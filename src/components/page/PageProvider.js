@@ -2,6 +2,7 @@ import { createContext, Fragment, useContext } from "react";
 import { useRouter } from "next/router";
 import titleCase from "titlecase";
 import { Breadcrumbs } from "./Breadcrumbs";
+import PageNotFound from "@/components/PageNotFound";
 
 const PageContext = createContext();
 
@@ -27,7 +28,7 @@ export const PageProvider = ({ Component, children }) => {
     const { pageData, docsearch } = layoutProps;
 
     if (!pageData) {
-        return <div>Page not found! Please enter a valid URL.</div>;
+        return <PageNotFound/>;
     }
 
     const versions = layoutProps.versions || [];
