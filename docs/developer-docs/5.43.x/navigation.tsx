@@ -7,6 +7,9 @@ export const Navigation = () => {
     <>
       <BaseNavigation />
       <NavigationRoot directory={__dirname}>
+        <Group title={"Get Started"}>
+          <Page link={"get-started/build-with-llms-ai"} after={"get-started/install-webiny"} />
+        </Group>
         <Group title={"Core Development Concepts"}>
           <Group title={"Background Tasks"}>
             <Page link={"core-development-concepts/background-tasks/about-background-tasks"} />
