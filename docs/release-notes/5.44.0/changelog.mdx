@@ -1,0 +1,54 @@
+---
+id: 1854f255
+title: Webiny 5.44.0 Changelog
+description: See what's new in Webiny version 5.44.0
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+
+<GithubRelease version={"5.44.0"} />
+
+## Security Fixes
+
+We've fixed several security-related issues:
+
+1. When updating your own user profile, or a profile of another user, we now verify that the email address is unique before passing the data to Cognito. There was a bug where Cognito was correctly throwing an error on duplicate emails, but the profile in our database was updated before that. This would create multiple user profiles with the same email address, and cause a mismatch between Webiny and Cognito.
+
+2. Some GraphQL queries were not properly checked for the type of identity, exposing data that should only be accessible to admin users (identity of type `admin`) to any authenticated identity (API keys, other non-admin identities).
+
+3. When a user logs in via the `login` mutation, we set a cookie with the user's idToken. it was brought up to us that this cookie is set twice in the response headers. This has to do with how `fastify` and its cookies plugin works. The `set-cookie` header is now properly handled to avoid duplicate values.
+
+## Page Builder Redirects
+
+We've added support for redirects in the `website` Pulumi app. This is not available via Admin app UI, but this still allows you to configure redirects of your Page Builder pages. Once deployed, these redirects will be processed in the Lambda@Edge function before delivering the page content to the user.
+
+```ts
+import { createWebsiteApp } from "@webiny/serverless-cms-aws";
+
+export default createWebsiteApp({
+  pulumiResourceNamePrefix: "wby-",
+  redirects() {
+    return [
+      // Supports domain-level redirects (if you serve your website through multiple domains)
+      {
+        from: "https://my.website.com/news",
+        to: "https://blog.website.org/en-us/overview/news",
+        permanent: true
+      },
+      // Supports path-level redirects
+      {
+        from: "/old-page",
+        to: "/new-page",
+        permanent: true
+      },
+      // Supports custom cache headers
+      {
+        from: "/page-1",
+        to: "/new-page",
+        permanent: true,
+        maxAge: 6666
+      }
+    ];
+  }
+});
+```
