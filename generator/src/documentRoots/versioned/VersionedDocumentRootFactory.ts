@@ -46,7 +46,6 @@ import { NextLinksRemarkPlugin } from "../../app/mdxCompiler/remark/NextLinksRem
 import { FilteredMdxFileWriter } from "../../app/FilteredMdxFileWriter";
 import { VersionRoot } from "./VersionRoot";
 import { ProcessedFileWriter } from "../../app/ProcessedFileWriter";
-import { ServerSideRenderProcessor } from "../../app/processors/ServerSideRenderProcessor";
 
 interface Config {
   rootDir: string;
@@ -132,9 +131,9 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
       ...config.mdxFileProcessors
     ];
 
-    if (!version.isLatest()) {
-      mdxFileProcessors.push(new ServerSideRenderProcessor());
-    }
+    // if (!version.isLatest()) {
+    //   mdxFileProcessors.push(new ServerSideRenderProcessor());
+    // }
 
     if (this.appConfig.isDevMode()) {
       // Inject absolute file path for development purposes.
