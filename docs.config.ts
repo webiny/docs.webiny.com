@@ -34,10 +34,27 @@ const linkWhitelist: string[] = [...redirects.map(r => r.source), "/forms/produc
  */
 const whitelistedVersions: string[] = [];
 
+/**
+ * Only build versions at or above this version (e.g., "5.40.x").
+ * Set via MIN_VERSION environment variable or modify here.
+ * Set to empty string to build all versions.
+ */
+const minVersionToBuild = process.env.MIN_VERSION || "";
+
 const filterByEnvironment = (version: Version) => {
   // In `preview`, if there are specific versions whitelisted for deployment, those are the only ones we'll output.
   if (preview && whitelistedVersions.length > 0) {
     return whitelistedVersions.includes(version.getValue());
+  }
+
+  // If minVersionToBuild is set, only build versions >= minVersion or `latest`.
+  if (minVersionToBuild) {
+    if (minVersionToBuild === "latest") {
+      return version.isLatest();
+    }
+    const versionNum = parseFloat(version.getValue().replace(/[^\d.]/g, ""));
+    const minVersionNum = parseFloat(minVersionToBuild.replace(/[^\d.]/g, ""));
+    return versionNum >= minVersionNum;
   }
 
   // Build everything.

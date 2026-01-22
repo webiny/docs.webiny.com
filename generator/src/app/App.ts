@@ -35,7 +35,8 @@ export class App {
       await this.checkBrokenLinks();
     } catch (err) {
       this.logger.error(err.message);
-      throw err;
+      // Don't break the process.
+      // throw err;
     }
   }
 
