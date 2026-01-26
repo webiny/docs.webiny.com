@@ -1,6 +1,5 @@
 import React from "react";
-import { Group, Page, NavigationRoot } from "@webiny/docs-generator";
-import { Separator } from "@webiny/docs-generator";
+import { Group, NavigationRoot, Page, Separator } from "@webiny/docs-generator";
 
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -12,6 +11,13 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"get-started/welcome"} />
         <Page link={"get-started/install-webiny"} />
+      </Group>
+      <Group
+        title={"Headless CMS"}
+        icon={"/docs-menu-icons/headless-cms.svg"}
+        link={"headless-cms/event-handler/group"}
+      >
+        <Page link={"headless-cms/event-handler/group"} />
       </Group>
       <Page link={"overview/pricing"} hidden={true} />
       <Page link={"overview/features/security"} hidden={true} />
