@@ -21,6 +21,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"headless-cms/event-handler/group"} />
         <Page link={"headless-cms/event-handler/model"} />
         <Page link={"headless-cms/event-handler/entry"} />
+        <Page link={"headless-cms/event-handler/entry-extended"} />
       </Group>
       <Page link={"overview/pricing"} hidden={true} />
       <Page link={"overview/features/security"} hidden={true} />
