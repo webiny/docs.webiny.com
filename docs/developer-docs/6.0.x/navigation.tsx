@@ -20,6 +20,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"headless-cms/about"} />
         <Page link={"headless-cms/event-handler/group"} />
         <Page link={"headless-cms/event-handler/model"} />
+        <Page link={"headless-cms/event-handler/entry"} />
       </Group>
       <Page link={"overview/pricing"} hidden={true} />
       <Page link={"overview/features/security"} hidden={true} />
