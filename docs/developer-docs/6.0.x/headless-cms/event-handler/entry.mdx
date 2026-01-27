@@ -1,0 +1,118 @@
+---
+id: dhuztl3u
+title: Entry Event Handlers
+description: Which event handlers are available in Headless CMS Entries and how to use them.
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- Which event handlers are available for Entries?
+- How to use them?
+- How to load them in your project?
+
+</Alert>
+
+## Overview
+
+In our Headless CMS we provide events for our users to hook into.
+
+With the events you can hook into a number of different Model related operations, all of which we will list here.
+
+## Create an Entry
+
+### EntryBeforeCreateEventHandler
+
+```typescript extensions/cms/entry/eventHandler/create/beforeCreate.ts
+import { EntryBeforeCreateEventHandler as EntryBeforeCreateEventHandlerAbstraction } from "webiny/api/cms/entry";
+import { Logger } from "webiny/api/features/Logger";
+
+class EntryBeforeCreateEventHandlerImpl
+    implements EntryBeforeCreateEventHandlerAbstraction.Interface
+{
+    public constructor(private logger: Logger.Interface) {}
+
+    public async handle(event: EntryBeforeCreateEventHandlerAbstraction.Event): Promise<void> {
+        const { payload, occurredAt, eventType } = event;
+        this.logger.info("Trying to create an entry:", {
+            payload,
+            occurredAt,
+            eventType
+        });
+    }
+}
+
+const EntryBeforeCreateEventHandler = EntryBeforeCreateEventHandlerAbstraction.createImplementation(
+    {
+        implementation: EntryBeforeCreateEventHandlerImpl,
+        dependencies: [Logger]
+    }
+);
+
+export default EntryBeforeCreateEventHandler;
+
+```
+
+### EntryAfterCreateEventHandler
+
+```typescript extensions/cms/entry/eventHandler/create/beforeCreate.ts
+import { EntryAfterCreateEventHandler as EntryAfterCreateEventHandlerAbstraction } from "webiny/api/cms/entry";
+import { Logger } from "webiny/api/features/Logger";
+
+class EntryAfterCreateEventHandlerImpl
+    implements EntryAfterCreateEventHandlerAbstraction.Interface
+{
+    public constructor(private logger: Logger.Interface) {}
+
+    public async handle(event: EntryAfterCreateEventHandlerAbstraction.Event): Promise<void> {
+        const { payload, occurredAt, eventType } = event;
+        this.logger.info("Created an entry:", {
+            payload,
+            occurredAt,
+            eventType
+        });
+    }
+}
+
+const EntryAfterCreateEventHandler = EntryAfterCreateEventHandlerAbstraction.createImplementation({
+    implementation: EntryAfterCreateEventHandlerImpl,
+    dependencies: [Logger]
+});
+
+export default EntryAfterCreateEventHandler;
+```
+
+
+--- insert after this  ---
+
+
+
+
+
+
+--- up to here ---
+## Loading Event Handlers in Your Project
+
+All the event handlers MUST be exported as default export from the file, otherwise it will not work.
+
+To load the event handlers in your project, you need to add them in the root `webiny.config.tsx` file, something like this:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+    return (
+        <>
+            {/* ... all your other extensions */}
+            <Api.Extension src={"/extensions/cms/model/eventHandler/create/beforeCreate.ts"} />
+            <Api.Extension src={"/extensions/cms/model/eventHandler/create/afterCreate.ts"} />
+            <Api.Extension src={"/extensions/cms/model/eventHandler/update/beforeUpdate.ts"} />
+            <Api.Extension src={"/extensions/cms/model/eventHandler/update/afterUpdate.ts"} />
+            <Api.Extension src={"/extensions/cms/model/eventHandler/delete/beforeDelete.ts"} />
+            <Api.Extension src={"/extensions/cms/model/eventHandler/delete/afterDelete.ts"} />
+        </>
+    );
+};
+```

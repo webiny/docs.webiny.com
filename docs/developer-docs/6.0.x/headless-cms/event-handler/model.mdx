@@ -18,7 +18,7 @@ import {Alert} from "@/components/Alert";
 
 In our Headless CMS we provide events for our users to hook into.
 
-With the lifecycle events you can hook into a number of different Model related operations, all of which we will list here.
+With the events you can hook into a number of different Entry related operations, all of which we will list here.
 
 ## Create a Model
 
@@ -55,7 +55,7 @@ export default ModelBeforeCreateEventHandler;
 
 ### ModelAfterCreateEventHandler
 
-```typescript extensions/cms/model/eventHandler/create/beforeCreate.ts
+```typescript extensions/cms/model/eventHandler/create/afterCreate.ts
 import { ModelAfterCreateEventHandler as ModelAfterCreateEventHandlerAbstraction } from "webiny/api/cms/model";
 import { Logger } from "webiny/api/features/Logger";
 
@@ -119,7 +119,7 @@ export default ModelBeforeUpdateEventHandler;
 
 ### ModelAfterUpdateEventHandler
 
-```typescript extensions/cms/model/eventHandler/update/beforeUpdate.ts
+```typescript extensions/cms/model/eventHandler/update/afterUpdate.ts
 import { ModelAfterUpdateEventHandler as ModelAfterUpdateEventHandlerAbstraction } from "webiny/api/cms/model";
 import { Logger } from "webiny/api/features/Logger";
 
@@ -146,6 +146,70 @@ const ModelAfterUpdateEventHandler = ModelAfterUpdateEventHandlerAbstraction.cre
 );
 
 export default ModelAfterUpdateEventHandler;
+```
+
+## Create a Model From Existing One
+
+### ModelBeforeCreateFromEventHandler
+
+```typescript extensions/cms/model/eventHandler/createFrom/beforeCreateFrom.ts
+import { ModelBeforeCreateFromEventHandler as ModelBeforeCreateFromEventHandlerAbstraction } from "webiny/api/cms/model";
+import { Logger } from "webiny/api/features/Logger";
+
+class ModelBeforeCreateFromEventHandlerImpl
+    implements ModelBeforeCreateFromEventHandlerAbstraction.Interface
+{
+    public constructor(private logger: Logger.Interface) {}
+
+    public async handle(event: ModelBeforeCreateFromEventHandlerAbstraction.Event): Promise<void> {
+        const { payload, occurredAt, eventType } = event;
+        this.logger.info("Trying to create a model from:", {
+            payload,
+            occurredAt,
+            eventType
+        });
+    }
+}
+
+const ModelBeforeCreateFromEventHandler =
+    ModelBeforeCreateFromEventHandlerAbstraction.createImplementation({
+        implementation: ModelBeforeCreateFromEventHandlerImpl,
+        dependencies: [Logger]
+    });
+
+export default ModelBeforeCreateFromEventHandler;
+
+```
+
+### ModelAfterCreateFromEventHandler
+
+```typescript extensions/cms/model/eventHandler/createFrom/afterCreateFrom.ts
+import { ModelAfterCreateFromEventHandler as ModelAfterCreateFromEventHandlerAbstraction } from "webiny/api/cms/model";
+import { Logger } from "webiny/api/features/Logger";
+
+class ModelAfterCreateFromEventHandlerImpl
+    implements ModelAfterCreateFromEventHandlerAbstraction.Interface
+{
+    public constructor(private logger: Logger.Interface) {}
+
+    public async handle(event: ModelAfterCreateFromEventHandlerAbstraction.Event): Promise<void> {
+        const { payload, occurredAt, eventType } = event;
+        this.logger.info("Created a model from:", {
+            payload,
+            occurredAt,
+            eventType
+        });
+    }
+}
+
+const ModelAfterCreateFromEventHandler =
+    ModelAfterCreateFromEventHandlerAbstraction.createImplementation({
+        implementation: ModelAfterCreateFromEventHandlerImpl,
+        dependencies: [Logger]
+    });
+
+export default ModelAfterCreateFromEventHandler;
+
 ```
 
 ## Delete a Model
@@ -183,7 +247,7 @@ export default ModelBeforeDeleteEventHandler;
 
 ### ModelAfterDeleteEventHandler
 
-```typescript extensions/cms/model/eventHandler/delete/beforeDelete.ts
+```typescript extensions/cms/model/eventHandler/delete/afterDelete.ts
 import { ModelAfterDeleteEventHandler as ModelAfterDeleteEventHandlerAbstraction } from "webiny/api/cms/model";
 import { Logger } from "webiny/api/features/Logger";
 
@@ -228,6 +292,8 @@ export const Extensions = () => {
             {/* ... all your other extensions */}
             <Api.Extension src={"/extensions/cms/model/eventHandler/create/beforeCreate.ts"} />
             <Api.Extension src={"/extensions/cms/model/eventHandler/create/afterCreate.ts"} />
+            <Api.Extension src={"/extensions/cms/model/eventHandler/createFrom/beforeCreateFrom.ts"} />
+            <Api.Extension src={"/extensions/cms/model/eventHandler/createFrom/afterCreateFrom.ts"} />
             <Api.Extension src={"/extensions/cms/model/eventHandler/update/beforeUpdate.ts"} />
             <Api.Extension src={"/extensions/cms/model/eventHandler/update/afterUpdate.ts"} />
             <Api.Extension src={"/extensions/cms/model/eventHandler/delete/beforeDelete.ts"} />
