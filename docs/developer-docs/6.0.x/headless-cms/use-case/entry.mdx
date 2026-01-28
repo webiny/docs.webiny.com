@@ -1,0 +1,62 @@
+---
+id: au12c3js
+title: Entry Use Cases
+description: About Headless CMS Entry Use Cases
+---
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What are available use cases for Headless CMS Entries?
+- How to use them?
+
+</Alert>
+
+## Overview
+
+In `v6` of Webiny, we moved away from using `context` to `use cases`. Since we employ our own custom Dependency Injection (DI), we can now easily inject anything we need to a class being used.
+
+This article will list all the use cases available for Headless CMS Entries and explain how to use them.
+
+## Use Cases
+
+All our use cases have an `execute` method that you can call to perform the action that use case is for.
+Params of that method and its return type are defined in the abstraction of the use case.
+
+Consult our examples for more information.
+
+### Create Entry Use Case
+
+```typescript extensions/cms/entry/useCase/createEntryUseCase.ts
+import { CreateEntry } from "./abstractions.js";
+import { CreateEntryUseCase } from "webiny/api/cms/entry";
+import { GetModelUseCase } from "webiny/api/cms/model";
+
+class CreateEntryUseCaseImpl implements CreateEntry.Interface {
+    public constructor(
+        private createEntryUseCase: CreateEntryUseCase.Interface,
+        private getModelUseCase: GetModelUseCase.Interface
+    ) {}
+
+    public async execute(params: CreateEntry.Params): CreateEntry.Return {
+        const model = await this.getModelUseCase.execute(params.model.modelId);
+        if (model.isFail()) {
+            throw new Error(`Could not find model ${params.model.modelId}.`);
+        }
+
+        const result = await this.createEntryUseCase.execute(model.value, params.input);
+        if (result.isFail()) {
+            throw new Error(result.error.message);
+        }
+        return result.value;
+    }
+}
+
+const MyCustomClassUsingTheUseCase = CreateEntry.createImplementation({
+    implementation: CreateEntryUseCaseImpl,
+    dependencies: [CreateEntryUseCase, GetModelUseCase]
+});
+
+export default MyCustomClassUsingTheUseCase;
+```
+
