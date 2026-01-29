@@ -3,6 +3,7 @@ id: au12c3js
 title: Entry Use Cases
 description: About Headless CMS Entry Use Cases
 ---
+
 import {Alert} from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
@@ -13,9 +14,6 @@ import {Alert} from "@/components/Alert";
 </Alert>
 
 ## Overview
-
-In `v6` of Webiny, we moved away from using `context` to `use cases`. Since we employ our own custom Dependency Injection (DI), we can now easily inject anything we need to a class being used.
-
 This article will list all the use cases available for Headless CMS Entries and explain how to use them.
 
 ## Use Cases
@@ -59,6 +57,55 @@ const MyCustomClassUsingTheUseCase = CreateEntry.createImplementation({
 
 export default MyCustomClassUsingTheUseCase;
 ```
+
+
+### Update Entry Use Case
+
+```typescript extensions/cms/entry/useCase/createEntryUseCase.ts
+import { UpdateEntry } from "./abstractions.js";
+import { GetEntryByIdUseCase, UpdateEntryUseCase } from "webiny/api/cms/entry";
+import { GetModelUseCase } from "webiny/api/cms/model";
+
+class UpdateEntryUseCaseImpl implements UpdateEntry.Interface {
+    public constructor(
+        private updateEntryUseCase: UpdateEntryUseCase.Interface,
+        private getEntryByIdUseCase: GetEntryByIdUseCase.Interface,
+        private getModelUseCase: GetModelUseCase.Interface
+    ) {}
+
+    public async execute(params: UpdateEntry.Params): UpdateEntry.Return {
+        const model = await this.getModelUseCase.execute(params.model.modelId);
+        if (model.isFail()) {
+            throw new Error(`Could not find model ${params.model.modelId}.`);
+        }
+
+        const original = await this.getEntryByIdUseCase.execute(model.value, params.id);
+        if (original.isFail()) {
+            throw new Error(`Could not find entry with ID ${params.id}.`);
+        }
+
+        const result = await this.updateEntryUseCase.execute(
+            model.value,
+            original.value.id,
+            params.input
+        );
+        if (result.isFail()) {
+            throw new Error(result.error.message);
+        }
+        return result.value;
+    }
+}
+
+const MyCustomClassUsingTheUseCase = UpdateEntry.createImplementation({
+    implementation: UpdateEntryUseCaseImpl,
+    dependencies: [UpdateEntryUseCase, GetEntryByIdUseCase, GetModelUseCase]
+});
+
+export default MyCustomClassUsingTheUseCase;
+```
+
+
+
 THE LIST:
 UpdateEntryUseCase,
 CreateEntryRevisionFromUseCase,
