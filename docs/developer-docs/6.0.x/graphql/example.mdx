@@ -21,123 +21,94 @@ import {Alert} from "@/components/Alert";
 
 Webiny provides a powerful GraphQL API framework that allows you to extend and customize the GraphQL schema. By implementing the `GraphQLSchemaFactory` interface, you can add custom types, queries, and mutations to your Webiny application.
 
-The example demonstrates a complete implementation of a remote access system with authentication and command execution capabilities. It shows how to:
+The example demonstrates a complete implementation of a custom GraphQL query that lists CMS entries from any content model. It shows how to:
 
-- Define GraphQL type definitions using `addTypeDefs()` with custom types, inputs, and response structures
-- Extend existing GraphQL types (like `Mutation`) with your custom operations
+- Define GraphQL type definitions using `addTypeDefs()` with custom types and response structures
+- Extend existing GraphQL types (like `Query`) with your custom operations
 - Add resolvers using `addResolver()` with dependency injection support
-- Handle both success and error responses in a consistent way
-- Integrate with service classes to implement business logic
+- Handle both success and error responses using the Result pattern
 
-This pattern follows Webiny architecture principles, keeping the GraphQL layer thin and delegating business logic to dedicated service classes. The resolver functions receive injected dependencies and handle the communication between the GraphQL API and your application services.
+This pattern follows Webiny architecture principles, keeping the GraphQL layer thin and delegating business logic to dedicated use cases. The resolver functions receive injected dependencies and handle the communication between the GraphQL API and your application services.
 
 
 ## Code Example
 
 ```typescript
 import { GraphQLSchemaFactory } from "webiny/api/graphql";
-import { RemoteAccessService } from "./abstractions.js";
+import { GetModelUseCase } from "webiny/api/cms/model";
+import { ListPublishedEntriesUseCase } from "webiny/api/cms/entry";
 
-interface IRemoteAccessParams {
-    username: string;
-    password: string;
+interface IListCmsEntriesArgs {
+    modelId: string;
+    limit?: number;
+    after?: string;
 }
 
-interface IRemoteCommandParams {
-    command: string;
-    token: string;
-}
-
-class RemoteAccessGraphQL implements GraphQLSchemaFactory.Interface {
+class ListCmsEntriesGraphQL implements GraphQLSchemaFactory.Interface {
     public async execute(builder: GraphQLSchemaFactory.SchemaBuilder): GraphQLSchemaFactory.Return {
         builder.addTypeDefs(/* GraphQL */ `
-            type RemoteAccessToken {
-                token: String!
-                expiresOn: String!
+            type CustomListCmsEntriesResponseItem {
+                id: ID!
+                title: String!
+            }
+            type CustomListCmsEntriesResponse {
+                data: [CustomListCmsEntriesResponseItem!]
+                meta: CmsListMeta
+                error: CmsError
             }
 
-            type RemoteAccess {
-                userId: ID!
-                token: RemoteAccessToken!
-            }
-
-            input RemoteAccessInput {
-                username: String!
-                password: String!
-            }
-
-            type RemoteAccessError {
-                message: String!
-                code: String!
-            }
-
-            type RemoteAccessResponse {
-                data: RemoteAccess
-                error: RemoteAccessError
-            }
-
-            type RemoteCommandResponseData {
-                body: JSON!
-            }
-
-            type RemoteCommandResponse {
-                data: RemoteCommandResponseData
-                error: RemoteAccessError
-            }
-
-            extend type Mutation {
-                remoteAccess(username: String!, password: String!): RemoteAccessResponse!
-                remoteCommand(command: String!, token: String!): RemoteCommandResponse!
+            extend type Query {
+                listCmsEntries(
+                    modelId: ID!
+                    limit: Int
+                    after: String
+                ): CustomListCmsEntriesResponse!
             }
         `);
 
-        builder.addResolver<IRemoteAccessParams>({
-            path: "Mutation.remoteAccess",
-            dependencies: [RemoteAccessService],
-            resolver(remoteAccessService: RemoteAccessService.Interface) {
+        builder.addResolver<IListCmsEntriesArgs>({
+            path: "Query.listCmsEntries",
+            dependencies: [GetModelUseCase, ListPublishedEntriesUseCase],
+            resolver(
+                getModel: GetModelUseCase.Interface,
+                listEntries: ListPublishedEntriesUseCase.Interface
+            ) {
                 return async ({ args }) => {
-                    try {
-                        const result = await remoteAccessService.authenticate(
-                            args.username,
-                            args.password
-                        );
-                        return {
-                            data: result,
-                            error: null
-                        };
-                    } catch (ex) {
-                        return {
-                            data: null,
-                            error: ex
-                        };
-                    }
-                };
-            }
-        });
+                    const { modelId, limit, after } = args;
 
-        builder.addResolver<IRemoteCommandParams>({
-            path: "Mutation.remoteCommand",
-            dependencies: [RemoteAccessService],
-            resolver(remoteAccessService: RemoteAccessService.Interface) {
-                return async ({ args }) => {
-                    try {
-                        const result = await remoteAccessService.executeCommand(
-                            args.command,
-                            args.token
-                        );
+                    const modelResult = await getModel.execute(modelId);
+
+                    if (modelResult.isFail()) {
                         return {
-                            data: {
-                                id: result.id,
-                                body: result.body
-                            },
-                            error: null
-                        };
-                    } catch (ex) {
-                        return {
+                            error: modelResult.error,
                             data: null,
-                            error: ex
+                            meta: null
                         };
                     }
+                    const model = modelResult.value;
+
+                    const entriesResult = await listEntries.execute(model, {
+                        limit: limit || 10,
+                        after: after || null
+                    });
+                    if (entriesResult.isFail()) {
+                        return {
+                            error: entriesResult.error,
+                            data: null,
+                            meta: null
+                        };
+                    }
+
+                    const { entries, meta } = entriesResult.value;
+
+                    return {
+                        data: entries.map(item => ({
+                            id: item.id,
+                            title: item.values[model.titleFieldId] || "No title"
+                        })),
+                        meta,
+                        error: null
+                    };
                 };
             }
         });
@@ -146,5 +117,5 @@ class RemoteAccessGraphQL implements GraphQLSchemaFactory.Interface {
     }
 }
 
-export default RemoteAccessGraphQL;
+export default ListCmsEntriesGraphQL;
 ```
