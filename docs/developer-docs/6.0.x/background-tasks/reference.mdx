@@ -25,11 +25,19 @@ A task definition includes:
 
 - **Task metadata** - Unique ID, title, description, and configuration options (max iterations, logging, visibility)
 - **Main execution method** - The `run()` method that processes the task with input/output type safety
+- **Runtime control** - Check execution status with `controller.runtime.isAborted()` and `controller.runtime.isCloseToTimeout()`
 - **Lifecycle hooks** - Methods triggered at different stages: `onBeforeTrigger`, `onDone`, `onError`, `onAbort`, and `onMaxIterations`
 - **Input validation** - Schema-based validation using the `createInputValidation()` method
 - **Dependency injection** - Access to use cases and services through `createImplementation()`
 
-The `TaskDefinition` namespace provides all the necessary types for implementing your task, while `TaskDefinition.createImplementation()` handles the registration with dependency injection. The task controller provides runtime control methods to check if execution should be aborted and response methods to return different task states (done, error, aborted). This pattern keeps background tasks modular, testable, and easy to monitor.
+The `TaskDefinition` namespace provides all the necessary types for implementing your task, while `TaskDefinition.createImplementation()` handles the registration with dependency injection. The task controller provides runtime control methods to check if execution should be aborted or is close to timeout, and response methods to return different task states:
+
+- **`controller.response.done()`** - Task completed successfully
+- **`controller.response.continue()`** - Task needs to continue in the next iteration (useful for long-running operations)
+- **`controller.response.error()`** - Task failed with an error
+- **`controller.response.aborted()`** - Task was manually aborted
+
+This pattern keeps background tasks modular, testable, and easy to monitor.
 
 ## Usage Example
 
@@ -41,6 +49,7 @@ import { PublishEntryUseCase } from "webiny/api/cms/entry";
 interface Input {
     model: string;
     list: string[];
+    last?: string;
 }
 
 interface OutputItem {
@@ -59,7 +68,7 @@ class PublishEntriesBackgroundTask implements TaskDefinition.Interface {
     // description of the task - a brief explanation of what the task does
     public readonly description = "A background task to publish CMS entries.";
     // maximum number of iterations before the task goes into the error state
-    public readonly maxIterations = 1;
+    public readonly maxIterations = 100;
     // disable logging
     public readonly disableDatabaseLogs = true;
     // make the task private so it doesn't show publicly (graphql api, etc...)
@@ -86,10 +95,20 @@ class PublishEntriesBackgroundTask implements TaskDefinition.Interface {
         const cmsModel = modelResult.value;
 
         const results: OutputItem[] = [];
-        for (const entryId of list) {
+        let last = input.last;
+        const startList = last ? list.slice(list.indexOf(last) + 1) : list;
+        
+        for (const entryId of startList) {
             if (controller.runtime.isAborted()) {
                 return controller.response.aborted();
+            } else if (controller.runtime.isCloseToTimeout()) {
+                return controller.response.continue({
+                    ...input,
+                    last
+                });
             }
+
+            last = entryId;
 
             try {
                 const publishEntryResult = await this.publishEntry.execute(cmsModel, entryId);
@@ -153,7 +172,7 @@ class PublishEntriesBackgroundTask implements TaskDefinition.Interface {
     public createInputValidation({ validator }: TaskDefinition.CreateInputValidationParams) {
         return validator.object({
             model: validator.string().min(1),
-            list: validator.array(validator.string()).min(1).max(100)
+            list: validator.array(validator.string()).min(1).max(10000)
         });
     }
 }
@@ -162,5 +181,4 @@ export default TaskDefinition.createImplementation({
     implementation: PublishEntriesBackgroundTask,
     dependencies: [GetModelUseCase, PublishEntryUseCase]
 });
-
 ```
