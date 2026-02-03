@@ -36,6 +36,7 @@ This pattern follows Webiny architecture principles, keeping the GraphQL layer t
 
 ```typescript
 import { GraphQLSchemaFactory } from "webiny/api/graphql";
+import { RemoteAccessService } from "./abstractions.js";
 
 interface IRemoteAccessParams {
     username: string;
@@ -96,7 +97,10 @@ class RemoteAccessGraphQL implements GraphQLSchemaFactory.Interface {
             resolver(remoteAccessService: RemoteAccessService.Interface) {
                 return async ({ args }) => {
                     try {
-                        const result = await remoteAccessService.authenticate(args);
+                        const result = await remoteAccessService.authenticate(
+                            args.username,
+                            args.password
+                        );
                         return {
                             data: result,
                             error: null
@@ -117,9 +121,15 @@ class RemoteAccessGraphQL implements GraphQLSchemaFactory.Interface {
             resolver(remoteAccessService: RemoteAccessService.Interface) {
                 return async ({ args }) => {
                     try {
-                        const result = await remoteAccessService.executeCommand(args);
+                        const result = await remoteAccessService.executeCommand(
+                            args.command,
+                            args.token
+                        );
                         return {
-                            data: result,
+                            data: {
+                                id: result.id,
+                                body: result.body
+                            },
                             error: null
                         };
                     } catch (ex) {
@@ -137,5 +147,4 @@ class RemoteAccessGraphQL implements GraphQLSchemaFactory.Interface {
 }
 
 export default RemoteAccessGraphQL;
-
 ```
