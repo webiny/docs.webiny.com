@@ -1,0 +1,141 @@
+---
+id: ba8s58we
+title: Example
+description: GraphQL Example
+---
+
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to add your own GraphQL schema?
+- How to define GraphQL types, inputs, and mutations?
+- How to add resolvers with dependency injection?
+- How to handle errors in GraphQL responses?
+- How to extend existing GraphQL types?
+
+</Alert>
+
+## Overview
+
+Webiny provides a powerful GraphQL API framework that allows you to extend and customize the GraphQL schema. By implementing the `GraphQLSchemaFactory` interface, you can add custom types, queries, and mutations to your Webiny application.
+
+The example demonstrates a complete implementation of a remote access system with authentication and command execution capabilities. It shows how to:
+
+- Define GraphQL type definitions using `addTypeDefs()` with custom types, inputs, and response structures
+- Extend existing GraphQL types (like `Mutation`) with your custom operations
+- Add resolvers using `addResolver()` with dependency injection support
+- Handle both success and error responses in a consistent way
+- Integrate with service classes to implement business logic
+
+This pattern follows Webiny architecture principles, keeping the GraphQL layer thin and delegating business logic to dedicated service classes. The resolver functions receive injected dependencies and handle the communication between the GraphQL API and your application services.
+
+
+## Code Example
+
+```typescript
+import { GraphQLSchemaFactory } from "webiny/api/graphql";
+
+interface IRemoteAccessParams {
+    username: string;
+    password: string;
+}
+
+interface IRemoteCommandParams {
+    command: string;
+    token: string;
+}
+
+class RemoteAccessGraphQL implements GraphQLSchemaFactory.Interface {
+    public async execute(builder: GraphQLSchemaFactory.SchemaBuilder): GraphQLSchemaFactory.Return {
+        builder.addTypeDefs(/* GraphQL */ `
+            type RemoteAccessToken {
+                token: String!
+                expiresOn: String!
+            }
+
+            type RemoteAccess {
+                userId: ID!
+                token: RemoteAccessToken!
+            }
+
+            input RemoteAccessInput {
+                username: String!
+                password: String!
+            }
+
+            type RemoteAccessError {
+                message: String!
+                code: String!
+            }
+
+            type RemoteAccessResponse {
+                data: RemoteAccess
+                error: RemoteAccessError
+            }
+
+            type RemoteCommandResponseData {
+                body: JSON!
+            }
+
+            type RemoteCommandResponse {
+                data: RemoteCommandResponseData
+                error: RemoteAccessError
+            }
+
+            extend type Mutation {
+                remoteAccess(username: String!, password: String!): RemoteAccessResponse!
+                remoteCommand(command: String!, token: String!): RemoteCommandResponse!
+            }
+        `);
+
+        builder.addResolver<IRemoteAccessParams>({
+            path: "Mutation.remoteAccess",
+            dependencies: [RemoteAccessService],
+            resolver(remoteAccessService: RemoteAccessService.Interface) {
+                return async ({ args }) => {
+                    try {
+                        const result = await remoteAccessService.authenticate(args);
+                        return {
+                            data: result,
+                            error: null
+                        };
+                    } catch (ex) {
+                        return {
+                            data: null,
+                            error: ex
+                        };
+                    }
+                };
+            }
+        });
+
+        builder.addResolver<IRemoteCommandParams>({
+            path: "Mutation.remoteCommand",
+            dependencies: [RemoteAccessService],
+            resolver(remoteAccessService: RemoteAccessService.Interface) {
+                return async ({ args }) => {
+                    try {
+                        const result = await remoteAccessService.executeCommand(args);
+                        return {
+                            data: result,
+                            error: null
+                        };
+                    } catch (ex) {
+                        return {
+                            data: null,
+                            error: ex
+                        };
+                    }
+                };
+            }
+        });
+
+        return builder;
+    }
+}
+
+export default RemoteAccessGraphQL;
+
+```
