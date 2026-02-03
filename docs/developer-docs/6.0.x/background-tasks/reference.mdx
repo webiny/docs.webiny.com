@@ -1,7 +1,7 @@
 ---
 id: ifggwkus
-title: About
-description: About Background Tasks
+title: Reference
+description: Background Tasks Reference
 ---
 
 
@@ -9,10 +9,158 @@ import {Alert} from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
-- TBD
+- How to create your own background tasks?
+- How to implement the `TaskDefinition` interface?
+- How to handle task lifecycle hooks?
+- How to validate task input parameters?
+- How to control task execution and handle errors?
 
 </Alert>
 
 ## Overview
 
-TBD
+Background Tasks in Webiny allow you to execute long-running operations asynchronously without blocking the main request-response cycle. By implementing the `TaskDefinition.Interface` and registering it with `TaskDefinition.createImplementation()`, you can create custom background tasks that handle complex operations like batch processing, data migrations, or bulk actions.
+
+A task definition includes:
+
+- **Task metadata** - Unique ID, title, description, and configuration options (max iterations, logging, visibility)
+- **Main execution method** - The `run()` method that processes the task with input/output type safety
+- **Lifecycle hooks** - Methods triggered at different stages: `onBeforeTrigger`, `onDone`, `onError`, `onAbort`, and `onMaxIterations`
+- **Input validation** - Schema-based validation using the `createInputValidation()` method
+- **Dependency injection** - Access to use cases and services through `createImplementation()`
+
+The `TaskDefinition` namespace provides all the necessary types for implementing your task, while `TaskDefinition.createImplementation()` handles the registration with dependency injection. The task controller provides runtime control methods to check if execution should be aborted and response methods to return different task states (done, error, aborted). This pattern keeps background tasks modular, testable, and easy to monitor.
+
+## Usage Example
+
+```typescript
+import { TaskDefinition } from "webiny/api/background-tasks";
+import { GetModelUseCase } from "webiny/api/cms/model";
+import { PublishEntryUseCase } from "webiny/api/cms/entry";
+
+interface Input {
+    model: string;
+    list: string[];
+}
+
+interface OutputItem {
+    id: string;
+    error?: string;
+}
+interface Output {
+    list: OutputItem[];
+}
+
+class PublishEntriesBackgroundTask implements TaskDefinition.Interface {
+    // id of a task - must be unique across the entire system
+    public readonly id = "publishEntriesBackgroundTask";
+    // title of the task - to be displayed in a list of tasks
+    public readonly title = "Publish Entries Background Task";
+    // description of the task - a brief explanation of what the task does
+    public readonly description = "A background task to publish CMS entries.";
+    // maximum number of iterations before the task goes into the error state
+    public readonly maxIterations = 1;
+    // disable logging
+    public readonly disableDatabaseLogs = true;
+    // make the task private so it doesn't show publicly (graphql api, etc...)
+    public readonly isPrivate = true;
+
+    public constructor(
+        private getModel: GetModelUseCase.Interface,
+        private publishEntry: PublishEntryUseCase.Interface
+    ) {}
+    /**
+     * On each task run, this method is called with the input parameters.
+     * The method must return one of the TaskDefinition.Result types.
+     */
+    public async run({
+        input,
+        controller
+    }: TaskDefinition.RunParams<Input, Output>): Promise<TaskDefinition.Result<Input, Output>> {
+        const { model, list } = input;
+
+        const modelResult = await this.getModel.execute(model);
+        if (modelResult.isFail()) {
+            return controller.response.error(modelResult.error);
+        }
+        const cmsModel = modelResult.value;
+
+        const results: OutputItem[] = [];
+        for (const entryId of list) {
+            if (controller.runtime.isAborted()) {
+                return controller.response.aborted();
+            }
+
+            try {
+                const publishEntryResult = await this.publishEntry.execute(cmsModel, entryId);
+                if (publishEntryResult.isFail()) {
+                    results.push({
+                        id: entryId,
+                        error: publishEntryResult.error.message
+                    });
+                    continue;
+                }
+                results.push({
+                    id: entryId
+                });
+            } catch (ex) {
+                results.push({
+                    id: entryId,
+                    error: ex.message
+                });
+            }
+        }
+        return controller.response.done({
+            list: results
+        });
+    }
+    /**
+     * Before the task is triggered, this method is called.
+     * Users can do some preparation or checks here and break the execution by throwing an error.
+     */
+    public async onBeforeTrigger(params: TaskDefinition.BeforeTriggerParams<Input>): Promise<void> {
+        //
+    }
+    /**
+     * When the task ends with a done status, this method is called.
+     */
+    public async onDone(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+        //
+    }
+    /**
+     * When the task ends with an error status, this method is called.
+     */
+    public async onError(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+        //
+    }
+    /**
+     * When the task ends with an abort status, this method is called.
+     */
+    public async onAbort(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+        //
+    }
+    /**
+     * When the maximum number of iterations is reached, this method is called.
+     */
+    public async onMaxIterations(
+        params: TaskDefinition.LifecycleHookParams<Input, Output>
+    ): Promise<void> {
+        //
+    }
+    /**
+     * A method to create input validation schema based on the input interface.
+     */
+    public createInputValidation({ validator }: TaskDefinition.CreateInputValidationParams) {
+        return validator.object({
+            model: validator.string().min(1),
+            list: validator.array(validator.string()).min(1).max(100)
+        });
+    }
+}
+
+export default TaskDefinition.createImplementation({
+    implementation: PublishEntriesBackgroundTask,
+    dependencies: [GetModelUseCase, PublishEntryUseCase]
+});
+
+```
