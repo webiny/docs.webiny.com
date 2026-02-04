@@ -38,13 +38,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"graphql/reference"} />
         <Page link={"graphql/example"} />
       </Group>
-      <Group
-        title={"Background Tasks"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
-        link={"background-tasks/about"}
-      >
-        <Page link={"background-tasks/about"} />
-        <Page link={"background-tasks/reference"} />
+      <Group title={"Tasks"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"tasks/about"}>
+        <Page link={"tasks/about"} />
+        <Page link={"tasks/reference"} />
+        <Page link={"tasks/management"} />
       </Group>
       <Page link={"overview/pricing"} hidden={true} />
       <Page link={"overview/features/security"} hidden={true} />
