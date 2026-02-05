@@ -5,11 +5,14 @@ description: About Private Models, how and where to use them.
 ---
 
 
+
 import {Alert} from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
-- TBD
+- What is a private model and how does it differ from public models?
+- How to create a private model using the Model Builder?
+- When to use private models?
 
 </Alert>
 
@@ -99,3 +102,34 @@ This example demonstrates a practical use case for private models. The `LogUser`
 
 Since the model is private, this data is only accessible through your backend code, not through the public GraphQL API. This is perfect for internal logging, analytics, or storing sensitive data that shouldn't be exposed to frontend applications.
 
+## Accessing Private Model Data
+
+To access data from a private model, you would typically create custom GraphQL resolvers or use the CMS API directly in your backend code.
+
+This allows you to control who can access this data and how it's used, ensuring that sensitive information remains secure.
+
+```typescript
+import { GetModelUseCase } from "webiny/api/cms/model";
+import { ListEntriesUseCase } from "webiny/api/cms/entry";
+
+const modelResult = await this.getModelUseCase.execute("userLog");
+if (modelResult.isFail()) {
+    throw new Error(model.error.message);
+}
+const model = modelResult.value;
+
+const entriesResult = await this.listEntriesUseCase.execute(model, {
+    where: {
+        userId: "some-user-id"
+    }
+});
+if (entriesResult.isFail()) {
+    throw new Error(entriesResult.error.message);
+}
+const userLogs = entriesResult.value;
+
+console.log({
+    userLogs
+});
+
+```
