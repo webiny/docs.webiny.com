@@ -34,6 +34,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"headless-cms/builder/model"} />
 
         <Page link={"headless-cms/examples/private-model"} />
+        <Page link={"headless-cms/examples/single-entry-model"} />
       </Group>
       <Group title={"GraphQL"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"graphql/about"}>
         <Page link={"graphql/about"} />
