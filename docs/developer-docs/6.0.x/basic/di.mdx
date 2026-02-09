@@ -4,7 +4,6 @@ title: Dependency Injection
 description: Creating abstractions and implementations in Webiny
 ---
 
-
 import {Alert} from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
@@ -28,23 +27,18 @@ An abstraction is a type-safe token that represents an interface. Use `createAbs
 import { createAbstraction, Result } from "webiny/api";
 import type { Book } from "~/types/index.js";
 
-// 1. Define the interface
 interface IBookRepository {
     getById(id: string): Promise<Result<Book, RepositoryError>>;
     save(book: Book): Promise<Result<void, RepositoryError>>;
 }
 
-// 2. Create the abstraction with a prefixed name
 const BookRepository = createAbstraction<IBookRepository>("Library/BookRepository");
 
-// 3. Add a namespace to organize related types
 namespace BookRepository {
     export type Interface = IBookRepository;
-    // Export all types needed by implementers
     export type { Book };
 }
 
-// 4. Export both the abstraction and namespace
 export { BookRepository };
 ```
 
@@ -74,16 +68,13 @@ interface CreateBookInput {
 
 type CreateBookError = ValidationError | AuthorizationError;
 
-// Create abstraction with prefixed name
 const CreateBookUseCase = createAbstraction<ICreateBookUseCase>("Library/CreateBook");
 
-// Organize related types in namespace
 namespace CreateBookUseCase {
     export type Interface = ICreateBookUseCase;
     export type Input = CreateBookInput;
     export type Error = CreateBookError;
     export type Return = Promise<Result<Book, CreateBookError>>;
-    // Export domain types that implementers will need
     export type { Book, Author, Category };
 }
 
@@ -107,8 +98,6 @@ Use `createImplementation()` from the abstraction to bind your class to it. This
 import { BookRepository } from "./abstractions/BookRepository.js";
 import { Result } from "webiny/api";
 
-// Simple implementation with no dependencies
-// Note: All types come from the abstraction namespace - no additional imports needed
 class InMemoryBookRepository implements BookRepository.Interface {
     private books = new Map<string, BookRepository.Book>();
     
@@ -146,7 +135,6 @@ import { CategoryRepository } from "./abstractions/CategoryRepository.js";
 import { Result } from "webiny/api";
 
 class CreateBookUseCaseImpl implements CreateBookUseCase.Interface {
-    // Constructor receives dependencies - use .Interface types
     public constructor(
         private bookRepository: BookRepository.Interface,
         private authorRepository: AuthorRepository.Interface,
@@ -154,19 +142,16 @@ class CreateBookUseCaseImpl implements CreateBookUseCase.Interface {
     ) {}
     
     public async execute(input: CreateBookUseCase.Input): CreateBookUseCase.Return {
-        // Validate author exists - check Result
         const authorResult = await this.authorRepository.getById(input.authorId);
         if (authorResult.isFail()) {
             return authorResult;
         }
         
-        // Validate category exists - check Result
         const categoryResult = await this.categoryRepository.getById(input.categoryId);
         if (categoryResult.isFail()) {
             return categoryResult;
         }
         
-        // Create and save book - all types come from namespaces
         const book: CreateBookUseCase.Book = {
             id: generateId(),
             title: input.title,
@@ -185,7 +170,6 @@ class CreateBookUseCaseImpl implements CreateBookUseCase.Interface {
 
 const CreateBookUseCaseImplementation = CreateBookUseCase.createImplementation({
     implementation: CreateBookUseCaseImpl,
-    // Dependencies array order MUST match constructor parameter order
     dependencies: [BookRepository, AuthorRepository, CategoryRepository]
 });
 
@@ -200,11 +184,10 @@ Decorators extend behavior without modifying the original implementation. Use `c
 import { CreateBookUseCase } from "./abstractions/CreateBookUseCase.js";
 import { Logger } from "webiny/api/logger";
 
-// Decorator that adds logging to the CreateBook use case
 class LoggingCreateBookDecorator implements CreateBookUseCase.Interface {
     public constructor(
         private logger: Logger.Interface,
-        private decoratee: CreateBookUseCase.Interface  // The decorated instance (automatically injected last)
+        private decoratee: CreateBookUseCase.Interface
     ) {}
     
     public async execute(input: CreateBookUseCase.Input): CreateBookUseCase.Return {
@@ -224,7 +207,7 @@ class LoggingCreateBookDecorator implements CreateBookUseCase.Interface {
 
 const LoggingCreateBookDec = CreateBookUseCase.createDecorator({
     decorator: LoggingCreateBookDecorator,
-    dependencies: [Logger]  // The decoratee is passed automatically as the last parameter
+    dependencies: [Logger]
 });
 
 export default LoggingCreateBookDec;
@@ -241,16 +224,16 @@ The order in the `dependencies` array must exactly match the constructor paramet
 ```typescript
 class MyClass implements SomeAbstraction.Interface {
     public constructor(
-        private firstDep: FirstDep.Interface,    // Position 0
-        private secondDep: SecondDep.Interface   // Position 1
+        private firstDep: FirstDep.Interface,
+        private secondDep: SecondDep.Interface
     ) {}
 }
 
 const MyClassImpl = SomeAbstraction.createImplementation({
     implementation: MyClass,
     dependencies: [
-        FirstDep,   // Position 0 - matches constructor
-        SecondDep   // Position 1 - matches constructor
+        FirstDep,
+        SecondDep
     ]
 });
 ```
