@@ -18,14 +18,14 @@ import {Alert} from "@/components/Alert";
 
 ## Overview
 
-Webiny uses `@webiny/di` - a type-safe dependency injection container built for SOLID principles. The core concept is `Abstraction<T>`, which unifies tokens and types for compile-time safety. As a developer, you create implementations using `createImplementation()` and export them.
+Webiny uses `@webiny/di`, a type-safe dependency injection container built for SOLID principles. The core concept is `Abstraction<T>`, which unifies tokens and types for compile-time safety. As a developer, you create implementations using `createImplementation()` and export them.
 
 ## Creating an Abstraction
 
 An abstraction is a type-safe token that represents an interface. Use `createAbstraction()` to create one:
 
 ```typescript
-import { createAbstraction, Result } from "@webiny/feature/api";
+import { createAbstraction, Result } from "webiny/api";
 import type { Book } from "~/types/index.js";
 
 // 1. Define the interface
@@ -59,7 +59,7 @@ export { BookRepository };
 For more complex abstractions like use cases, you can organize additional types in the namespace:
 
 ```typescript
-import { createAbstraction, Result } from "@webiny/feature/api";
+import { createAbstraction, Result } from "webiny/api";
 import type { Book, Author, Category } from "~/types/index.js";
 
 interface ICreateBookUseCase {
@@ -101,12 +101,11 @@ This pattern allows consumers to reference all related types through the abstrac
 
 ## Creating an Implementation
 
-Use `createImplementation()` from the abstraction namespace to bind your class to it. This function requires three properties:
+Use `createImplementation()` from the abstraction to bind your class to it. This method is available on every abstraction and requires three properties:
 
 ```typescript
 import { BookRepository } from "./abstractions/BookRepository.js";
-import { Result } from "@webiny/feature/api";
-import { createImplementation } from "@webiny/di";
+import { Result } from "webiny/api";
 
 // Simple implementation with no dependencies
 // Note: All types come from the abstraction namespace - no additional imports needed
@@ -127,8 +126,7 @@ class InMemoryBookRepository implements BookRepository.Interface {
     }
 }
 
-const InMemoryBookRepositoryImpl = createImplementation({
-    abstraction: BookRepository,
+const InMemoryBookRepositoryImpl = BookRepository.createImplementation({
     implementation: InMemoryBookRepository,
     dependencies: []
 });
@@ -145,8 +143,7 @@ import { CreateBookUseCase } from "./abstractions/CreateBookUseCase.js";
 import { BookRepository } from "./abstractions/BookRepository.js";
 import { AuthorRepository } from "./abstractions/AuthorRepository.js";
 import { CategoryRepository } from "./abstractions/CategoryRepository.js";
-import { Result } from "@webiny/feature/api";
-import { createImplementation } from "@webiny/di";
+import { Result } from "webiny/api";
 
 class CreateBookUseCaseImpl implements CreateBookUseCase.Interface {
     // Constructor receives dependencies - use .Interface types
@@ -186,8 +183,7 @@ class CreateBookUseCaseImpl implements CreateBookUseCase.Interface {
     }
 }
 
-const CreateBookUseCaseImplementation = createImplementation({
-    abstraction: CreateBookUseCase,
+const CreateBookUseCaseImplementation = CreateBookUseCase.createImplementation({
     implementation: CreateBookUseCaseImpl,
     // Dependencies array order MUST match constructor parameter order
     dependencies: [BookRepository, AuthorRepository, CategoryRepository]
@@ -198,12 +194,11 @@ export default CreateBookUseCaseImplementation;
 
 ## Using Decorators
 
-Decorators extend behavior without modifying the original implementation. Use `createDecorator()` to wrap existing functionality:
+Decorators extend behavior without modifying the original implementation. Use `createDecorator()` from the abstraction to wrap existing functionality:
 
 ```typescript
 import { CreateBookUseCase } from "./abstractions/CreateBookUseCase.js";
-import { Logger } from "./abstractions/Logger.js";
-import { createDecorator } from "@webiny/di";
+import { Logger } from "webiny/api/logger";
 
 // Decorator that adds logging to the CreateBook use case
 class LoggingCreateBookDecorator implements CreateBookUseCase.Interface {
@@ -227,8 +222,7 @@ class LoggingCreateBookDecorator implements CreateBookUseCase.Interface {
     }
 }
 
-const LoggingCreateBookDec = createDecorator({
-    abstraction: CreateBookUseCase,
+const LoggingCreateBookDec = CreateBookUseCase.createDecorator({
     decorator: LoggingCreateBookDecorator,
     dependencies: [Logger]  // The decoratee is passed automatically as the last parameter
 });
@@ -247,13 +241,12 @@ The order in the `dependencies` array must exactly match the constructor paramet
 ```typescript
 class MyClass implements SomeAbstraction.Interface {
     public constructor(
-        private firstDep: IFirstDep,    // Position 0
-        private secondDep: ISecondDep   // Position 1
+        private firstDep: FirstDep.Interface,    // Position 0
+        private secondDep: SecondDep.Interface   // Position 1
     ) {}
 }
 
-const MyClassImpl = createImplementation({
-    abstraction: SomeAbstraction,
+const MyClassImpl = SomeAbstraction.createImplementation({
     implementation: MyClass,
     dependencies: [
         FirstDep,   // Position 0 - matches constructor
@@ -279,8 +272,7 @@ public constructor(private bookRepository: InMemoryBookRepository) {}
 Always export the result of `createImplementation()` or `createDecorator()`:
 
 ```typescript
-const MyImplementation = createImplementation({
-    abstraction: Something,
+const MyImplementation = Something.createImplementation({
     implementation: SomethingImpl,
     dependencies: []
 });
