@@ -1,0 +1,290 @@
+---
+id: kp9m2xnf
+title: Dependency Injection
+description: Creating abstractions and implementations in Webiny
+---
+
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to create an abstraction in Webiny?
+- How to create an implementation of an abstraction?
+- How to declare dependencies?
+- How to use the decorator pattern?
+
+</Alert>
+
+## Overview
+
+Webiny uses `@webiny/di` - a type-safe dependency injection container built for SOLID principles. The core concept is `Abstraction<T>`, which unifies tokens and types for compile-time safety. As a developer, you create implementations using `createImplementation()` and export them.
+
+## Creating an Abstraction
+
+An abstraction is a type-safe token that represents an interface. Use `createAbstraction()` to create one:
+
+```typescript
+import { createAbstraction, Result } from "@webiny/feature/api";
+import type { Book } from "~/types/index.js";
+
+// 1. Define the interface
+interface IBookRepository {
+    getById(id: string): Promise<Result<Book, RepositoryError>>;
+    save(book: Book): Promise<Result<void, RepositoryError>>;
+}
+
+// 2. Create the abstraction with a prefixed name
+const BookRepository = createAbstraction<IBookRepository>("Library/BookRepository");
+
+// 3. Add a namespace to organize related types
+namespace BookRepository {
+    export type Interface = IBookRepository;
+    // Export all types needed by implementers
+    export type { Book };
+}
+
+// 4. Export both the abstraction and namespace
+export { BookRepository };
+```
+
+**Naming Convention:** 
+- The abstraction name typically matches the interface name without the `I` prefix
+- Use a prefix to organize abstractions by domain (e.g., `Library/BookRepository`, `Store/CreateOrder`)
+
+**Namespace Pattern:** Use a namespace with the same name as the abstraction to export related types. Export everything implementers will need - the interface, domain types, input/output types, etc. This allows consumers to use `BookRepository.Interface` and `BookRepository.Book` without additional imports.
+
+### Advanced Namespace Pattern
+
+For more complex abstractions like use cases, you can organize additional types in the namespace:
+
+```typescript
+import { createAbstraction, Result } from "@webiny/feature/api";
+import type { Book, Author, Category } from "~/types/index.js";
+
+interface ICreateBookUseCase {
+    execute(input: CreateBookInput): Promise<Result<Book, CreateBookError>>;
+}
+
+interface CreateBookInput {
+    title: string;
+    authorId: string;
+    categoryId: string;
+}
+
+type CreateBookError = ValidationError | AuthorizationError;
+
+// Create abstraction with prefixed name
+const CreateBookUseCase = createAbstraction<ICreateBookUseCase>("Library/CreateBook");
+
+// Organize related types in namespace
+namespace CreateBookUseCase {
+    export type Interface = ICreateBookUseCase;
+    export type Input = CreateBookInput;
+    export type Error = CreateBookError;
+    export type Return = Promise<Result<Book, CreateBookError>>;
+    // Export domain types that implementers will need
+    export type { Book, Author, Category };
+}
+
+export { CreateBookUseCase };
+```
+
+This pattern allows consumers to reference all related types through the abstraction:
+- `CreateBookUseCase.Interface` - for implementing the use case
+- `CreateBookUseCase.Input` - for the input parameters
+- `CreateBookUseCase.Error` - for error types
+- `CreateBookUseCase.Return` - for the return type
+- `CreateBookUseCase.Book`, `CreateBookUseCase.Author`, `CreateBookUseCase.Category` - domain types needed by implementers
+
+**Key Principle:** Export everything an implementer needs. This creates a complete, self-contained abstraction where consumers only need to import the abstraction itself.
+
+## Creating an Implementation
+
+Use `createImplementation()` from the abstraction namespace to bind your class to it. This function requires three properties:
+
+```typescript
+import { BookRepository } from "./abstractions/BookRepository.js";
+import { Result } from "@webiny/feature/api";
+import { createImplementation } from "@webiny/di";
+
+// Simple implementation with no dependencies
+// Note: All types come from the abstraction namespace - no additional imports needed
+class InMemoryBookRepository implements BookRepository.Interface {
+    private books = new Map<string, BookRepository.Book>();
+    
+    public async getById(id: string): Promise<Result<BookRepository.Book, RepositoryError>> {
+        const book = this.books.get(id);
+        if (!book) {
+            return Result.fail(new NotFoundError("Book not found"));
+        }
+        return Result.ok(book);
+    }
+    
+    public async save(book: BookRepository.Book): Promise<Result<void, RepositoryError>> {
+        this.books.set(book.id, book);
+        return Result.ok();
+    }
+}
+
+const InMemoryBookRepositoryImpl = createImplementation({
+    abstraction: BookRepository,
+    implementation: InMemoryBookRepository,
+    dependencies: []
+});
+
+export default InMemoryBookRepositoryImpl;
+```
+
+### With Dependencies
+
+Dependencies are declared in the constructor and must match the `dependencies` array order:
+
+```typescript
+import { CreateBookUseCase } from "./abstractions/CreateBookUseCase.js";
+import { BookRepository } from "./abstractions/BookRepository.js";
+import { AuthorRepository } from "./abstractions/AuthorRepository.js";
+import { CategoryRepository } from "./abstractions/CategoryRepository.js";
+import { Result } from "@webiny/feature/api";
+import { createImplementation } from "@webiny/di";
+
+class CreateBookUseCaseImpl implements CreateBookUseCase.Interface {
+    // Constructor receives dependencies - use .Interface types
+    public constructor(
+        private bookRepository: BookRepository.Interface,
+        private authorRepository: AuthorRepository.Interface,
+        private categoryRepository: CategoryRepository.Interface
+    ) {}
+    
+    public async execute(input: CreateBookUseCase.Input): CreateBookUseCase.Return {
+        // Validate author exists - check Result
+        const authorResult = await this.authorRepository.getById(input.authorId);
+        if (authorResult.isFail()) {
+            return authorResult;
+        }
+        
+        // Validate category exists - check Result
+        const categoryResult = await this.categoryRepository.getById(input.categoryId);
+        if (categoryResult.isFail()) {
+            return categoryResult;
+        }
+        
+        // Create and save book - all types come from namespaces
+        const book: CreateBookUseCase.Book = {
+            id: generateId(),
+            title: input.title,
+            author: authorResult.value,
+            category: categoryResult.value
+        };
+        
+        const saveResult = await this.bookRepository.save(book);
+        if (saveResult.isFail()) {
+            return saveResult;
+        }
+        
+        return Result.ok(book);
+    }
+}
+
+const CreateBookUseCaseImplementation = createImplementation({
+    abstraction: CreateBookUseCase,
+    implementation: CreateBookUseCaseImpl,
+    // Dependencies array order MUST match constructor parameter order
+    dependencies: [BookRepository, AuthorRepository, CategoryRepository]
+});
+
+export default CreateBookUseCaseImplementation;
+```
+
+## Using Decorators
+
+Decorators extend behavior without modifying the original implementation. Use `createDecorator()` to wrap existing functionality:
+
+```typescript
+import { CreateBookUseCase } from "./abstractions/CreateBookUseCase.js";
+import { Logger } from "./abstractions/Logger.js";
+import { createDecorator } from "@webiny/di";
+
+// Decorator that adds logging to the CreateBook use case
+class LoggingCreateBookDecorator implements CreateBookUseCase.Interface {
+    public constructor(
+        private logger: Logger.Interface,
+        private decoratee: CreateBookUseCase.Interface  // The decorated instance (automatically injected last)
+    ) {}
+    
+    public async execute(input: CreateBookUseCase.Input): CreateBookUseCase.Return {
+        this.logger.info("Creating book", { title: input.title });
+        
+        const result = await this.decoratee.execute(input);
+        
+        if (result.isOk()) {
+            this.logger.info("Book created successfully", { bookId: result.value.id });
+        } else {
+            this.logger.error("Failed to create book", { error: result.error });
+        }
+        
+        return result;
+    }
+}
+
+const LoggingCreateBookDec = createDecorator({
+    abstraction: CreateBookUseCase,
+    decorator: LoggingCreateBookDecorator,
+    dependencies: [Logger]  // The decoratee is passed automatically as the last parameter
+});
+
+export default LoggingCreateBookDec;
+```
+
+**Key Point:** The decorator's last constructor parameter must be the type being decorated. The `decoratee` is automatically injected - you only list other dependencies in the `dependencies` array.
+
+## Key Points
+
+### Dependency Order Matters
+
+The order in the `dependencies` array must exactly match the constructor parameter order:
+
+```typescript
+class MyClass implements SomeAbstraction.Interface {
+    public constructor(
+        private firstDep: IFirstDep,    // Position 0
+        private secondDep: ISecondDep   // Position 1
+    ) {}
+}
+
+const MyClassImpl = createImplementation({
+    abstraction: SomeAbstraction,
+    implementation: MyClass,
+    dependencies: [
+        FirstDep,   // Position 0 - matches constructor
+        SecondDep   // Position 1 - matches constructor
+    ]
+});
+```
+
+### Always Use .Interface Types
+
+Constructor parameters should use the `.Interface` type from the abstraction:
+
+```typescript
+// ✅ Correct
+public constructor(private bookRepository: BookRepository.Interface) {}
+
+// ❌ Wrong - don't use the concrete class
+public constructor(private bookRepository: InMemoryBookRepository) {}
+```
+
+### Export the Implementation
+
+Always export the result of `createImplementation()` or `createDecorator()`:
+
+```typescript
+const MyImplementation = createImplementation({
+    abstraction: Something,
+    implementation: SomethingImpl,
+    dependencies: []
+});
+
+export default MyImplementation;
+```
+

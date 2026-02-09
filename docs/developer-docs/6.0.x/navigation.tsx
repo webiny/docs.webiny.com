@@ -14,6 +14,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group title={"Basic"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"basic/result"}>
         <Page link={"basic/result"} />
+        <Page link={"basic/di"} />
       </Group>
       <Group
         title={"Headless CMS"}
