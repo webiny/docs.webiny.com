@@ -9,10 +9,581 @@ import {Alert} from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
-- TBD
+- How to create custom page use cases?
+- How to wrap existing Webiny page use cases?
+- How to handle page operations with proper error handling?
+- How to use the Result pattern with page use cases?
 
 </Alert>
 
 ## Overview
 
-TBD
+Website Builder provides use cases for all page operations. You can create custom use cases that wrap the built-in Webiny use cases to add your own business logic, validation, or error handling.
+
+All examples show how to create an abstraction, implement it by wrapping the Webiny use case, and handle results properly using the Result pattern.
+
+## Create Page
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+import type { CreatePageUseCase } from "webiny/api/website-builder/page";
+
+export interface ICreatePageParams {
+    input: CreatePageUseCase.Params;
+}
+
+export type ICreatePageReturn = Promise<CreatePageUseCase.Page>;
+
+export interface ICreatePage {
+    execute(params: ICreatePageParams): ICreatePageReturn;
+}
+
+export const CreatePage = createAbstraction<ICreatePage>("CreatePage");
+
+export namespace CreatePage {
+    export type Interface = ICreatePage;
+    export type Params = ICreatePageParams;
+    export type Return = ICreatePageReturn;
+}
+```
+
+```typescript implementation.ts
+import { CreatePageUseCase } from "webiny/api/website-builder/page";
+import { CreatePage } from "./abstractions.js";
+
+class CreatePageImpl implements CreatePage.Interface {
+    constructor(private createPageUseCase: CreatePageUseCase.Interface) {}
+
+    async execute({ input }: CreatePage.Params): CreatePage.Return {
+        const result = await this.createPageUseCase.execute(input);
+        if (result.isFail()) {
+            throw result.error;
+        }
+        return result.value;
+    }
+}
+
+export default CreatePage.createImplementation({
+    implementation: CreatePageImpl,
+    dependencies: [CreatePageUseCase]
+});
+```
+
+## Create Revision From
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+import type { CreatePageRevisionFromUseCase } from "webiny/api/website-builder/page";
+
+export interface ICreatePageRevisionFromParams {
+    id: string;
+}
+
+export type ICreatePageRevisionFromReturn = Promise<CreatePageRevisionFromUseCase.Page>;
+
+export interface ICreatePageRevisionFrom {
+    execute(params: ICreatePageRevisionFromParams): ICreatePageRevisionFromReturn;
+}
+
+export const CreatePageRevisionFrom = createAbstraction<ICreatePageRevisionFrom>("CreatePageRevisionFrom");
+
+export namespace CreatePageRevisionFrom {
+    export type Interface = ICreatePageRevisionFrom;
+    export type Params = ICreatePageRevisionFromParams;
+    export type Return = ICreatePageRevisionFromReturn;
+}
+```
+
+```typescript implementation.ts
+import { CreatePageRevisionFromUseCase } from "webiny/api/website-builder/page";
+import { CreatePageRevisionFrom } from "./abstractions.js";
+
+class CreatePageRevisionFromImpl implements CreatePageRevisionFrom.Interface {
+    constructor(private createPageRevisionFromUseCase: CreatePageRevisionFromUseCase.Interface) {}
+
+    async execute({ id }: CreatePageRevisionFrom.Params): CreatePageRevisionFrom.Return {
+        const result = await this.createPageRevisionFromUseCase.execute(id);
+        if (result.isFail()) {
+            throw result.error;
+        }
+        return result.value;
+    }
+}
+
+export default CreatePageRevisionFrom.createImplementation({
+    implementation: CreatePageRevisionFromImpl,
+    dependencies: [CreatePageRevisionFromUseCase]
+});
+```
+
+## Update Page
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+import type { UpdatePageUseCase } from "webiny/api/website-builder/page";
+
+export interface IUpdatePageParams {
+    id: string;
+    input: UpdatePageUseCase.Params;
+}
+
+export type IUpdatePageReturn = Promise<UpdatePageUseCase.Page>;
+
+export interface IUpdatePage {
+    execute(params: IUpdatePageParams): IUpdatePageReturn;
+}
+
+export const UpdatePage = createAbstraction<IUpdatePage>("UpdatePage");
+
+export namespace UpdatePage {
+    export type Interface = IUpdatePage;
+    export type Params = IUpdatePageParams;
+    export type Return = IUpdatePageReturn;
+}
+```
+
+```typescript implementation.ts
+import { UpdatePageUseCase } from "webiny/api/website-builder/page";
+import { UpdatePage } from "./abstractions.js";
+
+class UpdatePageImpl implements UpdatePage.Interface {
+    constructor(private updatePageUseCase: UpdatePageUseCase.Interface) {}
+
+    async execute({ id, input }: UpdatePage.Params): UpdatePage.Return {
+        const result = await this.updatePageUseCase.execute(id, input);
+        if (result.isFail()) {
+            throw result.error;
+        }
+        return result.value;
+    }
+}
+
+export default UpdatePage.createImplementation({
+    implementation: UpdatePageImpl,
+    dependencies: [UpdatePageUseCase]
+});
+```
+
+## Delete Page
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+
+export interface IDeletePageParams {
+    id: string;
+}
+
+export type IDeletePageReturn = Promise<void>;
+
+export interface IDeletePage {
+    execute(params: IDeletePageParams): IDeletePageReturn;
+}
+
+export const DeletePage = createAbstraction<IDeletePage>("DeletePage");
+
+export namespace DeletePage {
+    export type Interface = IDeletePage;
+    export type Params = IDeletePageParams;
+    export type Return = IDeletePageReturn;
+}
+```
+
+```typescript implementation.ts
+import { DeletePageUseCase } from "webiny/api/website-builder/page";
+import { DeletePage } from "./abstractions.js";
+
+class DeletePageImpl implements DeletePage.Interface {
+    constructor(private deletePageUseCase: DeletePageUseCase.Interface) {}
+
+    async execute({ id }: DeletePage.Params): DeletePage.Return {
+        const result = await this.deletePageUseCase.execute(id);
+        if (result.isFail()) {
+            throw result.error;
+        }
+    }
+}
+
+export default DeletePage.createImplementation({
+    implementation: DeletePageImpl,
+    dependencies: [DeletePageUseCase]
+});
+```
+
+## Publish Page
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+import type { PublishPageUseCase } from "webiny/api/website-builder/page";
+
+export interface IPublishPageParams {
+    id: string;
+}
+
+export type IPublishPageReturn = Promise<PublishPageUseCase.Page>;
+
+export interface IPublishPage {
+    execute(params: IPublishPageParams): IPublishPageReturn;
+}
+
+export const PublishPage = createAbstraction<IPublishPage>("PublishPage");
+
+export namespace PublishPage {
+    export type Interface = IPublishPage;
+    export type Params = IPublishPageParams;
+    export type Return = IPublishPageReturn;
+}
+```
+
+```typescript implementation.ts
+import { PublishPageUseCase } from "webiny/api/website-builder/page";
+import { PublishPage } from "./abstractions.js";
+
+class PublishPageImpl implements PublishPage.Interface {
+    constructor(private publishPageUseCase: PublishPageUseCase.Interface) {}
+
+    async execute({ id }: PublishPage.Params): PublishPage.Return {
+        const result = await this.publishPageUseCase.execute(id);
+        if (result.isFail()) {
+            throw result.error;
+        }
+        return result.value;
+    }
+}
+
+export default PublishPage.createImplementation({
+    implementation: PublishPageImpl,
+    dependencies: [PublishPageUseCase]
+});
+```
+
+## Unpublish Page
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+import type { UnpublishPageUseCase } from "webiny/api/website-builder/page";
+
+export interface IUnpublishPageParams {
+    id: string;
+}
+
+export type IUnpublishPageReturn = Promise<UnpublishPageUseCase.Page>;
+
+export interface IUnpublishPage {
+    execute(params: IUnpublishPageParams): IUnpublishPageReturn;
+}
+
+export const UnpublishPage = createAbstraction<IUnpublishPage>("UnpublishPage");
+
+export namespace UnpublishPage {
+    export type Interface = IUnpublishPage;
+    export type Params = IUnpublishPageParams;
+    export type Return = IUnpublishPageReturn;
+}
+```
+
+```typescript implementation.ts
+import { UnpublishPageUseCase } from "webiny/api/website-builder/page";
+import { UnpublishPage } from "./abstractions.js";
+
+class UnpublishPageImpl implements UnpublishPage.Interface {
+    constructor(private unpublishPageUseCase: UnpublishPageUseCase.Interface) {}
+
+    async execute({ id }: UnpublishPage.Params): UnpublishPage.Return {
+        const result = await this.unpublishPageUseCase.execute(id);
+        if (result.isFail()) {
+            throw result.error;
+        }
+        return result.value;
+    }
+}
+
+export default UnpublishPage.createImplementation({
+    implementation: UnpublishPageImpl,
+    dependencies: [UnpublishPageUseCase]
+});
+```
+
+## Duplicate Page
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+import type { DuplicatePageUseCase } from "webiny/api/website-builder/page";
+
+export interface IDuplicatePageParams {
+    id: string;
+}
+
+export type IDuplicatePageReturn = Promise<DuplicatePageUseCase.Page>;
+
+export interface IDuplicatePage {
+    execute(params: IDuplicatePageParams): IDuplicatePageReturn;
+}
+
+export const DuplicatePage = createAbstraction<IDuplicatePage>("DuplicatePage");
+
+export namespace DuplicatePage {
+    export type Interface = IDuplicatePage;
+    export type Params = IDuplicatePageParams;
+    export type Return = IDuplicatePageReturn;
+}
+```
+
+```typescript implementation.ts
+import { DuplicatePageUseCase } from "webiny/api/website-builder/page";
+import { DuplicatePage } from "./abstractions.js";
+
+class DuplicatePageImpl implements DuplicatePage.Interface {
+    constructor(private duplicatePageUseCase: DuplicatePageUseCase.Interface) {}
+
+    async execute({ id }: DuplicatePage.Params): DuplicatePage.Return {
+        const result = await this.duplicatePageUseCase.execute(id);
+        if (result.isFail()) {
+            throw result.error;
+        }
+        return result.value;
+    }
+}
+
+export default DuplicatePage.createImplementation({
+    implementation: DuplicatePageImpl,
+    dependencies: [DuplicatePageUseCase]
+});
+```
+
+## Move Page
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+import type { MovePageUseCase } from "webiny/api/website-builder/page";
+
+export interface IMovePageParams {
+    id: string;
+    folderId: string;
+}
+
+export type IMovePageReturn = Promise<MovePageUseCase.Page>;
+
+export interface IMovePage {
+    execute(params: IMovePageParams): IMovePageReturn;
+}
+
+export const MovePage = createAbstraction<IMovePage>("MovePage");
+
+export namespace MovePage {
+    export type Interface = IMovePage;
+    export type Params = IMovePageParams;
+    export type Return = IMovePageReturn;
+}
+```
+
+```typescript implementation.ts
+import { MovePageUseCase } from "webiny/api/website-builder/page";
+import { MovePage } from "./abstractions.js";
+
+class MovePageImpl implements MovePage.Interface {
+    constructor(private movePageUseCase: MovePageUseCase.Interface) {}
+
+    async execute({ id, folderId }: MovePage.Params): MovePage.Return {
+        const result = await this.movePageUseCase.execute(id, folderId);
+        if (result.isFail()) {
+            throw result.error;
+        }
+        return result.value;
+    }
+}
+
+export default MovePage.createImplementation({
+    implementation: MovePageImpl,
+    dependencies: [MovePageUseCase]
+});
+```
+
+## Get Page By ID
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+import type { GetPageByIdUseCase } from "webiny/api/website-builder/page";
+
+export interface IGetPageByIdParams {
+    id: string;
+}
+
+export type IGetPageByIdReturn = Promise<GetPageByIdUseCase.Page | null>;
+
+export interface IGetPageById {
+    execute(params: IGetPageByIdParams): IGetPageByIdReturn;
+}
+
+export const GetPageById = createAbstraction<IGetPageById>("GetPageById");
+
+export namespace GetPageById {
+    export type Interface = IGetPageById;
+    export type Params = IGetPageByIdParams;
+    export type Return = IGetPageByIdReturn;
+}
+```
+
+```typescript implementation.ts
+import { GetPageByIdUseCase } from "webiny/api/website-builder/page";
+import { GetPageById } from "./abstractions.js";
+
+class GetPageByIdImpl implements GetPageById.Interface {
+    constructor(private getPageByIdUseCase: GetPageByIdUseCase.Interface) {}
+
+    async execute({ id }: GetPageById.Params): GetPageById.Return {
+        const result = await this.getPageByIdUseCase.execute(id);
+        if (result.isFail()) {
+            return null;
+        }
+        return result.value;
+    }
+}
+
+export default GetPageById.createImplementation({
+    implementation: GetPageByIdImpl,
+    dependencies: [GetPageByIdUseCase]
+});
+```
+
+## Get Page By Path
+
+```typescript abstractions.ts
+import { createAbstraction } from "webiny/api";
+import type { GetPublishedPageByPathUseCase } from "webiny/api/website-builder/page";
+
+export interface IGetPageByPathParams {
+    path: string;
+}
+
+export type IGetPageByPathReturn = Promise<GetPublishedPageByPathUseCase.Page | null>;
+
+export interface IGetPageByPath {
+    execute(params: IGetPageByPathParams): IGetPageByPathReturn;
+}
+
+export const GetPageByPath = createAbstraction<IGetPageByPath>("GetPageByPath");
+
+export namespace GetPageByPath {
+    export type Interface = IGetPageByPath;
+    export type Params = IGetPageByPathParams;
+    export type Return = IGetPageByPathReturn;
+}
+```
+
+```typescript implementation.ts
+import { GetPublishedPageByPathUseCase } from "webiny/api/website-builder/page";
+import { GetPageByPath } from "./abstractions.js";
+
+class GetPageByPathImpl implements GetPageByPath.Interface {
+    constructor(private getPageByPathUseCase: GetPublishedPageByPathUseCase.Interface) {}
+
+    async execute({ path }: GetPageByPath.Params): GetPageByPath.Return {
+        const result = await this.getPageByPathUseCase.execute(path);
+        if (result.isFail()) {
+            return null;
+        }
+        return result.value;
+    }
+}
+
+export default GetPageByPath.createImplementation({
+    implementation: GetPageByPathImpl,
+    dependencies: [GetPublishedPageByPathUseCase]
+});
+```
+
+## Get Page Revisions
+
+```typescript abstractions.ts
+import { createAbstraction, Result } from "webiny/api";
+import type { GetPageRevisionsUseCase } from "webiny/api/website-builder/page";
+
+export interface IGetPageRevisionsParams {
+    id: string;
+}
+
+export type IGetPageRevisionsReturn = Promise<Result.UnwrapResult<GetPageRevisionsUseCase.Return>>;
+
+export interface IGetPageRevisions {
+    execute(params: IGetPageRevisionsParams): IGetPageRevisionsReturn;
+}
+
+export const GetPageRevisions = createAbstraction<IGetPageRevisions>("GetPageRevisions");
+
+export namespace GetPageRevisions {
+    export type Interface = IGetPageRevisions;
+    export type Params = IGetPageRevisionsParams;
+    export type Return = IGetPageRevisionsReturn;
+}
+```
+
+```typescript implementation.ts
+import { GetPageRevisionsUseCase } from "webiny/api/website-builder/page";
+import { GetPageRevisions } from "./abstractions.js";
+
+class GetPageRevisionsImpl implements GetPageRevisions.Interface {
+    constructor(private getPageRevisionsUseCase: GetPageRevisionsUseCase.Interface) {}
+
+    async execute({ id }: GetPageRevisions.Params): GetPageRevisions.Return {
+        const result = await this.getPageRevisionsUseCase.execute(id);
+        if (result.isFail()) {
+            throw result.error;
+        }
+        return result.value;
+    }
+}
+
+export default GetPageRevisions.createImplementation({
+    implementation: GetPageRevisionsImpl,
+    dependencies: [GetPageRevisionsUseCase]
+});
+```
+
+## List Pages
+
+```typescript abstractions.ts
+import { createAbstraction, Result } from "webiny/api";
+import type { ListPagesUseCase } from "webiny/api/website-builder/page";
+
+export interface IListPagesParams {
+    params: ListPagesUseCase.Params;
+}
+
+export type IListPagesReturn = Promise<Result.UnwrapResult<ListPagesUseCase.Return>>;
+
+export interface IListPages {
+    execute(params: IListPagesParams): IListPagesReturn;
+}
+
+export const ListPages = createAbstraction<IListPages>("ListPages");
+
+export namespace ListPages {
+    export type Interface = IListPages;
+    export type Params = IListPagesParams;
+    export type Return = IListPagesReturn;
+}
+```
+
+```typescript implementation.ts
+import { ListPagesUseCase } from "webiny/api/website-builder/page";
+import { ListPages } from "./abstractions.js";
+
+class ListPagesImpl implements ListPages.Interface {
+    constructor(private listPagesUseCase: ListPagesUseCase.Interface) {}
+
+    async execute({ params }: ListPages.Params): ListPages.Return {
+        const result = await this.listPagesUseCase.execute({
+            ...params
+        });
+        if (result.isFail()) {
+            throw result.error;
+        }
+        return result.value;
+    }
+}
+
+export default ListPages.createImplementation({
+    implementation: ListPagesImpl,
+    dependencies: [ListPagesUseCase]
+});
+```
