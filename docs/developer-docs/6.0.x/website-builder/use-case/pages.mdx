@@ -76,7 +76,7 @@ import { createAbstraction } from "webiny/api";
 import type { CreatePageRevisionFromUseCase } from "webiny/api/website-builder/page";
 
 export interface ICreatePageRevisionFromParams {
-    id: string;
+    input: CreatePageRevisionFromUseCase.Params;
 }
 
 export type ICreatePageRevisionFromReturn = Promise<CreatePageRevisionFromUseCase.Page>;
@@ -101,8 +101,8 @@ import { CreatePageRevisionFrom } from "./abstractions.js";
 class CreatePageRevisionFromImpl implements CreatePageRevisionFrom.Interface {
     constructor(private createPageRevisionFromUseCase: CreatePageRevisionFromUseCase.Interface) {}
 
-    async execute({ id }: CreatePageRevisionFrom.Params): CreatePageRevisionFrom.Return {
-        const result = await this.createPageRevisionFromUseCase.execute(id);
+    async execute({ input }: CreatePageRevisionFrom.Params): CreatePageRevisionFrom.Return {
+        const result = await this.createPageRevisionFromUseCase.execute(input);
         if (result.isFail()) {
             throw result.error;
         }
@@ -124,7 +124,7 @@ import type { UpdatePageUseCase } from "webiny/api/website-builder/page";
 
 export interface IUpdatePageParams {
     id: string;
-    input: UpdatePageUseCase.Params;
+    data: UpdatePageUseCase.UpdateData;
 }
 
 export type IUpdatePageReturn = Promise<UpdatePageUseCase.Page>;
@@ -149,8 +149,8 @@ import { UpdatePage } from "./abstractions.js";
 class UpdatePageImpl implements UpdatePage.Interface {
     constructor(private updatePageUseCase: UpdatePageUseCase.Interface) {}
 
-    async execute({ id, input }: UpdatePage.Params): UpdatePage.Return {
-        const result = await this.updatePageUseCase.execute(id, input);
+    async execute({ id, data }: UpdatePage.Params): UpdatePage.Return {
+        const result = await this.updatePageUseCase.execute(id, data);
         if (result.isFail()) {
             throw result.error;
         }
@@ -196,7 +196,9 @@ class DeletePageImpl implements DeletePage.Interface {
     constructor(private deletePageUseCase: DeletePageUseCase.Interface) {}
 
     async execute({ id }: DeletePage.Params): DeletePage.Return {
-        const result = await this.deletePageUseCase.execute(id);
+        const result = await this.deletePageUseCase.execute({
+            id
+        });
         if (result.isFail()) {
             throw result.error;
         }
@@ -242,7 +244,9 @@ class PublishPageImpl implements PublishPage.Interface {
     constructor(private publishPageUseCase: PublishPageUseCase.Interface) {}
 
     async execute({ id }: PublishPage.Params): PublishPage.Return {
-        const result = await this.publishPageUseCase.execute(id);
+        const result = await this.publishPageUseCase.execute({
+            id
+        });
         if (result.isFail()) {
             throw result.error;
         }
@@ -289,7 +293,9 @@ class UnpublishPageImpl implements UnpublishPage.Interface {
     constructor(private unpublishPageUseCase: UnpublishPageUseCase.Interface) {}
 
     async execute({ id }: UnpublishPage.Params): UnpublishPage.Return {
-        const result = await this.unpublishPageUseCase.execute(id);
+        const result = await this.unpublishPageUseCase.execute({
+            id
+        });
         if (result.isFail()) {
             throw result.error;
         }
@@ -336,7 +342,9 @@ class DuplicatePageImpl implements DuplicatePage.Interface {
     constructor(private duplicatePageUseCase: DuplicatePageUseCase.Interface) {}
 
     async execute({ id }: DuplicatePage.Params): DuplicatePage.Return {
-        const result = await this.duplicatePageUseCase.execute(id);
+        const result = await this.duplicatePageUseCase.execute({
+            id
+        });
         if (result.isFail()) {
             throw result.error;
         }
@@ -384,7 +392,10 @@ class MovePageImpl implements MovePage.Interface {
     constructor(private movePageUseCase: MovePageUseCase.Interface) {}
 
     async execute({ id, folderId }: MovePage.Params): MovePage.Return {
-        const result = await this.movePageUseCase.execute(id, folderId);
+        const result = await this.movePageUseCase.execute({
+            id,
+            folderId
+        });
         if (result.isFail()) {
             throw result.error;
         }
@@ -449,13 +460,13 @@ export default GetPageById.createImplementation({
 
 ```typescript abstractions.ts
 import { createAbstraction } from "webiny/api";
-import type { GetPublishedPageByPathUseCase } from "webiny/api/website-builder/page";
+import type { GetPageByPathUseCase } from "webiny/api/website-builder/page";
 
 export interface IGetPageByPathParams {
     path: string;
 }
 
-export type IGetPageByPathReturn = Promise<GetPublishedPageByPathUseCase.Page | null>;
+export type IGetPageByPathReturn = Promise<GetPageByPathUseCase.Page | null>;
 
 export interface IGetPageByPath {
     execute(params: IGetPageByPathParams): IGetPageByPathReturn;
@@ -471,11 +482,11 @@ export namespace GetPageByPath {
 ```
 
 ```typescript implementation.ts
-import { GetPublishedPageByPathUseCase } from "webiny/api/website-builder/page";
+import { GetPageByPathUseCase } from "webiny/api/website-builder/page";
 import { GetPageByPath } from "./abstractions.js";
 
 class GetPageByPathImpl implements GetPageByPath.Interface {
-    constructor(private getPageByPathUseCase: GetPublishedPageByPathUseCase.Interface) {}
+    constructor(private getPageByPathUseCase: GetPageByPathUseCase.Interface) {}
 
     async execute({ path }: GetPageByPath.Params): GetPageByPath.Return {
         const result = await this.getPageByPathUseCase.execute(path);
@@ -488,21 +499,21 @@ class GetPageByPathImpl implements GetPageByPath.Interface {
 
 export default GetPageByPath.createImplementation({
     implementation: GetPageByPathImpl,
-    dependencies: [GetPublishedPageByPathUseCase]
+    dependencies: [GetPageByPathUseCase]
 });
 ```
 
 ## Get Page Revisions
 
 ```typescript abstractions.ts
-import { createAbstraction, Result } from "webiny/api";
+import { createAbstraction } from "webiny/api";
 import type { GetPageRevisionsUseCase } from "webiny/api/website-builder/page";
 
 export interface IGetPageRevisionsParams {
     id: string;
 }
 
-export type IGetPageRevisionsReturn = Promise<Result.UnwrapResult<GetPageRevisionsUseCase.Return>>;
+export type IGetPageRevisionsReturn = Promise<GetPageRevisionsUseCase.Page[]>;
 
 export interface IGetPageRevisions {
     execute(params: IGetPageRevisionsParams): IGetPageRevisionsReturn;
@@ -527,7 +538,7 @@ class GetPageRevisionsImpl implements GetPageRevisions.Interface {
     async execute({ id }: GetPageRevisions.Params): GetPageRevisions.Return {
         const result = await this.getPageRevisionsUseCase.execute(id);
         if (result.isFail()) {
-            throw result.error;
+            return [];
         }
         return result.value;
     }
