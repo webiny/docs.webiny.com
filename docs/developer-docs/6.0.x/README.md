@@ -5,7 +5,6 @@ Base Url: https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webin
 
 ## Links to All Docs Grouped By Type
 
-
 ### Basics
 - [Basic - Result](https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webiny.vercel.app/docs/basic/result)
 - [Basic - Dependency Injection](https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webiny.vercel.app/docs/basic/di)
@@ -34,3 +33,11 @@ Base Url: https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webin
 - [Tasks About](https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webiny.vercel.app/docs/tasks/about)
 - [Tasks Reference](https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webiny.vercel.app/docs/tasks/reference)
 - [Tasks Management](https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webiny.vercel.app/docs/tasks/management)
+
+### Website Builder API
+
+- [Website Builder Pages Event Handlers](https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webiny.vercel.app/docs/website-builder/event-handler/pages)
+- [Website Builder Redirects Event Handlers](https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webiny.vercel.app/docs/website-builder/event-handler/redirects)
+- [Website Builder Pages Use Cases](https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webiny.vercel.app/docs/website-builder/use-case/pages)
+- [Website Builder Redirects Use Cases](https://docs-webiny-com-git-bruno-featheadless-cmsevent-handlers-webiny.vercel.app/docs/website-builder/use-case/redirects)
+
