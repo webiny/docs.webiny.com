@@ -1,0 +1,204 @@
+---
+id: ba8s58we
+title: Example
+description: GraphQL Example
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to add your own GraphQL schema?
+- How to define GraphQL types, inputs, and mutations?
+- How to add resolvers with dependency injection?
+- How to handle errors in GraphQL responses?
+- How to extend existing GraphQL types?
+
+</Alert>
+
+## Overview
+
+Webiny provides a powerful GraphQL API framework that allows you to extend and customize the GraphQL schema. By implementing the `GraphQLSchemaFactory` interface, you can add custom types, queries, and mutations to your Webiny application.
+
+The example demonstrates a complete implementation of a custom GraphQL query that lists CMS entries from any content model. It shows how to:
+
+- Define GraphQL type definitions using `addTypeDefs()` with custom types and response structures
+- Extend existing GraphQL types (like `Query`) with your custom operations
+- Add resolvers using `addResolver()` with dependency injection support
+- Handle both success and error responses using the Result pattern
+
+This pattern follows Webiny architecture principles, keeping the GraphQL layer thin and delegating business logic to dedicated use cases. The resolver functions receive injected dependencies and handle the communication between the GraphQL API and your application services.
+
+
+## Query Code Example
+
+```typescript
+import { GraphQLSchemaFactory } from "webiny/api/graphql";
+import { GetModelUseCase } from "webiny/api/cms/model";
+import { ListPublishedEntriesUseCase } from "webiny/api/cms/entry";
+
+interface IListCmsEntriesArgs {
+    modelId: string;
+    limit?: number;
+    after?: string;
+}
+
+class ListCmsEntriesGraphQL implements GraphQLSchemaFactory.Interface {
+    public async execute(builder: GraphQLSchemaFactory.SchemaBuilder): GraphQLSchemaFactory.Return {
+        builder.addTypeDefs(/* GraphQL */ `
+            type CustomListCmsEntriesResponseItem {
+                id: ID!
+                title: String!
+            }
+            type CustomListCmsEntriesResponse {
+                data: [CustomListCmsEntriesResponseItem!]
+                meta: CmsListMeta
+                error: CmsError
+            }
+
+            extend type Query {
+                listCmsEntries(
+                    modelId: ID!
+                    limit: Int
+                    after: String
+                ): CustomListCmsEntriesResponse!
+            }
+        `);
+
+        builder.addResolver<IListCmsEntriesArgs>({
+            path: "Query.listCmsEntries",
+            dependencies: [GetModelUseCase, ListPublishedEntriesUseCase],
+            resolver(
+                getModel: GetModelUseCase.Interface,
+                listEntries: ListPublishedEntriesUseCase.Interface
+            ) {
+                return async ({ args }) => {
+                    const { modelId, limit, after } = args;
+
+                    const modelResult = await getModel.execute(modelId);
+
+                    if (modelResult.isFail()) {
+                        return {
+                            error: modelResult.error,
+                            data: null,
+                            meta: null
+                        };
+                    }
+                    const model = modelResult.value;
+
+                    const entriesResult = await listEntries.execute(model, {
+                        limit: limit || 10,
+                        after: after || null
+                    });
+                    if (entriesResult.isFail()) {
+                        return {
+                            error: entriesResult.error,
+                            data: null,
+                            meta: null
+                        };
+                    }
+
+                    const { entries, meta } = entriesResult.value;
+
+                    return {
+                        data: entries.map(item => ({
+                            id: item.id,
+                            title: item.values[model.titleFieldId] || "No title"
+                        })),
+                        meta,
+                        error: null
+                    };
+                };
+            }
+        });
+
+        return builder;
+    }
+}
+
+export default GraphQLSchemaFactory.createImplementation({
+    implementation: ListCmsEntriesGraphQL,
+    dependencies: [],
+});
+```
+
+
+## Mutation Code Example
+
+```typescript
+import { GraphQLSchemaFactory } from "webiny/api/graphql";
+import { GetModelUseCase } from "webiny/api/cms/model";
+import { CreateEntryUseCase } from "webiny/api/cms/entry";
+
+interface ILogMyClickArgs {
+    id: string;
+    ip: string;
+}
+
+class LogMyClickGraphQL implements GraphQLSchemaFactory.Interface {
+    public async execute(builder: GraphQLSchemaFactory.SchemaBuilder): GraphQLSchemaFactory.Return {
+        builder.addTypeDefs(/* GraphQL */ `
+            type LogMyClickResponseItem {
+                id: ID!
+                ip: String!
+                createdOn: String!
+            }
+            type LogMyClickResponse {
+                data: LogMyClickResponseItem
+                error: CmsError
+            }
+
+            extend type Mutation {
+                logMyClick(id: ID!, ip: String!): LogMyClickResponse!
+            }
+        `);
+
+        builder.addResolver<ILogMyClickArgs>({
+            path: "Mutation.logMyClick",
+            dependencies: [GetModelUseCase, CreateEntryUseCase],
+            resolver(
+                getModel: GetModelUseCase.Interface,
+                createEntry: CreateEntryUseCase.Interface
+            ) {
+                return async ({ args }) => {
+                    const modelResult = await getModel.execute("logMyClickModel");
+
+                    if (modelResult.isFail()) {
+                        return {
+                            error: modelResult.error,
+                            data: null,
+                            meta: null
+                        };
+                    }
+                    const model = modelResult.value;
+
+                    const result = await createEntry.execute<ILogMyClickArgs>(model, {
+                        values: {
+                            id: args.id,
+                            ip: args.ip
+                        }
+                    });
+                    if (result.isFail()) {
+                        return {
+                            error: result.error,
+                            data: null,
+                            meta: null
+                        };
+                    }
+                    return {
+                        data: result.value,
+                        error: null
+                    };
+                };
+            }
+        });
+
+        return builder;
+    }
+}
+
+export default GraphQLSchemaFactory.createImplementation({
+    implementation: LogMyClickGraphQL,
+    dependencies: [],
+});
+```

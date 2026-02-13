@@ -1,0 +1,135 @@
+---
+id: 7gwku532
+title: Private Model Builder and Usage
+description: About Private Models, how and where to use them.
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What is a private model and how does it differ from public models?
+- How to create a private model using the Model Builder?
+- When to use private models?
+- How to access data from private models?
+
+</Alert>
+
+## Overview
+
+This example demonstrates how to create a private model and why would you use it or need it.
+
+Private models are not exposed through the GraphQL API, so you need to expose them yourself if required (build a schema and resolvers).
+
+## Private Model Builder
+
+```typescript
+import { ModelFactory } from "webiny/api/cms/model";
+
+class UserLogImpl implements ModelFactory.Interface {
+    public async execute(builder: ModelFactory.Builder): ModelFactory.Return {
+        return [
+            builder
+                .private({
+                    name: "UserLog",
+                    modelId: "userLog"
+                })
+                .fields(fieldBuilder => {
+                    return {
+                        id: fieldBuilder.text().label("id").required(),
+                        ip: fieldBuilder.text().label("ip").required()
+                    };
+                })
+        ];
+    }
+}
+
+const UserLog = ModelFactory.createImplementation({
+    implementation: UserLogImpl,
+    dependencies: []
+});
+
+export default UserLog;
+```
+
+## Usage Of the Defined Private Model
+
+For example, you want to log every time user authenticates in your application.
+
+```typescript
+import { AfterAuthenticationHandler } from "webiny/api/security/authentication";
+import { CreateEntryUseCase } from "webiny/api/cms/entry";
+import { GetModelUseCase } from "webiny/api/cms/model";
+
+class LogUser implements AfterAuthenticationHandler.Interface {
+    public constructor(
+        private createEntryUseCase: CreateEntryUseCase.Interface,
+        private getModelUseCase: GetModelUseCase.Interface
+    ) {}
+
+    public async handle(event: AfterAuthenticationHandler.Event) {
+        const { payload } = event;
+        const { identity } = payload;
+        if (identity.isAnonymous()) {
+            return;
+        }
+        const model = await this.getModel();
+        await this.createEntryUseCase.execute(model, {
+            values: {
+                userId: identity.id
+            }
+        });
+    }
+
+    private async getModel() {
+        const result = await this.getModelUseCase.execute("userLog");
+        if (result.isFail()) {
+            throw new Error(result.error.message);
+        }
+        return result.value;
+    }
+}
+
+export default AfterAuthenticationHandler.createImplementation({
+    implementation: LogUser,
+    dependencies: [CreateEntryUseCase, GetModelUseCase]
+});
+```
+
+### What's Happening Here
+
+This example demonstrates a practical use case for private models. The `LogUser` handler intercepts authentication events and stores user login data in the private `userLog` model.
+
+Since the model is private, this data is only accessible through your backend code, not through the public GraphQL API. This is perfect for internal logging, analytics, or storing sensitive data that shouldn't be exposed to frontend applications.
+
+## Accessing Private Model Data
+
+To access data from a private model, you would typically create custom GraphQL resolvers or use the CMS API directly in your backend code.
+
+This allows you to control who can access this data and how it's used, ensuring that sensitive information remains secure.
+
+```typescript
+import { GetModelUseCase } from "webiny/api/cms/model";
+import { ListEntriesUseCase } from "webiny/api/cms/entry";
+
+const modelResult = await this.getModelUseCase.execute("userLog");
+if (modelResult.isFail()) {
+    throw new Error(model.error.message);
+}
+const model = modelResult.value;
+
+const entriesResult = await this.listEntriesUseCase.execute(model, {
+    where: {
+        userId: "some-user-id"
+    }
+});
+if (entriesResult.isFail()) {
+    throw new Error(entriesResult.error.message);
+}
+const userLogs = entriesResult.value;
+
+console.log({
+    userLogs
+});
+
+```
