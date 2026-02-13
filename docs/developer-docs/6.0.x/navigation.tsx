@@ -34,6 +34,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
           <Page link={"headless-cms/builder/group"} />
           <Page link={"headless-cms/builder/model"} />
+          <Page link={"headless-cms/builder/field"} />
 
           <Page link={"headless-cms/examples/private-model"} />
           <Page link={"headless-cms/examples/single-entry-model"} />
