@@ -11,11 +11,27 @@ Source of Information:
    - Error type definitions
    - Proper TypeScript typing
 
+Understanding Dependency Injection (DI):
+DI is a pattern where you don't create dependencies directly in your code. Instead, you define what you need (interface/abstraction) and something else provides it (implementation). This makes code:
+- Testable: Easy to swap real services with test doubles
+- Flexible: Can change implementations without changing code
+- Maintainable: Clear separation of "what" vs "how"
+
+Simple Analogy:
+Think of ordering food at a restaurant. You say "I want a burger" (interface/abstraction). The kitchen decides how to make it (implementation). You don't care if they use oven A or oven B, you just want a burger.
+
+In the DI System:
+1. Abstraction = The "what" (interface) - "I need something that can save users"
+2. Implementation = The "how" (concrete code) - "Here's code that saves users to database"
+3. Container = The system that connects requests to services
+
+External Package Used:
+This system uses @webiny/di - a type-safe dependency injection library designed for TypeScript.
+
 Key Documentation Decisions:
-- Target audience: Developers who already understand DI/factory patterns
-- Focus only on Webiny-specific implementation (createAbstraction, createImplementation)
+- Focus on createAbstraction and createImplementation API
 - Keep examples simple and generic (Book/Author/Category domain)
-- Show the namespace pattern used throughout Webiny codebase
+- Show the namespace pattern used throughout codebase
 - Export everything users need from the namespace (types, interfaces, errors)
 - Demonstrate the Result pattern integration
 - Use the prefix pattern for abstraction names (e.g., "Library/CreateBook")
@@ -30,11 +46,50 @@ Example Pattern Used:
 - const export of the abstraction
 - createImplementation usage from the namespace
 
-The document structure follows the existing Webiny docs pattern with:
-- Overview
-- What You'll Learn
-- Main content sections
-- Code examples
+The 5-Step Pattern:
+
+Step 1: Define the Interface (What you need)
+```typescript
+export interface ISaveBookUseCase {
+    execute(book: Book): Promise<Result<Book, Error>>;
+}
+```
+
+Step 2: Define Error Types
+```typescript
+export interface ISaveBookUseCaseErrors {
+    validation: ValidationError;
+    database: DatabaseError;
+}
+type UseCaseError = ISaveBookUseCaseErrors[keyof ISaveBookUseCaseErrors];
+```
+
+Step 3: Create the Abstraction (Register it)
+```typescript
+export const SaveBookUseCase = createAbstraction<ISaveBookUseCase>("Library/SaveBook");
+```
+The string "Library/SaveBook" is a unique name (like an ID) for this abstraction.
+
+Step 4: Export Everything in a Namespace
+```typescript
+export namespace SaveBookUseCase {
+    export type Interface = ISaveBookUseCase;
+    export type Error = UseCaseError;
+    // Export all types someone needs to use or implement this
+}
+```
+Why? So users have everything in one place: SaveBookUseCase.Interface, SaveBookUseCase.Error
+
+Step 5: Create Implementation (The actual code)
+```typescript
+export const saveBookUseCase = SaveBookUseCase.createImplementation({
+    database: DatabaseService // Dependencies it needs
+}, async ({ database }, book) => {
+    // Your actual logic here
+    await database.save(book);
+    return Result.ok(book);
+});
+```
 
 Related Documents:
 - See headless-cms/use-case/*.mdx for real-world abstraction examples
@@ -54,8 +109,8 @@ Common Patterns to Follow:
 5. Keep examples generic (avoid CMS-specific examples in this doc)
 
 Tone Guidelines:
-- Use "Webiny provides/uses/offers" not "We provide"
 - Be concise and technical
-- Target experienced developers
-- Focus on what's unique to Webiny DI
+- Focus on what's unique to this DI implementation
+- Show complete patterns with all 5 steps
+- Mention @webiny/di as the external package being used
 
