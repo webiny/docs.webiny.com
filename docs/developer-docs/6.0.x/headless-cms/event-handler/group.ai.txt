@@ -41,3 +41,64 @@ Example Structure:
 
 Target Audience: Developers extending group behavior, adding custom validation, or integrating group management with external systems.
 
+Related Documents:
+- headless-cms/event-handler/model.mdx - Similar patterns
+- headless-cms/event-handler/entry.mdx - More event examples
+- headless-cms/use-case/group.mdx - Use case integration
+
+Event Handler Pattern (from user's example):
+```typescript
+import { logger } from "@webiny/api/logger";
+import { Result } from "@webiny/feature/api";
+
+export const GroupBeforeCreateEventHandler = async ({ group, context }) => {
+    logger.info("Before creating group", { groupId: group.id });
+
+    // Validation example: Check for duplicates
+    const existing = await context.cms.groups.get(group.slug);
+    if (existing) {
+        return Result.fail(new ValidationError("Group with this slug already exists"));
+    }
+
+    // Authorization example
+    if (!context.security.hasPermission("cms.group.create")) {
+        return Result.fail(new AuthorizationError("Not authorized to create groups"));
+    }
+
+    // Continue if validation passes (return nothing)
+};
+```
+
+Required Imports:
+```typescript
+import { logger } from "@webiny/api/logger";
+import { Result } from "@webiny/feature/api";
+```
+
+Event Handler Structure:
+1. Import logger and Result
+2. Log the action with context
+3. Perform validation/authorization
+4. Return Result.fail() to stop processing
+5. Return nothing to continue
+
+Common Validations:
+- Duplicate checks (slug, name)
+- Authorization checks
+- Dependency validation (before delete)
+- Business rule enforcement
+
+Events to Document:
+- Before Create: Validation, authorization
+- After Create: Logging, notifications
+- Before Update: Change validation
+- After Update: Cache invalidation
+- Before Delete: Dependency checks
+- After Delete: Cleanup
+
+Tone Guidelines:
+- Production-ready examples
+- Show real validation scenarios
+- Use logger in every example
+- Follow user's provided example pattern exactly
+

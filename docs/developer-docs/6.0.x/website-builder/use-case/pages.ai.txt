@@ -52,5 +52,64 @@ Verification Done:
 - Validated business logic patterns
 - Ensured consistency with actual implementations
 
+Related Documents:
+- headless-cms/use-case/entry.mdx - Similar use case patterns
+- headless-cms/use-case/model.mdx - Use case structure reference
+- website-builder/event-handler/pages.mdx - Event integration
+- basic/di.mdx - Abstraction creation patterns
+- basic/result.mdx - Result pattern usage
+
+Key Code Locations:
+- Source code: remote/websiteBuilder/pages/useCase/* (symlinked via ./remote)
+- Abstraction pattern: See CMS use cases for reference
+- Real implementations: /Users/brunozoric/work/webiny/webiny-beta-test/testing-v6.0.0/extensions/websiteBuilder/pages/useCase
+
+Use Case Structure to Follow:
+```typescript
+// 1. Define interface
+export interface ICreatePageUseCase {
+    execute(input: Input): Promise<Result<Page, Error>>;
+}
+
+// 2. Define errors
+export interface ICreatePageUseCaseErrors {
+    validation: ValidationError;
+    authorization: AuthorizationError;
+}
+type UseCaseError = ICreatePageUseCaseErrors[keyof ICreatePageUseCaseErrors];
+
+// 3. Create abstraction
+export const CreatePageUseCase = createAbstraction<ICreatePageUseCase>("WebsiteBuilder/CreatePage");
+
+// 4. Export namespace with everything
+export namespace CreatePageUseCase {
+    export type Interface = ICreatePageUseCase;
+    export type Input = CreatePageInput;
+    export type Error = UseCaseError;
+    export type Return = Promise<Result<Page, UseCaseError>>;
+}
+
+// 5. Create implementation
+export const createPageUseCase = CreatePageUseCase.createImplementation({
+    async execute(input) {
+        // implementation
+    }
+});
+```
+
+Common Patterns:
+1. Follow the 5-step structure above
+2. Use namespace for all type exports
+3. Inject dependencies via createImplementation
+4. Validate in use cases, persist in repositories
+5. Trigger events where appropriate
+6. Always use Result pattern
+
+Tone Guidelines:
+- Technical and precise
+- Show complete patterns
+- Include page-specific validations
+- Reference actual implementation files
+
 Target Audience: Developers implementing custom page management logic, building custom publishing workflows, or extending website builder functionality.
 

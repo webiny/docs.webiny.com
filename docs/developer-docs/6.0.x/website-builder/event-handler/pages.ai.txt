@@ -48,3 +48,76 @@ Target Audience: Developers extending page behavior, implementing custom publish
 
 Note: Website Builder replaced Page Builder and Form Builder per user correction.
 
+Related Documents:
+- headless-cms/event-handler/entry.mdx - Similar lifecycle pattern
+- website-builder/use-case/pages.mdx - Use case integration
+- website-builder/event-handler/redirects.mdx - Related website builder events
+
+Key Code Locations:
+- Source: /Users/brunozoric/work/webiny/webiny-beta-test/testing-v6.0.0/extensions/websiteBuilder/pages/eventHandler
+- Symlinked: remote/websiteBuilder/pages/eventHandler
+
+Page Event Handler Pattern:
+```typescript
+import { logger } from "@webiny/api/logger";
+import { Result } from "@webiny/feature/api";
+
+export const PageBeforeCreateEventHandler = async ({ page, context }) => {
+    logger.info("Before creating page", { pageId: page.id });
+
+    // URL validation
+    if (!page.path.startsWith("/")) {
+        return Result.fail(new ValidationError("Page path must start with /"));
+    }
+
+    // Check for URL conflicts
+    const existing = await context.pages.getByPath(page.path);
+    if (existing) {
+        return Result.fail(new ValidationError("Page with this path already exists"));
+    }
+
+    // Template validation
+    if (!await context.templates.exists(page.templateId)) {
+        return Result.fail(new ValidationError("Template does not exist"));
+    }
+};
+```
+
+Page-Specific Validations:
+1. URL path format and conflicts
+2. SEO metadata completeness
+3. Template existence
+4. Required field validation
+5. Publishing prerequisites (SEO, content complete)
+
+Publishing Workflow Events:
+- Before Publish: Validate SEO, content, prerequisites
+- After Publish: CDN invalidation, sitemap update, notifications
+- Before Unpublish: Check dependencies
+- After Unpublish: Cache cleanup
+
+Events to Document:
+1. Before Create - URL, template validation
+2. After Create - Indexing, cache warming
+3. Before Update - URL conflicts, breaking changes
+4. After Update - Cache invalidation
+5. Before Delete - Authorization, dependencies
+6. After Delete - Index removal
+7. Before Publish - SEO, completeness checks
+8. After Publish - CDN, sitemap updates
+9. Before Unpublish - Pre-checks
+10. After Unpublish - Cleanup
+
+Common Patterns:
+1. Validate URL paths (format, conflicts)
+2. Check template existence
+3. Validate SEO requirements before publish
+4. Invalidate caches after changes
+5. Update external systems (CDN, sitemap)
+
+Tone Guidelines:
+- Show page-specific validations
+- Include publishing workflow examples
+- Explain integration points (CDN, sitemap)
+- Production-ready patterns
+

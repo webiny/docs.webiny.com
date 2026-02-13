@@ -44,3 +44,69 @@ Implementation Details:
 
 Target Audience: Developers implementing custom group management logic, extending default behavior, or building administrative tools for group organization.
 
+Related Documents:
+- headless-cms/use-case/model.mdx - Model use cases (similar pattern)
+- headless-cms/use-case/entry.mdx - Entry use cases (similar pattern)
+- headless-cms/event-handler/group.mdx - Event integration
+- headless-cms/builder/group.mdx - Group builder
+- basic/di.mdx - Abstraction patterns
+
+Key Code Locations:
+- Source: remote/cms/group/useCase/* (symlinked)
+
+Use Case Pattern (following established structure):
+```typescript
+// 1. Interface
+export interface ICreateGroupUseCase {
+    execute(input: CreateGroupInput): Promise<Result<CmsGroup, UseCaseError>>;
+}
+
+// 2. Errors
+export interface ICreateGroupUseCaseErrors {
+    notAuthorized: GroupNotAuthorizedError;
+    validation: GroupValidationError;
+    repository: RepositoryError;
+}
+type UseCaseError = ICreateGroupUseCaseErrors[keyof ICreateGroupUseCaseErrors];
+
+// 3. Abstraction
+export const CreateGroupUseCase = createAbstraction<ICreateGroupUseCase>("Cms/CreateGroup");
+
+// 4. Namespace
+export namespace CreateGroupUseCase {
+    export type Interface = ICreateGroupUseCase;
+    export type Input = CreateGroupInput;
+    export type Error = UseCaseError;
+    export type Return = Promise<Result<CmsGroup, UseCaseError>>;
+}
+
+// 5. Implementation
+export const createGroupUseCase = CreateGroupUseCase.createImplementation({
+    repository: CreateGroupRepository
+}, async ({ repository }, input) => {
+    // Validation
+    // Business logic
+    // Persistence
+    return Result.ok(group);
+});
+```
+
+Use Cases to Document:
+1. Create Group - New group with validation
+2. Update Group - Modify existing group
+3. Delete Group - Remove (check for models)
+4. Get Group - Retrieve single group
+5. List Groups - Query multiple groups
+
+Common Validations:
+- Slug uniqueness
+- Name requirements
+- Authorization checks
+- Model dependency (before delete)
+
+Tone Guidelines:
+- Follow established use case pattern
+- Show complete abstraction structure
+- Include namespace exports
+- Reference CMS entry/model for consistency
+

@@ -37,3 +37,65 @@ Pattern Observed:
 
 Note: Document was refined after user feedback to ensure junior developers understand all concepts (async, iteration, controllers, triggering, etc.)
 
+Related Documents:
+- tasks/about.mdx - Conceptual introduction
+- tasks/management.mdx - Task CRUD operations
+- All event-handler/*.mdx files use similar patterns
+
+Task Runner Pattern to Follow:
+```typescript
+export const MyTaskRunner = {
+    async iterate(context) {
+        const tasks = await context.tasks.getTasks({ name: "myTask" });
+        return tasks;
+    },
+    async run(task, context, controller) {
+        logger.info("Running task", { taskId: task.id });
+
+        // Process task
+        const result = await doWork(task.input);
+
+        if (result.isFail()) {
+            return controller.error(result.error);
+        }
+
+        return controller.success(result.value);
+    }
+};
+```
+
+Task Triggering Pattern:
+```typescript
+const result = await context.tasks.trigger({
+    name: "myTask",
+    input: { data: "value" }
+});
+```
+
+Task Definition Structure:
+- id: string (auto-generated)
+- name: string (task type identifier)
+- input: any (task-specific data)
+- status: "pending" | "success" | "failed" | "aborted"
+- output: any (result data)
+- error: any (error information)
+
+Common Patterns:
+1. Use iterate() to find tasks to process
+2. Use run() to execute individual tasks
+3. Controller methods: success(), error(), abort(), status()
+4. Always use logger for debugging
+5. Handle errors gracefully
+
+Junior Developer Notes:
+- Tasks are async operations outside HTTP cycle
+- Runner.iterate() finds tasks to process
+- Runner.run() processes one task
+- Controller manages task status
+- Context provides access to task operations
+
+Tone Guidelines:
+- Explain concepts clearly for juniors
+- Provide complete examples
+- Show the full lifecycle (define → trigger → execute)
+

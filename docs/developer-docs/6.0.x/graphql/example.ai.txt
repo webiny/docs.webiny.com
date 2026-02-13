@@ -32,3 +32,66 @@ Pattern Demonstrated:
 
 Tone: Practical and example-driven, showing how all pieces fit together. Verified to match the tone of reference.mdx (using "Webiny provides", explaining concepts consistently, maintaining technical accuracy).
 
+Related Documents:
+- graphql/reference.mdx - Factory API methods
+- graphql/about.mdx - Conceptual overview
+- All use-case/*.mdx files show integration with GraphQL resolvers
+
+GraphQL Factory Pattern to Follow:
+```typescript
+// 1. Define types
+factory.createObjectType({
+    name: "Book",
+    fields: {
+        id: { type: "ID!" },
+        title: { type: "String!" },
+        author: { type: "Author" }
+    }
+});
+
+// 2. Define inputs
+factory.createInputObjectType({
+    name: "CreateBookInput",
+    fields: {
+        title: { type: "String!" },
+        authorId: { type: "ID!" }
+    }
+});
+
+// 3. Create resolvers
+factory.createResolver({
+    type: "Query",
+    field: "getBook",
+    resolve: async (source, args, context) => {
+        const useCase = context.get(GetBookUseCase);
+        const result = await useCase.execute(args.id);
+
+        if (result.isFail()) {
+            throw new Error(result.error.message);
+        }
+
+        return result.value;
+    }
+});
+```
+
+Common Patterns:
+1. Type definitions separate from resolvers
+2. Use Input types for mutations
+3. Integrate with use cases in resolvers
+4. Handle Result pattern in resolvers (convert to errors/values)
+5. Use context.get() for dependency injection
+6. Type field definitions carefully (! for required)
+
+Integration with Use Cases:
+- Resolvers are thin layers
+- Business logic in use cases
+- Resolvers handle GraphQL-specific concerns
+- Use cases handle domain logic
+
+Tone Guidelines:
+- Show complete, working examples
+- Explain integration points
+- Match reference.mdx tone
+- Use "Webiny provides" consistently
+

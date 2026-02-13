@@ -50,3 +50,81 @@ Implementation Details:
 
 Target Audience: Developers implementing custom model management logic, enforcing model governance policies, or building model administration tools.
 
+Related Documents:
+- headless-cms/use-case/group.mdx - Group use cases (similar pattern)
+- headless-cms/use-case/entry.mdx - Entry use cases (similar pattern)
+- headless-cms/event-handler/model.mdx - Event integration
+- headless-cms/builder/model.mdx - Model builder
+- basic/di.mdx - Abstraction patterns
+
+Key Code Locations:
+- Source: remote/cms/model/useCase/* (symlinked)
+
+Model Use Case Pattern:
+```typescript
+// 1. Interface
+export interface ICreateModelUseCase {
+    execute(input: CreateModelInput): Promise<Result<CmsModel, UseCaseError>>;
+}
+
+// 2. Errors
+export interface ICreateModelUseCaseErrors {
+    notAuthorized: ModelNotAuthorizedError;
+    validation: ModelValidationError;
+    repository: RepositoryError;
+}
+type UseCaseError = ICreateModelUseCaseErrors[keyof ICreateModelUseCaseErrors];
+
+// 3. Abstraction
+export const CreateModelUseCase = createAbstraction<ICreateModelUseCase>("Cms/CreateModel");
+
+// 4. Namespace
+export namespace CreateModelUseCase {
+    export type Interface = ICreateModelUseCase;
+    export type Input = CreateModelInput;
+    export type Error = UseCaseError;
+    export type Return = Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+Use Cases to Document:
+1. Create Model - New model with field validation
+2. Update Model - Modify with breaking change checks
+3. Delete Model - Remove (check for entries)
+4. Get Model - Retrieve single model
+5. List Models - Query multiple models
+
+Model-Specific Validations:
+- Field structure validation (required fields)
+- API name format (singularApiName, pluralApiName)
+- Field type validation
+- Duplicate field ID checks
+- Breaking change detection (update)
+- Entry existence check (delete)
+
+Critical Validations:
+```typescript
+// API name validation
+if (!/^[A-Z][a-zA-Z0-9]*$/.test(input.singularApiName)) {
+    return Result.fail(new ValidationError("Invalid API name"));
+}
+
+// Field structure validation
+const hasIdField = input.fields.some(f => f.fieldId === "id");
+if (!hasIdField) {
+    return Result.fail(new ValidationError("Model must have 'id' field"));
+}
+
+// Before delete - check entries
+const entries = await context.cms.entries.list(model.modelId);
+if (entries.length > 0) {
+    return Result.fail(new ValidationError("Cannot delete model with entries"));
+}
+```
+
+Tone Guidelines:
+- Show model-specific validation complexity
+- Explain field structure requirements
+- Include breaking change considerations
+- Reference builder for model structure
+

@@ -48,3 +48,92 @@ Verification Done:
 
 Target Audience: Developers implementing custom entry management logic, extending default behavior, or building custom CMS workflows.
 
+Related Documents:
+- headless-cms/use-case/model.mdx - Similar patterns for models
+- headless-cms/use-case/group.mdx - Similar patterns for groups
+- headless-cms/event-handler/entry.mdx - Event integration
+- basic/di.mdx - Abstraction creation guide
+- basic/result.mdx - Result pattern guide
+
+Key Code Locations:
+- Source implementations: remote/cms/entry/useCase/* (symlinked)
+- Abstraction examples: remote/cms/entry/abstraction/*
+- Original source: /Users/brunozoric/work/webiny/webiny-beta-test/testing-v6.0.0/extensions/cms/entry/useCase
+
+Complete Use Case Pattern (verified from actual code):
+```typescript
+// 1. Interface
+export interface ICreateEntryUseCase {
+    execute<T extends CmsEntryValues = CmsEntryValues>(
+        model: CmsModel,
+        input: CreateCmsEntryInput<T>,
+        options?: CreateCmsEntryOptionsInput
+    ): Promise<Result<CmsEntry<T>, UseCaseError>>;
+}
+
+// 2. Error types
+export interface ICreateEntryUseCaseErrors {
+    notAuthorized: EntryNotAuthorizedError;
+    validation: EntryValidationError;
+    repository: RepositoryError;
+}
+type UseCaseError = ICreateEntryUseCaseErrors[keyof ICreateEntryUseCaseErrors];
+
+// 3. Abstraction
+export const CreateEntryUseCase = createAbstraction<ICreateEntryUseCase>("Cms/CreateEntry");
+
+// 4. Namespace export
+export namespace CreateEntryUseCase {
+    export type Interface = ICreateEntryUseCase;
+    export type Input<T extends CmsEntryValues = CmsEntryValues> = CreateCmsEntryInput<T>;
+    export type Options = CreateCmsEntryOptionsInput;
+    export type Error = UseCaseError;
+    export type Return<T extends CmsEntryValues = CmsEntryValues> = Promise<Result<CmsEntry<T>, UseCaseError>>;
+}
+
+// 5. Implementation
+export const createEntryUseCase = CreateEntryUseCase.createImplementation({
+    repository: CreateEntryRepository,
+    validator: EntryValidator
+}, async ({ repository, validator }, model, input, options) => {
+    // Validation
+    const validationResult = await validator.validate(model, input);
+    if (validationResult.isFail()) {
+        return validationResult;
+    }
+
+    // Business logic
+    const entry = createEntry(model, input);
+
+    // Persistence
+    const saveResult = await repository.execute(model, entry);
+    if (saveResult.isFail()) {
+        return saveResult;
+    }
+
+    return Result.ok(entry);
+});
+```
+
+Critical Patterns:
+1. Prefix abstraction with domain (e.g., "Cms/CreateEntry")
+2. Export namespace with ALL types users need
+3. Use generic types for flexibility (CmsEntryValues)
+4. Separate concerns: validation → business logic → persistence
+5. Repository pattern for data access
+6. Always return Result type
+
+Common Use Cases to Document:
+- Create: New entry with validation
+- Update: Modify with version management
+- Delete: Remove with dependency checks
+- Publish/Unpublish: Publishing workflow
+- Get/List: Retrieval operations
+- Validate: Entry validation logic
+
+Tone Guidelines:
+- Technical and complete
+- Show full patterns, not snippets
+- Reference actual implementation files
+- Explain repository integration
+

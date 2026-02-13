@@ -41,3 +41,67 @@ Examples Include:
 
 Target Audience: Developers extending model behavior, enforcing custom validation rules, or implementing model governance policies.
 
+Related Documents:
+- headless-cms/event-handler/group.mdx - Base pattern
+- headless-cms/event-handler/entry.mdx - Related events
+- headless-cms/use-case/model.mdx - Use case integration
+- headless-cms/builder/model.mdx - Model structure
+
+Model-Specific Event Handler Pattern:
+```typescript
+import { logger } from "@webiny/api/logger";
+import { Result } from "@webiny/feature/api";
+
+export const ModelBeforeCreateEventHandler = async ({ model, context }) => {
+    logger.info("Before creating model", { modelId: model.modelId });
+
+    // Model-specific validation: Check required fields
+    const hasIdField = model.fields.some(f => f.fieldId === "id");
+    if (!hasIdField) {
+        return Result.fail(new ValidationError("Model must have an 'id' field"));
+    }
+
+    // API name validation
+    if (!/^[a-z][a-zA-Z0-9]*$/.test(model.singularApiName)) {
+        return Result.fail(new ValidationError("Invalid API name format"));
+    }
+
+    // Continue if valid
+};
+```
+
+Model-Specific Validations:
+1. Field structure validation (required fields present)
+2. API naming conventions (singularApiName, pluralApiName)
+3. Field type validation
+4. Breaking change detection (before update)
+5. Dependency checks (entries exist before delete)
+
+Events to Document:
+- Before Create: Field validation, API names, structure
+- After Create: Logging, initial setup
+- Before Update: Breaking change prevention
+- After Update: Cache/schema invalidation
+- Before Delete: Entry existence check
+- After Delete: Cleanup (indexes, caches)
+
+Model Structure to Validate:
+- modelId, name, description
+- singularApiName, pluralApiName
+- fields array (field definitions)
+- group assignment
+- layout configuration
+
+Common Patterns:
+1. Validate field structure completeness
+2. Check naming conventions
+3. Prevent breaking changes on update
+4. Ensure no entries exist before delete
+5. Log all model changes
+
+Tone Guidelines:
+- Show model-specific validations
+- Explain why checks matter (breaking changes, data integrity)
+- Use logger in all examples
+- Production-ready validation logic
+

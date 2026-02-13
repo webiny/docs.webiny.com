@@ -44,3 +44,82 @@ Target Audience: Developers extending redirect behavior, implementing custom red
 
 Note: Corrected folder path after initial error (/redirects/ not /redirect/).
 
+Related Documents:
+- website-builder/event-handler/pages.mdx - Similar website builder patterns
+- website-builder/use-case/redirects.mdx - Use case integration
+
+Key Code Locations:
+- Source: /Users/brunozoric/work/webiny/webiny-beta-test/testing-v6.0.0/extensions/websiteBuilder/redirects/eventHandler
+- Symlinked: remote/websiteBuilder/redirects/eventHandler
+
+Redirect Event Handler Pattern:
+```typescript
+import { logger } from "@webiny/api/logger";
+import { Result } from "@webiny/feature/api";
+
+export const RedirectBeforeCreateEventHandler = async ({ redirect, context }) => {
+    logger.info("Before creating redirect", {
+        source: redirect.source,
+        target: redirect.target
+    });
+
+    // URL format validation
+    if (!redirect.source.startsWith("/")) {
+        return Result.fail(new ValidationError("Source must start with /"));
+    }
+
+    // Status code validation
+    const validCodes = [301, 302, 307, 308];
+    if (!validCodes.includes(redirect.statusCode)) {
+        return Result.fail(new ValidationError("Invalid status code"));
+    }
+
+    // Circular redirect detection
+    const wouldCreateCircular = await checkCircular(redirect, context);
+    if (wouldCreateCircular) {
+        return Result.fail(new ValidationError("Would create circular redirect"));
+    }
+};
+```
+
+Redirect-Specific Validations:
+1. Source URL format (must start with /)
+2. Target URL validation
+3. Valid HTTP status codes (301, 302, 307, 308)
+4. Circular redirect detection
+5. Wildcard pattern validation
+6. Duplicate redirect checks
+
+Status Codes:
+- 301: Permanent redirect
+- 302: Temporary redirect
+- 307: Temporary redirect (preserves method)
+- 308: Permanent redirect (preserves method)
+
+Events to Document:
+1. Before Create - URL format, status code, circular check
+2. After Create - Cache invalidation, logging
+3. Before Update - Validation of changes, conflict check
+4. After Update - Cache refresh
+5. Before Delete - Authorization
+6. After Delete - Cache cleanup
+
+Common Patterns:
+1. Validate URL formats
+2. Check status code validity
+3. Detect circular redirects
+4. Prevent duplicate redirects
+5. Invalidate caches on changes
+
+Circular Redirect Detection:
+```typescript
+// Check if source would redirect to itself through chain
+// A → B → A (circular)
+```
+
+Tone Guidelines:
+- Focus on redirect-specific concerns
+- Explain status codes
+- Show circular detection logic
+- Production validation patterns
+
