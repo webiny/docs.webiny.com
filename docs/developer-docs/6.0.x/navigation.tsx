@@ -22,20 +22,25 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         link={"headless-cms/about"}
       >
         <Page link={"headless-cms/about"} />
-        <Page link={"headless-cms/event-handler/group"} />
-        <Page link={"headless-cms/event-handler/model"} />
-        <Page link={"headless-cms/event-handler/entry"} />
-        <Page link={"headless-cms/event-handler/entry-extended"} />
+        <Group title={"Backend"}>
+          <Page link={"headless-cms/event-handler/group"} />
+          <Page link={"headless-cms/event-handler/model"} />
+          <Page link={"headless-cms/event-handler/entry"} />
+          <Page link={"headless-cms/event-handler/entry-extended"} />
 
-        <Page link={"headless-cms/use-case/group"} />
-        <Page link={"headless-cms/use-case/model"} />
-        <Page link={"headless-cms/use-case/entry"} />
+          <Page link={"headless-cms/use-case/group"} />
+          <Page link={"headless-cms/use-case/model"} />
+          <Page link={"headless-cms/use-case/entry"} />
 
-        <Page link={"headless-cms/builder/group"} />
-        <Page link={"headless-cms/builder/model"} />
+          <Page link={"headless-cms/builder/group"} />
+          <Page link={"headless-cms/builder/model"} />
 
-        <Page link={"headless-cms/examples/private-model"} />
-        <Page link={"headless-cms/examples/single-entry-model"} />
+          <Page link={"headless-cms/examples/private-model"} />
+          <Page link={"headless-cms/examples/single-entry-model"} />
+        </Group>
+        <Group title={"UI"}>
+          <Page link={"headless-cms/ui/field-renderer"} />
+        </Group>
       </Group>
       <Group title={"GraphQL"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"graphql/about"}>
         <Page link={"graphql/about"} />
