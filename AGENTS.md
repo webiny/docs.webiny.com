@@ -197,4 +197,4 @@ Each `.ai.txt` companion file contains these sections:
 8. `Tone Guidelines:` — explicit style instructions for the page
 
 ### Maintenance
-- When new documentation files (`.mdx` or `.ai.txt`) are added, update the directory layout and notes in this CLAUDE.md to reflect the changes.
+- When new documentation files (`.mdx` or `.ai.txt`) are added, update the directory layout and notes in this AGENTS.md to reflect the changes.
