@@ -1,5 +1,24 @@
 # Project Instructions
 
+## Critical Project Conventions
+
+### Package Manager
+- **ALWAYS use `yarn`, NEVER use `npm`** - This project exclusively uses Yarn
+- All script execution: `yarn <script-name>`
+- All package operations: `yarn add`, `yarn install`, etc.
+
+### Validation and Quality
+- **MDX/.ai.txt Pairing**: Every `.mdx` file must have a corresponding `.ai.txt` companion file
+- Run `yarn validate:mdx` to verify pairing before commits/PRs
+- Exceptions are defined in `.mdx-validation.json` (supports exact paths and glob patterns)
+- The validation script (`scripts/validate-mdx-pairing.ts`) checks bidirectionally
+
+### Project Structure
+- Documentation: `docs/developer-docs/6.0.x/`
+- Plans/design docs: `plans/` (project root)
+- Scripts: `scripts/` (TypeScript scripts executed via `tsx`)
+- Validation config: `.mdx-validation.json` (project root)
+
 ## Documentation Structure
 - Documentation files live in `docs/developer-docs/6.0.x/`
 - `.mdx` files are the documentation pages
@@ -30,6 +49,13 @@ docs/developer-docs/6.0.x/
 - `basic/di.mdx` and `basic/result.mdx` are foundational — referenced by all other sections
 - `.ai.txt` files contain: source info, key decisions, understanding, code patterns, related docs, and tone guidelines
 - Tone is calibrated per doc type: conceptual (about), technical (reference), practical (examples)
+
+### MDX/.ai.txt Pairing Exceptions
+Current exceptions (defined in `.mdx-validation.json`):
+- `get-started/welcome.mdx` - introductory page
+- `get-started/install-webiny.mdx` - installation guide
+- `overview/pricing.mdx` - pricing overview
+- `overview/features/security.mdx` - security features
 
 ## MDX Writing Conventions
 
