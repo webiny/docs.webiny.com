@@ -43,6 +43,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           <Page link={"headless-cms/ui/field-renderer"} />
         </Group>
       </Group>
+      <Group title={"Tenant Manager"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"tenant-manager/manage-tenants"}>
+        <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />
+        <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />
+      </Group>
       <Group title={"GraphQL"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"graphql/about"}>
         <Page link={"graphql/about"} />
         <Page link={"graphql/reference"} />

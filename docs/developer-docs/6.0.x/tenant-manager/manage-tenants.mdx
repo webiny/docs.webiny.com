@@ -1,0 +1,344 @@
+---
+id: 17d4de88
+title: Tenant Management via GraphQL API
+description: Learn how to manage tenants within Webiny via the GraphQL API
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to create, install, and suspend tenants using the GraphQL API
+
+</Alert>
+
+This guide covers the core tenant management operations available through the Webiny GraphQL API.
+
+## Prerequisites
+
+- Access to your Webiny GraphQL API endpoint
+- Valid API token with Tenant Manager permissions
+
+## Mutations
+
+All tenant operations are available under the `tenantManager` field in the root `Mutation` type:
+
+```graphql
+mutation {
+  tenantManager {
+    # operations here
+  }
+}
+```
+
+---
+
+## Create Tenant
+
+Creates a new tenant in the system.
+
+### Input
+
+```graphql
+input CreateTenantInput {
+  id: ID
+  name: String!
+  description: String
+}
+```
+
+**Fields:**
+
+- `id` (optional) - Custom tenant ID. If not provided, one will be generated automatically
+- `name` (required) - Display name for the tenant
+- `description` (optional) - Tenant description
+
+### Request
+
+```graphql
+mutation CreateTenant($input: CreateTenantInput!) {
+  tenantManager {
+    createTenant(input: $input) {
+      data
+      error {
+        message
+        code
+      }
+    }
+  }
+}
+```
+
+### Variables
+
+```json
+{
+  "input": {
+    "name": "Acme Corporation",
+    "description": "Main tenant for Acme Corp"
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "tenantManager": {
+      "createTenant": {
+        "data": true,
+        "error": null
+      }
+    }
+  }
+}
+```
+
+---
+
+## Install Tenant
+
+Installs and provisions a tenant with default settings and configurations.
+
+### Input
+
+- `tenantId` (required) - ID of the tenant to install
+
+### Request
+
+```graphql
+mutation InstallTenant($tenantId: ID!) {
+  tenantManager {
+    installTenant(tenantId: $tenantId) {
+      data
+      error {
+        message
+        code
+      }
+    }
+  }
+}
+```
+
+### Variables
+
+```json
+{
+  "tenantId": "root"
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "tenantManager": {
+      "installTenant": {
+        "data": true,
+        "error": null
+      }
+    }
+  }
+}
+```
+
+---
+
+## Disable Tenant
+
+Disables a tenant, preventing access to its resources.
+
+### Input
+
+- `tenantId` (required) - ID of the tenant to disable
+
+### Request
+
+```graphql
+mutation DisableTenant($tenantId: ID!) {
+  tenantManager {
+    disableTenant(tenantId: $tenantId) {
+      data
+      error {
+        message
+        code
+      }
+    }
+  }
+}
+```
+
+### Variables
+
+```json
+{
+  "tenantId": "acme-corp"
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "tenantManager": {
+      "disableTenant": {
+        "data": true,
+        "error": null
+      }
+    }
+  }
+}
+```
+
+---
+
+## Enable Tenant
+
+Re-enables a previously disabled tenant.
+
+### Input
+
+- `tenantId` (required) - ID of the tenant to enable
+
+### Request
+
+```graphql
+mutation EnableTenant($tenantId: ID!) {
+  tenantManager {
+    enableTenant(tenantId: $tenantId) {
+      data
+      error {
+        message
+        code
+      }
+    }
+  }
+}
+```
+
+### Variables
+
+```json
+{
+  "tenantId": "acme-corp"
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "tenantManager": {
+      "enableTenant": {
+        "data": true,
+        "error": null
+      }
+    }
+  }
+}
+```
+
+---
+
+## Error Handling
+
+All mutations return a `BooleanResponse` type with the following structure:
+
+```graphql
+type BooleanResponse {
+  data: Boolean
+  error: Error
+}
+
+type Error {
+  message: String
+  code: String
+  data: JSON
+}
+```
+
+When an operation fails, check the `error` field for details:
+
+```json
+{
+  "data": {
+    "tenantManager": {
+      "createTenant": {
+        "data": null,
+        "error": {
+          "message": "Tenant with this name already exists",
+          "code": "TENANT_EXISTS"
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+## Complete Example
+
+Here's a complete workflow for creating and setting up a new tenant:
+
+```javascript
+// 1. Create the tenant
+const createResult = await graphqlClient.mutate({
+  mutation: gql`
+    mutation CreateTenant($input: CreateTenantInput!) {
+      tenantManager {
+        createTenant(input: $input) {
+          data
+          error {
+            message
+            code
+          }
+        }
+      }
+    }
+  `,
+  variables: {
+    input: {
+      id: "acme-corp",
+      name: "Acme Corporation",
+      description: "Production tenant for Acme Corp"
+    }
+  }
+});
+
+if (createResult.data.tenantManager.createTenant.error) {
+  console.error("Failed to create tenant:", createResult.data.tenantManager.createTenant.error);
+  return;
+}
+
+// 2. Install the tenant (requires admin privileges)
+const installResult = await graphqlClient.mutate({
+  mutation: gql`
+    mutation InstallTenant($tenantId: ID!) {
+      tenantManager {
+        installTenant(tenantId: $tenantId) {
+          data
+          error {
+            message
+            code
+          }
+        }
+      }
+    }
+  `,
+  variables: {
+    tenantId: "acme-corp"
+  }
+});
+
+if (installResult.data.tenantManager.installTenant.error) {
+  console.error("Failed to install tenant:", installResult.data.tenantManager.installTenant.error);
+  return;
+}
+
+console.log("Tenant created and installed successfully");
+```
