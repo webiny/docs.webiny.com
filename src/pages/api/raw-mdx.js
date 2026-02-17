@@ -21,5 +21,6 @@ export default function handler(req, res) {
 
     const content = fs.readFileSync(mdxPath, "utf-8");
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "s-maxage=31536000, stale-while-revalidate");
     res.send(content);
 }
