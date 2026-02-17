@@ -16,6 +16,8 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Group title={"Essentials"}>
           <Page title={"Glossary"} link={"website-builder/essentials/glossary"} />
           <Page link={"website-builder/essentials/create-page"} />
+          <Page link={"website-builder/essentials/nextjs-starter-kit"} />
+          <Page link={"website-builder/essentials/custom-components"} />
         </Group>
       </Group>
       <Separator />

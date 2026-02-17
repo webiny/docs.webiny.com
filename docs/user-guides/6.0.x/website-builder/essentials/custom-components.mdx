@@ -1,0 +1,134 @@
+---
+id: 02ae18ee
+title: Custom Components
+description: Learn how to add custom components in the Next.js starter kit with Website Builder.
+---
+
+import { Alert } from "@/components/Alert";
+
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to add custom components to your Website Builder
+
+</Alert>
+
+In this tutorial, we explain how to create, register and use custom components in this Website Builder project.
+
+- Step 1: Add a React component file
+- Step 2: Register the component
+- Step 3: Ensure the group matches the one registered
+- Step 4: Configure local env vars
+- Step 5: Open the editor to verify the component appears in the chosen group.
+
+## Overview
+
+- Custom components live in the `src/editorComponents` folder and are provided to the renderer via `editorComponents` exported from `src/editorComponents/index.tsx`.
+- The page renderer (`src/components/DocumentRenderer.tsx`) passes `editorComponents` to `DocumentRenderer` from `@webiny/website-builder-nextjs`.
+- Component groups (used in the editor UI) are registered in `src/contentSdk/initializeContentSdk.ts` using `registerComponentGroup`.
+
+## Files to inspect 
+
+- `src/editorComponents/index.tsx` — the central list of editor components and input definitions: `src/editorComponents/index.tsx`
+- `src/components/DocumentRenderer.tsx` — how components are provided to the renderer: `src/components/DocumentRenderer.tsx`
+- `src/contentSdk/initializeContentSdk.ts` — where component groups are registered: `src/contentSdk/initializeContentSdk.ts`
+
+## Step-by-step: Create a new custom component
+
+### Step 1: Add a React component file
+
+Add a React component file under `src/editorComponents` (or a subfolder).
+   - Prefer exporting a named component (e.g. `export const MyBlock = () => { ... }`).
+   - Keep the component as a standard React functional component.
+
+Example minimal component: `src/editorComponents/MyBlock.tsx`
+```tsx
+import React from "react";
+
+export interface MyBlockProps {
+  title?: string;
+  text?: string;
+}
+
+export const MyBlock: React.FC<MyBlockProps> = ({ title, text }) => {
+  return (
+    <section className="my-block">
+      {title && <h2>{title}</h2>}
+      {text && <p>{text}</p>}
+    </section>
+  );
+};
+```
+
+### Step 2: Register the component
+
+Define editor inputs and register the component in `src/editorComponents/index.tsx`.
+   - Use `createComponent` from `@webiny/website-builder-nextjs` to register the component with `name`, `label`, `group` and `inputs`.
+   - Use input helpers such as `createTextInput`, `createLongTextInput`, `createLexicalInput`, `createFileInput`, `createSelectInput`, `createSlotInput`.
+
+Example registration snippet (add to `src/editorComponents/index.tsx`):
+```tsx
+import { createComponent, createTextInput, createLongTextInput } from "@webiny/website-builder-nextjs";
+import { MyBlock } from "./MyBlock";
+
+createComponent(MyBlock, {
+  name: "Custom/MyBlock",
+  label: "My Block",
+  group: "basic",
+  inputs: [
+    createTextInput({ name: "title", label: "Title" }),
+    createLongTextInput({ name: "text", label: "Text" })
+  ]
+});
+```
+
+Notes:
+- The `name` property defines the unique editor identifier (used by the editor to save/load the block).
+- The `group` should match a component group registered in `src/contentSdk/initializeContentSdk` (e.g., `custom`, `basic`).
+
+**How inputs map to component props**
+- When the editor renders the page, the `DocumentRenderer` will render your component and pass the block data as props.
+- Typical convention: input names map to prop names. For example, `title` becomes `props.title` inside your component.
+- For slot inputs (`createSlotInput`) the renderer will pass an array of nested blocks which you should render using `children` or a dedicated renderer.
+
+### Step 3: Ensure the group matches the one registered
+
+- Component groups (editor categories) are registered in `src/contentSdk/initializeContentSdk.ts` with `registerComponentGroup`.
+- Pick an existing group (`custom`, `basic`, `sample`) or add a new one in `initializeContentSdk.ts`. For example, for a new  `Demo Group` add the following:
+
+```tsx
+  registerComponentGroup({
+                name: "demo",
+                label: "Demo Group",
+                description: "Demo components"
+            });
+            ```
+
+**Where components are wired into the site**
+- `src/editorComponents/index.tsx` exports the array `editorComponents`. The `DocumentRenderer` in `src/components/DocumentRenderer.tsx` imports that array and passes it to the Webiny `DocumentRenderer`.
+- See: `src/editorComponents/index.tsx` and `src/components/DocumentRenderer.tsx`
+
+
+<Alert type="success" title="Tips and best practices">
+- Keep components presentation-focused; prefer receiving plain data from inputs rather than coupling to editor APIs inside the component.
+- For rich text, prefer `createLexicalInput` where content is saved as Lexical nodes and will be rendered by `DocumentRenderer`.
+- Use `createSlotInput` to allow nesting arbitrary content inside your block.
+- Keep components SSR-friendly. Use client-only code (like browser-only libs) inside a child component or guarded by dynamic import to avoid SSR issues.
+</Alert>
+
+### Step 4: Configure local env vars (if you haven't done so)
+
+- Ensure `NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST`, `NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY`, and `NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT` are configured in your `.env` file (see the Next.js Starter Kit article for full setup).
+- The editor will connect to your Webiny instance and pick up the registered groups/components.
+
+
+### Step 5: Open the editor to verify the component appears in the chosen group.
+
+- Run the site and open the editor to verify the component appears in the chosen group.
+
+
+
+**Examples**
+- `Hero`, `CalloutBox`, `TitleBox`, `WebinyGrid`, `AnimatedIcon` are registered in `src/editorComponents/index.tsx`. Inspect them for more advanced patterns such as slot inputs, file inputs, and custom select options.
+  - Example registration and inputs: `src/editorComponents/index.tsx`
+- The icon input uses a helper `iconEditorComponent()` defined in `src/editorComponents/iconComponent/iconEditorComponent.tsx`.
