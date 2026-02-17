@@ -124,29 +124,35 @@ export function NavItems() {
     return (
         <>
             <li>
-                <Link href="/docs/get-started/welcome" legacyBehavior>
-                    <a className={`text-nav-subdirectory ${activeClass("docs")}`}>Developer Docs</a>
+                <Link
+                    href="/docs/get-started/welcome"
+                    className={`text-nav-subdirectory ${activeClass("docs")}`}
+                >
+                    Developer Docs
                 </Link>
             </li>
             <li>
-                <Link href="/docs/release-notes/upgrade-webiny" legacyBehavior>
-                    <a className={`text-nav-subdirectory ${activeClass("release-notes")}`}>
-                        Release Notes
-                    </a>
+                <Link
+                    href="/docs/release-notes/upgrade-webiny"
+                    className={`text-nav-subdirectory ${activeClass("release-notes")}`}
+                >
+                    Release Notes
                 </Link>
             </li>
             <li>
-                <Link href="/docs/user-guides/overview" legacyBehavior>
-                    <a className={`text-nav-subdirectory ${activeClass("user-guides")}`}>
-                        User Guides
-                    </a>
+                <Link
+                    href="/docs/user-guides/overview"
+                    className={`text-nav-subdirectory ${activeClass("user-guides")}`}
+                >
+                    User Guides
                 </Link>
             </li>
             <li>
-                <Link href="/docs/handbook/company/why-webiny-exists" legacyBehavior>
-                    <a className={`text-nav-subdirectory ${activeClass("handbook")}`}>
-                        Company Handbook
-                    </a>
+                <Link
+                    href="/docs/handbook/company/why-webiny-exists"
+                    className={`text-nav-subdirectory ${activeClass("handbook")}`}
+                >
+                    Company Handbook
                 </Link>
             </li>
         </>
@@ -177,16 +183,15 @@ export function Header() {
                             />
                         </svg>
                     </button>
-                    <Link href={homepageUrl} legacyBehavior>
-                        <a
-                            className="flex-none w-[1.5925rem] lg:pr-[8.3875rem] lg:border-r border-border dark:border-dark-grey overflow-hidden lg:w-auto"
-                            onContextMenu={e => {
-                                e.preventDefault();
-                            }}
-                        >
-                            <span className="sr-only">Webiny Docs home page</span>
-                            <Logo className="w-auto h-[1.8025rem] lg:h-10" />
-                        </a>
+                    <Link
+                        href={homepageUrl}
+                        className="flex-none w-[1.5925rem] lg:pr-[8.3875rem] lg:border-r border-border dark:border-dark-grey overflow-hidden lg:w-auto"
+                        onContextMenu={e => {
+                            e.preventDefault();
+                        }}
+                    >
+                        <span className="sr-only">Webiny Docs home page</span>
+                        <Logo className="w-auto h-[1.8025rem] lg:h-10" />
                     </Link>
                     <div className="relative items-center hidden ml-auto lg:flex">
                         <nav className="flex items-center h-[2.375rem] text-sm leading-6 font-semibold text-slate-700 dark:text-slate-200 ml-[1.875rem] pl-[1.875rem]">
