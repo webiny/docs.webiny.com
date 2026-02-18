@@ -35,29 +35,63 @@ In this tutorial, we explain how to create, register and use custom components i
 
 ### Step 1: Add a React component file
 
-Add a React component file under `src/editorComponents` (or a subfolder). In this tutorial we will create `MyBlock` component.
+Add a React component file under `src/editorComponents` (or a subfolder). In this tutorial we will create `CalloutBox` component.
 
-- Prefer exporting a named component (e.g. `export const MyBlock = () => { ... }`).
+- Prefer exporting a named component (e.g. `export const CalloutBox = () => { ... }`).
 - Keep the component as a standard React functional component.
 
 Example minimal component:
 
-```diff-tsx src/editorComponents/MyBlock.tsx
-import React from "react";
+```diff-tsx src/editorComponents/CalloutBox.tsx
+"use client"
+import type { ComponentProps } from "@webiny/website-builder-nextjs";
 
-export interface MyBlockProps {
-  title?: string;
-  text?: string;
+interface LineProps {
+    text: string
+    highlighted: boolean
+    breakAfter?: boolean
 }
 
-export const MyBlock: React.FC<MyBlockProps> = ({ title, text }) => {
-  return (
-    <section className="my-block">
-      {title && <h2>{title}</h2>}
-      {text && <p>{text}</p>}
-    </section>
-  );
-};
+type CalloutBoxProps = ComponentProps<{
+    "line-1": string
+    "line-2": string
+    style: 'default' | "primary"
+}>
+
+export function CalloutBox({ inputs }: CalloutBoxProps) {
+
+    const lines = [
+        { text: inputs['line-1'], highlighted: true },
+        { text: inputs['line-2'], highlighted: false },
+    ];
+
+    return (
+        <div className={`
+            inline-block 
+            p-4 md:p-8 lg:p-12 
+            border
+            -mb-px
+            w-full 
+            border-border bg-background 
+        `}>
+            <h3 className={'max-w-5xl m-0 font-bold text-lg md:text-4xl lg:text-6xl/16 tracking-tighter text-balance'}>
+            {lines.map((line, index) => {
+                return (
+                    <div
+                        key={index}
+                        className={`
+                         
+                        ${line.highlighted ? 'text-foreground' : 'text-muted-foreground/60'}
+                    `}
+                    >
+                    {line.text}
+                    </div>
+                )
+            })}
+            </h3>
+        </div>
+    )
+}
 ```
 
 ### Step 2: Register the component
@@ -75,17 +109,28 @@ import {
   createTextInput,
   createLongTextInput
 } from "@webiny/website-builder-nextjs";
-import { MyBlock } from "./components/MyBlock";
+import {CalloutBox} from "./CalloutBox";
 
-createComponent(MyBlock, {
-  name: "Custom/MyBlock",
-  label: "My Block",
-  group: "basic",
-  inputs: [
-    createTextInput({ name: "title", label: "Title" }),
-    createLongTextInput({ name: "text", label: "Text" })
-  ]
-});
+
+		createComponent(CalloutBox, {
+			name: "Webiny/CalloutBox",
+			label: "Callout Box",
+			group: "basic",
+			inputs: [
+				createLongTextInput({
+					name: "line-1",
+					label: "Line 1 Text",
+					defaultValue: "Your Ultimate",
+					required: true
+				}),
+				createLongTextInput({
+					name: "line-2",
+					label: "Line 2 Text",
+					defaultValue: "Headless CMS",
+					required: true
+				})
+			]
+		}),
 ```
 
 Notes:
@@ -102,7 +147,7 @@ Notes:
 ### Step 3: Ensure the group matches the one registered
 
 - Component groups (editor categories) are registered in `src/contentSdk/initializeContentSdk.ts` with `registerComponentGroup`.
-- Pick an existing group (`custom`, `basic`, `sample`) or add a new one in `initializeContentSdk.ts`. 
+- Pick an existing group (`basic`, `sample`) or add a new one in `initializeContentSdk.ts`. 
 
 In this tutorial, we used an existing group, but if you ned to create a new one, for example, a new `Demo Group` add the following to `initializeContentSdk.ts`:
 
@@ -127,7 +172,10 @@ Note: the order in which the Component groups show in the Website builder depend
   
 </Alert>
 
-### Step 4: Open the editor to verify the component appears in the chosen group.
+### Step 4: Open the editor to verify the component appears in the chosen group and that it is functional.
 
-- Run the site and open the editor to verify the component appears in the chosen group.
+- Run the site and open a new Page in the editor to verify the component appears in the chosen group.
+- Drag and drop the new component in the Page to validate it is functional.
+
+![Callout Box Custom Component](./assets/custom-components/calloutbox-custom-component.png)
 
