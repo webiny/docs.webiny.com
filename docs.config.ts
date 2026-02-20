@@ -34,60 +34,13 @@ const linkWhitelist: string[] = [...redirects.map(r => r.source), "/forms/produc
  */
 const whitelistedVersions: string[] = [];
 
-/**
- * Only build versions at or above this version (e.g., "5.40.x").
- * Set via MIN_VERSION environment variable or modify here.
- * Set to empty string to build all versions.
- */
-const minVersionToBuild = process.env.MIN_VERSION || "";
-
 const filterByEnvironment = (version: Version) => {
   // In `preview`, if there are specific versions whitelisted for deployment, those are the only ones we'll output.
   if (preview && whitelistedVersions.length > 0) {
     return whitelistedVersions.includes(version.getValue());
   }
 
-  // If minVersionToBuild is set, only build versions >= minVersion or `latest`.
-  if (minVersionToBuild) {
-    if (minVersionToBuild === "latest") {
-      return version.isLatest();
-    }
-    const versionNum = parseFloat(version.getValue().replace(/[^\d.]/g, ""));
-    const minVersionNum = parseFloat(minVersionToBuild.replace(/[^\d.]/g, ""));
-    return versionNum >= minVersionNum;
-  }
-
   // Build everything.
-  return true;
-};
-
-const filterFilePathByVersion = (filePath: string): boolean => {
-  // Extract version from file path (e.g., /docs/developer-docs/5.40.x/... or /docs/user-guides/5.40.x/...)
-  const versionMatch = filePath.match(/\/(\d+\.\d+\.x)\//);
-
-  if (!versionMatch) {
-    // If no version in path, include the file (e.g., non-versioned docs)
-    return true;
-  }
-
-  const versionString = versionMatch[1];
-
-  // Use the same filtering logic as filterByEnvironment
-  if (preview && whitelistedVersions.length > 0) {
-    return whitelistedVersions.includes(versionString);
-  }
-
-  if (minVersionToBuild) {
-    if (minVersionToBuild === "latest") {
-      // For file paths, we can't determine if it's "latest" without more context
-      // So we'll include all versioned files when minVersionToBuild is "latest"
-      return true;
-    }
-    const versionNum = parseFloat(versionString.replace(/[^\d.]/g, ""));
-    const minVersionNum = parseFloat(minVersionToBuild.replace(/[^\d.]/g, ""));
-    return versionNum >= minVersionNum;
-  }
-
   return true;
 };
 
@@ -99,13 +52,9 @@ export default {
   projectRootDir: __dirname,
   cleanOutputDir: path.resolve("src/pages/docs"),
   sitemapOutputPath: path.resolve("public/algolia/sitemap.xml"),
-  linkValidator: new LinkValidator(
-    linkWhitelist,
-    link => {
-      return existsInDocs(link);
-    },
-    filterFilePathByVersion
-  ),
+  linkValidator: new LinkValidator(linkWhitelist, link => {
+    return existsInDocs(link);
+  }),
   documentRoots: [
     /* Developer Docs */
     new VersionedDocumentRootConfig({
