@@ -97,7 +97,7 @@ const existsInDocs = (link: string) => {
 
 export default {
   projectRootDir: __dirname,
-  cleanOutputDir: path.resolve("src/pages/docs"),
+  cleanOutputDir: [path.resolve("src/pages/docs"), path.resolve("public/raw/docs")],
   sitemapOutputPath: path.resolve("public/algolia/sitemap.xml"),
   linkValidator: new LinkValidator(
     linkWhitelist,

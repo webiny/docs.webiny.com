@@ -1,0 +1,129 @@
+---
+id: mffn5ef2
+title: Model Builder
+description: About Headless CMS Model Builder
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to create content models using the Model Builder?
+
+</Alert>
+
+## Overview
+
+The Model Builder allows you to programmatically create content models. Instead of manually creating models through the Admin UI, you can define them in code, which is ideal for version control, automated deployments, and creating reusable model templates.
+
+By implementing the `ModelFactory` interface, you can define complete content models with their fields, layouts, API names, and relationships. The builder provides a fluent API that makes it easy to configure various field types (text, rich text, file, reference, etc...) and their properties. Models can be organized into groups and can reference other models to create complex content structures.
+
+This approach is particularly useful when you need to provision models as part of a plugin, extension, or during project setup, ensuring consistency across different tenants and environments.
+
+## Code Example
+
+```typescript
+import { ModelFactory } from "webiny/api/cms/model";
+import { ListGroupsUseCase } from "webiny/api/cms/group";
+
+class BlogImpl implements ModelFactory.Interface {
+    public constructor(private listGroupsUseCase: ListGroupsUseCase.Interface) {}
+
+    public async execute(builder: ModelFactory.Builder): ModelFactory.Return {
+        const groups = await this.listGroupsUseCase.execute();
+        if (groups.isFail()) {
+            throw new Error(`Could not load groups: ${groups.error.message}`);
+        }
+        const [group] = groups.value;
+
+        if (!group) {
+            throw new Error(`At least one group must exist to create models.`);
+        }
+
+        return [
+            builder
+                .public({
+                    name: "Category",
+                    modelId: "category",
+                    group: group.slug,
+                    singularApiName: "Category",
+                    pluralApiName: "Categories"
+                })
+                .description("A model used to categorize articles.")
+                .fields(fieldBuilder => {
+                    return {
+                        title: fieldBuilder.text().label("Title").required(),
+                        slug: fieldBuilder.text().label("Slug").required()
+                    };
+                })
+                .layout([["title"], ["slug"]]),
+            builder
+                .public({
+                    name: "Author",
+                    modelId: "author",
+                    group: group.slug,
+                    singularApiName: "Author",
+                    pluralApiName: "Authors"
+                })
+                .description("A model used to create article authors.")
+                .fields(fieldBuilder => {
+                    return {
+                        name: fieldBuilder.text().label("Name").required(),
+                        bio: fieldBuilder.richText().label("Bio").required(),
+                        avatar: fieldBuilder.file().label("Avatar")
+                    };
+                })
+                .layout([["name"], ["bio"], ["avatar"]]),
+            builder
+                .public({
+                    name: "Article",
+                    modelId: "article",
+                    group: group.slug,
+                    singularApiName: "Article",
+                    pluralApiName: "Articles"
+                })
+                .description("A model used to create blog articles.")
+                .fields(fieldBuilder => {
+                    return {
+                        title: fieldBuilder.text().label("Title").required(),
+                        slug: fieldBuilder.text().label("Slug").required(),
+                        content: fieldBuilder
+                            .richText()
+                            .label("Content")
+                            .required(),
+                        author: fieldBuilder
+                            .ref()
+                            .renderer("ref-advanced-single")
+                            .label("Author")
+                            .required()
+                            .models([
+                                {
+                                    modelId: "author"
+                                }
+                            ]),
+                        category: fieldBuilder
+                            .ref()
+                            .list()
+                            .renderer("ref-advanced-single")
+                            .label("Category")
+                            .listMinLength(1)
+                            .required()
+                            .models([
+                                {
+                                    modelId: "category"
+                                }
+                            ])
+                    };
+                })
+                .layout([["title", "slug"], ["category"], ["content"]])
+        ];
+    }
+}
+
+const Blog = ModelFactory.createImplementation({
+    implementation: BlogImpl,
+    dependencies: [ListGroupsUseCase]
+});
+
+export default Blog;
+```

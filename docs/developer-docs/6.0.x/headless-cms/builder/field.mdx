@@ -1,0 +1,347 @@
+---
+id: b2t5ocpx
+title: Field Builder
+description: About Field Builder in the Headless CMS Model Builder
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to use the Field Builder to define content model fields
+- What methods are available for configuring fields
+- How to apply validators to different field types
+- How to configure field renderers
+
+</Alert>
+
+## Overview
+
+The Field Builder provides a fluent API for defining fields in content models. Each field type has specific methods for configuration and validation. Fields are created using the registry methods (e.g., `text()`, `number()`, etc.) and configured using chainable methods.
+
+## Common Methods
+
+All field types share these common configuration methods:
+
+**`label(text: string)`** - Sets the field label displayed in the UI.
+
+**`description(text: string)`** - Sets description text shown below the field label.
+
+**`note(text: string)`** - Sets a note shown below the field.
+
+**`help(text: string)`** - Sets help text shown in the tooltip next to the field label.
+
+**`placeholder(text: string)`** - Sets placeholder text for input fields.
+
+**`fieldId(id: string)`** - Sets the field identifier. Auto-generated from label if not specified.
+
+**`storageId(id: string)`** - Sets the storage identifier. Auto-generated if not specified.
+
+**`defaultValue(value: any)`** - Sets the default value for the field.
+
+**`list()`** - Marks the field as supporting multiple values.
+
+**`tags(tags: string[])`** - Adds tags to the field for categorization.
+
+**`renderer(name: string, settings?: Record<string, any>)`** - Sets the field renderer. See [Field Renderers](/docs/headless-cms/ui/field-renderer) for available renderers.
+
+**`settings(settings: Record<string, any>)`** - Sets additional field settings.
+
+**`predefinedValues(values: Array<{label: string, value: any, selected?: boolean}>)`** - Defines predefined values for the field (enables select boxes, radio buttons, or checkboxes).
+
+### List Validators
+
+When a field is marked with `.list()`, these validators become available:
+
+**`listMinLength(value: number, message?: string)`** - Minimum number of items required in the list.
+
+**`listMaxLength(value: number, message?: string)`** - Maximum number of items allowed in the list.
+
+## Boolean Field
+
+**Registry Method:** `boolean()`
+
+Boolean fields represent true/false values.
+
+### Methods
+
+**`defaultValue(value: boolean)`** - Sets the default boolean value.
+
+### Example
+
+```typescript
+title: "Published",
+field: registry.boolean()
+    .label("Published")
+    .description("Is this content published?")
+    .defaultValue(false)
+```
+
+## Text Field
+
+**Registry Method:** `text()`
+
+Text fields store short text values.
+
+### Validators
+
+**`required(message?: string)`** - Makes the field required.
+
+**`minLength(value: number, message?: string)`** - Minimum text length.
+
+**`maxLength(value: number, message?: string)`** - Maximum text length.
+
+**`pattern(regex: string, flags?: string, message?: string)`** - Custom regex pattern validation.
+
+**`email(message?: string)`** - Validates as email address.
+
+**`url(message?: string)`** - Validates as URL.
+
+**`lowerCase(message?: string)`** - Allows only lowercase characters.
+
+**`upperCase(message?: string)`** - Allows only uppercase characters.
+
+**`lowerCaseSpace(message?: string)`** - Allows only lowercase characters and spaces.
+
+**`upperCaseSpace(message?: string)`** - Allows only uppercase characters and spaces.
+
+**`unique(message?: string)`** - Ensures the value is unique across all entries.
+
+### Example
+
+```typescript
+title: "Email",
+field: registry.text()
+    .label("Email Address")
+    .placeholder("user@example.com")
+    .required()
+    .email()
+    .unique()
+```
+
+## Number Field
+
+**Registry Method:** `number()`
+
+Number fields store numeric values.
+
+### Validators
+
+**`required(message?: string)`** - Makes the field required.
+
+**`gte(value: number, message?: string)`** - Greater than or equal to validation.
+
+**`lte(value: number, message?: string)`** - Less than or equal to validation.
+
+### Example
+
+```typescript
+price: registry.number()
+    .label("Price")
+    .required()
+    .gte(0, "Price must be positive")
+    .lte(10000, "Price cannot exceed 10000")
+```
+
+## Long Text Field
+
+**Registry Method:** `longText()`
+
+Long text fields store larger amounts of text.
+
+### Validators
+
+Same validators as Text Field: `required`, `minLength`, `maxLength`, `pattern`, `email`, `url`, `lowerCase`, `upperCase`, `lowerCaseSpace`, `upperCaseSpace`.
+
+### Example
+
+```typescript
+description: registry.longText()
+    .label("Description")
+    .placeholder("Enter a detailed description...")
+    .maxLength(5000)
+```
+
+## Rich Text Field
+
+**Registry Method:** `richText()`
+
+Rich text fields store formatted content using the Lexical editor.
+
+### Validators
+
+**`required(message?: string)`** - Makes the field required.
+
+### Example
+
+```typescript
+content: registry.richText()
+    .label("Content")
+    .required()
+```
+
+## DateTime Field
+
+**Registry Method:** `datetime()`
+
+DateTime fields store date and time values in various formats.
+
+### Methods
+
+**`dateTimeType(type: DateTimeType)`** - Sets the datetime type. Types: `"date"`, `"time"`, `"dateTimeWithTimezone"`, `"dateTimeWithoutTimezone"`.
+
+**`dateOnly()`** - Shortcut for date-only fields.
+
+**`timeOnly()`** - Shortcut for time-only fields.
+
+**`withTimezone()`** - Shortcut for datetime with timezone.
+
+**`withoutTimezone()`** - Shortcut for datetime without timezone.
+
+### Validators
+
+**`required(message?: string)`** - Makes the field required.
+
+**`dateGte(value: string, message?: string)`** - Date must be greater than or equal to the specified date.
+
+**`dateLte(value: string, message?: string)`** - Date must be less than or equal to the specified date.
+
+### Example
+
+```typescript
+publishedAt: registry.datetime()
+    .label("Published At")
+    .withTimezone()
+    .required()
+    .dateGte("2024-01-01T00:00:00Z", "Cannot be before 2024")
+```
+
+## Reference Field
+
+**Registry Method:** `ref()`
+
+Reference fields create relationships between content entries.
+
+### Methods
+
+**`models(models: Array<{modelId: string}>)`** - Specifies which models can be referenced.
+
+### Validators
+
+**`required(message?: string)`** - Makes the field required.
+
+**`listMinLength(value: number, message?: string)`** - For multiple references, minimum number required.
+
+**`listMaxLength(value: number, message?: string)`** - For multiple references, maximum number allowed.
+
+### Example
+
+```typescript
+author: registry.ref()
+    .label("Author")
+    .models([{ modelId: "author" }])
+    .required(),
+
+tags: registry.ref()
+    .label("Tags")
+    .list()
+    .models([{ modelId: "tag" }])
+    .listMinLength(1)
+    .listMaxLength(10)
+```
+
+## Object Field
+
+**Registry Method:** `object()`
+
+Object fields contain nested field structures.
+
+### Methods
+
+**`fields(builder: (registry) => Record<string, FieldBuilder>)`** - Defines nested fields.
+
+**`layout(layout: string[][] | (builder) => void)`** - Defines the layout of nested fields.
+
+### Validators
+
+**`required(message?: string)`** - Makes the field required.
+
+### Example
+
+```typescript
+address: registry.object()
+    .label("Address")
+    .fields(registry => ({
+        street: registry.text().label("Street"),
+        city: registry.text().label("City"),
+        zipCode: registry.text().label("ZIP Code"),
+        country: registry.text().label("Country")
+    }))
+    .layout([
+        ["street"],
+        ["city", "zipCode"],
+        ["country"]
+    ])
+```
+
+## Dynamic Zone Field
+
+**Registry Method:** `dynamicZone()`
+
+Dynamic zone fields allow selecting from predefined templates.
+
+### Methods
+
+**`template(id: string, config: TemplateConfig)`** - Adds a template option.
+
+Template config properties:
+- `name: string` - Template display name
+- `gqlTypeName: string` - GraphQL type name for the template
+- `icon?: CmsIcon` - Icon for the template
+- `description?: string` - Template description
+- `fields: (registry) => Record<string, FieldBuilder>` - Template fields
+- `layout?: string[][]` - Template field layout
+
+### Validators
+
+**`required(message?: string)`** - Makes the field required.
+
+### Example
+
+```typescript
+sections: registry.dynamicZone()
+    .label("Page Sections")
+    .list()
+    .template("hero", {
+        name: "Hero Section",
+        gqlTypeName: "HeroSection",
+        description: "Large hero banner",
+        fields: registry => ({
+            title: registry.text().label("Title").required(),
+            subtitle: registry.text().label("Subtitle"),
+            image: registry.file().label("Background Image")
+        }),
+        layout: [["title"], ["subtitle"], ["image"]]
+    })
+    .template("text", {
+        name: "Text Section",
+        gqlTypeName: "TextSection",
+        description: "Rich text content",
+        fields: registry => ({
+            content: registry.richText().label("Content").required()
+        }),
+        layout: [["content"]]
+    })
+```
+
+## Field Renderers
+
+Field renderers determine how fields are displayed in the UI. To specify a renderer:
+
+```typescript
+title: registry.text()
+    .label("Title")
+    .renderer("text-input")
+```
+
+For a complete list of available renderers and which fields they support, see the [Field Renderers](/docs/headless-cms/ui/field-renderer) documentation.

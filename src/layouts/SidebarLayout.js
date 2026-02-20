@@ -435,9 +435,8 @@ const Page = forwardRef(({ title, link, isActive, depth = 0 }, ref) => {
                 }
             )}
         >
-            <Link href={link} legacyBehavior>
-                {/* first line */}
-                <a className="leading-6">{title}</a>
+            <Link href={link} className="leading-6">
+                {title}
             </Link>
         </li>
     );

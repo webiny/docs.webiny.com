@@ -1,0 +1,95 @@
+---
+id: c4e5667a
+title: Extend the Tenant Model
+description: Learn how to add custom fields to the tenant model
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to add custom fields to the tenant model
+
+</Alert>
+
+The `TenantModelExtension` allows you to add custom fields to the Tenant model. These fields are stored under the `tenant.extensions` object — you cannot add fields to the root of the model. Once added, these fields automatically appear in the Tenant form in the Admin UI, as well as in the GraphQL schema.
+
+## Create an Extension
+
+Import the `TenantModelExtension` and implement the `execute` method. The `extension` parameter provides two methods: `fields()` and `layout()`.
+
+```ts
+import { TenantModelExtension as ModelExtension } from "webiny/api/tenant-manager";
+
+class TenantModelExtension implements ModelExtension.Interface {
+  execute(extension: ModelExtension.Extension) {
+    extension
+      .fields(fields => ({
+        websiteTitle: fields
+          .text()
+          .label("Website Title")
+          .description("Enter a website title")
+          .renderer("text-input"),
+        primaryColor: fields
+          .text()
+          .label("Primary Color")
+          .description("Enter a color code (e.g., #000000)")
+          .renderer("text-input")
+          .defaultValue(""),
+        additionalColors: fields
+          .text()
+          .list()
+          .label("Additional Colors")
+          .description("Enter a color code (e.g., #000000)")
+          .defaultValue([])
+          .renderer("text-inputs"),
+        font: fields
+          .text()
+          .label("Font")
+          .description("Select a font")
+          .renderer("radio-buttons")
+          .predefinedValues([
+            { value: "InterVariable, sans-serif", label: "Inter" },
+            { value: "Menlo, Consolas, Monaco, monospace", label: "Menlo" },
+            { value: "Roboto, sans-serif", label: "Roboto" }
+          ])
+      }))
+      .layout([["websiteTitle"], ["primaryColor"], ["additionalColors"], ["font"]]);
+  }
+}
+
+export default ModelExtension.createImplementation({
+  implementation: TenantModelExtension,
+  dependencies: []
+});
+```
+
+## Register Your Extension
+
+Register your extension in `webiny.config.tsx`:
+
+```tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* Your extensions here */}
+      <Api.Extension src={"@/extensions/TenantModelExtension.ts"} />
+    </>
+  );
+};
+```
+
+## How It Works
+
+The Tenant model has an `extensions` field. Every `TenantModelExtension` implementation adds its fields as nested fields within that `extensions` object. This means:
+
+- Your fields are stored at `tenant.extensions.yourFieldName`.
+- You cannot add fields to the root of the Tenant model — only inside `extensions`.
+- All fields added via extensions automatically render in the Tenant form in the Admin UI, and are added to the GraphQL schema.
+
+---
+
+For all the available field types, visit a dedicated article on [CMS model fields](/docs/{version}/headless-cms/builder/field).

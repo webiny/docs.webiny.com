@@ -1,0 +1,223 @@
+---
+id: mk20cz91
+title: Management
+description: Task Management
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to list available task definitions?
+- How to trigger tasks via GraphQL?
+- How to monitor task execution and logs?
+- How to abort running tasks?
+- How to trigger tasks programmatically via code?
+
+</Alert>
+
+## Overview
+
+Once you've created background tasks, you need to manage them - trigger execution, monitor progress, view logs, and abort tasks when needed. System provides two ways to manage tasks:
+
+1. **GraphQL API** - Use GraphQL queries and mutations to manage tasks from your frontend applications or external tools
+2. **Programmatic API** - Trigger tasks directly from your backend code using the `TaskService`
+
+### What You Can Do
+
+- **List available task definitions** - See all registered background tasks in your system
+- **Trigger task execution** - Start a task with custom input parameters
+- **Monitor task runs** - Check status, iterations, start/finish times, and results
+- **View task logs** - Debug issues by reviewing detailed execution logs
+- **Abort running tasks** - Stop tasks that are running too long or are no longer needed
+
+## Management of Tasks via GraphQL
+
+### List Available Task Definitions
+
+Use this query to see all registered background tasks in your system. Each definition includes the task ID, title, and description you defined when creating the task.
+
+```graphql
+query ListTaskDefinitions {
+  backgroundTasks {
+    listDefinitions {
+      data {
+        id
+        title
+        description
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### List All Task Runs
+
+Use this query to see all task executions. Each task run includes its status, timestamps, iterations, input/output data, and more. This helps you monitor task progress and troubleshoot issues.
+
+```graphql
+query ListTasks {
+  backgroundTasks {
+    listTasks {
+      data {
+        id
+        startedOn
+        finishedOn
+        name
+        definitionId
+        iterations
+        parentId
+        executionName
+        eventResponse
+        taskStatus
+        input
+        output
+        # ...more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### List All Task Logs
+
+Use this query to view detailed execution logs for debugging. You can filter logs by task ID to see what happened during a specific task execution. Logs include messages, timestamps, types, and error details.
+
+```graphql
+query ListBackgroundTaskLogs {
+  backgroundTasks {
+    listLogs(where: {
+    # you can list logs from a certain task if you like
+    task: "yourTaskId"
+  }) {
+      data {
+        id
+        createdOn
+        executionName
+        iteration
+        items {
+          message
+          createdOn
+          type
+          data
+          error
+        }
+      }
+    }
+  }
+}
+```
+
+### Trigger a Task
+
+Use this mutation to start a task execution with custom input parameters. The task will be queued and executed asynchronously. You can track its progress using the task ID returned in the response.
+
+```graphql
+mutation TriggerATask {
+  backgroundTasks {
+    triggerTask(definition: testingRun, input: {
+      someVariableForTestingRunTaskToReceive: "someValue",
+      yetAnotherVariableForTestingRunTaskToReceive: "anotherValue"
+    }) {
+      data {
+        id
+        definitionId
+        executionName
+        eventResponse
+        taskStatus
+        input
+        # ... more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### Abort a Task
+
+Use this mutation to stop a running task. Provide the task ID and optionally a message explaining why the task is being aborted. The task will stop at the next safe checkpoint.
+
+```graphql
+mutation AbortATask {
+  backgroundTasks {
+    # message is optional
+    abortTask(id: "yourTaskId", message: "My Reason for aborting the task") {
+      data {
+        id
+        createdOn
+        savedOn
+        startedOn
+        finishedOn
+        definitionId
+        iterations
+        name
+        input
+        output
+        # ... more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+## Managing via Code
+
+### Triggering a Task Programmatically
+
+Use the `TaskService` to trigger tasks directly from your backend code. This is useful when you need to start background tasks as part of your application logic, such as after a user action or during a scheduled process. You can specify the task definition ID, custom input data, delay, parent task relationship, and a display name.
+
+```typescript
+import { TaskService } from "webiny/api/tasks";
+const service = // resolved TaskService
+
+const result = service.trigger({
+    definition: "aTaskDefinitionId",
+    delay: 0,
+    parent: {
+        id: "parentTaskId"
+    },
+    name: "My Task",
+    input: {
+        some: "data",
+        for: "the task"
+    }
+});
+```
+
+### Aborting a Task Programmatically
+
+Use the `TaskService` to abort a running task from your backend code. This is useful when you need to stop tasks programmatically based on application state or business logic. Provide the task ID and optionally a message explaining why the task is being aborted.
+
+```typescript
+import { TaskService } from "webiny/api/tasks";
+const service = // resolved TaskService
+
+const result = service.abort({
+    id: "taskIdToAbort",
+    message: "Optional reason for aborting the task"
+});
+```

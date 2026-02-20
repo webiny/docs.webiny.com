@@ -46,6 +46,7 @@ import { NextLinksRemarkPlugin } from "../../app/mdxCompiler/remark/NextLinksRem
 import { FilteredMdxFileWriter } from "../../app/FilteredMdxFileWriter";
 import { VersionRoot } from "./VersionRoot";
 import { ProcessedFileWriter } from "../../app/ProcessedFileWriter";
+import { PublicMdxFileWriter } from "../../app/PublicMdxFileWriter";
 
 interface Config {
   rootDir: string;
@@ -170,6 +171,10 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
         new CompositeMdxFileWriter([
           // In dev mode, we write the processed MDX file for debugging purposes.
           this.appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
+          // Output `latest` files to `public/raw` for access via `.mdx` extension
+          version.isLatest()
+            ? new PublicMdxFileWriter(`${this.appConfig.getProjectRootDir()}/public/raw`)
+            : new PassthroughFileWriter(),
           // Write sitemap XML file for each MDX file.
           new SitemapFileWriter(outputDir),
           // Write a JS file compiled from the MDX file.

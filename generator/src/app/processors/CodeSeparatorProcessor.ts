@@ -8,7 +8,7 @@ export class CodeSeparatorProcessor extends AbstractMdxProcessor {
         contents,
         "\n",
         this.mdxComment(
-          `================== THE FOLLOWING CODE IS GENERATED VIA CODE PROCESSORS ==================`
+          `================== AUTO-GENERATED ==================`
         )
       ].join("\n");
     });

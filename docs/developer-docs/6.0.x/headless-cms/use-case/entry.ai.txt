@@ -1,0 +1,139 @@
+AI Context: Entry Use Cases (headless-cms/use-case/entry.mdx)
+
+Source of Information:
+1. Analyzed existing use case patterns from group.mdx and model.mdx
+2. Examined entry use case implementations
+3. Examined create, update, delete, publish, unpublish use case implementations
+4. Studied the use case pattern: interface, abstraction, implementation
+5. Understood the integration between use cases, repositories, and event handlers
+
+Key Documentation Decisions:
+- Document all entry-related use cases
+- Follow the established pattern from group/model use cases
+- Show abstraction creation with createAbstraction
+- Include implementation examples with createImplementation
+- Demonstrate repository integration
+- Show event handler triggering
+- Use Result pattern throughout
+- Include error handling patterns
+- Cover full entry lifecycle
+
+Use Cases Documented:
+1. Create Entry - Create new content entries
+2. Update Entry - Modify existing entries
+3. Delete Entry - Remove entries
+4. Get Entry - Retrieve single entry
+5. List Entries - Query multiple entries
+6. Publish Entry - Make entry public
+7. Unpublish Entry - Remove from public view
+8. Create Revision - Version management
+9. Validate Entry - Entry validation logic
+
+Pattern Used:
+- Abstraction definition with interface
+- Error types definition
+- createAbstraction call
+- Namespace export pattern
+- createImplementation with dependencies
+- Repository pattern integration
+- Event handler integration
+- Result pattern for error handling
+
+Verification Done:
+- Read actual use case implementation files
+- Verified method signatures
+- Confirmed parameter types
+- Validated return types
+- Ensured consistency with actual code
+
+Related Documents:
+- headless-cms/use-case/model.mdx - Similar patterns for models
+- headless-cms/use-case/group.mdx - Similar patterns for groups
+- headless-cms/event-handler/entry.mdx - Event integration
+- basic/di.mdx - Abstraction creation guide
+- basic/result.mdx - Result pattern guide
+
+Key Code Locations:
+- Use case implementations: Look for entry-related use cases in the codebase
+
+To examine source code implementations in detail, access to the Webiny project repository is needed.
+- Abstraction examples: extensions/[module]/[feature]/abstraction/
+- Source code: extensions/[module]/ directory structure
+
+Complete Use Case Pattern (verified from actual code):
+```typescript
+// 1. Interface
+export interface ICreateEntryUseCase {
+    execute<T extends CmsEntryValues = CmsEntryValues>(
+        model: CmsModel,
+        input: CreateCmsEntryInput<T>,
+        options?: CreateCmsEntryOptionsInput
+    ): Promise<Result<CmsEntry<T>, UseCaseError>>;
+}
+
+// 2. Error types
+export interface ICreateEntryUseCaseErrors {
+    notAuthorized: EntryNotAuthorizedError;
+    validation: EntryValidationError;
+    repository: RepositoryError;
+}
+type UseCaseError = ICreateEntryUseCaseErrors[keyof ICreateEntryUseCaseErrors];
+
+// 3. Abstraction
+export const CreateEntryUseCase = createAbstraction<ICreateEntryUseCase>("Cms/CreateEntry");
+
+// 4. Namespace export
+export namespace CreateEntryUseCase {
+    export type Interface = ICreateEntryUseCase;
+    export type Input<T extends CmsEntryValues = CmsEntryValues> = CreateCmsEntryInput<T>;
+    export type Options = CreateCmsEntryOptionsInput;
+    export type Error = UseCaseError;
+    export type Return<T extends CmsEntryValues = CmsEntryValues> = Promise<Result<CmsEntry<T>, UseCaseError>>;
+}
+
+// 5. Implementation
+export const createEntryUseCase = CreateEntryUseCase.createImplementation({
+    repository: CreateEntryRepository,
+    validator: EntryValidator
+}, async ({ repository, validator }, model, input, options) => {
+    // Validation
+    const validationResult = await validator.validate(model, input);
+    if (validationResult.isFail()) {
+        return validationResult;
+    }
+
+    // Business logic
+    const entry = createEntry(model, input);
+
+    // Persistence
+    const saveResult = await repository.execute(model, entry);
+    if (saveResult.isFail()) {
+        return saveResult;
+    }
+
+    return Result.ok(entry);
+});
+```
+
+Critical Patterns:
+1. Prefix abstraction with domain (e.g., "Cms/CreateEntry")
+2. Export namespace with ALL types users need
+3. Use generic types for flexibility (CmsEntryValues)
+4. Separate concerns: validation → business logic → persistence
+5. Repository pattern for data access
+6. Always return Result type
+
+Common Use Cases to Document:
+- Create: New entry with validation
+- Update: Modify with version management
+- Delete: Remove with dependency checks
+- Publish/Unpublish: Publishing workflow
+- Get/List: Retrieval operations
+- Validate: Entry validation logic
+
+Tone Guidelines:
+- Technical and complete
+- Show full patterns, not snippets
+- Reference actual implementation files
+- Explain repository integration
+
