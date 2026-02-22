@@ -173,7 +173,7 @@ export class VersionedDocumentRootFactory implements IDocumentRootFactory {
           this.appConfig.isDevMode() ? new MdxFileWriter(outputDir) : new PassthroughFileWriter(),
           // Output `latest` files to `public/raw` for access via `.mdx` extension
           version.isLatest()
-            ? new PublicMdxFileWriter(`${this.appConfig.getProjectRootDir()}/public/raw`)
+            ? new PublicMdxFileWriter(`${this.appConfig.getProjectRootDir()}/public/docs-static/raw`)
             : new PassthroughFileWriter(),
           // Write sitemap XML file for each MDX file.
           new SitemapFileWriter(outputDir),
