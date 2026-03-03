@@ -54,6 +54,18 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         </Group>
       </Group>
       <Separator />
+      <Group title={"Security"}
+             icon={"/docs-menu-icons/wcp.svg"}
+             link={"security/essentials/create-user"}
+      >
+        <Group title={"Essentials"}>
+          <Page link={"security/essentials/create-user"} />
+          <Page link={"security/essentials/create-user-role"} />
+          <Page link={"security/essentials/assign-role"} />
+          <Page link={"security/essentials/create-team"} />
+          <Page link={"security/essentials/assign-team"} />
+        </Group>
+      </Group>
       {children}
     </NavigationRoot>
   );
