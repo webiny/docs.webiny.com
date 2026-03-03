@@ -9,6 +9,27 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Separator />
       <Group
+        title={"Headless CMS"}
+        icon={"/docs-menu-icons/headless-cms.svg"}
+        link={"headless-cms/essentials/glossary"}
+      >
+        <Group title={"Essentials"}>
+          <Page title={"Glossary"} link={"headless-cms/essentials/glossary"} />
+          <Page link={"headless-cms/essentials/create-content-model"} />
+          <Page link={"headless-cms/essentials/create-content-entry"} />
+          <Page link={"headless-cms/essentials/create-content-model-group"} />
+          <Page link={"headless-cms/essentials/content-entry-revisions"} />
+          <Page link={"headless-cms/essentials/clone-content-model"} />
+          <Page link={"headless-cms/essentials/manage-content-model-settings"} />
+          <Page link={"headless-cms/essentials/add-validator-to-fields"} />
+          <Page link={"headless-cms/essentials/reference-field"} />
+        </Group>
+        <Group title={"Advanced"}>
+          <Page link={"headless-cms/advanced/import-export-content-models"} />
+        </Group>
+      </Group>
+      <Separator />
+      <Group
         title={"Website Builder"}
         icon={"/docs-menu-icons/page-builder.svg"}
         link={"website-builder/essentials/glossary"}
@@ -33,6 +54,18 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         </Group>
       </Group>
       <Separator />
+      <Group title={"Security"}
+             icon={"/docs-menu-icons/wcp.svg"}
+             link={"security/essentials/create-user"}
+      >
+        <Group title={"Essentials"}>
+          <Page link={"security/essentials/create-user"} />
+          <Page link={"security/essentials/create-user-role"} />
+          <Page link={"security/essentials/assign-role"} />
+          <Page link={"security/essentials/create-team"} />
+          <Page link={"security/essentials/assign-team"} />
+        </Group>
+      </Group>
       {children}
     </NavigationRoot>
   );
