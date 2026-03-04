@@ -43,7 +43,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           <Page link={"headless-cms/ui/field-renderer"} />
         </Group>
       </Group>
-      <Group title={"Tenant Manager"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"tenant-manager/manage-tenants"}>
+      <Group
+        title={"Tenant Manager"}
+        icon={"/docs-menu-icons/webiny-overview.svg"}
+        link={"tenant-manager/manage-tenants"}
+      >
         <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />
         <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />
       </Group>
@@ -56,6 +60,74 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"tasks/about"} />
         <Page link={"tasks/reference"} />
         <Page link={"tasks/management"} />
+      </Group>
+      <Group
+        title={"Reference"}
+        icon={"/docs-menu-icons/core-dev-concepts.svg"}
+        link={"reference/api/cms/entry"}
+      >
+        {/* __REFERENCE_PAGES_START__ */}
+        <Group title={"Admin"} link={"reference/admin"}>
+          <Page link={"reference/admin"} title={"Admin"} />
+          <Page link={"reference/admin/aco"} title={"ACO"} />
+          <Page link={"reference/admin/buildParams"} title={"Build Params"} />
+          <Page link={"reference/admin/cms"} title={"CMS"} />
+          <Page link={"reference/admin/cms/entry/editor"} title={"Editor"} />
+          <Page link={"reference/admin/cms/entry/list"} title={"List"} />
+          <Page link={"reference/admin/cms/fieldRenderers/dynamicZone"} title={"DynamicZone"} />
+          <Page link={"reference/admin/cms/fieldRenderers/object"} title={"Object"} />
+          <Page link={"reference/admin/cms/lexical"} title={"Lexical Editor"} />
+          <Page link={"reference/admin/configs"} title={"Configs"} />
+          <Page link={"reference/admin/envConfig"} title={"Env Config"} />
+          <Page link={"reference/admin/form"} title={"Form"} />
+          <Page link={"reference/admin/graphqlClient"} title={"GraphQL Client"} />
+          <Page link={"reference/admin/lexical"} title={"Lexical Editor"} />
+          <Page link={"reference/admin/localStorage"} title={"Local Storage"} />
+          <Page link={"reference/admin/router"} title={"Router"} />
+          <Page link={"reference/admin/security"} title={"Security"} />
+          <Page link={"reference/admin/tenancy"} title={"Tenancy"} />
+          <Page link={"reference/admin/ui"} title={"UI"} />
+          <Page link={"reference/admin/website-builder"} title={"Website Builder"} />
+          <Page link={"reference/admin/website-builder/lexical"} title={"Lexical Editor"} />
+          <Page link={"reference/admin/website-builder/page/editor"} title={"Editor"} />
+          <Page link={"reference/admin/website-builder/page/list"} title={"List"} />
+          <Page link={"reference/admin/website-builder/redirect/list"} title={"List"} />
+        </Group>
+        <Group title={"API"} link={"reference/api/cms/entry"}>
+          <Page link={"reference/api"} title={"API"} />
+          <Page link={"reference/api/buildParams"} title={"Build Params"} />
+          <Page link={"reference/api/cms/entry"} title={"Entry"} />
+          <Page link={"reference/api/cms/group"} title={"Group"} />
+          <Page link={"reference/api/cms/model"} title={"Model"} />
+          <Page link={"reference/api/eventPublisher"} title={"Event Publisher"} />
+          <Page link={"reference/api/graphql"} title={"GraphQL"} />
+          <Page link={"reference/api/keyValueStore"} title={"Key-Value Store"} />
+          <Page link={"reference/api/logger"} title={"Logger"} />
+          <Page link={"reference/api/security"} title={"Security"} />
+          <Page link={"reference/api/security/apiKey"} title={"API Key"} />
+          <Page link={"reference/api/security/authentication"} title={"Authentication"} />
+          <Page link={"reference/api/security/role"} title={"Role"} />
+          <Page link={"reference/api/security/user"} title={"User"} />
+          <Page link={"reference/api/system"} title={"System"} />
+          <Page link={"reference/api/tasks"} title={"Tasks"} />
+          <Page link={"reference/api/tenancy"} title={"Tenancy"} />
+          <Page link={"reference/api/tenant-manager"} title={"Tenant Manager"} />
+          <Page link={"reference/api/website-builder/nextjs"} title={"Next.js"} />
+          <Page link={"reference/api/website-builder/page"} title={"Page"} />
+          <Page link={"reference/api/website-builder/redirect"} title={"Redirect"} />
+        </Group>
+        <Group title={"CLI"} link={"reference/cli/command"}>
+          <Page link={"reference/cli/command"} title={"Command"} />
+          <Page link={"reference/cli/index"} title={"CLI Overview"} />
+        </Group>
+        <Page link={"reference/extensions"} />
+        <Group title={"Infrastructure"} link={"reference/infra/index"}>
+          <Page link={"reference/infra/admin"} title={"Admin"} />
+          <Page link={"reference/infra/api"} title={"API"} />
+          <Page link={"reference/infra/core"} title={"Core"} />
+          <Page link={"reference/infra/index"} title={"Infrastructure Overview"} />
+        </Group>
+        {/* __REFERENCE_PAGES_END__ */}
       </Group>
       <Page link={"overview/pricing"} hidden={true} />
       <Page link={"overview/features/security"} hidden={true} />
