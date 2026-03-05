@@ -83,7 +83,9 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 depth={depth}
             />
         );
-    } else if (type === "group" && depth !== 1) {
+    }
+
+    if (type === "group" && depth !== 1) {
         return (
             <Collapsable
                 subElements={items}
@@ -95,7 +97,9 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 depth={depth}
             />
         );
-    } else if (type === "group" && depth === 1) {
+    }
+
+    if (type === "group" && depth === 1) {
         return (
             <Section
                 subElements={items}
@@ -105,9 +109,13 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 depth={depth}
             />
         );
-    } else if (type === "page") {
+    }
+
+    if (type === "page") {
         return <Page title={title} link={link} isActive={isActive} ref={ref} depth={depth} />;
-    } else if (type === "separator") {
+    }
+
+    if (type === "separator") {
         return <HorizontalLine />;
     }
     return null;
