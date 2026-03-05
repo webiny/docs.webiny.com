@@ -21,14 +21,49 @@ This page documents everything exported from `webiny/api/cms/model`. Import any 
 
 ## `ModelFactory`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ModelFactory } from "webiny/api/cms/model";
 ```
 
+**Interface `ModelFactory.Interface`:**
+
 ```typescript
-export const ModelFactory = createAbstraction(...)
+interface ModelFactory.Interface {
+    execute(builder: IModelBuilder): Promise<PrivateModelBuilder[] | PublicModelBuilder[]>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ModelFactory {
+  type Interface = IModelFactory;
+  type Return = Promise<PrivateModelBuilder[] | PublicModelBuilder[]>;
+  type Builder = IModelBuilder;
+  type FieldBuilder = FieldBuilderRegistry.Interface;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { ModelFactory } from "webiny/api/cms/model";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private modelFactory: ModelFactory.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.modelFactory.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [ModelFactory]
+});
 ```
 
 ## `ModelBuilder`
@@ -117,14 +152,41 @@ export interface FieldRendererRegistry { ... }
 
 ## `FieldType`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { FieldType } from "webiny/api/cms/model";
 ```
 
+**Interface `FieldType.Interface`:**
+
 ```typescript
-export const FieldType = createAbstraction(...)
+interface FieldType.Interface {
+    // Unique identifier for this field type
+    readonly type: string;
+    // Create a new field builder instance
+    create(registry: IFieldBuilderRegistry): FieldBuilder<any>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { FieldType } from "webiny/api/cms/model";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private fieldType: FieldType.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    this.fieldType.create(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [FieldType]
+});
 ```
 
 ## `LayoutBuilder`
@@ -191,168 +253,720 @@ export interface CmsModelField { ... }
 
 ## `CreateModelUseCase`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Use Case Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { CreateModelUseCase } from "webiny/api/cms/model";
 ```
 
+**Interface `CreateModelUseCase.Interface`:**
+
 ```typescript
-export const CreateModelUseCase = createAbstraction(...)
+interface CreateModelUseCase.Interface {
+    execute(input: CmsModelCreateInput): Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace CreateModelUseCase {
+  type Interface = ICreateModelUseCase;
+  type Input = CmsModelCreateInput;
+  type Error = UseCaseError;
+  type Return = Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { CreateModelUseCase } from "webiny/api/cms/model";
+
+class MyImpl implements CreateModelUseCase.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async execute(input: CmsModelCreateInput): Promise<Result<CmsModel, UseCaseError>> {
+    // implementation
+  }
+}
+
+export default CreateModelUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: []
+});
 ```
 
 ## `ModelBeforeCreateEventHandler`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Event Handler Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ModelBeforeCreateEventHandler } from "webiny/api/cms/model";
 ```
 
+**Interface `ModelBeforeCreateEventHandler.Interface`:**
+
 ```typescript
-export const ModelBeforeCreateEventHandler = createAbstraction(...)
+interface ModelBeforeCreateEventHandler.Interface {
+    handle(event: ModelBeforeCreateEvent): Promise<void>;
+}
+```
+
+**Event payload `ModelBeforeCreateEventPayload`:**
+
+```typescript
+interface ModelBeforeCreateEventPayload {
+  model: CmsModel;
+  input: CmsModelCreateInput;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ModelBeforeCreateEventHandler {
+  type Interface = IEventHandler<ModelBeforeCreateEvent>;
+  type Event = ModelBeforeCreateEvent;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { ModelBeforeCreateEventHandler } from "webiny/api/cms/model";
+
+class MyHandler implements ModelBeforeCreateEventHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: ModelBeforeCreateEventHandler.Event): Promise<void> {
+    const { model, input } = event.payload;
+  }
+}
+
+export default ModelBeforeCreateEventHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
 ```
 
 ## `ModelAfterCreateEventHandler`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Event Handler Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ModelAfterCreateEventHandler } from "webiny/api/cms/model";
 ```
 
+**Interface `ModelAfterCreateEventHandler.Interface`:**
+
 ```typescript
-export const ModelAfterCreateEventHandler = createAbstraction(...)
+interface ModelAfterCreateEventHandler.Interface {
+    handle(event: ModelAfterCreateEvent): Promise<void>;
+}
+```
+
+**Event payload `ModelAfterCreateEventPayload`:**
+
+```typescript
+interface ModelAfterCreateEventPayload {
+  model: CmsModel;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ModelAfterCreateEventHandler {
+  type Interface = IEventHandler<ModelAfterCreateEvent>;
+  type Event = ModelAfterCreateEvent;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { ModelAfterCreateEventHandler } from "webiny/api/cms/model";
+
+class MyHandler implements ModelAfterCreateEventHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: ModelAfterCreateEventHandler.Event): Promise<void> {
+    const { model } = event.payload;
+  }
+}
+
+export default ModelAfterCreateEventHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
 ```
 
 ## `CreateModelFromUseCase`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Use Case Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { CreateModelFromUseCase } from "webiny/api/cms/model";
 ```
 
+**Interface `CreateModelFromUseCase.Interface`:**
+
 ```typescript
-export const CreateModelFromUseCase = createAbstraction(...)
+interface CreateModelFromUseCase.Interface {
+    execute(
+        modelId: string,
+        input: CmsModelCreateFromInput
+    ): Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace CreateModelFromUseCase {
+  type Interface = ICreateModelFromUseCase;
+  type Input = CmsModelCreateFromInput;
+  type Error = UseCaseError;
+  type Return = Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { CreateModelFromUseCase } from "webiny/api/cms/model";
+
+class MyImpl implements CreateModelFromUseCase.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async execute(
+    modelId: string,
+    input: CmsModelCreateFromInput
+  ): Promise<Result<CmsModel, UseCaseError>> {
+    // implementation
+  }
+}
+
+export default CreateModelFromUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: []
+});
 ```
 
 ## `ModelBeforeCreateFromEventHandler`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Event Handler Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ModelBeforeCreateFromEventHandler } from "webiny/api/cms/model";
 ```
 
+**Interface `ModelBeforeCreateFromEventHandler.Interface`:**
+
 ```typescript
-export const ModelBeforeCreateFromEventHandler = createAbstraction(...)
+interface ModelBeforeCreateFromEventHandler.Interface {
+    handle(event: ModelBeforeCreateFromEvent): Promise<void>;
+}
+```
+
+**Event payload `ModelBeforeCreateFromEventPayload`:**
+
+```typescript
+interface ModelBeforeCreateFromEventPayload {
+  model: CmsModel;
+  original: CmsModel;
+  input: CmsModelCreateFromInput;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ModelBeforeCreateFromEventHandler {
+  type Interface = IEventHandler<ModelBeforeCreateFromEvent>;
+  type Event = ModelBeforeCreateFromEvent;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { ModelBeforeCreateFromEventHandler } from "webiny/api/cms/model";
+
+class MyHandler implements ModelBeforeCreateFromEventHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: ModelBeforeCreateFromEventHandler.Event): Promise<void> {
+    const { model, original, input } = event.payload;
+  }
+}
+
+export default ModelBeforeCreateFromEventHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
 ```
 
 ## `ModelAfterCreateFromEventHandler`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Event Handler Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ModelAfterCreateFromEventHandler } from "webiny/api/cms/model";
 ```
 
+**Interface `ModelAfterCreateFromEventHandler.Interface`:**
+
 ```typescript
-export const ModelAfterCreateFromEventHandler = createAbstraction(...)
+interface ModelAfterCreateFromEventHandler.Interface {
+    handle(event: ModelAfterCreateFromEvent): Promise<void>;
+}
+```
+
+**Event payload `ModelAfterCreateFromEventPayload`:**
+
+```typescript
+interface ModelAfterCreateFromEventPayload {
+  model: CmsModel;
+  original: CmsModel;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ModelAfterCreateFromEventHandler {
+  type Interface = IEventHandler<ModelAfterCreateFromEvent>;
+  type Event = ModelAfterCreateFromEvent;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { ModelAfterCreateFromEventHandler } from "webiny/api/cms/model";
+
+class MyHandler implements ModelAfterCreateFromEventHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: ModelAfterCreateFromEventHandler.Event): Promise<void> {
+    const { model, original } = event.payload;
+  }
+}
+
+export default ModelAfterCreateFromEventHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
 ```
 
 ## `UpdateModelUseCase`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Use Case Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { UpdateModelUseCase } from "webiny/api/cms/model";
 ```
 
+**Interface `UpdateModelUseCase.Interface`:**
+
 ```typescript
-export const UpdateModelUseCase = createAbstraction(...)
+interface UpdateModelUseCase.Interface {
+    execute(modelId: string, input: CmsModelUpdateInput): Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace UpdateModelUseCase {
+  type Interface = IUpdateModelUseCase;
+  type Input = CmsModelUpdateInput;
+  type Error = UseCaseError;
+  type Return = Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { UpdateModelUseCase } from "webiny/api/cms/model";
+
+class MyImpl implements UpdateModelUseCase.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async execute(
+    modelId: string,
+    input: CmsModelUpdateInput
+  ): Promise<Result<CmsModel, UseCaseError>> {
+    // implementation
+  }
+}
+
+export default UpdateModelUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: []
+});
 ```
 
 ## `ModelBeforeUpdateEventHandler`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Event Handler Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ModelBeforeUpdateEventHandler } from "webiny/api/cms/model";
 ```
 
+**Interface `ModelBeforeUpdateEventHandler.Interface`:**
+
 ```typescript
-export const ModelBeforeUpdateEventHandler = createAbstraction(...)
+interface ModelBeforeUpdateEventHandler.Interface {
+    handle(event: ModelBeforeUpdateEvent): Promise<void>;
+}
+```
+
+**Event payload `ModelBeforeUpdateEventPayload`:**
+
+```typescript
+interface ModelBeforeUpdateEventPayload {
+  model: CmsModel;
+  original: CmsModel;
+  input: CmsModelUpdateInput;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ModelBeforeUpdateEventHandler {
+  type Interface = IEventHandler<ModelBeforeUpdateEvent>;
+  type Event = ModelBeforeUpdateEvent;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { ModelBeforeUpdateEventHandler } from "webiny/api/cms/model";
+
+class MyHandler implements ModelBeforeUpdateEventHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: ModelBeforeUpdateEventHandler.Event): Promise<void> {
+    const { model, original, input } = event.payload;
+  }
+}
+
+export default ModelBeforeUpdateEventHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
 ```
 
 ## `ModelAfterUpdateEventHandler`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Event Handler Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ModelAfterUpdateEventHandler } from "webiny/api/cms/model";
 ```
 
+**Interface `ModelAfterUpdateEventHandler.Interface`:**
+
 ```typescript
-export const ModelAfterUpdateEventHandler = createAbstraction(...)
+interface ModelAfterUpdateEventHandler.Interface {
+    handle(event: ModelAfterUpdateEvent): Promise<void>;
+}
+```
+
+**Event payload `ModelAfterUpdateEventPayload`:**
+
+```typescript
+interface ModelAfterUpdateEventPayload {
+  model: CmsModel;
+  original: CmsModel;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ModelAfterUpdateEventHandler {
+  type Interface = IEventHandler<ModelAfterUpdateEvent>;
+  type Event = ModelAfterUpdateEvent;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { ModelAfterUpdateEventHandler } from "webiny/api/cms/model";
+
+class MyHandler implements ModelAfterUpdateEventHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: ModelAfterUpdateEventHandler.Event): Promise<void> {
+    const { model, original } = event.payload;
+  }
+}
+
+export default ModelAfterUpdateEventHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
 ```
 
 ## `DeleteModelUseCase`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Use Case Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { DeleteModelUseCase } from "webiny/api/cms/model";
 ```
 
+**Interface `DeleteModelUseCase.Interface`:**
+
 ```typescript
-export const DeleteModelUseCase = createAbstraction(...)
+interface DeleteModelUseCase.Interface {
+    execute(modelId: string): Promise<Result<void, UseCaseError>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace DeleteModelUseCase {
+  type Interface = IDeleteModelUseCase;
+  type Error = UseCaseError;
+  type Return = Promise<Result<void, UseCaseError>>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { DeleteModelUseCase } from "webiny/api/cms/model";
+
+class MyImpl implements DeleteModelUseCase.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async execute(modelId: string): Promise<Result<void, UseCaseError>> {
+    // implementation
+  }
+}
+
+export default DeleteModelUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: []
+});
 ```
 
 ## `ModelBeforeDeleteEventHandler`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Event Handler Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ModelBeforeDeleteEventHandler } from "webiny/api/cms/model";
 ```
 
+**Interface `ModelBeforeDeleteEventHandler.Interface`:**
+
 ```typescript
-export const ModelBeforeDeleteEventHandler = createAbstraction(...)
+interface ModelBeforeDeleteEventHandler.Interface {
+    handle(event: ModelBeforeDeleteEvent): Promise<void>;
+}
+```
+
+**Event payload `ModelBeforeDeleteEventPayload`:**
+
+```typescript
+interface ModelBeforeDeleteEventPayload {
+  model: CmsModel;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ModelBeforeDeleteEventHandler {
+  type Interface = IEventHandler<ModelBeforeDeleteEvent>;
+  type Event = ModelBeforeDeleteEvent;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { ModelBeforeDeleteEventHandler } from "webiny/api/cms/model";
+
+class MyHandler implements ModelBeforeDeleteEventHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: ModelBeforeDeleteEventHandler.Event): Promise<void> {
+    const { model } = event.payload;
+  }
+}
+
+export default ModelBeforeDeleteEventHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
 ```
 
 ## `ModelAfterDeleteEventHandler`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Event Handler Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ModelAfterDeleteEventHandler } from "webiny/api/cms/model";
 ```
 
+**Interface `ModelAfterDeleteEventHandler.Interface`:**
+
 ```typescript
-export const ModelAfterDeleteEventHandler = createAbstraction(...)
+interface ModelAfterDeleteEventHandler.Interface {
+    handle(event: ModelAfterDeleteEvent): Promise<void>;
+}
+```
+
+**Event payload `ModelAfterDeleteEventPayload`:**
+
+```typescript
+interface ModelAfterDeleteEventPayload {
+  model: CmsModel;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ModelAfterDeleteEventHandler {
+  type Interface = IEventHandler<ModelAfterDeleteEvent>;
+  type Event = ModelAfterDeleteEvent;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { ModelAfterDeleteEventHandler } from "webiny/api/cms/model";
+
+class MyHandler implements ModelAfterDeleteEventHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: ModelAfterDeleteEventHandler.Event): Promise<void> {
+    const { model } = event.payload;
+  }
+}
+
+export default ModelAfterDeleteEventHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
 ```
 
 ## `GetModelUseCase`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Use Case Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { GetModelUseCase } from "webiny/api/cms/model";
 ```
 
+**Interface `GetModelUseCase.Interface`:**
+
 ```typescript
-export const GetModelUseCase = createAbstraction(...)
+interface GetModelUseCase.Interface {
+    execute(modelId: string): Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace GetModelUseCase {
+  type Interface = IGetModelUseCase;
+  type Error = UseCaseError;
+  type Return = Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { GetModelUseCase } from "webiny/api/cms/model";
+
+class MyImpl implements GetModelUseCase.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async execute(modelId: string): Promise<Result<CmsModel, UseCaseError>> {
+    // implementation
+  }
+}
+
+export default GetModelUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: []
+});
 ```
 
 ## `ListModelsUseCase`
 
-**Constant** — imported from `webiny/api/cms/model`
+**Use Case Abstraction** — imported from `webiny/api/cms/model`
 
 ```typescript
 import { ListModelsUseCase } from "webiny/api/cms/model";
 ```
 
+**Interface `ListModelsUseCase.Interface`:**
+
 ```typescript
-export const ListModelsUseCase = createAbstraction(...)
+interface ListModelsUseCase.Interface {
+    execute(params?: ICmsModelListParams): Promise<Result<CmsModel[], UseCaseError>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ListModelsUseCase {
+  type Interface = IListModelsUseCase;
+  type Params = ICmsModelListParams;
+  type Error = UseCaseError;
+  type Return = Promise<Result<CmsModel[], UseCaseError>>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { ListModelsUseCase } from "webiny/api/cms/model";
+
+class MyImpl implements ListModelsUseCase.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async execute(params?: ICmsModelListParams): Promise<Result<CmsModel[], UseCaseError>> {
+    // implementation
+  }
+}
+
+export default ListModelsUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: []
+});
 ```

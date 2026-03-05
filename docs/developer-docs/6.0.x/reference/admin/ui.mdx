@@ -238,59 +238,7 @@ export const DataList = <TData,>(propsInput: DataListProps<TData>) => {
     } else if (isEmpty(props.data)) {
         render = props.noData;
     } else {
-        const ch = props.children;
-        render = typeof ch === "function" ? ch(props) : null;
-    }
 
-    const showOptions = props.showOptions || {};
-
-    return (
-        <div data-testid={"ui.list.data-list"}>
-            <div className={"pt-md pb-sm pl-lg pr-md"}>
-                {(props.title || props.actions) && (
-                    <div className={"flex justify-between items-center mb-xl"}>
-                        <Heading className={"text-neutral-primary"} level={4}>
-                            {props.title}
-                        </Heading>
-                    </div>
-                )}
-
-                {Object.keys(showOptions).length > 0 && (
-                    <div className={"flex items-center justify-space-between gap-sm"}>
-                        <div className={"flex-1"}>
-                            {props.search ? React.cloneElement(props.search, props) : null}
-                        </div>
-                        <div className={"flex items-center justify-space-between gap-xs"}>
-                            <MultiSelectAll {...props} />
-                            <MultiSelectActions {...props} />
-                            {showOptions.refresh && <RefreshButton {...props} />}
-                            {showOptions.pagination && <Pagination {...props} />}
-                            {showOptions.sorters && <Sorters {...props} />}
-                            {showOptions.filters && <Filters {...props} />}
-                            {props.modalOverlayAction && props.modalOverlay && (
-                                <DataListModal
-                                    trigger={props.modalOverlayAction}
-                                    content={props.modalOverlay}
-                                />
-                            )}
-                            {props.actions}
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            <div
-                style={{ maxHeight: "calc(100vh - 165px)" }}
-                className={
-                    "relative overflow-auto border-t-sm border-t-neutral-dimmed webiny-data-list__content"
-                }
-            >
-                {props.subHeader}
-                {render}
-            </div>
-        </div>
-    );
-};
 ```
 
 ## `DataListModal`
@@ -330,63 +278,7 @@ export const DataListWithSections = <TData,>(propsInput: DataListProps<TData>) =
     if (props.loading) {
         render = props.loader;
     } else if (isEmpty(props.data)) {
-        render = props.noData;
-    } else {
-        const ch = props.children;
-        render = typeof ch === "function" ? ch(props) : null;
-    }
-
-    const showOptions = props.showOptions || {};
-
-    return (
-        <div data-testid={"ui.list.data-list"}>
-            <div className={"pt-md-extra pb-md px-md border"}>
-                {(props.title || props.actions) && (
-                    <div className={"flex justify-between items-center"}>
-                        <Heading className={"text-accent-primary"} level={4}>
-                            {props.title}
-                        </Heading>
-                        <div className={"flex items-center justify-end gap-xs"}>
-                            {props.actions}
-                        </div>
-                    </div>
-                )}
-
-                {Object.keys(showOptions).length > 0 && (
-                    <div className={"flex items-center justify-space-between gap-sm"}>
-                        <div className={"flex-1"}>
-                            {props.search ? React.cloneElement(props.search, props) : null}
-                        </div>
-                        <div className={"flex items-center justify-space-between gap-xs"}>
-                            <MultiSelectAll {...props} />
-                            {showOptions.refresh && <RefreshButton {...props} />}
-                            {showOptions.pagination && <Pagination {...props} />}
-                            {showOptions.sorters && <Sorters {...props} />}
-                            {showOptions.filters && <Filters {...props} />}
-                            {props.modalOverlayAction && props.modalOverlay && (
-                                <DataListModal
-                                    trigger={props.modalOverlayAction}
-                                    content={props.modalOverlay}
-                                />
-                            )}
-                            <MultiSelectActions {...props} />
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            <div
-                style={{ maxHeight: "calc(100vh - 165px)" }}
-                className={
-                    "relative overflow-auto border-t-sm border-t-neutral-dimmed webiny-data-list__content"
-                }
-            >
-                {props.subHeader}
-                {render}
-            </div>
-        </div>
-    );
-};
+        render = prop
 ```
 
 ## `DeleteIcon`
@@ -663,112 +555,15 @@ import { DelayedOnChange } from "webiny/admin/ui";
 
 ```typescript
 export const DelayedOnChange = <TValue = any>({
-  children,
-  ...other
+    children,
+    ...other
 }: DelayedOnChangeProps<TValue>) => {
-  const firstMount = useRef(true);
-  const { onChange, delay = 400, value: initialValue } = other;
-  const [value, setValue] = useState<TValue | undefined>(initialValue);
-  // Sync state and props
-  useEffect(() => {
-    // Do not update local state, if the incoming value is the same as the local state.
-    // This is primarily an optimization for non-scalar values (objects).
-    if (isEqual(initialValue, value)) {
-      return;
-    }
-
-    setValue(initialValue);
-  }, [initialValue]);
-
-  const localTimeout = React.useRef<number | null>(null);
-
-  const applyValue = (value: TValue | undefined) => {
-    localTimeout.current && clearTimeout(localTimeout.current);
-    localTimeout.current = null;
-    if (!onChange) {
-      return;
-    }
-    onChange(value as NonNullable<TValue>);
-  };
-
-  const onChangeLocal = React.useCallback((value: TValue | undefined) => {
-    setValue(value);
-  }, []);
-
-  // this is fired upon change value state
-  const onValueStateChanged = (nextValue: TValue | undefined) => {
-    // We don't want to execute callbacks, if the value hasn't changed.
-    if (isEqual(nextValue, initialValue)) {
-      return;
-    }
-
-    localTimeout.current && clearTimeout(localTimeout.current);
-    localTimeout.current = null;
-    localTimeout.current = setTimeout(() => applyValue(nextValue), delay) as unknown as number;
-  };
-
-  // need to clear the timeout when unmounting the component
-  useEffect(() => {
-    return () => {
-      if (!localTimeout.current) {
-        return;
-      }
-      clearTimeout(localTimeout.current);
-      localTimeout.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (firstMount.current) {
-      firstMount.current = false;
-      return;
-    }
-
-    onValueStateChanged(value);
-  }, [value]);
-
-  const newProps = {
-    ...other,
-    value: value,
-    onChange: onChangeLocal
-  };
-
-  const renderProp =
-    typeof children === "function" ? (children as ChildrenCallable<TValue | undefined>) : null;
-  const child = renderProp
-    ? renderProp(newProps)
-    : React.cloneElement(children as unknown as React.ReactElement, newProps);
-
-  const props = { ...child.props };
-  const realOnKeyDown = props.onKeyDown || emptyFunction;
-  const realOnBlur = props.onBlur || emptyFunction;
-
-  // Need to apply value if input lost focus
-  const onBlur: OnBlurCallable = ev => {
-    if (!ev["persist"]) {
-      return;
-    }
-    ev.persist();
-    applyValue((ev.target as HTMLInputElement).value as any as TValue);
-    realOnBlur(ev);
-  };
-
-  // Need to listen for TAB key to apply new value immediately, without delay. Otherwise validation will be triggered with old value.
-  const onKeyDown: OnKeyDownCallable = ev => {
-    ev.persist();
-    if (ev.key === "Tab") {
-      applyValue((ev.target as HTMLInputElement).value as any as TValue);
-      realOnKeyDown(ev);
-    } else if (ev.key === "Enter") {
-      applyValue((ev.target as HTMLInputElement).value as any as TValue);
-      realOnKeyDown(ev);
-    } else {
-      realOnKeyDown(ev);
-    }
-  };
-
-  return React.cloneElement(child, { ...props, onBlur, onKeyDown });
-};
+    const firstMount = useRef(true);
+    const { onChange, delay = 400, value: initialValue } = other;
+    const [value, setValue] = useState<TValue | undefined>(initialValue);
+    // Sync state and props
+    useEffect(() => {
+        // Do not update local state, if the incoming value
 ```
 
 ## `Dialog`
@@ -1240,196 +1035,7 @@ const SidebarProvider = ({
         new Map()
     );
 
-    // With this timeout, we prevent the sidebar glitching (quickly opening/closing) during mouse enter/leave events.
-    const timeoutRef = React.useRef<number | null>(null);
-    const isInitialMount = React.useRef(true);
 
-    const { expanded, transition, pinned, expandedSections, pinnedItems } = sidebarState;
-
-    // Sync state changes to parent via useEffect
-    React.useEffect(() => {
-        // Skip the initial mount to avoid unnecessary state sync
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
-
-        if (onChangeState) {
-            onChangeState({
-                pinned,
-                expandedSections,
-                pinnedItems
-            });
-        }
-    }, [pinned, expandedSections, pinnedItems, onChangeState]);
-
-    const setExpanded = React.useCallback(
-        (value: boolean | ((value: boolean) => boolean)) => {
-            const newValue = typeof value === "function" ? value(expanded) : value;
-            setSidebarState(state => ({
-                ...state,
-                expanded: newValue,
-                transition: newValue ? "expanding" : "collapsing"
-            }));
-
-            if (timeoutRef.current) {
-                window.clearTimeout(timeoutRef.current);
-                timeoutRef.current = null;
-            }
-
-            timeoutRef.current = window.setTimeout(() => {
-                setSidebarState(state => ({
-                    ...state,
-                    transition: null
-                }));
-            }, SIDEBAR_TRANSITION_DURATION);
-        },
-        [expanded]
-    );
-
-    const setPinned = React.useCallback(
-        (value: boolean | ((value: boolean) => boolean)) => {
-            const newValue = typeof value === "function" ? value(pinned) : value;
-            setSidebarState(state => ({
-                ...state,
-                pinned: newValue
-            }));
-        },
-        [pinned]
-    );
-
-    const toggleExpanded = React.useCallback(() => {
-        return setExpanded(prev => !prev);
-    }, [setExpanded]); // Helper to toggle the sidebar.
-
-    const togglePinned = React.useCallback(() => {
-        return setPinned(prev => !prev);
-    }, [setPinned]);
-
-    const toggleSectionExpanded = React.useCallback(
-        (sectionId: string) => {
-            setSidebarState(state => {
-                const expandedSections = state.expandedSections.includes(sectionId)
-                    ? state.expandedSections.filter(id => id !== sectionId)
-                    : [...state.expandedSections, sectionId];
-
-                return {
-                    ...state,
-                    expandedSections
-                };
-            });
-        },
-        [setSidebarState]
-    );
-
-    const isSectionExpanded = React.useCallback(
-        (sectionId: string) => {
-            return expandedSections.includes(sectionId);
-        },
-        [expandedSections]
-    );
-
-    const toggleItemPinned = React.useCallback(
-        (itemId: string) => {
-            setSidebarState(state => {
-                const newPinnedItems = state.pinnedItems.includes(itemId)
-                    ? state.pinnedItems.filter(id => id !== itemId)
-                    : [...state.pinnedItems, itemId];
-
-                return {
-                    ...state,
-                    pinnedItems: newPinnedItems
-                };
-            });
-        },
-        [setSidebarState]
-    );
-
-    const isItemPinned = React.useCallback(
-        (itemId: string) => {
-            return pinnedItems.includes(itemId);
-        },
-        [pinnedItems]
-    );
-
-    const registerPinnedItem = React.useCallback((data: PinnedItemData) => {
-        setPinnedItemsData(prev => {
-            const newMap = new Map(prev);
-            newMap.set(data.id, data);
-            return newMap;
-        });
-    }, []);
-
-    const unregisterPinnedItem = React.useCallback((itemId: string) => {
-        setPinnedItemsData(prev => {
-            const newMap = new Map(prev);
-            newMap.delete(itemId);
-            return newMap;
-        });
-    }, []);
-
-    const getPinnedItemsData = React.useCallback(() => {
-        // Sort by the order in pinnedItems array to maintain consistent ordering
-        return pinnedItems
-            .map(id => pinnedItemsData.get(id))
-            .filter((item): item is PinnedItemData => item !== undefined);
-    }, [pinnedItemsData, pinnedItems]);
-
-    // We add a state so that we can do data-state="expanded" or "collapsed".
-    // This makes it easier to style the sidebar with Tailwind classes.
-    const state = expanded ? "expanded" : "collapsed";
-
-    const contextValue = React.useMemo<SidebarContext>(
-        () => ({
-            state,
-            transition,
-            expanded,
-            expandedSections,
-            pinned,
-            setExpanded,
-            toggleExpanded,
-            toggleSectionExpanded,
-            setPinned,
-            togglePinned,
-            isSectionExpanded,
-            pinnedItems,
-            toggleItemPinned,
-            isItemPinned,
-            registerPinnedItem,
-            unregisterPinnedItem,
-            getPinnedItemsData
-        }),
-        [
-            state,
-            transition,
-            expanded,
-            expandedSections,
-            pinned,
-            setExpanded,
-            setPinned,
-            toggleExpanded,
-            togglePinned,
-            pinnedItems,
-            toggleItemPinned,
-            isItemPinned,
-            registerPinnedItem,
-            unregisterPinnedItem,
-            getPinnedItemsData
-        ]
-    );
-
-    return (
-        <SidebarContext.Provider value={contextValue}>
-            <div
-                data-sidebar={"provider"}
-                {...props}
-                className={cn("group/sidebar-wrapper flex min-h-svh w-full", className)}
-            >
-                {children}
-            </div>
-        </SidebarContext.Provider>
-    );
-};
 ```
 
 ## `useSidebar`
@@ -1635,115 +1241,7 @@ const useToast = () => {
 
     const getDescription = React.useCallback(
         (description: React.ReactElement<typeof ToastDescription> | string | undefined) => {
-            return typeof description === "string" ? (
-                <ToastDescription text={description} />
-            ) : (
-                description
-            );
-        },
-        []
-    );
-
-    const getActions = React.useCallback(
-        (actions: React.ReactElement<typeof ToastActions> | any | undefined) => {
-            if (!actions) {
-                return null;
-            }
-            return typeof actions === typeof ToastActions ? (
-                actions
-            ) : (
-                <ToastActions>{actions}</ToastActions>
-            );
-        },
-        []
-    );
-
-    const showToast = React.useCallback(
-        (params: ShowToastParams) => {
-            const {
-                title,
-                description,
-                icon,
-                actions,
-                variant,
-                dismissible,
-                duration = 6000,
-                position = "bottom-left"
-            } = params;
-
-            const id = generateId();
-
-            return sonnerToast.custom(
-                toast => (
-                    <Toast
-                        title={getTitle(title)}
-                        description={getDescription(description)}
-                        icon={icon}
-                        actions={getActions(actions)}
-                        variant={variant}
-                        onCloseClick={() => sonnerToast.dismiss(toast)}
-                        dismissible={dismissible}
-                    />
-                ),
-                {
-                    id,
-                    duration,
-                    dismissible,
-                    position
-                }
-            );
-        },
-        [getTitle, getDescription, sonnerToast]
-    );
-
-    const hideToast = React.useCallback(
-        (id: number | string) => {
-            return sonnerToast.dismiss(id);
-        },
-        [sonnerToast]
-    );
-
-    const hideAllToasts = React.useCallback(() => {
-        const toastIds = sonnerToast.getToasts().map(toast => toast.id);
-
-        if (toastIds.length === 0) {
-            return;
-        }
-
-        // Dismiss each toast with a small delay between them
-        // This helps ensure each dismissal is processed properly
-        toastIds.forEach((id, index) => {
-            setTimeout(() => {
-                sonnerToast.dismiss(id);
-            }, index * 50);
-        });
-    }, [sonnerToast]);
-
-    const showSuccessToast = (params: ShowToastParams) => {
-        return showToast({
-            icon: <Icon icon={<Check />} label={""} className={"fill-success"} />,
-            ...params
-        });
-    };
-
-    const showWarningToast = (params: ShowToastParams) => {
-        return showToast({
-            icon: <Icon icon={<Warning />} label={""} className={"fill-warning"} />,
-            ...params
-        });
-    };
-
-    return React.useMemo(
-        () => ({
-            showToast,
-            showSuccessToast,
-            showWarningToast,
-            hideToast,
-            hideAllToasts
-        }),
-        [showToast, hideToast, hideAllToasts]
-    );
-};
+            return typeof description === "
 ```
 
 ## `Tooltip`
@@ -1799,30 +1297,12 @@ import { useDisclosure } from "webiny/admin/ui";
 
 ```typescript
 export const useDisclosure = <TData = undefined>(isOpenDefault = false) => {
-  const [isOpen, defaultSetIsOpen] = useState(isOpenDefault);
-  const [data, setData] = useState<TData | null>(null);
+    const [isOpen, defaultSetIsOpen] = useState(isOpenDefault);
+    const [data, setData] = useState<TData | null>(null);
 
-  const setIsOpen = useCallback((isOpen: boolean | ((prev: boolean) => boolean), data?: TData) => {
-    defaultSetIsOpen(isOpen);
-    if (typeof data !== "undefined") {
-      setData(data);
-    }
-  }, []);
+    const setIsOpen = useCallback(
+        (isOpen: boolean | ((prev: boolean) => boolean), data?: TData) => {
+            defaultSetIsOpen(isOpen);
+            if (typeof data !== "undefined") {
 
-  const open = useCallback((data?: TData) => {
-    setIsOpen(true, data);
-  }, []);
-
-  const close = useCallback(() => setIsOpen(false), []);
-
-  const toggle = useCallback((toSet?: boolean) => {
-    if (typeof toSet === "undefined") {
-      setIsOpen(state => !state);
-    } else {
-      setIsOpen(Boolean(toSet));
-    }
-  }, []);
-
-  return { isOpen, setIsOpen, open, close, toggle, data };
-};
 ```

@@ -27,16 +27,14 @@ import { EnvVar } from "webiny/extensions";
 
 ```typescript
 export const EnvVar = defineExtension({
-  type: "Project/EnvVar",
-  tags: { runtimeContext: "project" },
-  description: "Set an environment variable in the project context.",
-  multiple: true,
-  paramsSchema: z.object({
-    // TODO: enable using `name` instead of `varName` for better consistency.
-    varName: z.string().describe("The environment variable name."),
-    value: z.string().describe("The environment variable value.")
-  })
-});
+    type: "Project/EnvVar",
+    tags: { runtimeContext: "project" },
+    description: "Set an environment variable in the project context.",
+    multiple: true,
+    paramsSchema: z.object({
+        // TODO: enable using `name` instead of `varName` for better consistency.
+        varName: z.string().describe("The environment variable name."),
+        value: z
 ```
 
 ## `Api`
@@ -93,49 +91,23 @@ import { Infra } from "webiny/extensions";
 
 ```typescript
 export const Infra = {
-  Vpc,
-  BlueGreenDeployments,
-  OpenSearch,
-  PulumiResourceNamePrefix,
-  ProductionEnvironments,
-  Aws: {
-    DefaultRegion: AwsDefaultRegion,
-    Tags: AwsTags
-  },
-  Env: {
-    Is: EnvIs,
-    IsNot: EnvIsNot
-  },
-  Admin: {
-    BeforeBuild: AdminBeforeBuild,
-    BeforeDeploy: AdminBeforeDeploy,
-    BeforeWatch: AdminBeforeWatch,
-    AfterBuild: AdminAfterBuild,
-    AfterDeploy: AdminAfterDeploy,
-    Pulumi: AdminPulumi,
-    CustomDomains: AdminCustomDomains,
-    StackOutputValue: AdminStackOutputValue
-  },
-  Api: {
-    BeforeBuild: ApiBeforeBuild,
-    BeforeDeploy: ApiBeforeDeploy,
-    BeforeWatch: ApiBeforeWatch,
-    AfterBuild: ApiAfterBuild,
-    AfterDeploy: ApiAfterDeploy,
-    Pulumi: ApiPulumi,
-    StackOutputValue: ApiStackOutputValue,
-    LambdaFunction: ApiLambdaFunction
-  },
-  Core: {
-    BeforeBuild: CoreBeforeBuild,
-    BeforeDeploy: CoreBeforeDeploy,
-    BeforeWatch: CoreBeforeWatch,
-    AfterBuild: CoreAfterBuild,
-    AfterDeploy: CoreAfterDeploy,
-    Pulumi: CorePulumi,
-    StackOutputValue: CoreStackOutputValue
-  }
-};
+    Vpc,
+    BlueGreenDeployments,
+    OpenSearch,
+    PulumiResourceNamePrefix,
+    ProductionEnvironments,
+    Aws: {
+        DefaultRegion: AwsDefaultRegion,
+        Tags: AwsTags
+    },
+    Env: {
+        Is: EnvIs,
+        IsNot: EnvIsNot
+    },
+    Admin: {
+        BeforeBuild: AdminBeforeBuild,
+        BeforeDeploy: AdminBeforeDeploy,
+        BeforeWatch: AdminBeforeW
 ```
 
 ## `Project`
@@ -157,60 +129,233 @@ export const Project = {
 
 ## `ApiStackOutputService`
 
-**Constant** — imported from `webiny/extensions`
+**Abstraction** — imported from `webiny/extensions`
 
 ```typescript
 import { ApiStackOutputService } from "webiny/extensions";
 ```
 
+**Interface `ApiStackOutputService.Interface`:**
+
 ```typescript
-export const ApiStackOutputService = createAbstraction(...)
+interface ApiStackOutputService.Interface {
+    execute<TOutput extends IApiStackOutput = IApiStackOutput>(): Promise<TOutput | null>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ApiStackOutputService {
+  type Interface = IApiStackOutputService;
+  type Output = IApiStackOutput;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { ApiStackOutputService } from "webiny/extensions";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private apiStackOutputService: ApiStackOutputService.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.apiStackOutputService.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [ApiStackOutputService]
+});
 ```
 
 ## `CoreStackOutputService`
 
-**Constant** — imported from `webiny/extensions`
+**Abstraction** — imported from `webiny/extensions`
 
 ```typescript
 import { CoreStackOutputService } from "webiny/extensions";
 ```
 
+**Interface `CoreStackOutputService.Interface`:**
+
 ```typescript
-export const CoreStackOutputService = createAbstraction(...)
+interface CoreStackOutputService.Interface {
+    execute<TOutput extends ICoreStackOutput = ICoreStackOutput>(): Promise<TOutput | null>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace CoreStackOutputService {
+  type Interface = ICoreStackOutputService;
+  type Output = ICoreStackOutput;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { CoreStackOutputService } from "webiny/extensions";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private coreStackOutputService: CoreStackOutputService.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.coreStackOutputService.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [CoreStackOutputService]
+});
 ```
 
 ## `ApiGqlClient`
 
-**Constant** — imported from `webiny/extensions`
+**Abstraction** — imported from `webiny/extensions`
 
 ```typescript
 import { ApiGqlClient } from "webiny/extensions";
 ```
 
+**Interface `ApiGqlClient.Interface`:**
+
 ```typescript
-export const ApiGqlClient = createAbstraction(...)
+interface ApiGqlClient.Interface {
+    query<T = any>(params: {
+        query: string;
+        variables?: Record<string, any>;
+    }): Promise<IApiGqlClientResponse<T>>;
+    mutation<T = any>(params: {
+        mutation: string;
+        variables?: Record<string, any>;
+    }): Promise<IApiGqlClientResponse<T>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ApiGqlClient {
+  type Interface = IApiGqlClient;
+  type Response = IApiGqlClientResponse<T>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { ApiGqlClient } from "webiny/extensions";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private apiGqlClient: ApiGqlClient.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.apiGqlClient.query(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [ApiGqlClient]
+});
 ```
 
 ## `AdminStackOutputService`
 
-**Constant** — imported from `webiny/extensions`
+**Abstraction** — imported from `webiny/extensions`
 
 ```typescript
 import { AdminStackOutputService } from "webiny/extensions";
 ```
 
+**Interface `AdminStackOutputService.Interface`:**
+
 ```typescript
-export const AdminStackOutputService = createAbstraction(...)
+interface AdminStackOutputService.Interface {
+    execute<TOutput extends IAdminStackOutput = IAdminStackOutput>(): Promise<TOutput | null>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace AdminStackOutputService {
+  type Interface = IAdminStackOutputService;
+  type Output = IAdminStackOutput;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { AdminStackOutputService } from "webiny/extensions";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private adminStackOutputService: AdminStackOutputService.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.adminStackOutputService.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [AdminStackOutputService]
+});
 ```
 
 ## `InvokeLambdaFunction`
 
-**Constant** — imported from `webiny/extensions`
+**Abstraction** — imported from `webiny/extensions`
 
 ```typescript
 import { InvokeLambdaFunction } from "webiny/extensions";
 ```
 
+**Interface `InvokeLambdaFunction.Interface`:**
+
 ```typescript
-export const InvokeLambdaFunction = createAbstraction(...)
+interface InvokeLambdaFunction.Interface {
+    execute<T = any>(params: IInvokeLambdaFunctionParams): Promise<IInvokeLambdaFunctionResult<T>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace InvokeLambdaFunction {
+  type Interface = IInvokeLambdaFunction;
+  type Params = IInvokeLambdaFunctionParams;
+  type Result = IInvokeLambdaFunctionResult<T>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { InvokeLambdaFunction } from "webiny/extensions";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private invokeLambdaFunction: InvokeLambdaFunction.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.invokeLambdaFunction.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [InvokeLambdaFunction]
+});
 ```

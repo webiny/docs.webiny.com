@@ -26,6 +26,9 @@ const DOCS_ROOT = join(process.cwd(), "docs/developer-docs/6.0.x");
 const REF_DIR = join(DOCS_ROOT, "reference");
 const NAV_FILE = join(DOCS_ROOT, "navigation.tsx");
 
+// Module-level package path map, populated in main() before any extraction
+let PKG_MAP: Map<string, string> = new Map();
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -41,9 +44,40 @@ interface ExportEntry {
   isTypeOnly: boolean;
 }
 
+interface InterfaceMember {
+  /** e.g. "execute(model: CmsModel, input: Input): Promise<Result<...>>" */
+  signature: string;
+  /** JSDoc on this specific member */
+  jsDoc: string;
+}
+
+interface NamespaceMember {
+  /** e.g. "Interface" */
+  name: string;
+  /** e.g. "ICreateEntryUseCase" or "Promise<Result<CmsEntry, Error>>" */
+  value: string;
+}
+
+interface EventPayloadField {
+  name: string;
+  typeText: string;
+  optional: boolean;
+}
+
+type AbstractionKind = "useCase" | "eventHandler" | "service";
+
 interface ExtractedSymbol {
   name: string;
-  kind: "interface" | "class" | "namespace" | "function" | "variable" | "type" | "enum" | "other";
+  kind:
+    | "abstraction"
+    | "interface"
+    | "class"
+    | "namespace"
+    | "function"
+    | "variable"
+    | "type"
+    | "enum"
+    | "other";
   isTypeOnly: boolean;
   /** Full text of the declaration (interface body, class signature, etc.) */
   declarationText: string;
@@ -52,6 +86,20 @@ interface ExtractedSymbol {
   /** Namespace members if kind === 'namespace' */
   namespaceMembers: string[];
   sourceFile: string;
+
+  // --- Abstraction-specific enrichment ---
+  /** Set when kind === 'abstraction' */
+  abstractionKind?: AbstractionKind;
+  /** The resolved Interface members (from IFoo that createAbstraction<IFoo> wraps) */
+  interfaceMembers?: InterfaceMember[];
+  /** Resolved namespace type members: Interface, Input, Return, Error, Event, etc. */
+  namespaceTypes?: NamespaceMember[];
+  /** For eventHandler: the payload fields of the event */
+  eventPayloadFields?: EventPayloadField[];
+  /** For eventHandler: the event type name e.g. "EntryBeforeCreateEvent" */
+  eventTypeName?: string;
+  /** For eventHandler: the payload interface name */
+  eventPayloadName?: string;
 }
 
 interface EntryPointDoc {
@@ -287,11 +335,8 @@ function extractJsDoc(node: Node): string {
 }
 
 function cleanDeclarationText(text: string): string {
-  // Remove method bodies: replace { ... } blocks with ;
-  // Only strip the outermost body of methods/functions
   return text
     .replace(/\{[\s\S]*\}/g, match => {
-      // If it's short (likely a type body), keep it
       if (match.length < 200 && !match.includes("return ") && !match.includes("const ")) {
         return match;
       }
@@ -300,17 +345,250 @@ function cleanDeclarationText(text: string): string {
     .trim();
 }
 
+// Isolated project for interface extraction (avoids cross-file resolution issues)
+let _isolatedProject: Project | null = null;
+function getIsolatedProject(): Project {
+  if (!_isolatedProject) {
+    _isolatedProject = new Project({
+      useInMemoryFileSystem: false,
+      skipAddingFilesFromTsConfig: true
+    });
+  }
+  return _isolatedProject;
+}
+
+/**
+ * Search a source file (and any files it re-exports from) for an interface by name.
+ * Returns the interface members, or [] if not found.
+ */
+function extractInterfaceMembers(
+  sf: SourceFile,
+  interfaceName: string,
+  pkgMap?: Map<string, string>,
+  visited = new Set<string>()
+): InterfaceMember[] {
+  const filePath = sf.getFilePath();
+  if (visited.has(filePath)) return [];
+  visited.add(filePath);
+
+  // Search all interfaces in this file
+  const allIfaces = [
+    ...sf.getInterfaces(),
+    ...sf.getStatements().filter(Node.isInterfaceDeclaration)
+  ].filter(Node.isInterfaceDeclaration);
+
+  const iface = allIfaces.find(i => i.getName() === interfaceName);
+  if (iface) {
+    return iface.getMembers().map(m => ({
+      signature: m.getText().trim().replace(/;$/, ""),
+      jsDoc: extractJsDoc(m)
+    }));
+  }
+
+  // Raw text fallback for this file
+  const src = sf.getFullText();
+  const rawMatch = src.match(
+    new RegExp(`interface\\s+${interfaceName}\\s*(?:<[^{]*>)?\\s*\\{([^}]+)\\}`)
+  );
+  if (rawMatch) {
+    return rawMatch[1]
+      .split("\n")
+      .map(l => l.trim())
+      .filter(l => l && !l.startsWith("//") && l !== "{" && l !== "}")
+      .map(l => ({ signature: l.replace(/;$/, ""), jsDoc: "" }));
+  }
+
+  // Follow re-exports into sibling files (handles index.ts -> abstractions.ts pattern)
+  if (pkgMap) {
+    for (const decl of sf.getExportDeclarations()) {
+      const modSpec = decl.getModuleSpecifierValue();
+      if (!modSpec) continue;
+
+      let resolvedPath: string | null = null;
+      if (modSpec.startsWith(".")) {
+        // Relative import — resolve relative to this file's directory
+        const dir = sf.getDirectoryPath();
+        resolvedPath = join(dir, modSpec.replace(/\.js$/, ".ts"));
+      } else {
+        resolvedPath = resolveWebinyImport(modSpec, pkgMap);
+      }
+
+      if (!resolvedPath || !existsSync(resolvedPath)) continue;
+
+      try {
+        const siblingSf = sf.getProject().addSourceFileAtPath(resolvedPath);
+        const result = extractInterfaceMembers(siblingSf, interfaceName, pkgMap, visited);
+        if (result.length > 0) return result;
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  return [];
+}
+
+/** Extract fields from an interface declaration as EventPayloadField[] */
+function extractPayloadFields(sf: SourceFile, interfaceName: string): EventPayloadField[] {
+  // Try AST first
+  const iface = [
+    ...sf.getInterfaces(),
+    ...sf.getStatements().filter(Node.isInterfaceDeclaration)
+  ].find(i => Node.isInterfaceDeclaration(i) && i.getName() === interfaceName);
+
+  if (iface && Node.isInterfaceDeclaration(iface)) {
+    return iface.getProperties().map(p => ({
+      name: p.getName(),
+      typeText: p.getTypeNode()?.getText() ?? "unknown",
+      optional: p.hasQuestionToken()
+    }));
+  }
+
+  // Raw text fallback
+  const src = sf.getFullText();
+  const regex = new RegExp(`interface\\s+${interfaceName}\\s*\\{([^}]+)\\}`);
+  const match = src.match(regex);
+  if (!match) return [];
+
+  return match[1]
+    .split("\n")
+    .map(l => l.trim())
+    .filter(l => l && !l.startsWith("//"))
+    .map(l => {
+      const propMatch = l.match(/^(\w+)(\?)?:\s*(.+?);?$/);
+      if (!propMatch) return null;
+      return { name: propMatch[1], typeText: propMatch[3], optional: !!propMatch[2] };
+    })
+    .filter((f): f is EventPayloadField => f !== null);
+}
+
+/** Extract namespace type members as NamespaceMember[] */
+function extractNamespaceTypes(sf: SourceFile, namespaceName: string): NamespaceMember[] {
+  const allModules = sf.getModules();
+  const ns = allModules.find(m => m.getName() === namespaceName);
+  if (!ns) return [];
+
+  const body = ns.getBody();
+  if (!body || !Node.isModuleBlock(body)) return [];
+
+  const members: NamespaceMember[] = [];
+  for (const stmt of body.getStatements()) {
+    if (Node.isTypeAliasDeclaration(stmt)) {
+      const typeNode = stmt.getTypeNode();
+      members.push({
+        name: stmt.getName(),
+        value: typeNode?.getText() ?? stmt.getText()
+      });
+    } else if (Node.isInterfaceDeclaration(stmt)) {
+      members.push({ name: stmt.getName() ?? "", value: "interface" });
+    } else if (Node.isExportDeclaration(stmt)) {
+      members.push({ name: "", value: stmt.getText() });
+    }
+  }
+  return members.filter(m => m.name);
+}
+
+/**
+ * If a variable declaration is `createAbstraction<IFoo>(...)` or
+ * `createAbstraction<IEventHandler<SomeEvent>>(...)`, return the generic arg text.
+ * Handles nested generics by counting angle brackets.
+ */
+function getCreateAbstractionGeneric(node: Node): string | null {
+  if (!Node.isVariableDeclaration(node)) return null;
+  const initializer = node.getInitializer();
+  if (!initializer) return null;
+
+  const txt = initializer.getText().replace(/\s+/g, " ");
+  const startKeyword = "createAbstraction<";
+  const idx = txt.indexOf(startKeyword);
+  if (idx === -1) return null;
+
+  // Walk from after the '<', counting depth to find the matching '>'
+  let depth = 1;
+  let i = idx + startKeyword.length;
+  let start = i;
+  while (i < txt.length && depth > 0) {
+    if (txt[i] === "<") depth++;
+    else if (txt[i] === ">") depth--;
+    i++;
+  }
+  if (depth !== 0) return null;
+  return txt.slice(start, i - 1).trim();
+}
+
+/**
+ * Classify an abstraction based on its name and generic type arg.
+ */
+function classifyAbstraction(name: string, genericArg: string): AbstractionKind {
+  if (name.endsWith("EventHandler") || name.endsWith("Handler")) return "eventHandler";
+  if (name.endsWith("UseCase") || name.endsWith("Repository")) return "useCase";
+  return "service";
+}
+
+/**
+ * For an IEventHandler<SomeEvent> generic arg, extract the event class name.
+ * e.g. "IEventHandler<EntryBeforeCreateEvent>" -> "EntryBeforeCreateEvent"
+ * Also handles "IEventHandler<DomainEvent<SomePayload>>" -> "DomainEvent<SomePayload>"
+ */
+function extractEventTypeName(genericArg: string): string | null {
+  // Simple case: IEventHandler<SomeNamedClass>
+  const simple = genericArg.match(/IEventHandler\s*<\s*(\w+)\s*>/);
+  if (simple) return simple[1];
+  // Nested case: IEventHandler<DomainEvent<SomePayload>>
+  const nested = genericArg.match(/IEventHandler\s*<\s*(DomainEvent\s*<\s*\w+\s*>)\s*>/);
+  if (nested) return nested[1];
+  return null;
+}
+
+/**
+ * For an IEventHandler<DomainEvent<SomePayload>> generic arg, extract the payload name directly.
+ * e.g. "IEventHandler<DomainEvent<PageBeforeCreatePayload>>" -> "PageBeforeCreatePayload"
+ */
+function extractPayloadNameFromGenericArg(genericArg: string): string | null {
+  const m = genericArg.match(/IEventHandler\s*<\s*DomainEvent\s*<\s*(\w+)\s*>/);
+  return m ? m[1] : null;
+}
+
+/**
+ * Find the payload interface name from an event class in the source file.
+ * Looks for: class SomeEvent extends DomainEvent<SomePayload>
+ */
+function extractEventPayloadInterfaceName(sf: SourceFile, eventClassName: string): string | null {
+  // Try AST first
+  const cls = sf.getClasses().find(c => c.getName() === eventClassName);
+  if (cls) {
+    const extendsClause = cls.getExtends();
+    if (extendsClause) {
+      const m = extendsClause.getText().match(/DomainEvent\s*<\s*(\w+)\s*>/);
+      if (m) return m[1];
+    }
+  }
+  // Raw text fallback: class SomeEvent extends DomainEvent<SomePayload>
+  const src = sf.getFullText();
+  const regex = new RegExp(
+    `class\\s+${eventClassName}\\s+extends\\s+DomainEvent\\s*<\\s*(\\w+)\\s*>`
+  );
+  const m = src.match(regex);
+  return m ? m[1] : null;
+}
+
 function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
-  // Search for the named export in the source file
   const allExported = sf.getExportedDeclarations();
 
   for (const [exportName, decls] of Array.from(allExported.entries())) {
-    if (exportName !== name && exportName !== "default") continue;
+    if (exportName !== name) continue;
     if (decls.length === 0) continue;
 
-    const node = decls[0];
+    // When a name has both a VariableDeclaration and a ModuleDeclaration (namespace),
+    // prefer the variable and merge namespace types in below.
+    const varDecl = decls.find(d => Node.isVariableDeclaration(d));
+    const nsDecl = decls.find(d => Node.isModuleDeclaration(d));
+    const node = varDecl ?? decls[0];
     const jsDoc = extractJsDoc(node);
 
+    // -----------------------------------------------------------------------
+    // Interface
+    // -----------------------------------------------------------------------
     if (Node.isInterfaceDeclaration(node)) {
       return {
         name,
@@ -323,14 +601,14 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
       };
     }
 
+    // -----------------------------------------------------------------------
+    // Class
+    // -----------------------------------------------------------------------
     if (Node.isClassDeclaration(node)) {
-      // For classes, extract just the signature (properties + method signatures)
       const members = node
         .getMembers()
-        .filter(m => !Node.isConstructorDeclaration(m) || true)
         .map(m => {
           const txt = m.getText().trim();
-          // Strip method bodies
           return txt.replace(/\{[\s\S]*$/, "").trim() + (txt.includes("{") ? ";" : "");
         })
         .filter(Boolean);
@@ -348,8 +626,10 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
       };
     }
 
+    // -----------------------------------------------------------------------
+    // Namespace — skip here, handled separately in enrichment pass
+    // -----------------------------------------------------------------------
     if (Node.isModuleDeclaration(node)) {
-      // namespace
       const members: string[] = [];
       const body = node.getBody();
       if (body && Node.isModuleBlock(body)) {
@@ -368,42 +648,123 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
       };
     }
 
+    // -----------------------------------------------------------------------
+    // Function
+    // -----------------------------------------------------------------------
     if (
       Node.isFunctionDeclaration(node) ||
       Node.isArrowFunction(node) ||
       Node.isFunctionExpression(node)
     ) {
       const txt = node.getText().trim();
-      const sig = txt.replace(/\{[\s\S]*$/, "").trim();
       return {
         name,
         kind: "function",
         isTypeOnly: false,
-        declarationText: sig,
+        declarationText: txt.replace(/\{[\s\S]*$/, "").trim(),
         jsDoc,
         namespaceMembers: [],
         sourceFile: sf.getFilePath()
       };
     }
 
+    // -----------------------------------------------------------------------
+    // Variable — detect createAbstraction() and enrich
+    // -----------------------------------------------------------------------
     if (Node.isVariableDeclaration(node)) {
-      // Could be a const assigned via createAbstraction()
-      const parent = node.getParent(); // VariableDeclarationList
-      const gp = parent?.getParent(); // VariableStatement
+      const genericArg = getCreateAbstractionGeneric(node);
+
+      if (genericArg) {
+        // It's an abstraction token — resolve the wrapped interface
+        const abstractionKind = classifyAbstraction(name, genericArg);
+        const interfaceMembers: InterfaceMember[] = [];
+        const eventPayloadFields: EventPayloadField[] = [];
+        let eventTypeName: string | undefined;
+        let eventPayloadName: string | undefined;
+
+        if (abstractionKind === "eventHandler") {
+          // IEventHandler<SomeEvent> or IEventHandler<DomainEvent<SomePayload>>
+          eventTypeName = extractEventTypeName(genericArg) ?? undefined;
+          if (eventTypeName) {
+            // If eventTypeName is a simple class name (e.g. EntryBeforeCreateEvent),
+            // find the payload via its extends clause. Otherwise (DomainEvent<X>),
+            // extract payload name directly from the generic arg.
+            const isDomainEventWrapper = eventTypeName.startsWith("DomainEvent");
+            if (isDomainEventWrapper) {
+              eventPayloadName = extractPayloadNameFromGenericArg(genericArg) ?? undefined;
+            } else {
+              eventPayloadName = extractEventPayloadInterfaceName(sf, eventTypeName) ?? undefined;
+            }
+            if (eventPayloadName) {
+              const fields = extractPayloadFields(sf, eventPayloadName);
+              eventPayloadFields.push(...fields);
+            }
+          }
+          // The handle() method signature — use the specific event type
+          interfaceMembers.push({
+            signature: `handle(event: ${eventTypeName ?? "DomainEvent<unknown>"}): Promise<void>`,
+            jsDoc: ""
+          });
+        } else {
+          // useCase or service — resolve the IFoo interface, following re-exports
+          const resolved = extractInterfaceMembers(sf, genericArg, PKG_MAP);
+          interfaceMembers.push(...resolved);
+        }
+
+        // Extract namespace types — first try the co-located nsDecl, then search by name
+        let namespaceTypes = nsDecl
+          ? (() => {
+              const body = (nsDecl as any).getBody?.();
+              if (!body || !Node.isModuleBlock(body)) return [];
+              const members: NamespaceMember[] = [];
+              for (const stmt of body.getStatements()) {
+                if (Node.isTypeAliasDeclaration(stmt)) {
+                  const typeNode = stmt.getTypeNode();
+                  members.push({
+                    name: stmt.getName(),
+                    value: typeNode?.getText() ?? stmt.getText()
+                  });
+                }
+              }
+              return members;
+            })()
+          : extractNamespaceTypes(sf, name);
+
+        return {
+          name,
+          kind: "abstraction",
+          isTypeOnly: false,
+          declarationText: "",
+          jsDoc,
+          namespaceMembers: [],
+          sourceFile: sf.getFilePath(),
+          abstractionKind,
+          interfaceMembers,
+          namespaceTypes,
+          eventPayloadFields,
+          eventTypeName,
+          eventPayloadName
+        };
+      }
+
+      // Regular variable
+      const parent = node.getParent();
+      const gp = parent?.getParent();
       const txt = gp ? gp.getText().trim() : node.getText().trim();
-      // Strip initializer if long
-      const sig = txt.replace(/=\s*createAbstraction[\s\S]*$/, "= createAbstraction(...)").trim();
       return {
         name,
         kind: "variable",
         isTypeOnly: false,
-        declarationText: sig,
+        declarationText: txt.slice(0, 400),
         jsDoc,
         namespaceMembers: [],
         sourceFile: sf.getFilePath()
       };
     }
 
+    // -----------------------------------------------------------------------
+    // Type alias
+    // -----------------------------------------------------------------------
     if (Node.isTypeAliasDeclaration(node)) {
       return {
         name,
@@ -416,6 +777,9 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
       };
     }
 
+    // -----------------------------------------------------------------------
+    // Enum
+    // -----------------------------------------------------------------------
     if (Node.isEnumDeclaration(node)) {
       return {
         name,
@@ -441,6 +805,54 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
   }
 
   return null;
+}
+
+/**
+ * After all symbols for an entry point are collected, pair each abstraction
+ * with its corresponding namespace symbol (same name) to merge namespace types.
+ * Namespaces are exported separately from their abstraction constant —
+ * e.g. both `Logger` (variable) and `Logger` (namespace) are exported.
+ * ts-morph returns each separately; we collapse them here.
+ */
+function mergeNamespaceSymbols(symbols: ExtractedSymbol[]): ExtractedSymbol[] {
+  const merged: ExtractedSymbol[] = [];
+  const nsMap = new Map<string, ExtractedSymbol>();
+
+  // First pass: collect namespaces
+  for (const sym of symbols) {
+    if (sym.kind === "namespace") {
+      nsMap.set(sym.name, sym);
+    }
+  }
+
+  for (const sym of symbols) {
+    if (sym.kind === "namespace") continue; // will be merged into abstraction
+
+    if (sym.kind === "abstraction") {
+      const ns = nsMap.get(sym.name);
+      if (
+        ns &&
+        ns.namespaceMembers.length > 0 &&
+        (!sym.namespaceTypes || sym.namespaceTypes.length === 0)
+      ) {
+        // Parse namespace members into NamespaceMember[]
+        const parsed: NamespaceMember[] = [];
+        for (const m of ns.namespaceMembers) {
+          const typeMatch = m.match(/export\s+type\s+(\w+)\s*(?:<[^>]*>)?\s*=\s*([\s\S]+?);/);
+          if (typeMatch) {
+            parsed.push({ name: typeMatch[1], value: typeMatch[2].trim() });
+          }
+        }
+        merged.push({ ...sym, namespaceTypes: parsed.length ? parsed : sym.namespaceTypes });
+      } else {
+        merged.push(sym);
+      }
+    } else {
+      merged.push(sym);
+    }
+  }
+
+  return merged;
 }
 
 // ---------------------------------------------------------------------------
@@ -470,8 +882,13 @@ function renderLearnBlock(relPath: string, symbols: ExtractedSymbol[]): string {
   return bullets.join("\n");
 }
 
-function kindLabel(kind: ExtractedSymbol["kind"], isTypeOnly: boolean): string {
-  if (isTypeOnly && kind !== "namespace") return "Type";
+function kindLabel(sym: ExtractedSymbol): string {
+  if (sym.kind === "abstraction") {
+    if (sym.abstractionKind === "eventHandler") return "Event Handler Abstraction";
+    if (sym.abstractionKind === "useCase") return "Use Case Abstraction";
+    return "Abstraction";
+  }
+  if (sym.isTypeOnly && sym.kind !== "namespace") return "Type";
   const map: Record<string, string> = {
     interface: "Interface",
     class: "Class",
@@ -482,11 +899,107 @@ function kindLabel(kind: ExtractedSymbol["kind"], isTypeOnly: boolean): string {
     enum: "Enum",
     other: "Export"
   };
-  return map[kind] ?? "Export";
+  return map[sym.kind] ?? "Export";
+}
+
+function renderUsageSnippet(sym: ExtractedSymbol, importPath: string): string {
+  if (sym.kind !== "abstraction") return "";
+
+  const lines: string[] = [];
+
+  if (sym.abstractionKind === "eventHandler") {
+    lines.push(`// extensions/MyHandler.ts`);
+    lines.push(`import { ${sym.name} } from "${importPath}";`);
+    lines.push(``);
+    lines.push(`class MyHandler implements ${sym.name}.Interface {`);
+    lines.push(`    public constructor(/* inject dependencies here */) {}`);
+    lines.push(``);
+    lines.push(`    public async handle(event: ${sym.name}.Event): Promise<void> {`);
+    if (sym.eventPayloadFields && sym.eventPayloadFields.length > 0) {
+      const fields = sym.eventPayloadFields.map(f => f.name).join(", ");
+      lines.push(`        const { ${fields} } = event.payload;`);
+    } else {
+      lines.push(`        // implementation`);
+    }
+    lines.push(`    }`);
+    lines.push(`}`);
+    lines.push(``);
+    lines.push(`export default ${sym.name}.createImplementation({`);
+    lines.push(`    implementation: MyHandler,`);
+    lines.push(`    dependencies: []`);
+    lines.push(`});`);
+  } else if (sym.abstractionKind === "useCase") {
+    // Derive a short impl method signature from interfaceMembers
+    const execMember = sym.interfaceMembers?.find(m => m.signature.startsWith("execute"));
+    const methodSig = execMember ? execMember.signature : "execute(...args: any[]): Promise<any>";
+    lines.push(`// extensions/MyImpl.ts`);
+    lines.push(`import { ${sym.name} } from "${importPath}";`);
+    lines.push(``);
+    lines.push(`class MyImpl implements ${sym.name}.Interface {`);
+    lines.push(`    public constructor(/* inject dependencies here */) {}`);
+    lines.push(``);
+    lines.push(`    public async ${methodSig} {`);
+    lines.push(`        // implementation`);
+    lines.push(`    }`);
+    lines.push(`}`);
+    lines.push(``);
+    lines.push(`export default ${sym.name}.createImplementation({`);
+    lines.push(`    implementation: MyImpl,`);
+    lines.push(`    dependencies: []`);
+    lines.push(`});`);
+  } else {
+    // service abstraction — show it being injected into a fictional use case implementation
+    const paramName = sym.name.charAt(0).toLowerCase() + sym.name.slice(1);
+
+    // Pick a representative method to call: prefer common primary names, fall back to first
+    const PREFERRED = [
+      "execute",
+      "handle",
+      "get",
+      "list",
+      "create",
+      "info",
+      "log",
+      "map",
+      "resolve",
+      "build"
+    ];
+    const pick =
+      sym.interfaceMembers && sym.interfaceMembers.length > 0
+        ? (PREFERRED.map(p =>
+            sym.interfaceMembers!.find(
+              m => m.signature.startsWith(p + "(") || m.signature.startsWith(p + "<")
+            )
+          ).find(Boolean) ?? sym.interfaceMembers[0])
+        : null;
+    // Strip generic type params from call site (e.g. "map<T extends X>" -> "map")
+    const methodName = pick ? pick.signature.split("(")[0].split("<")[0].trim() : null;
+    const isAsync = pick ? pick.signature.includes("Promise<") : false;
+
+    lines.push(`// extensions/MyImpl.ts`);
+    lines.push(`import { ${sym.name} } from "${importPath}";`);
+    lines.push(``);
+    lines.push(`class MyImpl implements MyUseCase.Interface {`);
+    lines.push(`    public constructor(private ${paramName}: ${sym.name}.Interface) {}`);
+    lines.push(``);
+    lines.push(`    public async execute(/* ... */): Promise<void> {`);
+    if (methodName) {
+      lines.push(`        ${isAsync ? "await " : ""}this.${paramName}.${methodName}(/* ... */);`);
+    }
+    lines.push(`    }`);
+    lines.push(`}`);
+    lines.push(``);
+    lines.push(`export default MyUseCase.createImplementation({`);
+    lines.push(`    implementation: MyImpl,`);
+    lines.push(`    dependencies: [${sym.name}]`);
+    lines.push(`});`);
+  }
+
+  return lines.join("\n");
 }
 
 function renderSymbolSection(sym: ExtractedSymbol, importPath: string): string {
-  const label = kindLabel(sym.kind, sym.isTypeOnly);
+  const label = kindLabel(sym);
   const lines: string[] = [];
 
   lines.push(`## \`${sym.name}\``);
@@ -506,7 +1019,78 @@ function renderSymbolSection(sym: ExtractedSymbol, importPath: string): string {
   lines.push("```");
   lines.push("");
 
-  // Declaration
+  // -------------------------------------------------------------------------
+  // Abstraction: rich rendering
+  // -------------------------------------------------------------------------
+  if (sym.kind === "abstraction") {
+    // Interface section
+    if (sym.interfaceMembers && sym.interfaceMembers.length > 0) {
+      lines.push(`**Interface \`${sym.name}.Interface\`:**`);
+      lines.push("");
+      lines.push("```typescript");
+      lines.push(`interface ${sym.name}.Interface {`);
+      for (const m of sym.interfaceMembers) {
+        if (m.jsDoc) {
+          for (const docLine of m.jsDoc.split("\n")) {
+            lines.push(`    // ${docLine}`);
+          }
+        }
+        lines.push(`    ${m.signature};`);
+      }
+      lines.push("}");
+      lines.push("```");
+      lines.push("");
+    }
+
+    // Event payload section
+    if (
+      sym.abstractionKind === "eventHandler" &&
+      sym.eventPayloadFields &&
+      sym.eventPayloadFields.length > 0
+    ) {
+      lines.push(`**Event payload \`${sym.eventPayloadName ?? "payload"}\`:**`);
+      lines.push("");
+      lines.push("```typescript");
+      lines.push(`interface ${sym.eventPayloadName ?? "Payload"} {`);
+      for (const f of sym.eventPayloadFields) {
+        lines.push(`    ${f.name}${f.optional ? "?" : ""}: ${f.typeText};`);
+      }
+      lines.push("}");
+      lines.push("```");
+      lines.push("");
+    }
+
+    // Namespace types section
+    if (sym.namespaceTypes && sym.namespaceTypes.length > 0) {
+      lines.push(`**Types:**`);
+      lines.push("");
+      lines.push("```typescript");
+      lines.push(`namespace ${sym.name} {`);
+      for (const t of sym.namespaceTypes) {
+        lines.push(`    type ${t.name} = ${t.value};`);
+      }
+      lines.push("}");
+      lines.push("```");
+      lines.push("");
+    }
+
+    // Usage snippet
+    const usage = renderUsageSnippet(sym, importPath);
+    if (usage) {
+      lines.push(`**Usage:**`);
+      lines.push("");
+      lines.push("```typescript");
+      lines.push(usage);
+      lines.push("```");
+      lines.push("");
+    }
+
+    return lines.join("\n");
+  }
+
+  // -------------------------------------------------------------------------
+  // Plain declaration
+  // -------------------------------------------------------------------------
   if (sym.declarationText && sym.declarationText.length > 0) {
     lines.push("```typescript");
     lines.push(sym.declarationText);
@@ -514,10 +1098,8 @@ function renderSymbolSection(sym: ExtractedSymbol, importPath: string): string {
     lines.push("");
   }
 
-  // Namespace members
+  // Namespace members (raw, for non-abstraction namespaces)
   if (sym.kind === "namespace" && sym.namespaceMembers.length > 0) {
-    lines.push("**Namespace members:**");
-    lines.push("");
     lines.push("```typescript");
     lines.push(`namespace ${sym.name} {`);
     for (const m of sym.namespaceMembers) {
@@ -621,39 +1203,87 @@ function isNavGroup(x: NavPage | NavGroup): x is NavGroup {
   return "pages" in x;
 }
 
-// Preferred landing page per top-level segment
-const SEGMENT_LANDING: Record<string, string> = {
+// Sub-domains that get their own sub-group within a layer
+// key: "layer/subdomain", value: preferred landing link
+const SUBDOMAIN_LANDING: Record<string, string> = {
+  "api/cms": "reference/api/cms/entry",
+  "api/website-builder": "reference/api/website-builder/page",
+  "api/security": "reference/api/security",
+  "admin/cms": "reference/admin/cms",
+  "admin/website-builder": "reference/admin/website-builder"
+};
+
+// Preferred landing page for each top-level layer group
+const LAYER_LANDING: Record<string, string> = {
   api: "reference/api/cms/entry",
   admin: "reference/admin",
   infra: "reference/infra/index",
   cli: "reference/cli/command"
 };
 
+type NavGroupWithLink = NavGroup & { link: string };
+
+function makeGroup(title: string, link: string): NavGroupWithLink {
+  return { title, link, pages: [] } as NavGroupWithLink;
+}
+
 function buildNavTree(entryPoints: EntryPointDoc[]): NavGroup {
   const root: NavGroup = { title: "Reference", pages: [] };
 
-  // Group by first path segment: api, admin, extensions, infra, cli
-  const bySegment = new Map<string, EntryPointDoc[]>();
-
+  // Layer map: "api" | "admin" | "infra" | "cli" | "extensions"
+  const byLayer = new Map<string, EntryPointDoc[]>();
   for (const ep of entryPoints) {
-    const seg = ep.relPath.split("/")[0];
-    if (!bySegment.has(seg)) bySegment.set(seg, []);
-    bySegment.get(seg)!.push(ep);
+    const layer = ep.relPath.split("/")[0];
+    if (!byLayer.has(layer)) byLayer.set(layer, []);
+    byLayer.get(layer)!.push(ep);
   }
 
-  for (const [seg, eps] of Array.from(bySegment.entries())) {
+  for (const [layer, eps] of Array.from(byLayer.entries())) {
     if (eps.length === 1) {
-      // flat entry: extensions, or single-page group
+      // Single entry (extensions) — flat page
       root.pages.push({ link: `reference/${eps[0].relPath}` });
-    } else {
-      const landing = SEGMENT_LANDING[seg] ?? `reference/${eps[0].relPath}`;
-      const group: NavGroup = {
-        title: toTitle(seg),
-        pages: eps.map(ep => ({ link: `reference/${ep.relPath}`, title: ep.title })),
-        link: landing
-      } as NavGroup & { link: string };
-      root.pages.push(group);
+      continue;
     }
+
+    const layerGroup = makeGroup(
+      toTitle(layer),
+      LAYER_LANDING[layer] ?? `reference/${eps[0].relPath}`
+    );
+
+    // Within this layer, group by sub-domain (second segment) when applicable
+    // Sub-domains: cms, website-builder, security — anything else is flat
+    const SUB_DOMAINS = ["cms", "website-builder", "security"];
+    const bySubDomain = new Map<string, EntryPointDoc[]>();
+    const flat: EntryPointDoc[] = [];
+
+    for (const ep of eps) {
+      const parts = ep.relPath.split("/"); // e.g. ["api","cms","entry"]
+      const subDomain = parts.length >= 3 ? parts[1] : null;
+      if (subDomain && SUB_DOMAINS.includes(subDomain)) {
+        if (!bySubDomain.has(subDomain)) bySubDomain.set(subDomain, []);
+        bySubDomain.get(subDomain)!.push(ep);
+      } else {
+        flat.push(ep);
+      }
+    }
+
+    // Add flat items first (e.g. api, api/logger, api/graphql…)
+    for (const ep of flat) {
+      layerGroup.pages.push({ link: `reference/${ep.relPath}`, title: ep.title });
+    }
+
+    // Add sub-domain groups
+    for (const [subDomain, subEps] of Array.from(bySubDomain.entries())) {
+      const key = `${layer}/${subDomain}`;
+      const subLanding = SUBDOMAIN_LANDING[key] ?? `reference/${subEps[0].relPath}`;
+      const subGroup = makeGroup(toTitle(subDomain), subLanding);
+      for (const ep of subEps) {
+        subGroup.pages.push({ link: `reference/${ep.relPath}`, title: ep.title });
+      }
+      layerGroup.pages.push(subGroup);
+    }
+
+    root.pages.push(layerGroup);
   }
 
   return root;
@@ -744,6 +1374,7 @@ async function main(): Promise<void> {
   const pkgJson = JSON.parse(readFileSync(join(WEBINY_PKG, "package.json"), "utf-8"));
   const exports: Record<string, string> = pkgJson.exports ?? {};
   const pkgMap = buildPackagePathMap();
+  PKG_MAP = pkgMap;
 
   console.log(`  Found ${Object.keys(exports).length} export paths`);
   console.log(`  Found ${pkgMap.size} @webiny/* package aliases`);
@@ -834,7 +1465,7 @@ async function main(): Promise<void> {
       relPath,
       title: toTitle(relPath),
       description: toDescription(relPath),
-      symbols
+      symbols: mergeNamespaceSymbols(symbols)
     };
 
     docs.push(doc);
