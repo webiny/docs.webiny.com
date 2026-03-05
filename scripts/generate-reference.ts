@@ -1123,6 +1123,7 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
   lines.push("---");
   lines.push("");
   lines.push(`import {Alert} from "@/components/Alert";`);
+  lines.push(`import {SymbolList} from "@/components/SymbolList";`);
   lines.push("");
   lines.push(`<Alert type="success" title="WHAT YOU'LL LEARN">`);
   lines.push("");
@@ -1144,15 +1145,17 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
     // Sort symbols A-Z
     const sorted = [...doc.symbols].sort((a, b) => a.name.localeCompare(b.name));
 
-    // Symbol index list
-    for (const sym of sorted) {
-      // GitHub-flavored markdown anchor: lowercase, spaces→hyphens, strip non-alphanum except hyphens
-      const anchor = sym.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "");
-      lines.push(`- [\`${sym.name}\`](#${anchor})`);
-    }
+    // Symbol chip index
+    const symbolsJson = sorted
+      .map(sym => {
+        const anchor = sym.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+        return `{ name: "${sym.name}", anchor: "${anchor}" }`;
+      })
+      .join(", ");
+    lines.push(`<SymbolList symbols={[${symbolsJson}]} />`);
     lines.push("");
 
     for (const sym of sorted) {
