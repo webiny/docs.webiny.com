@@ -1,6 +1,6 @@
 ---
 id: aw5mcmev
-title: Infrastructure Overview
+title: Infrastructure
 description: "Infrastructure primitives: Logger, Ui, lifecycle hooks"
 ---
 
@@ -20,16 +20,64 @@ This page documents everything exported from `webiny/infra/index`. Import any of
 
 <SymbolList
   symbols={[
+    { name: "AdminStackOutput", anchor: "admin-stack-output" },
     { name: "AfterBuildHook", anchor: "after-build-hook" },
     { name: "AfterDeployHook", anchor: "after-deploy-hook" },
+    { name: "ApiGqlClient", anchor: "api-gql-client" },
+    { name: "ApiStackOutput", anchor: "api-stack-output" },
     { name: "BeforeBuildHook", anchor: "before-build-hook" },
     { name: "BeforeDeployHook", anchor: "before-deploy-hook" },
     { name: "BeforeWatchHook", anchor: "before-watch-hook" },
-    { name: "GetAppStackOutput", anchor: "get-app-stack-output" },
+    { name: "CoreStackOutput", anchor: "core-stack-output" },
+    { name: "InvokeLambdaFunction", anchor: "invoke-lambda-function" },
     { name: "Logger", anchor: "logger" },
     { name: "Ui", anchor: "ui" }
   ]}
 />
+
+## `AdminStackOutput`
+
+**Abstraction** — imported from `webiny/infra/index`
+
+```typescript
+import { AdminStackOutput } from "webiny/infra/index";
+```
+
+**Interface `AdminStackOutput.Interface`:**
+
+```typescript
+interface AdminStackOutput.Interface {
+    execute<TOutput extends IAdminStackOutput = IAdminStackOutput>(): Promise<TOutput | null>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace AdminStackOutput {
+  type Interface = IAdminStackOutputService;
+  type Output = IAdminStackOutput;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { AdminStackOutput } from "webiny/infra/index";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private adminStackOutput: AdminStackOutput.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.adminStackOutput.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [AdminStackOutput]
+});
+```
 
 ## `AfterBuildHook`
 
@@ -116,6 +164,101 @@ class MyImpl implements MyUseCase.Interface {
 export default MyUseCase.createImplementation({
   implementation: MyImpl,
   dependencies: [AfterDeployHook]
+});
+```
+
+## `ApiGqlClient`
+
+**Abstraction** — imported from `webiny/infra/index`
+
+```typescript
+import { ApiGqlClient } from "webiny/infra/index";
+```
+
+**Interface `ApiGqlClient.Interface`:**
+
+```typescript
+interface ApiGqlClient.Interface {
+    query<T = any>(params: {
+        query: string;
+        variables?: Record<string, any>;
+    }): Promise<IApiGqlClientResponse<T>>;
+    mutation<T = any>(params: {
+        mutation: string;
+        variables?: Record<string, any>;
+    }): Promise<IApiGqlClientResponse<T>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ApiGqlClient {
+  type Interface = IApiGqlClient;
+  type Response = IApiGqlClientResponse<T>;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { ApiGqlClient } from "webiny/infra/index";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private apiGqlClient: ApiGqlClient.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.apiGqlClient.query(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [ApiGqlClient]
+});
+```
+
+## `ApiStackOutput`
+
+**Abstraction** — imported from `webiny/infra/index`
+
+```typescript
+import { ApiStackOutput } from "webiny/infra/index";
+```
+
+**Interface `ApiStackOutput.Interface`:**
+
+```typescript
+interface ApiStackOutput.Interface {
+    execute<TOutput extends IApiStackOutput = IApiStackOutput>(): Promise<TOutput | null>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace ApiStackOutput {
+  type Interface = IApiStackOutputService;
+  type Output = IApiStackOutput;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { ApiStackOutput } from "webiny/infra/index";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private apiStackOutput: ApiStackOutput.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.apiStackOutput.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [ApiStackOutput]
 });
 ```
 
@@ -251,50 +394,92 @@ export default MyUseCase.createImplementation({
 });
 ```
 
-## `GetAppStackOutput`
+## `CoreStackOutput`
 
 **Abstraction** — imported from `webiny/infra/index`
 
 ```typescript
-import { GetAppStackOutput } from "webiny/infra/index";
+import { CoreStackOutput } from "webiny/infra/index";
 ```
 
-**Interface `GetAppStackOutput.Interface`:**
+**Interface `CoreStackOutput.Interface`:**
 
 ```typescript
-interface GetAppStackOutput.Interface {
-    execute<TOutput extends IStackOutput = IStackOutput>(
-        appName: AppName
-    ): Promise<IGetAppStackOutputResult<TOutput>>;
+interface CoreStackOutput.Interface {
+    execute<TOutput extends ICoreStackOutput = ICoreStackOutput>(): Promise<TOutput | null>;
 }
 ```
 
 **Types:**
 
 ```typescript
-namespace GetAppStackOutput {
-  type Interface = IGetAppStackOutput;
-  type Result = IGetAppStackOutputResult;
-  type StackOutput = IStackOutput;
+namespace CoreStackOutput {
+  type Interface = ICoreStackOutputService;
+  type Output = ICoreStackOutput;
 }
 ```
 
 **Usage:**
 
 ```typescript extensions/MyImpl.ts
-import { GetAppStackOutput } from "webiny/infra/index";
+import { CoreStackOutput } from "webiny/infra/index";
 
 class MyImpl implements MyUseCase.Interface {
-  public constructor(private getAppStackOutput: GetAppStackOutput.Interface) {}
+  public constructor(private coreStackOutput: CoreStackOutput.Interface) {}
 
   public async execute(/* ... */): Promise<void> {
-    await this.getAppStackOutput.execute(/* ... */);
+    await this.coreStackOutput.execute(/* ... */);
   }
 }
 
 export default MyUseCase.createImplementation({
   implementation: MyImpl,
-  dependencies: [GetAppStackOutput]
+  dependencies: [CoreStackOutput]
+});
+```
+
+## `InvokeLambdaFunction`
+
+**Abstraction** — imported from `webiny/infra/index`
+
+```typescript
+import { InvokeLambdaFunction } from "webiny/infra/index";
+```
+
+**Interface `InvokeLambdaFunction.Interface`:**
+
+```typescript
+interface InvokeLambdaFunction.Interface {
+    execute<T = any>(params: IInvokeLambdaFunctionParams): Promise<IInvokeLambdaFunctionResult<T>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace InvokeLambdaFunction {
+  type Interface = IInvokeLambdaFunction;
+  type Params = IInvokeLambdaFunctionParams;
+  type Result = IInvokeLambdaFunctionResult<T>;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { InvokeLambdaFunction } from "webiny/infra/index";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private invokeLambdaFunction: InvokeLambdaFunction.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.invokeLambdaFunction.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [InvokeLambdaFunction]
 });
 ```
 

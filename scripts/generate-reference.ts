@@ -179,7 +179,7 @@ function toTitle(relPath: string): string {
 
   // Compose a meaningful title from last two segments
   if (parts.length === 1) return section;
-  if (last === "index") return parentSection + " Overview";
+  if (last === "index") return parentSection;
   return section;
 }
 
@@ -1306,15 +1306,33 @@ const SUBDOMAIN_LANDING: Record<string, string> = {
 const LAYER_LANDING: Record<string, string> = {
   api: "reference/api/cms/entry",
   admin: "reference/admin",
-  infra: "reference/infra/index",
-  cli: "reference/cli/command"
+  infra: "reference/infra/overview",
+  cli: "reference/cli/overview"
 };
+
+/**
+ * Some relPaths end in "index" which Next.js treats as a directory index route,
+ * causing 404s. Map those to a non-index output path here.
+ * Key: relPath (e.g. "cli/index"), Value: output path WITHOUT extension (e.g. "cli/overview")
+ */
+const OUTPUT_PATH_OVERRIDE: Record<string, string> = {
+  "cli/index": "cli/overview",
+  "infra/index": "infra/overview"
+};
+
+/** Return the output path for a given relPath (may be overridden to avoid index routes). */
+function toOutputPath(relPath: string): string {
+  return OUTPUT_PATH_OVERRIDE[relPath] ?? relPath;
+}
 
 type NavGroupWithLink = NavGroup & { link: string };
 
 function makeGroup(title: string, link: string): NavGroupWithLink {
   return { title, link, pages: [] } as NavGroupWithLink;
 }
+
+// Explicit layer order for navigation
+const LAYER_ORDER = ["extensions", "admin", "api", "cli", "infra"];
 
 function buildNavTree(entryPoints: EntryPointDoc[]): NavGroup {
   const root: NavGroup = { title: "Reference", pages: [] };
@@ -1327,16 +1345,27 @@ function buildNavTree(entryPoints: EntryPointDoc[]): NavGroup {
     byLayer.get(layer)!.push(ep);
   }
 
-  for (const [layer, eps] of Array.from(byLayer.entries())) {
+  // Sort layers by explicit order, unknown layers go to the end alphabetically
+  const orderedLayers = Array.from(byLayer.keys()).sort((a, b) => {
+    const ai = LAYER_ORDER.indexOf(a);
+    const bi = LAYER_ORDER.indexOf(b);
+    if (ai === -1 && bi === -1) return a.localeCompare(b);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+
+  for (const layer of orderedLayers) {
+    const eps = byLayer.get(layer)!;
     if (eps.length === 1) {
       // Single entry (extensions) — flat page
-      root.pages.push({ link: `reference/${eps[0].relPath}` });
+      root.pages.push({ link: `reference/${toOutputPath(eps[0].relPath)}` });
       continue;
     }
 
     const layerGroup = makeGroup(
       toTitle(layer),
-      LAYER_LANDING[layer] ?? `reference/${eps[0].relPath}`
+      LAYER_LANDING[layer] ?? `reference/${toOutputPath(eps[0].relPath)}`
     );
 
     // Within this layer, group by sub-domain (second segment) when applicable
@@ -1363,21 +1392,33 @@ function buildNavTree(entryPoints: EntryPointDoc[]): NavGroup {
     }
 
     // Add flat items (e.g. api, api/logger, api/graphql…)
-    for (const ep of flat) {
-      layerGroup.pages.push({ link: `reference/${ep.relPath}`, title: ep.title });
+    // Root page (landing) always goes first, rest in their natural order.
+    const layerLanding = LAYER_LANDING[layer] ?? `reference/${toOutputPath(eps[0].relPath)}`;
+    const rootFlat = flat.filter(
+      ep => `reference/${toOutputPath(ep.relPath)}` === layerLanding || ep.relPath === layer
+    );
+    const otherFlat = flat.filter(ep => !rootFlat.includes(ep));
+
+    for (const ep of [...rootFlat, ...otherFlat]) {
+      const isLayerRoot = rootFlat.includes(ep);
+      const title = isLayerRoot ? "Root" : ep.title;
+      layerGroup.pages.push({ link: `reference/${toOutputPath(ep.relPath)}`, title });
     }
 
     // Add sub-domain groups — index page is "Overview" first child, then sub-pages
     for (const [subDomain, subEps] of Array.from(bySubDomain.entries())) {
       const key = `${layer}/${subDomain}`;
-      const subLanding = SUBDOMAIN_LANDING[key] ?? `reference/${subEps[0].relPath}`;
+      const subLanding = SUBDOMAIN_LANDING[key] ?? `reference/${toOutputPath(subEps[0].relPath)}`;
       const subGroup = makeGroup(toTitle(subDomain), subLanding);
       const indexEp = subDomainIndex.get(subDomain);
       if (indexEp) {
-        subGroup.pages.push({ link: `reference/${indexEp.relPath}`, title: toTitle(subDomain) });
+        subGroup.pages.push({
+          link: `reference/${toOutputPath(indexEp.relPath)}`,
+          title: "Root"
+        });
       }
       for (const ep of subEps) {
-        subGroup.pages.push({ link: `reference/${ep.relPath}`, title: ep.title });
+        subGroup.pages.push({ link: `reference/${toOutputPath(ep.relPath)}`, title: ep.title });
       }
       layerGroup.pages.push(subGroup);
     }
@@ -1575,11 +1616,12 @@ async function main(): Promise<void> {
   console.log("\nWriting documentation files...");
 
   for (const doc of docs) {
-    const dir = join(REF_DIR, dirname(doc.relPath));
+    const outputPath = toOutputPath(doc.relPath);
+    const dir = join(REF_DIR, dirname(outputPath));
     mkdirSync(dir, { recursive: true });
 
-    const mdxPath = join(REF_DIR, doc.relPath + ".mdx");
-    const aiTxtPath = join(REF_DIR, doc.relPath + ".ai.txt");
+    const mdxPath = join(REF_DIR, outputPath + ".mdx");
+    const aiTxtPath = join(REF_DIR, outputPath + ".ai.txt");
 
     // Generate stable ID from path (8 chars)
     const id = Buffer.from(doc.relPath)
@@ -1594,7 +1636,7 @@ async function main(): Promise<void> {
 
     writeFileSync(mdxPath, mdxContent, "utf-8");
     writeFileSync(aiTxtPath, aiTxtContent, "utf-8");
-    console.log(`  [write] reference/${doc.relPath}.mdx (${doc.symbols.length} symbols)`);
+    console.log(`  [write] reference/${outputPath}.mdx (${doc.symbols.length} symbols)`);
   }
 
   // Rewrite navigation

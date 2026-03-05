@@ -67,8 +67,9 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         link={"reference/api/cms/entry"}
       >
         {/* __REFERENCE_PAGES_START__ */}
+        <Page link={"reference/extensions"} />
         <Group title={"Admin"} link={"reference/admin"}>
-          <Page link={"reference/admin"} title={"Admin"} />
+          <Page link={"reference/admin"} title={"Root"} />
           <Page link={"reference/admin/aco"} title={"ACO"} />
           <Page link={"reference/admin/build-params"} title={"Build Params"} />
           <Page link={"reference/admin/configs"} title={"Configs"} />
@@ -81,7 +82,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           <Page link={"reference/admin/tenancy"} title={"Tenancy"} />
           <Page link={"reference/admin/ui"} title={"UI"} />
           <Group title={"CMS"} link={"reference/admin/cms"}>
-            <Page link={"reference/admin/cms"} title={"CMS"} />
+            <Page link={"reference/admin/cms"} title={"Root"} />
             <Page link={"reference/admin/cms/entry/editor"} title={"Editor"} />
             <Page link={"reference/admin/cms/entry/list"} title={"List"} />
             <Page link={"reference/admin/cms/fieldRenderers/dynamic-zone"} title={"Dynamic Zone"} />
@@ -90,7 +91,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/admin/cms/model"} title={"Model"} />
           </Group>
           <Group title={"Website Builder"} link={"reference/admin/website-builder"}>
-            <Page link={"reference/admin/website-builder"} title={"Website Builder"} />
+            <Page link={"reference/admin/website-builder"} title={"Root"} />
             <Page link={"reference/admin/website-builder/lexical"} title={"Lexical Editor"} />
             <Page link={"reference/admin/website-builder/page/editor"} title={"Editor"} />
             <Page link={"reference/admin/website-builder/page/list"} title={"List"} />
@@ -98,7 +99,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           </Group>
         </Group>
         <Group title={"API"} link={"reference/api/cms/entry"}>
-          <Page link={"reference/api"} title={"API"} />
+          <Page link={"reference/api"} title={"Root"} />
           <Page link={"reference/api/build-params"} title={"Build Params"} />
           <Page link={"reference/api/event-publisher"} title={"Event Publisher"} />
           <Page link={"reference/api/graphql"} title={"GraphQL"} />
@@ -114,7 +115,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/api/cms/model"} title={"Model"} />
           </Group>
           <Group title={"Security"} link={"reference/api/security"}>
-            <Page link={"reference/api/security"} title={"Security"} />
+            <Page link={"reference/api/security"} title={"Root"} />
             <Page link={"reference/api/security/api-key"} title={"Api Key"} />
             <Page link={"reference/api/security/authentication"} title={"Authentication"} />
             <Page link={"reference/api/security/role"} title={"Role"} />
@@ -126,16 +127,15 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/api/website-builder/redirect"} title={"Redirect"} />
           </Group>
         </Group>
-        <Group title={"CLI"} link={"reference/cli/command"}>
+        <Group title={"CLI"} link={"reference/cli/overview"}>
+          <Page link={"reference/cli/overview"} title={"Root"} />
           <Page link={"reference/cli/command"} title={"Command"} />
-          <Page link={"reference/cli/index"} title={"CLI Overview"} />
         </Group>
-        <Page link={"reference/extensions"} />
-        <Group title={"Infrastructure"} link={"reference/infra/index"}>
+        <Group title={"Infrastructure"} link={"reference/infra/overview"}>
+          <Page link={"reference/infra/overview"} title={"Root"} />
           <Page link={"reference/infra/admin"} title={"Admin"} />
           <Page link={"reference/infra/api"} title={"API"} />
           <Page link={"reference/infra/core"} title={"Core"} />
-          <Page link={"reference/infra/index"} title={"Infrastructure Overview"} />
         </Group>
         {/* __REFERENCE_PAGES_END__ */}
       </Group>
