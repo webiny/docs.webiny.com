@@ -15,6 +15,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { Project, SourceFile, SyntaxKind, Node } from "ts-morph";
+import slugify from "@sindresorhus/slugify";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -902,13 +903,15 @@ function kindLabel(sym: ExtractedSymbol): string {
   return map[sym.kind] ?? "Export";
 }
 
-function renderUsageSnippet(sym: ExtractedSymbol, importPath: string): string {
-  if (sym.kind !== "abstraction") return "";
+function renderUsageSnippet(
+  sym: ExtractedSymbol,
+  importPath: string
+): { file: string; body: string } | null {
+  if (sym.kind !== "abstraction") return null;
 
   const lines: string[] = [];
 
   if (sym.abstractionKind === "eventHandler") {
-    lines.push(`// extensions/MyHandler.ts`);
     lines.push(`import { ${sym.name} } from "${importPath}";`);
     lines.push(``);
     lines.push(`class MyHandler implements ${sym.name}.Interface {`);
@@ -928,27 +931,8 @@ function renderUsageSnippet(sym: ExtractedSymbol, importPath: string): string {
     lines.push(`    implementation: MyHandler,`);
     lines.push(`    dependencies: []`);
     lines.push(`});`);
-  } else if (sym.abstractionKind === "useCase") {
-    // Derive a short impl method signature from interfaceMembers
-    const execMember = sym.interfaceMembers?.find(m => m.signature.startsWith("execute"));
-    const methodSig = execMember ? execMember.signature : "execute(...args: any[]): Promise<any>";
-    lines.push(`// extensions/MyImpl.ts`);
-    lines.push(`import { ${sym.name} } from "${importPath}";`);
-    lines.push(``);
-    lines.push(`class MyImpl implements ${sym.name}.Interface {`);
-    lines.push(`    public constructor(/* inject dependencies here */) {}`);
-    lines.push(``);
-    lines.push(`    public async ${methodSig} {`);
-    lines.push(`        // implementation`);
-    lines.push(`    }`);
-    lines.push(`}`);
-    lines.push(``);
-    lines.push(`export default ${sym.name}.createImplementation({`);
-    lines.push(`    implementation: MyImpl,`);
-    lines.push(`    dependencies: []`);
-    lines.push(`});`);
   } else {
-    // service abstraction — show it being injected into a fictional use case implementation
+    // use case or service abstraction — show it being injected and called
     const paramName = sym.name.charAt(0).toLowerCase() + sym.name.slice(1);
 
     // Pick a representative method to call: prefer common primary names, fall back to first
@@ -976,7 +960,6 @@ function renderUsageSnippet(sym: ExtractedSymbol, importPath: string): string {
     const methodName = pick ? pick.signature.split("(")[0].split("<")[0].trim() : null;
     const isAsync = pick ? pick.signature.includes("Promise<") : false;
 
-    lines.push(`// extensions/MyImpl.ts`);
     lines.push(`import { ${sym.name} } from "${importPath}";`);
     lines.push(``);
     lines.push(`class MyImpl implements MyUseCase.Interface {`);
@@ -995,7 +978,10 @@ function renderUsageSnippet(sym: ExtractedSymbol, importPath: string): string {
     lines.push(`});`);
   }
 
-  return lines.join("\n");
+  // file is declared in each branch above
+  const file =
+    sym.abstractionKind === "eventHandler" ? "extensions/MyHandler.ts" : "extensions/MyImpl.ts";
+  return { file, body: lines.join("\n") };
 }
 
 function renderSymbolSection(sym: ExtractedSymbol, importPath: string): string {
@@ -1079,8 +1065,8 @@ function renderSymbolSection(sym: ExtractedSymbol, importPath: string): string {
     if (usage) {
       lines.push(`**Usage:**`);
       lines.push("");
-      lines.push("```typescript");
-      lines.push(usage);
+      lines.push(`\`\`\`typescript ${usage.file}`);
+      lines.push(usage.body);
       lines.push("```");
       lines.push("");
     }
@@ -1148,10 +1134,7 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
     // Symbol chip index
     const symbolsJson = sorted
       .map(sym => {
-        const anchor = sym.name
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-|-$/g, "");
+        const anchor = slugify(sym.name);
         return `{ name: "${sym.name}", anchor: "${anchor}" }`;
       })
       .join(", ");

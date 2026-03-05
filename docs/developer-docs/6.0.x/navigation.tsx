@@ -70,13 +70,13 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Group title={"Admin"} link={"reference/admin"}>
           <Page link={"reference/admin"} title={"Admin"} />
           <Page link={"reference/admin/aco"} title={"ACO"} />
-          <Page link={"reference/admin/buildParams"} title={"Build Params"} />
+          <Page link={"reference/admin/build-params"} title={"Build Params"} />
           <Page link={"reference/admin/configs"} title={"Configs"} />
-          <Page link={"reference/admin/envConfig"} title={"Env Config"} />
+          <Page link={"reference/admin/env-config"} title={"Env Config"} />
           <Page link={"reference/admin/form"} title={"Form"} />
-          <Page link={"reference/admin/graphqlClient"} title={"GraphQL Client"} />
+          <Page link={"reference/admin/graphql-client"} title={"Graphql Client"} />
           <Page link={"reference/admin/lexical"} title={"Lexical Editor"} />
-          <Page link={"reference/admin/localStorage"} title={"Local Storage"} />
+          <Page link={"reference/admin/local-storage"} title={"Local Storage"} />
           <Page link={"reference/admin/router"} title={"Router"} />
           <Page link={"reference/admin/tenancy"} title={"Tenancy"} />
           <Page link={"reference/admin/ui"} title={"UI"} />
@@ -84,9 +84,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/admin/cms"} title={"CMS"} />
             <Page link={"reference/admin/cms/entry/editor"} title={"Editor"} />
             <Page link={"reference/admin/cms/entry/list"} title={"List"} />
-            <Page link={"reference/admin/cms/fieldRenderers/dynamicZone"} title={"DynamicZone"} />
+            <Page link={"reference/admin/cms/fieldRenderers/dynamic-zone"} title={"Dynamic Zone"} />
             <Page link={"reference/admin/cms/fieldRenderers/object"} title={"Object"} />
             <Page link={"reference/admin/cms/lexical"} title={"Lexical Editor"} />
+            <Page link={"reference/admin/cms/model"} title={"Model"} />
           </Group>
           <Group title={"Website Builder"} link={"reference/admin/website-builder"}>
             <Page link={"reference/admin/website-builder"} title={"Website Builder"} />
@@ -98,10 +99,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         </Group>
         <Group title={"API"} link={"reference/api/cms/entry"}>
           <Page link={"reference/api"} title={"API"} />
-          <Page link={"reference/api/buildParams"} title={"Build Params"} />
-          <Page link={"reference/api/eventPublisher"} title={"Event Publisher"} />
+          <Page link={"reference/api/build-params"} title={"Build Params"} />
+          <Page link={"reference/api/event-publisher"} title={"Event Publisher"} />
           <Page link={"reference/api/graphql"} title={"GraphQL"} />
-          <Page link={"reference/api/keyValueStore"} title={"Key-Value Store"} />
+          <Page link={"reference/api/key-value-store"} title={"Key Value Store"} />
           <Page link={"reference/api/logger"} title={"Logger"} />
           <Page link={"reference/api/system"} title={"System"} />
           <Page link={"reference/api/tasks"} title={"Tasks"} />
@@ -114,7 +115,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           </Group>
           <Group title={"Security"} link={"reference/api/security"}>
             <Page link={"reference/api/security"} title={"Security"} />
-            <Page link={"reference/api/security/apiKey"} title={"API Key"} />
+            <Page link={"reference/api/security/api-key"} title={"Api Key"} />
             <Page link={"reference/api/security/authentication"} title={"Authentication"} />
             <Page link={"reference/api/security/role"} title={"Role"} />
             <Page link={"reference/api/security/user"} title={"User"} />
