@@ -97,7 +97,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/admin/website-builder/redirect/list"} title={"List"} />
           </Group>
         </Group>
-        <Group title={"API"} link={"reference/api/cms/entry"}>
+        <Group title={"API"} link={"reference/api"}>
           <Page link={"reference/api"} title={"API"} />
           <Page link={"reference/api/buildParams"} title={"Build Params"} />
           <Page link={"reference/api/eventPublisher"} title={"Event Publisher"} />
