@@ -860,6 +860,78 @@ function mergeNamespaceSymbols(symbols: ExtractedSymbol[]): ExtractedSymbol[] {
 // MDX rendering
 // ---------------------------------------------------------------------------
 
+interface SymbolGroup {
+  title: string;
+  symbols: ExtractedSymbol[];
+}
+
+/**
+ * Group symbols into logical sections depending on the entry point layer (api vs admin).
+ * Returns groups in display order, skipping empty groups.
+ */
+function groupSymbols(relPath: string, symbols: ExtractedSymbol[]): SymbolGroup[] {
+  const layer = relPath.split("/")[0]; // "api" | "admin" | "infra" | "cli" | "extensions"
+
+  if (layer === "api") {
+    const useCases = symbols.filter(
+      s => s.kind === "abstraction" && s.abstractionKind === "useCase"
+    );
+    const handlers = symbols.filter(
+      s => s.kind === "abstraction" && s.abstractionKind === "eventHandler"
+    );
+    const services = symbols.filter(
+      s => s.kind === "abstraction" && s.abstractionKind === "service"
+    );
+    const rest = symbols.filter(s => s.kind !== "abstraction");
+
+    return [
+      { title: "Use Cases", symbols: useCases },
+      { title: "Event Handlers", symbols: handlers },
+      { title: "Services", symbols: services },
+      { title: "Types & Classes", symbols: rest }
+    ].filter(g => g.symbols.length > 0);
+  }
+
+  if (layer === "admin") {
+    const hooks = symbols.filter(
+      s =>
+        (s.kind === "function" || s.kind === "variable") &&
+        s.name.startsWith("use") &&
+        s.name.length > 3 &&
+        s.name[3] === s.name[3].toUpperCase()
+    );
+    const hookNames = new Set(hooks.map(s => s.name));
+    const components = symbols.filter(
+      s =>
+        !hookNames.has(s.name) &&
+        (s.kind === "variable" || s.kind === "function" || s.kind === "class") &&
+        s.name[0] === s.name[0].toUpperCase() &&
+        s.name[0] !== s.name[0].toLowerCase()
+    );
+    const componentNames = new Set(components.map(s => s.name));
+    const types = symbols.filter(
+      s =>
+        !hookNames.has(s.name) &&
+        !componentNames.has(s.name) &&
+        (s.kind === "type" || s.kind === "interface")
+    );
+    const typeNames = new Set(types.map(s => s.name));
+    const rest = symbols.filter(
+      s => !hookNames.has(s.name) && !componentNames.has(s.name) && !typeNames.has(s.name)
+    );
+
+    return [
+      { title: "Components", symbols: components },
+      { title: "Hooks", symbols: hooks },
+      { title: "Types", symbols: types },
+      { title: "Other", symbols: rest }
+    ].filter(g => g.symbols.length > 0);
+  }
+
+  // For infra, cli, extensions — no grouping, single flat group
+  return [{ title: "", symbols }];
+}
+
 function renderLearnBlock(relPath: string, symbols: ExtractedSymbol[]): string {
   const useCases = symbols.filter(s => s.name.endsWith("UseCase"));
   const handlers = symbols.filter(s => s.name.endsWith("EventHandler"));
@@ -984,11 +1056,16 @@ function renderUsageSnippet(
   return { file, body: lines.join("\n") };
 }
 
-function renderSymbolSection(sym: ExtractedSymbol, importPath: string): string {
+function renderSymbolSection(
+  sym: ExtractedSymbol,
+  importPath: string,
+  headingLevel: 2 | 4 = 2
+): string {
   const label = kindLabel(sym);
   const lines: string[] = [];
+  const hashes = "#".repeat(headingLevel);
 
-  lines.push(`## \`${sym.name}\``);
+  lines.push(`${hashes} \`${sym.name}\``);
   lines.push("");
   lines.push(`**${label}** — imported from \`${importPath}\``);
   lines.push("");
@@ -1128,21 +1205,33 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
     lines.push("*No exported symbols found.*");
     lines.push("");
   } else {
-    // Sort symbols A-Z
-    const sorted = [...doc.symbols].sort((a, b) => a.name.localeCompare(b.name));
+    const groups = groupSymbols(doc.relPath, doc.symbols);
+    const hasMultipleGroups = groups.length > 1;
 
-    // Symbol chip index
-    const symbolsJson = sorted
-      .map(sym => {
-        const anchor = slugify(sym.name);
-        return `{ name: "${sym.name}", anchor: "${anchor}" }`;
-      })
-      .join(", ");
-    lines.push(`<SymbolList symbols={[${symbolsJson}]} />`);
-    lines.push("");
+    for (const group of groups) {
+      // Sort symbols A-Z within each group
+      const sorted = [...group.symbols].sort((a, b) => a.name.localeCompare(b.name));
 
-    for (const sym of sorted) {
-      lines.push(renderSymbolSection(sym, `webiny/${doc.relPath}`));
+      // Group heading (only when there are multiple groups)
+      if (hasMultipleGroups && group.title) {
+        lines.push(`### ${group.title}`);
+        lines.push("");
+      }
+
+      // Symbol chip index for this group
+      const symbolsJson = sorted
+        .map(sym => {
+          const anchor = slugify(sym.name);
+          return `{ name: "${sym.name}", anchor: "${anchor}" }`;
+        })
+        .join(", ");
+      lines.push(`<SymbolList symbols={[${symbolsJson}]} />`);
+      lines.push("");
+
+      const headingLevel = hasMultipleGroups ? 4 : 2;
+      for (const sym of sorted) {
+        lines.push(renderSymbolSection(sym, `webiny/${doc.relPath}`, headingLevel));
+      }
     }
   }
 
