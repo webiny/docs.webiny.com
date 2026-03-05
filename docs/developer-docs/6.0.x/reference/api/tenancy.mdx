@@ -17,34 +17,53 @@ import { Alert } from "@/components/Alert";
 
 This page documents everything exported from `webiny/api/tenancy`. Import any of the items below directly from this path in your Webiny extensions.
 
-## `TenantContext`
+- [`AppInstaller`](#appinstaller)
+- [`CreateTenantRepository`](#createtenantrepository)
+- [`CreateTenantUseCase`](#createtenantusecase)
+- [`DeleteTenantRepository`](#deletetenantrepository)
+- [`DeleteTenantUseCase`](#deletetenantusecase)
+- [`GetTenantByIdUseCase`](#gettenantbyidusecase)
+- [`InstallTenantUseCase`](#installtenantusecase)
+- [`TenantAfterCreateHandler`](#tenantaftercreatehandler)
+- [`TenantAfterDeleteHandler`](#tenantafterdeletehandler)
+- [`TenantAfterUpdateHandler`](#tenantafterupdatehandler)
+- [`TenantBeforeCreateHandler`](#tenantbeforecreatehandler)
+- [`TenantBeforeDeleteHandler`](#tenantbeforedeletehandler)
+- [`TenantBeforeUpdateHandler`](#tenantbeforeupdatehandler)
+- [`TenantContext`](#tenantcontext)
+- [`TenantInstalledHandler`](#tenantinstalledhandler)
+- [`UpdateTenantRepository`](#updatetenantrepository)
+- [`UpdateTenantUseCase`](#updatetenantusecase)
+
+## `AppInstaller`
 
 **Abstraction** — imported from `webiny/api/tenancy`
 
 ```typescript
-import { TenantContext } from "webiny/api/tenancy";
+import { AppInstaller } from "webiny/api/tenancy";
 ```
 
-**Interface `TenantContext.Interface`:**
+**Interface `AppInstaller.Interface`:**
 
 ```typescript
-interface TenantContext.Interface {
-    setTenant(tenant: Tenant): void;
-    getTenant(): Tenant;
-    withRootTenant<T>(cb: () => T): Promise<T>;
-    withEachTenant<TReturn>(
-        tenants: Tenant[],
-        cb: (tenant: Tenant) => Promise<TReturn>
-    ): Promise<TReturn[]>;
-    withTenant<TReturn>(tenant: Tenant, cb: (tenant: Tenant) => Promise<TReturn>): Promise<TReturn>;
+interface AppInstaller.Interface {
+    readonly alwaysRun?: boolean;
+    readonly appName: string;
+    readonly dependsOn: string[];
+    // Perform the installation
+    // If this succeeds, uninstall() MUST be able to revert it
+    install(tenant: Tenant, data: TData): Promise<void>;
+    // Revert the installation
+    // Called if any subsequent installer fails
+    uninstall(tenant: Tenant): Promise<void>;
 }
 ```
 
 **Types:**
 
 ```typescript
-namespace TenantContext {
-  type Interface = ITenantContext;
+namespace AppInstaller {
+  type Interface = IAppInstaller<T>;
 }
 ```
 
@@ -52,19 +71,63 @@ namespace TenantContext {
 
 ```typescript
 // extensions/MyImpl.ts
-import { TenantContext } from "webiny/api/tenancy";
+import { AppInstaller } from "webiny/api/tenancy";
 
 class MyImpl implements MyUseCase.Interface {
-  public constructor(private tenantContext: TenantContext.Interface) {}
+    public constructor(private appInstaller: AppInstaller.Interface) {}
 
-  public async execute(/* ... */): Promise<void> {
-    this.tenantContext.setTenant(/* ... */);
-  }
+    public async execute(/* ... */): Promise<void> {
+        this.appInstaller.readonly alwaysRun?: boolean(/* ... */);
+    }
 }
 
 export default MyUseCase.createImplementation({
+    implementation: MyImpl,
+    dependencies: [AppInstaller]
+});
+```
+
+## `CreateTenantRepository`
+
+**Use Case Abstraction** — imported from `webiny/api/tenancy`
+
+```typescript
+import { CreateTenantRepository } from "webiny/api/tenancy";
+```
+
+**Interface `CreateTenantRepository.Interface`:**
+
+```typescript
+interface CreateTenantRepository.Interface {
+    create(tenant: Tenant): Promise<Tenant>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace CreateTenantRepository {
+  type Interface = ICreateTenantRepository;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { CreateTenantRepository } from "webiny/api/tenancy";
+
+class MyImpl implements CreateTenantRepository.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async execute(...args: any[]): Promise<any> {
+    // implementation
+  }
+}
+
+export default CreateTenantRepository.createImplementation({
   implementation: MyImpl,
-  dependencies: [TenantContext]
+  dependencies: []
 });
 ```
 
@@ -117,27 +180,27 @@ export default CreateTenantUseCase.createImplementation({
 });
 ```
 
-## `CreateTenantRepository`
+## `DeleteTenantRepository`
 
 **Use Case Abstraction** — imported from `webiny/api/tenancy`
 
 ```typescript
-import { CreateTenantRepository } from "webiny/api/tenancy";
+import { DeleteTenantRepository } from "webiny/api/tenancy";
 ```
 
-**Interface `CreateTenantRepository.Interface`:**
+**Interface `DeleteTenantRepository.Interface`:**
 
 ```typescript
-interface CreateTenantRepository.Interface {
-    create(tenant: Tenant): Promise<Tenant>;
+interface DeleteTenantRepository.Interface {
+    delete(id: string): Promise<void>;
 }
 ```
 
 **Types:**
 
 ```typescript
-namespace CreateTenantRepository {
-  type Interface = ICreateTenantRepository;
+namespace DeleteTenantRepository {
+  type Interface = IDeleteTenantRepository;
 }
 ```
 
@@ -145,9 +208,9 @@ namespace CreateTenantRepository {
 
 ```typescript
 // extensions/MyImpl.ts
-import { CreateTenantRepository } from "webiny/api/tenancy";
+import { DeleteTenantRepository } from "webiny/api/tenancy";
 
-class MyImpl implements CreateTenantRepository.Interface {
+class MyImpl implements DeleteTenantRepository.Interface {
   public constructor(/* inject dependencies here */) {}
 
   public async execute(...args: any[]): Promise<any> {
@@ -155,325 +218,8 @@ class MyImpl implements CreateTenantRepository.Interface {
   }
 }
 
-export default CreateTenantRepository.createImplementation({
+export default DeleteTenantRepository.createImplementation({
   implementation: MyImpl,
-  dependencies: []
-});
-```
-
-## `TenantBeforeCreateHandler`
-
-**Event Handler Abstraction** — imported from `webiny/api/tenancy`
-
-```typescript
-import { TenantBeforeCreateHandler } from "webiny/api/tenancy";
-```
-
-**Interface `TenantBeforeCreateHandler.Interface`:**
-
-```typescript
-interface TenantBeforeCreateHandler.Interface {
-    handle(event: DomainEvent<TenantBeforeCreatePayload>): Promise<void>;
-}
-```
-
-**Types:**
-
-```typescript
-namespace TenantBeforeCreateHandler {
-  type Interface = IEventHandler<DomainEvent<TenantBeforeCreatePayload>>;
-  type Event = DomainEvent<TenantBeforeCreatePayload>;
-}
-```
-
-**Usage:**
-
-```typescript
-// extensions/MyHandler.ts
-import { TenantBeforeCreateHandler } from "webiny/api/tenancy";
-
-class MyHandler implements TenantBeforeCreateHandler.Interface {
-  public constructor(/* inject dependencies here */) {}
-
-  public async handle(event: TenantBeforeCreateHandler.Event): Promise<void> {
-    // implementation
-  }
-}
-
-export default TenantBeforeCreateHandler.createImplementation({
-  implementation: MyHandler,
-  dependencies: []
-});
-```
-
-## `TenantAfterCreateHandler`
-
-**Event Handler Abstraction** — imported from `webiny/api/tenancy`
-
-```typescript
-import { TenantAfterCreateHandler } from "webiny/api/tenancy";
-```
-
-**Interface `TenantAfterCreateHandler.Interface`:**
-
-```typescript
-interface TenantAfterCreateHandler.Interface {
-    handle(event: DomainEvent<TenantAfterCreatePayload>): Promise<void>;
-}
-```
-
-**Types:**
-
-```typescript
-namespace TenantAfterCreateHandler {
-  type Interface = IEventHandler<DomainEvent<TenantAfterCreatePayload>>;
-  type Event = DomainEvent<TenantAfterCreatePayload>;
-}
-```
-
-**Usage:**
-
-```typescript
-// extensions/MyHandler.ts
-import { TenantAfterCreateHandler } from "webiny/api/tenancy";
-
-class MyHandler implements TenantAfterCreateHandler.Interface {
-  public constructor(/* inject dependencies here */) {}
-
-  public async handle(event: TenantAfterCreateHandler.Event): Promise<void> {
-    // implementation
-  }
-}
-
-export default TenantAfterCreateHandler.createImplementation({
-  implementation: MyHandler,
-  dependencies: []
-});
-```
-
-## `GetTenantByIdUseCase`
-
-**Use Case Abstraction** — imported from `webiny/api/tenancy`
-
-```typescript
-import { GetTenantByIdUseCase } from "webiny/api/tenancy";
-```
-
-**Interface `GetTenantByIdUseCase.Interface`:**
-
-```typescript
-interface GetTenantByIdUseCase.Interface {
-    execute(id: string): Promise<Result<Tenant, GetTenantByIdError>>;
-}
-```
-
-**Types:**
-
-```typescript
-namespace GetTenantByIdUseCase {
-  type Interface = IGetTenantByIdUseCase;
-  type Error = GetTenantByIdError;
-  type Result = ReturnType<IGetTenantByIdUseCase["execute"]>;
-}
-```
-
-**Usage:**
-
-```typescript
-// extensions/MyImpl.ts
-import { GetTenantByIdUseCase } from "webiny/api/tenancy";
-
-class MyImpl implements GetTenantByIdUseCase.Interface {
-  public constructor(/* inject dependencies here */) {}
-
-  public async execute(id: string): Promise<Result<Tenant, GetTenantByIdError>> {
-    // implementation
-  }
-}
-
-export default GetTenantByIdUseCase.createImplementation({
-  implementation: MyImpl,
-  dependencies: []
-});
-```
-
-## `UpdateTenantUseCase`
-
-**Use Case Abstraction** — imported from `webiny/api/tenancy`
-
-```typescript
-import { UpdateTenantUseCase } from "webiny/api/tenancy";
-```
-
-**Interface `UpdateTenantUseCase.Interface`:**
-
-```typescript
-interface UpdateTenantUseCase.Interface {
-    execute(id: string, data: Partial<Tenant>): Promise<Result<Tenant, UpdateTenantError>>;
-}
-```
-
-**Types:**
-
-```typescript
-namespace UpdateTenantUseCase {
-  type Interface = IUpdateTenantUseCase;
-}
-```
-
-**Usage:**
-
-```typescript
-// extensions/MyImpl.ts
-import { UpdateTenantUseCase } from "webiny/api/tenancy";
-
-class MyImpl implements UpdateTenantUseCase.Interface {
-  public constructor(/* inject dependencies here */) {}
-
-  public async execute(
-    id: string,
-    data: Partial<Tenant>
-  ): Promise<Result<Tenant, UpdateTenantError>> {
-    // implementation
-  }
-}
-
-export default UpdateTenantUseCase.createImplementation({
-  implementation: MyImpl,
-  dependencies: []
-});
-```
-
-## `UpdateTenantRepository`
-
-**Use Case Abstraction** — imported from `webiny/api/tenancy`
-
-```typescript
-import { UpdateTenantRepository } from "webiny/api/tenancy";
-```
-
-**Interface `UpdateTenantRepository.Interface`:**
-
-```typescript
-interface UpdateTenantRepository.Interface {
-    update(tenant: Tenant): Promise<Tenant>;
-}
-```
-
-**Types:**
-
-```typescript
-namespace UpdateTenantRepository {
-  type Interface = IUpdateTenantRepository;
-}
-```
-
-**Usage:**
-
-```typescript
-// extensions/MyImpl.ts
-import { UpdateTenantRepository } from "webiny/api/tenancy";
-
-class MyImpl implements UpdateTenantRepository.Interface {
-  public constructor(/* inject dependencies here */) {}
-
-  public async execute(...args: any[]): Promise<any> {
-    // implementation
-  }
-}
-
-export default UpdateTenantRepository.createImplementation({
-  implementation: MyImpl,
-  dependencies: []
-});
-```
-
-## `TenantAfterUpdateHandler`
-
-**Event Handler Abstraction** — imported from `webiny/api/tenancy`
-
-```typescript
-import { TenantAfterUpdateHandler } from "webiny/api/tenancy";
-```
-
-**Interface `TenantAfterUpdateHandler.Interface`:**
-
-```typescript
-interface TenantAfterUpdateHandler.Interface {
-    handle(event: DomainEvent<TenantAfterUpdatePayload>): Promise<void>;
-}
-```
-
-**Types:**
-
-```typescript
-namespace TenantAfterUpdateHandler {
-  type Interface = IEventHandler<DomainEvent<TenantAfterUpdatePayload>>;
-  type Event = DomainEvent<TenantAfterUpdatePayload>;
-}
-```
-
-**Usage:**
-
-```typescript
-// extensions/MyHandler.ts
-import { TenantAfterUpdateHandler } from "webiny/api/tenancy";
-
-class MyHandler implements TenantAfterUpdateHandler.Interface {
-  public constructor(/* inject dependencies here */) {}
-
-  public async handle(event: TenantAfterUpdateHandler.Event): Promise<void> {
-    // implementation
-  }
-}
-
-export default TenantAfterUpdateHandler.createImplementation({
-  implementation: MyHandler,
-  dependencies: []
-});
-```
-
-## `TenantBeforeUpdateHandler`
-
-**Event Handler Abstraction** — imported from `webiny/api/tenancy`
-
-```typescript
-import { TenantBeforeUpdateHandler } from "webiny/api/tenancy";
-```
-
-**Interface `TenantBeforeUpdateHandler.Interface`:**
-
-```typescript
-interface TenantBeforeUpdateHandler.Interface {
-    handle(event: DomainEvent<TenantBeforeUpdatePayload>): Promise<void>;
-}
-```
-
-**Types:**
-
-```typescript
-namespace TenantBeforeUpdateHandler {
-  type Interface = IEventHandler<DomainEvent<TenantBeforeUpdatePayload>>;
-  type Event = DomainEvent<TenantBeforeUpdatePayload>;
-}
-```
-
-**Usage:**
-
-```typescript
-// extensions/MyHandler.ts
-import { TenantBeforeUpdateHandler } from "webiny/api/tenancy";
-
-class MyHandler implements TenantBeforeUpdateHandler.Interface {
-  public constructor(/* inject dependencies here */) {}
-
-  public async handle(event: TenantBeforeUpdateHandler.Event): Promise<void> {
-    // implementation
-  }
-}
-
-export default TenantBeforeUpdateHandler.createImplementation({
-  implementation: MyHandler,
   dependencies: []
 });
 ```
@@ -522,27 +268,29 @@ export default DeleteTenantUseCase.createImplementation({
 });
 ```
 
-## `DeleteTenantRepository`
+## `GetTenantByIdUseCase`
 
 **Use Case Abstraction** — imported from `webiny/api/tenancy`
 
 ```typescript
-import { DeleteTenantRepository } from "webiny/api/tenancy";
+import { GetTenantByIdUseCase } from "webiny/api/tenancy";
 ```
 
-**Interface `DeleteTenantRepository.Interface`:**
+**Interface `GetTenantByIdUseCase.Interface`:**
 
 ```typescript
-interface DeleteTenantRepository.Interface {
-    delete(id: string): Promise<void>;
+interface GetTenantByIdUseCase.Interface {
+    execute(id: string): Promise<Result<Tenant, GetTenantByIdError>>;
 }
 ```
 
 **Types:**
 
 ```typescript
-namespace DeleteTenantRepository {
-  type Interface = IDeleteTenantRepository;
+namespace GetTenantByIdUseCase {
+  type Interface = IGetTenantByIdUseCase;
+  type Error = GetTenantByIdError;
+  type Result = ReturnType<IGetTenantByIdUseCase["execute"]>;
 }
 ```
 
@@ -550,108 +298,18 @@ namespace DeleteTenantRepository {
 
 ```typescript
 // extensions/MyImpl.ts
-import { DeleteTenantRepository } from "webiny/api/tenancy";
+import { GetTenantByIdUseCase } from "webiny/api/tenancy";
 
-class MyImpl implements DeleteTenantRepository.Interface {
+class MyImpl implements GetTenantByIdUseCase.Interface {
   public constructor(/* inject dependencies here */) {}
 
-  public async execute(...args: any[]): Promise<any> {
+  public async execute(id: string): Promise<Result<Tenant, GetTenantByIdError>> {
     // implementation
   }
 }
 
-export default DeleteTenantRepository.createImplementation({
+export default GetTenantByIdUseCase.createImplementation({
   implementation: MyImpl,
-  dependencies: []
-});
-```
-
-## `TenantAfterDeleteHandler`
-
-**Event Handler Abstraction** — imported from `webiny/api/tenancy`
-
-```typescript
-import { TenantAfterDeleteHandler } from "webiny/api/tenancy";
-```
-
-**Interface `TenantAfterDeleteHandler.Interface`:**
-
-```typescript
-interface TenantAfterDeleteHandler.Interface {
-    handle(event: DomainEvent<TenantAfterDeletePayload>): Promise<void>;
-}
-```
-
-**Types:**
-
-```typescript
-namespace TenantAfterDeleteHandler {
-  type Interface = IEventHandler<DomainEvent<TenantAfterDeletePayload>>;
-  type Event = DomainEvent<TenantAfterDeletePayload>;
-}
-```
-
-**Usage:**
-
-```typescript
-// extensions/MyHandler.ts
-import { TenantAfterDeleteHandler } from "webiny/api/tenancy";
-
-class MyHandler implements TenantAfterDeleteHandler.Interface {
-  public constructor(/* inject dependencies here */) {}
-
-  public async handle(event: TenantAfterDeleteHandler.Event): Promise<void> {
-    // implementation
-  }
-}
-
-export default TenantAfterDeleteHandler.createImplementation({
-  implementation: MyHandler,
-  dependencies: []
-});
-```
-
-## `TenantBeforeDeleteHandler`
-
-**Event Handler Abstraction** — imported from `webiny/api/tenancy`
-
-```typescript
-import { TenantBeforeDeleteHandler } from "webiny/api/tenancy";
-```
-
-**Interface `TenantBeforeDeleteHandler.Interface`:**
-
-```typescript
-interface TenantBeforeDeleteHandler.Interface {
-    handle(event: DomainEvent<TenantBeforeDeletePayload>): Promise<void>;
-}
-```
-
-**Types:**
-
-```typescript
-namespace TenantBeforeDeleteHandler {
-  type Interface = IEventHandler<DomainEvent<TenantBeforeDeletePayload>>;
-  type Event = DomainEvent<TenantBeforeDeletePayload>;
-}
-```
-
-**Usage:**
-
-```typescript
-// extensions/MyHandler.ts
-import { TenantBeforeDeleteHandler } from "webiny/api/tenancy";
-
-class MyHandler implements TenantBeforeDeleteHandler.Interface {
-  public constructor(/* inject dependencies here */) {}
-
-  public async handle(event: TenantBeforeDeleteHandler.Event): Promise<void> {
-    // implementation
-  }
-}
-
-export default TenantBeforeDeleteHandler.createImplementation({
-  implementation: MyHandler,
   dependencies: []
 });
 ```
@@ -706,35 +364,304 @@ export default InstallTenantUseCase.createImplementation({
 });
 ```
 
-## `AppInstaller`
+## `TenantAfterCreateHandler`
 
-**Abstraction** — imported from `webiny/api/tenancy`
+**Event Handler Abstraction** — imported from `webiny/api/tenancy`
 
 ```typescript
-import { AppInstaller } from "webiny/api/tenancy";
+import { TenantAfterCreateHandler } from "webiny/api/tenancy";
 ```
 
-**Interface `AppInstaller.Interface`:**
+**Interface `TenantAfterCreateHandler.Interface`:**
 
 ```typescript
-interface AppInstaller.Interface {
-    readonly alwaysRun?: boolean;
-    readonly appName: string;
-    readonly dependsOn: string[];
-    // Perform the installation
-    // If this succeeds, uninstall() MUST be able to revert it
-    install(tenant: Tenant, data: TData): Promise<void>;
-    // Revert the installation
-    // Called if any subsequent installer fails
-    uninstall(tenant: Tenant): Promise<void>;
+interface TenantAfterCreateHandler.Interface {
+    handle(event: DomainEvent<TenantAfterCreatePayload>): Promise<void>;
 }
 ```
 
 **Types:**
 
 ```typescript
-namespace AppInstaller {
-  type Interface = IAppInstaller<T>;
+namespace TenantAfterCreateHandler {
+  type Interface = IEventHandler<DomainEvent<TenantAfterCreatePayload>>;
+  type Event = DomainEvent<TenantAfterCreatePayload>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { TenantAfterCreateHandler } from "webiny/api/tenancy";
+
+class MyHandler implements TenantAfterCreateHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: TenantAfterCreateHandler.Event): Promise<void> {
+    // implementation
+  }
+}
+
+export default TenantAfterCreateHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
+```
+
+## `TenantAfterDeleteHandler`
+
+**Event Handler Abstraction** — imported from `webiny/api/tenancy`
+
+```typescript
+import { TenantAfterDeleteHandler } from "webiny/api/tenancy";
+```
+
+**Interface `TenantAfterDeleteHandler.Interface`:**
+
+```typescript
+interface TenantAfterDeleteHandler.Interface {
+    handle(event: DomainEvent<TenantAfterDeletePayload>): Promise<void>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace TenantAfterDeleteHandler {
+  type Interface = IEventHandler<DomainEvent<TenantAfterDeletePayload>>;
+  type Event = DomainEvent<TenantAfterDeletePayload>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { TenantAfterDeleteHandler } from "webiny/api/tenancy";
+
+class MyHandler implements TenantAfterDeleteHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: TenantAfterDeleteHandler.Event): Promise<void> {
+    // implementation
+  }
+}
+
+export default TenantAfterDeleteHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
+```
+
+## `TenantAfterUpdateHandler`
+
+**Event Handler Abstraction** — imported from `webiny/api/tenancy`
+
+```typescript
+import { TenantAfterUpdateHandler } from "webiny/api/tenancy";
+```
+
+**Interface `TenantAfterUpdateHandler.Interface`:**
+
+```typescript
+interface TenantAfterUpdateHandler.Interface {
+    handle(event: DomainEvent<TenantAfterUpdatePayload>): Promise<void>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace TenantAfterUpdateHandler {
+  type Interface = IEventHandler<DomainEvent<TenantAfterUpdatePayload>>;
+  type Event = DomainEvent<TenantAfterUpdatePayload>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { TenantAfterUpdateHandler } from "webiny/api/tenancy";
+
+class MyHandler implements TenantAfterUpdateHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: TenantAfterUpdateHandler.Event): Promise<void> {
+    // implementation
+  }
+}
+
+export default TenantAfterUpdateHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
+```
+
+## `TenantBeforeCreateHandler`
+
+**Event Handler Abstraction** — imported from `webiny/api/tenancy`
+
+```typescript
+import { TenantBeforeCreateHandler } from "webiny/api/tenancy";
+```
+
+**Interface `TenantBeforeCreateHandler.Interface`:**
+
+```typescript
+interface TenantBeforeCreateHandler.Interface {
+    handle(event: DomainEvent<TenantBeforeCreatePayload>): Promise<void>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace TenantBeforeCreateHandler {
+  type Interface = IEventHandler<DomainEvent<TenantBeforeCreatePayload>>;
+  type Event = DomainEvent<TenantBeforeCreatePayload>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { TenantBeforeCreateHandler } from "webiny/api/tenancy";
+
+class MyHandler implements TenantBeforeCreateHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: TenantBeforeCreateHandler.Event): Promise<void> {
+    // implementation
+  }
+}
+
+export default TenantBeforeCreateHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
+```
+
+## `TenantBeforeDeleteHandler`
+
+**Event Handler Abstraction** — imported from `webiny/api/tenancy`
+
+```typescript
+import { TenantBeforeDeleteHandler } from "webiny/api/tenancy";
+```
+
+**Interface `TenantBeforeDeleteHandler.Interface`:**
+
+```typescript
+interface TenantBeforeDeleteHandler.Interface {
+    handle(event: DomainEvent<TenantBeforeDeletePayload>): Promise<void>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace TenantBeforeDeleteHandler {
+  type Interface = IEventHandler<DomainEvent<TenantBeforeDeletePayload>>;
+  type Event = DomainEvent<TenantBeforeDeletePayload>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { TenantBeforeDeleteHandler } from "webiny/api/tenancy";
+
+class MyHandler implements TenantBeforeDeleteHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: TenantBeforeDeleteHandler.Event): Promise<void> {
+    // implementation
+  }
+}
+
+export default TenantBeforeDeleteHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
+```
+
+## `TenantBeforeUpdateHandler`
+
+**Event Handler Abstraction** — imported from `webiny/api/tenancy`
+
+```typescript
+import { TenantBeforeUpdateHandler } from "webiny/api/tenancy";
+```
+
+**Interface `TenantBeforeUpdateHandler.Interface`:**
+
+```typescript
+interface TenantBeforeUpdateHandler.Interface {
+    handle(event: DomainEvent<TenantBeforeUpdatePayload>): Promise<void>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace TenantBeforeUpdateHandler {
+  type Interface = IEventHandler<DomainEvent<TenantBeforeUpdatePayload>>;
+  type Event = DomainEvent<TenantBeforeUpdatePayload>;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyHandler.ts
+import { TenantBeforeUpdateHandler } from "webiny/api/tenancy";
+
+class MyHandler implements TenantBeforeUpdateHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: TenantBeforeUpdateHandler.Event): Promise<void> {
+    // implementation
+  }
+}
+
+export default TenantBeforeUpdateHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
+```
+
+## `TenantContext`
+
+**Abstraction** — imported from `webiny/api/tenancy`
+
+```typescript
+import { TenantContext } from "webiny/api/tenancy";
+```
+
+**Interface `TenantContext.Interface`:**
+
+```typescript
+interface TenantContext.Interface {
+    setTenant(tenant: Tenant): void;
+    getTenant(): Tenant;
+    withRootTenant<T>(cb: () => T): Promise<T>;
+    withEachTenant<TReturn>(
+        tenants: Tenant[],
+        cb: (tenant: Tenant) => Promise<TReturn>
+    ): Promise<TReturn[]>;
+    withTenant<TReturn>(tenant: Tenant, cb: (tenant: Tenant) => Promise<TReturn>): Promise<TReturn>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace TenantContext {
+  type Interface = ITenantContext;
 }
 ```
 
@@ -742,19 +669,19 @@ namespace AppInstaller {
 
 ```typescript
 // extensions/MyImpl.ts
-import { AppInstaller } from "webiny/api/tenancy";
+import { TenantContext } from "webiny/api/tenancy";
 
 class MyImpl implements MyUseCase.Interface {
-    public constructor(private appInstaller: AppInstaller.Interface) {}
+  public constructor(private tenantContext: TenantContext.Interface) {}
 
-    public async execute(/* ... */): Promise<void> {
-        this.appInstaller.readonly alwaysRun?: boolean(/* ... */);
-    }
+  public async execute(/* ... */): Promise<void> {
+    this.tenantContext.setTenant(/* ... */);
+  }
 }
 
 export default MyUseCase.createImplementation({
-    implementation: MyImpl,
-    dependencies: [AppInstaller]
+  implementation: MyImpl,
+  dependencies: [TenantContext]
 });
 ```
 
@@ -799,6 +726,97 @@ class MyHandler implements TenantInstalledHandler.Interface {
 
 export default TenantInstalledHandler.createImplementation({
   implementation: MyHandler,
+  dependencies: []
+});
+```
+
+## `UpdateTenantRepository`
+
+**Use Case Abstraction** — imported from `webiny/api/tenancy`
+
+```typescript
+import { UpdateTenantRepository } from "webiny/api/tenancy";
+```
+
+**Interface `UpdateTenantRepository.Interface`:**
+
+```typescript
+interface UpdateTenantRepository.Interface {
+    update(tenant: Tenant): Promise<Tenant>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace UpdateTenantRepository {
+  type Interface = IUpdateTenantRepository;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { UpdateTenantRepository } from "webiny/api/tenancy";
+
+class MyImpl implements UpdateTenantRepository.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async execute(...args: any[]): Promise<any> {
+    // implementation
+  }
+}
+
+export default UpdateTenantRepository.createImplementation({
+  implementation: MyImpl,
+  dependencies: []
+});
+```
+
+## `UpdateTenantUseCase`
+
+**Use Case Abstraction** — imported from `webiny/api/tenancy`
+
+```typescript
+import { UpdateTenantUseCase } from "webiny/api/tenancy";
+```
+
+**Interface `UpdateTenantUseCase.Interface`:**
+
+```typescript
+interface UpdateTenantUseCase.Interface {
+    execute(id: string, data: Partial<Tenant>): Promise<Result<Tenant, UpdateTenantError>>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace UpdateTenantUseCase {
+  type Interface = IUpdateTenantUseCase;
+}
+```
+
+**Usage:**
+
+```typescript
+// extensions/MyImpl.ts
+import { UpdateTenantUseCase } from "webiny/api/tenancy";
+
+class MyImpl implements UpdateTenantUseCase.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async execute(
+    id: string,
+    data: Partial<Tenant>
+  ): Promise<Result<Tenant, UpdateTenantError>> {
+    // implementation
+  }
+}
+
+export default UpdateTenantUseCase.createImplementation({
+  implementation: MyImpl,
   dependencies: []
 });
 ```

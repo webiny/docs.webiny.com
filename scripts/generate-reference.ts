@@ -1141,7 +1141,21 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
     lines.push("*No exported symbols found.*");
     lines.push("");
   } else {
-    for (const sym of doc.symbols) {
+    // Sort symbols A-Z
+    const sorted = [...doc.symbols].sort((a, b) => a.name.localeCompare(b.name));
+
+    // Symbol index list
+    for (const sym of sorted) {
+      // GitHub-flavored markdown anchor: lowercase, spaces→hyphens, strip non-alphanum except hyphens
+      const anchor = sym.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      lines.push(`- [\`${sym.name}\`](#${anchor})`);
+    }
+    lines.push("");
+
+    for (const sym of sorted) {
       lines.push(renderSymbolSection(sym, `webiny/${doc.relPath}`));
     }
   }
@@ -1256,10 +1270,16 @@ function buildNavTree(entryPoints: EntryPointDoc[]): NavGroup {
     const bySubDomain = new Map<string, EntryPointDoc[]>();
     const flat: EntryPointDoc[] = [];
 
+    // Sub-domain index pages: 2-part paths where the second segment is a sub-domain
+    // e.g. "api/security" → becomes the "Overview" first child of the Security group
+    const subDomainIndex = new Map<string, EntryPointDoc>();
+
     for (const ep of eps) {
       const parts = ep.relPath.split("/"); // e.g. ["api","cms","entry"]
-      const subDomain = parts.length >= 3 ? parts[1] : null;
-      if (subDomain && SUB_DOMAINS.includes(subDomain)) {
+      if (parts.length === 2 && SUB_DOMAINS.includes(parts[1])) {
+        subDomainIndex.set(parts[1], ep);
+      } else if (parts.length >= 3 && SUB_DOMAINS.includes(parts[1])) {
+        const subDomain = parts[1];
         if (!bySubDomain.has(subDomain)) bySubDomain.set(subDomain, []);
         bySubDomain.get(subDomain)!.push(ep);
       } else {
@@ -1267,16 +1287,20 @@ function buildNavTree(entryPoints: EntryPointDoc[]): NavGroup {
       }
     }
 
-    // Add flat items first (e.g. api, api/logger, api/graphql…)
+    // Add flat items (e.g. api, api/logger, api/graphql…)
     for (const ep of flat) {
       layerGroup.pages.push({ link: `reference/${ep.relPath}`, title: ep.title });
     }
 
-    // Add sub-domain groups
+    // Add sub-domain groups — index page is "Overview" first child, then sub-pages
     for (const [subDomain, subEps] of Array.from(bySubDomain.entries())) {
       const key = `${layer}/${subDomain}`;
       const subLanding = SUBDOMAIN_LANDING[key] ?? `reference/${subEps[0].relPath}`;
       const subGroup = makeGroup(toTitle(subDomain), subLanding);
+      const indexEp = subDomainIndex.get(subDomain);
+      if (indexEp) {
+        subGroup.pages.push({ link: `reference/${indexEp.relPath}`, title: toTitle(subDomain) });
+      }
       for (const ep of subEps) {
         subGroup.pages.push({ link: `reference/${ep.relPath}`, title: ep.title });
       }
