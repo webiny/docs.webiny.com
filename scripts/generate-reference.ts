@@ -1208,18 +1208,19 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
     const groups = groupSymbols(doc.relPath, doc.symbols);
     const hasMultipleGroups = groups.length > 1;
 
-    for (const group of groups) {
-      // Sort symbols A-Z within each group
-      const sorted = [...group.symbols].sort((a, b) => a.name.localeCompare(b.name));
+    // Pre-sort symbols A-Z within each group
+    const sortedGroups = groups.map(g => ({
+      ...g,
+      symbols: [...g.symbols].sort((a, b) => a.name.localeCompare(b.name))
+    }));
 
-      // Group heading (only when there are multiple groups)
+    // --- All chip lists first, grouped by section heading ---
+    for (const group of sortedGroups) {
       if (hasMultipleGroups && group.title) {
         lines.push(`### ${group.title}`);
         lines.push("");
       }
-
-      // Symbol chip index for this group
-      const symbolsJson = sorted
+      const symbolsJson = group.symbols
         .map(sym => {
           const anchor = slugify(sym.name);
           return `{ name: "${sym.name}", anchor: "${anchor}" }`;
@@ -1227,9 +1228,16 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
         .join(", ");
       lines.push(`<SymbolList symbols={[${symbolsJson}]} />`);
       lines.push("");
+    }
 
-      const headingLevel = hasMultipleGroups ? 4 : 2;
-      for (const sym of sorted) {
+    // --- Symbol detail sections below ---
+    const headingLevel = hasMultipleGroups ? 4 : 2;
+    for (const group of sortedGroups) {
+      if (hasMultipleGroups && group.title) {
+        lines.push(`### ${group.title}`);
+        lines.push("");
+      }
+      for (const sym of group.symbols) {
         lines.push(renderSymbolSection(sym, `webiny/${doc.relPath}`, headingLevel));
       }
     }
