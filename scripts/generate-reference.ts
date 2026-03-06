@@ -1059,7 +1059,7 @@ function renderUsageSnippet(
 function renderSymbolSection(
   sym: ExtractedSymbol,
   importPath: string,
-  headingLevel: 2 | 4 = 2
+  headingLevel: 2 | 3 | 4 = 2
 ): string {
   const label = kindLabel(sym);
   const lines: string[] = [];
@@ -1214,10 +1214,10 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
       symbols: [...g.symbols].sort((a, b) => a.name.localeCompare(b.name))
     }));
 
-    // --- All chip lists first, grouped by section heading ---
+    // --- All chip lists first, bold labels (visible on page, no sidebar sub-items) ---
     for (const group of sortedGroups) {
       if (hasMultipleGroups && group.title) {
-        lines.push(`### ${group.title}`);
+        lines.push(`**${group.title}**`);
         lines.push("");
       }
       const symbolsJson = group.symbols
@@ -1231,10 +1231,11 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
     }
 
     // --- Symbol detail sections below ---
-    const headingLevel = hasMultipleGroups ? 4 : 2;
+    // Group headings are H2 (peers of ## Overview), symbol headings are H3 (multi-group) or H2 (single-group).
+    const headingLevel = hasMultipleGroups ? 3 : 2;
     for (const group of sortedGroups) {
       if (hasMultipleGroups && group.title) {
-        lines.push(`### ${group.title}`);
+        lines.push(`## ${group.title}`);
         lines.push("");
       }
       for (const sym of group.symbols) {
