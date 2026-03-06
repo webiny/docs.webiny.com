@@ -1469,6 +1469,8 @@ function renderSubSection(sec: TypeSubSection, headingLevel: number): string[] {
   const lines: string[] = [];
   const hashes = "#".repeat(headingLevel);
 
+  lines.push(`<span id="${sec.anchor}"></span>`);
+  lines.push("");
   lines.push(`${hashes} \`${sec.heading}\``);
   lines.push("");
 
