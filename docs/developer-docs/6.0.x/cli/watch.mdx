@@ -1,0 +1,83 @@
+---
+id: bv8mr1yx
+title: webiny watch
+description: Start a local development session with continuous rebuild and redeploy.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to use `webiny watch` for frontend and backend development
+- How the command behaves differently for `api` vs. `admin`
+- How Local AWS Lambda Development works
+
+</Alert>
+
+## Overview
+
+The `watch` command is the primary tool for active development on a Webiny project. It monitors your source files for changes and continuously rebuilds and redeploys your code, so you don't need to manually run `webiny deploy` after every edit.
+
+The command works differently depending on which app you are watching.
+
+## Usage
+
+```
+yarn webiny watch api
+yarn webiny watch admin
+```
+
+With a specific environment:
+
+```
+yarn webiny watch api --env prod
+```
+
+## Options
+
+| Option                | Description                                                                |
+| --------------------- | -------------------------------------------------------------------------- |
+| `--env`               | Environment name (e.g. `dev`, `prod`). Defaults to `dev`.                  |
+| `--variant`           | Variant name.                                                              |
+| `--region`            | AWS region to target.                                                      |
+| `-p, --package`       | One or more packages to watch for code changes.                            |
+| `--allow-production`  | Enables running `watch` against production environments (not recommended). |
+| `--deployment-checks` | Enable or disable deployment checks before watching. Defaults to `true`.   |
+
+### Local AWS Lambda Development Options
+
+| Option                         | Description                                                         |
+| ------------------------------ | ------------------------------------------------------------------- |
+| `-f, --function`               | One or more Lambda functions to watch (comma-separated).            |
+| `--increase-timeout`           | Increase Lambda function timeout in seconds. Defaults to `120`.     |
+| `--increase-handshake-timeout` | Increase the initial handshake timeout in seconds. Defaults to `5`. |
+| `-i, --inspect`                | [Experimental] Enable Node debugger.                                |
+
+## How It Works
+
+### Frontend App (Admin)
+
+For the **Admin** app, `watch` spins up a local development server. The app is rebuilt and hot-reloaded in the browser whenever a source file changes.
+
+### Backend App (API) — Local AWS Lambda Development
+
+For the **API** app, `watch` uses Local AWS Lambda Development. Your Lambda code runs on your local machine while staying connected to real AWS infrastructure — DynamoDB, OpenSearch, S3, Cognito, and other services your project depends on.
+
+Here's what happens when you run `yarn webiny watch api`:
+
+- **Lambda stubs are deployed** — Webiny's Lambda functions are temporarily replaced with stub code that forwards incoming events to your local machine.
+- **Requests are forwarded locally** — when a request hits AWS, the stub forwards it to your local process.
+- **Your code runs locally** — with the full Lambda execution context (environment variables, function context, etc.).
+- **Responses are routed back** — your local response travels back through the stub to the original caller.
+
+This means you can iterate on backend code and see results immediately, without waiting for a full deployment. You can also attach a debugger since the code runs locally.
+
+<Alert type="warning">
+  When you stop `watch`, your Lambda functions still contain stub code — your API will not work
+  until you redeploy. Run `yarn webiny deploy api` to restore the actual Lambda code. The watch
+  command will remind you of this when it exits.
+</Alert>
+
+### Why Not Run Everything Locally?
+
+Running AWS-managed services like DynamoDB, OpenSearch, and Cognito fully locally would be complex and unreliable. The hybrid approach — local code execution, real cloud services — gives you fast iteration with a realistic environment.

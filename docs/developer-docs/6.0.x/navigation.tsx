@@ -61,6 +61,13 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"tasks/reference"} />
         <Page link={"tasks/management"} />
       </Group>
+      <Group title={"CLI"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
+        <Page link={"cli/deploy"} />
+        <Page link={"cli/destroy"} />
+        <Page link={"cli/output"} />
+        <Page link={"cli/watch"} />
+        <Page link={"cli/pulumi"} />
+      </Group>
       <Group
         title={"Reference"}
         icon={"/docs-menu-icons/core-dev-concepts.svg"}
