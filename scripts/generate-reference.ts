@@ -1185,6 +1185,8 @@ interface ExtParamEntry {
   type: string;
   required: boolean;
   description: string;
+  /** Raw live Zod schema node — used to expand complex types in footnotes */
+  schema?: any;
 }
 
 interface ExtensionEntry {
@@ -1197,171 +1199,127 @@ interface ExtensionEntry {
   params: ExtParamEntry[];
 }
 
-/** Walk a chained zod call expression to find the base type name */
-function zodNodeType(node: Node): string {
-  let cur: Node = node;
-  while (Node.isCallExpression(cur)) {
-    const expr = cur.getExpression();
-    if (Node.isPropertyAccessExpression(expr)) {
-      const name = expr.getName();
-      if (name === "object") return "object";
-      if (name === "string") return "string";
-      if (name === "boolean") return "boolean";
-      if (name === "number") return "number";
-      if (name === "array") return "array";
-      if (name === "union") return "union";
-      if (name === "enum") return "enum";
-      if (name === "record") return "record";
-      // chained modifier — peel it off
-      cur = expr.getExpression();
-    } else {
-      break;
+// Minimal mock context for paramsSchema functions that receive ({ project }) => z.object(...)
+const EXT_MOCK_CTX = {
+  project: {
+    paths: {
+      projectFolder: { toString: () => "/project", join: (...a: string[]) => a.join("/") },
+      workspaceFolder: { toString: () => "/project", join: (...a: string[]) => a.join("/") }
+    },
+    config: {}
+  }
+};
+
+/** Resolve a live Zod schema from a paramsSchema value (direct schema or function) */
+function resolveParamsSchema(paramsSchema: unknown): unknown {
+  if (!paramsSchema) return null;
+  if (typeof paramsSchema === "function") {
+    try {
+      return (paramsSchema as Function)(EXT_MOCK_CTX);
+    } catch {
+      return null;
     }
   }
-  return "unknown";
+  return paramsSchema;
 }
 
-/** Recursively extract params from a z.object({...}) node, using dot-notation for nested objects */
-function extractZodObjectProps(objArg: Node, prefix: string): ExtParamEntry[] {
-  if (!Node.isObjectLiteralExpression(objArg)) return [];
+/** Map a live Zod type instance to a readable type string */
+function liveZodTypeName(schema: any): string {
+  const t: string = schema?._def?.typeName ?? "";
+  // Unwrap modifiers
+  if (t === "ZodOptional" || t === "ZodDefault") return liveZodTypeName(schema._def.innerType);
+  const map: Record<string, string> = {
+    ZodString: "string",
+    ZodBoolean: "boolean",
+    ZodNumber: "number",
+    ZodArray: "array",
+    ZodObject: "object",
+    ZodUnion: "union",
+    ZodEnum: "enum",
+    ZodRecord: "record",
+    ZodAny: "any",
+    // zodSrcPath returns a ZodEffects (transform/refine wrapper around ZodString)
+    ZodEffects: "string"
+  };
+  return map[t] ?? t.replace(/^Zod/, "").toLowerCase();
+}
+
+/** Unwrap ZodOptional/ZodDefault to get the inner schema */
+function unwrapZod(schema: any): any {
+  const t = schema?._def?.typeName;
+  if (t === "ZodOptional" || t === "ZodDefault") return unwrapZod(schema._def.innerType);
+  return schema;
+}
+
+/** Recursively extract params from a live ZodObject schema, dot-notating nested objects */
+function liveZodObjectParams(schema: any, prefix: string): ExtParamEntry[] {
+  if (unwrapZod(schema)?._def?.typeName !== "ZodObject") return [];
+  const obj = unwrapZod(schema);
   const results: ExtParamEntry[] = [];
-  for (const prop of objArg.getProperties()) {
-    if (!Node.isPropertyAssignment(prop)) continue;
-    const name = prefix ? `${prefix}.${prop.getName()}` : prop.getName();
-    const init = prop.getInitializer();
-    if (!init) continue;
-    const text = init.getText();
-    const descMatch = text.match(/\.describe\(["']([^"']+)["']\)/);
-    const required = !text.includes(".optional()") && !text.includes(".default(");
-    const type = Node.isCallExpression(init) ? zodNodeType(init) : "unknown";
-    results.push({ name, type, required, description: descMatch?.[1] ?? "" });
-    // Recurse into nested z.object(...)
-    if (type === "object" && Node.isCallExpression(init)) {
-      const innerArg = init.getArguments()[0];
-      if (innerArg) results.push(...extractZodObjectProps(innerArg, name));
+  for (const [key, val] of Object.entries(obj.shape as Record<string, any>)) {
+    const name = prefix ? `${prefix}.${key}` : key;
+    const type = liveZodTypeName(val);
+    const optional = val.isOptional?.() ?? false;
+    const innerDef = unwrapZod(val)?._def;
+    const description = innerDef?.description ?? "";
+    results.push({ name, type, required: !optional, description, schema: val });
+    // Recurse into nested ZodObject (so nested fields also appear in the table)
+    if (type === "object") {
+      results.push(...liveZodObjectParams(unwrapZod(val), name));
     }
   }
   return results;
 }
 
-/** Extract params from a paramsSchema node (direct z.object or arrow function returning z.object) */
-function extractExtParams(paramsNode: Node): ExtParamEntry[] {
-  if (
-    Node.isCallExpression(paramsNode) &&
-    paramsNode.getExpression().getText().endsWith(".object")
-  ) {
-    return extractZodObjectProps(paramsNode.getArguments()[0], "");
+/** Walk a live runtime namespace object, calling getDefinition() on each leaf */
+function walkRuntimeNamespace(obj: any, path: string, results: ExtensionEntry[]) {
+  if (!obj || (typeof obj !== "object" && typeof obj !== "function")) return;
+  if (typeof obj.getDefinition === "function") {
+    const def = obj.getDefinition();
+    const schema = resolveParamsSchema(def.paramsSchema);
+    const params = schema ? liveZodObjectParams(schema, "") : [];
+    results.push({
+      path,
+      extensionType: def.type ?? path,
+      description: def.description ?? "",
+      multiple: def.multiple ?? false,
+      params
+    });
+    return;
   }
-  if (Node.isArrowFunction(paramsNode)) {
-    const body = paramsNode.getBody();
-    const zodCall = Node.isCallExpression(body)
-      ? body
-      : Node.isBlock(body)
-        ? (body.getDescendantsOfKind(SyntaxKind.ReturnStatement)[0]?.getExpression() ?? null)
-        : null;
-    if (
-      zodCall &&
-      Node.isCallExpression(zodCall) &&
-      zodCall.getExpression().getText().endsWith(".object")
-    ) {
-      return extractZodObjectProps(zodCall.getArguments()[0], "");
+  // Plain object namespace — recurse
+  for (const [k, v] of Object.entries(obj)) {
+    if (v && (typeof v === "function" || typeof v === "object")) {
+      walkRuntimeNamespace(v, path ? `${path}.${k}` : k, results);
     }
   }
-  return [];
 }
 
-/** Try to extract an ExtensionEntry from a source file containing a defineExtension() call */
-function extractExtensionFromSf(sf: SourceFile, nsPath: string): ExtensionEntry | undefined {
-  const calls = sf
-    .getDescendantsOfKind(SyntaxKind.CallExpression)
-    .filter(c => c.getExpression().getText().includes("defineExtension"));
-  if (!calls.length) return undefined;
-  const arg = calls[0].getArguments()[0];
-  if (!Node.isObjectLiteralExpression(arg)) return undefined;
-  const getProp = (key: string) => {
-    const p = arg.getProperty(key);
-    return Node.isPropertyAssignment(p!) ? p.getInitializer() : undefined;
+/**
+ * Extract all defineExtension entries by dynamically importing the compiled dist files.
+ * Uses real Zod schema instances — no AST text parsing.
+ */
+async function extractExtensions(): Promise<ExtensionEntry[]> {
+  const PROJECT_DIST = `${WEBINY_MONOREPO}/project/dist`;
+  const PROJECT_AWS_DIST = `${WEBINY_MONOREPO}/project-aws/dist`;
+
+  // Import compiled dist barrels — these use fully-resolved relative imports, no alias issues
+  const [projectAws, project] = await Promise.all([
+    import(PROJECT_AWS_DIST + "/index.js"),
+    import(PROJECT_DIST + "/extensions/index.js")
+  ]);
+
+  const namespaces: Record<string, any> = {
+    Api: projectAws.Api,
+    Admin: projectAws.Admin,
+    Cli: projectAws.Cli,
+    Infra: projectAws.Infra,
+    Project: projectAws.Project
   };
-  const extensionType = getProp("type")?.getText().replace(/^"|"$/g, "") ?? nsPath;
-  const description = getProp("description")?.getText().replace(/^"|"$/g, "") ?? "";
-  const multiple = getProp("multiple")?.getText() === "true";
-  const paramsNode = getProp("paramsSchema");
-  const params = paramsNode ? extractExtParams(paramsNode) : [];
-  return { path: nsPath, extensionType, description, multiple, params };
-}
 
-/** Resolve a named import identifier to its defining source file via ts-morph symbol resolution */
-function resolveIdentToSf(sf: SourceFile, identName: string): SourceFile | undefined {
-  for (const imp of sf.getImportDeclarations()) {
-    for (const ni of imp.getNamedImports()) {
-      const localName = ni.getAliasNode()?.getText() ?? ni.getName();
-      if (localName !== identName) continue;
-      const importedSf = imp.getModuleSpecifierSourceFile();
-      if (!importedSf) continue;
-      const exportedDecls = importedSf.getExportedDeclarations().get(ni.getName());
-      if (exportedDecls?.length) return exportedDecls[0].getSourceFile();
-      return importedSf;
-    }
-  }
-  return undefined;
-}
-
-/** Walk an object literal, resolving each leaf identifier to a defineExtension source file */
-function walkExtNamespaceObject(
-  sf: SourceFile,
-  objNode: Node,
-  nsPath: string,
-  results: ExtensionEntry[]
-) {
-  if (!Node.isObjectLiteralExpression(objNode)) return;
-  for (const prop of objNode.getProperties()) {
-    if (!Node.isPropertyAssignment(prop) && !Node.isShorthandPropertyAssignment(prop)) continue;
-    const propName = prop.getName();
-    const childPath = `${nsPath}.${propName}`;
-    const valueIdent = Node.isShorthandPropertyAssignment(prop)
-      ? propName
-      : Node.isPropertyAssignment(prop) && Node.isIdentifier(prop.getInitializer()!)
-        ? prop.getInitializer()!.getText()
-        : null;
-    if (valueIdent) {
-      const resolvedSf = resolveIdentToSf(sf, valueIdent);
-      if (resolvedSf) {
-        const entry = extractExtensionFromSf(resolvedSf, childPath);
-        if (entry) results.push(entry);
-      }
-    } else if (
-      Node.isPropertyAssignment(prop) &&
-      Node.isObjectLiteralExpression(prop.getInitializer()!)
-    ) {
-      walkExtNamespaceObject(sf, prop.getInitializer()!, childPath, results);
-    }
-  }
-}
-
-/** Extract all defineExtension entries from the webiny/extensions barrel */
-function extractExtensions(project: Project): ExtensionEntry[] {
-  const barrelPath = join(WEBINY_PKG, "src/extensions.ts");
-  if (!existsSync(barrelPath)) return [];
-  const barrel = project.addSourceFileAtPath(barrelPath);
   const results: ExtensionEntry[] = [];
-
-  for (const [name, declarations] of Array.from(barrel.getExportedDeclarations().entries())) {
-    for (const decl of declarations) {
-      const sf = decl.getSourceFile();
-      // Direct defineExtension call
-      const direct = extractExtensionFromSf(sf, name);
-      if (direct) {
-        results.push(direct);
-        continue;
-      }
-      // Namespace object — walk the object literal
-      for (const varDecl of sf.getVariableDeclarations()) {
-        const init = varDecl.getInitializer();
-        if (init && Node.isObjectLiteralExpression(init)) {
-          walkExtNamespaceObject(sf, init, name, results);
-        }
-      }
-    }
+  for (const [name, val] of Object.entries(namespaces)) {
+    walkRuntimeNamespace(val, name, results);
   }
   return results;
 }
@@ -1370,6 +1328,190 @@ function extractExtensions(project: Project): ExtensionEntry[] {
 function renderParamType(p: ExtParamEntry): string {
   if (p.type === "unknown") return "string"; // zodSrcPath and similar are always strings
   return p.type;
+}
+
+/**
+ * Returns true if a Zod schema node is "complex" — i.e. needs its own sub-section
+ * rather than just a type name in the table.
+ */
+function isComplexZodType(schema: any): boolean {
+  const t: string = unwrapZod(schema)?._def?.typeName ?? "";
+  if (t === "ZodObject") return Object.keys(unwrapZod(schema).shape as object).length > 0;
+  if (t === "ZodUnion") {
+    return unwrapZod(schema)._def.options.some((o: any) => isComplexZodType(o));
+  }
+  if (t === "ZodArray") return isComplexZodType(unwrapZod(schema)._def.type);
+  if (t === "ZodTuple") return true;
+  return false;
+}
+
+/**
+ * Render a short display type for the table cell — primitive types as-is,
+ * complex types as a link to their sub-section anchor.
+ */
+function renderParamTypeCell(p: ExtParamEntry, sectionAnchor: string): string {
+  if (!p.schema || !isComplexZodType(p.schema)) {
+    return `\`${renderParamType(p)}\``;
+  }
+  // Escape pipes in type labels so they don't break markdown table rendering
+  const label = renderParamType(p).replace(/\|/g, "\\|");
+  return `[${label}](#${sectionAnchor})`;
+}
+
+interface TypeSubSection {
+  /** Anchor id for the sub-section heading */
+  anchor: string;
+  /** Display heading text */
+  heading: string;
+  /** The live Zod schema to render */
+  schema: any;
+  /** Sub-sections collected recursively from this one */
+  children: TypeSubSection[];
+}
+
+/**
+ * Collect all TypeSubSections needed for a list of top-level params.
+ * Walks recursively — objects inside unions get their own sub-sections too.
+ */
+function collectSubSections(params: ExtParamEntry[], anchorPrefix: string): TypeSubSection[] {
+  const sections: TypeSubSection[] = [];
+
+  for (const p of params) {
+    if (!p.schema || !isComplexZodType(p.schema)) continue;
+    const inner = unwrapZod(p.schema);
+    const t: string = inner?._def?.typeName ?? "";
+    const anchor = slugify(`${anchorPrefix}-${p.name}`);
+
+    if (t === "ZodObject") {
+      const childParams: ExtParamEntry[] = Object.entries(inner.shape as Record<string, any>).map(
+        ([k, v]: [string, any]) => ({
+          name: k,
+          type: liveZodTypeName(v),
+          required: !(v.isOptional?.() ?? false),
+          description: unwrapZod(v)?._def?.description ?? "",
+          schema: v
+        })
+      );
+      const children = collectSubSections(childParams, anchor);
+      sections.push({ anchor, heading: p.name, schema: inner, children });
+    } else if (t === "ZodUnion") {
+      // Each complex union member gets its own sub-section
+      const children: TypeSubSection[] = [];
+      inner._def.options.forEach((opt: any, i: number) => {
+        const optInner = unwrapZod(opt);
+        const ot: string = optInner?._def?.typeName ?? "";
+        if (ot === "ZodObject") {
+          const optAnchor = slugify(`${anchor}-option-${i + 1}`);
+          const childParams: ExtParamEntry[] = Object.entries(
+            optInner.shape as Record<string, any>
+          ).map(([k, v]: [string, any]) => ({
+            name: k,
+            type: liveZodTypeName(v),
+            required: !(v.isOptional?.() ?? false),
+            description: unwrapZod(v)?._def?.description ?? "",
+            schema: v
+          }));
+          const grandchildren = collectSubSections(childParams, optAnchor);
+          children.push({
+            anchor: optAnchor,
+            heading: `${p.name} (option ${i + 1})`,
+            schema: optInner,
+            children: grandchildren
+          });
+        }
+      });
+      sections.push({ anchor, heading: p.name, schema: inner, children });
+    } else if (t === "ZodArray") {
+      const el = unwrapZod(inner._def.type);
+      if (el?._def?.typeName === "ZodObject") {
+        const childParams: ExtParamEntry[] = Object.entries(el.shape as Record<string, any>).map(
+          ([k, v]: [string, any]) => ({
+            name: k,
+            type: liveZodTypeName(v),
+            required: !(v.isOptional?.() ?? false),
+            description: unwrapZod(v)?._def?.description ?? "",
+            schema: v
+          })
+        );
+        const children = collectSubSections(childParams, anchor);
+        sections.push({ anchor, heading: p.name, schema: el, children });
+      }
+    } else if (t === "ZodTuple") {
+      sections.push({ anchor, heading: p.name, schema: inner, children: [] });
+    }
+  }
+
+  return sections;
+}
+
+/** Render a short inline type label (for table cells and union member lists) */
+function renderZodTypeShort(schema: any): string {
+  const inner = unwrapZod(schema);
+  const t: string = inner?._def?.typeName ?? "unknown";
+  if (t === "ZodString") return "string";
+  if (t === "ZodBoolean") return "boolean";
+  if (t === "ZodNumber") return "number";
+  if (t === "ZodAny") return "any";
+  if (t === "ZodEffects") return "string";
+  if (t === "ZodEnum") return inner._def.values.map((v: string) => `"${v}"`).join(" | ");
+  if (t === "ZodArray") return `${renderZodTypeShort(inner._def.type)}[]`;
+  if (t === "ZodRecord") return `Record<string, ${renderZodTypeShort(inner._def.valueType)}>`;
+  if (t === "ZodUnion")
+    return inner._def.options.map((o: any) => renderZodTypeShort(o)).join(" | ");
+  if (t === "ZodTuple")
+    return `[${inner._def.items.map((i: any) => renderZodTypeShort(i)).join(", ")}]`;
+  if (t === "ZodObject") return "object";
+  return t.replace(/^Zod/, "").toLowerCase();
+}
+
+/** Render a TypeSubSection and all its children recursively into lines */
+function renderSubSection(sec: TypeSubSection, headingLevel: number): string[] {
+  const lines: string[] = [];
+  const hashes = "#".repeat(headingLevel);
+
+  lines.push(`${hashes} \`${sec.heading}\``);
+  lines.push("");
+
+  const inner = unwrapZod(sec.schema);
+  const t: string = inner?._def?.typeName ?? "";
+
+  if (t === "ZodObject") {
+    lines.push("| Field | Type | Required | Description |");
+    lines.push("| ----- | ---- | -------- | ----------- |");
+    for (const [key, val] of Object.entries(inner.shape as Record<string, any>)) {
+      const req = (val.isOptional?.() ?? false) ? "no" : "yes";
+      const desc = unwrapZod(val)?._def?.description ?? "—";
+      // Find a child sub-section for this field if it's complex
+      const child = sec.children.find(c => c.heading === key);
+      const typeCell = child
+        ? `[${renderZodTypeShort(val).replace(/\|/g, "\\|")}](#${child.anchor})`
+        : `\`${renderZodTypeShort(val)}\``;
+      lines.push(`| \`${key}\` | ${typeCell} | ${req} | ${desc || "—"} |`);
+    }
+    lines.push("");
+  } else if (t === "ZodUnion") {
+    // List each member with a link if it has a sub-section
+    const options: any[] = inner._def.options;
+    lines.push("Accepts one of:");
+    lines.push("");
+    options.forEach((opt: any, i: number) => {
+      const child = sec.children.find(c => c.heading === `${sec.heading} (option ${i + 1})`);
+      const label = child ? `[object](#${child.anchor})` : `\`${renderZodTypeShort(opt)}\``;
+      lines.push(`- ${label}`);
+    });
+    lines.push("");
+  } else if (t === "ZodTuple") {
+    const items: string[] = inner._def.items.map((i: any) => `\`${renderZodTypeShort(i)}\``);
+    lines.push(`A tuple: \`[${items.join(", ")}]\``);
+    lines.push("");
+  }
+
+  // Render children recursively
+  for (const child of sec.children) {
+    lines.push(...renderSubSection(child, headingLevel));
+  }
+
+  return lines;
 }
 
 /** Render the extensions.mdx page from extracted defineExtension data */
@@ -1444,37 +1586,14 @@ function renderExtensionsMdx(extensions: ExtensionEntry[], id: string): string {
       const badge = ext.multiple ? "Can be used **multiple times**." : "Can only be used **once**.";
       lines.push(badge);
       lines.push("");
-      // Params table
-      if (ext.params.length > 0) {
-        // Filter out nested sub-rows (dot-notation children of object params) for the table header
-        const topLevelParams = ext.params.filter(p => !p.name.includes("."));
-        const nestedParams = ext.params.filter(p => p.name.includes("."));
-        lines.push("**Props**");
-        lines.push("");
-        lines.push("| Prop | Type | Required | Description |");
-        lines.push("| ---- | ---- | -------- | ----------- |");
-        for (const p of topLevelParams) {
-          const req = p.required ? "yes" : "no";
-          const desc = p.description || "—";
-          lines.push(`| \`${p.name}\` | \`${renderParamType(p)}\` | ${req} | ${desc} |`);
-          // If it's an object type, show its nested props indented
-          const children = nestedParams.filter(
-            np =>
-              np.name.startsWith(`${p.name}.`) &&
-              np.name.split(".").length === p.name.split(".").length + 1
-          );
-          for (const c of children) {
-            const shortName = c.name.split(".").pop()!;
-            const req2 = c.required ? "yes" : "no";
-            const desc2 = c.description || "—";
-            lines.push(`| ↳ \`${shortName}\` | \`${renderParamType(c)}\` | ${req2} | ${desc2} |`);
-          }
-        }
-        lines.push("");
-      }
-      // Usage example
-      const usageParts = ext.params
-        .filter(p => !p.name.includes(".") && p.required)
+      // Params table + sub-sections
+      const topLevelParams = ext.params.filter(p => !p.name.includes("."));
+      const anchorPrefix = slugify(ext.path);
+      const subSections = collectSubSections(topLevelParams, anchorPrefix);
+
+      // Usage example (before props table)
+      const usageParts = topLevelParams
+        .filter(p => p.required)
         .map(p => {
           if (p.type === "unknown" || p.name === "src")
             return `${p.name}="/extensions/my-extension.ts"`;
@@ -1499,6 +1618,31 @@ function renderExtensionsMdx(extensions: ExtensionEntry[], id: string): string {
       lines.push(");");
       lines.push("```");
       lines.push("");
+
+      // Props table
+      if (topLevelParams.length > 0) {
+        lines.push("**Props**");
+        lines.push("");
+        lines.push("| Prop | Type | Required | Description |");
+        lines.push("| ---- | ---- | -------- | ----------- |");
+        for (const p of topLevelParams) {
+          const req = p.required ? "yes" : "no";
+          const desc = p.description || "—";
+          const sec = subSections.find(s => s.heading === p.name);
+          const typeCell = sec
+            ? `[${renderParamType(p)}](#${sec.anchor})`
+            : `\`${renderParamType(p)}\``;
+          lines.push(`| \`${p.name}\` | ${typeCell} | ${req} | ${desc} |`);
+        }
+        lines.push("");
+      }
+
+      // Type detail sub-sections
+      if (subSections.length > 0) {
+        for (const sec of subSections) {
+          lines.push(...renderSubSection(sec, 4));
+        }
+      }
     }
   }
 
@@ -1952,7 +2096,7 @@ async function main(): Promise<void> {
 
   // Pre-extract extensions data (used when writing the extensions page)
   console.log("\nExtracting defineExtension metadata...");
-  const extensionEntries = extractExtensions(project);
+  const extensionEntries = await extractExtensions();
   console.log(`  Found ${extensionEntries.length} extension definitions`);
 
   // Write MDX + .ai.txt files

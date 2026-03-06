@@ -19,14 +19,6 @@ import { SymbolList } from "@/components/SymbolList";
 
 The `webiny/extensions` package exports React components used inside `webiny.config.tsx` to wire extensions into your Webiny project. Each component corresponds to a `defineExtension()` call in the Webiny source and accepts typed props defined by its Zod schema.
 
-**EnvVar**
-
-<SymbolList symbols={[{ name: "EnvVar", anchor: "env-var" }]} />
-
-**FeatureFlags**
-
-<SymbolList symbols={[{ name: "FeatureFlags", anchor: "feature-flags" }]} />
-
 **Api**
 
 <SymbolList
@@ -54,9 +46,11 @@ The `webiny/extensions` package exports React components used inside `webiny.con
 <SymbolList
   symbols={[
     { name: "Infra.Vpc", anchor: "infra-vpc" },
+    { name: "Infra.BlueGreenDeployments", anchor: "infra-blue-green-deployments" },
     { name: "Infra.OpenSearch", anchor: "infra-open-search" },
     { name: "Infra.PulumiResourceNamePrefix", anchor: "infra-pulumi-resource-name-prefix" },
     { name: "Infra.ProductionEnvironments", anchor: "infra-production-environments" },
+    { name: "Infra.Aws.DefaultRegion", anchor: "infra-aws-default-region" },
     { name: "Infra.Aws.Tags", anchor: "infra-aws-tags" },
     { name: "Infra.Admin.BeforeBuild", anchor: "infra-admin-before-build" },
     { name: "Infra.Admin.BeforeDeploy", anchor: "infra-admin-before-deploy" },
@@ -95,53 +89,6 @@ The `webiny/extensions` package exports React components used inside `webiny.con
   ]}
 />
 
-## EnvVar
-
-### `EnvVar`
-
-Set an environment variable in the project context.
-
-Can be used **multiple times**.
-
-**Props**
-
-| Prop      | Type     | Required | Description                     |
-| --------- | -------- | -------- | ------------------------------- |
-| `varName` | `string` | yes      | The environment variable name.  |
-| `value`   | `string` | yes      | The environment variable value. |
-
-```tsx webiny.config.tsx
-import { EnvVar } from "webiny/extensions";
-
-export const Extensions = () => <EnvVar varName="value" value="value" />;
-```
-
-## FeatureFlags
-
-### `FeatureFlags`
-
-Enable or disable WCP features.
-
-Can only be used **once**.
-
-**Props**
-
-| Prop                           | Type      | Required | Description |
-| ------------------------------ | --------- | -------- | ----------- |
-| `features`                     | `object`  | no       | —           |
-| ↳ `multiTenancy`               | `boolean` | no       | —           |
-| ↳ `advancedPublishingWorkflow` | `boolean` | no       | —           |
-| ↳ `advancedAccessControlLayer` | `union`   | no       | —           |
-| ↳ `auditLogs`                  | `boolean` | no       | —           |
-| ↳ `recordLocking`              | `boolean` | no       | —           |
-| ↳ `fileManager`                | `object`  | no       | —           |
-
-```tsx webiny.config.tsx
-import { FeatureFlags } from "webiny/extensions";
-
-export const Extensions = () => <FeatureFlags />;
-```
-
 ## Api
 
 ### `Extension`
@@ -150,6 +97,12 @@ Add any API extension.
 
 Can be used **multiple times**.
 
+```tsx webiny.config.tsx
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => <Api.Extension src="/extensions/my-extension.ts" />;
+```
+
 **Props**
 
 | Prop         | Type     | Required | Description |
@@ -157,24 +110,11 @@ Can be used **multiple times**.
 | `src`        | `string` | yes      | —           |
 | `exportName` | `string` | no       | —           |
 
-```tsx webiny.config.tsx
-import { Api } from "webiny/extensions";
-
-export const Extensions = () => <Api.Extension src="/extensions/my-extension.ts" />;
-```
-
 ### `BuildParam`
 
 Add build-time parameter to API app.
 
 Can be used **multiple times**.
-
-**Props**
-
-| Prop        | Type     | Required | Description |
-| ----------- | -------- | -------- | ----------- |
-| `paramName` | `string` | yes      | —           |
-| `value`     | `union`  | yes      | —           |
 
 ```tsx webiny.config.tsx
 import { Api } from "webiny/extensions";
@@ -184,6 +124,13 @@ export const Extensions = () => (
 );
 ```
 
+**Props**
+
+| Prop        | Type     | Required | Description |
+| ----------- | -------- | -------- | ----------- |
+| `paramName` | `string` | yes      | —           |
+| `value`     | `union`  | yes      | —           |
+
 ## Admin
 
 ### `Extension`
@@ -192,6 +139,12 @@ Extend the Admin application with custom functionality.
 
 Can be used **multiple times**.
 
+```tsx webiny.config.tsx
+import { Admin } from "webiny/extensions";
+
+export const Extensions = () => <Admin.Extension src="/extensions/my-extension.ts" />;
+```
+
 **Props**
 
 | Prop         | Type     | Required | Description |
@@ -199,24 +152,11 @@ Can be used **multiple times**.
 | `src`        | `string` | yes      | —           |
 | `exportName` | `string` | no       | —           |
 
-```tsx webiny.config.tsx
-import { Admin } from "webiny/extensions";
-
-export const Extensions = () => <Admin.Extension src="/extensions/my-extension.ts" />;
-```
-
 ### `BuildParam`
 
 Add build-time parameter to Admin app.
 
 Can be used **multiple times**.
-
-**Props**
-
-| Prop        | Type     | Required | Description |
-| ----------- | -------- | -------- | ----------- |
-| `paramName` | `string` | yes      | —           |
-| `value`     | `union`  | yes      | —           |
 
 ```tsx webiny.config.tsx
 import { Admin } from "webiny/extensions";
@@ -226,6 +166,13 @@ export const Extensions = () => (
 );
 ```
 
+**Props**
+
+| Prop        | Type     | Required | Description |
+| ----------- | -------- | -------- | ----------- |
+| `paramName` | `string` | yes      | —           |
+| `value`     | `union`  | yes      | —           |
+
 ## Cli
 
 ### `Command`
@@ -234,17 +181,17 @@ An extension for defining CLI commands.
 
 Can be used **multiple times**.
 
-**Props**
-
-| Prop  | Type     | Required | Description |
-| ----- | -------- | -------- | ----------- |
-| `src` | `string` | yes      | —           |
-
 ```tsx webiny.config.tsx
 import { Cli } from "webiny/extensions";
 
 export const Extensions = () => <Cli.Command src="/extensions/my-extension.ts" />;
 ```
+
+**Props**
+
+| Prop  | Type     | Required | Description |
+| ----- | -------- | -------- | ----------- |
+| `src` | `string` | yes      | —           |
 
 ## Infra
 
@@ -254,19 +201,83 @@ Apply VPC settings to AWS resources during deployment.
 
 Can only be used **once**.
 
-**Props**
-
-| Prop              | Type      | Required | Description                                       |
-| ----------------- | --------- | -------- | ------------------------------------------------- |
-| `enabled`         | `boolean` | no       | Whether to enable VPC.                            |
-| `useVpcEndpoints` | `boolean` | no       | Whether to use VPC endpoints for AWS services.    |
-| `useExistingVpc`  | `object`  | no       | The security group IDs for the OpenSearch domain. |
-
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
 
 export const Extensions = () => <Infra.Vpc />;
 ```
+
+**Props**
+
+| Prop              | Type                                  | Required | Description            |
+| ----------------- | ------------------------------------- | -------- | ---------------------- |
+| `enabled`         | `boolean`                             | no       | Whether to enable VPC. |
+| `useVpcEndpoints` | `boolean`                             | no       | —                      |
+| `useExistingVpc`  | [object](#infra-vpc-use-existing-vpc) | no       | —                      |
+
+#### `useExistingVpc`
+
+| Field                       | Type                                                                | Required | Description                             |
+| --------------------------- | ------------------------------------------------------------------- | -------- | --------------------------------------- |
+| `openSearchDomainVpcConfig` | [object](#infra-vpc-use-existing-vpc-open-search-domain-vpc-config) | no       | —                                       |
+| `lambdaFunctionsVpcConfig`  | [object](#infra-vpc-use-existing-vpc-lambda-functions-vpc-config)   | yes      | VPC configuration for Lambda functions. |
+
+#### `openSearchDomainVpcConfig`
+
+| Field              | Type       | Required | Description                                       |
+| ------------------ | ---------- | -------- | ------------------------------------------------- |
+| `securityGroupIds` | `string[]` | yes      | The security group IDs for the OpenSearch domain. |
+| `subnetIds`        | `string[]` | yes      | The subnet IDs for the OpenSearch domain.         |
+
+#### `lambdaFunctionsVpcConfig`
+
+| Field              | Type       | Required | Description                                      |
+| ------------------ | ---------- | -------- | ------------------------------------------------ |
+| `securityGroupIds` | `string[]` | yes      | The security group IDs for the Lambda functions. |
+| `subnetIds`        | `string[]` | yes      | The subnet IDs for the Lambda functions.         |
+
+### `BlueGreenDeployments`
+
+Enable blue/green deployments for your Webiny project.
+
+Can only be used **once**.
+
+```tsx webiny.config.tsx
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => (
+  <Infra.BlueGreenDeployments domains={{}} deployments={...} />
+);
+```
+
+**Props**
+
+| Prop          | Type                                               | Required | Description |
+| ------------- | -------------------------------------------------- | -------- | ----------- |
+| `enabled`     | `boolean`                                          | no       | —           |
+| `domains`     | [object](#infra-blue-green-deployments-domains)    | yes      | —           |
+| `deployments` | [tuple](#infra-blue-green-deployments-deployments) | yes      | —           |
+
+#### `domains`
+
+| Field               | Type                                                    | Required | Description |
+| ------------------- | ------------------------------------------------------- | -------- | ----------- | --- |
+| `acmCertificateArn` | `string`                                                | yes      | —           |
+| `sslSupportMethod`  | `"sni-only"                                             | "vip"`   | yes         | —   |
+| `domains`           | [object](#infra-blue-green-deployments-domains-domains) | yes      | —           |
+
+#### `domains`
+
+| Field     | Type       | Required | Description |
+| --------- | ---------- | -------- | ----------- |
+| `api`     | `string[]` | yes      | —           |
+| `admin`   | `string[]` | yes      | —           |
+| `website` | `string[]` | yes      | —           |
+| `preview` | `string[]` | yes      | —           |
+
+#### `deployments`
+
+A tuple: `[`object`, `object`]`
 
 ### `OpenSearch`
 
@@ -274,32 +285,26 @@ Enable and configure Opensearch integration with project-level setup.
 
 Can only be used **once**.
 
-**Props**
-
-| Prop            | Type      | Required | Description                                     |
-| --------------- | --------- | -------- | ----------------------------------------------- |
-| `enabled`       | `boolean` | no       | Whether to enable OpenSearch.                   |
-| `domainName`    | `string`  | no       | The name of the Opensearch domain.              |
-| `indexPrefix`   | `string`  | no       | A prefix to be added to all Opensearch indexes. |
-| `sharedIndexes` | `boolean` | no       | —                                               |
-
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
 
 export const Extensions = () => <Infra.OpenSearch />;
 ```
 
-### `PulumiResourceNamePrefix`
-
-'Adjust the prefix for Pulumi resource names (default: "wby-").'
-
-Can only be used **once**.
-
 **Props**
 
-| Prop     | Type     | Required | Description |
-| -------- | -------- | -------- | ----------- |
-| `prefix` | `string` | yes      | —           |
+| Prop            | Type      | Required | Description                                                                                               |
+| --------------- | --------- | -------- | --------------------------------------------------------------------------------------------------------- |
+| `enabled`       | `boolean` | no       | Whether to enable OpenSearch.                                                                             |
+| `domainName`    | `string`  | no       | The name of the Opensearch domain.                                                                        |
+| `indexPrefix`   | `string`  | no       | A prefix to be added to all Opensearch indexes.                                                           |
+| `sharedIndexes` | `boolean` | no       | Whether to use shared indexes across all environments (true) or separate indexes per environment (false). |
+
+### `PulumiResourceNamePrefix`
+
+Adjust the prefix for Pulumi resource names (default: "wby-").
+
+Can only be used **once**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -307,17 +312,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.PulumiResourceNamePrefix prefix="value" />;
 ```
 
+**Props**
+
+| Prop     | Type     | Required | Description |
+| -------- | -------- | -------- | ----------- |
+| `prefix` | `string` | yes      | —           |
+
 ### `ProductionEnvironments`
 
 Provide names for environments that are considered production environments.
 
 Can be used **multiple times**.
-
-**Props**
-
-| Prop           | Type    | Required | Description |
-| -------------- | ------- | -------- | ----------- |
-| `environments` | `array` | yes      | —           |
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -325,17 +330,35 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.ProductionEnvironments environments={[]} />;
 ```
 
+**Props**
+
+| Prop           | Type    | Required | Description |
+| -------------- | ------- | -------- | ----------- |
+| `environments` | `array` | yes      | —           |
+
+### `Aws.DefaultRegion`
+
+Set the default AWS region for the project.
+
+Can only be used **once**.
+
+```tsx webiny.config.tsx
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => <Infra.Aws.DefaultRegion name="value" />;
+```
+
+**Props**
+
+| Prop   | Type     | Required | Description          |
+| ------ | -------- | -------- | -------------------- |
+| `name` | `string` | yes      | The AWS region name. |
+
 ### `Aws.Tags`
 
 Apply tags to AWS resources during deployment.
 
 Can be used **multiple times**.
-
-**Props**
-
-| Prop   | Type     | Required | Description |
-| ------ | -------- | -------- | ----------- |
-| `tags` | `record` | yes      | —           |
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -345,17 +368,17 @@ export const Extensions = () => (
 );
 ```
 
+**Props**
+
+| Prop   | Type     | Required | Description |
+| ------ | -------- | -------- | ----------- |
+| `tags` | `record` | yes      | —           |
+
 ### `Admin.BeforeBuild`
 
 Add custom logic to be executed before the ADMIN build process.
 
 Can be used **multiple times**.
-
-**Props**
-
-| Prop  | Type     | Required | Description |
-| ----- | -------- | -------- | ----------- |
-| `src` | `string` | yes      | —           |
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -363,17 +386,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Admin.BeforeBuild src="/extensions/my-extension.ts" />;
 ```
 
-### `Admin.BeforeDeploy`
-
-Add custom logic to be executed before the ADMIN deployment process.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Admin.BeforeDeploy`
+
+Add custom logic to be executed before the ADMIN deployment process.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -381,17 +404,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Admin.BeforeDeploy src="/extensions/my-extension.ts" />;
 ```
 
-### `Admin.BeforeWatch`
-
-Add custom logic to be executed before the Admin watch process.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Admin.BeforeWatch`
+
+Add custom logic to be executed before the Admin watch process.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -399,17 +422,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Admin.BeforeWatch src="/extensions/my-extension.ts" />;
 ```
 
-### `Admin.AfterBuild`
-
-Add custom logic to be executed after the ADMIN build process.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Admin.AfterBuild`
+
+Add custom logic to be executed after the ADMIN build process.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -417,17 +440,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Admin.AfterBuild src="/extensions/my-extension.ts" />;
 ```
 
-### `Admin.AfterDeploy`
-
-Add custom logic to be executed after the ADMIN deployment process.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Admin.AfterDeploy`
+
+Add custom logic to be executed after the ADMIN deployment process.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -435,17 +458,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Admin.AfterDeploy src="/extensions/my-extension.ts" />;
 ```
 
-### `Admin.Pulumi`
-
-Modify Admin app's cloud infrastructure using Pulumi.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Admin.Pulumi`
+
+Modify Admin app's cloud infrastructure using Pulumi.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -453,11 +476,23 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Admin.Pulumi src="/extensions/my-extension.ts" />;
 ```
 
+**Props**
+
+| Prop  | Type     | Required | Description |
+| ----- | -------- | -------- | ----------- |
+| `src` | `string` | yes      | —           |
+
 ### `Admin.CustomDomains`
 
 Configure custom domains for the Admin app.
 
 Can only be used **once**.
+
+```tsx webiny.config.tsx
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => <Infra.Admin.CustomDomains domains={[]} certificateArn="value" />;
+```
 
 **Props**
 
@@ -467,32 +502,24 @@ Can only be used **once**.
 | `sslMethod`      | `enum`   | no       | The method to use for SSL/TLS certificate validation.             |
 | `certificateArn` | `string` | yes      | The ARN of the SSL/TLS certificate to use for the custom domains. |
 
-```tsx webiny.config.tsx
-import { Infra } from "webiny/extensions";
-
-export const Extensions = () => <Infra.Admin.CustomDomains domains={[]} certificateArn="value" />;
-```
-
 ### `Admin.StackOutputValue`
 
 Add custom output values to the Admin stack.
 
 Can be used **multiple times**.
 
+```tsx webiny.config.tsx
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => <Infra.Admin.StackOutputValue key="value" />;
+```
+
 **Props**
 
 | Prop    | Type     | Required | Description                  |
 | ------- | -------- | -------- | ---------------------------- |
 | `key`   | `string` | yes      | The key for the output value |
-| `value` | `string` | yes      | The value to output          |
-
-```tsx webiny.config.tsx
-import { Infra } from "webiny/extensions";
-
-export const Extensions = () => (
-  <Infra.Admin.StackOutputValue key="value" value="/extensions/my-extension.ts" />
-);
-```
+| `value` | `any`    | no       | The value to output          |
 
 ### `Api.BeforeBuild`
 
@@ -500,17 +527,17 @@ Add custom logic to be executed before the API build process.
 
 Can be used **multiple times**.
 
-**Props**
-
-| Prop  | Type     | Required | Description |
-| ----- | -------- | -------- | ----------- |
-| `src` | `string` | yes      | —           |
-
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
 
 export const Extensions = () => <Infra.Api.BeforeBuild src="/extensions/my-extension.ts" />;
 ```
+
+**Props**
+
+| Prop  | Type     | Required | Description |
+| ----- | -------- | -------- | ----------- |
+| `src` | `string` | yes      | —           |
 
 ### `Api.BeforeDeploy`
 
@@ -518,17 +545,17 @@ Add custom logic to be executed before the API deployment process.
 
 Can be used **multiple times**.
 
-**Props**
-
-| Prop  | Type     | Required | Description |
-| ----- | -------- | -------- | ----------- |
-| `src` | `string` | yes      | —           |
-
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
 
 export const Extensions = () => <Infra.Api.BeforeDeploy src="/extensions/my-extension.ts" />;
 ```
+
+**Props**
+
+| Prop  | Type     | Required | Description |
+| ----- | -------- | -------- | ----------- |
+| `src` | `string` | yes      | —           |
 
 ### `Api.BeforeWatch`
 
@@ -536,17 +563,17 @@ Add custom logic to be executed before the API watch process.
 
 Can be used **multiple times**.
 
-**Props**
-
-| Prop  | Type     | Required | Description |
-| ----- | -------- | -------- | ----------- |
-| `src` | `string` | yes      | —           |
-
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
 
 export const Extensions = () => <Infra.Api.BeforeWatch src="/extensions/my-extension.ts" />;
 ```
+
+**Props**
+
+| Prop  | Type     | Required | Description |
+| ----- | -------- | -------- | ----------- |
+| `src` | `string` | yes      | —           |
 
 ### `Api.AfterBuild`
 
@@ -554,17 +581,17 @@ Add custom logic to be executed after the API build process.
 
 Can be used **multiple times**.
 
-**Props**
-
-| Prop  | Type     | Required | Description |
-| ----- | -------- | -------- | ----------- |
-| `src` | `string` | yes      | —           |
-
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
 
 export const Extensions = () => <Infra.Api.AfterBuild src="/extensions/my-extension.ts" />;
 ```
+
+**Props**
+
+| Prop  | Type     | Required | Description |
+| ----- | -------- | -------- | ----------- |
+| `src` | `string` | yes      | —           |
 
 ### `Api.AfterDeploy`
 
@@ -572,17 +599,17 @@ Add custom logic to be executed after the API deployment process.
 
 Can be used **multiple times**.
 
-**Props**
-
-| Prop  | Type     | Required | Description |
-| ----- | -------- | -------- | ----------- |
-| `src` | `string` | yes      | —           |
-
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
 
 export const Extensions = () => <Infra.Api.AfterDeploy src="/extensions/my-extension.ts" />;
 ```
+
+**Props**
+
+| Prop  | Type     | Required | Description |
+| ----- | -------- | -------- | ----------- |
+| `src` | `string` | yes      | —           |
 
 ### `Api.Pulumi`
 
@@ -590,17 +617,17 @@ Modify Api app's cloud infrastructure using Pulumi.
 
 Can be used **multiple times**.
 
-**Props**
-
-| Prop  | Type     | Required | Description |
-| ----- | -------- | -------- | ----------- |
-| `src` | `string` | yes      | —           |
-
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
 
 export const Extensions = () => <Infra.Api.Pulumi src="/extensions/my-extension.ts" />;
 ```
+
+**Props**
+
+| Prop  | Type     | Required | Description |
+| ----- | -------- | -------- | ----------- |
+| `src` | `string` | yes      | —           |
 
 ### `Api.StackOutputValue`
 
@@ -608,26 +635,30 @@ Add custom output values to the Api stack.
 
 Can be used **multiple times**.
 
+```tsx webiny.config.tsx
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => <Infra.Api.StackOutputValue key="value" />;
+```
+
 **Props**
 
 | Prop    | Type     | Required | Description                  |
 | ------- | -------- | -------- | ---------------------------- |
 | `key`   | `string` | yes      | The key for the output value |
-| `value` | `string` | yes      | The value to output          |
-
-```tsx webiny.config.tsx
-import { Infra } from "webiny/extensions";
-
-export const Extensions = () => (
-  <Infra.Api.StackOutputValue key="value" value="/extensions/my-extension.ts" />
-);
-```
+| `value` | `any`    | no       | The value to output          |
 
 ### `Api.LambdaFunction`
 
 Add a custom Lambda function to the API app.
 
 Can be used **multiple times**.
+
+```tsx webiny.config.tsx
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => <Infra.Api.LambdaFunction functionSrc="value" pulumiSrc="value" />;
+```
 
 **Props**
 
@@ -636,28 +667,11 @@ Can be used **multiple times**.
 | `functionSrc` | `string` | yes      | —           |
 | `pulumiSrc`   | `string` | yes      | —           |
 
-```tsx webiny.config.tsx
-import { Infra } from "webiny/extensions";
-
-export const Extensions = () => (
-  <Infra.Api.LambdaFunction
-    functionSrc="/extensions/my-extension.ts"
-    pulumiSrc="/extensions/my-extension.ts"
-  />
-);
-```
-
 ### `Core.BeforeBuild`
 
 Add custom logic to be executed before the CORE build process.
 
 Can be used **multiple times**.
-
-**Props**
-
-| Prop  | Type     | Required | Description |
-| ----- | -------- | -------- | ----------- |
-| `src` | `string` | yes      | —           |
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -665,17 +679,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Core.BeforeBuild src="/extensions/my-extension.ts" />;
 ```
 
-### `Core.BeforeDeploy`
-
-Add custom logic to be executed before the CORE deployment process.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Core.BeforeDeploy`
+
+Add custom logic to be executed before the CORE deployment process.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -683,17 +697,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Core.BeforeDeploy src="/extensions/my-extension.ts" />;
 ```
 
-### `Core.BeforeWatch`
-
-Add custom logic to be executed before the CORE watch process.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Core.BeforeWatch`
+
+Add custom logic to be executed before the CORE watch process.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -701,17 +715,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Core.BeforeWatch src="/extensions/my-extension.ts" />;
 ```
 
-### `Core.AfterBuild`
-
-Add custom logic to be executed after the CORE build process.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Core.AfterBuild`
+
+Add custom logic to be executed after the CORE build process.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -719,17 +733,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Core.AfterBuild src="/extensions/my-extension.ts" />;
 ```
 
-### `Core.AfterDeploy`
-
-Add custom logic to be executed after the CORE deployment process.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Core.AfterDeploy`
+
+Add custom logic to be executed after the CORE deployment process.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -737,17 +751,17 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Core.AfterDeploy src="/extensions/my-extension.ts" />;
 ```
 
-### `Core.Pulumi`
-
-Modify Core app's cloud infrastructure using Pulumi.
-
-Can be used **multiple times**.
-
 **Props**
 
 | Prop  | Type     | Required | Description |
 | ----- | -------- | -------- | ----------- |
 | `src` | `string` | yes      | —           |
+
+### `Core.Pulumi`
+
+Modify Core app's cloud infrastructure using Pulumi.
+
+Can be used **multiple times**.
 
 ```tsx webiny.config.tsx
 import { Infra } from "webiny/extensions";
@@ -755,26 +769,30 @@ import { Infra } from "webiny/extensions";
 export const Extensions = () => <Infra.Core.Pulumi src="/extensions/my-extension.ts" />;
 ```
 
+**Props**
+
+| Prop  | Type     | Required | Description |
+| ----- | -------- | -------- | ----------- |
+| `src` | `string` | yes      | —           |
+
 ### `Core.StackOutputValue`
 
 Add custom output values to the Core stack.
 
 Can be used **multiple times**.
 
+```tsx webiny.config.tsx
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => <Infra.Core.StackOutputValue key="value" />;
+```
+
 **Props**
 
 | Prop    | Type     | Required | Description                  |
 | ------- | -------- | -------- | ---------------------------- |
 | `key`   | `string` | yes      | The key for the output value |
-| `value` | `string` | yes      | The value to output          |
-
-```tsx webiny.config.tsx
-import { Infra } from "webiny/extensions";
-
-export const Extensions = () => (
-  <Infra.Core.StackOutputValue key="value" value="/extensions/my-extension.ts" />
-);
-```
+| `value` | `any`    | no       | The value to output          |
 
 ## Project
 
@@ -784,17 +802,17 @@ An extension for defining the project ID.
 
 Can only be used **once**.
 
-**Props**
-
-| Prop | Type     | Required | Description |
-| ---- | -------- | -------- | ----------- |
-| `id` | `string` | yes      | —           |
-
 ```tsx webiny.config.tsx
 import { Project } from "webiny/extensions";
 
 export const Extensions = () => <Project.Id id="value" />;
 ```
+
+**Props**
+
+| Prop | Type     | Required | Description |
+| ---- | -------- | -------- | ----------- |
+| `id` | `string` | yes      | —           |
 
 ### `Telemetry`
 
@@ -802,17 +820,17 @@ This extension allows you to enable or disable telemetry for the project.
 
 Can only be used **once**.
 
-**Props**
-
-| Prop      | Type      | Required | Description |
-| --------- | --------- | -------- | ----------- |
-| `enabled` | `boolean` | no       | —           |
-
 ```tsx webiny.config.tsx
 import { Project } from "webiny/extensions";
 
 export const Extensions = () => <Project.Telemetry />;
 ```
+
+**Props**
+
+| Prop      | Type      | Required | Description |
+| --------- | --------- | -------- | ----------- |
+| `enabled` | `boolean` | no       | —           |
 
 ### `AutoInstall`
 
@@ -820,17 +838,26 @@ Auto-install Webiny with admin user credentials on first deploy.
 
 Can only be used **once**.
 
-**Props**
-
-| Prop        | Type     | Required | Description           |
-| ----------- | -------- | -------- | --------------------- |
-| `adminUser` | `object` | yes      | Admin user first name |
-
 ```tsx webiny.config.tsx
 import { Project } from "webiny/extensions";
 
 export const Extensions = () => <Project.AutoInstall adminUser={{}} />;
 ```
+
+**Props**
+
+| Prop        | Type                                       | Required | Description                             |
+| ----------- | ------------------------------------------ | -------- | --------------------------------------- |
+| `adminUser` | [object](#project-auto-install-admin-user) | yes      | Admin user credentials for installation |
+
+#### `adminUser`
+
+| Field       | Type     | Required | Description                                |
+| ----------- | -------- | -------- | ------------------------------------------ |
+| `firstName` | `string` | yes      | Admin user first name                      |
+| `lastName`  | `string` | yes      | Admin user last name                       |
+| `email`     | `string` | yes      | Admin user email                           |
+| `password`  | `string` | yes      | Admin user password (minimum 8 characters) |
 
 ### `FeatureFlags`
 
@@ -838,20 +865,47 @@ Enable or disable WCP features.
 
 Can only be used **once**.
 
-**Props**
-
-| Prop                           | Type      | Required | Description |
-| ------------------------------ | --------- | -------- | ----------- |
-| `features`                     | `object`  | no       | —           |
-| ↳ `multiTenancy`               | `boolean` | no       | —           |
-| ↳ `advancedPublishingWorkflow` | `boolean` | no       | —           |
-| ↳ `advancedAccessControlLayer` | `union`   | no       | —           |
-| ↳ `auditLogs`                  | `boolean` | no       | —           |
-| ↳ `recordLocking`              | `boolean` | no       | —           |
-| ↳ `fileManager`                | `object`  | no       | —           |
-
 ```tsx webiny.config.tsx
 import { Project } from "webiny/extensions";
 
-export const Extensions = () => <Project.FeatureFlags />;
+export const Extensions = () => <Project.FeatureFlags features={{}} />;
 ```
+
+**Props**
+
+| Prop       | Type                                      | Required | Description |
+| ---------- | ----------------------------------------- | -------- | ----------- |
+| `features` | [object](#project-feature-flags-features) | yes      | —           |
+
+#### `features`
+
+| Field                        | Type                                                                               | Required | Description |
+| ---------------------------- | ---------------------------------------------------------------------------------- | -------- | ----------- |
+| `multiTenancy`               | `boolean`                                                                          | no       | —           |
+| `advancedPublishingWorkflow` | `boolean`                                                                          | no       | —           |
+| `advancedAccessControlLayer` | [boolean \| object](#project-feature-flags-features-advanced-access-control-layer) | no       | —           |
+| `auditLogs`                  | `boolean`                                                                          | no       | —           |
+| `recordLocking`              | `boolean`                                                                          | no       | —           |
+| `fileManager`                | [object](#project-feature-flags-features-file-manager)                             | no       | —           |
+
+#### `advancedAccessControlLayer`
+
+Accepts one of:
+
+- `boolean`
+- [object](#project-feature-flags-features-advanced-access-control-layer-option-2)
+
+#### `advancedAccessControlLayer (option 2)`
+
+| Field                    | Type      | Required | Description |
+| ------------------------ | --------- | -------- | ----------- |
+| `teams`                  | `boolean` | no       | —           |
+| `privateFiles`           | `boolean` | no       | —           |
+| `folderLevelPermissions` | `boolean` | no       | —           |
+| `hcmsFieldPermissions`   | `boolean` | no       | —           |
+
+#### `fileManager`
+
+| Field             | Type      | Required | Description |
+| ----------------- | --------- | -------- | ----------- |
+| `threatDetection` | `boolean` | no       | —           |
