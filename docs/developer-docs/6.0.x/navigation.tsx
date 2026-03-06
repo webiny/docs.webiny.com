@@ -67,6 +67,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"cli/output"} />
         <Page link={"cli/watch"} />
         <Page link={"cli/pulumi"} />
+        <Page link={"cli/info"} />
       </Group>
       <Group
         title={"Reference"}
