@@ -1,0 +1,294 @@
+---
+id: ywrtaw4v
+title: Security
+description: "Admin security: authentication, identity, permissions"
+---
+
+import { Alert } from "@/components/Alert";
+import { SymbolList } from "@/components/SymbolList";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What use cases are available in `webiny/admin/security`?
+- Which event handlers can you implement?
+- How to import and use each exported item?
+
+</Alert>
+
+## Overview
+
+This page documents everything exported from `webiny/admin/security`. Import any of the items below directly from this path in your Webiny extensions.
+
+**Hooks**
+
+<SymbolList
+  symbols={[
+    { name: "useAuthentication", anchor: "use-authentication" },
+    { name: "useIdentity", anchor: "use-identity" }
+  ]}
+/>
+
+**Other**
+
+<SymbolList
+  symbols={[
+    { name: "AuthenticationContext", anchor: "authentication-context" },
+    { name: "AuthenticationErrorEventHandler", anchor: "authentication-error-event-handler" },
+    { name: "IdentityContext", anchor: "identity-context" },
+    { name: "LogInUseCase", anchor: "log-in-use-case" },
+    { name: "LogOutUseCase", anchor: "log-out-use-case" }
+  ]}
+/>
+
+## Hooks
+
+### `useAuthentication`
+
+**Function** — imported from `webiny/admin/security`
+
+```typescript
+import { useAuthentication } from "webiny/admin/security";
+```
+
+```typescript
+export function useAuthentication(): IUseAuthenticationReturn;
+```
+
+### `useIdentity`
+
+**Function** — imported from `webiny/admin/security`
+
+```typescript
+import { useIdentity } from "webiny/admin/security";
+```
+
+```typescript
+export function useIdentity(): IUseIdentityReturn;
+```
+
+## Other
+
+### `AuthenticationContext`
+
+**Abstraction** — imported from `webiny/admin/security`
+
+```typescript
+import { AuthenticationContext } from "webiny/admin/security";
+```
+
+**Interface `AuthenticationContext.Interface`:**
+
+```typescript
+interface AuthenticationContext.Interface {
+    clear(): void;
+    getIdToken: IIdTokenProvider;
+    setIdTokenProvider(provider: IIdTokenProvider): void;
+    setLogoutCallback(callback: ILogoutCallback): void;
+    getLogoutCallback(): ILogoutCallback;
+}
+```
+
+**Types:**
+
+```typescript
+namespace AuthenticationContext {
+  type Interface = IAuthenticationContext;
+  type IdTokenProvider = IIdTokenProvider;
+  type LogoutCallback = ILogoutCallback;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { AuthenticationContext } from "webiny/admin/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private authenticationContext: AuthenticationContext.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    this.authenticationContext.clear(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [AuthenticationContext]
+});
+```
+
+### `AuthenticationErrorEventHandler`
+
+**Event Handler Abstraction** — imported from `webiny/admin/security`
+
+```typescript
+import { AuthenticationErrorEventHandler } from "webiny/admin/security";
+```
+
+**Interface `AuthenticationErrorEventHandler.Interface`:**
+
+```typescript
+interface AuthenticationErrorEventHandler.Interface {
+    handle(event: AuthenticationErrorEvent): Promise<void>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace AuthenticationErrorEventHandler {
+  type Interface = IEventHandler<AuthenticationErrorEvent>;
+  type Event = AuthenticationErrorEvent;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyHandler.ts
+import { AuthenticationErrorEventHandler } from "webiny/admin/security";
+
+class MyHandler implements AuthenticationErrorEventHandler.Interface {
+  public constructor(/* inject dependencies here */) {}
+
+  public async handle(event: AuthenticationErrorEventHandler.Event): Promise<void> {
+    // implementation
+  }
+}
+
+export default AuthenticationErrorEventHandler.createImplementation({
+  implementation: MyHandler,
+  dependencies: []
+});
+```
+
+### `IdentityContext`
+
+**Abstraction** — imported from `webiny/admin/security`
+
+```typescript
+import { IdentityContext } from "webiny/admin/security";
+```
+
+**Interface `IdentityContext.Interface`:**
+
+```typescript
+interface IdentityContext.Interface {
+    getIdentity(): Identity;
+    setIdentity(identity: Identity): void;
+    clear(): void;
+}
+```
+
+**Types:**
+
+```typescript
+namespace IdentityContext {
+  type Interface = IIdentityContext;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { IdentityContext } from "webiny/admin/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private identityContext: IdentityContext.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    this.identityContext.getIdentity(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [IdentityContext]
+});
+```
+
+### `LogInUseCase`
+
+**Use Case Abstraction** — imported from `webiny/admin/security`
+
+```typescript
+import { LogInUseCase } from "webiny/admin/security";
+```
+
+**Interface `LogInUseCase.Interface`:**
+
+```typescript
+interface LogInUseCase.Interface {
+    execute(params: ILoginParams): Promise<void>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace LogInUseCase {
+  type Interface = ILogInUseCase;
+  type Params = ILoginParams;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { LogInUseCase } from "webiny/admin/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private logInUseCase: LogInUseCase.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.logInUseCase.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [LogInUseCase]
+});
+```
+
+### `LogOutUseCase`
+
+**Use Case Abstraction** — imported from `webiny/admin/security`
+
+```typescript
+import { LogOutUseCase } from "webiny/admin/security";
+```
+
+**Interface `LogOutUseCase.Interface`:**
+
+```typescript
+interface LogOutUseCase.Interface {
+    execute(): Promise<void>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace LogOutUseCase {
+  type Interface = ILogOutUseCase;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { LogOutUseCase } from "webiny/admin/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private logOutUseCase: LogOutUseCase.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.logOutUseCase.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [LogOutUseCase]
+});
+```
