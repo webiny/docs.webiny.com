@@ -1176,6 +1176,335 @@ function renderSymbolSection(
   return lines.join("\n");
 }
 
+// ---------------------------------------------------------------------------
+// Extensions page — defineExtension-aware extraction + rendering
+// ---------------------------------------------------------------------------
+
+interface ExtParamEntry {
+  name: string;
+  type: string;
+  required: boolean;
+  description: string;
+}
+
+interface ExtensionEntry {
+  /** Dot-notation namespace path, e.g. "Infra.Admin.BeforeBuild" */
+  path: string;
+  /** Value of the `type` field, e.g. "Admin/BeforeBuild" */
+  extensionType: string;
+  description: string;
+  multiple: boolean;
+  params: ExtParamEntry[];
+}
+
+/** Walk a chained zod call expression to find the base type name */
+function zodNodeType(node: Node): string {
+  let cur: Node = node;
+  while (Node.isCallExpression(cur)) {
+    const expr = cur.getExpression();
+    if (Node.isPropertyAccessExpression(expr)) {
+      const name = expr.getName();
+      if (name === "object") return "object";
+      if (name === "string") return "string";
+      if (name === "boolean") return "boolean";
+      if (name === "number") return "number";
+      if (name === "array") return "array";
+      if (name === "union") return "union";
+      if (name === "enum") return "enum";
+      if (name === "record") return "record";
+      // chained modifier — peel it off
+      cur = expr.getExpression();
+    } else {
+      break;
+    }
+  }
+  return "unknown";
+}
+
+/** Recursively extract params from a z.object({...}) node, using dot-notation for nested objects */
+function extractZodObjectProps(objArg: Node, prefix: string): ExtParamEntry[] {
+  if (!Node.isObjectLiteralExpression(objArg)) return [];
+  const results: ExtParamEntry[] = [];
+  for (const prop of objArg.getProperties()) {
+    if (!Node.isPropertyAssignment(prop)) continue;
+    const name = prefix ? `${prefix}.${prop.getName()}` : prop.getName();
+    const init = prop.getInitializer();
+    if (!init) continue;
+    const text = init.getText();
+    const descMatch = text.match(/\.describe\(["']([^"']+)["']\)/);
+    const required = !text.includes(".optional()") && !text.includes(".default(");
+    const type = Node.isCallExpression(init) ? zodNodeType(init) : "unknown";
+    results.push({ name, type, required, description: descMatch?.[1] ?? "" });
+    // Recurse into nested z.object(...)
+    if (type === "object" && Node.isCallExpression(init)) {
+      const innerArg = init.getArguments()[0];
+      if (innerArg) results.push(...extractZodObjectProps(innerArg, name));
+    }
+  }
+  return results;
+}
+
+/** Extract params from a paramsSchema node (direct z.object or arrow function returning z.object) */
+function extractExtParams(paramsNode: Node): ExtParamEntry[] {
+  if (
+    Node.isCallExpression(paramsNode) &&
+    paramsNode.getExpression().getText().endsWith(".object")
+  ) {
+    return extractZodObjectProps(paramsNode.getArguments()[0], "");
+  }
+  if (Node.isArrowFunction(paramsNode)) {
+    const body = paramsNode.getBody();
+    const zodCall = Node.isCallExpression(body)
+      ? body
+      : Node.isBlock(body)
+        ? (body.getDescendantsOfKind(SyntaxKind.ReturnStatement)[0]?.getExpression() ?? null)
+        : null;
+    if (
+      zodCall &&
+      Node.isCallExpression(zodCall) &&
+      zodCall.getExpression().getText().endsWith(".object")
+    ) {
+      return extractZodObjectProps(zodCall.getArguments()[0], "");
+    }
+  }
+  return [];
+}
+
+/** Try to extract an ExtensionEntry from a source file containing a defineExtension() call */
+function extractExtensionFromSf(sf: SourceFile, nsPath: string): ExtensionEntry | undefined {
+  const calls = sf
+    .getDescendantsOfKind(SyntaxKind.CallExpression)
+    .filter(c => c.getExpression().getText().includes("defineExtension"));
+  if (!calls.length) return undefined;
+  const arg = calls[0].getArguments()[0];
+  if (!Node.isObjectLiteralExpression(arg)) return undefined;
+  const getProp = (key: string) => {
+    const p = arg.getProperty(key);
+    return Node.isPropertyAssignment(p!) ? p.getInitializer() : undefined;
+  };
+  const extensionType = getProp("type")?.getText().replace(/^"|"$/g, "") ?? nsPath;
+  const description = getProp("description")?.getText().replace(/^"|"$/g, "") ?? "";
+  const multiple = getProp("multiple")?.getText() === "true";
+  const paramsNode = getProp("paramsSchema");
+  const params = paramsNode ? extractExtParams(paramsNode) : [];
+  return { path: nsPath, extensionType, description, multiple, params };
+}
+
+/** Resolve a named import identifier to its defining source file via ts-morph symbol resolution */
+function resolveIdentToSf(sf: SourceFile, identName: string): SourceFile | undefined {
+  for (const imp of sf.getImportDeclarations()) {
+    for (const ni of imp.getNamedImports()) {
+      const localName = ni.getAliasNode()?.getText() ?? ni.getName();
+      if (localName !== identName) continue;
+      const importedSf = imp.getModuleSpecifierSourceFile();
+      if (!importedSf) continue;
+      const exportedDecls = importedSf.getExportedDeclarations().get(ni.getName());
+      if (exportedDecls?.length) return exportedDecls[0].getSourceFile();
+      return importedSf;
+    }
+  }
+  return undefined;
+}
+
+/** Walk an object literal, resolving each leaf identifier to a defineExtension source file */
+function walkExtNamespaceObject(
+  sf: SourceFile,
+  objNode: Node,
+  nsPath: string,
+  results: ExtensionEntry[]
+) {
+  if (!Node.isObjectLiteralExpression(objNode)) return;
+  for (const prop of objNode.getProperties()) {
+    if (!Node.isPropertyAssignment(prop) && !Node.isShorthandPropertyAssignment(prop)) continue;
+    const propName = prop.getName();
+    const childPath = `${nsPath}.${propName}`;
+    const valueIdent = Node.isShorthandPropertyAssignment(prop)
+      ? propName
+      : Node.isPropertyAssignment(prop) && Node.isIdentifier(prop.getInitializer()!)
+        ? prop.getInitializer()!.getText()
+        : null;
+    if (valueIdent) {
+      const resolvedSf = resolveIdentToSf(sf, valueIdent);
+      if (resolvedSf) {
+        const entry = extractExtensionFromSf(resolvedSf, childPath);
+        if (entry) results.push(entry);
+      }
+    } else if (
+      Node.isPropertyAssignment(prop) &&
+      Node.isObjectLiteralExpression(prop.getInitializer()!)
+    ) {
+      walkExtNamespaceObject(sf, prop.getInitializer()!, childPath, results);
+    }
+  }
+}
+
+/** Extract all defineExtension entries from the webiny/extensions barrel */
+function extractExtensions(project: Project): ExtensionEntry[] {
+  const barrelPath = join(WEBINY_PKG, "src/extensions.ts");
+  if (!existsSync(barrelPath)) return [];
+  const barrel = project.addSourceFileAtPath(barrelPath);
+  const results: ExtensionEntry[] = [];
+
+  for (const [name, declarations] of Array.from(barrel.getExportedDeclarations().entries())) {
+    for (const decl of declarations) {
+      const sf = decl.getSourceFile();
+      // Direct defineExtension call
+      const direct = extractExtensionFromSf(sf, name);
+      if (direct) {
+        results.push(direct);
+        continue;
+      }
+      // Namespace object — walk the object literal
+      for (const varDecl of sf.getVariableDeclarations()) {
+        const init = varDecl.getInitializer();
+        if (init && Node.isObjectLiteralExpression(init)) {
+          walkExtNamespaceObject(sf, init, name, results);
+        }
+      }
+    }
+  }
+  return results;
+}
+
+/** Render the param type as a readable string */
+function renderParamType(p: ExtParamEntry): string {
+  if (p.type === "unknown") return "string"; // zodSrcPath and similar are always strings
+  return p.type;
+}
+
+/** Render the extensions.mdx page from extracted defineExtension data */
+function renderExtensionsMdx(extensions: ExtensionEntry[], id: string): string {
+  const lines: string[] = [];
+
+  lines.push("---");
+  lines.push(`id: ${id}`);
+  lines.push("title: Extensions");
+  lines.push(
+    `description: "Reference for all webiny/extensions exports — React components used in webiny.config.tsx to wire extensions into the project."`
+  );
+  lines.push("---");
+  lines.push("");
+  lines.push(`import {Alert} from "@/components/Alert";`);
+  lines.push(`import {SymbolList} from "@/components/SymbolList";`);
+  lines.push("");
+  lines.push(`<Alert type="success" title="WHAT YOU'LL LEARN">`);
+  lines.push("");
+  lines.push("- What extension components are available in `webiny/extensions`?");
+  lines.push("- What parameters does each extension accept?");
+  lines.push("- How to use each extension in your `webiny.config.tsx`?");
+  lines.push("");
+  lines.push("</Alert>");
+  lines.push("");
+  lines.push("## Overview");
+  lines.push("");
+  lines.push(
+    "The `webiny/extensions` package exports React components used inside `webiny.config.tsx` " +
+      "to wire extensions into your Webiny project. Each component corresponds to a `defineExtension()` " +
+      "call in the Webiny source and accepts typed props defined by its Zod schema."
+  );
+  lines.push("");
+
+  // Group by top-level namespace (first segment of path)
+  const groups = new Map<string, ExtensionEntry[]>();
+  for (const ext of extensions) {
+    const top = ext.path.split(".")[0];
+    if (!groups.has(top)) groups.set(top, []);
+    groups.get(top)!.push(ext);
+  }
+
+  // Chip lists grouped by namespace
+  for (const [groupName, exts] of Array.from(groups.entries())) {
+    if (groups.size > 1) {
+      lines.push(`**${groupName}**`);
+      lines.push("");
+    }
+    const chips = exts.map(e => `{ name: "${e.path}", anchor: "${slugify(e.path)}" }`).join(", ");
+    lines.push(`<SymbolList symbols={[${chips}]} />`);
+    lines.push("");
+  }
+
+  // Detail sections per namespace group
+  for (const [groupName, exts] of Array.from(groups.entries())) {
+    if (groups.size > 1) {
+      lines.push(`## ${groupName}`);
+      lines.push("");
+    }
+    for (const ext of exts) {
+      // Heading: last two segments of path for nested (e.g. "Infra.Admin.BeforeBuild" → "### `Admin.BeforeBuild`")
+      // Top-level (e.g. "EnvVar") → "### `EnvVar`"
+      const parts = ext.path.split(".");
+      const headingName = parts.length > 2 ? parts.slice(1).join(".") : parts[parts.length - 1];
+      lines.push(`### \`${headingName}\``);
+      lines.push("");
+      if (ext.description) {
+        lines.push(ext.description);
+        lines.push("");
+      }
+      // Badges
+      const badge = ext.multiple ? "Can be used **multiple times**." : "Can only be used **once**.";
+      lines.push(badge);
+      lines.push("");
+      // Params table
+      if (ext.params.length > 0) {
+        // Filter out nested sub-rows (dot-notation children of object params) for the table header
+        const topLevelParams = ext.params.filter(p => !p.name.includes("."));
+        const nestedParams = ext.params.filter(p => p.name.includes("."));
+        lines.push("**Props**");
+        lines.push("");
+        lines.push("| Prop | Type | Required | Description |");
+        lines.push("| ---- | ---- | -------- | ----------- |");
+        for (const p of topLevelParams) {
+          const req = p.required ? "yes" : "no";
+          const desc = p.description || "—";
+          lines.push(`| \`${p.name}\` | \`${renderParamType(p)}\` | ${req} | ${desc} |`);
+          // If it's an object type, show its nested props indented
+          const children = nestedParams.filter(
+            np =>
+              np.name.startsWith(`${p.name}.`) &&
+              np.name.split(".").length === p.name.split(".").length + 1
+          );
+          for (const c of children) {
+            const shortName = c.name.split(".").pop()!;
+            const req2 = c.required ? "yes" : "no";
+            const desc2 = c.description || "—";
+            lines.push(`| ↳ \`${shortName}\` | \`${renderParamType(c)}\` | ${req2} | ${desc2} |`);
+          }
+        }
+        lines.push("");
+      }
+      // Usage example
+      const usageParts = ext.params
+        .filter(p => !p.name.includes(".") && p.required)
+        .map(p => {
+          if (p.type === "unknown" || p.name === "src")
+            return `${p.name}="/extensions/my-extension.ts"`;
+          if (p.type === "string") return `${p.name}="value"`;
+          if (p.type === "boolean") return `${p.name}={true}`;
+          if (p.type === "array") return `${p.name}={[]}`;
+          if (p.type === "object") return `${p.name}={{}}`;
+          return `${p.name}={...}`;
+        });
+      const selfClosing = usageParts.length <= 2;
+      lines.push("```tsx webiny.config.tsx");
+      lines.push(`import { ${ext.path.split(".")[0]} } from "webiny/extensions";`);
+      lines.push("");
+      lines.push("export const Extensions = () => (");
+      if (selfClosing) {
+        lines.push(`  <${ext.path}${usageParts.length ? " " + usageParts.join(" ") : ""} />`);
+      } else {
+        lines.push(`  <${ext.path}`);
+        for (const p of usageParts) lines.push(`    ${p}`);
+        lines.push(`  />`);
+      }
+      lines.push(");");
+      lines.push("```");
+      lines.push("");
+    }
+  }
+
+  return lines.join("\n");
+}
+
 function renderMdx(doc: EntryPointDoc, id: string): string {
   const lines: string[] = [];
 
@@ -1621,6 +1950,11 @@ async function main(): Promise<void> {
     console.log(` ${symbols.length} symbols`);
   }
 
+  // Pre-extract extensions data (used when writing the extensions page)
+  console.log("\nExtracting defineExtension metadata...");
+  const extensionEntries = extractExtensions(project);
+  console.log(`  Found ${extensionEntries.length} extension definitions`);
+
   // Write MDX + .ai.txt files
   console.log("\nWriting documentation files...");
 
@@ -1640,7 +1974,9 @@ async function main(): Promise<void> {
       .toLowerCase()
       .padEnd(8, "0");
 
-    const mdxContent = renderMdx(doc, id);
+    // Extensions page gets its own dedicated renderer
+    const mdxContent =
+      doc.relPath === "extensions" ? renderExtensionsMdx(extensionEntries, id) : renderMdx(doc, id);
     const aiTxtContent = renderAiTxt(doc);
 
     writeFileSync(mdxPath, mdxContent, "utf-8");
