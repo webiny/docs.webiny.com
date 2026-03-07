@@ -1,0 +1,254 @@
+---
+id: ld8v3lpm
+title: Local Development
+description: How to develop Webiny applications locally with watch commands.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+  - How local development works in Webiny - Using watch commands for Admin and API - Understanding
+  Local AWS Lambda Development
+</Alert>
+
+## Overview
+
+Webiny provides a streamlined local development experience through watch commands. You can develop both Admin UI and API extensions locally while connected to your deployed AWS infrastructure. This hybrid approach gives you fast iteration with a realistic environment.
+
+## Prerequisites
+
+Before starting local development:
+
+1. Deploy Core and API applications:
+
+```bash
+yarn webiny deploy core api
+```
+
+2. Verify deployment succeeded:
+
+```bash
+yarn webiny info
+```
+
+The Admin application deployment is optional unless you need to share URLs or test in production conditions.
+
+## Admin Development
+
+### Starting the Dev Server
+
+```bash
+yarn webiny watch admin
+```
+
+This command:
+
+- Starts development server on `http://localhost:3001`
+- Enables hot module replacement
+- Watches for changes in Admin extensions
+- Provides instant feedback on changes
+
+### What You Can Develop
+
+- **UI Extensions** - Custom React components and pages
+- **Themes** - Branding and styling customizations
+- **Navigation** - Custom menu items and structure
+- **Integrations** - Third-party service connections
+
+### Development Workflow
+
+1. Start watch command
+2. Make changes to files in `extensions/admin/`
+3. See changes instantly in browser
+4. No deployment needed during development
+
+## API Development
+
+### Local AWS Lambda Development
+
+API development uses a unique approach that runs Lambda code locally while connected to cloud services:
+
+```bash
+yarn webiny watch api
+```
+
+### How It Works
+
+1. **Lambda Stubs Deployed** - Cloud Lambda functions replaced with forwarding stubs
+2. **Event Forwarding** - AWS requests forwarded to your local machine
+3. **Local Execution** - Code runs locally with full Lambda context
+4. **Response Routing** - Results sent back through Lambda stub
+
+### What You Can Develop
+
+- **GraphQL Schemas** - Custom types and fields
+- **Resolvers** - Business logic and data fetching
+- **Event Handlers** - Lifecycle hooks and reactions
+- **Custom Endpoints** - REST APIs or webhooks
+- **Background Tasks** - Async processing logic
+
+### Important Considerations
+
+<Alert type="warning" title="Redeploy After Watch">
+When you stop the watch command, Lambda functions still contain stub code. You must redeploy to restore actual Lambda code:
+
+```bash
+yarn webiny deploy api
+```
+
+The watch command will remind you when you stop it.
+
+</Alert>
+
+## Infrastructure Development
+
+Infrastructure changes require deployment and cannot be tested with watch commands:
+
+```tsx webiny.config.tsx
+// Infrastructure extensions
+<Infra.Core.Pulumi src={"/extensions/infrastructure/core.ts"} />
+<Infra.Api.Pulumi src={"/extensions/infrastructure/api.ts"} />
+<Infra.Admin.Pulumi src={"/extensions/infrastructure/admin.ts"} />
+```
+
+To apply infrastructure changes:
+
+```bash
+yarn webiny deploy <app>  # core, api, or admin
+```
+
+## Environment Variables
+
+### Application-Specific Variables
+
+Use prefixes to target specific applications:
+
+```bash .env
+# Admin-only variables
+WEBINY_ADMIN_CUSTOM_API_URL=https://api.example.com
+WEBINY_ADMIN_FEATURE_FLAG=enabled
+
+# API-only variables
+WEBINY_API_EXTERNAL_SERVICE_KEY=secret_key_123
+WEBINY_API_DATABASE_URL=postgresql://...
+```
+
+**Prefixes:**
+
+- `WEBINY_ADMIN_` - Available only in Admin app
+- `WEBINY_API_` - Available only in API app
+
+### Best Practices
+
+- `.env` files are optional for most development
+- Don't commit `.env` to version control
+- Create `.env.example` for team reference
+- Document required variables
+
+## Development Workflow
+
+### Initial Setup
+
+For new team members:
+
+```bash
+# Clone repository
+git clone <repository-url>
+cd <project-name>
+
+# Install dependencies
+yarn
+
+# Deploy core infrastructure
+yarn webiny deploy core api
+
+# Start developing!
+yarn webiny watch admin
+# or
+yarn webiny watch api
+```
+
+### Daily Development
+
+1. **Start watch command** for the app you're working on
+2. **Make changes** in `extensions/` folder
+3. **Test locally** with immediate feedback
+4. **Deploy when ready** to share or update infrastructure
+
+### Concurrent Development
+
+Run multiple watch commands in separate terminals:
+
+```bash
+# Terminal 1
+yarn webiny watch admin
+
+# Terminal 2
+yarn webiny watch api
+```
+
+## TypeScript and Build Validation
+
+Webiny enforces TypeScript checking:
+
+- **IDE Support** - Real-time type errors
+- **Build Validation** - Compilation fails on type errors
+- **Deployment Safety** - Errors caught before production
+
+## Performance Tips
+
+### Admin Development
+
+- Use React Developer Tools for profiling
+- Leverage hot module replacement
+- Keep browser console open for errors
+
+### API Development
+
+- Monitor Lambda execution time locally
+- Use console.log for debugging (appears in terminal)
+- Test with realistic data volumes
+
+### Watch Command Performance
+
+- Initial startup may take 30-60 seconds
+- Subsequent changes reflect in 2-5 seconds
+- Kill and restart if watch becomes unresponsive
+
+## Troubleshooting
+
+### Common Issues
+
+**Watch command not detecting changes:**
+
+- Check file paths in extensions folder
+- Ensure proper file extensions (.ts, .tsx)
+- Restart watch command
+
+**Lambda stub errors:**
+
+- Verify API was deployed before watch
+- Check AWS credentials are valid
+- Ensure no network/firewall issues
+
+**Type errors in IDE but not build:**
+
+- Run `yarn` to update dependencies
+- Restart TypeScript service in IDE
+- Check tsconfig.json includes your files
+
+### Debug Mode
+
+Enable verbose logging:
+
+```bash
+DEBUG=webiny* yarn webiny watch api
+```
+
+## Next Steps
+
+With local development running:
+
+- Learn about [Environment Variables](/docs/developer-docs/6.0.x/development/environment-variables) in detail
+- Explore [Debugging](/docs/developer-docs/6.0.x/development/debugging) techniques
+- Understand the [Webiny SDK](/docs/developer-docs/6.0.x/development/webiny-sdk)

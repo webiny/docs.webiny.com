@@ -11,10 +11,22 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"get-started/welcome"} />
         <Page link={"get-started/install-webiny"} />
+        <Page link={"get-started/quick-start"} />
+        <Page link={"get-started/upgrade"} />
       </Group>
-      <Group title={"Basic"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"basic/result"}>
-        <Page link={"basic/result"} />
-        <Page link={"basic/di"} />
+      <Group
+        title={"Core Concepts"}
+        icon={"/docs-menu-icons/webiny-overview.svg"}
+        link={"core-concepts/architecture"}
+      >
+        <Page link={"core-concepts/architecture"} />
+        <Page link={"core-concepts/applications"} />
+        <Page link={"core-concepts/project-structure"} />
+        <Page link={"core-concepts/di"} />
+        <Page link={"core-concepts/result"} />
+        <Page link={"core-concepts/multi-tenancy"} />
+        <Page link={"core-concepts/local-development"} />
+        <Page link={"core-concepts/environment-variables"} />
       </Group>
       <Group
         title={"Headless CMS"}

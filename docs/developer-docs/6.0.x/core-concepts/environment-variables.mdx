@@ -1,0 +1,277 @@
+---
+id: ev9n8var
+title: Environment Variables
+description: Managing environment variables in Webiny projects.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+  - How to use environment variables in Webiny - Application-specific variable prefixes - Best
+  practices for sensitive data
+</Alert>
+
+## Overview
+
+Environment variables in Webiny are optional for most scenarios. When needed, they follow a prefix-based system that ensures variables are only available to the appropriate application. This prevents accidental exposure of sensitive data between applications.
+
+## Application Prefixes
+
+Webiny uses prefixes to route variables to specific applications:
+
+- **`WEBINY_ADMIN_`** - Variables for the Admin application
+- **`WEBINY_API_`** - Variables for the API application
+- **No prefix** - Available to all applications (use sparingly)
+
+## Usage
+
+### Setting Variables
+
+Create a `.env` file in your project root:
+
+```bash .env
+# Admin application variables
+WEBINY_ADMIN_ANALYTICS_ID=UA-123456789
+WEBINY_ADMIN_CUSTOM_API_URL=https://api.example.com
+WEBINY_ADMIN_FEATURE_FLAGS=dark-mode,beta-features
+
+# API application variables
+WEBINY_API_SMTP_HOST=smtp.sendgrid.net
+WEBINY_API_SMTP_USER=apikey
+WEBINY_API_SMTP_PASS=SG.xxxxx
+WEBINY_API_EXTERNAL_SERVICE_KEY=sk_live_xxxxx
+
+# Shared variables (available everywhere - use carefully)
+LOG_LEVEL=debug
+```
+
+### Accessing Variables
+
+In your extensions, access variables through `process.env`:
+
+```typescript extensions/api/email.ts
+// API extension - only WEBINY_API_ variables available
+const smtpConfig = {
+  host: process.env.WEBINY_API_SMTP_HOST,
+  user: process.env.WEBINY_API_SMTP_USER,
+  pass: process.env.WEBINY_API_SMTP_PASS
+};
+
+// This would be undefined in API:
+console.log(process.env.WEBINY_ADMIN_ANALYTICS_ID); // undefined
+```
+
+```tsx extensions/admin/analytics.tsx
+// Admin extension - only WEBINY_ADMIN_ variables available
+const analyticsId = process.env.WEBINY_ADMIN_ANALYTICS_ID;
+
+// This would be undefined in Admin:
+console.log(process.env.WEBINY_API_SMTP_HOST); // undefined
+```
+
+## TypeScript Support
+
+Add type definitions for your environment variables:
+
+```typescript webiny-env.d.ts
+declare namespace NodeJS {
+  interface ProcessEnv {
+    // Admin variables
+    WEBINY_ADMIN_ANALYTICS_ID?: string;
+    WEBINY_ADMIN_CUSTOM_API_URL?: string;
+    WEBINY_ADMIN_FEATURE_FLAGS?: string;
+
+    // API variables
+    WEBINY_API_SMTP_HOST?: string;
+    WEBINY_API_SMTP_USER?: string;
+    WEBINY_API_SMTP_PASS?: string;
+    WEBINY_API_EXTERNAL_SERVICE_KEY?: string;
+
+    // Shared
+    LOG_LEVEL?: "debug" | "info" | "warn" | "error";
+  }
+}
+```
+
+## Environment-Specific Variables
+
+### Local Development
+
+Variables in `.env` are loaded during:
+
+- `yarn webiny watch admin`
+- `yarn webiny watch api`
+- `yarn webiny deploy`
+
+### Deployed Environments
+
+For deployed environments, set variables before deployment:
+
+```bash
+# Set variables for specific environment
+export WEBINY_API_SMTP_HOST=smtp.production.com
+export WEBINY_API_SMTP_USER=prod-user
+
+# Deploy with variables
+yarn webiny deploy api --env=prod
+```
+
+### CI/CD Integration
+
+In CI/CD pipelines, set environment variables:
+
+```yaml .github/workflows/deploy.yml
+env:
+  WEBINY_API_EXTERNAL_SERVICE_KEY: ${{ secrets.SERVICE_KEY }}
+  WEBINY_ADMIN_ANALYTICS_ID: ${{ secrets.ANALYTICS_ID }}
+```
+
+## Best Practices
+
+### Security
+
+1. **Never commit `.env`** - Add to `.gitignore`
+2. **Use prefixes** - Isolate sensitive data by application
+3. **Rotate secrets** - Change production secrets regularly
+4. **Minimal exposure** - Only set variables that are needed
+
+### Documentation
+
+Create `.env.example` for team reference:
+
+```bash .env.example
+# Analytics Configuration (required)
+WEBINY_ADMIN_ANALYTICS_ID=
+
+# Email Service (optional)
+WEBINY_API_SMTP_HOST=
+WEBINY_API_SMTP_USER=
+WEBINY_API_SMTP_PASS=
+
+# External API (required for payments)
+WEBINY_API_EXTERNAL_SERVICE_KEY=
+```
+
+### Variable Naming
+
+Follow consistent naming conventions:
+
+```bash
+# Good - clear, prefixed, uppercase
+WEBINY_API_STRIPE_SECRET_KEY=sk_live_xxx
+WEBINY_ADMIN_GOOGLE_MAPS_API_KEY=xxx
+
+# Bad - unclear, no prefix, mixed case
+stripeKey=sk_live_xxx
+Google_Maps_Key=xxx
+```
+
+## Common Use Cases
+
+### Third-Party Services
+
+```bash .env
+# Payment processing
+WEBINY_API_STRIPE_SECRET_KEY=sk_live_xxx
+WEBINY_API_STRIPE_WEBHOOK_SECRET=whsec_xxx
+
+# Email delivery
+WEBINY_API_SENDGRID_API_KEY=SG.xxx
+WEBINY_API_EMAIL_FROM=noreply@example.com
+
+# Analytics and monitoring
+WEBINY_ADMIN_GA_TRACKING_ID=G-XXXXXXXXXX
+WEBINY_ADMIN_SENTRY_DSN=https://xxx@sentry.io/xxx
+```
+
+### Feature Flags
+
+```bash .env
+# Enable/disable features
+WEBINY_ADMIN_FEATURE_DARK_MODE=true
+WEBINY_ADMIN_FEATURE_BETA_UI=false
+WEBINY_API_FEATURE_RATE_LIMITING=true
+```
+
+### API Configuration
+
+```bash .env
+# External API endpoints
+WEBINY_API_WEATHER_API_URL=https://api.weather.com
+WEBINY_API_WEATHER_API_KEY=xxx
+
+# Database connections (if using external DBs)
+WEBINY_API_REDIS_URL=redis://localhost:6379
+```
+
+## Debugging
+
+### Verify Variables
+
+Check loaded variables during development:
+
+```typescript
+// In your extension
+console.log("Available env vars:", {
+  admin: Object.keys(process.env).filter(key => key.startsWith("WEBINY_ADMIN_")),
+  api: Object.keys(process.env).filter(key => key.startsWith("WEBINY_API_"))
+});
+```
+
+### Common Issues
+
+**Variable not available:**
+
+- Check prefix matches application (ADMIN vs API)
+- Ensure `.env` file is in project root
+- Restart watch command after changing `.env`
+- Verify no typos in variable names
+
+**Variables in wrong application:**
+
+- Admin extensions can't access `WEBINY_API_` variables
+- API extensions can't access `WEBINY_ADMIN_` variables
+- Use correct prefix for the target application
+
+## Infrastructure Variables
+
+For infrastructure extensions, access variables directly:
+
+```typescript extensions/infrastructure/api.ts
+import { ApiPulumiApp } from "@webiny/pulumi";
+
+export const pulumiApp = (app: ApiPulumiApp) => {
+  // Infrastructure can access all variables
+  const smtpHost = process.env.WEBINY_API_SMTP_HOST;
+
+  // Use in resource configuration
+  app.addResource({
+    type: "aws:secretsmanager:Secret",
+    name: "smtp-config",
+    config: {
+      secretString: JSON.stringify({
+        host: smtpHost,
+        user: process.env.WEBINY_API_SMTP_USER
+      })
+    }
+  });
+};
+```
+
+## Migration from v5
+
+If upgrading from Webiny v5:
+
+1. Add prefixes to existing variables
+2. Update code to use prefixed names
+3. Test thoroughly in development
+
+```bash
+# v5 (old)
+REACT_APP_ANALYTICS_ID=UA-123
+SMTP_HOST=smtp.example.com
+
+# v6 (new)
+WEBINY_ADMIN_ANALYTICS_ID=UA-123
+WEBINY_API_SMTP_HOST=smtp.example.com
+```
