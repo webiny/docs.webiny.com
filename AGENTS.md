@@ -33,7 +33,7 @@
 ```
 docs/developer-docs/6.0.x/
 ├── core-concepts/      # Foundational knowledge: architecture, applications, project structure, DI, Result pattern, multi-tenancy, local dev, env vars
-├── get-started/        # Welcome, installation, quick start, upgrade guide
+├── get-started/        # Welcome, installation, upgrade to Business
 ├── cli/                # CLI commands reference
 ├── graphql/            # GraphQL schema building with factory pattern
 ├── headless-cms/       # Largest section — all CMS extensibility
