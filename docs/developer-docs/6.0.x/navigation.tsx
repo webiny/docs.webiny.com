@@ -16,16 +16,20 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group
         title={"Core Concepts"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
-        link={"core-concepts/architecture"}
+        link={"core-concepts/project-structure"}
       >
-        <Page link={"core-concepts/architecture"} />
-        <Page link={"core-concepts/applications"} />
+        <Page hidden link={"core-concepts/architecture"} />
+        <Page hidden link={"core-concepts/applications"} />
         <Page link={"core-concepts/project-structure"} />
-        <Page link={"core-concepts/di"} />
-        <Page link={"core-concepts/result"} />
-        <Page link={"core-concepts/multi-tenancy"} />
+        <Page link={"core-concepts/extensions"} />
+        <Page hidden link={"core-concepts/di"} />
+        <Page hidden link={"core-concepts/result"} />
+        <Page hidden link={"core-concepts/multi-tenancy"} />
         <Page link={"core-concepts/local-development"} />
         <Page link={"core-concepts/environment-variables"} />
+        <Page link={"core-concepts/webiny-sdk"} />
+        <Page link={"core-concepts/debugging"} />
+        <Page link={"core-concepts/ai-assisted-development"} />
       </Group>
       <Group
         title={"Headless CMS"}
