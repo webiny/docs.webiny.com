@@ -35,7 +35,7 @@ API errors occur in AWS Lambda functions. During local development with `yarn we
 Console logs are quick and effective for debugging API extensions:
 
 ```typescript extensions/MyApiExtension.ts
-import { ApiKeyAfterUpdateHandler } from "webiny/api/security/apiKey";
+import { ApiKeyAfterUpdateHandler } from "webiny/api/security/api-key";
 
 class MyApiKeyAfterUpdateImpl implements ApiKeyAfterUpdateHandler.Interface {
   async handle() {
@@ -57,7 +57,7 @@ With Local AWS Lambda Development (`yarn webiny watch api`), console logs appear
 For production logging that persists to CloudWatch, use Webiny's Logger:
 
 ```typescript extensions/MyApiExtension.ts
-import { ApiKeyAfterUpdateHandler } from "webiny/api/security/apiKey";
+import { ApiKeyAfterUpdateHandler } from "webiny/api/security/api-key";
 import { Logger } from "webiny/api/logger";
 
 class MyApiKeyAfterUpdateImpl implements ApiKeyAfterUpdateHandler.Interface {
@@ -89,6 +89,10 @@ this.logger.info("Informational message");
 this.logger.warn("Warning message");
 this.logger.error("Error message");
 ```
+
+### Production API Debugging
+
+When debugging deployed Lambda functions, logs are sent to CloudWatch. Access them via the [CloudWatch Management Console](https://console.aws.amazon.com/cloudwatch/home) under Log groups. Each Lambda function has its own log group.
 
 ## Debugging Admin Application
 
@@ -155,35 +159,7 @@ Use React DevTools "Select Element" tool to click any UI element and immediately
 
 ## Debugging Deployment Errors
 
-Deployment errors occur when running `yarn webiny deploy`. Pulumi prints errors in the terminal.
-
-### Common Deployment Issues
-
-**Permission Errors**
-
-- Check AWS credentials
-- Verify IAM permissions for required services
-- Review CloudFormation stack events
-
-**Resource Limits**
-
-- Check AWS service quotas
-- Verify Lambda memory/timeout settings
-- Review DynamoDB capacity
-
-**Configuration Errors**
-
-- Validate `webiny.config.tsx` syntax
-- Check extension paths are correct
-- Verify environment-specific config
-
-### Reading Pulumi Errors
-
-Pulumi errors show:
-
-- Which resource failed
-- The error message
-- Stack trace if applicable
+Deployment errors occur when you run `yarn webiny deploy`. When Pulumi fails to deploy, errors are printed in the terminal, which helps you identify and fix issues in your infrastructure code.
 
 Example error:
 
@@ -193,88 +169,4 @@ error: aws:lambda:Function myfunction: creating Lambda Function: InvalidParamete
 The role defined for the function cannot be assumed by Lambda.
 ```
 
-Fix the IAM role configuration and redeploy.
-
-## Debugging Workflow
-
-### API Debugging Workflow
-
-1. Run `yarn webiny watch api`
-2. Trigger the operation
-3. Check terminal for console logs
-4. Add more logs if needed
-5. Fix issue and test again
-
-### Admin Debugging Workflow
-
-1. Run `yarn webiny watch admin`
-2. Open browser DevTools
-3. Reproduce the issue
-4. Check console for errors
-5. Use React DevTools to inspect components
-6. Fix issue and test again
-
-### Production Debugging
-
-**API Errors**
-
-- Check CloudWatch Logs
-- Use Logger for persistent logs
-- Review Lambda execution details
-
-**Admin Errors**
-
-- Use error tracking service (Sentry, etc.)
-- Check browser console logs from users
-- Review Network tab for failed requests
-
-## Best Practices
-
-### Use Structured Logging
-
-```typescript
-// Good - structured data
-this.logger.info("Entry created", {
-  modelId: entry.modelId,
-  entryId: entry.id
-});
-
-// Less useful - plain string
-this.logger.info("Entry created");
-```
-
-### Log Errors Properly
-
-```typescript
-try {
-  await someOperation();
-} catch (error) {
-  this.logger.error("Operation failed", {
-    error: error.message,
-    stack: error.stack
-  });
-}
-```
-
-### Use Appropriate Log Levels
-
-- `debug` - Detailed information for debugging
-- `info` - General informational messages
-- `warn` - Warning messages
-- `error` - Error messages
-
-### Remove Debug Logs Before Production
-
-Remove or disable excessive debug logging before deploying to production to avoid cluttering CloudWatch logs.
-
-## Tools Summary
-
-| Tool              | Purpose               | Application    |
-| ----------------- | --------------------- | -------------- |
-| `console.log`     | Quick local debugging | API            |
-| Logger            | Production logging    | API            |
-| Browser Console   | View logs and errors  | Admin          |
-| Network Tab       | Inspect API calls     | Admin          |
-| React DevTools    | Debug components      | Admin          |
-| GraphQL Inspector | Debug GraphQL         | Admin          |
-| Terminal          | Deployment errors     | Infrastructure |
+Pulumi errors show which resource failed and why. Common causes include AWS permission errors, resource limits, or configuration errors in `webiny.config.tsx`.
