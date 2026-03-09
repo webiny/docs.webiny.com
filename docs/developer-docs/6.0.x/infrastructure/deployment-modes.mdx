@@ -1,0 +1,115 @@
+---
+id: q5r9s3tu
+title: Deployment Modes
+description: Learn about development and production deployment modes and their infrastructure differences.
+---
+
+import { Alert } from "@/components/Alert";
+import devMode from "./deployment-modes/assets/default-vpc/webiny_api_overview_vpc_default.png";
+import prodMode from "./deployment-modes/assets/custom-vpc/webiny_api_overview_vpc_custom.png";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What deployment modes Webiny supports
+- How development mode uses the default VPC
+- How production mode uses a custom VPC with private subnets
+- When to use each mode
+
+</Alert>
+
+## Overview
+
+Webiny supports two deployment modes: **development** and **production**. These modes deploy different network and security configurations to balance cost and security based on your environment's needs.
+
+Development mode uses the AWS default VPC with public subnets, minimizing cost and complexity for testing environments. Production mode deploys a custom VPC with private subnets, NAT gateways, and multi-availability-zone configurations for enhanced security and high availability.
+
+## Mode Selection
+
+By default, Webiny uses development mode for all environments except `prod`. When deploying to an environment named `prod`, production mode is automatically activated.
+
+## Key Differences
+
+The primary differences between modes are:
+
+- **VPC Configuration:** Development uses the default VPC; production creates a custom VPC
+- **Subnet Access:** Development uses public subnets; production uses private subnets for Lambda and databases
+- **Availability Zones:** Development uses single AZ for OpenSearch; production uses three AZs with three data nodes
+- **Security Posture:** Production isolates resources from public internet access via private subnets
+
+These differences apply to the infrastructure that hosts your GraphQL API and background tasks. The Admin Area infrastructure is identical across both modes, as it serves static files through CloudFront and S3.
+
+## Development Mode
+
+Development mode deploys your infrastructure into the AWS default VPC, which is automatically created for every AWS account. This mode uses public subnets across multiple availability zones, providing a simple and cost-effective setup for development, testing, and staging environments.
+
+<Alert type="info">
+
+VPCs require understanding of AWS networking concepts including regions, availability zones, subnets, and gateways. See [AWS VPC documentation](https://aws.amazon.com/vpc/) for background information.
+
+</Alert>
+
+<Image src={devMode} title="Development Mode Infrastructure" shadow={false} />
+
+The default VPC consists of three public subnets spanning three availability zones. All subnets are public, meaning they can send and receive traffic directly to the public internet through an Internet Gateway.
+
+**Lambda Functions:** AWS automatically runs Lambda functions across multiple availability zones for high availability. Functions can access the internet directly through the Internet Gateway.
+
+**Amazon OpenSearch Service:** Deployed in a single availability zone to minimize costs. This is acceptable for development environments but not recommended for production workloads.
+
+**Security:** All resources in development mode are deployed in public subnets, meaning they have direct internet access. While this simplifies development, it may not meet security requirements for production environments.
+
+## Production Mode
+
+Production mode deploys your infrastructure into a custom VPC with a combination of public and private subnets across three availability zones. This configuration improves security by isolating mission-critical resources from direct public internet access while maintaining high availability.
+
+<Image src={prodMode} title="Production Mode Infrastructure" shadow={false} />
+
+The custom VPC consists of one public subnet and three private subnets across three availability zones, following AWS best practices for high availability.
+
+### Key Components
+
+**Public Subnet:** Contains the NAT Gateway, which forwards internet-bound traffic from private subnets to the Internet Gateway.
+
+**Private Subnets:** Host Lambda functions and Amazon OpenSearch Service. These resources are not directly accessible from the public internet, improving security.
+
+**NAT Gateway:** Enables Lambda functions in private subnets to make outbound requests to internet-facing AWS services (DynamoDB, S3, Cognito) while preventing inbound access from the internet.
+
+**Internet Gateway:** Provides internet connectivity for the NAT Gateway and routes responses back to resources in private subnets.
+
+### Multi-Availability Zone Deployment
+
+Resources are deployed across three availability zones for high availability and fault tolerance. If one AZ experiences an outage, traffic automatically routes to resources in other AZs, keeping your application operational.
+
+**Amazon OpenSearch Service:** Deployed across three AZs with three data nodes (one per AZ), ensuring data availability even if an entire AZ fails. This follows AWS best practices for production workloads.
+
+**Lambda Functions:** AWS automatically distributes Lambda executions across AZs, providing built-in redundancy.
+
+<Alert type="warning">
+
+Three-AZ deployments incur additional costs because resources are replicated across zones. Amazon OpenSearch Service runs three data nodes instead of one, tripling the compute and storage costs for the search cluster.
+
+</Alert>
+
+### Security and Network Isolation
+
+Private subnets isolate databases and Lambda functions from direct public internet access, reducing the attack surface. Resources can only be accessed through the application's API endpoints (CloudFront and API Gateway), which are protected by authentication and authorization mechanisms.
+
+<Alert type="info">
+
+Lambda functions in private subnets communicate with DynamoDB, S3, and Cognito over the public internet. For enhanced security, consider using [VPC endpoints for DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/vpc-endpoints-dynamodb.html) to keep traffic within AWS's network.
+
+</Alert>
+
+## Cost Implications
+
+Development mode is designed for lower costs, suitable for testing and staging environments. Production mode incurs additional costs for:
+
+- NAT Gateway usage (data transfer charges)
+- Three-AZ OpenSearch deployment (three data nodes instead of one)
+- Enhanced monitoring and logging resources
+
+Choose development mode for non-production environments and production mode for your live environment.
+
+## Customization
+
+The production VPC configuration provides a solid foundation for most use cases, but your organization may require additional resources or different configurations. You can customize the VPC setup through Webiny's infrastructure-as-code configuration files.

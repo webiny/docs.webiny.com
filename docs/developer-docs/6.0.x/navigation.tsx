@@ -93,11 +93,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"infrastructure/core/overview"} title={"Core"} />
         <Page link={"infrastructure/api/overview"} title={"API"} />
         <Page link={"infrastructure/admin/overview"} title={"Admin Area"} />
-        <Group title={"Deployment Modes"}>
-          <Page link={"infrastructure/deployment-modes/introduction"} title={"Overview"} />
-          <Page link={"infrastructure/deployment-modes/development"} />
-          <Page link={"infrastructure/deployment-modes/production"} />
-        </Group>
+        <Page link={"infrastructure/deployment-modes"} title={"Deployment Modes"} />
       </Group>
       <Group
         title={"Reference"}
