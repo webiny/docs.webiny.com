@@ -63,7 +63,7 @@ const filterByEnvironment = (version: Version) => {
 
 const filterFilePathByVersion = (filePath: string): boolean => {
   // Extract version from file path (e.g., /docs/developer-docs/5.40.x/... or /docs/user-guides/5.40.x/...)
-  const versionMatch = filePath.match(/\/(\d+\.\d+\.x)\//);
+  const versionMatch = filePath.match(/\/(\d+(?:\.\d+)?\.x)\//);
 
   if (!versionMatch) {
     // If no version in path, include the file (e.g., non-versioned docs)

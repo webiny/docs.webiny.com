@@ -103,7 +103,7 @@ export class Navigation {
     nodes: NavigationTree<TPageIn>["items"],
     cb: (page: TPageIn) => TPageOut
   ): NavigationTree<TPageOut>["items"] {
-    return nodes
+    return (nodes ?? [])
       .map(node => {
         if (node.type === "separator") {
           return node;
