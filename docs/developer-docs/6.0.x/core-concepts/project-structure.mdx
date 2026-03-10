@@ -1,0 +1,198 @@
+---
+id: ps4tr9uc
+title: Project Structure
+description: Understanding the organization of a Webiny project.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+  - How Webiny projects are organized - The purpose of each file and folder - Where to place custom
+  code
+</Alert>
+
+## Overview
+
+Webiny projects follow a clean, simple structure designed for clarity and maintainability. All configuration is centralized, custom code has a dedicated location, and the project uses standard JavaScript/TypeScript conventions.
+
+## Directory Structure
+
+```text
+my-webiny-project/
+├── extensions/          # Your custom extensions and code
+│   └── README.md
+├── node_modules/        # Dependencies
+├── public/              # Public assets for Admin app
+│   ├── favicon.ico
+│   ├── global.css
+│   ├── index.html
+│   └── robots.txt
+├── eslint.config.js     # ESLint configuration
+├── package.json         # Project dependencies
+├── tsconfig.json        # TypeScript configuration
+├── webiny.config.tsx    # Main configuration file
+├── webiny-env.d.ts      # TypeScript environment types
+└── yarn.lock            # Locked dependencies
+```
+
+## Key Files
+
+### `webiny.config.tsx`
+
+The central configuration file for your project. This is where you:
+
+- Register extensions
+- Configure AWS infrastructure
+- Set up authentication providers
+- Define deployment settings
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+import { Cognito } from "@webiny/cognito";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Aws.DefaultRegion name={"us-east-1"} />
+      <Cognito />
+      {/* Your extensions go here */}
+    </>
+  );
+};
+```
+
+### `/extensions`
+
+The workspace for all custom code. You can organize this folder however you like. There are four types of extensions you can create:
+
+1. **API Extensions** - Add GraphQL schemas, custom business logic, lifecycle hooks
+2. **Admin Extensions** - Customize the Admin UI with themes, white-label branding, custom views
+3. **Infrastructure Extensions** - Modify Pulumi infrastructure code
+4. **CLI Extensions** - Create custom CLI commands for your workflows
+
+<Alert type="info" title="Learn More About Extensions">
+
+For detailed information about the extension system, how to create extensions, and examples, see
+the [Extensions](/docs/{version}/core-development-concepts/basics/extensions) documentation.
+
+</Alert>
+
+Example organization:
+
+```text
+extensions/
+├── CustomGraphQLSchema.ts
+├── CustomTheme.tsx
+├── MyInfraExtension.ts
+└── ecommerce/
+    ├── ProductApi.ts
+    └── OrderDashboard.tsx
+```
+
+Reference extensions in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import { Admin, Api } from "webiny/extensions";
+
+// Point to files in the extensions folder
+<Admin.Extension src={"/extensions/CustomTheme.tsx"} />
+<Api.Extension src={"/extensions/ecommerce/ProductApi.ts"} />
+```
+
+### `package.json`
+
+Contains project dependencies with key Webiny packages:
+
+```json package.json
+{
+  "type": "module",
+  "dependencies": {
+    "@webiny/cognito": "^6.0.0", // Authentication provider
+    "webiny": "^6.0.0" // Core Webiny SDK
+  },
+  "devDependencies": {
+    "@webiny/cli": "^6.0.0", // CLI tools
+    "@types/node": "^20.0.0", // Node.js types
+    "typescript": "^5.0.0" // TypeScript compiler
+  }
+}
+```
+
+**Key packages:**
+
+- `webiny` - Unified API for all Webiny functionality
+- `@webiny/cognito` - Default authentication (replaceable)
+- `@webiny/cli` - Development and deployment tools
+
+### `/public`
+
+Static assets for the Admin application:
+
+- `favicon.ico` - Browser icon
+- `global.css` - Global styles applied to Admin
+- `index.html` - Admin app entry point
+- `robots.txt` - SEO configuration
+
+Customize these files to brand your Admin interface.
+
+### Configuration Files
+
+`tsconfig.json`
+
+- TypeScript compiler configuration
+- Ensures type safety across all extensions
+- Pre-configured for Webiny patterns
+
+`eslint.config.js`
+
+- Code linting rules
+- Enforces consistent code style
+- Includes Webiny-specific rules
+
+`webiny-env.d.ts`
+
+- TypeScript type definitions
+- Environment-specific types
+- Auto-generated, don't edit directly
+
+## Project Organization
+
+### Single Package
+
+Webiny uses a single-package approach:
+
+- One `package.json` at the root
+- All dependencies managed centrally
+- No complex monorepo setup
+
+### Extension-Based Architecture
+
+All customization through extensions:
+
+- Clear separation of custom vs. framework code
+- Extensions are portable and testable
+- Easy to understand what's custom
+
+## Best Practices
+
+### Extension Organization
+
+Group related functionality:
+
+```text
+extensions/
+├── ecommerce/
+│   ├── api/
+│   │   ├── products.ts
+│   │   └── orders.ts
+│   └── admin/
+│       ├── ProductList.tsx
+│       └── OrderDashboard.tsx
+```
+
+### Naming Conventions
+
+- **Extensions** - PascalCase (e.g., `ProductApi.ts`)
+- **Folders** - `camelCase` or `kebab-case`
+- **Config files** - Match tool conventions

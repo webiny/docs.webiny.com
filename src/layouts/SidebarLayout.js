@@ -71,6 +71,35 @@ function nearestScrollableContainer(el) {
 const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
     const { type, title, link, icon, items, isActive, isActiveChild } = element;
 
+    // Temporary testing this layout.
+    if (type === "group") {
+        return (
+            <GenericMenuSection
+                subElements={items}
+                isActiveChild={isActiveChild}
+                title={title}
+                link={link}
+                icon={icon}
+                ref={ref}
+                depth={depth}
+            />
+        );
+    }
+
+    if (type === "group" && depth >= 1) {
+        return (
+            <GenericMenuSection
+                subElements={items}
+                isActiveChild={isActiveChild}
+                title={title}
+                link={link}
+                icon={icon}
+                ref={ref}
+                depth={depth}
+            />
+        );
+    }
+
     if (type === "group" && depth !== 1) {
         return (
             <Collapsable
@@ -83,7 +112,9 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 depth={depth}
             />
         );
-    } else if (type === "group" && depth === 1) {
+    }
+
+    if (type === "group" && depth === 1) {
         return (
             <Section
                 subElements={items}
@@ -93,9 +124,13 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
                 depth={depth}
             />
         );
-    } else if (type === "page") {
+    }
+
+    if (type === "page") {
         return <Page title={title} link={link} isActive={isActive} ref={ref} depth={depth} />;
-    } else if (type === "separator") {
+    }
+
+    if (type === "separator") {
         return <HorizontalLine />;
     }
     return null;
@@ -435,9 +470,8 @@ const Page = forwardRef(({ title, link, isActive, depth = 0 }, ref) => {
                 }
             )}
         >
-            <Link href={link} legacyBehavior>
-                {/* first line */}
-                <a className="leading-6">{title}</a>
+            <Link href={link} className="leading-6">
+                {title}
             </Link>
         </li>
     );

@@ -1,0 +1,103 @@
+---
+id: dhuztl3u
+title: Entry Event Handler Extended Example
+description: Extended example of the Entry event handler.
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What exactly can I do?
+- .... TBD
+
+</Alert>
+
+## Overview
+This extended example demonstrates a more complex event handler for the Entry.
+
+## Before Entry Creation
+
+This example will check the database for entry with same value as a custom field from the new entry being created. If such entry exists, the creation will be prevented by throwing an error.
+
+```typescript extensions/cms/entry/eventHandler/create/beforeCreate.ts
+import {
+    EntryBeforeCreateEventHandler as EntryBeforeCreateEventHandlerAbstraction,
+    ListEntriesUseCase
+} from "webiny/api/cms/entry";
+import { Logger } from "webiny/api/logger";
+
+class EntryBeforeCreateEventHandlerImpl
+    implements EntryBeforeCreateEventHandlerAbstraction.Interface
+{
+    public constructor(
+        private logger: Logger.Interface,
+        private listEntriesUseCase: ListEntriesUseCase.Interface
+    ) {}
+
+    public async handle(event: EntryBeforeCreateEventHandlerAbstraction.Event): Promise<void> {
+        const { payload } = event;
+        const { entry, input, model } = payload;
+        // only process entries if the model ID matches "myTargetModelId"
+        if (model.modelId !== "myTargetModelId") {
+            return;
+        }
+        const targetValue = entry.values.myUniqueFieldId;
+        if (!targetValue) {
+            return;
+        }
+        // let's say you want to make a value from the input unique across all entries in this model
+        const result = await this.listEntriesUseCase.execute(model, {
+            where: {
+                values: {
+                    myUniqueFieldId: targetValue
+                }
+            },
+            limit: 1
+        });
+        // when an error occurs, just log it and allow the creation to proceed
+        if (result.isFail()) {
+            this.logger.error("Error checking for existing entries:", result.error);
+            return;
+        }
+        // no items with the same value found, proceed with creation
+        if (result.value.meta.totalCount === 0) {
+            return;
+        }
+        // maybe throw an error?
+        throw new Error(
+            `An entry with the value "${targetValue}" for the field "myUniqueFieldId" already exists.`
+        );
+    }
+}
+
+const EntryBeforeCreateEventHandler = EntryBeforeCreateEventHandlerAbstraction.createImplementation(
+    {
+        implementation: EntryBeforeCreateEventHandlerImpl,
+        dependencies: [Logger, ListEntriesUseCase]
+    }
+);
+
+export default EntryBeforeCreateEventHandler;
+```
+
+
+## Loading Event Handler in Your Project
+
+The event handler MUST be exported as `default export` from the file, otherwise it will not work.
+
+To load your new event handler in your project, you need to add it in the root `webiny.config.tsx` file, like this:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+    return (
+        <>
+            {/* ... all your other extensions */}
+            <Api.Extension src={"/extensions/cms/entry/eventHandler/create/beforeCreate.ts"} />
+        </>
+    );
+};
+```

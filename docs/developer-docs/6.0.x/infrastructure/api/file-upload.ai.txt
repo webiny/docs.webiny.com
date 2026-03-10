@@ -1,0 +1,53 @@
+AI Context: File Upload (file-upload.mdx)
+
+Source of Information:
+1. /docs/developer-docs/5.39.x/architecture/api/file-upload.mdx - original v5 architecture documentation
+2. AWS S3 documentation on pre-signed POST
+3. Webiny blog post: "Upload Files to AWS S3 Using Pre-signed POST Data and a Lambda Function"
+4. Webiny v6 File Manager implementation
+
+Key Documentation Decisions:
+1. Removed the FAQ section screenshot (fm-settings.png) - UI screenshots don't belong in infrastructure docs
+2. Converted FAQ items into inline "Security" and "Configuration" sections
+3. Removed verbose explanation about why pre-signed POST is used - moved to concise Overview
+4. Removed the blog post link Alert - kept the concept but removed the external reference
+5. Changed to "WHAT YOU'LL LEARN" format and simplified to 3 questions
+6. Removed references to "File Manager application" terminology where verbose
+7. Streamlined the three-step flow to be more technical and less explanatory
+8. Added clear section headings: Security, Configuration instead of FAQ format
+
+Understanding File Upload Architecture:
+- Pre-signed POST is a specific AWS S3 feature that allows temporary, limited-scope upload permissions
+- The GraphQL Handler generates the pre-signed POST data, which includes:
+  - URL to upload to
+  - Form fields (key, policy, signature)
+  - Expiration time
+- The client uploads directly to S3 using a standard HTTP POST with multipart/form-data
+- File metadata (size, name, type, etc.) is stored separately from the binary file itself
+- DynamoDB stores structured metadata; OpenSearch enables full-text search on filenames and tags
+- The two-step process (upload → metadata) means there's a brief window where the file exists in S3 but isn't "visible" in the File Manager UI
+
+Security Considerations:
+- Authentication happens on both GraphQL requests (generate pre-signed POST, store metadata)
+- The pre-signed POST URL expires quickly (typically 5-15 minutes)
+- S3 bucket policies only accept uploads with valid signatures
+- File size limits prevent abuse
+
+Code Patterns:
+- No code in this document - pure infrastructure flow diagram
+
+Related Documents:
+- infrastructure/api/overview.mdx - complete API infrastructure
+- infrastructure/api/graphql-requests.mdx - GraphQL request flow
+- infrastructure/api/file-download.mdx - complementary download flow
+- infrastructure/core/overview.mdx - S3 bucket deployment
+
+Key Code Locations:
+- Not applicable - infrastructure documentation only
+
+Tone Guidelines:
+- Technical and precise - "pre-signed POST payloads", "GraphQL mutation"
+- Focus on the architectural pattern, not implementation details
+- Security section uses bold labels for key points
+- Direct and concise - avoid explaining "why" when the benefit is obvious
+- Use "Key Points" style sections instead of FAQ when possible

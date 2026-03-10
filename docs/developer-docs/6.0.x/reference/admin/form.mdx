@@ -1,0 +1,296 @@
+---
+id: ywrtaw4v
+title: Form
+description: "Form primitives: Bind, Form, useForm, validation"
+---
+
+import { Alert } from "@/components/Alert";
+import { SymbolList } from "@/components/SymbolList";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What is exported from `webiny/admin/form`?
+- How to import and use each exported item?
+
+</Alert>
+
+## Overview
+
+This page documents everything exported from `webiny/admin/form`. Import any of the items below directly from this path in your Webiny extensions.
+
+**Components**
+
+<SymbolList
+  symbols={[
+    { name: "Bind", anchor: "bind" },
+    { name: "Form", anchor: "form" },
+    { name: "UnsetOnUnmount", anchor: "unset-on-unmount" },
+    { name: "Validation", anchor: "validation" },
+    { name: "ValidationError", anchor: "validation-error" }
+  ]}
+/>
+
+**Hooks**
+
+<SymbolList
+  symbols={[
+    { name: "useBind", anchor: "use-bind" },
+    { name: "useBindPrefix", anchor: "use-bind-prefix" },
+    { name: "useForm", anchor: "use-form" },
+    { name: "useGenerateSlug", anchor: "use-generate-slug" }
+  ]}
+/>
+
+**Types**
+
+<SymbolList
+  symbols={[
+    { name: "FormApi", anchor: "form-api" },
+    { name: "FormOnSubmit", anchor: "form-on-submit" },
+    { name: "GenericFormData", anchor: "generic-form-data" }
+  ]}
+/>
+
+**Other**
+
+<SymbolList symbols={[{ name: "validation", anchor: "validation" }]} />
+
+## Components
+
+### `Bind`
+
+**Function** — imported from `webiny/admin/form`
+
+```typescript
+import { Bind } from "webiny/admin/form";
+```
+
+```typescript
+export function Bind(
+```
+
+### `Form`
+
+**Constant** — imported from `webiny/admin/form`
+
+```typescript
+import { Form } from "webiny/admin/form";
+```
+
+```typescript
+export const Form = observer(
+  React.forwardRef(FormInner) as <T extends GenericFormData = GenericFormData>(
+    props: FormProps<T> & { ref?: React.ForwardedRef<any> }
+  ) => ReturnType<typeof FormInner<T>>
+);
+```
+
+### `UnsetOnUnmount`
+
+**Constant** — imported from `webiny/admin/form`
+
+```typescript
+import { UnsetOnUnmount } from "webiny/admin/form";
+```
+
+```typescript
+export const UnsetOnUnmount = ({ name, children }: { name: string; children: React.ReactNode }) => {
+    const form = useForm();
+
+    useEffect(() => {
+        return () => {
+            form.setValue(name, undefined);
+        };
+    }, []);
+
+    return <>{children}</>;
+};
+```
+
+### `Validation`
+
+**Class** — imported from `webiny/admin/form`
+
+Main class of Validation library.
+Exported as a singleton instance, it offers methods for sync/async data validation and overwriting or adding new validators.
+
+@class Validation
+@example
+import { validation } from '@webiny/validation';
+
+// `validation` is a preconfigured instance of Validation class.
+// From here you can either add new validators or use it as-is.
+
+```typescript
+import { Validation } from "webiny/admin/form";
+```
+
+```typescript
+class Validation {
+    __validators:;
+    constructor();
+    setValidator(name: string, callable: Validator): this;
+    getValidator(name: string): Validator;
+    async validate(
+        value: any,
+        validators: string,
+        options: ValidateOptions =;
+    validateSync(
+        value: any,
+        validators: string,
+        options: ValidateOptions =;
+    create(validators: string);
+    createSync(validators: string);
+    __parseValidateProperty(validators: string): ParsedValidators;
+}
+```
+
+### `ValidationError`
+
+**Class** — imported from `webiny/admin/form`
+
+This class is used by validators to throw an error when value validation fails.
+
+```typescript
+import { ValidationError } from "webiny/admin/form";
+```
+
+```typescript
+class ValidationError extends Error {
+  public override readonly message: string;
+  public readonly validator: string | null;
+  public readonly value: any;
+  constructor(message = "", validator: string | null = null, value: string | null = null);
+}
+```
+
+## Hooks
+
+### `useBind`
+
+**Constant** — imported from `webiny/admin/form`
+
+```typescript
+import { useBind } from "webiny/admin/form";
+```
+
+```typescript
+export const useBind = makeDecoratable((props: BindComponentProps): UseBindHook => {
+    const form = useForm();
+    const bindPrefix = useBindPrefix();
+
+    const bindName = useMemo(() => {
+        return [bindPrefix, props.name].filter(Boolean).join(".");
+    }, [props.name]);
+
+    const fieldProps = { ...props, name: bindName };
+
+    useEffect(() => {
+        form.registerField(fieldProps);
+
+
+```
+
+### `useBindPrefix`
+
+**Function** — imported from `webiny/admin/form`
+
+```typescript
+import { useBindPrefix } from "webiny/admin/form";
+```
+
+```typescript
+export function useBindPrefix();
+```
+
+### `useForm`
+
+**Constant** — imported from `webiny/admin/form`
+
+```typescript
+import { useForm } from "webiny/admin/form";
+```
+
+```typescript
+export const useForm = <T extends GenericFormData = GenericFormData>() => {
+  const context = useContext(FormContext) as FormAPI<T>;
+  if (!context) {
+    throw new Error("Missing Form component in the component hierarchy!");
+  }
+  return context;
+};
+```
+
+### `useGenerateSlug`
+
+**Function** — imported from `webiny/admin/form`
+
+This hook is designed to be used with the `useForm` hook.
+When `generateSlug` is called, it will generate a slug using the `from` form field, and set it into the `to` form field.
+@param form
+@param from
+@param to
+
+```typescript
+import { useGenerateSlug } from "webiny/admin/form";
+```
+
+```typescript
+export function useGenerateSlug(form: FormAPI, from: string, to = "slug");
+```
+
+## Types
+
+### `FormApi`
+
+**Type** — imported from `webiny/admin/form`
+
+```typescript
+import type { FormApi } from "webiny/admin/form";
+```
+
+```typescript
+export interface FormAPI<T = GenericFormData> { ... }
+```
+
+### `FormOnSubmit`
+
+**Type** — imported from `webiny/admin/form`
+
+```typescript
+import type { FormOnSubmit } from "webiny/admin/form";
+```
+
+```typescript
+export interface FormOnSubmit<T = GenericFormData> {
+  (data: T, form: FormAPI<T>): any;
+}
+```
+
+### `GenericFormData`
+
+**Type** — imported from `webiny/admin/form`
+
+```typescript
+import type { GenericFormData } from "webiny/admin/form";
+```
+
+```typescript
+export type GenericFormData = {
+  [key: string]: any;
+};
+```
+
+## Other
+
+### `validation`
+
+**Constant** — imported from `webiny/admin/form`
+
+```typescript
+import { validation } from "webiny/admin/form";
+```
+
+```typescript
+export const validation = new Validation();
+```

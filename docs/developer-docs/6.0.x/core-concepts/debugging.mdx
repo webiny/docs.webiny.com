@@ -1,0 +1,172 @@
+---
+id: db9g3err
+title: Debugging
+description: Effective debugging strategies for Webiny applications.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to debug API application errors
+- How to debug Admin application errors
+- Tools and techniques for each application type
+
+</Alert>
+
+## Overview
+
+Webiny consists of Admin and API applications. Errors can occur in different places, and understanding where an error originates is the first step to fixing it efficiently.
+
+## Error Types
+
+Errors occur in three main areas:
+
+- **API application** - Server-side Lambda function errors, GraphQL operations
+- **Admin application** - Client-side React errors in the browser
+- **Infrastructure** - Deployment errors from Pulumi
+
+## Debugging API Application
+
+API errors occur in AWS Lambda functions. During local development with `yarn webiny watch api`, debugging is straightforward because code runs locally.
+
+### Console Logs
+
+Console logs are quick and effective for debugging API extensions:
+
+```typescript extensions/MyApiExtension.ts
+import { ApiKeyAfterUpdateHandler } from "webiny/api/security/api-key";
+
+class MyApiKeyAfterUpdateImpl implements ApiKeyAfterUpdateHandler.Interface {
+  async handle() {
+    console.log("An API key was updated!");
+  }
+}
+
+const MyApiKeyAfterUpdate = ApiKeyAfterUpdateHandler.createImplementation({
+  implementation: MyApiKeyAfterUpdateImpl
+});
+
+export default MyApiKeyAfterUpdate;
+```
+
+With Local AWS Lambda Development (`yarn webiny watch api`), console logs appear directly in the terminal. You get instant feedback like any local Node.js application.
+
+### Webiny Logger
+
+For production logging that persists to CloudWatch, use Webiny's Logger:
+
+```typescript extensions/MyApiExtension.ts
+import { ApiKeyAfterUpdateHandler } from "webiny/api/security/api-key";
+import { Logger } from "webiny/api/logger";
+
+class MyApiKeyAfterUpdateImpl implements ApiKeyAfterUpdateHandler.Interface {
+  constructor(private logger: Logger.Interface) {}
+
+  async handle() {
+    this.logger.warn("An API key was updated!");
+  }
+}
+
+const MyApiKeyAfterUpdate = ApiKeyAfterUpdateHandler.createImplementation({
+  implementation: MyApiKeyAfterUpdateImpl,
+  dependencies: [Logger]
+});
+
+export default MyApiKeyAfterUpdate;
+```
+
+### When to Use Each
+
+- **`console.log`** - Quick debugging during local development
+- **`Logger`** - Production logging that needs to persist to CloudWatch
+
+### Logger Methods
+
+```typescript
+this.logger.debug("Debug information");
+this.logger.info("Informational message");
+this.logger.warn("Warning message");
+this.logger.error("Error message");
+```
+
+### Production API Debugging
+
+When debugging deployed Lambda functions, logs are sent to CloudWatch. Access them via the [CloudWatch Management Console](https://console.aws.amazon.com/cloudwatch/home) under Log groups. Each Lambda function has its own log group.
+
+## Debugging Admin Application
+
+The Admin application is a React application running in the browser. Use standard browser debugging tools.
+
+### Browser DevTools
+
+Essential tools for Admin debugging:
+
+**Console** - View logs and errors
+
+```tsx extensions/MyAdminExtension.tsx
+const MyComponent = () => {
+  console.log("Component rendered");
+  return <div>My Component</div>;
+};
+```
+
+**Network Tab** - Inspect GraphQL requests and responses
+
+- View request/response payloads
+- Check authentication headers
+- Monitor API call timing
+
+**React Developer Tools** - Debug React component state and props
+
+- Install: [Chrome](https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
+- Select elements to see component hierarchy
+- Inspect props and state
+- View component re-renders
+
+**GraphQL Network Inspector** - Inspect GraphQL operations
+
+- Install: [Chrome](https://chromewebstore.google.com/detail/graphql-network-inspector/ndlbedplllcgconngcnfmkadhokfaaln)
+- View query/mutation details
+- Inspect variables and responses
+- Debug GraphQL errors
+
+<Alert type="info" title="Finding Components">
+
+Use React DevTools "Select Element" tool to click any UI element and immediately see which React component renders it. Invaluable when working with unfamiliar code.
+
+</Alert>
+
+### Common Admin Issues
+
+**Component Not Rendering**
+
+- Check browser console for errors
+- Verify component is registered in `webiny.config.tsx`
+- Check React DevTools for component presence
+
+**GraphQL Errors**
+
+- Use GraphQL Network Inspector to view error details
+- Check Network tab for failed requests
+- Verify API authentication
+
+**Styling Issues**
+
+- Use browser DevTools Elements panel
+- Inspect applied CSS
+- Check for conflicting styles
+
+## Debugging Deployment Errors
+
+Deployment errors occur when you run `yarn webiny deploy`. When Pulumi fails to deploy, errors are printed in the terminal, which helps you identify and fix issues in your infrastructure code.
+
+Example error:
+
+```text
+error: update failed
+error: aws:lambda:Function myfunction: creating Lambda Function: InvalidParameterValueException:
+The role defined for the function cannot be assumed by Lambda.
+```
+
+Pulumi errors show which resource failed and why. Common causes include AWS permission errors, resource limits, or configuration errors in `webiny.config.tsx`.

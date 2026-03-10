@@ -1,0 +1,68 @@
+AI Context: Deployment Modes (introduction.mdx)
+
+Source of Information:
+1. /docs/developer-docs/5.39.x/architecture/deployment-modes/introduction.mdx - original v5 documentation
+2. AWS VPC documentation on default vs custom VPCs
+3. AWS documentation on multi-AZ deployments
+4. Webiny v6 infrastructure configuration
+
+Key Documentation Decisions:
+1. Removed references to "Core and API project application" - simplified to "infrastructure"
+2. Removed Alert about Admin Area not having modes - integrated into main text
+3. Changed title from "Introduction" to "Deployment Modes" for clarity
+4. Added "Mode Selection" section to explain automatic mode detection
+5. Added "Key Differences" section to summarize without detailed explanations
+6. Added "Cost Implications" section to address cost considerations upfront
+7. Simplified the explanation to focus on what differs, not why (that's in the detail pages)
+8. Changed "WHAT YOU'LL LEARN" to 3 focused questions
+
+Understanding Deployment Modes:
+- Deployment modes only affect the API infrastructure (Lambda functions, databases)
+- Admin Area are the same in both modes (CloudFront + S3)
+- Mode is selected based on environment name (prod → production, anything else → development)
+- The mode configuration is in the Pulumi/IaC code
+
+Development Mode Characteristics:
+- Uses AWS default VPC (created automatically for every AWS account)
+- Lambda functions run in public subnets (can access internet directly)
+- OpenSearch may run in single AZ (lower cost, lower availability)
+- Simpler network setup (no NAT gateways, fewer route tables)
+- Suitable for dev, staging, test environments
+
+Production Mode Characteristics:
+- Creates custom VPC with specific CIDR blocks
+- Lambda functions run in private subnets (no direct internet access)
+- OpenSearch runs in multiple AZs (high availability)
+- NAT Gateway in public subnet for outbound internet access
+- More complex network setup (route tables, security groups, NACLs)
+- Suitable for production environment
+
+Why Modes Exist:
+- Cost: NAT Gateway and multi-AZ OpenSearch are expensive for dev/test
+- Security: Production needs private subnets to meet compliance requirements
+- Availability: Production needs multi-AZ to handle AZ failures
+- Development: Simpler setup, faster iteration, lower cost
+
+Mode Selection Logic:
+- Environment name "prod" → production mode
+- Any other name → development mode
+- Can be overridden in configuration if needed
+
+Code Patterns:
+- No code in this document - pure infrastructure overview
+
+Related Documents:
+- infrastructure/deployment-modes/development.mdx - detailed development mode architecture
+- infrastructure/deployment-modes/production.mdx - detailed production mode architecture
+- infrastructure/api/overview.mdx - API infrastructure affected by modes
+- infrastructure/core/overview.mdx - Core infrastructure affected by modes
+
+Key Code Locations:
+- Not applicable - infrastructure documentation only
+
+Tone Guidelines:
+- Concise and informative - explain what modes are without verbose justification
+- Use section headings to organize concepts (Mode Selection, Key Differences, Cost Implications)
+- Focus on the differences between modes, not the details (that's in the other pages)
+- Mention cost upfront so readers understand the trade-offs
+- Use bullet lists to summarize differences (easy to scan)

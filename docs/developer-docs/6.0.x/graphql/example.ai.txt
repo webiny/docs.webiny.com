@@ -1,0 +1,97 @@
+AI Context: GraphQL - Example (graphql/example.mdx)
+
+Source of Information:
+1. Analyzed code examples showing GraphQL type resolver and schema definition implementation
+2. Examined the factory pattern for type and resolver registration
+3. Studied the integration between GraphQL types and business logic
+4. Reviewed the modular approach to schema building
+
+Key Documentation Decisions:
+- Provide a complete, working example of GraphQL implementation
+- Show both type definitions and resolver implementations
+- Demonstrate the factory pattern in action
+- Include query and mutation examples
+- Show how to integrate with use cases/business logic
+- Make it practical and copy-paste friendly
+- Used a cohesive example (Book management system)
+
+Example Structure:
+1. Type Definitions - BookType with fields
+2. Input Types - CreateBookInput for mutations
+3. Query Resolvers - getBook, listBooks
+4. Mutation Resolvers - createBook, updateBook
+5. Integration with use cases
+
+Pattern Demonstrated:
+- factory.createObjectType() for types
+- factory.createInputObjectType() for inputs
+- factory.createResolver() for query/mutation logic
+- Type-safe resolver implementations
+- Integration with domain layer (use cases)
+- Error handling with Result pattern
+
+Tone: Practical and example-driven, showing how all pieces fit together. Maintains technical accuracy and consistency with reference.mdx.
+
+Related Documents:
+- graphql/reference.mdx - Factory API methods
+- graphql/about.mdx - Conceptual overview
+- All use-case/*.mdx files show integration with GraphQL resolvers
+
+GraphQL Factory Pattern to Follow:
+```typescript
+// 1. Define types
+factory.createObjectType({
+    name: "Book",
+    fields: {
+        id: { type: "ID!" },
+        title: { type: "String!" },
+        author: { type: "Author" }
+    }
+});
+
+// 2. Define inputs
+factory.createInputObjectType({
+    name: "CreateBookInput",
+    fields: {
+        title: { type: "String!" },
+        authorId: { type: "ID!" }
+    }
+});
+
+// 3. Create resolvers
+factory.createResolver({
+    type: "Query",
+    field: "getBook",
+    resolve: async (source, args, context) => {
+        const useCase = context.get(GetBookUseCase);
+        const result = await useCase.execute(args.id);
+
+        if (result.isFail()) {
+            throw new Error(result.error.message);
+        }
+
+        return result.value;
+    }
+});
+```
+
+Common Patterns:
+1. Type definitions separate from resolvers
+2. Use Input types for mutations
+3. Integrate with use cases in resolvers
+4. Handle Result pattern in resolvers (convert to errors/values)
+5. Use context.get() for dependency injection
+6. Type field definitions carefully (! for required)
+
+Integration with Use Cases:
+- Resolvers are thin layers
+- Business logic in use cases
+- Resolvers handle GraphQL-specific concerns
+- Use cases handle domain logic
+
+Tone Guidelines:
+- Show complete, working examples
+- Explain integration points
+- Match reference.mdx tone
+- Use "The system provides" consistently
+

@@ -1,0 +1,102 @@
+AI Context: Group Event Handlers (headless-cms/event-handler/group.mdx)
+
+Source of Information:
+1. Analyzed GroupBeforeCreateEventHandler code example with logger
+2. Followed the pattern established in that example
+3. Identified all group lifecycle events
+4. Created consistent examples for each event type
+5. Used logger pattern throughout
+
+Key Documentation Decisions:
+- Use the GroupBeforeCreateEventHandler as the template
+- Include logger in all examples (imported from @webiny/api/logger)
+- Document before and after events for create, update, delete
+- Show validation and authorization patterns
+- Use Result pattern for error handling
+- Keep examples practical and production-ready
+- Maintain consistency across all event handlers
+
+Events Documented:
+1. Before Create - Validation and authorization before group creation
+2. After Create - Post-creation actions (logging, notifications)
+3. Before Update - Validation before updates
+4. After Update - Post-update actions
+5. Before Delete - Authorization and dependency checks
+6. After Delete - Cleanup operations
+
+Pattern Used:
+- Logger for debugging and monitoring
+- Result pattern for validation failures
+- Clear error messages
+- Type-safe event handlers
+- Practical use cases (duplicate checks, authorization, cleanup)
+
+Example Structure:
+- Import statements (logger from @webiny/api/logger)
+- Handler function with typed parameters
+- Logger info statements
+- Business logic (validation, checks)
+- Result.fail() for errors
+- Return result or continue
+
+Related Documents:
+- headless-cms/event-handler/model.mdx - Similar patterns
+- headless-cms/event-handler/entry.mdx - More event examples
+- headless-cms/use-case/group.mdx - Use case integration
+
+Event Handler Pattern:
+```typescript
+import { logger } from "@webiny/api/logger";
+import { Result } from "@webiny/feature/api";
+
+export const GroupBeforeCreateEventHandler = async ({ group, context }) => {
+    logger.info("Before creating group", { groupId: group.id });
+
+    // Validation example: Check for duplicates
+    const existing = await context.cms.groups.get(group.slug);
+    if (existing) {
+        return Result.fail(new ValidationError("Group with this slug already exists"));
+    }
+
+    // Authorization example
+    if (!context.security.hasPermission("cms.group.create")) {
+        return Result.fail(new AuthorizationError("Not authorized to create groups"));
+    }
+
+    // Continue if validation passes (return nothing)
+};
+```
+
+Required Imports:
+```typescript
+import { logger } from "@webiny/api/logger";
+import { Result } from "@webiny/feature/api";
+```
+
+Event Handler Structure:
+1. Import logger and Result
+2. Log the action with context
+3. Perform validation/authorization
+4. Return Result.fail() to stop processing
+5. Return nothing to continue
+
+Common Validations:
+- Duplicate checks (slug, name)
+- Authorization checks
+- Dependency validation (before delete)
+- Business rule enforcement
+
+Events to Document:
+- Before Create: Validation, authorization
+- After Create: Logging, notifications
+- Before Update: Change validation
+- After Update: Cache invalidation
+- Before Delete: Dependency checks
+- After Delete: Cleanup
+
+Tone Guidelines:
+- Production-ready examples
+- Show real validation scenarios
+- Use logger in every example
+- Maintain consistency across event handlers
+
