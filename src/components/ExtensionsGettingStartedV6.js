@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { usePage } from "@/hooks/usePage";
 import { CopyButton } from "./CopyButton";
 
 const watchTargets = {
@@ -9,7 +8,6 @@ const watchTargets = {
 };
 
 export const ExtensionsGettingStartedV6 = ({ type = "admin", fullExampleDownloadLink }) => {
-    const { page } = usePage();
     const watchTarget = watchTargets[type] || type;
     const watchCommand = `yarn webiny watch ${watchTarget}`;
     const downloadCommand = fullExampleDownloadLink

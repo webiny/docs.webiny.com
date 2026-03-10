@@ -1,0 +1,52 @@
+---
+id: es6k8rbn
+title: Environment-Specific Configuration
+description: Learn how to apply different infrastructure configuration per deployment environment.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to apply different infrastructure settings per environment using `Infra.Env.Is`
+
+</Alert>
+
+## Overview
+
+It's common to want different infrastructure settings per environment — for example, enabling OpenSearch only in production, or applying different AWS tags per environment. Use `Infra.Env.Is` to conditionally apply any `Infra.*` configuration.
+
+## Configuration
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Env.Is env={["prod", "production", "staging"]}>
+        <Infra.Aws.Tags tags={{ ENV: "production" }} />
+        <Infra.OpenSearch enabled={true} />
+      </Infra.Env.Is>
+
+      <Infra.Env.Is env={"dev"}>
+        <Infra.Aws.Tags tags={{ ENV: "non-production" }} />
+        <Infra.OpenSearch enabled={false} />
+      </Infra.Env.Is>
+    </>
+  );
+};
+```
+
+`Infra.Env.Is` accepts either a single environment name string or an array of names. Any `Infra.*` component can be nested inside it.
+
+## Redeploying After Changes
+
+After making changes, redeploy by running the [`webiny deploy`](/docs/{version}/cli/deploy) command:
+
+```
+yarn webiny deploy
+```
+
+Use `--env <name>` to target a specific environment if needed.
