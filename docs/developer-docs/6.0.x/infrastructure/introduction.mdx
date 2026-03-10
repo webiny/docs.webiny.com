@@ -1,30 +1,38 @@
 ---
 id: a9infra01
-title: Overview
-description: Overview of Webiny's cloud infrastructure and deployment options.
+title: Database Setups
+description: Learn about DynamoDB-only and DynamoDB + OpenSearch database configurations.
 ---
 
 import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
-- How Webiny applications are deployed to AWS
-- The difference between development and production deployment modes
-- Available database setup options
+- What database configurations Webiny supports
+- When to use DynamoDB-only vs DynamoDB + OpenSearch
+- How to choose the right setup for your environments
 
 </Alert>
 
+<!--
 ## Overview
 
-Webiny deploys to Amazon Web Services (AWS) as a serverless application. The infrastructure consists of three main applications:
+Webiny deploys to Amazon Web Services (AWS) as a serverless application. The infrastructure consists of three project applications:
 
 1. **Core** - Stateful resources (DynamoDB, S3, Cognito, EventBridge, OpenSearch)
 2. **API** - GraphQL HTTP API deployed as AWS Lambda functions
 3. **Admin** - Admin area deployed as a static React application
 
-Core application provides the foundational services that both API and Admin applications rely on, including databases, file storage, authentication, and event messaging.
+The Core project application provides the foundational services that both API and Admin project applications rely on, including databases, file storage, authentication, and event messaging.
 
-## Database Setup Options
+### Pulumi Stacks
+
+Each project application is deployed as a separate Pulumi stack. This separation enables you to deploy individual parts of your project independently. For example, you can deploy only the API project application without redeploying Core or Admin.
+
+This is particularly useful for the Core project application, which contains stateful resources that rarely change once deployed. After the initial Core deployment, most development work focuses on the API project application, where you add custom business logic and extensions.
+-->
+
+## Overview
 
 Webiny supports two database configurations:
 
@@ -36,37 +44,14 @@ Recommended for small to medium projects and prototypes. All data is stored in D
 
 Recommended for larger and enterprise projects. DynamoDB serves as the primary database, while OpenSearch provides advanced search and filtering capabilities for content.
 
+## Changing Database Setups
+
+Once you deploy to an environment with a specific database setup, it cannot be changed. You can only adjust the database configuration when deploying to a brand new environment.
+
+For flexibility and cost savings, developers often use DynamoDB-only in their dev environments, then switch to DynamoDB + OpenSearch for staging and production environments.
+
 <Alert type="info" title="Architecture Diagrams">
 
 The diagrams in upcoming sections show the DynamoDB + OpenSearch setup. For DynamoDB-only setups, the architecture is identical except OpenSearch is not deployed.
 
 </Alert>
-
-## Deployment Modes
-
-The API application supports two deployment modes:
-
-**Development Mode**
-
-- Default for all environments except `prod`
-- Simplified infrastructure for faster deployments
-- Lambda functions deployed without VPC
-- OpenSearch deployed in single availability zone
-
-**Production Mode**
-
-- Automatically used for `prod` environment
-- Enhanced security and high availability
-- Lambda functions deployed inside custom VPC with private subnets across three availability zones
-- OpenSearch deployed with three data nodes across three availability zones
-- Additional security controls and monitoring
-
-<Alert type="info" title="Admin Application">
-
-The Admin application does not have deployment modes. It uses the same infrastructure configuration across all environments.
-
-</Alert>
-
-## Custom VPC
-
-By default, Webiny creates and manages its own VPC for production deployments. For enterprise use cases, Webiny can be deployed into an existing VPC. Contact support for configuration details.

@@ -89,7 +89,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         icon={"/docs-menu-icons/webiny-overview.svg"}
         link={"infrastructure/introduction"}
       >
-        <Page link={"infrastructure/introduction"} />
+        <Page link={"infrastructure/introduction"} title={"Database Setups"} />
         <Page link={"infrastructure/core/overview"} title={"Core"} />
         <Page link={"infrastructure/api/overview"} title={"API"} />
         <Page link={"infrastructure/admin/overview"} title={"Admin Area"} />
