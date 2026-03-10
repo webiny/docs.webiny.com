@@ -97,7 +97,11 @@ Every page follows this order:
 
 ### Components
 
-Only one MDX component is used: `<Alert>` from `@/components/Alert`.
+Only two MDX components are used:
+
+#### Alert
+
+`<Alert>` from `@/components/Alert`.
 
 ```mdx
 import { Alert } from "@/components/Alert";
@@ -111,7 +115,9 @@ Alert types:
 - `type="info"` — supplemental links or context (inline, overview pages)
 - `type="warning"` — important cautions (inline, overview pages)
 
-No other custom components are used (no `<Tabs>`, `<Steps>`, etc.).
+#### Image
+
+- use <Image/> (src/components/Image.js) component when adding images
 
 ### Code Blocks
 

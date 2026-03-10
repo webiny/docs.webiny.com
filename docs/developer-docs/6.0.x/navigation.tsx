@@ -69,8 +69,9 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group
         title={"Website Builder"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
-        link={"website-builder/setup-nextjs"}
+        link={"website-builder/how-it-works"}
       >
+        <Page link={"website-builder/how-it-works"} title={"How It Works"} />
         <Page link={"website-builder/setup-nextjs"} title={"Setup Next.js Project"} />
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
@@ -109,6 +110,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"infrastructure/diagrams"} title={"Overview"} />
         <Page link={"infrastructure/introduction"} title={"Database Setups"} />
         <Page link={"infrastructure/deployment-modes"} title={"Deployment Modes"} />
+        <Page
+          link={"infrastructure/modify-cloud-infrastructure"}
+          title={"Modify Cloud Infrastructure"}
+        />
       </Group>
       <Group
         title={"Reference"}

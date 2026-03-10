@@ -5,30 +5,34 @@ description: Set up the Website Builder Next.js starter kit and connect it to yo
 ---
 
 import { Alert } from "@/components/Alert";
+import { Image } from "@/components/Image";
+import configureNextjsMenu from "./assets/configure-nextjs-menu.png";
+import configureNextjsDialog from "./assets/configure-nextjs-dialog.png";
+import apiKeyAutoCreated from "./assets/api-key-auto-created.png";
+import notFound from "./assets/not-found.png";
+import createPageDialog from "./assets/create-page-dialog.png";
+import heroEditor from "./assets/hero-editor.png";
+import heroRendered from "./assets/hero-rendered.png";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
-- How the Website Builder editor connects to your Next.js app
 - How to install and configure the Next.js starter kit
+- How to connect your Next.js app to Webiny
 - How to create and render your first page
 
 </Alert>
 
 ## Overview
 
-The Website Builder editor loads your Next.js application inside an iframe. When content editors drag components onto a page, they're interacting with your real React components and styles. Webiny stores only the page structure and component inputs—it has no knowledge of your components or styling.
+This guide walks through setting up the Website Builder Next.js starter kit and connecting it to your Webiny project. The starter kit provides pre-configured routing, SDK setup, and rendering so you can start building pages immediately.
 
-This architecture ensures true WYSIWYG editing while giving you complete control over your frontend code.
+For an explanation of how the Website Builder architecture works, see [How It Works](/docs/{version}/website-builder/how-it-works).
 
 ## Prerequisites
 
 - Running Webiny project (Core and API applications deployed)
-- Node.js 20.9+ installed
+- Node.js 20.9+ installed (Node.js 24+ still required if working with Webiny CLI)
 - Familiarity with Next.js App Router
-
-## Architecture
-
-The `@webiny/website-builder-nextjs` SDK connects the editor to your Next.js app via postMessage, handling communication during editing and fetching published page data during rendering.
 
 ## Installation
 
@@ -44,7 +48,7 @@ npm install
 
 ### Match Webiny Version
 
-Before installing dependencies, ensure the SDK versions in `package.json` match your Webiny version. Find your version at the bottom of the Admin sidebar or by running `webiny --version`.
+Before installing dependencies, ensure the SDK versions in `package.json` match your Webiny version. You can find your version by running `webiny --version` in your Webiny project directory.
 
 ```json package.json
 {
@@ -61,19 +65,33 @@ The `~` prefix allows safe patch updates.
 
 ### Get Credentials
 
-Open Webiny Admin and navigate to **Support → Configure Next.js**. The dialog displays three environment variables with values already filled:
+To connect the starter kit to your Webiny project, you'll need an API key, API host URL, and tenant ID. The easiest way to get these is through the **Configure Next.js** shortcut in Webiny Admin — click **Support** in the bottom-left corner and select **Configure Next.js**.
 
-- `NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY` - Auto-generated read-only API key
-- `NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST` - Your CloudFront API URL
-- `NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT` - Tenant ID (typically `root`)
+<Image
+  src={configureNextjsMenu}
+  alt="Webiny Admin sidebar with the Support menu open, showing the Configure Next.js option"
+/>
 
-Copy the entire block from the dialog.
+A dialog appears with the three environment variables already filled in and ready to copy:
 
-<Alert type="info" title="API Key Auto-Created">
+<Image
+  src={configureNextjsDialog}
+  alt="Configure Next.js dialog showing NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY, API_HOST, and API_TENANT pre-filled"
+/>
 
-The Website Builder automatically creates a read-only API key for your tenant. Find it under **Settings → Access Management → API Keys** as "Website Builder".
+Click the copy icon and paste the block directly into your `.env` file in the next step.
+
+<Alert type="info" title="Non-Localhost Admin">
+
+If your Admin is running on a non-localhost domain (i.e. a deployed CloudFront URL), the dialog will also include a `NEXT_PUBLIC_WEBSITE_BUILDER_ADMIN_HOST` variable — make sure to copy that too.
 
 </Alert>
+
+#### API Key Is Auto-Created
+
+Unlike the Headless CMS where you need to manually create an API key, the Website Builder API key is created automatically for the current tenant. You'll find it under **Settings → Access Management → API Keys** as "Website Builder". It's a read-only key, intentionally scoped that way since it's meant to be used in external frontend apps like your Next.js project.
+
+<Image src={apiKeyAutoCreated} alt="API Keys page showing the auto-created Website Builder key" />
 
 ### Set Environment Variables
 
@@ -97,6 +115,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). You'll see a "Page not found" message—this is expected since no pages exist yet.
 
+<Image
+  src={notFound}
+  alt="Browser showing the starter kit's 404 page with a Page not found message"
+/>
+
 ## Create Your First Page
 
 1. Open Webiny Admin
@@ -105,13 +128,23 @@ Open [http://localhost:3000](http://localhost:3000). You'll see a "Page not foun
 4. Set title to "Hello World" and path to `/`
 5. Click **Create**
 
+<Image
+  src={createPageDialog}
+  alt="Create a Page dialog with Title set to Hello World and Path set to /"
+/>
+
 In the page editor:
 
 1. Find **Hero #1** in the component palette (Custom group)
 2. Drag it onto the canvas
+
+<Image src={heroEditor} alt="Website Builder editor with the Hero #1 component on the canvas" />
+
 3. Click **Publish**
 
 Refresh [http://localhost:3000](http://localhost:3000). The hero component now renders on your homepage.
+
+<Image src={heroRendered} alt="Browser showing the Hero #1 component rendered on the homepage" />
 
 ## Project Structure
 
