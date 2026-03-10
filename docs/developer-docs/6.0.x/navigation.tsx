@@ -59,6 +59,13 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         </Group>
       </Group>
       <Group
+        title={"Admin"}
+        icon={"/docs-menu-icons/webiny-overview.svg"}
+        link={"admin/whitelabeling"}
+      >
+        <Page link={"admin/whitelabeling"} />
+      </Group>
+      <Group
         title={"Tenant Manager"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
         link={"tenant-manager/manage-tenants"}
@@ -85,14 +92,12 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"cli/info"} />
       </Group>
       <Group
-        title={"Infrastructure"}
+        title={"Cloud Infrastructure"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
-        link={"infrastructure/introduction"}
+        link={"infrastructure/diagrams"}
       >
+        <Page link={"infrastructure/diagrams"} title={"Overview"} />
         <Page link={"infrastructure/introduction"} title={"Database Setups"} />
-        <Page link={"infrastructure/core/overview"} title={"Core"} />
-        <Page link={"infrastructure/api/overview"} title={"API"} />
-        <Page link={"infrastructure/admin/overview"} title={"Admin Area"} />
         <Page link={"infrastructure/deployment-modes"} title={"Deployment Modes"} />
       </Group>
       <Group
