@@ -4,7 +4,7 @@ title: Result
 description: About Result
 ---
 
-import {Alert} from "@/components/Alert";
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
@@ -26,19 +26,19 @@ Instead of throwing exceptions, functions return a `Result` object that encapsul
 Let's say you have a function that performs some async call to an operation which you import from a dependency, and it can either return a result or throw an error.
 
 ```typescript
-import {Result} from "webiny/api";
-import {someOperation} from "some-module";
+import { Result } from "webiny/api";
+import { someOperation } from "some-module";
 
-const myMethod = async() => {
+const myMethod = async () => {
   try {
     const operationResult = await someOperation();
     return Result.ok(operationResult);
-  } catch(ex) {
+  } catch (ex) {
     return Result.fail(ex);
   }
-}
+};
 const result = await myMethod();
-if(result.isOk()) {
+if (result.isOk()) {
   console.log("Operation succeeded with value:", result.value);
 } else {
   console.error("Operation failed with error:", result.error);
@@ -54,15 +54,15 @@ When using the `Result` pattern the return types are inferred from the values pa
 For example, if you have a function that returns a `Result` object with a successful value of type `string` and an error of type `Error`, the return type would be `Result<string, Error>`.
 
 ```typescript
-import {Result} from "webiny/api";
-const myMethod = async(): Promise<Result<string, Error>> => {
+import { Result } from "webiny/api";
+const myMethod = async (): Promise<Result<string, Error>> => {
   try {
     const operationResult = await someOperation();
     return Result.ok(operationResult);
-  } catch(ex) {
+  } catch (ex) {
     return Result.fail(ex);
   }
-}
+};
 ```
 
 For more complex return types, you can define custom types for the success value and error value.
@@ -72,16 +72,16 @@ import type { Result } from "webiny/api";
 import type { NotAuthorizedError, ValueNotFoundError } from "webiny/api/error";
 
 export interface SuccessData {
-    id: string;
-    name: string;
+  id: string;
+  name: string;
 }
 export interface Success {
-    data: SuccessData;
-    timestamp: number;
+  data: SuccessData;
+  timestamp: number;
 }
 interface PossibleErrors {
-    notFound: ValueNotFoundError;
-    notAuthorized: NotAuthorizedError;
+  notFound: ValueNotFoundError;
+  notAuthorized: NotAuthorizedError;
 }
 
 type MyMethodErrors = PossibleErrors[keyof PossibleErrors];
@@ -89,11 +89,11 @@ type MyMethodErrors = PossibleErrors[keyof PossibleErrors];
 type ReturnOfTheMethod = Promise<Result<Success, MyMethodErrors>>;
 
 interface MyMethodParams {
-    id: string;
+  id: string;
 }
 
 export interface MyMethod {
-    (params: MyMethodParams): ReturnOfTheMethod;
+  (params: MyMethodParams): ReturnOfTheMethod;
 }
 ```
 
@@ -102,23 +102,25 @@ And then you can implement the method like this:
 ```typescript
 import { Result } from "webiny/api";
 
-const myMethod: MyMethod = async (params) => {
-    try {
-        const operationResult = await someOperation(params.id);
-        if (!operationResult) {
-            return Result.fail(new ValueNotFoundError(`Value with ID ${params.id} not found.`));
-        }
-        const successData: SuccessData = {
-            id: operationResult.id,
-            name: operationResult.name,
-        };
-        return Result.ok({
-            data: successData,
-            timestamp: Date.now(),
-        });
-    } catch (ex) {
-        return Result.fail(new NotAuthorizedError(`Not authorized to access value with ID ${params.id}.`));
+const myMethod: MyMethod = async params => {
+  try {
+    const operationResult = await someOperation(params.id);
+    if (!operationResult) {
+      return Result.fail(new ValueNotFoundError(`Value with ID ${params.id} not found.`));
     }
+    const successData: SuccessData = {
+      id: operationResult.id,
+      name: operationResult.name
+    };
+    return Result.ok({
+      data: successData,
+      timestamp: Date.now()
+    });
+  } catch (ex) {
+    return Result.fail(
+      new NotAuthorizedError(`Not authorized to access value with ID ${params.id}.`)
+    );
+  }
 };
 ```
 
@@ -140,8 +142,8 @@ export type IGetEntryByIdError = Result.UnwrapError<GetEntryByIdUseCase.Result>;
 
 This can be useful when you want to use return types from the system through your own code, but the types are not directly available for import.
 
-
 ## Conclusion
+
 The `Result` pattern is a powerful way to handle success and failure in your code without relying on exceptions.
 By using the `Result` class, you can create functions that return a `Result` object, making it easier to manage errors and success values in a consistent manner.
 Additionally, the ability to infer return types from the `Result` object allows for better type safety and clarity in your code.

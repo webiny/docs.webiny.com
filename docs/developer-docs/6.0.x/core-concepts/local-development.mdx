@@ -1,0 +1,174 @@
+---
+id: ld8v3lpm
+title: Local Development
+description: How to develop Webiny applications locally with watch commands.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+  - How local development works in Webiny - Using watch commands for Admin and API - Understanding
+  Local AWS Lambda Development
+</Alert>
+
+## Overview
+
+Webiny provides a streamlined local development experience through watch commands. You can develop both Admin UI and API extensions locally while connected to your deployed AWS infrastructure. This hybrid approach gives you fast iteration with a realistic environment.
+
+## Prerequisites
+
+Before starting local development, deploy Core and API applications:
+
+```bash
+yarn webiny deploy core api
+```
+
+<Alert type="info" title="Admin Deployment Optional">
+  You don't need to deploy the Admin app for local development. Only deploy it with `yarn webiny
+  deploy admin` when you need a CloudFront URL to share with others or test in production-like
+  conditions.
+</Alert>
+
+## Admin Development
+
+### Starting the Dev Server
+
+```bash
+yarn webiny watch admin
+```
+
+This command:
+
+- Starts development server on `http://localhost:3001`
+- Enables hot module replacement
+- Watches for changes in Admin extensions
+- Provides instant feedback on changes
+
+### What You Can Develop
+
+- Custom Admin UI extensions
+- White-label branding and themes
+- Custom navigation items
+- New Admin pages and views
+
+## API Development
+
+### Local AWS Lambda Development
+
+API development uses a unique approach that runs Lambda code locally while connected to cloud services:
+
+```bash
+yarn webiny watch api
+```
+
+### How It Works
+
+1. **Lambda Stubs Deployed** - Cloud Lambda functions replaced with forwarding stubs
+2. **Event Forwarding** - AWS requests forwarded to your local machine
+3. **Local Execution** - Code runs locally with full Lambda context
+4. **Response Routing** - Results sent back through Lambda stub
+
+<Alert type="info" title="Why This Hybrid Approach?">
+  This hybrid approach (code runs locally, but connects to cloud services) exists because of the
+  serverless nature of the services Webiny relies on. Running DynamoDB, OpenSearch, S3, Cognito, and
+  other AWS services entirely locally would be complex and unreliable. It's simpler and more
+  practical to run your code locally while connecting to real AWS infrastructure - you get fast
+  iteration with a realistic environment.
+</Alert>
+
+### What You Can Develop
+
+- **GraphQL Schemas** - Custom types and fields
+- **Resolvers** - Business logic and data fetching
+- **Event Handlers** - Lifecycle hooks and reactions
+- **Custom Endpoints** - REST APIs or webhooks
+- **Background Tasks** - Async processing logic
+
+### Important Considerations
+
+<Alert type="warning" title="Redeploy After Watch">
+When you stop the watch command, Lambda functions still contain stub code. You must redeploy to restore actual Lambda code:
+
+```bash
+yarn webiny deploy api
+```
+
+The watch command will remind you when you stop it.
+
+</Alert>
+
+## Infrastructure Development
+
+Infrastructure changes require deployment and cannot be tested with watch commands:
+
+```tsx webiny.config.tsx
+// Infrastructure extensions
+<Infra.Core.Pulumi src={"/extensions/infrastructure/core.ts"} />
+<Infra.Api.Pulumi src={"/extensions/infrastructure/api.ts"} />
+<Infra.Admin.Pulumi src={"/extensions/infrastructure/admin.ts"} />
+```
+
+To apply infrastructure changes:
+
+```bash
+yarn webiny deploy <app>  # core, api, or admin
+```
+
+## Development Workflow
+
+### Initial Setup
+
+For new team members:
+
+```bash
+# Clone repository
+git clone <repository-url>
+cd <project-name>
+
+# Install dependencies
+yarn
+
+# Deploy core infrastructure
+yarn webiny deploy core api
+
+# Start developing!
+yarn webiny watch admin
+# or
+yarn webiny watch api
+```
+
+### Daily Development
+
+1. **Start watch command** for the app you're working on
+2. **Make changes** in `extensions/` folder
+3. **Test locally** with immediate feedback
+4. **Deploy when ready** to share or update infrastructure
+
+### Concurrent Development
+
+Run multiple watch commands in separate terminals:
+
+```bash
+# Terminal 1
+yarn webiny watch admin
+
+# Terminal 2
+yarn webiny watch api
+```
+
+## Website Builder Development
+
+If you're developing with Website Builder, you'll need to run your website application locally (e.g., a Next.js app) in addition to the watch commands.
+
+<Alert type="info" title="Website Builder Integration">
+  Website Builder development workflow and setup is covered in detail in the Website Builder section
+  of the documentation.
+</Alert>
+
+## TypeScript and Build Validation
+
+Webiny enforces TypeScript checking:
+
+- **IDE Support** - Real-time type errors
+- **Build Validation** - Compilation fails on type errors
+- **Deployment Safety** - Errors caught before production
