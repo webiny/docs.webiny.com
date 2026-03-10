@@ -1,0 +1,104 @@
+AI Context: Production Mode (production.mdx)
+
+Source of Information:
+1. /docs/developer-docs/5.39.x/architecture/deployment-modes/production.mdx - original v5 documentation
+2. AWS VPC documentation on NAT Gateways and private subnets
+3. AWS documentation on multi-AZ deployments
+4. AWS documentation on VPC endpoints
+5. AWS Lambda documentation on VPC configuration
+
+Key Documentation Decisions:
+1. Removed FAQ section - integrated into main text
+2. Removed verbose Alert about VPC concepts - kept it brief
+3. Created "Key Components" section to explain each network resource
+4. Created "Multi-Availability Zone Deployment" section to explain HA benefits
+5. Created "Security and Network Isolation" section to explain security benefits
+6. Added "Customization" section to acknowledge that the setup can be modified
+7. Changed "WHAT YOU'LL LEARN" to 3 focused questions
+8. Removed "Description" heading and "Key Differences" subsection - reorganized into clearer sections
+9. Simplified explanations to be more concise and technical
+10. Kept the cost warning Alert (important for users to know)
+11. Kept the VPC endpoints Alert (valuable optimization suggestion)
+
+Understanding Custom VPC:
+- Production mode creates a new VPC (not the default VPC)
+- VPC has a custom CIDR block (e.g., 10.0.0.0/16)
+- Subnets are divided into public and private based on route tables
+- Public subnet: 1 subnet (Route table routes 0.0.0.0/0 → Internet Gateway)
+- Private subnets: 3 subnets across 3 AZs (Route table routes 0.0.0.0/0 → NAT Gateway)
+
+Production Mode Network Flow:
+- Lambda in private subnet → NAT Gateway (in public subnet) → Internet Gateway → Public internet
+- OpenSearch in private subnet → (same path for any internet-bound traffic)
+- External users → CloudFront → API Gateway → Lambda in private subnet
+- Lambda can be invoked but cannot be accessed directly from internet
+
+NAT Gateway:
+- Network Address Translation - allows outbound internet access from private subnets
+- Deployed in public subnet (has public IP and internet access)
+- Private subnet route table points 0.0.0.0/0 to NAT Gateway
+- NAT Gateway forwards to Internet Gateway
+- Provides outbound-only access (no inbound connections from internet)
+- Charged based on data processed (can be expensive)
+
+Public vs Private Subnets:
+- Public: Route to Internet Gateway, resources can have public IPs
+- Private: Route to NAT Gateway, resources have only private IPs
+- OpenSearch in private subnet: Cannot be accessed directly from developer machine
+- To access OpenSearch: Deploy jump box (bastion host) in public subnet, SSH tunnel
+
+Multi-AZ Benefits:
+- High availability: If one AZ fails, traffic routes to other two AZs
+- Fault tolerance: Application continues running despite AZ outage
+- Scalability: Distribute load across three AZs
+- OpenSearch: Three data nodes (one per AZ) following AWS best practices
+
+Multi-AZ Costs:
+- OpenSearch: Three data nodes instead of one (3x compute and storage cost)
+- NAT Gateway: Charged per hour + data transfer
+- Data transfer between AZs also has charges (small but measurable)
+
+Internet-Facing Resources:
+- DynamoDB (I), S3 (J), Cognito (K) are not in VPC - they're AWS managed services
+- Lambda communicates with them over public internet (even though Lambda is in private subnet)
+- Traffic path: Lambda → NAT Gateway → Internet Gateway → Public Internet → DynamoDB
+- VPC endpoints can optimize this: Lambda → VPC Endpoint → DynamoDB (stays in AWS network)
+
+VPC Endpoints:
+- PrivateLink endpoints for S3, DynamoDB, etc.
+- Keeps traffic within AWS network (doesn't go over public internet)
+- Reduces data transfer costs
+- Improves security (traffic never leaves AWS backbone)
+- Not included by default in Webiny (can be added via IaC customization)
+
+API Gateway and Lambda:
+- API Gateway is outside the VPC (it's an AWS managed service)
+- API Gateway can invoke Lambda in VPC (AWS handles this internally)
+- No special configuration needed for API Gateway → Lambda connection
+
+Bastion Host:
+- Jump box deployed in public subnet
+- Allows SSH access to private subnet resources
+- Example: SSH to bastion → SSH tunnel to OpenSearch
+- Not deployed by default in Webiny (add if needed)
+
+Code Patterns:
+- No code in this document - pure infrastructure diagram
+
+Related Documents:
+- infrastructure/deployment-modes/introduction.mdx - overview of modes
+- infrastructure/deployment-modes/development.mdx - comparison with development mode
+- infrastructure/api/overview.mdx - API infrastructure deployed in this VPC
+- infrastructure/core/overview.mdx - Core resources deployed in this VPC
+
+Key Code Locations:
+- Not applicable - infrastructure documentation only
+
+Tone Guidelines:
+- Technical and detailed - explain the custom VPC architecture thoroughly
+- Use section headings to organize concepts (Key Components, Multi-AZ, Security)
+- Focus on what each component does and why it exists
+- Mention costs clearly (NAT Gateway, multi-AZ OpenSearch)
+- Security section should explain the benefits without being preachy
+- Use Alerts for warnings (cost) and optimizations (VPC endpoints)
+- End with Customization section to acknowledge flexibility

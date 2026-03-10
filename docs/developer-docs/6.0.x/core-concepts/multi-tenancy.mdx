@@ -1,0 +1,270 @@
+---
+id: mt9n4ncy
+title: Multi-Tenancy
+description: How Webiny enables managing multiple isolated projects from a single instance.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+  - What multi-tenancy is in Webiny - How tenant isolation works - Common multi-tenancy patterns and
+  use cases
+</Alert>
+
+## Overview
+
+Multi-tenancy in Webiny allows a single instance to serve multiple tenants (clients/projects), each with completely isolated data and configuration. This architecture enables cost-effective management of multiple projects while maintaining strict data separation and security.
+
+<Alert type="warning" title="Business License Required">
+  Multi-tenancy features including custom hierarchies, granular access control, and automated
+  provisioning require a Business or Enterprise license.
+</Alert>
+
+## How It Works
+
+### Data Isolation
+
+Each tenant in Webiny has:
+
+- **Separate content models** - No shared schemas between tenants
+- **Isolated content entries** - Complete data separation
+- **Independent assets** - File storage partitioned by tenant
+- **Tenant-specific settings** - Individual configurations
+
+Unlike systems that simulate multi-tenancy with folders or prefixes, Webiny provides true isolation at the database level. Each tenant operates as if it has its own Webiny instance.
+
+### Default Hierarchy
+
+Webiny implements a two-level hierarchy by default:
+
+```
+Root Tenant
+├── Child Tenant A
+├── Child Tenant B
+└── Child Tenant C
+```
+
+- **Root Tenant** - Administrative level with oversight capabilities
+- **Child Tenants** - Isolated operational tenants
+
+### User Access Patterns
+
+**Root Tenant Users:**
+
+- Can access and manage child tenants
+- Switch between tenants via UI
+- Can be restricted to specific child tenants
+- Ideal for administrators and support staff
+
+**Child Tenant Users:**
+
+- Access only their own tenant's data
+- No visibility into other tenants
+- Standard content management permissions apply
+
+## Implementation
+
+### Enabling Multi-Tenancy
+
+Configure in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import { MultiTenancy } from "@webiny/multi-tenancy";
+
+export const Extensions = () => {
+  return (
+    <>
+      <MultiTenancy />
+      {/* Other extensions */}
+    </>
+  );
+};
+```
+
+### Tenant Management API
+
+Create and manage tenants programmatically:
+
+```typescript
+import { TenantManager } from "webiny/api/tenancy";
+
+// Create a new tenant
+const tenant = await tenantManager.create({
+  name: "Client ABC",
+  tags: ["agency-client", "tier-premium"],
+  settings: {
+    locale: "en-US",
+    timezone: "America/New_York"
+  }
+});
+
+// List tenants
+const tenants = await tenantManager.list({
+  where: {
+    tags: { $in: ["agency-client"] }
+  }
+});
+```
+
+### Custom Hierarchies
+
+Extend beyond the default two-level structure:
+
+```typescript
+// Example: Region > Country > Brand hierarchy
+class CustomTenantHierarchy implements TenantHierarchy.Interface {
+  async getParent(tenant: Tenant): Promise<Tenant | null> {
+    // Custom parent resolution logic
+  }
+
+  async getChildren(tenant: Tenant): Promise<Tenant[]> {
+    // Custom children resolution logic
+  }
+}
+```
+
+## Common Use Cases
+
+### Digital Agencies
+
+Managing multiple client websites:
+
+- Each client is a separate tenant
+- Agency staff access via root tenant
+- Client users access only their tenant
+- Shared templates and components
+
+### Enterprise Brands
+
+Large organizations with multiple properties:
+
+- Each brand/division as a tenant
+- Central marketing team oversight
+- Brand-specific content teams
+- Consistent governance across brands
+
+### SaaS Platforms
+
+Embedding CMS capabilities:
+
+- Each customer gets a tenant
+- Automated provisioning via API
+- Tenant-based billing and limits
+- White-label customization per tenant
+
+### Educational Institutions
+
+Department or course management:
+
+- Departments as tenants
+- Central IT administration
+- Department-specific content teams
+- Shared institutional resources
+
+## Advanced Features
+
+### Tenant Provisioning
+
+Automate tenant creation:
+
+```typescript
+// Hook into user registration
+export const OnUserSignup = createEventHandler({
+  event: "user.signup",
+  async handler({ user }) {
+    // Automatically create tenant for new user
+    const tenant = await tenantManager.create({
+      name: user.organization,
+      owner: user.id
+    });
+
+    // Set up default content models
+    await setupDefaultModels(tenant);
+
+    // Configure permissions
+    await assignUserToTenant(user, tenant);
+  }
+});
+```
+
+### Access Control
+
+Fine-grained tenant permissions:
+
+```typescript
+// Restrict root users to specific tenants
+const permission = {
+  name: "tenant.access",
+  tenants: ["tenant-1", "tenant-2"], // Whitelist specific tenants
+  actions: ["read", "update"] // Allowed actions
+};
+```
+
+### Content Sharing
+
+Share content between tenants:
+
+```typescript
+// Mark content as shareable
+const sharedContent = {
+  tenant: "root",
+  shared: true,
+  allowedTenants: ["*"] // Or specific tenant IDs
+};
+
+// Access shared content from child tenant
+const content = await cms.listEntries({
+  model: "article",
+  where: {
+    OR: [{ tenant: currentTenant }, { shared: true }]
+  }
+});
+```
+
+## Best Practices
+
+### Tenant Naming
+
+Use consistent naming conventions:
+
+- Include identifiers: `client-abc-prod`
+- Add environment: `client-abc-staging`
+- Use tags for categorization
+
+### Resource Limits
+
+Implement per-tenant limits:
+
+- Storage quotas
+- API rate limiting
+- User count restrictions
+- Content entry limits
+
+### Monitoring
+
+Track tenant-specific metrics:
+
+- API usage per tenant
+- Storage consumption
+- User activity
+- Performance metrics
+
+### Data Migration
+
+Plan for tenant lifecycle:
+
+- Tenant cloning for staging
+- Data export capabilities
+- Tenant archival process
+- Cross-tenant migrations
+
+## Performance Considerations
+
+Multi-tenancy in Webiny is designed for scale:
+
+- **Database partitioning** - Tenant data physically separated
+- **Query optimization** - Tenant ID in all queries
+- **Caching strategies** - Per-tenant cache keys
+- **CDN configuration** - Tenant-specific cache rules
+
+The architecture handles thousands of tenants without performance degradation, making it suitable for large-scale deployments.

@@ -1,0 +1,92 @@
+AI Context: Overview (api/overview.mdx)
+
+Source of Information:
+1. /docs/developer-docs/5.39.x/architecture/api/overview.mdx - original v5 architecture documentation
+2. AWS Lambda documentation on function invocation patterns
+3. AWS API Gateway documentation on HTTP APIs
+4. AWS EventBridge documentation on event-driven architectures
+5. Webiny v6 API infrastructure configuration
+
+Key Documentation Decisions:
+1. Removed references to "project application" terminology throughout
+2. Removed verbose Alert explanations about Core resources - kept them brief
+3. Changed "WHAT YOU'LL LEARN" to focus on high-level questions
+4. Created sections for different resource types: API Resources, Event Processing, File Storage
+5. Simplified descriptions to be more concise and technical
+6. Removed detailed explanations of how components work together - that's covered in detail pages
+7. Focused on what resources exist and their primary purposes
+8. Used bold labels for resource names followed by brief descriptions
+9. Removed redundant information that's covered in other documents
+10. Changed title from "API Infrastructure Overview" to just "Overview" (context is clear from navigation)
+11. Removed Form Builder, Page Builder, and I18N applications (don't exist in v6)
+
+Understanding API Infrastructure:
+- The API application is the backend for both Admin Area
+- It's a serverless architecture using Lambda, API Gateway, EventBridge, SQS
+- All business logic runs in Lambda functions
+- API Gateway provides HTTP endpoints for GraphQL and file operations
+- EventBridge enables event-driven communication between components
+- SQS provides reliable message queuing for async operations
+
+Lambda Function Types:
+- GraphQL Handler: Main API endpoint, processes all GraphQL operations
+- File Upload/Download: Handles file operations (pre-signed URLs, downloads)
+- Background Tasks: Long-running jobs (data processing, cleanup)
+- Import/Export: Bulk operations (CSV import/export)
+- Event Handlers: React to EventBridge events (page publish, model changes)
+
+API Gateway Configuration:
+- HTTP API (not REST API) for lower cost and better performance
+- Routes all GraphQL requests to GraphQL Handler Lambda
+- Routes /upload/* and /download/* to File Manager Lambdas
+- Binary media type support for file downloads
+- CORS configured for Admin Area origins
+
+EventBridge Usage:
+- Emits events when entities are created, updated, or deleted
+- Decouples components (enables event-driven architecture)
+- Enables multiple consumers for the same event
+- Event patterns allow filtering and routing
+
+SQS Usage:
+- Buffers async operations (prerendering, data processing)
+- Provides retry logic and dead-letter queues
+- Decouples producers from consumers
+- Ensures reliable processing of background jobs
+
+File Storage:
+- S3 buckets for uploaded files and application code
+- Organized by purpose (file-manager, admin-app, api-code)
+- Each bucket has specific access policies and lifecycle rules
+
+Stateful Resources (from Core):
+- Amazon Cognito: User authentication and management
+- Amazon DynamoDB: Primary database for structured data
+- Amazon OpenSearch Service: Full-text search and analytics
+- These are shown in the diagram but deployed separately
+
+Deployment Modes:
+- VPC configuration differs between development and production modes
+- Lambda functions may run in private subnets (production) or public subnets (development)
+- See deployment-modes documentation for network-level details
+
+Code Patterns:
+- No code in this document - pure infrastructure overview
+
+Related Documents:
+- infrastructure/api/graphql-requests.mdx - GraphQL request flow detail
+- infrastructure/api/file-upload.mdx - file upload flow detail
+- infrastructure/api/file-download.mdx - file download flow detail
+- infrastructure/core/overview.mdx - stateful resources (Cognito, DynamoDB, OpenSearch)
+- infrastructure/deployment-modes/introduction.mdx - VPC and network configuration
+
+Key Code Locations:
+- Not applicable - infrastructure documentation only
+
+Tone Guidelines:
+- Technical and concise - "HTTP API that routes requests to Lambda functions"
+- Use bold labels for resource names followed by brief descriptions
+- Focus on what exists and its primary purpose, not implementation details
+- Use bullet lists for Lambda function types (easy to scan)
+- Assume reader will read detail pages for how components interact
+- No verbose explanations or justifications - this is an overview

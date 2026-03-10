@@ -1,0 +1,57 @@
+AI Context: Deployment Modes (deployment-modes.mdx)
+
+Source of Information:
+1. /docs/developer-docs/6.0.x/infrastructure/deployment-modes/introduction.mdx - overview content
+2. /docs/developer-docs/6.0.x/infrastructure/deployment-modes/development.mdx - dev mode details
+3. /docs/developer-docs/6.0.x/infrastructure/deployment-modes/production.mdx - prod mode details
+4. AWS VPC documentation on NAT Gateways, private subnets, and multi-AZ deployments
+
+Key Documentation Decisions:
+1. Combined three separate pages (introduction, development, production) into one
+2. Removed duplicate "WHAT YOU'LL LEARN" sections - kept only one at top
+3. Made Development Mode and Production Mode H2 sections instead of separate pages
+4. Kept both infrastructure diagrams (one for dev, one for prod)
+5. Maintained technical depth while improving scanability
+6. Kept all Alerts (VPC info, cost warnings, VPC endpoints)
+7. Removed diagram letter references in dev mode (simplified)
+8. Added "Key Components" subsection under Production Mode for clarity
+9. Merged "Cost Implications" from introduction with content from other sections
+
+Understanding Deployment Modes:
+- Two modes: development (default VPC) and production (custom VPC)
+- Mode selection is automatic based on environment name (prod = production mode)
+- Development: AWS default VPC, public subnets, single AZ OpenSearch, lower cost
+- Production: Custom VPC, private subnets, 3 AZs, 3 OpenSearch nodes, higher security
+- Only affects API infrastructure (Core and Admin are the same across modes)
+- NAT Gateway enables outbound internet from private subnets in production
+- Cost difference mainly from NAT Gateway and 3x OpenSearch nodes
+
+Development Mode Details:
+- Uses AWS default VPC (automatically created for every account)
+- Three public subnets across three AZs
+- Lambda functions and OpenSearch can access internet directly via Internet Gateway
+- OpenSearch deployed in single AZ to save costs
+- Resources have direct internet access (less secure)
+
+Production Mode Details:
+- Creates custom VPC with public + private subnets
+- 1 public subnet + 3 private subnets across 3 AZs
+- NAT Gateway in public subnet enables outbound internet from private subnets
+- Lambda and OpenSearch in private subnets (not directly accessible from internet)
+- OpenSearch: 3 data nodes (one per AZ) following AWS best practices
+- Higher costs: NAT Gateway data transfer + 3x OpenSearch compute/storage
+
+Related Documents:
+- infrastructure/introduction.mdx - mentions deployment modes in overview
+- infrastructure/core/overview.mdx - stateful resources same across both modes
+- infrastructure/api/overview.mdx - API resources affected by deployment modes
+
+Key Code Locations:
+- Not applicable - infrastructure documentation only
+
+Tone Guidelines:
+- Technical and informative - explain AWS networking concepts clearly
+- Use section headings to organize (Development Mode, Production Mode, etc.)
+- Bold labels for key components followed by brief explanations
+- Keep security and cost information prominent (Alerts)
+- Direct comparisons between modes where helpful

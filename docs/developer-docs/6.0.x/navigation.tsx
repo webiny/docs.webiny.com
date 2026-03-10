@@ -7,7 +7,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group
         title={"Get Started"}
         icon={"/docs-menu-icons/get-started.svg"}
-        link={"get-started/quickstart"}
+        link={"get-started/welcome"}
       >
         <Page link={"get-started/welcome"} />
         <Page link={"get-started/quickstart"} />
@@ -22,15 +22,26 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         link={"build-with-ai/ai-assisted-development"}
       >
         <Page link={"build-with-ai/ai-assisted-development"} />
-        <Page link={"build-with-ai/extensions"} />
-        <Page link={"build-with-ai/debugging-and-best-practices"} />
         <Page link={"build-with-ai/configure-mcp-server"} />
       </Group>
-      <Group title={"Basic"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"basic/result"}>
-        <Page link={"basic/result"} />
-        <Page link={"basic/di"} />
-      </Group>
       <Group
+        title={"Core Concepts"}
+        icon={"/docs-menu-icons/webiny-overview.svg"}
+        link={"core-concepts/project-structure"}
+      >
+        <Page hidden link={"core-concepts/architecture"} />
+        <Page hidden link={"core-concepts/applications"} />
+        <Page link={"core-concepts/project-structure"} />
+        <Page link={"core-concepts/extensions"} />
+        <Page hidden link={"core-concepts/di"} />
+        <Page hidden link={"core-concepts/result"} />
+        <Page hidden link={"core-concepts/multi-tenancy"} />
+        <Page link={"core-concepts/local-development"} />
+        <Page link={"core-concepts/environment-variables"} />
+        <Page link={"core-concepts/webiny-sdk"} />
+        <Page link={"core-concepts/debugging"} />
+      </Group>
+      {/* <Group
         title={"Headless CMS"}
         icon={"/docs-menu-icons/headless-cms.svg"}
         link={"headless-cms/about"}
@@ -56,8 +67,16 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Group title={"UI"}>
           <Page link={"headless-cms/ui/field-renderer"} />
         </Group>
-      </Group>
+      </Group> */}
       <Group
+        title={"Admin"}
+        icon={"/docs-menu-icons/webiny-overview.svg"}
+        link={"admin/whitelabeling"}
+      >
+        <Page link={"admin/whitelabeling"} />
+      </Group>
+      {/* Hidden sections - uncomment to show */}
+      {/* <Group
         title={"Tenant Manager"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
         link={"tenant-manager/manage-tenants"}
@@ -74,6 +93,23 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"tasks/about"} />
         <Page link={"tasks/reference"} />
         <Page link={"tasks/management"} />
+      </Group> */}
+      <Group title={"CLI"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
+        <Page link={"cli/deploy"} />
+        <Page link={"cli/destroy"} />
+        <Page link={"cli/output"} />
+        <Page link={"cli/watch"} />
+        <Page link={"cli/pulumi"} />
+        <Page link={"cli/info"} />
+      </Group>
+      <Group
+        title={"Cloud Infrastructure"}
+        icon={"/docs-menu-icons/webiny-overview.svg"}
+        link={"infrastructure/diagrams"}
+      >
+        <Page link={"infrastructure/diagrams"} title={"Overview"} />
+        <Page link={"infrastructure/introduction"} title={"Database Setups"} />
+        <Page link={"infrastructure/deployment-modes"} title={"Deployment Modes"} />
       </Group>
       <Group
         title={"Reference"}
