@@ -5,7 +5,7 @@ import { Header } from "@/components/page/Header";
 import { SearchProvider } from "@/components/page/Search";
 import { usePage } from "@/hooks/usePage";
 import { Title } from "@/components/Title";
-import socialCardLarge from "@/img/webiny-social-share.jpg";
+import socialCardLarge from "@/img/webiny-social-share.png";
 
 export const Page = () => {
     const { MdxPage, Layout, page } = usePage();
