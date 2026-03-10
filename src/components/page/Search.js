@@ -5,6 +5,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { DocSearchModal } from "@docsearch/react";
 import { useActionKey } from "@/hooks/useActionKey";
+import { stripBasePath } from "@/utils/stripBasePath";
 
 const INDEX_NAME = "webiny-js";
 const API_KEY = "2546465e46871091a6fd8f2c1272f318";
@@ -93,7 +94,7 @@ export function SearchProvider({ children }) {
                     navigator={{
                         navigate(item) {
                             setInitialQuery(item.state.query);
-                            router.push(item.itemUrl);
+                            router.push(stripBasePath(item.itemUrl));
                             setIsOpen(false);
                         }
                     }}
@@ -116,7 +117,7 @@ export function SearchProvider({ children }) {
 }
 
 function Hit({ hit, children }) {
-    return <Link href={hit.url}>{children}</Link>;
+    return <Link href={stripBasePath(hit.url)}>{children}</Link>;
 }
 
 export function SearchButton({ children, ...props }) {

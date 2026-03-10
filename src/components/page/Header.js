@@ -125,7 +125,7 @@ export function NavItems() {
         <>
             <li>
                 <Link
-                    href="/docs/get-started/welcome"
+                    href="/get-started/welcome"
                     className={`text-nav-subdirectory ${activeClass("docs")}`}
                 >
                     Developer Docs
@@ -133,7 +133,7 @@ export function NavItems() {
             </li>
             <li>
                 <Link
-                    href="/docs/release-notes/upgrade-webiny"
+                    href="/release-notes/upgrade-webiny"
                     className={`text-nav-subdirectory ${activeClass("release-notes")}`}
                 >
                     Release Notes
@@ -141,7 +141,7 @@ export function NavItems() {
             </li>
             <li>
                 <Link
-                    href="/docs/user-guides/overview"
+                    href="/user-guides/overview"
                     className={`text-nav-subdirectory ${activeClass("user-guides")}`}
                 >
                     User Guides
@@ -149,7 +149,7 @@ export function NavItems() {
             </li>
             <li>
                 <Link
-                    href="/docs/handbook/company/why-webiny-exists"
+                    href="/handbook/company/why-webiny-exists"
                     className={`text-nav-subdirectory ${activeClass("handbook")}`}
                 >
                     Company Handbook

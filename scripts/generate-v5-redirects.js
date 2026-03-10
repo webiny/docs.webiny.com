@@ -10,8 +10,8 @@
 const fs = require("fs");
 const path = require("path");
 
-const DOCS_DIR = path.resolve(__dirname, "../src/pages/docs");
-const FIVE_X_DIR = path.join(DOCS_DIR, "5.x");
+const PAGES_DIR = path.resolve(__dirname, "../src/pages");
+const FIVE_X_DIR = path.join(PAGES_DIR, "5.x");
 const OUTPUT_FILE = path.resolve(__dirname, "../src/v5-redirect-manifest.json");
 
 /**
@@ -44,11 +44,11 @@ function collectPageSlugs(dir, baseDir) {
 }
 
 /**
- * Collect all latest-level page slugs (everything under src/pages/docs/ except versioned dirs).
+ * Collect all latest-level page slugs (everything under src/pages/ except versioned dirs and Next.js internals).
  */
 function collectLatestSlugs() {
     const slugs = new Set();
-    const entries = fs.readdirSync(DOCS_DIR, { withFileTypes: true });
+    const entries = fs.readdirSync(PAGES_DIR, { withFileTypes: true });
 
     for (const entry of entries) {
         // Skip versioned directories (e.g., 5.x, 6.0.x, 5.39.x)
@@ -56,12 +56,17 @@ function collectLatestSlugs() {
             continue;
         }
 
-        const fullPath = path.join(DOCS_DIR, entry.name);
+        // Skip Next.js internal files
+        if (entry.name.startsWith("_")) {
+            continue;
+        }
+
+        const fullPath = path.join(PAGES_DIR, entry.name);
 
         if (entry.isDirectory()) {
-            const childSlugs = collectPageSlugs(fullPath, DOCS_DIR);
+            const childSlugs = collectPageSlugs(fullPath, PAGES_DIR);
             childSlugs.forEach(slug => slugs.add(slug));
-        } else if (entry.isFile() && entry.name.endsWith(".js") && !entry.name.startsWith("_")) {
+        } else if (entry.isFile() && entry.name.endsWith(".js")) {
             const slug = entry.name.replace(/\.js$/, "");
             slugs.add(slug);
         }

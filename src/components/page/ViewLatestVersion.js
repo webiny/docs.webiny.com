@@ -15,7 +15,7 @@ export const ViewLatestVersion = () => {
                 <Alert type={"warning"} title={"Warning"}>
                     You&apos;re browsing the documentation for an old version of Webiny. Consider
                     upgrading your project to Webiny{" "}
-                    <Link href={"/docs/get-started/welcome"}>
+                    <Link href={"/get-started/welcome"}>
                         {page.versions.latestVersion}
                     </Link>
                     .
@@ -28,7 +28,7 @@ export const ViewLatestVersion = () => {
                 <Alert type={"warning"} title={"Warning"}>
                     You&apos;re browsing the documentation for an old version of Webiny. Consider
                     upgrading your project to Webiny{" "}
-                    <Link href={"/docs/user-guides/overview"}>{page.versions.latestVersion}</Link>.
+                    <Link href={"/user-guides/overview"}>{page.versions.latestVersion}</Link>.
                 </Alert>
             </div>
         );

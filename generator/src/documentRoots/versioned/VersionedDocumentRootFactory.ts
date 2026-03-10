@@ -50,7 +50,7 @@ import { PublicMdxFileWriter } from "../../app/PublicMdxFileWriter";
 
 interface Config {
   rootDir: string;
-  linkPrefix: `/${string}`;
+  linkPrefix: `/${string}` | "";
   outputDir: string;
   pageLayout: string;
   versionsProvider: IVersionsProvider;

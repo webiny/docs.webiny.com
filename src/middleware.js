@@ -5,6 +5,8 @@ import v5RedirectSlugs from "./v5-redirect-manifest.json";
 const v5Slugs = new Set(v5RedirectSlugs);
 
 export function middleware(request) {
+    // With basePath: "/docs", Next.js strips the /docs prefix before invoking middleware.
+    // So pathname is relative to basePath (e.g., /get-started/welcome instead of /docs/get-started/welcome).
     const { pathname } = request.nextUrl;
     const acceptHeader = request.headers.get("accept") || "";
 
@@ -16,7 +18,7 @@ export function middleware(request) {
         const cleanPath = pathname.replace(/\.(mdx|md)$/, "");
         const url = request.nextUrl.clone();
 
-        // Rewrite to static file in public/raw/
+        // Rewrite to static file in public/raw/ (public assets are served under basePath)
         url.pathname = "/docs-static/raw" + cleanPath + ".mdx";
 
         const response = NextResponse.rewrite(url);
@@ -25,19 +27,15 @@ export function middleware(request) {
     }
 
     // --- V5 fallback redirects ---
-    // If a /docs/{slug} page doesn't exist at the latest level but exists in 5.x,
-    // permanently redirect to /docs/5.x/{slug} to preserve SEO.
-    if (pathname.startsWith("/docs/") && !pathname.startsWith("/docs/5.x/")) {
-        const slug = pathname.replace(/^\/docs\//, "").replace(/\/$/, "");
+    // If a /{slug} page doesn't exist at the latest level but exists in 5.x,
+    // permanently redirect to /5.x/{slug} to preserve SEO.
+    // Skip versioned paths (e.g., /5.40.x/..., /6.0.x/...)
+    const slug = pathname.replace(/^\//, "").replace(/\/$/, "");
 
-        // Skip if this is already a versioned path (e.g., /docs/6.0.x/...)
-        if (/^\d/.test(slug)) {
-            return NextResponse.next();
-        }
-
+    if (slug && !/^\d/.test(slug) && !slug.startsWith("5.x/")) {
         if (v5Slugs.has(slug)) {
             const url = request.nextUrl.clone();
-            url.pathname = `/docs/5.x/${slug}`;
+            url.pathname = `/5.x/${slug}`;
             return NextResponse.redirect(url, 301);
         }
     }

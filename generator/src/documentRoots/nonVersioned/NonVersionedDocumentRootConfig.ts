@@ -13,7 +13,7 @@ export interface NonVersionedMdxFileFactoryCallable {
 
 interface NonVersionedDocumentRootConfigParams {
   rootDir: string;
-  linkPrefix: `/${string}`;
+  linkPrefix: `/${string}` | "";
   outputDir: string;
   pageLayout: string;
   mdxFileFactory: NonVersionedMdxFileFactoryCallable;

@@ -6,7 +6,7 @@ export const Navigation = () => {
     <NavigationRoot directory={__dirname}>
       <Group
         title={"Get Started"}
-        icon={"/docs-menu-icons/get-started.svg"}
+        icon={"/menu-icons/get-started.svg"}
         link={"get-started/welcome"}
       >
         <Page link={"get-started/welcome"} />
@@ -15,7 +15,7 @@ export const Navigation = () => {
       </Group>
       <Group
         title={"Webiny Overview"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
+        icon={"/menu-icons/webiny-overview.svg"}
         link={"overview/why-and-when-to-use-webiny"}
       >
         <Page link={"overview/why-and-when-to-use-webiny"} />
@@ -50,7 +50,7 @@ export const Navigation = () => {
       <Separator />
       <Group
         title={"Headless CMS"}
-        icon={"/docs-menu-icons/headless-cms.svg"}
+        icon={"/menu-icons/headless-cms.svg"}
         link={"headless-cms/overview"}
       >
         <Page link={"headless-cms/overview"} hidden={true} />
@@ -105,7 +105,7 @@ export const Navigation = () => {
       </Group>
       <Group
         title={"Page Builder"}
-        icon={"/docs-menu-icons/page-builder.svg"}
+        icon={"/menu-icons/page-builder.svg"}
         link={"page-builder/theming/introduction"}
       >
         <Page link={"page-builder/overview"} hidden={true} />
@@ -136,7 +136,7 @@ export const Navigation = () => {
       </Group>
       <Group
         title={"Form Builder"}
-        icon={"/docs-menu-icons/form-builder.svg"}
+        icon={"/menu-icons/form-builder.svg"}
         link={"form-builder/theming/introduction"}
       >
         <Group title={"Theming"}>
@@ -149,7 +149,7 @@ export const Navigation = () => {
       </Group>
       <Group
         title={"File Manager"}
-        icon={"/docs-menu-icons/file-manager.svg"}
+        icon={"/menu-icons/file-manager.svg"}
         link={"file-manager/extending/customize-file-preview"}
       >
         <Group title={"Extensions"}>
@@ -170,7 +170,7 @@ export const Navigation = () => {
           <Page link={"file-manager/integrations/programmatic-file-upload"} />
         </Group>
       </Group>
-      <Group title={"Security"} icon={"/docs-menu-icons/wcp.svg"} link={"security/overview"}>
+      <Group title={"Security"} icon={"/menu-icons/wcp.svg"} link={"security/overview"}>
         <Page link={"security/overview"} hidden={true} />
         <Group title={"Security Framework"}>
           <Page link={"security/security-framework/introduction"} />
@@ -183,7 +183,7 @@ export const Navigation = () => {
       </Group>
       <Group
         title={"Admin Area"}
-        icon={"/docs-menu-icons/admin.svg"}
+        icon={"/menu-icons/admin.svg"}
         link={"admin-area/basics/framework"}
       >
         <Group title={"Basics"}>
@@ -207,7 +207,7 @@ export const Navigation = () => {
       <Separator />
       <Group
         title={"Core Development Concepts"}
-        icon={"/docs-menu-icons/core-dev-concepts.svg"}
+        icon={"/menu-icons/core-dev-concepts.svg"}
         link={"core-development-concepts/basics/extensions"}
       >
         <Group title={"Basics"}>
@@ -290,7 +290,7 @@ export const Navigation = () => {
       </Group>
       <Group
         title={"Infrastructure"}
-        icon={"/docs-menu-icons/infrastructure.svg"}
+        icon={"/menu-icons/infrastructure.svg"}
         link={"infrastructure/basics/introduction"}
       >
         <Group title={"Basics"}>
@@ -317,7 +317,7 @@ export const Navigation = () => {
       </Group>
       <Group
         title={"Architecture"}
-        icon={"/docs-menu-icons/architecture.svg"}
+        icon={"/menu-icons/architecture.svg"}
         link={"architecture/introduction"}
       >
         <Page link={"architecture/introduction"} />
@@ -347,7 +347,7 @@ export const Navigation = () => {
       </Group>
       <Group
         title={"Performance & Load Benchmark"}
-        icon={"/docs-menu-icons/benchmark.svg"}
+        icon={"/menu-icons/benchmark.svg"}
         link={"performance-and-load-benchmark/introduction"}
       >
         <Page link={"performance-and-load-benchmark/introduction"} />
@@ -364,7 +364,7 @@ export const Navigation = () => {
       <Separator />
       <Group
         title={"Webiny Enterprise"}
-        icon={"/docs-menu-icons/enterprise.svg"}
+        icon={"/menu-icons/enterprise.svg"}
         link={"enterprise/multi-tenancy"}
       >
         <Page link={"enterprise/multi-tenancy"} />
@@ -382,14 +382,14 @@ export const Navigation = () => {
           <Page link={"enterprise/aacl/private-files"} />
         </Group>
       </Group>
-      <Group title={"Webiny Control Panel"} icon={"/docs-menu-icons/wcp.svg"} link={"wcp/overview"}>
+      <Group title={"Webiny Control Panel"} icon={"/menu-icons/wcp.svg"} link={"wcp/overview"}>
         <Page link={"wcp/overview"} />
         <Page link={"wcp/link-a-project"} />
       </Group>
       <Separator />
       <Group
         title={"Release Management"}
-        icon={"/docs-menu-icons/release-management.svg"}
+        icon={"/menu-icons/release-management.svg"}
         link={"release-management/branching-strategy"}
       >
         <Page link={"release-management/branching-strategy"} />
@@ -397,14 +397,14 @@ export const Navigation = () => {
       </Group>
       <Group
         title={"Community Plugins"}
-        icon={"/docs-menu-icons/community-plugins.svg"}
+        icon={"/menu-icons/community-plugins.svg"}
         link={"community-plugins/introduction"}
       >
         <Page link={"community-plugins/introduction"} />
       </Group>
       <Group
         title={"Webiny Telemetry"}
-        icon={"/docs-menu-icons/telemetry.svg"}
+        icon={"/menu-icons/telemetry.svg"}
         link={"webiny-telemetry/webiny-telemetry"}
       >
         <Page link={"webiny-telemetry/webiny-telemetry"} />

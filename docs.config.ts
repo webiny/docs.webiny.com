@@ -92,12 +92,26 @@ const filterFilePathByVersion = (filePath: string): boolean => {
 };
 
 const existsInDocs = (link: string) => {
-  return fs.pathExists(path.join(__dirname, `src/pages/${link}.js`));
+  // With basePath: "/docs", generated pages are at src/pages/{slug}.js (no /docs/ prefix in filesystem).
+  // Links from MDX source files may still contain /docs/ prefix (absolute links).
+  // Strip it before checking the filesystem.
+  const stripped = link.startsWith("/docs/") ? link.slice("/docs".length) : link;
+  return fs.pathExists(path.join(__dirname, `src/pages${stripped}.js`));
 };
 
 export default {
   projectRootDir: __dirname,
-  cleanOutputDir: [path.resolve("src/pages/docs"), path.resolve("public/raw/docs")],
+  cleanOutputDir: [
+    // Clean the old src/pages/docs directory (pre-basePath migration) and any
+    // generated directories that the generator creates at the src/pages root.
+    // Next.js internal files (_app.js, _document.js, _error.js) are not in subdirectories.
+    path.resolve("src/pages/docs"),
+    ...["admin", "build-with-ai", "cli", "core-concepts", "get-started",
+      "handbook", "infrastructure", "overview", "reference", "release-notes",
+      "user-guides", "website-builder"
+    ].map(dir => path.resolve(`src/pages/${dir}`)),
+    path.resolve("public/docs-static/raw")
+  ],
   sitemapOutputPath: path.resolve("public/algolia/sitemap.xml"),
   linkValidator: new LinkValidator(
     linkWhitelist,
@@ -110,7 +124,7 @@ export default {
     /* Developer Docs */
     new VersionedDocumentRootConfig({
       rootDir: path.resolve("docs/developer-docs"),
-      linkPrefix: "/docs",
+      linkPrefix: "",
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/DocumentationLayout",
       mdxFileFactory: (data: MdxData, version: Version) => new DeveloperDocsMdxFile(data, version),
@@ -122,7 +136,7 @@ export default {
     /* User Guides */
     new VersionedDocumentRootConfig({
       rootDir: path.resolve("docs/user-guides"),
-      linkPrefix: "/docs",
+      linkPrefix: "",
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/DocumentationLayout",
       mdxFileFactory: (data: MdxData, version: Version) => new UserGuideMdxFile(data, version),
@@ -138,7 +152,7 @@ export default {
     /* Release Notes */
     new NonVersionedDocumentRootConfig({
       rootDir: path.resolve("docs/release-notes"),
-      linkPrefix: "/docs",
+      linkPrefix: "",
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/ReleaseNotesLayout",
       mdxFileFactory: (data: MdxData) => new ReleaseNotesMdxFile(data),
@@ -152,7 +166,7 @@ export default {
     /* Handbook */
     new NonVersionedDocumentRootConfig({
       rootDir: path.resolve("docs/handbook"),
-      linkPrefix: "/docs/handbook",
+      linkPrefix: "/handbook",
       outputDir: path.resolve("src/pages"),
       pageLayout: "@/layouts/HandbookLayout",
       mdxFileFactory: (data: MdxData) => new HandbookMdxFile(data)

@@ -6,7 +6,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
     <NavigationRoot directory={__dirname}>
       <Group
         title={"Get Started"}
-        icon={"/docs-menu-icons/get-started.svg"}
+        icon={"/menu-icons/get-started.svg"}
         link={"get-started/welcome"}
       >
         <Page link={"get-started/welcome"} />
@@ -18,7 +18,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Build with AI"}
-        icon={"/docs-menu-icons/get-started.svg"}
+        icon={"/menu-icons/get-started.svg"}
         link={"build-with-ai/ai-assisted-development"}
       >
         <Page link={"build-with-ai/ai-assisted-development"} />
@@ -26,7 +26,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Core Concepts"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
+        icon={"/menu-icons/webiny-overview.svg"}
         link={"core-concepts/project-structure"}
       >
         <Page hidden link={"core-concepts/architecture"} />
@@ -43,7 +43,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       {/*<Group*/}
       {/*  title={"Headless CMS"}*/}
-      {/*  icon={"/docs-menu-icons/headless-cms.svg"}*/}
+      {/*  icon={"/menu-icons/headless-cms.svg"}*/}
       {/*  link={"headless-cms/about"}*/}
       {/*>*/}
       {/*  <Page link={"headless-cms/about"} />*/}
@@ -70,14 +70,14 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       {/*</Group>*/}
       <Group
         title={"Admin"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
+        icon={"/menu-icons/webiny-overview.svg"}
         link={"admin/whitelabeling"}
       >
         <Page link={"admin/whitelabeling"} />
       </Group>
       <Group
         title={"Website Builder"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
+        icon={"/menu-icons/webiny-overview.svg"}
         link={"website-builder/how-it-works"}
       >
         <Page link={"website-builder/how-it-works"} title={"How It Works"} />
@@ -85,25 +85,25 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
       </Group>
-      {/*<Group title={"GraphQL"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"graphql/about"}>*/}
+      {/*<Group title={"GraphQL"} icon={"/menu-icons/webiny-overview.svg"} link={"graphql/about"}>*/}
       {/*  <Page link={"graphql/about"} />*/}
       {/*  <Page link={"graphql/reference"} />*/}
       {/*  <Page link={"graphql/example"} />*/}
       {/*</Group>*/}
-      {/*<Group title={"Tasks"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"tasks/about"}>*/}
+      {/*<Group title={"Tasks"} icon={"/menu-icons/webiny-overview.svg"} link={"tasks/about"}>*/}
       {/*  <Page link={"tasks/about"} />*/}
       {/*  <Page link={"tasks/reference"} />*/}
       {/*  <Page link={"tasks/management"} />*/}
       {/*</Group>*/}
       {/*<Group*/}
       {/*  title={"Tenant Manager"}*/}
-      {/*  icon={"/docs-menu-icons/webiny-overview.svg"}*/}
+      {/*  icon={"/menu-icons/webiny-overview.svg"}*/}
       {/*  link={"tenant-manager/manage-tenants"}*/}
       {/*>*/}
       {/*  <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />*/}
       {/*  <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />*/}
       {/*</Group>*/}
-      <Group title={"CLI"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
+      <Group title={"CLI"} icon={"/menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
         <Page link={"cli/deploy"} />
         <Page link={"cli/destroy"} />
         <Page link={"cli/output"} />
@@ -113,7 +113,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Cloud Infrastructure"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
+        icon={"/menu-icons/webiny-overview.svg"}
         link={"infrastructure/diagrams"}
       >
         <Page link={"infrastructure/diagrams"} title={"Overview"} />
@@ -126,7 +126,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Reference"}
-        icon={"/docs-menu-icons/core-dev-concepts.svg"}
+        icon={"/menu-icons/core-dev-concepts.svg"}
         link={"reference/api/cms/entry"}
       >
         {/* __REFERENCE_PAGES_START__ */}

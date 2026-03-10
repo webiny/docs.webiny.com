@@ -4,6 +4,7 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 });
 
 module.exports = withBundleAnalyzer({
+    basePath: "/docs",
     pageExtensions: ["js", "jsx"],
     images: {
         disableStaticImages: true
