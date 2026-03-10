@@ -1,0 +1,116 @@
+---
+id: os3k7rnx
+title: Amazon OpenSearch
+description: Learn how to configure and share Amazon OpenSearch Service in your Webiny project.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to enable and configure Amazon OpenSearch Service
+- how to share a single OpenSearch domain across multiple environments
+
+</Alert>
+
+## Overview
+
+Webiny supports Amazon OpenSearch Service for advanced search and filtering. By default it is disabled. You configure it via the `Infra.OpenSearch` component in `webiny.config.tsx`.
+
+## Enabling OpenSearch
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.OpenSearch enabled={true} />
+    </>
+  );
+};
+```
+
+## Adjusting Configuration
+
+Use the `Infra.Core.Pulumi` extension to adjust the OpenSearch domain configuration — for example, changing the instance type, engine version, or advanced options:
+
+```typescript extensions/MyCorePulumiHandler.ts
+import * as aws from "@pulumi/aws";
+import { Ui } from "webiny/infra";
+import { CorePulumi } from "webiny/infra/core";
+
+class MyCorePulumiHandlerImpl implements CorePulumi.Interface {
+  constructor(private ui: Ui.Interface) {}
+
+  execute(app: CorePulumi.Params) {
+    app.onResource(resource => {
+      if (resource instanceof aws.opensearch.Domain) {
+        // Set the instance type.
+        resource.config.clusterConfig(() => ({
+          instanceType: "t3.small.search"
+        }));
+
+        // Set engine version.
+        resource.config.engineVersion("OpenSearch_2.11");
+
+        // Change advanced options.
+        resource.config.advancedOptions({
+          "rest.action.multi.allow_explicit_index": "true"
+        });
+      }
+    });
+  }
+}
+
+export default CorePulumi.createImplementation({
+  implementation: MyCorePulumiHandlerImpl,
+  dependencies: [Ui]
+});
+```
+
+## Using a Shared OpenSearch Domain
+
+For development purposes, you can share a single OpenSearch domain across multiple environments using the `domainName` and `indexPrefix` props:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Env.Is env={"dev"}>
+        <Infra.OpenSearch
+          enabled={true}
+          domainName={"my-shared-opensearch-domain"}
+          indexPrefix={"dev_"}
+        />
+      </Infra.Env.Is>
+
+      <Infra.Env.Is env={["prod", "production", "staging"]}>
+        <Infra.OpenSearch enabled={true} />
+      </Infra.Env.Is>
+    </>
+  );
+};
+```
+
+The `indexPrefix` ensures each environment uses separate indexes within the shared domain, preventing data from one environment from being visible in another.
+
+<Alert type="info">
+
+Sharing an OpenSearch domain is only recommended for development environments. In production, use a dedicated domain per environment.
+
+</Alert>
+
+## Redeploying After Changes
+
+After making changes, redeploy by running the [`webiny deploy`](/docs/{version}/cli/deploy) command:
+
+```
+yarn webiny deploy
+```
+
+Use `--env <name>` to target a specific environment if needed.
