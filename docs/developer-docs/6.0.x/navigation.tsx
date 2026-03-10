@@ -11,6 +11,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"get-started/welcome"} />
         <Page link={"get-started/install-webiny"} />
+        <Page link={"get-started/configure-mcp-server"} />
         <Page link={"get-started/upgrade"} />
       </Group>
       <Group
