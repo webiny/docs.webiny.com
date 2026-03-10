@@ -7,11 +7,24 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group
         title={"Get Started"}
         icon={"/docs-menu-icons/get-started.svg"}
-        link={"get-started/install-webiny"}
+        link={"get-started/quickstart"}
       >
         <Page link={"get-started/welcome"} />
-        <Page link={"get-started/install-webiny"} />
-        <Page link={"get-started/configure-mcp-server"} />
+        <Page link={"get-started/quickstart"} />
+        <Page link={"get-started/connect-ai-environment"} />
+        <Page link={"get-started/first-customization"} />
+        <Page link={"get-started/local-development"} />
+        <Page link={"get-started/deploy-webiny"} />
+      </Group>
+      <Group
+        title={"Build with AI"}
+        icon={"/docs-menu-icons/get-started.svg"}
+        link={"build-with-ai/ai-assisted-development"}
+      >
+        <Page link={"build-with-ai/ai-assisted-development"} />
+        <Page link={"build-with-ai/extensions"} />
+        <Page link={"build-with-ai/debugging-and-best-practices"} />
+        <Page link={"build-with-ai/configure-mcp-server"} />
       </Group>
       <Group title={"Basic"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"basic/result"}>
         <Page link={"basic/result"} />

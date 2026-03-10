@@ -1,0 +1,175 @@
+---
+id: g2d6e8f3
+title: Debugging and Best Practices
+description: Learn how to troubleshoot common issues and follow safe, effective development practices when working with Webiny and AI-generated changes.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to debug API, Admin, and deployment errors
+- best practices for safe and effective Webiny development
+- how to validate AI-generated code before deploying
+
+</Alert>
+
+## Overview
+
+Webiny projects have three distinct surfaces where issues can appear: the API (backend Lambda functions), the Admin app (frontend React application), and the infrastructure (deployment via Pulumi). Each has its own debugging tools and workflow. This guide covers how to identify and fix issues in each area, along with best practices that keep your project stable — especially when working with AI-generated code.
+
+## Debugging API Errors
+
+API errors occur in the backend Lambda functions. During local development with `yarn webiny watch api`, your code runs on your machine, making debugging straightforward.
+
+### Console Logs
+
+The simplest approach. Add `console.log()` statements in your extension code, and the output appears directly in the terminal where you ran the watch command:
+
+```typescript extensions/MyHook.ts
+import { EntryBeforeCreateEventHandler as Handler } from "webiny/api/cms/entry";
+
+class OnEntryBeforeCreateHandler implements Handler.Interface {
+    async handle(event: Handler.Event): Promise<void> {
+        console.log("Model:", event.modelId);
+        console.log("Values:", JSON.stringify(event.payload.values, null, 2));
+    }
+}
+
+export default Handler.createImplementation({
+    implementation: OnEntryBeforeCreateHandler,
+    dependencies: []
+});
+```
+
+This works instantly with Local Lambda Development — no need to check CloudWatch or the browser.
+
+### Logger
+
+For logging that persists to CloudWatch in production, inject the `Logger` service:
+
+```typescript extensions/MyHook.ts
+import { EntryBeforeCreateEventHandler as Handler } from "webiny/api/cms/entry";
+import { Logger } from "webiny/api/logger";
+
+class OnEntryBeforeCreateHandler implements Handler.Interface {
+    constructor(private logger: Logger.Interface) {}
+
+    async handle(event: Handler.Event): Promise<void> {
+        this.logger.info("Processing entry for model:", event.modelId);
+        this.logger.warn("Unexpected value detected");
+        this.logger.error("Something failed");
+    }
+}
+
+export default Handler.createImplementation({
+    implementation: OnEntryBeforeCreateHandler,
+    dependencies: [Logger]
+});
+```
+
+**When to use which:**
+
+- **`console.log`** — quick debugging during local development
+- **`Logger`** — production logging that needs to persist to CloudWatch
+
+## Debugging Admin Errors
+
+The Admin application is a React app running in the browser. Use standard browser developer tools:
+
+- **Console** — view logs, warnings, and errors
+- **Network tab** — inspect GraphQL requests and responses to see what data is being sent and returned
+- **React Developer Tools** — debug component state, props, and the component tree. Use the "Select Element" picker to click on any UI element and find the component that renders it
+- **GraphQL Network Inspector** — a browser extension that makes it easier to read GraphQL operations in the network tab
+
+<Alert type="info" title="Finding the right component">
+
+When working with unfamiliar Admin UI code, the React DevTools "Select Element" tool is especially useful. Click on any element in the Admin panel and it highlights the exact React component responsible — including its props and state.
+
+</Alert>
+
+## Debugging Deployment Errors
+
+Deployment errors occur when you run `yarn webiny deploy`. These are typically infrastructure-related issues handled by Pulumi. Common causes:
+
+- **IAM permission issues** — the AWS credentials used for deployment lack the required permissions
+- **AWS service quotas** — the account has reached a resource limit
+- **Resource configuration problems** — invalid settings in infrastructure extensions
+
+Deployment errors are printed directly in the terminal with specific error messages. Read the Pulumi output carefully — it usually points to the exact resource and the reason for the failure.
+
+## Best Practices
+
+### Always Test Locally Before Deploying
+
+Use `yarn webiny watch api` and `yarn webiny watch admin` to verify changes before deploying. This catches most issues early and avoids slow deploy-debug-redeploy cycles.
+
+### Redeploy After Stopping Watch
+
+When you stop `yarn webiny watch api`, the Lambda functions still contain forwarding stubs. Always run `yarn webiny deploy api` afterward to restore the real code.
+
+### Keep Extensions Focused
+
+Each extension file should do one thing. A content model in one file, a lifecycle hook in another, a GraphQL schema in a third. This makes the codebase easier to navigate, easier to debug, and easier for AI to work with.
+
+### Register Every Extension
+
+A common oversight — especially with AI-generated code — is creating the extension file but forgetting to add the `<Api.Extension>` or `<Admin.Extension>` line in `webiny.config.tsx`. If your extension does not seem to be working, check the registration first.
+
+### Filter Lifecycle Hooks by Model
+
+Lifecycle event handlers fire for **all** content models by default. Always check `event.modelId` at the top of your handler and return early if it does not match the model you intend to target:
+
+```typescript
+async handle(event: Handler.Event): Promise<void> {
+    if (event.modelId !== "article") {
+        return;
+    }
+    // your logic here
+}
+```
+
+Without this guard, your hook runs on every create, update, delete, or publish operation across the entire CMS.
+
+### Use the Correct Import Prefix
+
+Webiny v6 uses the `webiny/` import prefix:
+
+```typescript
+import { ModelFactory } from "webiny/api/cms/model";
+import { Logger } from "webiny/api/logger";
+import { Api } from "webiny/extensions";
+```
+
+The older `@webiny/` prefix is not used for v6 API imports. If AI generates code with `@webiny/` paths, correct it.
+
+### Deploy Only What Changed
+
+You do not need to deploy the entire project for every change. Target the specific application:
+
+- Backend change → `yarn webiny deploy api`
+- Frontend change → `yarn webiny deploy admin`
+- Infrastructure change → `yarn webiny deploy core`
+
+This keeps deployments fast and reduces the risk of unintended side effects.
+
+## Validating AI-Generated Code
+
+When reviewing code produced by an AI agent, run through this quick checklist:
+
+- **Correct pattern** — does it use the right factory (`ModelFactory`, `GraphQLSchemaFactory`, `EventHandler`, `AdminConfig`)?
+- **Correct imports** — `webiny/` prefix, correct module paths?
+- **DI order** — do the `dependencies` array entries match the constructor parameter order?
+- **Default export** — API extensions must use `export default` with `createImplementation`
+- **Registered** — is the file referenced in `webiny.config.tsx` with the right component (`<Api.Extension>`, `<Admin.Extension>`, etc.)?
+- **Model filter** — does the lifecycle hook check `event.modelId`?
+- **No core modifications** — does the code extend via extension points rather than modifying Webiny internals?
+
+This takes less than a minute and catches the most common issues before they reach deployment.
+
+<Alert type="warning" title="AI-generated code is a first draft">
+
+Treat AI output the same way you would treat code from a new teammate — review it, test it, and verify it fits the project before merging. Speed is only valuable when the result is correct.
+
+</Alert>
+

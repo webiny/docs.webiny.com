@@ -1,0 +1,110 @@
+---
+id: e6a2c4d9
+title: Deploy Webiny
+description: Understand the deployment flow for taking a Webiny project from local development to a live environment.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to deploy all applications or individual ones
+- how environments work and when to use them
+- how to tear down an environment you no longer need
+
+</Alert>
+
+## Overview
+
+Webiny deploys three applications to AWS: **Core** (shared infrastructure like databases and file storage), **API** (backend Lambda functions and GraphQL), and **Admin** (the frontend management interface). You can deploy all three at once or target them individually. Webiny also supports multiple isolated environments — so you can maintain separate setups for development, staging, production, and even short-lived feature branches.
+
+## Deploy All Applications
+
+To deploy everything in one step:
+
+```bash
+yarn webiny deploy
+```
+
+This deploys Core, API, and Admin to the `dev` environment by default. If this is your first deployment, it takes **5–15 minutes** while AWS provisions all the necessary resources. Subsequent deployments are significantly faster because only the changes are applied.
+
+After the deployment finishes, retrieve your application URLs with:
+
+```bash
+yarn webiny info
+```
+
+## Deploy Individual Applications
+
+You do not always need to deploy everything. If only one part of the system changed, deploy just that application:
+
+```bash
+yarn webiny deploy core
+yarn webiny deploy api
+yarn webiny deploy admin
+```
+
+Some common scenarios:
+
+- **Added or changed a content model or API extension** — `yarn webiny deploy api`
+- **Updated the Admin UI or branding** — `yarn webiny deploy admin`
+- **Changed infrastructure configuration** — `yarn webiny deploy core` (and then `api` or `admin` if they depend on the change)
+
+Targeting individual applications keeps deployments fast and focused.
+
+## Environments
+
+Webiny supports multiple environments, each with its own isolated set of AWS resources. No data or configuration is shared between environments.
+
+### Long-Lived Environments
+
+These are persistent environments maintained over the life of the project:
+
+- **dev** — daily development (the default when no `--env` flag is provided)
+- **staging** — pre-production testing
+- **prod** — production
+
+### Short-Lived Environments
+
+Create temporary environments for feature branches, pull request previews, or experimentation:
+
+```bash
+yarn webiny deploy --env feature-123
+```
+
+When you are done, destroy the environment to stop incurring costs:
+
+```bash
+yarn webiny destroy --env feature-123
+```
+
+### Production Environments
+
+By default, all environments use a development-optimized infrastructure template — smaller, cheaper, and faster to deploy. For environments that need production-grade infrastructure (high availability, backups, auto-scaling), declare them in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+<Infra.ProductionEnvironments environments={["prod", "staging"]} />
+```
+
+Any environment listed here will be deployed with the production template. All other environments use the development template.
+
+## Destroy an Environment
+
+To permanently remove an environment and all its AWS resources:
+
+```bash
+yarn webiny destroy --env <environment-name>
+```
+
+<Alert type="warning" title="This action is irreversible">
+
+Destroying an environment deletes all deployed infrastructure, databases, files, and data associated with that environment. Make sure you no longer need the environment before running this command.
+
+</Alert>
+
+You can check what is currently deployed in any environment with:
+
+```bash
+yarn webiny info --env <environment-name>
+```
+

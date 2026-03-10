@@ -28,7 +28,8 @@
 ```
 docs/developer-docs/6.0.x/
 ├── basic/              # Foundational patterns: DI (createAbstraction/createImplementation/createDecorator), Result pattern
-├── get-started/        # Welcome + installation guide
+├── build-with-ai/      # AI-assisted development, extensions overview, debugging, MCP server config
+├── get-started/        # Welcome, quickstart, AI environment, first customization, local dev, deploy
 ├── graphql/            # GraphQL schema building with factory pattern
 ├── headless-cms/       # Largest section — all CMS extensibility
 │   ├── builder/        # ModelBuilder, GroupBuilder, FieldBuilder APIs
