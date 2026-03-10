@@ -1,0 +1,110 @@
+---
+id: pu7w5cfx
+title: Pulumi Extensions
+description: Learn how to modify and extend Webiny's cloud infrastructure using Pulumi extension files.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to modify existing cloud infrastructure resources using Pulumi extensions
+- how to add new resources to the Core, API, and Admin stacks
+
+</Alert>
+
+## Overview
+
+For infrastructure changes that go beyond the declarative `Infra.*` components — modifying Lambda memory, adjusting IAM roles, adding custom resources — you use a Pulumi extension file.
+
+A Pulumi extension is a TypeScript file that receives the Pulumi context for a specific stack and can modify or add resources directly. You register it in `webiny.config.tsx` using `Infra.Core.Pulumi`, `Infra.Api.Pulumi`, or `Infra.Admin.Pulumi`.
+
+## Registering a Pulumi Extension
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Core.Pulumi src={"/extensions/MyCorePulumiHandler.ts"} />
+      <Infra.Api.Pulumi src={"/extensions/MyApiPulumiHandler.ts"} />
+    </>
+  );
+};
+```
+
+Each component targets a specific stack:
+
+- `Infra.Core.Pulumi` — Core stack (DynamoDB, S3, OpenSearch, Cognito)
+- `Infra.Api.Pulumi` — API stack (GraphQL Lambda functions)
+- `Infra.Admin.Pulumi` — Admin stack (CloudFront, S3 static hosting)
+
+## Examples
+
+### Modifying an Existing Resource
+
+Enable S3 object versioning on the File Manager bucket (Core stack):
+
+```typescript extensions/MyCorePulumiHandler.ts
+export default ({ resources }: any) => {
+  resources.fileManagerBucket.config.versioning({ enabled: true });
+};
+```
+
+### Increasing Lambda Memory Size
+
+Increase the memory of the GraphQL Lambda function (API stack):
+
+```typescript extensions/MyApiPulumiHandler.ts
+export default ({ resources }: any) => {
+  resources.graphql.functions.graphql.config.memorySize(1024);
+};
+```
+
+### Adding an IAM Policy
+
+Attach a custom IAM policy to the GraphQL Lambda role to allow sending email via Amazon SES:
+
+```typescript extensions/MyApiPulumiHandler.ts
+import * as aws from "@pulumi/aws";
+
+export default ({ resources, addResource }: any) => {
+  const policy = addResource(aws.iam.Policy, {
+    name: "ses-policy",
+    config: {
+      description: "Enables access to Amazon SES.",
+      policy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Action: ["ses:SendEmail"],
+            Resource: ["arn:aws:ses:*:*:identity/*"]
+          }
+        ]
+      }
+    }
+  });
+
+  addResource(aws.iam.RolePolicyAttachment, {
+    name: "graphql-role-ses-policy-attachment",
+    config: {
+      role: resources.graphql.role.output.name,
+      policyArn: policy.output.arn
+    }
+  });
+};
+```
+
+## Redeploying After Changes
+
+After modifying a Pulumi extension, redeploy the affected stack:
+
+```
+yarn webiny deploy core --env dev
+yarn webiny deploy api --env dev
+```
+
+Only redeploy the stack that was changed.

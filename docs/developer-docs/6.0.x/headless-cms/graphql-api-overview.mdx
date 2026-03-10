@@ -1,0 +1,173 @@
+---
+id: cms7gql1
+title: GraphQL API Overview
+description: Understand the Read and Manage GraphQL APIs and how to access them
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What are the Read and Manage APIs?
+- When to use each API?
+- How to access the GraphQL APIs?
+
+</Alert>
+
+## Overview
+
+Webiny Headless CMS exposes two separate GraphQL APIs: the **Read API** for fetching published content and the **Manage API** for full CRUD operations. Both APIs are available via HTTP endpoints and require authentication via API keys.
+
+## Read API
+
+The Read API provides read-only access to **published content**. It returns only entries that have been published by content editors and is designed for public-facing applications like websites, mobile apps, and marketing sites.
+
+**Use the Read API when:**
+
+- Fetching published blog posts, products, or pages
+- Building public websites or mobile apps
+- Content needs to be cacheable and performant
+- You only need read access to published entries
+
+**Key characteristics:**
+
+- Read-only operations (queries only, no mutations)
+- Returns only published entries
+- Optimized for performance with caching
+- Safe to expose to frontend applications
+- Requires read-only API key
+
+**GraphQL endpoint:**
+
+```
+https://{your-api-url}/cms/read/{locale}
+```
+
+The `{locale}` parameter specifies the content locale (e.g., `en-US`, `de-DE`). If your project uses a single locale, use the default locale configured in your CMS.
+
+## Manage API
+
+The Manage API provides full CRUD access to all content, including draft, published, and unpublished entries. It is designed for admin panels, content management interfaces, and backend integrations that need to create, update, or delete content.
+
+**Use the Manage API when:**
+
+- Building admin interfaces or content management tools
+- Creating entries programmatically (forms, imports, integrations)
+- Updating or deleting existing entries
+- Accessing draft or unpublished content
+- Publishing or unpublishing entries
+
+**Key characteristics:**
+
+- Full CRUD operations (queries and mutations)
+- Access to all entries (draft, published, unpublished)
+- Supports content versioning and revisions
+- Requires full-access API key
+- Should never be exposed to frontend applications
+
+**GraphQL endpoint:**
+
+```
+https://{your-api-url}/cms/manage/{locale}
+```
+
+## Authentication
+
+Both APIs require authentication via API keys passed in the `Authorization` header:
+
+```http
+Authorization: Bearer {your-api-key}
+```
+
+API keys are created in **Settings → Access Management → API Keys** in the Webiny Admin. When creating an API key, you can configure its permissions:
+
+**Read API key:**
+
+- Grant "Read" permission for Headless CMS
+- Safe to use in frontend applications
+- Can only query published content
+
+**Manage API key:**
+
+- Grant "Full Access" permission for Headless CMS
+- Must be kept secret (server-side only)
+- Can create, update, delete, and publish entries
+
+## API Key Scope
+
+API keys can be scoped to specific locales and tenants:
+
+**Locale scope:**
+
+- API keys can be restricted to specific locales
+- Useful for multi-language sites with separate API keys per language
+- Configure in API key settings under "Locales"
+
+**Tenant scope:**
+
+- In multi-tenant deployments, API keys are tenant-specific
+- Each tenant has its own set of API keys
+- Tenant ID is passed via `x-tenant` header
+
+## Choosing the Right API
+
+| Scenario                                   | API to Use |
+| ------------------------------------------ | ---------- |
+| Display blog posts on website              | Read API   |
+| Fetch products for e-commerce site         | Read API   |
+| Build a contact form that creates entries  | Manage API |
+| Create admin interface for content editors | Manage API |
+| Import content from external system        | Manage API |
+| Publish/unpublish entries programmatically | Manage API |
+| Preview unpublished content                | Manage API |
+
+## GraphQL Playground
+
+Both APIs provide a GraphQL playground for exploring the schema and testing queries:
+
+**Read API Playground:**
+
+```
+https://{your-api-url}/cms/read/{locale}
+```
+
+**Manage API Playground:**
+
+```
+https://{your-api-url}/cms/manage/{locale}
+```
+
+Open the playground URL in your browser to access the GraphiQL interface. You'll need to add your API key in the HTTP Headers panel:
+
+```json
+{
+  "Authorization": "Bearer {your-api-key}"
+}
+```
+
+The playground provides:
+
+- Interactive query editor with autocomplete
+- Schema documentation explorer
+- Query history and saved queries
+- Response formatting and error display
+
+## SDK vs Direct GraphQL
+
+You can access the Headless CMS GraphQL APIs in two ways:
+
+**Using the Webiny SDK (recommended):**
+
+- Type-safe methods like `sdk.cms.listEntries()` and `sdk.cms.createEntry()`
+- Automatic API selection (Read vs Manage based on operation)
+- Built-in error handling with Result pattern
+- TypeScript support with generics
+
+**Using direct GraphQL queries:**
+
+- Full control over queries and responses
+- Useful for complex queries not covered by SDK
+- Requires manual endpoint and header configuration
+- Use any GraphQL client (Apollo, urql, etc.)
+
+For most use cases, the Webiny SDK provides a simpler and more maintainable approach.

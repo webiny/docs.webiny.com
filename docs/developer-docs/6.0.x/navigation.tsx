@@ -32,33 +32,33 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"core-concepts/debugging"} />
         <Page link={"core-concepts/ai-assisted-development"} />
       </Group>
-      {/*<Group*/}
-      {/*  title={"Headless CMS"}*/}
-      {/*  icon={"/docs-menu-icons/headless-cms.svg"}*/}
-      {/*  link={"headless-cms/about"}*/}
-      {/*>*/}
-      {/*  <Page link={"headless-cms/about"} />*/}
-      {/*  <Group title={"Backend"}>*/}
-      {/*    <Page link={"headless-cms/event-handler/group"} />*/}
-      {/*    <Page link={"headless-cms/event-handler/model"} />*/}
-      {/*    <Page link={"headless-cms/event-handler/entry"} />*/}
-      {/*    <Page link={"headless-cms/event-handler/entry-extended"} />*/}
-
-      {/*    <Page link={"headless-cms/use-case/group"} />*/}
-      {/*    <Page link={"headless-cms/use-case/model"} />*/}
-      {/*    <Page link={"headless-cms/use-case/entry"} />*/}
-
-      {/*    <Page link={"headless-cms/builder/group"} />*/}
-      {/*    <Page link={"headless-cms/builder/model"} />*/}
-      {/*    <Page link={"headless-cms/builder/field"} />*/}
-
-      {/*    <Page link={"headless-cms/examples/private-model"} />*/}
-      {/*    <Page link={"headless-cms/examples/single-entry-model"} />*/}
-      {/*  </Group>*/}
-      {/*  <Group title={"UI"}>*/}
-      {/*    <Page link={"headless-cms/ui/field-renderer"} />*/}
-      {/*  </Group>*/}
-      {/*</Group>*/}
+      <Group
+        title={"Headless CMS"}
+        icon={"/docs-menu-icons/headless-cms.svg"}
+        link={"headless-cms/about"}
+      >
+        <Page hidden link={"headless-cms/about"} />
+        <Page link={"headless-cms/graphql-api-overview"} title={"GraphQL API Overview"} />
+        <Page link={"headless-cms/using-graphql-api"} title={"Using the GraphQL API"} />
+        {/*<Group title={"Backend"}>*/}
+        {/*  <Page link={"headless-cms/event-handler/group"} />*/}
+        {/*  <Page link={"headless-cms/event-handler/model"} />*/}
+        {/*  <Page link={"headless-cms/event-handler/entry"} />*/}
+        {/*  <Page link={"headless-cms/event-handler/entry-extended"} />*/}
+        {/*  <Page link={"headless-cms/use-case/group"} />*/}
+        {/*  <Page link={"headless-cms/use-case/model"} />*/}
+        {/*  <Page link={"headless-cms/use-case/entry"} />*/}
+        {/*  <Page link={"headless-cms/builder/group"} />*/}
+        {/*  <Page link={"headless-cms/builder/model"} />*/}
+        {/*  <Page link={"headless-cms/builder/field"} />*/}
+        {/*  <Page link={"headless-cms/examples/private-model"} />*/}
+        {/*  <Page link={"headless-cms/examples/single-entry-model"} />*/}
+        {/*</Group>*/}
+        {/*<Group title={"UI"}>*/}
+        {/*  <Page link={"headless-cms/ui/field-renderer"} />*/}
+        {/*</Group>*/}
+      </Group>
+      5
       <Group
         title={"Admin"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
@@ -110,10 +110,18 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"infrastructure/diagrams"} title={"Overview"} />
         <Page link={"infrastructure/introduction"} title={"Database Setups"} />
         <Page link={"infrastructure/deployment-modes"} title={"Deployment Modes"} />
-        <Page
-          link={"infrastructure/modify-cloud-infrastructure"}
-          title={"Modify Cloud Infrastructure"}
-        />
+        <Group title={"Extensions"} link={"infrastructure/extensions/aws-tags"}>
+          <Page link={"infrastructure/extensions/aws-tags"} title={"AWS Tags"} />
+          <Page
+            link={"infrastructure/extensions/production-environments"}
+            title={"Production Environments"}
+          />
+          <Page
+            link={"infrastructure/extensions/env-specific-config"}
+            title={"Environment-Specific Config"}
+          />
+          <Page link={"infrastructure/extensions/pulumi-extensions"} title={"Pulumi Extensions"} />
+        </Group>
       </Group>
       <Group
         title={"Reference"}
