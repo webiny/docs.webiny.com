@@ -11,6 +11,7 @@ import { ExternalLink } from "./ExternalLink";
 import { GithubRelease } from "./GithubRelease";
 import { ExtensionsGettingStarted } from "./ExtensionsGettingStarted";
 import { EnterpriseFeaturesNotice } from "./EnterpriseFeaturesNotice";
+import { stripBasePath } from "@/utils/stripBasePath";
 
 export const mdxComponents = {
     Heading,
@@ -30,25 +31,26 @@ export const mdxComponents = {
         if (props.href.startsWith("http")) {
             return <ExternalLink {...props} />;
         } else {
+            const href = stripBasePath(props.href);
             if (typeof props.children === "object") {
                 if (props?.children?.props?.originalType === "inlineCode") {
                     return (
                         <code>
-                            <Link href={props.href}>
+                            <Link href={href}>
                                 {props.children.props.children}
                             </Link>
                         </code>
                     );
                 } else {
                     return (
-                        <Link href={props.href}>
+                        <Link href={href}>
                             {props.children}
                         </Link>
                     );
                 }
             } else {
                 return (
-                    <Link href={props.href}>
+                    <Link href={href}>
                         {props.children}
                     </Link>
                 );

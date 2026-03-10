@@ -4,13 +4,13 @@ import { Group, Page, NavigationRoot, Separator } from "@webiny/docs-generator";
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
   return (
     <NavigationRoot directory={__dirname} linkPrefix={"user-guides"}>
-      <Group title={"Get Started"} icon={"/docs-menu-icons/get-started.svg"} link={"overview"}>
+      <Group title={"Get Started"} icon={"/menu-icons/get-started.svg"} link={"overview"}>
         <Page link={"overview"} />
       </Group>
       <Separator />
       <Group
         title={"Headless CMS"}
-        icon={"/docs-menu-icons/headless-cms.svg"}
+        icon={"/menu-icons/headless-cms.svg"}
         link={"headless-cms/essentials/glossary"}
       >
         <Group title={"Essentials"}>
@@ -31,7 +31,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Separator />
       <Group
         title={"Website Builder"}
-        icon={"/docs-menu-icons/page-builder.svg"}
+        icon={"/menu-icons/page-builder.svg"}
         link={"website-builder/essentials/glossary"}
       >
         <Group title={"Essentials"}>
@@ -44,7 +44,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Separator />
       <Group
         title={"File Manager"}
-        icon={"/docs-menu-icons/file-manager.svg"}
+        icon={"/menu-icons/file-manager.svg"}
         link={"file-manager/essentials/upload-file"}
       >
         <Group title={"Essentials"}>
@@ -55,7 +55,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Separator />
       <Group title={"Security"}
-             icon={"/docs-menu-icons/wcp.svg"}
+             icon={"/menu-icons/wcp.svg"}
              link={"security/essentials/create-user"}
       >
         <Group title={"Essentials"}>

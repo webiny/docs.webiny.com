@@ -4,12 +4,12 @@ import { Group, NavigationRoot, Page, Separator } from "@webiny/docs-generator";
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
   return (
     <NavigationRoot directory={__dirname}>
-      <Page link={"get-started/welcome"} hidden={true} />
       <Group
         title={"Get Started"}
-        icon={"/docs-menu-icons/get-started.svg"}
-        link={"get-started/quickstart"}
+        icon={"/menu-icons/get-started.svg"}
+        link={"get-started/welcome"}
       >
+        <Page link={"get-started/welcome"} />
         <Page link={"get-started/quickstart"} />
         <Page link={"get-started/connect-ai-environment"} />
         <Page link={"get-started/first-customization"} />
@@ -18,7 +18,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Build with AI"}
-        icon={"/docs-menu-icons/get-started.svg"}
+        icon={"/menu-icons/get-started.svg"}
         link={"build-with-ai/ai-assisted-development"}
       >
         <Page link={"build-with-ai/ai-assisted-development"} />
@@ -26,7 +26,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Core Concepts"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
+        icon={"/menu-icons/webiny-overview.svg"}
         link={"core-concepts/project-structure"}
       >
         <Page hidden link={"core-concepts/architecture"} />
@@ -41,43 +41,42 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"core-concepts/webiny-sdk"} />
         <Page link={"core-concepts/debugging"} />
       </Group>
-      {/*<Group*/}
-      {/*  title={"Headless CMS"}*/}
-      {/*  icon={"/docs-menu-icons/headless-cms.svg"}*/}
-      {/*  link={"headless-cms/about"}*/}
-      {/*>*/}
-      {/*  <Page link={"headless-cms/about"} />*/}
-      {/*  <Group title={"Backend"}>*/}
-      {/*    <Page link={"headless-cms/event-handler/group"} />*/}
-      {/*    <Page link={"headless-cms/event-handler/model"} />*/}
-      {/*    <Page link={"headless-cms/event-handler/entry"} />*/}
-      {/*    <Page link={"headless-cms/event-handler/entry-extended"} />*/}
-
-      {/*    <Page link={"headless-cms/use-case/group"} />*/}
-      {/*    <Page link={"headless-cms/use-case/model"} />*/}
-      {/*    <Page link={"headless-cms/use-case/entry"} />*/}
-
-      {/*    <Page link={"headless-cms/builder/group"} />*/}
-      {/*    <Page link={"headless-cms/builder/model"} />*/}
-      {/*    <Page link={"headless-cms/builder/field"} />*/}
-
-      {/*    <Page link={"headless-cms/examples/private-model"} />*/}
-      {/*    <Page link={"headless-cms/examples/single-entry-model"} />*/}
-      {/*  </Group>*/}
-      {/*  <Group title={"UI"}>*/}
-      {/*    <Page link={"headless-cms/ui/field-renderer"} />*/}
-      {/*  </Group>*/}
-      {/*</Group>*/}
+      <Group
+        title={"Headless CMS"}
+        icon={"/docs-menu-icons/headless-cms.svg"}
+        link={"headless-cms/about"}
+      >
+        <Page hidden link={"headless-cms/about"} />
+        <Page link={"headless-cms/graphql-api-overview"} title={"GraphQL API Overview"} />
+        <Page link={"headless-cms/using-graphql-api"} title={"Using the GraphQL API"} />
+        {/*<Group title={"Backend"}>*/}
+        {/*  <Page link={"headless-cms/event-handler/group"} />*/}
+        {/*  <Page link={"headless-cms/event-handler/model"} />*/}
+        {/*  <Page link={"headless-cms/event-handler/entry"} />*/}
+        {/*  <Page link={"headless-cms/event-handler/entry-extended"} />*/}
+        {/*  <Page link={"headless-cms/use-case/group"} />*/}
+        {/*  <Page link={"headless-cms/use-case/model"} />*/}
+        {/*  <Page link={"headless-cms/use-case/entry"} />*/}
+        {/*  <Page link={"headless-cms/builder/group"} />*/}
+        {/*  <Page link={"headless-cms/builder/model"} />*/}
+        {/*  <Page link={"headless-cms/builder/field"} />*/}
+        {/*  <Page link={"headless-cms/examples/private-model"} />*/}
+        {/*  <Page link={"headless-cms/examples/single-entry-model"} />*/}
+        {/*</Group>*/}
+        {/*<Group title={"UI"}>*/}
+        {/*  <Page link={"headless-cms/ui/field-renderer"} />*/}
+        {/*</Group>*/}
+      </Group>
       <Group
         title={"Admin"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
+        icon={"/menu-icons/webiny-overview.svg"}
         link={"admin/whitelabeling"}
       >
         <Page link={"admin/whitelabeling"} />
       </Group>
       <Group
         title={"Website Builder"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
+        icon={"/menu-icons/webiny-overview.svg"}
         link={"website-builder/how-it-works"}
       >
         <Page link={"website-builder/how-it-works"} title={"How It Works"} />
@@ -85,25 +84,25 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
       </Group>
-      {/*<Group title={"GraphQL"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"graphql/about"}>*/}
+      {/*<Group title={"GraphQL"} icon={"/menu-icons/webiny-overview.svg"} link={"graphql/about"}>*/}
       {/*  <Page link={"graphql/about"} />*/}
       {/*  <Page link={"graphql/reference"} />*/}
       {/*  <Page link={"graphql/example"} />*/}
       {/*</Group>*/}
-      {/*<Group title={"Tasks"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"tasks/about"}>*/}
+      {/*<Group title={"Tasks"} icon={"/menu-icons/webiny-overview.svg"} link={"tasks/about"}>*/}
       {/*  <Page link={"tasks/about"} />*/}
       {/*  <Page link={"tasks/reference"} />*/}
       {/*  <Page link={"tasks/management"} />*/}
       {/*</Group>*/}
       {/*<Group*/}
       {/*  title={"Tenant Manager"}*/}
-      {/*  icon={"/docs-menu-icons/webiny-overview.svg"}*/}
+      {/*  icon={"/menu-icons/webiny-overview.svg"}*/}
       {/*  link={"tenant-manager/manage-tenants"}*/}
       {/*>*/}
       {/*  <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />*/}
       {/*  <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />*/}
       {/*</Group>*/}
-      <Group title={"CLI"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
+      <Group title={"CLI"} icon={"/menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
         <Page link={"cli/deploy"} />
         <Page link={"cli/destroy"} />
         <Page link={"cli/output"} />
@@ -113,25 +112,38 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Cloud Infrastructure"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
+        icon={"/menu-icons/webiny-overview.svg"}
         link={"infrastructure/diagrams"}
       >
         <Page link={"infrastructure/diagrams"} title={"Overview"} />
         <Page link={"infrastructure/introduction"} title={"Database Setups"} />
         <Page link={"infrastructure/deployment-modes"} title={"Deployment Modes"} />
-        <Page
-          link={"infrastructure/modify-cloud-infrastructure"}
-          title={"Modify Cloud Infrastructure"}
-        />
+        <Group title={"Extensions"} link={"infrastructure/extensions/aws-tags"}>
+          <Page link={"infrastructure/extensions/aws-tags"} title={"AWS Tags"} />
+          <Page
+            link={"infrastructure/extensions/resource-name-prefix"}
+            title={"Resource Name Prefix"}
+          />
+          <Page
+            link={"infrastructure/extensions/production-environments"}
+            title={"Production Environments"}
+          />
+          <Page
+            link={"infrastructure/extensions/env-specific-config"}
+            title={"Environment-Specific Config"}
+          />
+          <Page link={"infrastructure/extensions/opensearch"} title={"Amazon OpenSearch"} />
+          <Page link={"infrastructure/extensions/pulumi-extensions"} title={"Pulumi Extensions"} />
+        </Group>
       </Group>
       <Group
         title={"Reference"}
-        icon={"/docs-menu-icons/core-dev-concepts.svg"}
-        link={"reference/extensions"}
+        icon={"/menu-icons/core-dev-concepts.svg"}
+        link={"reference/api/cms/entry"}
       >
         {/* __REFERENCE_PAGES_START__ */}
         <Page link={"reference/extensions"} />
-        <Group title={"Admin"}>
+        <Group title={"Admin"} link={"reference/admin"}>
           <Page link={"reference/admin"} title={"Root"} />
           <Page link={"reference/admin/aco"} title={"ACO"} />
           <Page link={"reference/admin/build-params"} title={"Build Params"} />
@@ -144,7 +156,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           <Page link={"reference/admin/router"} title={"Router"} />
           <Page link={"reference/admin/tenancy"} title={"Tenancy"} />
           <Page link={"reference/admin/ui"} title={"UI"} />
-          <Group title={"CMS"}>
+          <Group title={"CMS"} link={"reference/admin/cms"}>
             <Page link={"reference/admin/cms"} title={"Root"} />
             <Page link={"reference/admin/cms/entry/editor"} title={"Editor"} />
             <Page link={"reference/admin/cms/entry/list"} title={"List"} />
@@ -153,7 +165,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/admin/cms/lexical"} title={"Lexical Editor"} />
             <Page link={"reference/admin/cms/model"} title={"Model"} />
           </Group>
-          <Group title={"Website Builder"}>
+          <Group title={"Website Builder"} link={"reference/admin/website-builder"}>
             <Page link={"reference/admin/website-builder"} title={"Root"} />
             <Page link={"reference/admin/website-builder/lexical"} title={"Lexical Editor"} />
             <Page link={"reference/admin/website-builder/page/editor"} title={"Editor"} />
@@ -161,7 +173,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/admin/website-builder/redirect/list"} title={"List"} />
           </Group>
         </Group>
-        <Group title={"API"}>
+        <Group title={"API"} link={"reference/api/cms/entry"}>
           <Page link={"reference/api"} title={"Root"} />
           <Page link={"reference/api/build-params"} title={"Build Params"} />
           <Page link={"reference/api/event-publisher"} title={"Event Publisher"} />
@@ -177,24 +189,24 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/api/cms/group"} title={"Group"} />
             <Page link={"reference/api/cms/model"} title={"Model"} />
           </Group>
-          <Group title={"Security"}>
+          <Group title={"Security"} link={"reference/api/security"}>
             <Page link={"reference/api/security"} title={"Root"} />
             <Page link={"reference/api/security/api-key"} title={"Api Key"} />
             <Page link={"reference/api/security/authentication"} title={"Authentication"} />
             <Page link={"reference/api/security/role"} title={"Role"} />
             <Page link={"reference/api/security/user"} title={"User"} />
           </Group>
-          <Group title={"Website Builder"}>
+          <Group title={"Website Builder"} link={"reference/api/website-builder/page"}>
             <Page link={"reference/api/website-builder/nextjs"} title={"Next.js"} />
             <Page link={"reference/api/website-builder/page"} title={"Page"} />
             <Page link={"reference/api/website-builder/redirect"} title={"Redirect"} />
           </Group>
         </Group>
-        <Group title={"CLI"}>
+        <Group title={"CLI"} link={"reference/cli/overview"}>
           <Page link={"reference/cli/overview"} title={"Root"} />
           <Page link={"reference/cli/command"} title={"Command"} />
         </Group>
-        <Group title={"Infrastructure"}>
+        <Group title={"Infrastructure"} link={"reference/infra/overview"}>
           <Page link={"reference/infra/overview"} title={"Root"} />
           <Page link={"reference/infra/admin"} title={"Admin"} />
           <Page link={"reference/infra/api"} title={"API"} />

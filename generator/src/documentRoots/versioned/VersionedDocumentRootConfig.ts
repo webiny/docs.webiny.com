@@ -18,7 +18,7 @@ export interface VersionedMdxFileFactoryCallable {
 
 interface VersionedDocumentRootConfigParams {
   rootDir: string;
-  linkPrefix: `/${string}`;
+  linkPrefix: `/${string}` | "";
   outputDir: string;
   pageLayout: string;
   mdxFileFactory: VersionedMdxFileFactoryCallable;

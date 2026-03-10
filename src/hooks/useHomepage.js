@@ -14,19 +14,19 @@ export function useHomepage() {
     let url;
 
     if (!page.version) {
-        url = "/docs/get-started/welcome";
+        url = "/get-started/welcome";
     } else if (semver.gte(/^\d+\.x$/.test(page.version) ? page.version.replace("x", "0.0") : page.version.replace("x", "0"), "5.39.0")) {
-        url = "/docs/{version}/get-started/welcome";
+        url = "/{version}/get-started/welcome";
     } else {
-        url = "/docs/{version}/get-started/install-webiny";
+        url = "/{version}/get-started/install-webiny";
     }
 
     let docsSection = getDocsSection(router.pathname);
     if (docsSection === "user-docs") {
         if (!page.version) {
-            url = "/docs/user-guides/overview";
+            url = "/user-guides/overview";
         } else {
-            url = "/docs/{version}/user-guides/overview";
+            url = "/{version}/user-guides/overview";
         }
     }
 

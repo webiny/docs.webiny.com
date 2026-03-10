@@ -35,7 +35,7 @@ import { ProcessedFileWriter } from "../../app/ProcessedFileWriter";
 
 interface Config {
   rootDir: string;
-  linkPrefix: `/${string}`;
+  linkPrefix: `/${string}` | "";
   outputDir: string;
   pageLayout: string;
   mdxFileProcessors: IMdxProcessor[];

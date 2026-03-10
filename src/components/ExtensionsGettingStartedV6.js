@@ -30,7 +30,7 @@ export const ExtensionsGettingStartedV6 = ({ type = "admin", fullExampleDownload
                     <p>
                         Once the extension is in place, start the{" "}
                         <code>
-                            <Link href={`/docs/cli/watch`}>webiny watch</Link>
+                            <Link href={`/cli/watch`}>webiny watch</Link>
                         </code>{" "}
                         command:
                     </p>
