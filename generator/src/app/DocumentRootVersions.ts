@@ -98,9 +98,6 @@ export class DocumentRootVersions {
      */
     return semver
       .rsort(versions.map(p => p.replace(".x", ".0")).filter(version => semver.valid(version)))
-      .map(v => {
-        // Restore the `.x` character in the patch position.
-        return v.split(".").slice(0, 2).join(".") + ".x";
-      });
+      .map(v => v.replace(".0", ".x"));
   }
 }

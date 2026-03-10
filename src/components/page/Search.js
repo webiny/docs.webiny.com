@@ -116,7 +116,11 @@ export function SearchProvider({ children }) {
 }
 
 function Hit({ hit, children }) {
-    return <Link href={hit.url}>{children}</Link>;
+    return (
+        <Link href={hit.url} legacyBehavior>
+            <a>{children}</a>
+        </Link>
+    );
 }
 
 export function SearchButton({ children, ...props }) {

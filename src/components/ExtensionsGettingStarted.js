@@ -119,7 +119,10 @@ export const ExtensionsGettingStarted = ({
             <p>
                 Once the extension is scaffolded, in order to start developing, we run the following
                 <code>
-                    <Link href={"/docs/core-development-concepts/basics/watch-command"}>
+                    <Link
+                        href={"/docs/core-development-concepts/basics/watch-command"}
+                        legacyBehavior
+                    >
                         webiny watch
                     </Link>
                 </code>{" "}
