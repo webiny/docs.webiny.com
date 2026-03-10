@@ -115,6 +115,7 @@ const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
     }
 
     if (type === "group" && depth === 1) {
+        console.log(element);
         return (
             <Section
                 subElements={items}

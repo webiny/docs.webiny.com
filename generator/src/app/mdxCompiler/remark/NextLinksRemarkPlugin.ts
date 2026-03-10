@@ -21,9 +21,12 @@ export class NextLinksRemarkPlugin implements IMdxRemarkPlugin<NodeWithChildren>
 
         parent.children = [
           ...parent.children.slice(0, index),
-          { type: "jsx", value: `<${component} href="${node.url}" passHref legacyBehavior><a>` } as JSXNode,
+          {
+            type: "jsx",
+            value: `<${component} href="${node.url}">`
+          } as JSXNode,
           ...node.children,
-          { type: "jsx", value: `</a></${component}>` },
+          { type: "jsx", value: `</${component}>` },
           ...parent.children.slice(index + 1)
         ];
 

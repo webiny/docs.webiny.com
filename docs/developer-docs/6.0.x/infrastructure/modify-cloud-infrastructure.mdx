@@ -1,0 +1,191 @@
+---
+id: mc8f2ynr
+title: Modify Cloud Infrastructure
+description: Learn how to modify and extend the cloud infrastructure resources deployed by Webiny.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how cloud infrastructure is configured in Webiny v6
+- how to use declarative `Infra.*` components for common infrastructure settings
+- how to use Pulumi extensions for low-level resource modifications
+
+</Alert>
+
+## Overview
+
+When you deploy a Webiny project, three stacks are deployed to AWS: **Core** (stateful resources — DynamoDB, S3, OpenSearch, Cognito), **API** (GraphQL Lambda functions), and **Admin** (static React app on CloudFront).
+
+In Webiny v6, all infrastructure configuration lives in a single file: `webiny.config.tsx`. Infrastructure is modified in two ways:
+
+- **Declarative components** — `Infra.*` components in `webiny.config.tsx` cover the most common configuration needs (tags, resource name prefix, OpenSearch, VPC, production environments, custom domains).
+- **Pulumi extensions** — for lower-level changes, you point `Infra.Core.Pulumi`, `Infra.Api.Pulumi`, or `Infra.Admin.Pulumi` at an extension file that receives the Pulumi context directly.
+
+## Declarative Configuration
+
+The following `Infra.*` components are available in `webiny.config.tsx`:
+
+### Tagging Resources
+
+Apply tags to all deployed AWS resources:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Aws.Tags tags={{ OWNER: "my-team", PROJECT: "my-project" }} />
+    </>
+  );
+};
+```
+
+`Infra.Aws.Tags` can be used multiple times and tags are merged.
+
+### Resource Name Prefix
+
+By default, all Pulumi resource names are prefixed with `wby-`. To change this:
+
+```tsx webiny.config.tsx
+<Infra.PulumiResourceNamePrefix prefix={"myproj-"} />
+```
+
+### Production Environments
+
+By default, only the `prod` environment is treated as a production environment and deployed in [production deployment mode](/docs/{version}/infrastructure/deployment-modes). To promote additional environments:
+
+```tsx webiny.config.tsx
+<Infra.ProductionEnvironments environments={["prod", "staging"]} />
+```
+
+### OpenSearch
+
+Enable or disable Amazon OpenSearch integration:
+
+```tsx webiny.config.tsx
+<Infra.OpenSearch enabled={true} />
+```
+
+For development environments where you want to share a single OpenSearch domain across multiple deployments, use the `domainName` and `indexPrefix` props:
+
+```tsx webiny.config.tsx
+<Infra.OpenSearch enabled={true} domainName={"my-shared-opensearch-domain"} indexPrefix={"dev_"} />
+```
+
+<Alert type="info">
+
+Sharing an OpenSearch domain is only recommended for development. In production, use a dedicated domain per environment.
+
+</Alert>
+
+### Environment-Specific Configuration
+
+Use `Infra.Env.Is` to apply configuration conditionally per environment:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Env.Is env={"prod"}>
+        <Infra.Aws.Tags tags={{ ENV: "production" }} />
+        <Infra.OpenSearch enabled={true} />
+      </Infra.Env.Is>
+
+      <Infra.Env.Is env={["dev", "staging"]}>
+        <Infra.Aws.Tags tags={{ ENV: "non-production" }} />
+        <Infra.OpenSearch enabled={false} />
+      </Infra.Env.Is>
+    </>
+  );
+};
+```
+
+## Pulumi Extensions
+
+For changes that go beyond what the declarative components support — modifying Lambda memory, adjusting CloudFront settings, adding IAM policies, creating new resources — you use a Pulumi extension.
+
+Register the extension in `webiny.config.tsx` by pointing `Infra.Core.Pulumi`, `Infra.Api.Pulumi`, or `Infra.Admin.Pulumi` at a TypeScript file:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Core.Pulumi src={"/extensions/MyCorePulumiHandler.ts"} />
+    </>
+  );
+};
+```
+
+The extension file receives the Pulumi context and can modify or add resources:
+
+```typescript extensions/MyCorePulumiHandler.ts
+import * as aws from "@pulumi/aws";
+
+export default ({ resources, addResource }: any) => {
+  // Modify an existing resource — enable S3 object versioning on the file manager bucket.
+  const { fileManagerBucket } = resources;
+  fileManagerBucket.config.versioning({ enabled: true });
+};
+```
+
+Use `Infra.Api.Pulumi` for changes to the API stack — for example, increasing Lambda memory size:
+
+```typescript extensions/MyApiPulumiHandler.ts
+export default ({ resources }: any) => {
+  // Increase memory for the GraphQL Lambda function.
+  resources.graphql.functions.graphql.config.memorySize(1024);
+};
+```
+
+Or adding a custom IAM policy attachment:
+
+```typescript extensions/MyApiPulumiHandler.ts
+import * as aws from "@pulumi/aws";
+
+export default ({ resources, addResource }: any) => {
+  const policy = addResource(aws.iam.Policy, {
+    name: "ses-policy",
+    config: {
+      description: "Enables access to Amazon SES.",
+      policy: {
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Action: ["ses:SendEmail"],
+            Resource: ["arn:aws:ses:*:*:identity/*"]
+          }
+        ]
+      }
+    }
+  });
+
+  addResource(aws.iam.RolePolicyAttachment, {
+    name: "graphql-role-ses-policy-attachment",
+    config: {
+      role: resources.graphql.role.output.name,
+      policyArn: policy.output.arn
+    }
+  });
+};
+```
+
+## Redeploying After Changes
+
+After making infrastructure changes, redeploy the affected stack. For example, if you modified the Core stack:
+
+```
+yarn webiny deploy core --env dev
+```
+
+Only redeploy the stack where the change was made. If you changed `Infra.Api.Pulumi`, redeploy `api`. If you changed a declarative `Infra.*` component that affects all stacks (such as `Infra.ProductionEnvironments`), redeploy all three stacks.

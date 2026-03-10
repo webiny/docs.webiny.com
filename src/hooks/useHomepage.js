@@ -25,7 +25,7 @@ export function useHomepage() {
 
     if (!page.version) {
         url = "/docs/get-started/welcome";
-    } else if (semver.gte(page.version.replace("x", "0"), "5.39.0")) {
+    } else if (semver.gte(/^\d+\.x$/.test(page.version) ? page.version.replace("x", "0.0") : page.version.replace("x", "0"), "5.39.0")) {
         url = "/docs/{version}/get-started/welcome";
     } else {
         url = "/docs/{version}/get-started/install-webiny";
