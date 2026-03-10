@@ -7,12 +7,22 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group
         title={"Get Started"}
         icon={"/docs-menu-icons/get-started.svg"}
-        link={"get-started/install-webiny"}
+        link={"get-started/welcome"}
       >
         <Page link={"get-started/welcome"} />
-        <Page link={"get-started/install-webiny"} />
-        <Page link={"get-started/configure-mcp-server"} />
-        <Page link={"get-started/upgrade"} />
+        <Page link={"get-started/quickstart"} />
+        <Page link={"get-started/connect-ai-environment"} />
+        <Page link={"get-started/first-customization"} />
+        <Page link={"get-started/local-development"} />
+        <Page link={"get-started/deploy-webiny"} />
+      </Group>
+      <Group
+        title={"Build with AI"}
+        icon={"/docs-menu-icons/get-started.svg"}
+        link={"build-with-ai/ai-assisted-development"}
+      >
+        <Page link={"build-with-ai/ai-assisted-development"} />
+        <Page link={"build-with-ai/configure-mcp-server"} />
       </Group>
       <Group
         title={"Core Concepts"}
@@ -30,7 +40,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"core-concepts/environment-variables"} />
         <Page link={"core-concepts/webiny-sdk"} />
         <Page link={"core-concepts/debugging"} />
-        <Page link={"core-concepts/ai-assisted-development"} />
       </Group>
       <Group
         title={"Headless CMS"}
@@ -58,7 +67,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         {/*  <Page link={"headless-cms/ui/field-renderer"} />*/}
         {/*</Group>*/}
       </Group>
-      5
       <Group
         title={"Admin"}
         icon={"/docs-menu-icons/webiny-overview.svg"}

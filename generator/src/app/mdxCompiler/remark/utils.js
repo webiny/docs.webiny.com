@@ -1,6 +1,6 @@
 import escapeHtml from "escape-html";
 
-function addImport(tree, mod, name) {
+export function addImport(tree, mod, name) {
     tree.children.unshift({
         type: "import",
         value: `import { ${name} as _${name} } from '${mod}'`
@@ -8,7 +8,7 @@ function addImport(tree, mod, name) {
     return `_${name}`;
 }
 
-function addImportImage(tree, mod, name) {
+export function addImportImage(tree, mod, name) {
     tree.children.unshift({
         type: "import",
         value: `import _${name} from '${mod}'`
@@ -16,7 +16,7 @@ function addImportImage(tree, mod, name) {
     return `_${name}`;
 }
 
-function addDefaultImport(tree, mod, name) {
+export function addDefaultImport(tree, mod, name) {
     tree.children.unshift({
         type: "import",
         value: `import _${name} from '${mod}'`
@@ -24,21 +24,13 @@ function addDefaultImport(tree, mod, name) {
     return `_${name}`;
 }
 
-function addExport(tree, name, value) {
+export function addExport(tree, name, value) {
     tree.children.push({
         type: "export",
         value: `export const ${name} = ${JSON.stringify(value)}`
     });
 }
 
-function escape(string) {
+export function escape(string) {
     return escapeHtml(string);
 }
-
-module.exports = {
-    addDefaultImport,
-    addExport,
-    addImport,
-    addImportImage,
-    escape
-};

@@ -1,0 +1,125 @@
+---
+id: 9ac642e0
+title: Custom MCP Skills
+description: Learn how to add, override, or write custom skills for the Webiny MCP server to tailor AI assistance to your project.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to add custom skills on top of the built-in ones
+- how to replace the built-in skills entirely
+- how to write your own skill files
+
+</Alert>
+
+## Overview
+
+The Webiny MCP server ships with a set of built-in skills that cover standard development patterns — content models, lifecycle events, dependency injection, GraphQL schemas, infrastructure, and more. For most projects, these built-in skills are all you need.
+
+However, as your project grows, you may want to extend the MCP server with project-specific knowledge — internal conventions, custom abstractions, domain-specific patterns, or team-specific workflows. You can do this by adding custom skills folders or replacing the built-in skills entirely.
+
+<Alert type="info" title="MCP server not set up yet?">
+
+This page covers advanced MCP customization. If you haven't connected the MCP server to your coding agent yet, start with [Connect Your AI Environment](../get-started/connect-ai-environment).
+
+</Alert>
+
+## Adding Extra Skills
+
+Use the `--additional-skills` flag to add a folder of custom skills on top of the built-in ones. Update the MCP server entry in your agent's config file:
+
+```json
+{
+  "mcpServers": {
+    "webiny": {
+      "command": "npx",
+      "args": ["webiny", "mcp-server", "--additional-skills=./my-skills"]
+    }
+  }
+}
+```
+
+You can repeat the flag to add multiple folders:
+
+```json
+{
+  "mcpServers": {
+    "webiny": {
+      "command": "npx",
+      "args": [
+        "webiny",
+        "mcp-server",
+        "--additional-skills=./team-skills",
+        "--additional-skills=./project-skills"
+      ]
+    }
+  }
+}
+```
+
+When a skill with the same name exists in multiple folders, the one in the highest-priority folder wins. Priority is determined by order: folders listed later on the command line take precedence over earlier ones, and all additional folders take precedence over the built-in skills.
+
+## Replacing Built-in Skills
+
+Use the `--skills` flag to replace the built-in skills folder entirely:
+
+```json
+{
+  "mcpServers": {
+    "webiny": {
+      "command": "npx",
+      "args": ["webiny", "mcp-server", "--skills=./my-skills"]
+    }
+  }
+}
+```
+
+When you use `--skills`, only skills found in the specified folder are served. The built-in skills are ignored completely.
+
+## Writing a Skill
+
+Each skill is a folder containing a single `SKILL.md` file. The file must start with YAML front-matter:
+
+```
+---
+name: my-custom-skill
+description: >
+  A short description of what this skill covers.
+  The agent uses this to decide when to load the skill.
+context: webiny-extensions
+---
+
+# My Custom Skill
+
+The rest of the file is the skill content — markdown documentation
+that gets returned to the agent when it calls `get_webiny_skill`.
+```
+
+**Front-matter fields:**
+
+- **`name`** (required) — unique identifier for the skill, used as the `topic` argument in `get_webiny_skill`
+- **`description`** (required) — shown in the skill catalog; helps the agent decide which skill to load
+- **`context`** (optional) — groups skills in the catalog; defaults to `webiny-extensions`
+
+Place the `SKILL.md` file inside a descriptively named folder:
+
+```
+my-skills/
+├── custom-auth-flow/
+│   └── SKILL.md
+└── data-migration/
+    └── SKILL.md
+```
+
+Paths passed to `--skills` and `--additional-skills` are resolved relative to the current working directory (your project root).
+
+## When to Use Custom Skills
+
+Custom skills are useful when your project has patterns or conventions that go beyond what the built-in skills cover. Some examples:
+
+- **Domain-specific models** — document your project's content model relationships, naming conventions, and field patterns so AI generates models that fit your domain
+- **Internal APIs** — describe custom GraphQL schemas or third-party integrations your team has built, so AI knows how to use them
+- **Team conventions** — codify coding standards, folder organization rules, or review checklists that your team follows
+- **Migration guides** — provide step-by-step instructions for common data migrations or schema changes specific to your project
