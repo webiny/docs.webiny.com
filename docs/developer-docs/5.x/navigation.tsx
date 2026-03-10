@@ -9,9 +9,9 @@ export const Navigation = () => {
         icon={"/docs-menu-icons/get-started.svg"}
         link={"get-started/welcome"}
       >
+        <Page link={"get-started/welcome"} />
         <Page link={"get-started/install-webiny"} />
         <Page link={"get-started/build-with-llms-ai"} />
-        <Page link={"get-started/welcome"} />
       </Group>
       <Group
         title={"Webiny Overview"}
