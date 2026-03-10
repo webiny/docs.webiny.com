@@ -113,6 +113,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Group title={"Extensions"} link={"infrastructure/extensions/aws-tags"}>
           <Page link={"infrastructure/extensions/aws-tags"} title={"AWS Tags"} />
           <Page
+            link={"infrastructure/extensions/resource-name-prefix"}
+            title={"Resource Name Prefix"}
+          />
+          <Page
             link={"infrastructure/extensions/production-environments"}
             title={"Production Environments"}
           />
@@ -120,6 +124,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             link={"infrastructure/extensions/env-specific-config"}
             title={"Environment-Specific Config"}
           />
+          <Page link={"infrastructure/extensions/opensearch"} title={"Amazon OpenSearch"} />
           <Page link={"infrastructure/extensions/pulumi-extensions"} title={"Pulumi Extensions"} />
         </Group>
       </Group>

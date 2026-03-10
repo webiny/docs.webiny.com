@@ -1,14 +1,14 @@
 ---
 id: cms7gql1
 title: GraphQL API Overview
-description: Understand the Read and Manage GraphQL APIs and how to access them
+description: Understand the Read, Preview, and Manage GraphQL APIs and how to access them
 ---
 
 import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
-- What are the Read and Manage APIs?
+- What are the Read, Preview, and Manage APIs?
 - When to use each API?
 - How to access the GraphQL APIs?
 
@@ -16,7 +16,7 @@ import { Alert } from "@/components/Alert";
 
 ## Overview
 
-Webiny Headless CMS exposes two separate GraphQL APIs: the **Read API** for fetching published content and the **Manage API** for full CRUD operations. Both APIs are available via HTTP endpoints and require authentication via API keys.
+Webiny Headless CMS exposes three separate GraphQL APIs: the **Read API** for fetching published content, the **Preview API** for viewing draft content, and the **Manage API** for full CRUD operations. All APIs are available via HTTP endpoints and require authentication via API keys.
 
 ## Read API
 
@@ -44,6 +44,31 @@ https://{your-api-url}/cms/read/{locale}
 ```
 
 The `{locale}` parameter specifies the content locale (e.g., `en-US`, `de-DE`). If your project uses a single locale, use the default locale configured in your CMS.
+
+## Preview API
+
+The Preview API provides read-only access to **all content**, including draft, published, and unpublished entries. It is designed for preview features where editors need to see unpublished content before publishing, such as preview buttons or draft mode in Next.js.
+
+**Use the Preview API when:**
+
+- Building preview features for content editors
+- Implementing "View Draft" functionality
+- Showing unpublished content in a staging environment
+- Editors need to see changes before publishing
+
+**Key characteristics:**
+
+- Read-only operations (queries only, no mutations)
+- Returns all entries (draft, published, unpublished)
+- Returns the latest version of each entry
+- Requires preview or manage API key
+- Can be exposed to authenticated editors only
+
+**GraphQL endpoint:**
+
+```
+https://{your-api-url}/cms/preview/{locale}
+```
 
 ## Manage API
 
@@ -73,7 +98,7 @@ https://{your-api-url}/cms/manage/{locale}
 
 ## Authentication
 
-Both APIs require authentication via API keys passed in the `Authorization` header:
+All three APIs require authentication via API keys passed in the `Authorization` header:
 
 ```http
 Authorization: Bearer {your-api-key}
@@ -85,13 +110,20 @@ API keys are created in **Settings → Access Management → API Keys** in the W
 
 - Grant "Read" permission for Headless CMS
 - Safe to use in frontend applications
-- Can only query published content
+- Can only query published content via Read API
+
+**Preview API key:**
+
+- Grant "Preview" or "Full Access" permission for Headless CMS
+- Should be used server-side or in authenticated contexts
+- Can query all content (draft, published, unpublished) via Preview API
 
 **Manage API key:**
 
 - Grant "Full Access" permission for Headless CMS
 - Must be kept secret (server-side only)
-- Can create, update, delete, and publish entries
+- Can create, update, delete, and publish entries via Manage API
+- Can also access Preview and Read APIs
 
 ## API Key Scope
 
@@ -111,24 +143,32 @@ API keys can be scoped to specific locales and tenants:
 
 ## Choosing the Right API
 
-| Scenario                                   | API to Use |
-| ------------------------------------------ | ---------- |
-| Display blog posts on website              | Read API   |
-| Fetch products for e-commerce site         | Read API   |
-| Build a contact form that creates entries  | Manage API |
-| Create admin interface for content editors | Manage API |
-| Import content from external system        | Manage API |
-| Publish/unpublish entries programmatically | Manage API |
-| Preview unpublished content                | Manage API |
+| Scenario                                   | API to Use  |
+| ------------------------------------------ | ----------- |
+| Display blog posts on website              | Read API    |
+| Fetch products for e-commerce site         | Read API    |
+| Preview unpublished blog post              | Preview API |
+| Show draft content to authenticated editor | Preview API |
+| Build "View Draft" button                  | Preview API |
+| Build a contact form that creates entries  | Manage API  |
+| Create admin interface for content editors | Manage API  |
+| Import content from external system        | Manage API  |
+| Publish/unpublish entries programmatically | Manage API  |
 
 ## GraphQL Playground
 
-Both APIs provide a GraphQL playground for exploring the schema and testing queries:
+All three APIs provide a GraphQL playground for exploring the schema and testing queries:
 
 **Read API Playground:**
 
 ```
 https://{your-api-url}/cms/read/{locale}
+```
+
+**Preview API Playground:**
+
+```
+https://{your-api-url}/cms/preview/{locale}
 ```
 
 **Manage API Playground:**
