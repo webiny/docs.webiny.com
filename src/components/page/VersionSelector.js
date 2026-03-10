@@ -10,9 +10,10 @@ const createNewPath = (versions, path, currentVersion, newVersion) => {
     }
 
     if (currentVersion !== latestVersion && newVersion === latestVersion) {
-        const parts = path.split("/").slice(3);
-        // Remove version from existing path
-        return ["", "docs", ...parts].join("/");
+        // When switching to the latest version, always go to the Welcome page.
+        // The v6 doc structure is significantly different from v5, so the same
+        // page slug almost never exists at the latest level.
+        return "/docs/get-started/welcome";
     }
 
     if (currentVersion !== latestVersion && newVersion !== latestVersion) {
