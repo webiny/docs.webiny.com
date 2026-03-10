@@ -1,0 +1,100 @@
+AI Context: Tenant Management via GraphQL API (tenant-manager/manage-tenants.mdx)
+
+Source of Information:
+1. Analyzed Webiny v6 Tenant Manager GraphQL API schema and mutations
+2. Examined tenant lifecycle operations (create, install, enable, disable)
+3. Studied GraphQL error handling patterns in Webiny
+4. Reviewed tenant management workflows and permissions
+5. Referenced multi-tenancy documentation patterns
+
+Key Documentation Decisions:
+- Structured as comprehensive GraphQL API reference for tenant operations
+- Covered full CRUD lifecycle: create → install → enable/disable
+- Included complete request/response examples for each operation
+- Documented error handling with BooleanResponse pattern
+- Added practical complete workflow example at the end
+- Made it accessible for developers integrating tenant management
+- Focused on GraphQL API (not programmatic backend extensions)
+
+Document Structure:
+- What You'll Learn
+- Prerequisites (API endpoint, permissions)
+- Mutations overview (tenantManager field)
+- Each operation documented separately:
+  - Create Tenant (with optional custom ID)
+  - Install Tenant (provisioning step)
+  - Disable Tenant (suspend access)
+  - Enable Tenant (restore access)
+- Error Handling section (BooleanResponse structure)
+- Complete Example (create + install workflow)
+
+Tenant Management Workflow:
+1. Create Tenant - Creates tenant record in system
+   - Optional custom ID or auto-generated
+   - Required: name, optional: description
+2. Install Tenant - Provisions tenant resources
+   - Required after creation
+   - Sets up default settings and configurations
+3. Enable/Disable - Access control
+   - Disable: Prevents access to resources
+   - Enable: Restores access
+
+GraphQL API Patterns:
+- All operations under root Mutation.tenantManager field
+- All mutations return BooleanResponse type
+- Error structure: { message, code, data }
+- Success: data: true, error: null
+- Failure: data: null, error: { message, code }
+
+Key Operations:
+
+1. Create Tenant
+   - Input: CreateTenantInput { id?, name!, description? }
+   - ID is optional (auto-generated if not provided)
+   - Returns BooleanResponse
+
+2. Install Tenant
+   - Input: tenantId (required)
+   - Must be called after creation
+   - Provisions tenant with defaults
+   - Requires admin privileges
+
+3. Disable Tenant
+   - Input: tenantId (required)
+   - Prevents access to tenant resources
+   - Does not delete data
+
+4. Enable Tenant
+   - Input: tenantId (required)
+   - Re-enables previously disabled tenant
+   - Restores access
+
+Error Handling:
+- BooleanResponse type used consistently
+- Error object contains: message, code, data (JSON)
+- Common error codes: TENANT_EXISTS, etc.
+- Always check error field before proceeding
+
+Complete Workflow Example:
+1. Create tenant with custom ID
+2. Check for creation errors
+3. Install tenant (admin operation)
+4. Check for installation errors
+5. Tenant is ready for use
+
+Related Documents:
+- tenant-manager/extend-tenant-model.mdx - Adding custom fields
+- core-concepts/multi-tenancy.mdx - Multi-tenancy concepts
+- headless-cms/builder/field.mdx - Field types reference
+
+Key Code Locations (Webiny source):
+- packages/api-tenant-manager/src/graphql/ - GraphQL schema and resolvers
+- packages/api-tenant-manager/src/domain/useCases/ - Tenant use cases
+
+Tone Guidelines:
+- Technical API reference style
+- Each operation fully documented with request/response examples
+- Practical complete workflow at the end
+- Clear error handling guidance
+- Assumes reader has GraphQL knowledge
+- Focus on API integration, not conceptual multi-tenancy

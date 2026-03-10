@@ -1,0 +1,142 @@
+---
+id: wb9setup
+title: Setup Next.js Project
+description: Set up the Website Builder Next.js starter kit and connect it to your Webiny project.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How the Website Builder editor connects to your Next.js app
+- How to install and configure the Next.js starter kit
+- How to create and render your first page
+
+</Alert>
+
+## Overview
+
+The Website Builder editor loads your Next.js application inside an iframe. When content editors drag components onto a page, they're interacting with your real React components and styles. Webiny stores only the page structure and component inputs—it has no knowledge of your components or styling.
+
+This architecture ensures true WYSIWYG editing while giving you complete control over your frontend code.
+
+## Prerequisites
+
+- Running Webiny project (Core and API applications deployed)
+- Node.js 20.9+ installed
+- Familiarity with Next.js App Router
+
+## Architecture
+
+The `@webiny/website-builder-nextjs` SDK connects the editor to your Next.js app via postMessage, handling communication during editing and fetching published page data during rendering.
+
+## Installation
+
+### Clone the Starter Kit
+
+The official Next.js starter kit provides pre-configured routing, SDK setup, and rendering:
+
+```bash
+git clone https://github.com/webiny/website-builder-nextjs.git my-website
+cd my-website
+npm install
+```
+
+### Match Webiny Version
+
+Before installing dependencies, ensure the SDK versions in `package.json` match your Webiny version. Find your version at the bottom of the Admin sidebar or by running `webiny --version`.
+
+```json package.json
+{
+  "dependencies": {
+    "@webiny/website-builder-nextjs": "~6.2.1",
+    "@webiny/sdk": "~6.2.1"
+  }
+}
+```
+
+The `~` prefix allows safe patch updates.
+
+## Configuration
+
+### Get Credentials
+
+Open Webiny Admin and navigate to **Support → Configure Next.js**. The dialog displays three environment variables with values already filled:
+
+- `NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY` - Auto-generated read-only API key
+- `NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST` - Your CloudFront API URL
+- `NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT` - Tenant ID (typically `root`)
+
+Copy the entire block from the dialog.
+
+<Alert type="info" title="API Key Auto-Created">
+
+The Website Builder automatically creates a read-only API key for your tenant. Find it under **Settings → Access Management → API Keys** as "Website Builder".
+
+</Alert>
+
+### Set Environment Variables
+
+Create a `.env` file in your Next.js project root and paste the copied variables:
+
+```dotenv .env
+NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY=your_api_key_here
+NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST=https://your-cloudfront-url.cloudfront.net
+NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT=root
+```
+
+All three variables use the `NEXT_PUBLIC_` prefix because they're accessed client-side during live editing.
+
+## Start Development
+
+Run the dev server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). You'll see a "Page not found" message—this is expected since no pages exist yet.
+
+## Create Your First Page
+
+1. Open Webiny Admin
+2. Navigate to **Website Builder → Pages**
+3. Click **New Page**
+4. Set title to "Hello World" and path to `/`
+5. Click **Create**
+
+In the page editor:
+
+1. Find **Hero #1** in the component palette (Custom group)
+2. Drag it onto the canvas
+3. Click **Publish**
+
+Refresh [http://localhost:3000](http://localhost:3000). The hero component now renders on your homepage.
+
+## Project Structure
+
+The starter kit includes:
+
+**`src/app/[[...slug]]/page.tsx`**
+
+Catch-all route that renders all Website Builder pages.
+
+**`src/app/api/preview/`**
+
+Enables Next.js draft mode for unpublished page previews.
+
+**`src/contentSdk/`**
+
+SDK initialization and configuration.
+
+**`src/editorComponents/`**
+
+Component registration—add your custom components here.
+
+**`src/theme/`**
+
+Theme configuration (CSS variables, typography, colors).
+
+## Next Steps
+
+With the starter kit running and your first page rendered, you're ready to customize the theme and create custom components.

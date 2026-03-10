@@ -31,7 +31,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"core-concepts/debugging"} />
         <Page link={"core-concepts/ai-assisted-development"} />
       </Group>
-      {/* <Group
+      <Group
         title={"Headless CMS"}
         icon={"/docs-menu-icons/headless-cms.svg"}
         link={"headless-cms/about"}
@@ -57,7 +57,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Group title={"UI"}>
           <Page link={"headless-cms/ui/field-renderer"} />
         </Group>
-      </Group> */}
+      </Group>
       <Group
         title={"Admin"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
@@ -65,14 +65,14 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"admin/whitelabeling"} />
       </Group>
-      {/* Hidden sections - uncomment to show */}
-      {/* <Group
-        title={"Tenant Manager"}
+      <Group
+        title={"Website Builder"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
-        link={"tenant-manager/manage-tenants"}
+        link={"website-builder/setup-nextjs"}
       >
-        <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />
-        <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />
+        <Page link={"website-builder/setup-nextjs"} title={"Setup Next.js Project"} />
+        <Page link={"website-builder/theme"} title={"Configure Theme"} />
+        <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
       </Group>
       <Group title={"GraphQL"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"graphql/about"}>
         <Page link={"graphql/about"} />
@@ -83,7 +83,15 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"tasks/about"} />
         <Page link={"tasks/reference"} />
         <Page link={"tasks/management"} />
-      </Group> */}
+      </Group>
+      <Group
+        title={"Tenant Manager"}
+        icon={"/docs-menu-icons/webiny-overview.svg"}
+        link={"tenant-manager/manage-tenants"}
+      >
+        <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />
+        <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />
+      </Group>
       <Group title={"CLI"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
         <Page link={"cli/deploy"} />
         <Page link={"cli/destroy"} />
