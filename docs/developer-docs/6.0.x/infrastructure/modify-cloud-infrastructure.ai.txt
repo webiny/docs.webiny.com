@@ -1,0 +1,43 @@
+AI Context: Modify Cloud Infrastructure (infrastructure/modify-cloud-infrastructure.mdx)
+
+Source of Information:
+1. v5.40.x reference: docs/developer-docs/5.40.x/infrastructure/basics/modify-cloud-infrastructure.mdx
+2. v6 extensions reference: docs/developer-docs/6.0.x/reference/extensions.mdx (full Infra.* API surface)
+3. Real-world webiny.config.tsx provided by user showing actual v6 usage patterns
+4. docs/developer-docs/6.0.x/core-concepts/extensions.mdx (Infrastructure Extensions section)
+
+Key Documentation Decisions:
+- v5 used per-app webiny.application.ts files with a pulumi() callback; v6 uses a single webiny.config.tsx with declarative Infra.* components + Pulumi extension files
+- Dropped v5-specific sections that have no v6 equivalent: pulumiResourceNamePrefix as a callback function, env.isProduction pattern (replaced by ProductionEnvironments component), shared OpenSearch domain across accounts, CloudFront TLS example, cron job example (too long / not v6-verified)
+- Kept the most universally useful examples: tagging, resource name prefix, production environments, OpenSearch, environment-conditional config, Lambda memory, IAM policy attachment
+- Pulumi extension file type annotations use `any` for now — the actual Pulumi context types aren't confirmed from source
+- No diff-ts code blocks — v6 docs don't use that format
+- Redeploying section explains which stack to target, replacing the v5 per-app guidance
+
+v6 Infrastructure Architecture:
+- Three stacks: Core (DynamoDB, S3, OpenSearch, Cognito), API (Lambda/GraphQL), Admin (CloudFront/S3 static)
+- All config in webiny.config.tsx (single file, not per-app files)
+- Declarative: Infra.Aws.Tags, Infra.PulumiResourceNamePrefix, Infra.ProductionEnvironments, Infra.OpenSearch, Infra.Vpc, Infra.Env.Is
+- Pulumi extensions: Infra.Core.Pulumi, Infra.Api.Pulumi, Infra.Admin.Pulumi — each takes src pointing to a .ts file
+
+Key v5 → v6 Differences:
+- v5: apps/core/webiny.application.ts + pulumi() callback inline
+- v6: webiny.config.tsx + <Infra.Core.Pulumi src="/extensions/MyHandler.ts" />
+- v5: pulumiResourceNamePrefix as string or callback on each app
+- v6: <Infra.PulumiResourceNamePrefix prefix="myproj-" /> once globally
+- v5: productionEnvironments array on each app
+- v6: <Infra.ProductionEnvironments environments={["prod", "staging"]} /> once globally
+- v5: tagResources() function from @webiny/pulumi-aws
+- v6: <Infra.Aws.Tags tags={{...}} /> declarative component
+
+Related Documents:
+- infrastructure/deployment-modes.mdx — explains production vs dev deployment mode
+- core-concepts/extensions.mdx — explains the extension system generally
+- reference/extensions.mdx — full Infra.* component reference with all props
+- cli/deploy.mdx — deploy command reference
+
+Tone Guidelines:
+- Practical guide — lead with the two-mode mental model (declarative vs Pulumi extensions)
+- Show real code, keep explanations tight
+- Note important caveats (shared OpenSearch only for dev, redeploy the right stack)
+- No analogies; developer audience that knows AWS and Pulumi basics
