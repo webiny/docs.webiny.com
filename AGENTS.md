@@ -32,22 +32,24 @@
 
 ```
 docs/developer-docs/6.0.x/
+├── admin/              # Admin area customization (whitelabeling)
+├── cli/                # CLI commands reference (deploy, destroy, watch, etc.)
 ├── core-concepts/      # Foundational knowledge: architecture, applications, project structure, DI, Result pattern, multi-tenancy, local dev, env vars
 ├── get-started/        # Welcome, installation, upgrade to Business
-├── cli/                # CLI commands reference
-├── graphql/            # GraphQL schema building with factory pattern
+├── graphql/            # GraphQL schema building with factory pattern (about, reference, example)
 ├── headless-cms/       # Largest section — all CMS extensibility
 │   ├── builder/        # ModelBuilder, GroupBuilder, FieldBuilder APIs
 │   ├── event-handler/  # Entry/model/group lifecycle events
 │   ├── examples/       # Private model, single-entry model
 │   ├── ui/             # Field renderers
 │   └── use-case/       # Entry/model/group business logic
+├── infrastructure/     # Cloud infrastructure (database setups, deployment modes, diagrams)
 ├── overview/           # Pricing, security features
 │   └── features/
-├── tasks/              # Background task system (Runner, Context, Controller)
-└── website-builder/    # Website Builder extensibility
-    ├── event-handler/  # Page/redirect lifecycle events
-    └── use-case/       # Page/redirect business logic
+├── reference/          # Auto-generated API reference (extensions, admin, API)
+├── tasks/              # Background task system (about, reference, management)
+├── tenant-manager/     # Multi-tenancy management (GraphQL API, model extension)
+└── website-builder/    # Website Builder extensibility (Next.js setup, theming, custom components)
 ```
 
 ### Key Patterns
@@ -95,7 +97,11 @@ Every page follows this order:
 
 ### Components
 
-Only one MDX component is used: `<Alert>` from `@/components/Alert`.
+Only two MDX components are used:
+
+#### Alert
+
+`<Alert>` from `@/components/Alert`.
 
 ```mdx
 import { Alert } from "@/components/Alert";
@@ -109,7 +115,9 @@ Alert types:
 - `type="info"` — supplemental links or context (inline, overview pages)
 - `type="warning"` — important cautions (inline, overview pages)
 
-No other custom components are used (no `<Tabs>`, `<Steps>`, etc.).
+#### Image
+
+- use <Image/> (src/components/Image.js) component when adding images
 
 ### Code Blocks
 
