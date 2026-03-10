@@ -31,7 +31,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"core-concepts/debugging"} />
         <Page link={"core-concepts/ai-assisted-development"} />
       </Group>
-      <Group
+      {/* <Group
         title={"Headless CMS"}
         icon={"/docs-menu-icons/headless-cms.svg"}
         link={"headless-cms/about"}
@@ -57,7 +57,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Group title={"UI"}>
           <Page link={"headless-cms/ui/field-renderer"} />
         </Group>
-      </Group>
+      </Group> */}
       <Group
         title={"Admin"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
@@ -65,7 +65,8 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"admin/whitelabeling"} />
       </Group>
-      <Group
+      {/* Hidden sections - uncomment to show */}
+      {/* <Group
         title={"Tenant Manager"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
         link={"tenant-manager/manage-tenants"}
@@ -82,7 +83,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"tasks/about"} />
         <Page link={"tasks/reference"} />
         <Page link={"tasks/management"} />
-      </Group>
+      </Group> */}
       <Group title={"CLI"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
         <Page link={"cli/deploy"} />
         <Page link={"cli/destroy"} />
