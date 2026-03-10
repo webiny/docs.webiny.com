@@ -32,33 +32,33 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"core-concepts/debugging"} />
         <Page link={"core-concepts/ai-assisted-development"} />
       </Group>
-      <Group
-        title={"Headless CMS"}
-        icon={"/docs-menu-icons/headless-cms.svg"}
-        link={"headless-cms/about"}
-      >
-        <Page link={"headless-cms/about"} />
-        <Group title={"Backend"}>
-          <Page link={"headless-cms/event-handler/group"} />
-          <Page link={"headless-cms/event-handler/model"} />
-          <Page link={"headless-cms/event-handler/entry"} />
-          <Page link={"headless-cms/event-handler/entry-extended"} />
+      {/*<Group*/}
+      {/*  title={"Headless CMS"}*/}
+      {/*  icon={"/docs-menu-icons/headless-cms.svg"}*/}
+      {/*  link={"headless-cms/about"}*/}
+      {/*>*/}
+      {/*  <Page link={"headless-cms/about"} />*/}
+      {/*  <Group title={"Backend"}>*/}
+      {/*    <Page link={"headless-cms/event-handler/group"} />*/}
+      {/*    <Page link={"headless-cms/event-handler/model"} />*/}
+      {/*    <Page link={"headless-cms/event-handler/entry"} />*/}
+      {/*    <Page link={"headless-cms/event-handler/entry-extended"} />*/}
 
-          <Page link={"headless-cms/use-case/group"} />
-          <Page link={"headless-cms/use-case/model"} />
-          <Page link={"headless-cms/use-case/entry"} />
+      {/*    <Page link={"headless-cms/use-case/group"} />*/}
+      {/*    <Page link={"headless-cms/use-case/model"} />*/}
+      {/*    <Page link={"headless-cms/use-case/entry"} />*/}
 
-          <Page link={"headless-cms/builder/group"} />
-          <Page link={"headless-cms/builder/model"} />
-          <Page link={"headless-cms/builder/field"} />
+      {/*    <Page link={"headless-cms/builder/group"} />*/}
+      {/*    <Page link={"headless-cms/builder/model"} />*/}
+      {/*    <Page link={"headless-cms/builder/field"} />*/}
 
-          <Page link={"headless-cms/examples/private-model"} />
-          <Page link={"headless-cms/examples/single-entry-model"} />
-        </Group>
-        <Group title={"UI"}>
-          <Page link={"headless-cms/ui/field-renderer"} />
-        </Group>
-      </Group>
+      {/*    <Page link={"headless-cms/examples/private-model"} />*/}
+      {/*    <Page link={"headless-cms/examples/single-entry-model"} />*/}
+      {/*  </Group>*/}
+      {/*  <Group title={"UI"}>*/}
+      {/*    <Page link={"headless-cms/ui/field-renderer"} />*/}
+      {/*  </Group>*/}
+      {/*</Group>*/}
       <Group
         title={"Admin"}
         icon={"/docs-menu-icons/webiny-overview.svg"}
@@ -75,24 +75,24 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
       </Group>
-      <Group title={"GraphQL"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"graphql/about"}>
-        <Page link={"graphql/about"} />
-        <Page link={"graphql/reference"} />
-        <Page link={"graphql/example"} />
-      </Group>
-      <Group title={"Tasks"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"tasks/about"}>
-        <Page link={"tasks/about"} />
-        <Page link={"tasks/reference"} />
-        <Page link={"tasks/management"} />
-      </Group>
-      <Group
-        title={"Tenant Manager"}
-        icon={"/docs-menu-icons/webiny-overview.svg"}
-        link={"tenant-manager/manage-tenants"}
-      >
-        <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />
-        <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />
-      </Group>
+      {/*<Group title={"GraphQL"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"graphql/about"}>*/}
+      {/*  <Page link={"graphql/about"} />*/}
+      {/*  <Page link={"graphql/reference"} />*/}
+      {/*  <Page link={"graphql/example"} />*/}
+      {/*</Group>*/}
+      {/*<Group title={"Tasks"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"tasks/about"}>*/}
+      {/*  <Page link={"tasks/about"} />*/}
+      {/*  <Page link={"tasks/reference"} />*/}
+      {/*  <Page link={"tasks/management"} />*/}
+      {/*</Group>*/}
+      {/*<Group*/}
+      {/*  title={"Tenant Manager"}*/}
+      {/*  icon={"/docs-menu-icons/webiny-overview.svg"}*/}
+      {/*  link={"tenant-manager/manage-tenants"}*/}
+      {/*>*/}
+      {/*  <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />*/}
+      {/*  <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />*/}
+      {/*</Group>*/}
       <Group title={"CLI"} icon={"/docs-menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
         <Page link={"cli/deploy"} />
         <Page link={"cli/destroy"} />
