@@ -1,0 +1,77 @@
+AI Context: Development Mode (development.mdx)
+
+Source of Information:
+1. /docs/developer-docs/5.39.x/architecture/deployment-modes/development.mdx - original v5 documentation
+2. AWS VPC documentation on default VPC
+3. AWS Lambda documentation on multi-AZ execution
+4. Rackspace blog: "Understanding the Default Virtual Private Cloud"
+5. AWS OpenSearch documentation on AZ deployment
+
+Key Documentation Decisions:
+1. Removed FAQ section - integrated into main text
+2. Removed external article link Alert - kept the concept but simplified
+3. Removed verbose Alert about VPC concepts - kept it brief as an info Alert
+4. Changed "WHAT YOU'LL LEARN" to 3 focused questions
+5. Removed "Description" heading - integrated into Overview
+6. Created "Resource Placement" section to explain Lambda and OpenSearch deployment
+7. Created "Security Considerations" section to explain public subnet implications
+8. Removed verbose explanations about why development mode is reasonable
+9. Simplified diagram description to focus on key points
+
+Understanding Default VPC:
+- Every AWS account has a default VPC in every region
+- Default VPC is pre-configured with:
+  - CIDR block: 172.31.0.0/16
+  - One public subnet per availability zone
+  - Internet Gateway attached
+  - Main route table with route to Internet Gateway
+- Subnets are "public" because their route table routes 0.0.0.0/0 to the Internet Gateway
+- Resources in public subnets can have public IP addresses and access the internet directly
+
+Development Mode Network Flow:
+- Lambda functions → Internet Gateway → Public internet
+- OpenSearch (if public) → Internet Gateway → Public internet
+- External services can reach resources via public IPs (if security groups allow)
+
+Lambda Multi-AZ:
+- AWS runs Lambda functions in multiple AZs by default (not configurable)
+- This provides high availability even in development mode
+- If one AZ fails, Lambda requests route to other AZs automatically
+
+OpenSearch Single-AZ:
+- In development mode, OpenSearch is deployed in a single AZ (C)
+- This saves cost (no replica nodes in other AZs)
+- If the AZ fails, OpenSearch goes down (acceptable for dev/test)
+- Production mode deploys OpenSearch across multiple AZs
+
+Public Subnets Security:
+- Resources can be accessed from the internet if security groups allow
+- No NAT Gateway needed (resources have direct internet access)
+- Less secure than private subnets (resources are internet-facing)
+- Suitable for development where access from developer machines is needed
+
+Availability Zones:
+- Most regions have 3 AZs (us-east-1 has 6, some regions have 2)
+- Default VPC creates one subnet per AZ
+- Diagram shows 3 subnets (C, D, E) for 3 AZs
+- Some regions only have 2 AZs, so only 2 subnets would be created
+
+Code Patterns:
+- No code in this document - pure infrastructure diagram
+
+Related Documents:
+- infrastructure/deployment-modes/introduction.mdx - overview of modes
+- infrastructure/deployment-modes/production.mdx - comparison with production mode
+- infrastructure/api/overview.mdx - API infrastructure deployed in this VPC
+- infrastructure/core/overview.mdx - Core resources deployed in this VPC
+
+Key Code Locations:
+- Not applicable - infrastructure documentation only
+
+Tone Guidelines:
+- Technical and concise - explain the default VPC without verbose justification
+- Use section headings to organize concepts (Infrastructure, Resource Placement, Security Considerations)
+- Focus on what is deployed and where, not why it's acceptable
+- Mention cost briefly (single-AZ OpenSearch)
+- Security section should be matter-of-fact, not alarmist
+- Use diagram letters to reference resources clearly

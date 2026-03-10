@@ -71,6 +71,21 @@ function nearestScrollableContainer(el) {
 const NavTreeElement = forwardRef(({ element, depth = 0 }, ref) => {
     const { type, title, link, icon, items, isActive, isActiveChild } = element;
 
+    // Temporary testing this layout.
+    if (type === "group") {
+        return (
+            <GenericMenuSection
+                subElements={items}
+                isActiveChild={isActiveChild}
+                title={title}
+                link={link}
+                icon={icon}
+                ref={ref}
+                depth={depth}
+            />
+        );
+    }
+
     if (type === "group" && depth >= 1) {
         return (
             <GenericMenuSection

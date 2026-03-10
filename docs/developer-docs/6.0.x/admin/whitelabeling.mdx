@@ -1,0 +1,89 @@
+---
+id: am7x3vkp
+title: Whitelabeling
+description: Learn how to replace the default Webiny logo, title, and theme colors with your own branding.
+---
+
+import { Alert } from "@/components/Alert";
+import { ExtensionsGettingStartedV6 } from "@/components/ExtensionsGettingStartedV6";
+import whitelabeling from "./assets/whitelabeling.png";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to replace the default Webiny logo in the Admin application
+- how to customize the application title
+- how to adjust the Admin color theme
+
+</Alert>
+
+## Overview
+
+The Admin application ships with Webiny's default logo, title, and color theme. You can replace all of these through an Admin extension using the `AdminConfig` API — no changes to core Webiny code required.
+
+<ExtensionsGettingStartedV6 type={"admin"} fullExampleDownloadLink={"whitelabeling"} />
+
+## Creating the Extension
+
+Create a new file `extensions/AdminBranding/AdminBranding.tsx`:
+
+```tsx extensions/AdminBranding/AdminBranding.tsx
+import React from "react";
+import { AdminConfig } from "webiny/admin/configs";
+import squareLogo from "./logo.png";
+import horizontalLogo from "./logo.png";
+
+const { Title, Logo, Theme } = AdminConfig;
+
+const AdminBranding = () => {
+  return (
+    <AdminConfig.Public>
+      <Title value={"ACME Corp"} />
+      <Logo
+        squareLogo={<img src={squareLogo} alt={"ACME Corp"} />}
+        horizontalLogo={<img src={horizontalLogo} alt={"ACME Corp"} />}
+      />
+      <Theme.Color palette={"primary"} color={"blue"} />
+    </AdminConfig.Public>
+  );
+};
+
+export default AdminBranding;
+```
+
+Place your logo image at `extensions/AdminBranding/logo.png`. The `AdminConfig.Public` wrapper makes the configuration available throughout the Admin app.
+
+The three customization points are:
+
+- **`Title`** — sets the application title shown in the browser tab and header
+- **`Logo`** — accepts two logo variants: `squareLogo` (used in the sidebar) and `horizontalLogo` (used on the login page)
+- **`Theme.Color`** — overrides theme palette entries; `palette` is the color role (e.g., `"primary"`, `"neutral"`) and `color` is any valid CSS color value
+
+## Registering the Extension
+
+Add the extension to `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Admin, Infra } from "webiny/extensions";
+import { Cognito } from "@webiny/cognito";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Aws.DefaultRegion name={"us-east-1"} />
+      <Cognito />
+      <Admin.Extension src={"/extensions/AdminBranding/AdminBranding.tsx"} />
+    </>
+  );
+};
+```
+
+With the extension registered, run the following command to see your changes in action:
+
+```
+yarn webiny watch admin
+```
+
+If everything went correctly, you should see your custom branding applied to the Admin application:
+
+<Image src={whitelabeling} alt="Admin application with custom branding applied" />

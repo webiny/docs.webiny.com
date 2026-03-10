@@ -1,0 +1,278 @@
+---
+id: ex9t7nsn
+title: Extensions
+description: Understanding Webiny's extension system and how to use it.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+  - What extensions are and their purpose - Types of extensions available - How to register and
+  configure extensions
+</Alert>
+
+## Overview
+
+Extensions are modular pieces of code that customize, enhance, or modify Webiny's behavior. They are the primary way to extend Webiny to meet specific needs. Even core features like identity providers are implemented as extensions, making the system highly modular and customizable.
+
+## What Extensions Do
+
+Extensions allow you to:
+
+- Add custom GraphQL schemas and resolvers
+- Customize Admin UI with themes and branding
+- Modify cloud infrastructure configuration
+- Hook into lifecycle events
+- Add custom business logic
+- Create custom CLI commands
+
+## Extension Philosophy
+
+Webiny follows an opt-in customization approach:
+
+> "Here's what you need, extend when you want."
+
+Webiny provides sensible defaults. You create extensions only for specific customizations you need. The platform handles everything else automatically.
+
+## The `webiny.config.tsx` File
+
+Extensions are registered in `webiny.config.tsx`, the central configuration file for your project.
+
+### Basic Configuration
+
+A minimal configuration:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+import { Cognito } from "@webiny/cognito";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Aws.DefaultRegion name={"us-east-1"} />
+      <Cognito />
+    </>
+  );
+};
+```
+
+This sets AWS region and enables Cognito authentication.
+
+### Extended Configuration
+
+As you add customizations:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api, Admin, Infra } from "webiny/extensions";
+import { Cognito } from "@webiny/cognito";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* Infrastructure */}
+      <Infra.Aws.DefaultRegion name={"us-east-1"} />
+      <Infra.OpenSearch enabled={true} />
+      <Infra.Aws.Tags tags={{ OWNER: "me", PROJECT: "my-project" }} />
+
+      {/* Authentication */}
+      <Cognito />
+
+      {/* Custom extensions */}
+      <Api.Extension src={"/extensions/MyApiExtension.ts"} />
+      <Admin.Extension src={"/extensions/AdminBranding.tsx"} />
+    </>
+  );
+};
+```
+
+Configuration uses React components for type safety, auto-completion, and maintainability.
+
+### Configuration Types
+
+`webiny.config.tsx` typically includes:
+
+1. **Infrastructure** - AWS region, tags, resource settings, OpenSearch
+2. **Identity providers** - Cognito, Auth0, Okta, custom authentication
+3. **Extensions** - References to custom code
+4. **Environment-specific settings** - Different configs per environment
+
+## Types of Extensions
+
+### API Extensions
+
+Customize the backend GraphQL API:
+
+- Custom GraphQL schemas, queries, mutations
+- Lifecycle hooks
+- Custom resolvers and business logic
+- Security enhancements
+
+```tsx webiny.config.tsx
+<Api.Extension src={"/extensions/MyApiExtension.ts"} />
+```
+
+Example implementation:
+
+```typescript extensions/MyApiExtension.ts
+import { GraphQLSchemaFactory } from "webiny/api/graphql";
+import { IdentityContext } from "webiny/api/security";
+
+class Schema implements GraphQLSchemaFactory.Interface {
+  constructor(private identityContext: IdentityContext.Interface) {}
+
+  execute(): GraphQLSchemaFactory.Return {
+    return [
+      {
+        typeDefs: /* GraphQL */ `
+          type Query {
+            hello: String
+          }
+        `,
+        resolvers: {
+          Query: {
+            hello: () => {
+              const identity = this.identityContext.getIdentity();
+              return `Hello, ${identity.displayName}!`;
+            }
+          }
+        }
+      }
+    ];
+  }
+}
+
+export default GraphQLSchemaFactory.createImplementation({
+  implementation: Schema,
+  dependencies: [IdentityContext]
+});
+```
+
+<Alert type="info" title="Dependency Injection">
+  API extensions use dependency injection. The DI container provides required dependencies, ensures
+  type safety, and validates at compile time. This makes code maintainable and testable.
+</Alert>
+
+### Admin Extensions
+
+Customize the Admin UI:
+
+- White-label branding
+- Custom views and pages
+- Tenant-level theming
+- Custom components
+
+```tsx webiny.config.tsx
+<Admin.Extension src={"/extensions/AdminBranding.tsx"} />
+```
+
+Example implementation:
+
+```tsx extensions/AdminBranding.tsx
+import React from "react";
+import { AdminConfig } from "webiny/admin/configs";
+import logo from "./logo.png";
+
+const { Logo } = AdminConfig;
+
+const AdminLogo = () => {
+  return (
+    <AdminConfig.Public>
+      <Logo
+        squareLogo={<img src={logo} alt={"My Company"} />}
+        horizontalLogo={<img src={logo} alt={"My Company"} />}
+      />
+    </AdminConfig.Public>
+  );
+};
+
+export default AdminLogo;
+```
+
+Admin extensions are regular React components. Use hooks, context, and React patterns you're familiar with.
+
+### Infrastructure Extensions
+
+Modify AWS infrastructure using Pulumi:
+
+- Custom resources (CloudWatch alarms, S3 buckets, Lambda functions)
+- Modify existing resources (memory, timeout, environment variables)
+- Conditional infrastructure per environment
+
+```tsx webiny.config.tsx
+<Infra.Core.Pulumi src={"/extensions/MyInfraExtension.ts"} />
+```
+
+### CLI Extensions
+
+Add custom commands to Webiny CLI:
+
+- Deployment scripts
+- Data migrations
+- Code generators
+- Project-specific tooling
+
+```tsx webiny.config.tsx
+<Cli.Command src={"/extensions/MyCustomCommand.ts"} />
+```
+
+## Environment-Specific Extensions
+
+Load extensions conditionally by environment:
+
+```tsx webiny.config.tsx
+<Infra.Env.Is env="prod">
+  <Infra.Aws.Tags tags={{ ENV: "production" }} />
+  <Infra.OpenSearch enabled={true} />
+</Infra.Env.Is>
+
+<Infra.Env.Is env={["dev", "staging"]}>
+  <Infra.Aws.Tags tags={{ ENV: "non-production" }} />
+  <Infra.OpenSearch enabled={false} />
+</Infra.Env.Is>
+```
+
+Useful for:
+
+- Different infrastructure per environment
+- Development-only debugging tools
+- Production-only monitoring
+
+## Installing Pre-Built Extensions
+
+Webiny provides official extensions at [github.com/webiny/extensions](https://github.com/webiny/extensions).
+
+Install with:
+
+```bash
+yarn webiny extension <extension-name>
+```
+
+This command:
+
+1. Downloads extension code
+2. Adds it to `extensions/` folder
+3. Updates `webiny.config.tsx` to register it
+
+Installed extensions live in your project, so you can customize them as needed.
+
+## Extension Implementation
+
+### File Location
+
+Extension implementation code lives in the `/extensions` folder. When you reference `src={"/extensions/MyExtension.ts"}` in `webiny.config.tsx`, Webiny loads that file at the appropriate time.
+
+### Organization
+
+Organize extensions however you prefer:
+
+```text
+extensions/
+├── MyApiExtension.ts
+├── AdminBranding.tsx
+├── MyInfraExtension.ts
+└── ecommerce/
+    ├── ProductApi.ts
+    └── OrderDashboard.tsx
+```

@@ -1,0 +1,298 @@
+---
+id: wb3theme
+title: Configure Theme
+description: Customize colors, typography, and responsive styling in the Website Builder theme system.
+---
+
+import { Alert } from "@/components/Alert";
+import { Image } from "@/components/Image";
+import editorColorPicker from "./assets/editor-color-picker.png";
+import greenThemeRendered from "./assets/green-theme-rendered.png";
+import editorDisplayHeading from "./assets/editor-display-heading.png";
+import editorMobileView from "./assets/editor-mobile-view.png";
+import editorClampSizeDiff from "./assets/editor-clamp-size-diff.png";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How the theme system connects `theme.css`, `theme.ts`, and the editor
+- How to customize colors and typography that editors can use
+- How to use CSS variables and `clamp()` for responsive styling
+- How to load custom fonts across your app and the editor
+
+</Alert>
+
+## Overview
+
+The Website Builder theme defines the visual language that content editors work with—the colors they can pick, the typography styles they can apply, and how text scales responsively across devices. The theme is defined in your Next.js project and injected into both your app and the Admin editor so they share identical styling.
+
+## Theme Architecture
+
+The theme system has three files that work together:
+
+**`theme.css`** — Defines CSS custom properties (variables) for colors and CSS classes for typography styles. This file is injected into both the Next.js app and the Admin editor iframe.
+
+**`theme.ts`** — Calls `createTheme()` to build a typed theme object that tells the editor which colors and typography styles are available in its toolbar and color picker.
+
+**`tailwind.css`** — Bridges the Website Builder CSS variables to Tailwind's color token system, enabling `bg-primary`, `text-primary`, etc. in your components.
+
+A webpack plugin (`injectThemeCss` in `next.config.ts`) reads `theme.css` at build time and makes its contents available to `createTheme()` via the `__THEME_CSS__` global.
+
+## Theme CSS
+
+The `theme.css` file defines all semantic color variables and typography classes:
+
+```css src/theme/theme.css
+@import "@webiny/website-builder-nextjs/lexical.css";
+
+:root {
+  --wb-theme-color-primary: #4632f5;
+  --wb-theme-color-secondary: #00ccb0;
+  --wb-theme-color-background: #ffffff;
+  --wb-theme-color-surface: #f9f9f9;
+  --wb-theme-color-text-base: #0a0a0a;
+  --wb-theme-color-text-muted: #6b7280;
+  --wb-theme-color-border: #e5e7eb;
+  --wb-theme-color-success: #16a34a;
+  --wb-theme-color-warning: #d97706;
+  --wb-theme-color-error: #dc2626;
+  --wb-theme-font-family: "Inter", sans-serif;
+}
+
+.wb-heading-1 {
+  font-weight: 700;
+  line-height: 1.2;
+  font-size: clamp(2rem, 1.5rem + 1.5vw, 3rem); /* ~32px → 48px */
+}
+
+.wb-paragraph-1 {
+  font-weight: 400;
+  line-height: 1.6;
+  font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1rem);
+}
+```
+
+CSS variables use semantic names (`--wb-theme-color-primary`, `--wb-theme-color-text-base`). Typography classes use `clamp()` for fluid responsive sizing without media queries.
+
+## Tailwind Bridge
+
+The `tailwind.css` file maps Website Builder CSS variables to Tailwind's color tokens:
+
+```css src/theme/tailwind.css
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: InterVariable, sans-serif;
+  --color-primary: var(--wb-theme-color-primary);
+  --color-secondary: var(--wb-theme-color-secondary);
+  --color-text-base: var(--wb-theme-color-text-base);
+  --color-text-muted: var(--wb-theme-color-text-muted);
+  /* ...and so on */
+}
+```
+
+This bridge enables `bg-primary`, `text-primary`, and other Tailwind utilities in your components. They resolve to the same values as the Website Builder theme variables, keeping the editor preview and live site in sync.
+
+## Theme Registration
+
+The `theme.ts` file exports a theme object that the SDK uses to populate the editor's color picker and typography toolbar:
+
+```typescript src/theme/theme.ts
+import { createTheme } from "@webiny/website-builder-nextjs";
+
+declare const __THEME_CSS__: string;
+
+export const css = __THEME_CSS__;
+
+export const theme = createTheme({
+  css,
+  fonts: ["https://fonts.googleapis.com/css2?family=Inter&display=swap"],
+  colors: [
+    { id: "color-primary", label: "Primary", value: "var(--wb-theme-color-primary)" },
+    { id: "color-secondary", label: "Secondary", value: "var(--wb-theme-color-secondary)" },
+    { id: "color-background", label: "Background", value: "var(--wb-theme-color-background)" },
+    { id: "color-surface", label: "Surface", value: "var(--wb-theme-color-surface)" },
+    { id: "color-text-base", label: "Text", value: "var(--wb-theme-color-text-base)" },
+    { id: "color-text-muted", label: "Text Muted", value: "var(--wb-theme-color-text-muted)" },
+    { id: "color-border", label: "Border", value: "var(--wb-theme-color-border)" },
+    { id: "color-success", label: "Success", value: "var(--wb-theme-color-success)" },
+    { id: "color-warning", label: "Warning", value: "var(--wb-theme-color-warning)" },
+    { id: "color-error", label: "Error", value: "var(--wb-theme-color-error)" }
+  ],
+  typography: {
+    headings: [
+      { id: "heading1", label: "Heading 1", tag: "h1", className: "wb-heading-1" },
+      { id: "heading2", label: "Heading 2", tag: "h2", className: "wb-heading-2" },
+      { id: "heading3", label: "Heading 3", tag: "h3", className: "wb-heading-3" }
+    ],
+    paragraphs: [{ id: "paragraph1", label: "Paragraph 1", tag: "p", className: "wb-paragraph-1" }],
+    quotes: [{ id: "quote", label: "Quote", tag: "blockquote", className: "wb-blockquote-1" }],
+    lists: [
+      { id: "list1", label: "List 1", tag: "ul", className: "wb-unordered-list-1" },
+      { id: "list2", label: "List 2", tag: "ol", className: "wb-ordered-list-1" }
+    ]
+  }
+});
+```
+
+The `colors` array populates the editor's color picker. Each entry has an `id`, `label`, and `value` (typically a CSS variable reference). The `typography` object covers headings, paragraphs, quotes, and lists—each entry maps a CSS class to an HTML tag and a label shown in the editor toolbar.
+
+<Image
+  src={editorColorPicker}
+  alt="The Website Builder editor showing the color picker open with all theme colors available for selection"
+/>
+
+The exported `theme` and `css` are imported in `initializeContentSdk` and passed to `contentSdk.init()`.
+
+## Customizing Colors
+
+For colors that editors can pick in the Admin, follow a two-step pattern: define the color variable in `theme.css`, then register it in the `colors` array in `theme.ts`.
+
+To change the primary color:
+
+```css src/theme/theme.css
+:root {
+  --wb-theme-color-primary: #16a34a; /* changed to green */
+  --wb-theme-color-secondary: #15803d;
+  /* ...other colors */
+}
+```
+
+The change propagates automatically to rendered pages, Tailwind tokens, and the Admin editor color picker.
+
+<Image
+  src={greenThemeRendered}
+  alt="The Next.js page rendered with a green theme after changing the primary and secondary color variables in theme.css"
+/>
+
+For colors that are not meant to be selectable by editors (border radius, shadows, component-specific colors), define them directly in your component CSS or Tailwind classes—`theme.ts` is not involved.
+
+## Customizing Typography
+
+To add or modify a typography style, update both `theme.css` and `theme.ts`:
+
+```css src/theme/theme.css
+.wb-heading-display {
+  font-family: var(--wb-theme-font-family);
+  font-weight: 900;
+  font-size: clamp(3rem, 2rem + 3vw, 5rem);
+  line-height: clamp(3rem, 2rem + 3vw, 5rem);
+  letter-spacing: -2px;
+  color: var(--wb-theme-color-primary);
+}
+```
+
+```typescript src/theme/theme.ts
+headings: [
+  { id: "heading1", label: "Heading 1", tag: "h1", className: "wb-heading-1" },
+  { id: "headingDisplay", label: "Display", tag: "h1", className: "wb-heading-display" }
+  // ...
+];
+```
+
+The editor will now show "Display" as an option in the typography toolbar.
+
+<Image
+  src={editorDisplayHeading}
+  alt="The Website Builder editor showing the custom Display heading style applied to text in the rich text editor"
+/>
+
+## Loading Custom Fonts
+
+To switch fonts (e.g., from Inter to Geist), update four files:
+
+**`src/app/layout.tsx`** — swap the font import and config:
+
+```typescript src/app/layout.tsx
+import { Geist } from "next/font/google";
+
+const geist = Geist({
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  fallback: ["system-ui", "arial"]
+});
+```
+
+**`src/theme/tailwind.css`** — update the `--font-sans` token:
+
+```css src/theme/tailwind.css
+--font-sans: Geist, sans-serif;
+```
+
+**`src/theme/theme.css`** — update the CSS variable:
+
+```css src/theme/theme.css
+--wb-theme-font-family: "Geist", sans-serif;
+```
+
+**`src/theme/theme.ts`** — update the `fonts` array so the editor iframe loads the font:
+
+```typescript src/theme/theme.ts
+fonts: ["https://fonts.googleapis.com/css2?family=Geist&display=swap"],
+```
+
+The `fonts` array injects the font into the editor iframe, ensuring the Admin preview matches the live site.
+
+### Matching Font Weights
+
+If you load multiple font weights in `layout.tsx`, include the full weight range in the `fonts` URL. For example:
+
+```typescript src/app/layout.tsx
+const inter = Inter({
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
+  // ...
+});
+```
+
+The `fonts` array must include the same range:
+
+```typescript src/theme/theme.ts
+fonts: ["https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"],
+```
+
+Mismatched weights will cause text to render incorrectly in the editor—bold text may appear regular weight, or vice versa.
+
+## Responsive Styling
+
+Typography classes use `clamp()` for fluid responsive sizing out of the box. No media queries are needed for text scaling, though you can add them if finer control is required.
+
+For layout inside your custom components, use Tailwind's responsive prefixes as normal:
+
+```tsx
+export function Banner({ inputs: { headline, ctaLabel, ctaUrl } }: ComponentProps<BannerInputs>) {
+  return (
+    <div className="bg-primary py-8 px-4 text-center text-white md:py-16 md:px-12">
+      <h2 className="text-2xl font-bold md:text-4xl">{headline}</h2>
+      <a href={ctaUrl} className="mt-4 inline-block px-4 py-2 text-sm md:px-8 md:py-3 md:text-base">
+        {ctaLabel}
+      </a>
+    </div>
+  );
+}
+```
+
+The editor has built-in device controls (desktop, tablet, mobile) in the toolbar for previewing responsive layouts directly in the Admin.
+
+<Image
+  src={editorMobileView}
+  alt="The Website Builder editor with the mobile device control active, showing the page rendered at a narrow mobile viewport width"
+/>
+
+### clamp() Sizing Differences
+
+When using `clamp()` or `rem`-based font sizes, text may appear at different sizes on the editor canvas versus the rich text editor sidebar. This is expected—`clamp()` scales with viewport width, and `rem` is relative to the root font size, both of which differ between the full-page canvas and the narrower sidebar container.
+
+<Image
+  src={editorClampSizeDiff}
+  alt="The Website Builder editor showing a heading that appears at a different size on the canvas versus the rich text editor sidebar"
+/>
+
+This is CSS behavior, not a bug. If pixel-perfect consistency between the canvas and rich text editor is required, use fixed `px` values instead of `clamp()` or `rem`:
+
+```css
+/* consistent across canvas and sidebar */
+font-size: 64px;
+line-height: 64px;
+```
+
+In practice, this is rarely an issue—what matters is how the page looks on the published site.
