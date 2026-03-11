@@ -1,0 +1,38 @@
+AI Context: Connect Custom Domain (connect-custom-domain.mdx)
+
+Source of Information:
+1. v5 article: docs/developer-docs/5.x/infrastructure/additional-resources/connect-custom-domain.mdx
+2. v6 extension reference (Infra.Admin.CustomDomains component API)
+3. Existing v6 infrastructure extension articles for style reference: aws-tags.mdx, resource-name-prefix.mdx
+4. AWS CloudFront documentation on alternate domain names and ACM requirements
+
+Key Documentation Decisions:
+1. Placed in admin/ (not infrastructure/admin/ or infrastructure/extensions/) — the admin/ section is not limited to UI; it covers all Admin Area topics.
+2. Scoped to Admin Area only — v5 covered Website, Admin, and API in one article; v6 Infra.Admin.CustomDomains targets only the Admin CloudFront distribution, so the article is scoped accordingly.
+3. Used Infra.Admin.CustomDomains declarative component (v6 pattern) instead of per-app webiny.application.ts domains() callback (v5 pattern).
+4. Kept the ACM us-east-1 region requirement prominent — this is a common source of confusion.
+5. Added a CNAME table for clarity — easier to follow than prose alone.
+6. Omitted FAQ section — v5 FAQ addressed multi-app domain changes; in v6 each stack has its own Infra.* component, making this less relevant for a single-app article.
+
+Understanding:
+- In v5, custom domains were configured per-app in webiny.application.ts using a domains() callback returning { domains, sslSupportMethod, acmCertificateArn }.
+- In v6, the declarative Infra.Admin.CustomDomains component in webiny.config.tsx replaces this. Props: domains (string[]), certificateArn (string), sslMethod (optional, e.g. "sni-only").
+- The component attaches the custom domain as an alternate domain name on the Admin Area's CloudFront distribution.
+- ACM certificate must be in us-east-1 — AWS global requirement for CloudFront.
+- After deploy, the CloudFront domain name is available in stack outputs for DNS configuration.
+
+Related Documents:
+- docs/developer-docs/6.x/infrastructure/admin/overview.mdx — Admin Area CloudFront + S3 infrastructure overview
+- docs/developer-docs/6.x/infrastructure/extensions/aws-tags.mdx — another Infra.* declarative component example
+- docs/developer-docs/6.x/infrastructure/extensions/resource-name-prefix.mdx — another Infra.* declarative component example
+- docs/developer-docs/5.x/infrastructure/additional-resources/connect-custom-domain.mdx — v5 source article
+- docs/developer-docs/6.x/admin/whitelabeling.mdx — sibling Admin article
+
+Key Code Locations (Webiny repo):
+- Infra.Admin.CustomDomains implementation: packages/pulumi-sdk/src/extensions/admin/customDomains.ts (approximate)
+
+Tone Guidelines:
+- Concise and instructional — no filler
+- Technical but accessible — explain the ACM constraint briefly
+- Follow aws-tags.mdx and resource-name-prefix.mdx style: short Overview, direct Configuration section, brief Redeploying note
+- No marketing language
