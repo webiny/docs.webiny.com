@@ -1,8 +1,6 @@
 import React from "react";
 import { Alert } from "./Alert";
 import Link from "next/link";
-import { usePage } from "@/hooks/usePage";
-import { gte } from "semver";
 import { CopyButton } from "./CopyButton";
 
 const extensionTypeLabel = {
@@ -20,11 +18,7 @@ export const ExtensionsGettingStarted = ({
     fullExampleLink,
     fullExampleDownloadLink
 }) => {
-    const { page } = usePage();
-
-    const currentVersionWithPatchSetToZero = page.version.replace("x", "0");
-    const showNewCommand = gte(currentVersionWithPatchSetToZero, "5.41.0");
-    const command = showNewCommand ? "yarn webiny extension" : "yarn webiny scaffold extension";
+    const command = "yarn webiny extension";
 
     let scaffoldCommandParts = [command, `--type ${type}`, `--name ${name}`];
 
@@ -119,10 +113,7 @@ export const ExtensionsGettingStarted = ({
             <p>
                 Once the extension is scaffolded, in order to start developing, we run the following
                 <code>
-                    <Link
-                        href={"/docs/core-development-concepts/basics/watch-command"}
-                        legacyBehavior
-                    >
+                    <Link href={"/core-development-concepts/basics/watch-command"}>
                         webiny watch
                     </Link>
                 </code>{" "}

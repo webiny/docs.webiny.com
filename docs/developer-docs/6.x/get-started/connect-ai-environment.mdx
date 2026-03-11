@@ -1,0 +1,140 @@
+---
+id: b7e3a1f4
+title: Connect Your AI Environment
+description: Set up the Webiny MCP server so your AI coding agent can assist with Webiny development.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what the Webiny MCP server provides to your AI coding agent
+- how to connect it using the built-in setup command
+- how to configure it manually for any supported agent
+
+</Alert>
+
+## Overview
+
+Webiny ships with a local [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that gives your AI coding agent structured, up-to-date knowledge about Webiny APIs, extension patterns, and project conventions. Instead of relying on general training data, the MCP server provides detailed skills — focused guides on specific topics like content models, lifecycle events, dependency injection, and infrastructure — directly to the agent when it needs them.
+
+The server exposes two tools your agent calls automatically:
+
+- **`list_webiny_skills`** — returns a catalog of all available skills with names and descriptions
+- **`get_webiny_skill`** — loads the full documentation for a specific skill by name
+
+Connecting the MCP server early means your agent can assist with all the customization work that follows.
+
+## Quick Setup
+
+The fastest way to connect is to run the built-in setup command from your Webiny project root:
+
+```bash
+npx webiny configure-mcp claude
+```
+
+Replace `claude` with your agent of choice:
+
+- `claude` — Claude Code
+- `cursor` — Cursor
+- `windsurf` — Windsurf
+- `copilot` — GitHub Copilot / VS Code
+- `cline` — Cline
+
+This command creates two files:
+
+- **MCP config file** — tells your agent how to start the Webiny MCP server
+- **Instruction file** — tells your agent to use the Webiny tools when working on Webiny-related tasks
+
+Once done, restart your agent or reload the editor window. The Webiny MCP server becomes available immediately.
+
+## Manual Setup
+
+If your agent is not covered by the built-in adapters, or you prefer to configure things yourself, follow the two steps below.
+
+### Register the MCP Server
+
+Add the following entry to your agent's MCP configuration file:
+
+```json
+{
+  "mcpServers": {
+    "webiny": {
+      "command": "npx",
+      "args": ["webiny", "mcp-server"]
+    }
+  }
+}
+```
+
+The location of this file depends on your agent:
+
+| Agent | Config file |
+| --- | --- |
+| Claude Code | `.mcp.json` (project root) |
+| Cursor | `.cursor/mcp.json` (project root) |
+| Windsurf | `.windsurf/mcp.json` (project root) |
+| GitHub Copilot / VS Code | `.vscode/mcp.json` (project root) |
+| Cline | `.vscode/cline_mcp_settings.json` |
+| Zed | `~/.config/zed/settings.json` (under `context_servers`) |
+| Claude Desktop | `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) |
+
+<Alert type="info" title="GitHub Copilot uses a different key">
+
+GitHub Copilot expects `servers` instead of `mcpServers` in its config file. The rest of the structure is the same.
+
+</Alert>
+
+### Add Agent Instructions
+
+Add the following to your agent's instruction or rules file so it knows to use the Webiny tools:
+
+```
+## Webiny
+
+This project uses the Webiny framework.
+A `webiny` MCP server is available.
+When helping with Webiny-related tasks:
+1. Call `list_webiny_skills` to see available skills.
+2. Call `get_webiny_skill` with the relevant topic before writing code.
+```
+
+The location of the instruction file depends on your agent:
+
+| Agent | Instruction file |
+| --- | --- |
+| Claude Code | `CLAUDE.md` (project root) |
+| Cursor | `.cursor/rules/*.mdc` |
+| Windsurf | `.windsurf/rules/*.md` |
+| GitHub Copilot / VS Code | `.github/copilot-instructions.md` |
+| Cline | System prompt in settings |
+| Zed | System prompt in settings |
+
+## Verify the Connection
+
+The simplest way to verify is to ask your agent a question like:
+
+> "List all available Webiny skills."
+
+If the MCP server is connected, the agent will call `list_webiny_skills` and return a catalog of topics like `content-models`, `lifecycle-events`, `dependency-injection`, and others.
+
+You can also test the server independently using the MCP Inspector:
+
+```bash
+npx @modelcontextprotocol/inspector npx webiny mcp-server
+```
+
+Connect, click **List Tools**, and confirm you see `list_webiny_skills` and `get_webiny_skill`.
+
+<Alert type="info" title="Remote Docs MCP Server">
+
+A separate remote MCP server is also available at `https://mcp.docs.webiny.com/mcp` for tools that are not project-based IDEs — such as Claude Desktop, ChatGPT, or Claude.ai. This server provides access to the full Webiny documentation rather than the project-level skills described on this page.
+
+</Alert>
+
+## What's Next
+
+With your AI environment connected, you're ready to make your first customization with AI assistance.
+
+Continue to [First Customization](/docs/{version}/get-started/first-customization).
+

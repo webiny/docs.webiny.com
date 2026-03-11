@@ -1,0 +1,108 @@
+---
+id: d5f1b3c8
+title: Local Development
+description: Learn the day-to-day workflow for running Webiny locally, making changes, and verifying results.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to develop the Admin UI locally with hot reload
+- how the Local Lambda Development system works for API changes
+- when and why you need to redeploy after stopping watch mode
+- how environment variables work in a Webiny project
+
+</Alert>
+
+## Overview
+
+Webiny runs on AWS, but you develop locally. The `watch` commands connect to your deployed infrastructure and let you see changes instantly — without redeploying after every edit. This gives you a fast feedback loop for both frontend and backend work.
+
+Before using the watch commands, make sure your project is deployed. If you followed the [Quickstart](/docs/{version}/get-started/quickstart), you already have a `dev` environment running.
+
+## Admin Development
+
+Start the Admin development server:
+
+```bash
+yarn webiny watch admin
+```
+
+This launches a local React dev server at `http://localhost:3001` with hot module replacement. Changes to Admin extensions — themes, branding, custom views, navigation items — appear instantly in the browser.
+
+This is a standard React development experience. You can use browser DevTools, React Developer Tools, and all the debugging techniques you already know.
+
+## API Development
+
+Start the API development server:
+
+```bash
+yarn webiny watch api
+```
+
+This activates **Local Lambda Development** — a hybrid approach that runs your backend code locally while staying connected to real AWS services (DynamoDB, S3, Cognito, and others).
+
+Here is how it works:
+
+- Your deployed Lambda functions are temporarily replaced with stubs that forward incoming events to your local machine
+- Your code executes locally with the full AWS Lambda context (environment variables, permissions, and everything else)
+- Responses are sent back through the Lambda stubs to the caller
+
+The result: you see backend changes — GraphQL schemas, lifecycle hooks, content models, business logic — take effect immediately, without waiting for a deployment. Console logs appear directly in your terminal.
+
+<Alert type="warning" title="You must redeploy after stopping watch">
+
+When you stop `yarn webiny watch api`, your Lambda functions still contain the forwarding stubs — not your actual code. You **must** run `yarn webiny deploy api` to restore the real Lambda code and make your API functional in the cloud again.
+
+The watch command prints a reminder when you stop it.
+
+</Alert>
+
+## Running Both
+
+You can run both watch commands at the same time in separate terminals:
+
+```bash
+# Terminal 1
+yarn webiny watch api
+```
+
+```bash
+# Terminal 2
+yarn webiny watch admin
+```
+
+This gives you the full local development experience — backend and frontend changes reflected in real time.
+
+## Environment Variables
+
+Webiny projects do not require a `.env` file by default. Most configuration is handled through `webiny.config.tsx` and build parameters.
+
+When you do need environment variables, use prefixes to target the right application:
+
+- **`WEBINY_ADMIN_`** — only loaded in the Admin application
+- **`WEBINY_API_`** — only loaded in the API application
+
+Place them in a `.env` file at your project root. The prefixes prevent variables from leaking between applications.
+
+## Joining an Existing Project
+
+If you are joining a team that already has a Webiny project, the onboarding is straightforward:
+
+```bash
+git clone <repository-url>
+cd <project-folder>
+yarn
+```
+
+No scaffolding commands, no special setup. Install dependencies and you are ready to start developing.
+
+If the team uses environment variables, check for a `.env.example` file in the project root — it documents the required variables and their purpose. The actual `.env` file is typically excluded from version control, so you will need to create your own copy and fill in the values your team provides.
+
+## What's Next
+
+You now know the local development workflow. The final step is understanding how deployment works in more detail — environments, individual application deploys, and teardown.
+
+Continue to [Deploy Webiny](/docs/{version}/get-started/deploy-webiny).
+

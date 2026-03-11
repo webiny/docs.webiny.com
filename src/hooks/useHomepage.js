@@ -1,17 +1,6 @@
 import { useRouter } from "next/router";
 import { usePage } from "./usePage";
-import semver from "semver";
-const getDocsSection = router => {
-    if (router.pathname.includes("/user-guides/")) {
-        return "user-docs";
-    } else if (router.pathname.includes("/release-notes/")) {
-        return "release-notes";
-    } else if (router.pathname.includes("/handbook/")) {
-        return "handbook";
-    }
-
-    return "developer-docs";
-};
+import { getDocsSection } from "@/layouts/sidebar/utils/getDocsSection";
 
 export function useHomepage() {
     const { page } = usePage();
@@ -24,19 +13,17 @@ export function useHomepage() {
     let url;
 
     if (!page.version) {
-        url = "/docs/get-started/welcome";
-    } else if (semver.gte(page.version.replace("x", "0"), "5.39.0")) {
-        url = "/docs/{version}/get-started/welcome";
+        url = "/get-started/welcome";
     } else {
-        url = "/docs/{version}/get-started/install-webiny";
+        url = "/{version}/get-started/welcome";
     }
 
-    let docsSection = getDocsSection(router);
+    let docsSection = getDocsSection(router.pathname);
     if (docsSection === "user-docs") {
         if (!page.version) {
-            url = "/docs/user-guides/overview";
+            url = "/user-guides/overview";
         } else {
-            url = "/docs/{version}/user-guides/overview";
+            url = "/{version}/user-guides/overview";
         }
     }
 

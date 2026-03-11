@@ -34,7 +34,11 @@ export class UserGuidesVersionProvider implements IVersionsProvider {
   }
 
   private toValidSemver(version: Version) {
-    return version.getValue().replace(".x", ".0");
+    const v = version.getValue();
+    if (/^\d+\.x$/.test(v)) {
+      return v.replace(".x", ".0.0");
+    }
+    return v.replace(".x", ".0");
   }
 
   private ensureVersionDirectoriesExist(versions: DocumentRootVersions) {

@@ -1,0 +1,385 @@
+---
+id: yxbpl3nl
+title: Security
+description: "Security primitives: Identity, Authenticator, Authorizer"
+---
+
+import { Alert } from "@/components/Alert";
+import { SymbolList } from "@/components/SymbolList";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to use the builder and factory APIs?
+- How to import and use each exported item?
+
+</Alert>
+
+## Overview
+
+This page documents everything exported from `webiny/api/security`. Import any of the items below directly from this path in your Webiny extensions.
+
+**Services**
+
+<SymbolList
+  symbols={[
+    { name: "ApiKeyFactory", anchor: "api-key-factory" },
+    { name: "Authenticator", anchor: "authenticator" },
+    { name: "Authorizer", anchor: "authorizer" },
+    { name: "IdentityContext", anchor: "identity-context" },
+    { name: "IdentityProvider", anchor: "identity-provider" },
+    { name: "JwtIdentityProvider", anchor: "jwt-identity-provider" },
+    { name: "OidcIdentityProvider", anchor: "oidc-identity-provider" }
+  ]}
+/>
+
+**Types & Classes**
+
+<SymbolList symbols={[{ name: "ApiToken", anchor: "api-token" }]} />
+
+## Services
+
+### `ApiKeyFactory`
+
+**Abstraction** — imported from `webiny/api/security`
+
+```typescript
+import { ApiKeyFactory } from "webiny/api/security";
+```
+
+**Interface `ApiKeyFactory.Interface`:**
+
+```typescript
+interface ApiKeyFactory.Interface {
+    execute(): Promise<CodeApiKey[]> | CodeApiKey[];
+}
+```
+
+**Types:**
+
+```typescript
+namespace ApiKeyFactory {
+  type Interface = IApiKeyFactory;
+  type Return = Promise<CodeApiKey[]> | CodeApiKey[];
+  type ApiKey = CodeApiKey;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { ApiKeyFactory } from "webiny/api/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private apiKeyFactory: ApiKeyFactory.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.apiKeyFactory.execute(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [ApiKeyFactory]
+});
+```
+
+### `Authenticator`
+
+**Abstraction** — imported from `webiny/api/security`
+
+```typescript
+import { Authenticator } from "webiny/api/security";
+```
+
+**Interface `Authenticator.Interface`:**
+
+```typescript
+interface Authenticator.Interface {
+    authenticate(token: string): Promise<IdentityData | null>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace Authenticator {
+  type Interface = IAuthenticator;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { Authenticator } from "webiny/api/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private authenticator: Authenticator.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.authenticator.authenticate(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [Authenticator]
+});
+```
+
+### `Authorizer`
+
+**Abstraction** — imported from `webiny/api/security`
+
+```typescript
+import { Authorizer } from "webiny/api/security";
+```
+
+**Interface `Authorizer.Interface`:**
+
+```typescript
+interface Authorizer.Interface {
+    authorize(identity: Identity): Promise<SecurityPermission[] | null>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace Authorizer {
+  type Interface = IAuthorizer;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { Authorizer } from "webiny/api/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private authorizer: Authorizer.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    await this.authorizer.authorize(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [Authorizer]
+});
+```
+
+### `IdentityContext`
+
+**Abstraction** — imported from `webiny/api/security`
+
+```typescript
+import { IdentityContext } from "webiny/api/security";
+```
+
+**Interface `IdentityContext.Interface`:**
+
+```typescript
+interface IdentityContext.Interface {
+    getIdentity(): Identity;
+    setIdentity(identity: Identity | undefined): void;
+    withIdentity<T>(identity: Identity | undefined, cb: () => Promise<T>): Promise<T>;
+    getPermission<TPermission extends SecurityPermission = SecurityPermission>(
+        name: string
+    ): Promise<TPermission | null>;
+    getPermissions<TPermission extends SecurityPermission = SecurityPermission>(
+        name: string
+    ): Promise<TPermission[]>;
+    listPermissions(): Promise<SecurityPermission[]>;
+    hasFullAccess(): Promise<boolean>;
+    withoutAuthorization<T>(cb: () => Promise<T>): Promise<T>;
+    isAuthorizationEnabled(): boolean;
+}
+```
+
+**Types:**
+
+```typescript
+namespace IdentityContext {
+  type Interface = IIdentityContext;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { IdentityContext } from "webiny/api/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private identityContext: IdentityContext.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    this.identityContext.getIdentity(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [IdentityContext]
+});
+```
+
+### `IdentityProvider`
+
+**Abstraction** — imported from `webiny/api/security`
+
+```typescript
+import { IdentityProvider } from "webiny/api/security";
+```
+
+**Interface `IdentityProvider.Interface`:**
+
+```typescript
+interface IdentityProvider.Interface {
+    isApplicable(token: string): boolean;
+    getIdentity(token: string): Promise<IProviderIdentityData | null>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace IdentityProvider {
+  type Interface = IIdentityProvider;
+  type IdentityData = IProviderIdentityData;
+  type JwtPayload = IJwtPayload;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { IdentityProvider } from "webiny/api/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private identityProvider: IdentityProvider.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    this.identityProvider.isApplicable(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [IdentityProvider]
+});
+```
+
+### `JwtIdentityProvider`
+
+**Abstraction** — imported from `webiny/api/security`
+
+```typescript
+import { JwtIdentityProvider } from "webiny/api/security";
+```
+
+**Interface `JwtIdentityProvider.Interface`:**
+
+```typescript
+interface JwtIdentityProvider.Interface {
+    isApplicable(token: IJwtPayload): boolean;
+    getIdentity(token: string, jwt: IJwt): Promise<IProviderIdentityData | null>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace JwtIdentityProvider {
+  type Interface = IJwtIdentityProvider;
+  type Jwt = IJwt;
+  type JwtPayload = IJwtPayload;
+  type JwtHeader = IJwtHeader;
+  type IdentityData = IProviderIdentityData;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { JwtIdentityProvider } from "webiny/api/security";
+
+class MyImpl implements MyUseCase.Interface {
+  public constructor(private jwtIdentityProvider: JwtIdentityProvider.Interface) {}
+
+  public async execute(/* ... */): Promise<void> {
+    this.jwtIdentityProvider.isApplicable(/* ... */);
+  }
+}
+
+export default MyUseCase.createImplementation({
+  implementation: MyImpl,
+  dependencies: [JwtIdentityProvider]
+});
+```
+
+### `OidcIdentityProvider`
+
+**Abstraction** — imported from `webiny/api/security`
+
+```typescript
+import { OidcIdentityProvider } from "webiny/api/security";
+```
+
+**Interface `OidcIdentityProvider.Interface`:**
+
+```typescript
+interface OidcIdentityProvider.Interface {
+    issuer: string;
+    clientId: string;
+    isApplicable(token: IJwtPayload): boolean;
+    getIdentity(jwt: IJwtPayload): Promise<IProviderIdentityData>;
+    verifyToken?(token: string): Promise<IJwtPayload | undefined>;
+    verifyTokenClaims?(token: IJwtPayload): Promise<void>;
+}
+```
+
+**Types:**
+
+```typescript
+namespace OidcIdentityProvider {
+  type Interface = IOidcIdentityProvider;
+  type JwtPayload = IJwtPayload;
+  type IdentityData = IProviderIdentityData;
+}
+```
+
+**Usage:**
+
+```typescript extensions/MyImpl.ts
+import { OidcIdentityProvider } from "webiny/api/security";
+
+class MyImpl implements MyUseCase.Interface {
+    public constructor(private oidcIdentityProvider: OidcIdentityProvider.Interface) {}
+
+    public async execute(/* ... */): Promise<void> {
+        this.oidcIdentityProvider.issuer: string(/* ... */);
+    }
+}
+
+export default MyUseCase.createImplementation({
+    implementation: MyImpl,
+    dependencies: [OidcIdentityProvider]
+});
+```
+
+## Types & Classes
+
+### `ApiToken`
+
+**Class** — imported from `webiny/api/security`
+
+```typescript
+import { ApiToken } from "webiny/api/security";
+```
+
+```typescript
+export class ApiToken {
+    static validate(token: string): `wat_$;
+}
+```

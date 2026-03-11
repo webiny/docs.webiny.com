@@ -27,6 +27,13 @@ export class Version {
     return this._version === version.getValue();
   }
 
+  private static toSemver(version: string): string {
+    if (/^\d+\.x$/.test(version)) {
+      return version.replace(".x", ".0.0");
+    }
+    return version.replace(".x", ".0");
+  }
+
   gt(version: Version | undefined) {
     if (version === undefined) {
       return true;
@@ -36,7 +43,7 @@ export class Version {
       return this._version !== "0.0.0";
     }
 
-    return semver.gt(this.getValue().replace(".x", ".0"), version.getValue().replace(".x", ".0"));
+    return semver.gt(Version.toSemver(this.getValue()), Version.toSemver(version.getValue()));
   }
 
   toString() {
@@ -96,8 +103,24 @@ export class DocumentRootVersions {
     /**
      * `.x` is not a valid semver character, so we need to temporarily replace it to perform validation and sorting.
      */
-    return semver
-      .rsort(versions.map(p => p.replace(".x", ".0")).filter(version => semver.valid(version)))
-      .map(v => v.replace(".0", ".x"));
+    const originalMap = new Map<string, string>();
+    const normalized: string[] = [];
+
+    for (const v of versions) {
+      let semverVersion: string;
+      if (/^\d+\.x$/.test(v)) {
+        // 2-part: "5.x" → "5.0.0"
+        semverVersion = v.replace(".x", ".0.0");
+      } else {
+        // 3-part: "5.44.x" → "5.44.0"
+        semverVersion = v.replace(".x", ".0");
+      }
+      if (semver.valid(semverVersion)) {
+        originalMap.set(semverVersion, v);
+        normalized.push(semverVersion);
+      }
+    }
+
+    return semver.rsort(normalized).map(v => originalMap.get(v)!);
   }
 }

@@ -7,7 +7,7 @@ export class SitemapUrl {
 
     return [
       "<url>",
-      `\t<loc>https://www.webiny.com/${outputPath}</loc>`,
+      `\t<loc>https://www.webiny.com/docs/${outputPath}</loc>`,
       `\t<lastmod>${lastMod}</lastmod>`,
       `</url>`
     ].join("\n");

@@ -1,0 +1,223 @@
+---
+id: pu7w5cfx
+title: Pulumi Extensions
+description: Learn how to modify and extend Webiny's cloud infrastructure using Pulumi extension files.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to modify existing cloud infrastructure resources using Pulumi extensions
+- how to add new resources to the Core, API, and Admin stacks
+
+</Alert>
+
+## Overview
+
+For infrastructure changes that go beyond the declarative `Infra.*` components — modifying Lambda memory, adjusting IAM roles, adding custom resources — you use a Pulumi extension file.
+
+A Pulumi extension is a TypeScript file that receives the Pulumi context for a specific stack and can modify or add resources directly. You register it in `webiny.config.tsx` using `Infra.Core.Pulumi`, `Infra.Api.Pulumi`, or `Infra.Admin.Pulumi`.
+
+## Registering a Pulumi Extension
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Core.Pulumi src={"/extensions/MyCorePulumiHandler.ts"} />
+      <Infra.Api.Pulumi src={"/extensions/MyApiPulumiHandler.ts"} />
+    </>
+  );
+};
+```
+
+Each component targets a specific stack:
+
+- `Infra.Core.Pulumi` — Core stack (DynamoDB, S3, OpenSearch, Cognito)
+- `Infra.Api.Pulumi` — API stack (GraphQL Lambda functions)
+- `Infra.Admin.Pulumi` — Admin stack (CloudFront, S3 static hosting)
+
+## Examples
+
+### Modifying an Existing Resource
+
+Enable S3 object versioning on the File Manager bucket (Core stack):
+
+```typescript extensions/MyCorePulumiHandler.ts
+import { Ui } from "webiny/infra";
+import { CorePulumi } from "webiny/infra/core";
+
+class MyCorePulumiHandlerImpl implements CorePulumi.Interface {
+  constructor(private ui: Ui.Interface) {}
+
+  execute(app: CorePulumi.Params) {
+    const { fileManagerBucket } = app.resources;
+    fileManagerBucket.config.versioning({ enabled: true });
+  }
+}
+
+export default CorePulumi.createImplementation({
+  implementation: MyCorePulumiHandlerImpl,
+  dependencies: [Ui]
+});
+```
+
+### Increasing Lambda Memory Size
+
+Increase the memory of the GraphQL Lambda function (API stack):
+
+```typescript extensions/MyApiPulumiHandler.ts
+import { Ui } from "webiny/infra";
+import { ApiPulumi } from "webiny/infra/api";
+
+class MyApiPulumiHandlerImpl implements ApiPulumi.Interface {
+  constructor(private ui: Ui.Interface) {}
+
+  execute(app: ApiPulumi.Params) {
+    app.resources.graphql.functions.graphql.config.memorySize(1024);
+  }
+}
+
+export default ApiPulumi.createImplementation({
+  implementation: MyApiPulumiHandlerImpl,
+  dependencies: [Ui]
+});
+```
+
+### Adding an IAM Policy
+
+Attach a custom IAM policy to the GraphQL Lambda role to allow sending email via Amazon SES:
+
+```typescript extensions/MyApiPulumiHandler.ts
+import * as aws from "@pulumi/aws";
+import { Ui } from "webiny/infra";
+import { ApiPulumi } from "webiny/infra/api";
+
+class MyApiPulumiHandlerImpl implements ApiPulumi.Interface {
+  constructor(private ui: Ui.Interface) {}
+
+  execute(app: ApiPulumi.Params) {
+    const { resources, addResource } = app;
+
+    const policy = addResource(aws.iam.Policy, {
+      name: "ses-policy",
+      config: {
+        description: "Enables access to Amazon SES.",
+        policy: {
+          Version: "2012-10-17",
+          Statement: [
+            {
+              Effect: "Allow",
+              Action: ["ses:SendEmail"],
+              Resource: ["arn:aws:ses:*:*:identity/*"]
+            }
+          ]
+        }
+      }
+    });
+
+    addResource(aws.iam.RolePolicyAttachment, {
+      name: "graphql-role-ses-policy-attachment",
+      config: {
+        role: resources.graphql.role.output.name,
+        policyArn: policy.output.arn
+      }
+    });
+  }
+}
+
+export default ApiPulumi.createImplementation({
+  implementation: MyApiPulumiHandlerImpl,
+  dependencies: [Ui]
+});
+```
+
+### Adjusting CloudFront Distribution Configuration
+
+The following example adjusts the minimum TLS version for the API CloudFront distribution:
+
+```typescript extensions/MyApiPulumiHandler.ts
+import { Ui } from "webiny/infra";
+import { ApiPulumi } from "webiny/infra/api";
+
+class MyApiPulumiHandlerImpl implements ApiPulumi.Interface {
+  constructor(private ui: Ui.Interface) {}
+
+  execute(app: ApiPulumi.Params) {
+    app.resources.cloudfront.config.viewerCertificate(config => ({
+      ...config,
+      minimumProtocolVersion: "TLSv1.2_2021"
+    }));
+  }
+}
+
+export default ApiPulumi.createImplementation({
+  implementation: MyApiPulumiHandlerImpl,
+  dependencies: [Ui]
+});
+```
+
+### Retrieving the Deployment Environment
+
+The `app` parameter exposes the environment name, which you can use to apply conditional logic:
+
+```typescript extensions/MyCorePulumiHandler.ts
+import { Ui } from "webiny/infra";
+import { CorePulumi } from "webiny/infra/core";
+
+class MyCorePulumiHandlerImpl implements CorePulumi.Interface {
+  constructor(private ui: Ui.Interface) {}
+
+  execute(app: CorePulumi.Params) {
+    // We can retrieve the environment name via the `env` parameter.
+    if (app.env.name === "prod") {
+      // Apply additional configuration.
+    }
+  }
+}
+
+export default CorePulumi.createImplementation({
+  implementation: MyCorePulumiHandlerImpl,
+  dependencies: [Ui]
+});
+```
+
+### Checking if the Environment is Production
+
+Use `env.isProduction` to check whether the current environment is a production environment. This is calculated based on the list of production environments defined via [`Infra.ProductionEnvironments`](/docs/{version}/infrastructure/extensions/production-environments):
+
+```typescript extensions/MyApiPulumiHandler.ts
+import { Ui } from "webiny/infra";
+import { ApiPulumi } from "webiny/infra/api";
+
+class MyApiPulumiHandlerImpl implements ApiPulumi.Interface {
+  constructor(private ui: Ui.Interface) {}
+
+  execute(app: ApiPulumi.Params) {
+    // Only in production environments, increase the memory size of the GraphQL function.
+    if (app.env.isProduction) {
+      app.resources.graphql.functions.graphql.config.memorySize(1024);
+    }
+  }
+}
+
+export default ApiPulumi.createImplementation({
+  implementation: MyApiPulumiHandlerImpl,
+  dependencies: [Ui]
+});
+```
+
+## Redeploying After Changes
+
+After modifying a Pulumi extension, redeploy the affected stack by running the [`webiny deploy`](/docs/{version}/cli/deploy) command:
+
+```
+yarn webiny deploy core
+yarn webiny deploy api
+```
+
+Use `--env <name>` to target a specific environment if needed. Only redeploy the stack that was changed.

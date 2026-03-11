@@ -5,7 +5,7 @@ import { Header } from "@/components/page/Header";
 import { SearchProvider } from "@/components/page/Search";
 import { usePage } from "@/hooks/usePage";
 import { Title } from "@/components/Title";
-import socialCardLarge from "@/img/webiny-social-share.jpg";
+import socialCardLarge from "@/img/webiny-social-share.png";
 
 export const Page = () => {
     const { MdxPage, Layout, page } = usePage();
@@ -32,7 +32,7 @@ export const Page = () => {
                 <meta
                     key="og:url"
                     property="og:url"
-                    content={`https://www.webiny.com${router.pathname}`}
+                    content={`https://www.webiny.com/docs${router.pathname}`}
                 />
                 <meta key="og:type" property="og:type" content="article" />
                 <meta key="og:description" property="og:description" content={page.description} />
@@ -63,7 +63,7 @@ export const Page = () => {
                     href="/feeds/feed.json"
                 />
                 {page.canonicalPath ? (
-                    <link rel="canonical" href={"https://docs.webiny.com" + page.canonicalPath} />
+                    <link rel="canonical" href={"https://docs.webiny.com/docs" + page.canonicalPath} />
                 ) : null}
             </Head>
             <SearchProvider>

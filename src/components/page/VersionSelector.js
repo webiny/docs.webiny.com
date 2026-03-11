@@ -5,20 +5,21 @@ const createNewPath = (versions, path, currentVersion, newVersion) => {
     const latestVersion = versions.latestVersion;
 
     if (currentVersion === latestVersion && newVersion !== latestVersion) {
-        // Add version to existing path
-        return path.replace("/docs/", `/docs/${newVersion}/`);
+        // Add version prefix to existing path (e.g., /get-started/welcome → /5.40.x/get-started/welcome)
+        return `/${newVersion}${path}`;
     }
 
     if (currentVersion !== latestVersion && newVersion === latestVersion) {
-        const parts = path.split("/").slice(3);
-        // Remove version from existing path
-        return ["", "docs", ...parts].join("/");
+        // When switching to the latest version, always go to the Welcome page.
+        // The v6 doc structure is significantly different from v5, so the same
+        // page slug almost never exists at the latest level.
+        return "/get-started/welcome";
     }
 
     if (currentVersion !== latestVersion && newVersion !== latestVersion) {
-        // Replace version in the existing path
-        const parts = path.split("/").slice(3);
-        return ["", "docs", newVersion, ...parts].join("/");
+        // Replace version in the existing path (e.g., /5.39.x/foo/bar → /5.40.x/foo/bar)
+        const parts = path.split("/").slice(2); // skip empty string and version
+        return ["", newVersion, ...parts].join("/");
     }
 
     return path;

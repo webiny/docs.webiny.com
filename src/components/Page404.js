@@ -13,7 +13,6 @@ export const Page404 = () => {
 
     const regex = new RegExp(
         router.asPath
-            .replace("/docs/", "/")
             .replace(/\//g, "\\/")
             .replace(`${page.version}\\/`, "(?:\\d+\\.\\d+\\.[x|\\d+]\\/)?")
     );

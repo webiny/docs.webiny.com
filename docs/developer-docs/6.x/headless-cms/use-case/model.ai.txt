@@ -1,0 +1,130 @@
+AI Context: Model Use Cases (headless-cms/use-case/model.mdx)
+
+Source of Information:
+1. Analyzed use case patterns from group and entry use cases
+2. Examined model use case implementations
+3. Examined create, update, delete, get, list use cases
+4. Studied model-specific validation and business logic
+5. Understood field validation and model structure requirements
+
+Key Documentation Decisions:
+- Document all model-related use cases
+- Show abstraction creation pattern
+- Include implementation examples
+- Demonstrate repository integration
+- Show model-specific validations (fields, API names)
+- Include error handling with Result pattern
+- Cover CRUD operations comprehensively
+
+Use Cases Documented:
+1. Create Model - Create new content models
+2. Update Model - Modify existing models
+3. Delete Model - Remove models
+4. Get Model - Retrieve single model
+5. List Models - Query multiple models
+
+Pattern Used:
+- Interface definition
+- Error types (validation, authorization, repository errors)
+- createAbstraction call
+- Namespace export with all types
+- createImplementation pattern
+- Repository dependency injection
+- Result pattern for error handling
+- Model-specific validation (field structure, naming)
+- Authorization checks
+
+Model-Specific Validations:
+- Required field presence
+- API name format validation
+- Field structure validation
+- Duplicate field ID checks
+- Breaking change prevention
+
+Implementation Details:
+- Dependency injection of repositories
+- Complex validation logic
+- Type-safe implementations
+- Model structure validation
+- Field management
+
+Related Documents:
+- headless-cms/use-case/group.mdx - Group use cases (similar pattern)
+- headless-cms/use-case/entry.mdx - Entry use cases (similar pattern)
+- headless-cms/event-handler/model.mdx - Event integration
+- headless-cms/builder/model.mdx - Model builder
+- basic/di.mdx - Abstraction patterns
+
+Key Code Locations:
+- Use case implementations: Look for model-related use cases in the codebase
+
+To examine source code implementations in detail, access to the Webiny project repository is needed.
+
+Model Use Case Pattern:
+```typescript
+// 1. Interface
+export interface ICreateModelUseCase {
+    execute(input: CreateModelInput): Promise<Result<CmsModel, UseCaseError>>;
+}
+
+// 2. Errors
+export interface ICreateModelUseCaseErrors {
+    notAuthorized: ModelNotAuthorizedError;
+    validation: ModelValidationError;
+    repository: RepositoryError;
+}
+type UseCaseError = ICreateModelUseCaseErrors[keyof ICreateModelUseCaseErrors];
+
+// 3. Abstraction
+export const CreateModelUseCase = createAbstraction<ICreateModelUseCase>("Cms/CreateModel");
+
+// 4. Namespace
+export namespace CreateModelUseCase {
+    export type Interface = ICreateModelUseCase;
+    export type Input = CreateModelInput;
+    export type Error = UseCaseError;
+    export type Return = Promise<Result<CmsModel, UseCaseError>>;
+}
+```
+
+Use Cases to Document:
+1. Create Model - New model with field validation
+2. Update Model - Modify with breaking change checks
+3. Delete Model - Remove (check for entries)
+4. Get Model - Retrieve single model
+5. List Models - Query multiple models
+
+Model-Specific Validations:
+- Field structure validation (required fields)
+- API name format (singularApiName, pluralApiName)
+- Field type validation
+- Duplicate field ID checks
+- Breaking change detection (update)
+- Entry existence check (delete)
+
+Critical Validations:
+```typescript
+// API name validation
+if (!/^[A-Z][a-zA-Z0-9]*$/.test(input.singularApiName)) {
+    return Result.fail(new ValidationError("Invalid API name"));
+}
+
+// Field structure validation
+const hasIdField = input.fields.some(f => f.fieldId === "id");
+if (!hasIdField) {
+    return Result.fail(new ValidationError("Model must have 'id' field"));
+}
+
+// Before delete - check entries
+const entries = await context.cms.entries.list(model.modelId);
+if (entries.length > 0) {
+    return Result.fail(new ValidationError("Cannot delete model with entries"));
+}
+```
+
+Tone Guidelines:
+- Show model-specific validation complexity
+- Explain field structure requirements
+- Include breaking change considerations
+- Reference builder for model structure
+

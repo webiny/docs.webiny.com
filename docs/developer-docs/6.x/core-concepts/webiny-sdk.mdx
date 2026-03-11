@@ -1,0 +1,232 @@
+---
+id: sd9k4web
+title: Webiny SDK
+description: Programmatic interface to interact with Webiny from external applications.
+---
+
+import { Alert } from "@/components/Alert";
+import { Image } from "@/components/Image";
+import apiKeys from "./assets/api-keys.png";
+import sdkPlaygroundMenu from "./assets/sdk-playground-menu.png";
+import sdkPlaygroundInterface from "./assets/sdk-playground-interface.png";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What the Webiny SDK is and when to use it
+- How to install and initialize the SDK
+- Core concepts: Result pattern, fields parameter, TypeScript generics
+
+</Alert>
+
+## Overview
+
+The Webiny SDK (`@webiny/sdk`) is a TypeScript library providing a programmatic interface to interact with your Webiny instance from external JavaScript or TypeScript applications like Next.js, Vue, SvelteKit, or Node.js scripts.
+
+## When to Use the SDK
+
+The SDK is for **external applications** that need to read or write content from Webiny. This is different from:
+
+- **Admin extensions** - Building within the Webiny Admin UI
+- **API extensions** - Adding backend logic via Lambda extensions
+
+Use the SDK when your frontend or backend application lives outside Webiny and needs to interact with Webiny's content.
+
+## Installation
+
+Install the package:
+
+```bash
+npm install @webiny/sdk
+```
+
+Initialize once with your API credentials:
+
+```typescript lib/webiny.ts
+import { Webiny } from "@webiny/sdk";
+
+export const sdk = new Webiny({
+  token: process.env.WEBINY_API_TOKEN!,
+  endpoint: process.env.WEBINY_API_ENDPOINT!,
+  tenant: process.env.WEBINY_API_TENANT || "root"
+});
+```
+
+<Alert type="info" title="Finding Your API Endpoint">
+
+Run `yarn webiny info` in your Webiny project to find your API endpoint URL. Use the base domain (e.g., `https://xxx.cloudfront.net`), not the full path.
+
+</Alert>
+
+## What the SDK Provides
+
+The SDK provides access to Webiny applications through namespaced modules:
+
+| Module    | Webiny App   | Operations                                            |
+| --------- | ------------ | ----------------------------------------------------- |
+| `sdk.cms` | Headless CMS | List, get, create, update, publish, unpublish entries |
+
+## Authentication
+
+The SDK authenticates using an **API key token** generated in the Webiny Admin application (Settings → API Keys). Without a valid token, all SDK calls are rejected.
+
+<Image src={apiKeys} alt="API Keys in Webiny Admin" />
+
+API keys have configurable permissions for each Webiny application (Headless CMS, File Manager, etc.).
+
+## Core Concepts
+
+### Result Pattern
+
+Every SDK method returns a **Result object** instead of throwing errors. Check success with `isOk()`:
+
+```typescript
+const result = await sdk.cms.listEntries({
+  modelId: "product",
+  fields: ["id"]
+});
+
+if (result.isOk()) {
+  console.log(result.value.data);
+} else {
+  console.error(result.error.message);
+}
+```
+
+This makes error handling explicit—you can't accidentally forget to handle failures.
+
+### Fields Parameter
+
+The `fields` parameter specifies which fields to return, keeping responses lean:
+
+```typescript
+const result = await sdk.cms.listEntries({
+  modelId: "product",
+  fields: ["id", "values.name", "values.price"]
+});
+```
+
+When omitted, the SDK returns all fields. The `depth` parameter (default: `1`) controls how deeply reference fields are resolved.
+
+### TypeScript Generics
+
+SDK methods accept generic type parameters for fully typed returns:
+
+```typescript
+import type { CmsEntryData } from "@webiny/sdk";
+
+interface Product {
+  name: string;
+  price: number;
+}
+
+const result = await sdk.cms.listEntries<Product>({
+  modelId: "product",
+  fields: ["id", "values.name", "values.price"]
+});
+
+if (result.isOk()) {
+  // result.value.data is typed as CmsEntryData<Product>[]
+  const products = result.value.data;
+}
+```
+
+## Error Handling
+
+All SDK methods return Result objects. Always check for errors:
+
+```typescript
+const result = await sdk.cms.listEntries({ modelId: "product" });
+
+if (result.isOk()) {
+  // Success path
+  const entries = result.value.data;
+} else {
+  // Error path
+  console.error("Error:", result.error.message);
+  console.error("Code:", result.error.code);
+}
+```
+
+## Best Practices
+
+### Environment Variables
+
+Store credentials in environment variables:
+
+```bash .env
+WEBINY_API_TOKEN=your-api-token
+WEBINY_API_ENDPOINT=https://xxx.cloudfront.net
+WEBINY_API_TENANT=root
+```
+
+### Singleton Instance
+
+Create one SDK instance and reuse it:
+
+```typescript lib/webiny.ts
+import { Webiny } from "@webiny/sdk";
+
+export const sdk = new Webiny({
+  token: process.env.WEBINY_API_TOKEN!,
+  endpoint: process.env.WEBINY_API_ENDPOINT!,
+  tenant: process.env.WEBINY_API_TENANT || "root"
+});
+```
+
+Import this instance throughout your application.
+
+### Type Safety
+
+Define interfaces for your content models:
+
+```typescript types/product.ts
+export interface Product {
+  name: string;
+  price: number;
+  description: string;
+  inStock: boolean;
+}
+```
+
+Use generics with SDK calls:
+
+```typescript
+const result = await sdk.cms.listEntries<Product>({
+  modelId: "product",
+  fields: ["id", "values.name", "values.price"]
+});
+```
+
+## SDK Playground
+
+The SDK Playground is an interactive environment in Webiny Admin where you can test SDK operations without writing code. It provides a visual interface for exploring available methods, testing queries, and seeing responses in real-time.
+
+To access the SDK Playground, click **Support** in the bottom-left corner of Webiny Admin and select **SDK Playground**:
+
+<Image
+  src={sdkPlaygroundMenu}
+  alt="Webiny Admin sidebar with the Support menu open, showing the SDK Playground option"
+/>
+
+The playground provides an interactive interface where you can select SDK operations, configure parameters, and see the results:
+
+<Image
+  src={sdkPlaygroundInterface}
+  alt="SDK Playground interface showing method selection, parameters configuration, and response display"
+/>
+
+**Key features:**
+
+- Select SDK methods from a dropdown (e.g., `cms.listEntries`, `cms.getEntry`)
+- Configure method parameters via form inputs
+- Execute operations and see formatted responses
+- Test authentication and permissions
+- Explore available operations without writing code
+
+The SDK Playground is useful for:
+
+- Learning available SDK methods
+- Testing queries before implementing in code
+- Debugging API key permissions
+- Exploring response structures
+- Prototyping SDK integrations

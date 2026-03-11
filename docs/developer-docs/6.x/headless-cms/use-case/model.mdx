@@ -1,0 +1,192 @@
+---
+id: kq2numnh
+title: Model Use Cases
+description: About Headless CMS Model Use Cases
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What are available use cases for Headless CMS Models?
+- How to use them?
+
+</Alert>
+
+## Overview
+This article will list all the use cases available for Headless CMS Models and explain how to use them.
+
+## Use Cases
+
+All use cases have an `execute` method that you can call to perform the action that use case is for.
+Params of that method and its return type are defined in the abstraction of the use case.
+
+Consult the examples below for more information.
+
+### Create Model Use Case
+
+```typescript extensions/cms/model/useCase/createModelUseCase.ts
+import { CreateModelUseCase } from "webiny/api/cms/model";
+import { ListGroupsUseCase } from "webiny/api/cms/group";
+import { CreateModel } from "./abstraction.js";
+
+class MyCustomClassUsingTheUseCaseImpl implements CreateModel.Interface {
+    public constructor(
+        private createModelUseCase: CreateModelUseCase.Interface,
+        private listGroupsUseCase: ListGroupsUseCase.Interface
+    ) {}
+
+    public async execute(params: CreateModel.Params): CreateModel.Return {
+        const groups = await this.listGroupsUseCase.execute();
+        if (groups.isFail()) {
+            throw new Error("Could not load groups.");
+        } else if (groups.value.length === 0) {
+            throw new Error("No groups found. Please create a group first.");
+        }
+        const group = groups.value[0];
+
+        const newModel = await this.createModelUseCase.execute({
+            name: params.name,
+            modelId: params.modelId,
+            singularApiName: params.singularApiName,
+            pluralApiName: params.pluralApiName,
+            group: group.slug,
+            fields: [],
+            layout: []
+        });
+        if (newModel.isFail()) {
+            throw new Error(newModel.error.message);
+        }
+        return newModel.value;
+    }
+}
+
+const MyCustomClassUsingTheUseCase = CreateModel.createImplementation({
+    implementation: MyCustomClassUsingTheUseCaseImpl,
+    dependencies: [CreateModelUseCase, ListGroupsUseCase]
+});
+
+export default MyCustomClassUsingTheUseCase;
+```
+
+### Create Model From Existing One Use Case
+
+```typescript extensions/cms/model/useCase/createModelFromUseCase.ts
+import {CreateModelFromUseCase} from "webiny/api/cms/model";
+import {ListGroupsUseCase} from "webiny/api/cms/group";
+import {CreateModelFrom} from "./abstraction.js";
+
+class MyCustomClassUsingTheUseCaseImpl implements CreateModelFrom.Interface {
+    public constructor(
+        private createModelFromUseCase: CreateModelFromUseCase.Interface,
+        private listGroupsUseCase: ListGroupsUseCase.Interface
+    ) {}
+
+    public async execute(params: CreateModelFrom.Params): CreateModelFrom.Return {
+        const groups = await this.listGroupsUseCase.execute();
+        if (groups.isFail()) {
+            throw new Error("Could not load groups.");
+        } else if (groups.value.length === 0) {
+            throw new Error("No groups found. Please create a group first.");
+        }
+        const group = groups.value[0];
+
+        const newModelFromExistingOne = await this.createModelFromUseCase.execute(
+            "originalModelId",
+            {
+                name: params.name,
+                modelId: params.modelId,
+                singularApiName: params.singularApiName,
+                pluralApiName: params.pluralApiName,
+                group: group.slug
+            }
+        );
+        if (newModelFromExistingOne.isFail()) {
+            throw new Error(newModelFromExistingOne.error.message);
+        }
+        return newModelFromExistingOne.value;
+    }
+}
+
+const MyCustomClassUsingTheUseCase = CreateModelFrom.createImplementation({
+    implementation: MyCustomClassUsingTheUseCaseImpl,
+    dependencies: [CreateModelFromUseCase, ListGroupsUseCase]
+});
+
+export default MyCustomClassUsingTheUseCase;
+```
+
+### Update Model Use Case
+
+```typescript extensions/cms/model/useCase/updateModelUseCase.ts
+import { GetModelUseCase, UpdateModelUseCase } from "webiny/api/cms/model";
+import { UpdateModel } from "./abstraction.js";
+
+class MyCustomClassUsingTheUseCaseImpl implements UpdateModel.Interface {
+    public constructor(
+        private updateModelUseCase: UpdateModelUseCase.Interface,
+        private getModelUseCase: GetModelUseCase.Interface
+    ) {}
+
+    public async execute(modelId: string, params: UpdateModel.Params): UpdateModel.Return {
+        const original = await this.getModelUseCase.execute(modelId);
+        if (original.isFail()) {
+            throw new Error(`Could not find model ${modelId}.`);
+        }
+        const model = original.value;
+
+        const newModel = await this.updateModelUseCase.execute(modelId, {
+            ...model,
+            ...params
+        });
+        if (newModel.isFail()) {
+            throw new Error(newModel.error.message);
+        }
+        return newModel.value;
+    }
+}
+
+const MyCustomClassUsingTheUseCase = UpdateModel.createImplementation({
+    implementation: MyCustomClassUsingTheUseCaseImpl,
+    dependencies: [UpdateModelUseCase, GetModelUseCase]
+});
+
+export default MyCustomClassUsingTheUseCase;
+```
+
+### Delete Model Use Case
+
+```typescript extensions/cms/model/useCase/deleteModelUseCase.ts
+import { DeleteModelUseCase, GetModelUseCase } from "webiny/api/cms/model";
+import { DeleteModel } from "./abstraction.js";
+
+class MyCustomClassUsingTheUseCaseImpl implements DeleteModel.Interface {
+    public constructor(
+        private deleteModelUseCase: DeleteModelUseCase.Interface,
+        private getModelUseCase: GetModelUseCase.Interface
+    ) {}
+
+    public async execute(modelId: string): DeleteModel.Return {
+        const original = await this.getModelUseCase.execute(modelId);
+        if (original.isFail()) {
+            throw new Error(`Could not find model ${modelId}.`);
+        }
+        const model = original.value;
+        const result = await this.deleteModelUseCase.execute(modelId);
+
+        if (result.isFail()) {
+            throw new Error(result.error.message);
+        }
+        return model;
+    }
+}
+
+const MyCustomClassUsingTheUseCase = DeleteModel.createImplementation({
+    implementation: MyCustomClassUsingTheUseCaseImpl,
+    dependencies: [DeleteModelUseCase, GetModelUseCase]
+});
+
+export default MyCustomClassUsingTheUseCase;
+
+
+```

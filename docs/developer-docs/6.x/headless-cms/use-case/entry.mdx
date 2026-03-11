@@ -1,0 +1,297 @@
+---
+id: au12c3js
+title: Entry Use Cases
+description: About Headless CMS Entry Use Cases
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What are available use cases for Headless CMS Entries?
+- How to use them?
+
+</Alert>
+
+## Overview
+This article will list all the use cases available for Headless CMS Entries and explain how to use them.
+
+## Use Cases
+
+All use cases have an `execute` method that you can call to perform the action that use case is for.
+Params of that method and its return type are defined in the abstraction of the use case.
+
+Consult the examples below for more information.
+
+### Create Entry Use Case
+
+```typescript extensions/cms/entry/useCase/createEntryUseCase.ts
+import { CreateEntry } from "./abstractions.js";
+import { CreateEntryUseCase } from "webiny/api/cms/entry";
+import { GetModelUseCase } from "webiny/api/cms/model";
+
+class CreateEntryUseCaseImpl implements CreateEntry.Interface {
+    public constructor(
+        private createEntryUseCase: CreateEntryUseCase.Interface,
+        private getModelUseCase: GetModelUseCase.Interface
+    ) {}
+
+    public async execute(params: CreateEntry.Params): CreateEntry.Return {
+        const model = await this.getModelUseCase.execute(params.model.modelId);
+        if (model.isFail()) {
+            throw new Error(`Could not find model ${params.model.modelId}.`);
+        }
+
+        const result = await this.createEntryUseCase.execute(model.value, params.input);
+        if (result.isFail()) {
+            throw new Error(result.error.message);
+        }
+        return result.value;
+    }
+}
+
+const MyCustomClassUsingTheUseCase = CreateEntry.createImplementation({
+    implementation: CreateEntryUseCaseImpl,
+    dependencies: [CreateEntryUseCase, GetModelUseCase]
+});
+
+export default MyCustomClassUsingTheUseCase;
+```
+
+
+### Update Entry Use Case
+
+```typescript extensions/cms/entry/useCase/createEntryUseCase.ts
+import { UpdateEntry } from "./abstractions.js";
+import { GetEntryByIdUseCase, UpdateEntryUseCase } from "webiny/api/cms/entry";
+import { GetModelUseCase } from "webiny/api/cms/model";
+
+class UpdateEntryUseCaseImpl implements UpdateEntry.Interface {
+    public constructor(
+        private updateEntryUseCase: UpdateEntryUseCase.Interface,
+        private getEntryByIdUseCase: GetEntryByIdUseCase.Interface,
+        private getModelUseCase: GetModelUseCase.Interface
+    ) {}
+
+    public async execute(params: UpdateEntry.Params): UpdateEntry.Return {
+        const model = await this.getModelUseCase.execute(params.model.modelId);
+        if (model.isFail()) {
+            throw new Error(`Could not find model ${params.model.modelId}.`);
+        }
+
+        const original = await this.getEntryByIdUseCase.execute(model.value, params.id);
+        if (original.isFail()) {
+            throw new Error(`Could not find entry with ID ${params.id}.`);
+        }
+
+        const result = await this.updateEntryUseCase.execute(
+            model.value,
+            original.value.id,
+            params.input
+        );
+        if (result.isFail()) {
+            throw new Error(result.error.message);
+        }
+        return result.value;
+    }
+}
+
+const MyCustomClassUsingTheUseCase = UpdateEntry.createImplementation({
+    implementation: UpdateEntryUseCaseImpl,
+    dependencies: [UpdateEntryUseCase, GetEntryByIdUseCase, GetModelUseCase]
+});
+
+export default MyCustomClassUsingTheUseCase;
+```
+
+### Create Entry Revision From Use Case
+
+```typescript
+import { CreateEntryRevisionFromUseCase } from "webiny/api/cms/entry";
+```
+
+### Delete Entry Use Case
+
+```typescript
+import { DeleteEntryUseCase } from "webiny/api/cms/entry";
+```
+
+### Delete Entry Revision Use Case
+
+```typescript
+import { DeleteEntryRevisionUseCase } from "webiny/api/cms/entry";
+```
+
+### Delete Multiple Entries Use Case
+
+```typescript
+import { DeleteMultipleEntriesUseCase } from "webiny/api/cms/entry";
+```
+
+### Move Entry Use Case
+
+```typescript
+import { MoveEntryUseCase } from "webiny/api/cms/entry";
+```
+
+### Publish Entry Use Case
+
+```typescript
+import { PublishEntryUseCase } from "webiny/api/cms/entry";
+```
+
+### Update Singleton Entry Use Case
+
+```typescript
+import { UpdateSingletonEntryUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Entry By Id Use Case
+
+```typescript
+import { GetEntryByIdUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Entry Use Case
+
+```typescript
+import { GetEntryUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Published Entries By Ids Use Case
+
+```typescript
+import { GetPublishedEntriesByIdsUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Previous Revision By Entry Id Use Case
+
+```typescript
+import { GetPreviousRevisionByEntryIdUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Latest Revision By Entry Id Including Deleted Use Case
+
+```typescript
+import { GetLatestRevisionByEntryIdIncludingDeletedUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Latest Entries By Ids Use Case
+
+```typescript
+import { GetLatestEntriesByIdsUseCase } from "webiny/api/cms/entry";
+```
+
+### List Entries Use Case
+
+```typescript
+import { ListEntriesUseCase } from "webiny/api/cms/entry";
+```
+
+### List Deleted Entries Use Case
+
+```typescript
+import { ListDeletedEntriesUseCase } from "webiny/api/cms/entry";
+```
+
+### List Entries Repository
+
+```typescript
+import { ListEntriesRepository } from "webiny/api/cms/entry";
+```
+
+### List Latest Entries Use Case
+
+```typescript
+import { ListLatestEntriesUseCase } from "webiny/api/cms/entry";
+```
+
+### List Published Entries Use Case
+
+```typescript
+import { ListPublishedEntriesUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Latest Revision By Entry Id Use Case
+
+```typescript
+import { GetLatestRevisionByEntryIdUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Entries By Ids Use Case
+
+```typescript
+import { GetEntriesByIdsUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Latest Revision By Entry Id Base Use Case
+
+```typescript
+import { GetLatestRevisionByEntryIdBaseUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Previous Revision By Entry Id Base Use Case
+
+```typescript
+import { GetPreviousRevisionByEntryIdBaseUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Latest Deleted Revision By Entry Id Use Case
+
+```typescript
+import { GetLatestDeletedRevisionByEntryIdUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Revision By Id Use Case
+
+```typescript
+import { GetRevisionByIdUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Revisions By Entry Id Use Case
+
+```typescript
+import { GetRevisionsByEntryIdUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Singleton Entry Use Case
+
+```typescript
+import { GetSingletonEntryUseCase } from "webiny/api/cms/entry";
+```
+
+### Get Published Revision By Entry Id Use Case
+
+```typescript
+import { GetPublishedRevisionByEntryIdUseCase } from "webiny/api/cms/entry";
+```
+
+### Unpublish Entry Use Case
+
+```typescript
+import { UnpublishEntryUseCase } from "webiny/api/cms/entry";
+```
+
+### Move Entry To Bin Use Case
+
+```typescript
+import { MoveEntryToBinUseCase } from "webiny/api/cms/entry";
+```
+
+### Republish Entry Use Case
+
+```typescript
+import { RepublishEntryUseCase } from "webiny/api/cms/entry";
+```
+
+### Restore Entry From Bin Use Case
+
+```typescript
+import { RestoreEntryFromBinUseCase } from "webiny/api/cms/entry";
+```
+
+### Validate Entry Use Case
+
+```typescript
+import { ValidateEntryUseCase } from "webiny/api/cms/entry";
+```

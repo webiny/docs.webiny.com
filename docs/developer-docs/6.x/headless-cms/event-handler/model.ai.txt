@@ -1,0 +1,105 @@
+AI Context: Model Event Handlers (headless-cms/event-handler/model.mdx)
+
+Source of Information:
+1. Followed the pattern from group.mdx event handlers
+2. Adapted for model-specific lifecycle events
+3. Used the same logger and Result pattern approach
+4. Identified model-specific validation scenarios
+5. Included field validation examples
+
+Key Documentation Decisions:
+- Follow group.mdx structure and patterns
+- Include logger in all examples
+- Document model lifecycle events (create, update, delete)
+- Show model-specific validations (field checks, naming conventions)
+- Use Result pattern consistently
+- Include practical examples (field validation, API name checks)
+- Maintain consistency with other event handler docs
+
+Events Documented:
+1. Before Create - Validation before model creation (API names, field checks)
+2. After Create - Post-creation actions (logging, initial setup)
+3. Before Update - Validation before updates (breaking changes check)
+4. After Update - Post-update actions (cache invalidation)
+5. Before Delete - Authorization and dependency checks
+6. After Delete - Cleanup operations (remove related data)
+
+Pattern Used:
+- Logger from @webiny/api/logger
+- Result pattern for validation errors
+- Model-specific validation logic
+- Field structure validation
+- API naming convention checks
+- Dependency validation
+
+Examples Include:
+- Validating required fields are present
+- Checking API name format
+- Preventing breaking changes
+- Verifying no entries exist before deletion
+- Logging model changes
+
+Related Documents:
+- headless-cms/event-handler/group.mdx - Base pattern
+- headless-cms/event-handler/entry.mdx - Related events
+- headless-cms/use-case/model.mdx - Use case integration
+- headless-cms/builder/model.mdx - Model structure
+
+Model-Specific Event Handler Pattern:
+```typescript
+import { logger } from "@webiny/api/logger";
+import { Result } from "@webiny/feature/api";
+
+export const ModelBeforeCreateEventHandler = async ({ model, context }) => {
+    logger.info("Before creating model", { modelId: model.modelId });
+
+    // Model-specific validation: Check required fields
+    const hasIdField = model.fields.some(f => f.fieldId === "id");
+    if (!hasIdField) {
+        return Result.fail(new ValidationError("Model must have an 'id' field"));
+    }
+
+    // API name validation
+    if (!/^[a-z][a-zA-Z0-9]*$/.test(model.singularApiName)) {
+        return Result.fail(new ValidationError("Invalid API name format"));
+    }
+
+    // Continue if valid
+};
+```
+
+Model-Specific Validations:
+1. Field structure validation (required fields present)
+2. API naming conventions (singularApiName, pluralApiName)
+3. Field type validation
+4. Breaking change detection (before update)
+5. Dependency checks (entries exist before delete)
+
+Events to Document:
+- Before Create: Field validation, API names, structure
+- After Create: Logging, initial setup
+- Before Update: Breaking change prevention
+- After Update: Cache/schema invalidation
+- Before Delete: Entry existence check
+- After Delete: Cleanup (indexes, caches)
+
+Model Structure to Validate:
+- modelId, name, description
+- singularApiName, pluralApiName
+- fields array (field definitions)
+- group assignment
+- layout configuration
+
+Common Patterns:
+1. Validate field structure completeness
+2. Check naming conventions
+3. Prevent breaking changes on update
+4. Ensure no entries exist before delete
+5. Log all model changes
+
+Tone Guidelines:
+- Show model-specific validations
+- Explain importance of checks (breaking changes, data integrity)
+- Use logger in all examples
+- Production-ready validation logic
+

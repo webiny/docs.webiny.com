@@ -18,7 +18,7 @@ module.exports.createWebpackConfig = (config, options) => {
             {
                 loader: "file-loader",
                 options: {
-                    publicPath: "/_next",
+                    publicPath: "/docs/_next",
                     name: "static/media/[name].[hash].[ext]"
                 }
             }
@@ -43,7 +43,7 @@ module.exports.createWebpackConfig = (config, options) => {
             {
                 loader: "file-loader",
                 options: {
-                    publicPath: "/_next",
+                    publicPath: "/docs/_next",
                     name: "static/media/[name].[hash].[ext]"
                 }
             }

@@ -1,0 +1,135 @@
+AI Context: Redirect Use Cases (website-builder/use-case/redirects.mdx)
+
+Source of Information:
+1. Analyzed redirect use case implementations
+2. Examined redirect use cases (create, update, delete, get, list)
+3. Studied redirect-specific business logic and validations
+4. Followed the established use case pattern from CMS and pages documentation
+5. Understood redirect management requirements
+
+Key Documentation Decisions:
+- Document all redirect-related use cases
+- Follow the established use case pattern
+- Show abstraction and implementation patterns
+- Include redirect-specific validation logic
+- Demonstrate URL pattern matching
+- Cover CRUD operations
+- Include error handling with Result pattern
+
+Use Cases Documented:
+1. Create Redirect - Create new redirects with validation
+2. Update Redirect - Modify existing redirects
+3. Delete Redirect - Remove redirects
+4. Get Redirect - Retrieve single redirect
+5. List Redirects - Query multiple redirects with filters
+
+Pattern Used:
+- Interface definition
+- Error types (validation, authorization, repository errors)
+- createAbstraction call
+- Namespace export with all types
+- createImplementation pattern
+- Repository dependency injection
+- Result pattern for error handling
+- Redirect-specific validation (URL format, status codes, circular redirects)
+
+Redirect-Specific Logic:
+- Source URL validation
+- Target URL validation
+- HTTP status code validation (301, 302, 307, 308)
+- Circular redirect detection
+- Wildcard pattern validation
+- Duplicate redirect prevention
+- URL normalization
+
+Related Documents:
+- website-builder/use-case/pages.mdx - Page use cases (similar pattern)
+- website-builder/event-handler/redirects.mdx - Redirect events
+- headless-cms/use-case/entry.mdx - Use case pattern reference
+- basic/di.mdx - Abstraction patterns
+
+Key Code Locations:
+- Use case implementations: extensions/websiteBuilder/redirects/useCase/
+- Event handlers: extensions/websiteBuilder/redirects/eventHandler/
+
+To examine source code implementations in detail, access to the Webiny project repository is needed.
+
+Redirect Use Case Pattern:
+```typescript
+// 1. Interface
+export interface ICreateRedirectUseCase {
+    execute(input: CreateRedirectInput): Promise<Result<Redirect, UseCaseError>>;
+}
+
+// 2. Errors
+export interface ICreateRedirectUseCaseErrors {
+    validation: RedirectValidationError;
+    authorization: RedirectAuthorizationError;
+    repository: RepositoryError;
+}
+type UseCaseError = ICreateRedirectUseCaseErrors[keyof ICreateRedirectUseCaseErrors];
+
+// 3. Abstraction
+export const CreateRedirectUseCase = createAbstraction<ICreateRedirectUseCase>("WebsiteBuilder/CreateRedirect");
+
+// 4. Namespace
+export namespace CreateRedirectUseCase {
+    export type Interface = ICreateRedirectUseCase;
+    export type Input = CreateRedirectInput;
+    export type Error = UseCaseError;
+    export type Return = Promise<Result<Redirect, UseCaseError>>;
+}
+```
+
+Use Cases to Document:
+1. Create Redirect - New redirect with validation
+2. Update Redirect - Modify existing redirect
+3. Delete Redirect - Remove redirect
+4. Get Redirect - Retrieve single redirect
+5. List Redirects - Query with filters
+
+Redirect-Specific Validations:
+```typescript
+// URL format
+if (!input.source.startsWith("/")) {
+    return Result.fail(new ValidationError("Source must start with /"));
+}
+
+// Status code validation
+const validCodes = [301, 302, 307, 308];
+if (!validCodes.includes(input.statusCode)) {
+    return Result.fail(new ValidationError("Invalid status code"));
+}
+
+// Circular redirect detection
+const circular = await detectCircular(input.source, input.target, context);
+if (circular) {
+    return Result.fail(new ValidationError("Circular redirect detected"));
+}
+
+// Duplicate check
+const existing = await repository.getBySource(input.source);
+if (existing.isOk()) {
+    return Result.fail(new ValidationError("Redirect already exists"));
+}
+```
+
+HTTP Status Codes:
+- 301: Permanent redirect (SEO juice transfer)
+- 302: Temporary redirect (no SEO transfer)
+- 307: Temporary redirect (preserve method)
+- 308: Permanent redirect (preserve method)
+
+Common Patterns:
+1. URL normalization
+2. Wildcard pattern validation
+3. Circular redirect prevention
+4. Duplicate detection
+5. Cache invalidation after changes
+
+Tone Guidelines:
+- Follow established use case pattern
+- Show redirect-specific validations
+- Explain status code implications
+- Include circular detection logic
+

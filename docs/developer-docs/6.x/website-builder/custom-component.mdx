@@ -1,0 +1,295 @@
+---
+id: wb4compt
+title: Create Custom Component
+description: Build custom editor components with React and register them with the Website Builder SDK.
+---
+
+import { Alert } from "@/components/Alert";
+import { Image } from "@/components/Image";
+import bannerComponentEditor from "./assets/banner-component-editor.png";
+import bannerComponentRendered from "./assets/banner-component-rendered.png";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What editor components are and how they work
+- How to create a React component that receives editor inputs
+- How to register components with `createComponent()` and input types
+- How to organize components into groups in the editor palette
+
+</Alert>
+
+## Overview
+
+Editor components are the building blocks that content editors use to compose pages in the Website Builder. An editor component combines a React component (your code, your styles) with a manifest that tells the editor what inputs to expose in the sidebar.
+
+When editors drag a component onto the canvas, they're interacting with your real React component—Webiny has no knowledge of your component's implementation or styling.
+
+## Prerequisites
+
+- Running Next.js starter kit (see [Setup Next.js Project](/docs/{version}/website-builder/setup-nextjs))
+- Webiny Admin app accessible (locally via `yarn webiny watch admin` or deployed CloudFront URL)
+
+## Component Anatomy
+
+An editor component has two parts:
+
+**The React component** — Your regular React code that renders UI. It receives editor-configured values via an `inputs` prop, typed with `ComponentProps<YourInputs>` from the SDK.
+
+**The manifest** — Metadata that tells the editor about the component: its name, label, group, and what inputs (configurable props) it exposes to the editor sidebar.
+
+You combine both using `createComponent()` from `@webiny/website-builder-nextjs`, then add the result to the `editorComponents` array that you pass to `DocumentRenderer`.
+
+## The editorComponents Array
+
+The starter kit includes an `editorComponents` array in `src/editorComponents/index.tsx`:
+
+```tsx src/editorComponents/index.tsx
+"use client";
+import { createComponent } from "@webiny/website-builder-nextjs";
+import { Hero1 } from "./Hero1";
+
+export const editorComponents = [
+  createComponent(Hero1, {
+    name: "Webiny/Hero",
+    label: "Hero #1",
+    inputs: []
+  })
+];
+```
+
+Key points:
+
+- The file is marked `"use client"` — component registrations must run on the client because the SDK communicates with the editor via the browser.
+- `createComponent()` takes the React component as its first argument and the manifest as the second.
+- `name` is a namespaced string — use a consistent convention like `"YourNamespace/ComponentName"`. Component names are stored in page documents, so treat them as stable identifiers. Renaming a component breaks existing pages.
+- `inputs` defines the configurable props that appear in the editor sidebar. An empty array means no inputs.
+- `group` (optional) links the component to a named component group in the editor palette.
+
+## Component Groups
+
+Component groups organize the editor's component palette into sections. They're registered in `src/contentSdk/groups.ts`:
+
+```typescript src/contentSdk/groups.ts
+import { registerComponentGroup, type ComponentManifest } from "@webiny/website-builder-nextjs";
+
+export const registerComponentGroups = () => {
+  registerComponentGroup({
+    name: "basic",
+    label: "Basic",
+    description: "Components for simple content creation"
+  });
+  registerComponentGroup({
+    name: "custom",
+    label: "Custom",
+    description: "Assorted custom components",
+    filter: (component: ComponentManifest) => !component.group
+  });
+};
+```
+
+The `filter` option on the "custom" group is a catch-all: it collects any component that doesn't have an explicit `group` set in its manifest.
+
+## Building a Custom Component
+
+Let's build a **Banner** component—a full-width colored strip with a headline and a call-to-action button link.
+
+### Create the React Component
+
+Create `src/editorComponents/Banner.tsx`:
+
+```tsx src/editorComponents/Banner.tsx
+import React from "react";
+import { ComponentProps } from "@webiny/website-builder-nextjs";
+
+interface BannerInputs {
+  headline: string;
+  ctaLabel: string;
+  ctaUrl: string;
+}
+
+export function Banner({ inputs: { headline, ctaLabel, ctaUrl } }: ComponentProps<BannerInputs>) {
+  return (
+    <div className="bg-primary py-12 px-6 text-center text-white">
+      <h2 className="text-3xl font-bold mb-4">{headline}</h2>
+      {ctaLabel && ctaUrl && (
+        <a
+          href={ctaUrl}
+          className="inline-block bg-white text-primary font-semibold px-6 py-3 rounded-md hover:bg-white/80 transition-colors"
+        >
+          {ctaLabel}
+        </a>
+      )}
+    </div>
+  );
+}
+```
+
+Always type your component with `ComponentProps<YourInputs>` from `@webiny/website-builder-nextjs`. Without it, TypeScript won't know the shape of the `inputs` prop.
+
+### Register the Component
+
+Add the Banner to `src/editorComponents/index.tsx`:
+
+```tsx src/editorComponents/index.tsx
+"use client";
+import { createComponent, createTextInput } from "@webiny/website-builder-nextjs";
+import { Hero1 } from "./Hero1";
+import { Banner } from "./Banner";
+
+export const editorComponents = [
+  createComponent(Hero1, {
+    name: "Webiny/Hero",
+    label: "Hero #1",
+    inputs: []
+  }),
+  createComponent(Banner, {
+    name: "Custom/Banner",
+    label: "Banner",
+    inputs: [
+      createTextInput({
+        name: "headline",
+        label: "Headline",
+        description: "The main headline text displayed on the banner.",
+        defaultValue: "Ready to get started?"
+      }),
+      createTextInput({
+        name: "ctaLabel",
+        label: "Button Label",
+        description: "The text displayed on the call-to-action button.",
+        defaultValue: "Get started"
+      }),
+      createTextInput({
+        name: "ctaUrl",
+        label: "Button URL",
+        description: "The URL the button links to.",
+        defaultValue: "/"
+      })
+    ]
+  })
+];
+```
+
+### Test the Component
+
+1. In the Admin sidebar, navigate to **Website Builder → Pages**
+2. Open an existing page or create a new one
+3. In the component palette, look for the **Custom** group—your **Banner** component should be there
+4. Drag it onto the canvas
+5. Click the component to select it—the right sidebar will show the inputs: Headline, Button Label, and Button URL
+
+<Image
+  src={bannerComponentEditor}
+  alt="The Banner component selected in the editor showing the Headline, Button Label, and Button URL inputs filled in on the right sidebar"
+/>
+
+6. Fill in the inputs and click **Publish**
+7. Visit your Next.js app and refresh the page to see the rendered banner
+
+<Image
+  src={bannerComponentRendered}
+  alt="The published page showing the Hero #1 component above and the Banner component below it"
+/>
+
+## Input Types
+
+The SDK exports a factory function for each input type:
+
+| Function              | Use case                            |
+| --------------------- | ----------------------------------- |
+| `createTextInput`     | Single-line text, URLs, labels      |
+| `createLongTextInput` | Multi-line text                     |
+| `createNumberInput`   | Numeric values                      |
+| `createBooleanInput`  | Toggle / checkbox                   |
+| `createColorInput`    | Color picker                        |
+| `createDateInput`     | Date / date-time picker             |
+| `createSelectInput`   | Dropdown with predefined options    |
+| `createRadioInput`    | Radio button group                  |
+| `createTagsInput`     | List of tags                        |
+| `createObjectInput`   | Nested object (group of sub-inputs) |
+| `createLexicalInput`  | Rich text (Lexical editor)          |
+| `createFileInput`     | File / media picker                 |
+| `createSlotInput`     | Slot for nesting other components   |
+
+## Example: Select Input
+
+To add a color theme selector to the Banner component:
+
+```tsx src/editorComponents/index.tsx
+import {
+  createComponent,
+  createTextInput,
+  createSelectInput
+} from "@webiny/website-builder-nextjs";
+
+createComponent(Banner, {
+  name: "Custom/Banner",
+  label: "Banner",
+  inputs: [
+    createTextInput({
+      name: "headline",
+      label: "Headline",
+      description: "The main headline text displayed on the banner.",
+      defaultValue: "Ready to get started?"
+    }),
+    createSelectInput({
+      name: "colorTheme",
+      label: "Color Theme",
+      description: "Choose the banner color scheme.",
+      defaultValue: "primary",
+      options: [
+        { value: "primary", label: "Primary" },
+        { value: "secondary", label: "Secondary" },
+        { value: "success", label: "Success" }
+      ]
+    }),
+    createTextInput({
+      name: "ctaLabel",
+      label: "Button Label",
+      description: "The text displayed on the call-to-action button.",
+      defaultValue: "Get started"
+    }),
+    createTextInput({
+      name: "ctaUrl",
+      label: "Button URL",
+      description: "The URL the button links to.",
+      defaultValue: "/"
+    })
+  ]
+});
+```
+
+Update the Banner component to use the `colorTheme` input:
+
+```tsx src/editorComponents/Banner.tsx
+interface BannerInputs {
+  headline: string;
+  colorTheme: "primary" | "secondary" | "success";
+  ctaLabel: string;
+  ctaUrl: string;
+}
+
+export function Banner({
+  inputs: { headline, colorTheme, ctaLabel, ctaUrl }
+}: ComponentProps<BannerInputs>) {
+  const bgColorClass =
+    colorTheme === "primary"
+      ? "bg-primary"
+      : colorTheme === "secondary"
+        ? "bg-secondary"
+        : "bg-success";
+
+  return (
+    <div className={`${bgColorClass} py-12 px-6 text-center text-white`}>
+      <h2 className="text-3xl font-bold mb-4">{headline}</h2>
+      {ctaLabel && ctaUrl && (
+        <a
+          href={ctaUrl}
+          className="inline-block bg-white text-primary font-semibold px-6 py-3 rounded-md hover:bg-white/80 transition-colors"
+        >
+          {ctaLabel}
+        </a>
+      )}
+    </div>
+  );
+}
+```

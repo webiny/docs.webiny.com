@@ -34,8 +34,9 @@ export class App {
       await generator.execute();
       await this.checkBrokenLinks();
     } catch (err) {
-      this.logger.error(err.message);
-      throw err;
+      this.logger.error(err);
+      // Don't break the process.
+      // throw err;
     }
   }
 

@@ -1,0 +1,158 @@
+---
+id: c4d9e2a7
+title: First Customization
+description: Create your first content model via code and see the Webiny extension model in action.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to create a content model as a code extension using `ModelFactory`
+- how to register the extension in `webiny.config.tsx`
+- how to deploy and verify the model in the Admin panel
+- how AI can assist with Webiny customizations
+
+</Alert>
+
+## Overview
+
+In this guide you will define an "Article" content model entirely in code, register it as an extension, deploy it, and see it appear in the Headless CMS section of the Admin panel. This walkthrough demonstrates the core customization loop in Webiny: **write code → register → deploy → verify**.
+
+The Article model includes five fields that cover a range of field types — text with validation, unique constraints, rich text, predefined values, and file attachments — giving you a well-rounded first look at the `ModelFactory` pattern.
+
+## Create the Content Model
+
+Create a new file at `extensions/ArticleModel.ts` in your project:
+
+```typescript extensions/ArticleModel.ts
+import { ModelFactory } from "webiny/api/cms/model";
+
+class ArticleModelImpl implements ModelFactory.Interface {
+    async execute(builder: ModelFactory.Builder) {
+        return [
+            builder
+                .public({
+                    modelId: "article",
+                    name: "Article",
+                    group: "ungrouped"
+                })
+                .description("A simple article content model")
+                .fields(fields => ({
+                    title: fields
+                        .text()
+                        .renderer("textInput")
+                        .label("Title")
+                        .required("Title is required"),
+                    slug: fields
+                        .text()
+                        .renderer("textInput")
+                        .label("Slug")
+                        .help("URL-friendly identifier for the article")
+                        .required("Slug is required")
+                        .unique(),
+                    body: fields
+                        .richText()
+                        .renderer("lexicalTextInput")
+                        .label("Body"),
+                    category: fields
+                        .text()
+                        .renderer("radioButtons")
+                        .label("Category")
+                        .predefinedValues([
+                            { label: "News", value: "news" },
+                            { label: "Tutorial", value: "tutorial" },
+                            { label: "Opinion", value: "opinion" }
+                        ]),
+                    featuredImage: fields
+                        .file()
+                        .renderer("fileInput")
+                        .label("Featured Image")
+                        .help("Upload a cover image for the article")
+                }))
+                .layout([
+                    ["title", "slug"],
+                    ["body"],
+                    ["category", "featuredImage"]
+                ])
+                .titleFieldId("title")
+                .singularApiName("Article")
+                .pluralApiName("Articles")
+        ];
+    }
+}
+
+export default ModelFactory.createImplementation({
+    implementation: ArticleModelImpl,
+    dependencies: []
+});
+```
+
+Here is what each section does:
+
+- **`.public()`** — defines the model's internal ID, display name, and the group it belongs to in the Admin sidebar. A `public` model is accessible through the Read API.
+- **`.fields()`** — declares each field using the fluent builder. Fields can have renderers (how they appear in the editor), labels, help text, and validators like `required()`, `unique()`, and `predefinedValues()`.
+- **`.layout()`** — arranges fields into rows in the Admin editor. Each inner array is one row.
+- **`.titleFieldId()`** — specifies which field is used as the entry's display title in content lists.
+- **`.singularApiName()` / `.pluralApiName()`** — controls the names used in the auto-generated GraphQL API (e.g., `getArticle`, `listArticles`).
+
+## Register the Extension
+
+Open `webiny.config.tsx` and add the extension inside the `Extensions` component:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api, Infra } from "webiny/extensions";
+import { Cognito } from "@webiny/cognito";
+
+export const Extensions = () => {
+    return (
+        <>
+            <Infra.Aws.DefaultRegion name={"us-east-1"} />
+            <Cognito />
+
+            {/* Content models */}
+            <Api.Extension src={"/extensions/ArticleModel.ts"} />
+        </>
+    );
+};
+```
+
+The `<Api.Extension>` component tells Webiny to load your file as a backend extension. The `src` path is relative to the project root.
+
+## Deploy and Verify
+
+Since this is a backend extension, you only need to deploy the API application:
+
+```bash
+yarn webiny deploy api
+```
+
+<Alert type="info" title="Why deploy api and not the full project?">
+
+Webiny is made up of three applications: Core (infrastructure), API (backend), and Admin (frontend). When you add a content model, only the API needs to be redeployed. The Admin panel automatically picks up the new model from the API the next time you open it. This keeps deployments fast.
+
+</Alert>
+
+Once the deployment finishes, open the Admin panel and navigate to **Headless CMS** in the sidebar. You will see the **Article** model listed. Click on it, then click **New Entry** to create a test article — fill in the title, slug, body, category, and upload a featured image.
+
+Your first code-defined content model is now live and queryable through the GraphQL API.
+
+## Using AI to Help
+
+With the MCP server connected from the previous step, your AI coding agent has access to the full `content-models` skill — including all available field types, validators, renderers, and configuration options.
+
+Try asking your agent something like:
+
+> "Add a publishDate datetime field to the Article model in my Webiny project."
+
+The agent will load the relevant skill, understand the `ModelFactory` pattern, and generate the correct code change — including the field definition, validator, renderer, and layout update. Review the result, deploy, and verify.
+
+This is the development workflow going forward: describe what you want, let AI generate the implementation, review it, and deploy.
+
+## What's Next
+
+You have seen how to create and deploy a customization. Next, learn the day-to-day workflow for developing locally without redeploying after every change.
+
+Continue to [Local Development](/docs/{version}/get-started/local-development).
+

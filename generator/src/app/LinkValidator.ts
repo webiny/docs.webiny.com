@@ -6,6 +6,10 @@ export interface ValidationCallback {
   (link: string): Promise<boolean> | boolean;
 }
 
+export interface FilePathFilter {
+  (filePath: string): boolean;
+}
+
 class LinkValidationResult {
   private readonly invalidLinks: Map<string, string[]>;
 
@@ -29,12 +33,14 @@ class LinkValidationResult {
 export class LinkValidator {
   private readonly validator: ValidationCallback;
   private readonly whitelist: string[];
+  private readonly filePathFilter?: FilePathFilter;
   private readonly linkCollection = new Map<string, Set<string>>();
   private readonly skipPrefixes = ["#", "http://", "https://", "mailto:"];
 
-  constructor(whitelist: string[], validator: ValidationCallback) {
+  constructor(whitelist: string[], validator: ValidationCallback, filePathFilter?: FilePathFilter) {
     this.whitelist = whitelist;
     this.validator = validator;
+    this.filePathFilter = filePathFilter;
   }
 
   async validate(match?: string) {
@@ -79,6 +85,11 @@ export class LinkValidator {
 
   private onLink(filePath: string, link: string) {
     if (filePath.includes("/release-notes/")) {
+      return;
+    }
+
+    // Apply file path filter if provided
+    if (this.filePathFilter && !this.filePathFilter(filePath)) {
       return;
     }
 

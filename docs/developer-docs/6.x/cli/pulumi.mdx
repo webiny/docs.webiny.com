@@ -1,0 +1,91 @@
+---
+id: xt6kp4nj
+title: webiny pulumi
+description: Execute Pulumi CLI commands against a Webiny app stack.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- When and why you need to run raw Pulumi commands
+- How to use `webiny pulumi` to pass commands to the Pulumi CLI
+- Common scenarios where this command is required
+
+</Alert>
+
+## Overview
+
+The `pulumi` command is a thin wrapper that lets you run any [Pulumi CLI](https://www.pulumi.com/docs/reference/cli/) command against a specific app and environment. Webiny embeds its own Pulumi binary and sets up the required environment variables automatically — you do not need to install Pulumi separately or select a stack manually.
+
+Most day-to-day work uses [`webiny deploy`](/docs/cli/deploy) and [`webiny destroy`](/docs/cli/destroy). Use `webiny pulumi` when you need lower-level access that those commands do not expose.
+
+## Usage
+
+The app name and the `--` separator are both required. Everything after `--` is passed directly to the Pulumi CLI.
+
+```
+yarn webiny pulumi api -- <pulumi command>
+```
+
+With a specific environment:
+
+```
+yarn webiny pulumi api --env prod -- <pulumi command>
+```
+
+## Options
+
+| Option      | Description                                               |
+| ----------- | --------------------------------------------------------- |
+| `--env`     | Environment name (e.g. `dev`, `prod`). Defaults to `dev`. |
+| `--variant` | Variant name.                                             |
+| `--region`  | AWS region to target.                                     |
+
+## Common Use Cases
+
+### Inspect Stack Resources
+
+List all cloud infrastructure resources currently tracked in the stack:
+
+```
+yarn webiny pulumi api -- stack --show-urns
+```
+
+### Repair a Stuck Stack (Pending Operations)
+
+If a deployment was interrupted, Pulumi may report resources stuck in a `pending_operations` state. Export the stack, edit it to remove the pending entries, then import it back:
+
+```
+yarn webiny pulumi api -- stack export --file stack.json
+# edit stack.json — remove entries from "pending_operations"
+yarn webiny pulumi api -- stack import --file stack.json
+```
+
+### Refresh State
+
+Sync the Pulumi state file with the actual state of resources in AWS:
+
+```
+yarn webiny pulumi api -- refresh --yes
+```
+
+This is useful when resources have been modified outside of Pulumi (e.g. manually in the AWS console).
+
+### Preview Changes
+
+See what `deploy` would change without actually deploying:
+
+```
+yarn webiny pulumi api -- preview
+```
+
+## Troubleshooting
+
+### `--yes must be passed in to proceed when running in non-interactive mode`
+
+Webiny runs all Pulumi commands in non-interactive mode. If a Pulumi command requires confirmation, add `--yes`:
+
+```
+yarn webiny pulumi api -- destroy --yes
+```
