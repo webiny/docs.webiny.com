@@ -96,37 +96,43 @@ export const Extensions = () => {
 
 ### Builder API
 
-**Model configuration:**
+**Model configuration**
 
-- `.public({ modelId, name, group })` — the model is visible in the Admin sidebar and exposed via the Read, Preview, and Manage GraphQL endpoints
-- `.private({ modelId, name, group })` — the model is not visible in the Admin sidebar and not exposed via the public GraphQL endpoints; useful for internal or system-level models
-- `.description()` — model description shown in the Admin
-- `.singularApiName()` / `.pluralApiName()` — GraphQL query names
-- `.layout()` — defines how fields are arranged in rows in the Admin UI (`[["field1", "field2"], ["field3"]]`)
-- `.titleFieldId()` — which field to use as the entry title in list views
+| Method                                    | Description                                                                                                                            |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `.public({ modelId, name, group })`       | Model is visible in the Admin sidebar and exposed via the Read, Preview, and Manage GraphQL endpoints                                  |
+| `.private({ modelId, name, group })`      | Model is not visible in the Admin sidebar and not exposed via the public GraphQL endpoints; useful for internal or system-level models |
+| `.description()`                          | Model description shown in the Admin                                                                                                   |
+| `.singularApiName()` / `.pluralApiName()` | GraphQL query names                                                                                                                    |
+| `.layout()`                               | Defines how fields are arranged in rows in the Admin UI (`[["field1", "field2"], ["field3"]]`)                                         |
+| `.titleFieldId()`                         | Which field to use as the entry title in list views                                                                                    |
 
-**Field types:**
+**Field types**
 
-- `fields.text()` — single-line text
-- `fields.longText()` — multi-line text
-- `fields.richText()` — rich text with formatting
-- `fields.number()` — integer or float
-- `fields.boolean()` — true/false toggle
-- `fields.datetime()` — date and time
-- `fields.file()` — file or image upload
-- `fields.ref()` — reference to another model
-- `fields.object()` — nested object with subfields
+| Method              | Description                  |
+| ------------------- | ---------------------------- |
+| `fields.text()`     | Single-line text             |
+| `fields.longText()` | Multi-line text              |
+| `fields.richText()` | Rich text with formatting    |
+| `fields.number()`   | Integer or float             |
+| `fields.boolean()`  | True/false toggle            |
+| `fields.datetime()` | Date and time                |
+| `fields.file()`     | File or image upload         |
+| `fields.ref()`      | Reference to another model   |
+| `fields.object()`   | Nested object with subfields |
 
-**Field methods:**
+**Field methods**
 
-- `.label()` — display name
-- `.help()` — helper text shown in the editor
-- `.required(message)` — makes field required
-- `.unique()` — ensures values are unique across entries
-- `.minLength()` / `.maxLength()` — length validation
-- `.gte()` / `.lte()` — numeric range validation
-- `.pattern(regex, message)` — regex validation
-- `.renderer(name)` — specifies the UI renderer (see [Available Renderers](#available-renderers))
+| Method                          | Description                                                                 |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `.label()`                      | Display name                                                                |
+| `.help()`                       | Helper text shown in the editor                                             |
+| `.required(message)`            | Makes field required                                                        |
+| `.unique()`                     | Ensures values are unique across entries                                    |
+| `.minLength()` / `.maxLength()` | Length validation                                                           |
+| `.gte()` / `.lte()`             | Numeric range validation                                                    |
+| `.pattern(regex, message)`      | Regex validation                                                            |
+| `.renderer(name)`               | Specifies the UI renderer (see [Available Renderers](#available-renderers)) |
 
 ## Reference Fields
 
@@ -216,17 +222,19 @@ reviews: fields
 
 All renderer names are available via TypeScript autocomplete when calling `.renderer()`, so you don't need to memorise this list — your editor will suggest the valid options for each field type.
 
-**Text fields:** `textInput`, `textarea`, `lexicalEditor`  
-**List variants:** `textInputs`, `textareas`, `lexicalEditors`  
-**Number fields:** `numberInput`, `numberInputs`  
-**Boolean fields:** `switch`  
-**Selection fields:** `dropdown`, `radioButtons`, `checkboxes`, `tags`  
-**Date/time fields:** `dateTimeInput`, `dateTimeInputs`  
-**Reference fields:** `refDialogSingle`, `refDialogMultiple`, `refAutocompleteSingle`, `refAutocompleteMultiple`, `refRadioButtons`, `refCheckboxes`  
-**File fields:** `file`, `files`  
-**Object fields:** `objectAccordionSingle`, `objectAccordionMultiple`  
-**Special:** `dynamicZone`, `hidden`, `passthrough`  
-**UI elements:** `uiSeparator`, `uiAlert`, `uiTabs`
+| Field type  | Renderers                                                                                                                      |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Text        | `textInput`, `textarea`, `lexicalEditor`                                                                                       |
+| Text (list) | `textInputs`, `textareas`, `lexicalEditors`                                                                                    |
+| Number      | `numberInput`, `numberInputs`                                                                                                  |
+| Boolean     | `switch`                                                                                                                       |
+| Selection   | `dropdown`, `radioButtons`, `checkboxes`, `tags`                                                                               |
+| Date/time   | `dateTimeInput`, `dateTimeInputs`                                                                                              |
+| Reference   | `refDialogSingle`, `refDialogMultiple`, `refAutocompleteSingle`, `refAutocompleteMultiple`, `refRadioButtons`, `refCheckboxes` |
+| File        | `file`, `files`                                                                                                                |
+| Object      | `objectAccordionSingle`, `objectAccordionMultiple`                                                                             |
+| Special     | `dynamicZone`, `hidden`, `passthrough`                                                                                         |
+| UI elements | `uiSeparator`, `uiAlert`, `uiTabs`                                                                                             |
 
 ## Deploying Changes
 
@@ -249,6 +257,42 @@ After deployment, the model appears in the Admin and its GraphQL API is generate
 If you define a model via code that already exists in the UI with the same `modelId`, you must delete the UI-created model before deploying to avoid conflicts.
 
 </Alert>
+
+## Tenant Scope
+
+By default, a model defined via code is registered for **all tenants** in your Webiny project. If you need a model to exist only on a specific tenant, use the [`TenantContext`](/{version}/reference/api/tenancy#tenant-context) to check the current tenant at runtime and conditionally return the model:
+
+```typescript extensions/productCategoryModel.ts
+import { ModelFactory } from "webiny/api/cms/model";
+import { TenantContext } from "webiny/api/tenancy";
+
+class ProductCategoryModelImpl implements ModelFactory.Interface {
+  public constructor(private tenantContext: TenantContext.Interface) {}
+
+  async execute(builder: ModelFactory.Builder) {
+    const tenant = this.tenantContext.getTenant();
+
+    // Only register this model for the "acme" tenant.
+    if (tenant.id !== "acme") {
+      return [];
+    }
+
+    return [
+      builder.public({
+        modelId: "productCategory",
+        name: "Product Category",
+        group: "ungrouped"
+      })
+      // ... rest of the model definition
+    ];
+  }
+}
+
+export default ModelFactory.createImplementation({
+  implementation: ProductCategoryModelImpl,
+  dependencies: [TenantContext]
+});
+```
 
 ## Best Practices
 
