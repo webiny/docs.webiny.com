@@ -4,7 +4,7 @@ import { Group, Page, NavigationRoot, Separator } from "@webiny/docs-generator";
 export const Navigation = ({ children }: { children: React.ReactNode }) => {
   return (
     <NavigationRoot directory={__dirname} linkPrefix={"user-guides"}>
-      <Group title={"Get Started"} icon={"/menu-icons/get-started.svg"} link={"overview"}>
+      <Group title={"Get Started"} icon={"/docs/menu-icons/get-started.svg"} link={"overview"}>
         <Page link={"overview"} />
       </Group>
 
@@ -12,7 +12,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
       <Group
         title={"Headless CMS"}
-        icon={"/menu-icons/headless-cms.svg"}
+        icon={"/docs/menu-icons/headless-cms.svg"}
         link={"headless-cms/essentials/glossary"}
       >
         <Group title={"Essentials"}>
@@ -37,7 +37,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
       <Group
         title={"Page Builder"}
-        icon={"/menu-icons/page-builder.svg"}
+        icon={"/docs/menu-icons/page-builder.svg"}
         link={"page-builder/essentials/glossary"}
       >
         <Group title={"Essentials"}>
@@ -62,7 +62,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
       <Group
         title={"Form Builder"}
-        icon={"/menu-icons/form-builder.svg"}
+        icon={"/docs/menu-icons/form-builder.svg"}
         link={"form-builder/essentials/create-form"}
       >
         <Group title={"Essentials"}>
@@ -75,7 +75,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
       <Group
         title={"File Manager"}
-        icon={"/menu-icons/file-manager.svg"}
+        icon={"/docs/menu-icons/file-manager.svg"}
         link={"file-manager/essentials/upload-file"}
       >
         <Group title={"Essentials"}>
@@ -91,7 +91,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
       <Group
         title={"Advanced Publishing Workflow"}
-        icon={"/menu-icons/enterprise.svg"}
+        icon={"/docs/menu-icons/enterprise.svg"}
         link={"apw/essentials/introduction-to-apw"}
       >
         <Group title={"Essentials"}>
@@ -113,7 +113,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
 
       <Group
         title={"Security"}
-        icon={"/menu-icons/wcp.svg"}
+        icon={"/docs/menu-icons/wcp.svg"}
         link={"security/essentials/user-creation"}
       >
         <Group title={"Essentials"}>
