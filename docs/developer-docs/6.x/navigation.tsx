@@ -51,6 +51,14 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"headless-cms/graphql-api-overview"} title={"GraphQL API Overview"} />
         <Page link={"headless-cms/api-playground"} title={"API Playground"} />
         <Page link={"headless-cms/using-webiny-sdk"} title={"Using the Webiny SDK"} />
+        <Page
+          link={"headless-cms/content-models-via-code"}
+          title={"Define Content Models via Code"}
+        />
+        <Page
+          link={"headless-cms/content-modeling-best-practices"}
+          title={"Content Modeling Best Practices"}
+        />
         {/*<Group title={"Backend"}>*/}
         {/*  <Page link={"headless-cms/event-handler/group"} />*/}
         {/*  <Page link={"headless-cms/event-handler/model"} />*/}

@@ -1,0 +1,273 @@
+---
+id: cms6mdl1
+title: Define Content Models via Code
+description: Learn how to define content models and content model groups programmatically using the ModelFactory API
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- Why define content models via code?
+- How to create a content model using the [`ModelFactory`](/{version}/reference/api/cms/model#model-factory) API?
+- How to define reference fields and object fields?
+- How to register models as extensions?
+
+</Alert>
+
+## Overview
+
+Content models can be defined in two ways: via the Admin UI Content Model Editor, or programmatically in code. Defining models via code keeps them in version control, makes them reproducible across environments, and ensures only developers can make structural changes.
+
+Once registered, code-defined models behave identically to UI-created models — they appear in the Admin, generate GraphQL APIs, and support all the same field types.
+
+<Alert type="info">
+
+Both approaches are valid. Use the UI for quick prototyping; use code for production projects, CI/CD pipelines, and team environments where model changes should go through code review.
+
+</Alert>
+
+## Basic Example
+
+Content models are created using the [`ModelFactory`](/{version}/reference/api/cms/model#model-factory) API. Create an extension file and define your model using the fluent builder:
+
+```typescript extensions/productCategoryModel.ts
+import { ModelFactory } from "webiny/api/cms/model";
+
+class ProductCategoryModelImpl implements ModelFactory.Interface {
+  async execute(builder: ModelFactory.Builder) {
+    return [
+      builder
+        .public({
+          modelId: "productCategory",
+          name: "Product Category",
+          group: "ungrouped"
+        })
+        .description("Product categories for organizing products")
+        .fields(fields => ({
+          name: fields
+            .text()
+            .renderer("textInput")
+            .label("Name")
+            .required("Name is required")
+            .minLength(2)
+            .maxLength(100),
+          slug: fields
+            .text()
+            .renderer("textInput")
+            .label("Slug")
+            .required("Slug is required")
+            .unique()
+            .pattern(
+              "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+              "Slug must be lowercase letters, numbers, and hyphens only"
+            ),
+          description: fields.longText().renderer("textarea").label("Description")
+        }))
+        .layout([["name", "slug"], ["description"]])
+        .titleFieldId("name")
+        .singularApiName("ProductCategory")
+        .pluralApiName("ProductCategories")
+    ];
+  }
+}
+
+export default ModelFactory.createImplementation({
+  implementation: ProductCategoryModelImpl,
+  dependencies: []
+});
+```
+
+Then register it in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... other extensions */}
+      <Api.Extension src={"/extensions/productCategoryModel.ts"} />
+    </>
+  );
+};
+```
+
+### Builder API
+
+**Model configuration:**
+
+- `.public({ modelId, name, group })` — the model is visible in the Admin sidebar and exposed via the Read, Preview, and Manage GraphQL endpoints
+- `.private({ modelId, name, group })` — the model is not visible in the Admin sidebar and not exposed via the public GraphQL endpoints; useful for internal or system-level models
+- `.description()` — model description shown in the Admin
+- `.singularApiName()` / `.pluralApiName()` — GraphQL query names
+- `.layout()` — defines how fields are arranged in rows in the Admin UI (`[["field1", "field2"], ["field3"]]`)
+- `.titleFieldId()` — which field to use as the entry title in list views
+
+**Field types:**
+
+- `fields.text()` — single-line text
+- `fields.longText()` — multi-line text
+- `fields.richText()` — rich text with formatting
+- `fields.number()` — integer or float
+- `fields.boolean()` — true/false toggle
+- `fields.datetime()` — date and time
+- `fields.file()` — file or image upload
+- `fields.ref()` — reference to another model
+- `fields.object()` — nested object with subfields
+
+**Field methods:**
+
+- `.label()` — display name
+- `.help()` — helper text shown in the editor
+- `.required(message)` — makes field required
+- `.unique()` — ensures values are unique across entries
+- `.minLength()` / `.maxLength()` — length validation
+- `.gte()` / `.lte()` — numeric range validation
+- `.pattern(regex, message)` — regex validation
+- `.renderer(name)` — specifies the UI renderer (see [Available Renderers](#available-renderers))
+
+## Reference Fields
+
+Reference fields link entries from one model to another. Use `fields.ref()` with `.models()` to specify which model(s) can be referenced:
+
+```typescript extensions/productModel.ts
+import { ModelFactory } from "webiny/api/cms/model";
+
+class ProductModelImpl implements ModelFactory.Interface {
+  async execute(builder: ModelFactory.Builder) {
+    return [
+      builder
+        .public({
+          modelId: "product",
+          name: "Product",
+          group: "ungrouped"
+        })
+        .fields(fields => ({
+          name: fields.text().renderer("textInput").label("Name").required("Name is required"),
+          price: fields
+            .number()
+            .renderer("numberInput")
+            .label("Price")
+            .required("Price is required")
+            .gte(0, "Price must be 0 or greater"),
+          category: fields
+            .ref()
+            .renderer("refDialogSingle")
+            .label("Category")
+            .models([{ modelId: "productCategory" }])
+        }))
+        .layout([["name"], ["price"], ["category"]])
+        .titleFieldId("name")
+        .singularApiName("Product")
+        .pluralApiName("Products")
+    ];
+  }
+}
+
+export default ModelFactory.createImplementation({
+  implementation: ProductModelImpl,
+  dependencies: []
+});
+```
+
+**Key reference field options:**
+
+- `.models([{ modelId }])` — which model(s) this field references
+- `.list()` — after `.ref()`, allows multiple references (use `"refDialogMultiple"` renderer)
+- Single reference renderer: `"refDialogSingle"` or `"refAutocompleteSingle"`
+- Multiple reference renderer: `"refDialogMultiple"` or `"refAutocompleteMultiple"`
+
+## Object Fields
+
+Object fields contain nested subfields. Use `multipleValues` to allow a list of objects:
+
+```typescript
+description: fields
+  .longText()
+  .renderer("textarea")
+  .label("Description"),
+specs: fields
+  .object()
+  .renderer("objectAccordionSingle")
+  .label("Specifications")
+  .fields(subfields => ({
+    weight: subfields.number().renderer("numberInput").label("Weight (kg)"),
+    dimensions: subfields.text().renderer("textInput").label("Dimensions")
+  }))
+```
+
+For a list of objects (e.g., multiple reviews), call `.list()` and use `"objectAccordionMultiple"` renderer:
+
+```typescript
+reviews: fields
+  .object()
+  .list()
+  .renderer("objectAccordionMultiple")
+  .label("Reviews")
+  .fields(subfields => ({
+    author: subfields.text().renderer("textInput").label("Author").required("Author is required"),
+    body: subfields.longText().renderer("textarea").label("Review")
+  }));
+```
+
+## Available Renderers
+
+All renderer names are available via TypeScript autocomplete when calling `.renderer()`, so you don't need to memorise this list — your editor will suggest the valid options for each field type.
+
+**Text fields:** `textInput`, `textarea`, `lexicalEditor`  
+**List variants:** `textInputs`, `textareas`, `lexicalEditors`  
+**Number fields:** `numberInput`, `numberInputs`  
+**Boolean fields:** `switch`  
+**Selection fields:** `dropdown`, `radioButtons`, `checkboxes`, `tags`  
+**Date/time fields:** `dateTimeInput`, `dateTimeInputs`  
+**Reference fields:** `refDialogSingle`, `refDialogMultiple`, `refAutocompleteSingle`, `refAutocompleteMultiple`, `refRadioButtons`, `refCheckboxes`  
+**File fields:** `file`, `files`  
+**Object fields:** `objectAccordionSingle`, `objectAccordionMultiple`  
+**Special:** `dynamicZone`, `hidden`, `passthrough`  
+**UI elements:** `uiSeparator`, `uiAlert`, `uiTabs`
+
+## Deploying Changes
+
+After creating or modifying a model extension, deploy the API:
+
+```
+yarn webiny deploy api
+```
+
+During development, use watch mode for automatic redeployment:
+
+```
+yarn webiny watch api
+```
+
+After deployment, the model appears in the Admin and its GraphQL API is generated automatically.
+
+<Alert type="warning">
+
+If you define a model via code that already exists in the UI with the same `modelId`, you must delete the UI-created model before deploying to avoid conflicts.
+
+</Alert>
+
+## Best Practices
+
+### Never change these properties after creation
+
+Changing the following properties after a model has entries will cause data loss or corruption:
+
+**Model-level:**
+
+- `modelId` — changing this orphans all existing entries
+
+**Field-level:**
+
+- `fieldId` — changing this breaks the field's data mapping
+- `type` — field type cannot change once data exists
+- `multipleValues` — changing from single to list or vice versa corrupts data
+- `settings.models` — you can add models to a reference field but never remove them
+- `settings.fields` — same rules apply to nested object fields
+
+### Models defined via code cannot be edited in the Admin UI
+
+All structural changes (adding, removing, or modifying fields) must be made in code. The Admin UI will display the model and its entries, but the model editor will not be available for code-defined models.

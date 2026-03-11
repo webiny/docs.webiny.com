@@ -1,0 +1,117 @@
+---
+id: cms6bp01
+title: Content Modeling Best Practices
+description: Best practices for designing scalable, reusable, and maintainable content models in Webiny Headless CMS
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to identify and define content types?
+- How to design reusable, scalable models?
+- How field type choices affect querying and filtering?
+- What to keep consistent once a model is in production?
+
+</Alert>
+
+## Overview
+
+A well-designed content model makes content easy to create, query, and evolve. Poor modeling decisions tend to surface later as data migration pain, limited query capabilities, or overly complex code. This page covers the key practices to get your content model right from the start.
+
+## Define Content Types Before Building
+
+Start by mapping out all the content your application needs before creating any models. Identify both primary content (blog posts, products, user profiles) and auxiliary content (categories, tags, metadata).
+
+For each content type, define its attributes and their types. Webiny supports: text, long text, rich text, number, boolean, datetime, file, reference, object, and dynamic zone fields.
+
+Doing this upfront prevents mid-project restructuring, which is costly once entries exist.
+
+## Design for Reusability with References
+
+Avoid embedding repeated content directly in a model. Instead, extract it into a separate model and use a **reference field** to link them.
+
+For example, rather than adding a `categoryName` text field to every product, create a `ProductCategory` model and reference it. This ensures consistency and means a category update propagates everywhere automatically.
+
+Use reference fields when:
+
+- The same entity is shared across multiple models
+- The referenced content has its own lifecycle (publishing, versioning)
+- You need to query or filter by the referenced entity's ID
+
+<Alert type="warning">
+
+You can only filter reference fields by `id` or `entryId` — not by nested field values. If you need to filter products by category name, you must first fetch the category's ID, then use that ID in your product query.
+
+</Alert>
+
+## Choose Objects vs References Deliberately
+
+**Objects** embed data directly inside the entry. They support filtering and are ideal for structured data that belongs only to that entry (e.g., product specifications, address fields).
+
+**Reference fields** link to independent entries in another model. They cannot be filtered by nested values, but allow the referenced content to exist independently and be shared.
+
+| Need                                     | Use       |
+| ---------------------------------------- | --------- |
+| Data belongs only to this entry          | Object    |
+| Data is shared across entries            | Reference |
+| Need to filter by nested values          | Object    |
+| Referenced content has its own lifecycle | Reference |
+
+## Separate Content from Presentation
+
+Structure your content independently of how it will be displayed. Avoid fields like `heroBackgroundColor` or `buttonLabel` — these are presentation concerns. Content fields should describe what something _is_, not how it looks.
+
+This ensures the same content can be delivered to a website, mobile app, or any other channel without modification.
+
+## Use Consistent Naming Conventions
+
+- **Model IDs** (`modelId`): camelCase, e.g. `blogPost`, `productCategory`
+- **Field IDs** (`fieldId`): camelCase, e.g. `featuredImage`, `publishedAt`
+- **Labels**: Title Case for display in the Admin UI
+
+Consistent naming reduces confusion and makes generated GraphQL queries predictable.
+
+## Include Metadata Fields
+
+Add SEO and discoverability fields to content models that will be indexed or shared:
+
+- `seoTitle` — overrides the page title for search engines
+- `seoDescription` — meta description
+- `slug` — URL-friendly identifier (use `.unique()` and `.pattern()` validation)
+
+## Never Change These Properties After Creation
+
+Once entries exist for a model, certain changes cause data loss or corruption:
+
+**Model-level — never change:**
+
+- `modelId`
+- `singularApiName` / `pluralApiName`
+
+**Field-level — never change:**
+
+- `fieldId`
+- `type`
+- `multipleValues` (single ↔ list)
+
+**Reference and object settings — never remove:**
+
+- `settings.models` — you may add models but not remove them
+- `settings.fields` — same rules apply to nested object fields
+
+<Alert type="info">
+
+If you need to rename or restructure a field after data exists, the safest approach is to add a new field, migrate data, then deprecate the old field rather than modifying it in place.
+
+</Alert>
+
+## Prefer Code-Defined Models for Production
+
+For production projects, define models via code rather than the Admin UI. Code-defined models are version-controlled, reproducible across environments, and changes go through code review.
+
+See [Define Content Models via Code](/{version}/headless-cms/content-models-via-code) for the full guide.
+
+## Document Your Models
+
+Keep documentation for each model — its purpose, field definitions, and relationships to other models. For code-defined models, this can live as comments in the extension file or as a companion document. Clear documentation reduces onboarding time and prevents accidental misuse of fields.
