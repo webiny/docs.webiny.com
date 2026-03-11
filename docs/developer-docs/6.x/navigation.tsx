@@ -15,6 +15,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"get-started/first-customization"} />
         <Page link={"get-started/local-development"} />
         <Page link={"get-started/deploy-webiny"} />
+        <Page link={"get-started/upgrade"} />
       </Group>
       <Group
         title={"Build with AI"}
@@ -67,11 +68,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         {/*  <Page link={"headless-cms/ui/field-renderer"} />*/}
         {/*</Group>*/}
       </Group>
-      <Group
-        title={"Admin"}
-        icon={"/docs/menu-icons/admin.svg"}
-        link={"admin/whitelabeling"}
-      >
+      <Group title={"Admin"} icon={"/docs/menu-icons/admin.svg"} link={"admin/whitelabeling"}>
         <Page link={"admin/whitelabeling"} />
       </Group>
       <Group
