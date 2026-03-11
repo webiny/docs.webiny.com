@@ -18,7 +18,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Build with AI"}
-        icon={"/docs/menu-icons/get-started.svg"}
+        icon={"/docs/menu-icons/build-with-ai.svg"}
         link={"build-with-ai/ai-assisted-development"}
       >
         <Page link={"build-with-ai/ai-assisted-development"} />
@@ -26,7 +26,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Core Concepts"}
-        icon={"/docs/menu-icons/core-dev-concepts.svg"}
+        icon={"/docs/menu-icons/core-concepts.svg"}
         link={"core-concepts/project-structure"}
       >
         <Page hidden link={"core-concepts/architecture"} />
@@ -102,7 +102,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       {/*  <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />*/}
       {/*  <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />*/}
       {/*</Group>*/}
-      <Group title={"CLI"} icon={"/docs/menu-icons/webiny-overview.svg"} link={"cli/deploy"}>
+      <Group title={"CLI"} icon={"/docs/menu-icons/cli.svg"} link={"cli/deploy"}>
         <Page link={"cli/deploy"} />
         <Page link={"cli/destroy"} />
         <Page link={"cli/output"} />
@@ -138,7 +138,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group
         title={"Reference"}
-        icon={"/docs/menu-icons/core-dev-concepts.svg"}
+        icon={"/docs/menu-icons/reference-manual.svg"}
         link={"reference/extensions"}
       >
         {/* __REFERENCE_PAGES_START__ */}
