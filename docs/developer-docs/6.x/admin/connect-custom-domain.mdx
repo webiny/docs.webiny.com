@@ -1,0 +1,85 @@
+---
+id: bq7r3npm
+title: Connect Custom Domain
+description: Learn how to connect a custom domain to the Admin Area application.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to connect a custom domain to the Admin Area CloudFront distribution
+
+</Alert>
+
+## Overview
+
+By default, the Admin Area is accessible via an auto-generated CloudFront URL. For production environments, you will typically want to serve it from a custom domain.
+
+To do this, you need an AWS Certificate Manager (ACM) certificate that covers your domain, then declare the domain via `Infra.Admin.CustomDomains` in `webiny.config.tsx`. Webiny will attach the domain as an alternate domain name on the Admin Area's CloudFront distribution.
+
+## Before You Begin
+
+- Register your domain with a DNS provider of your choice.
+- Create (or import) a certificate in [AWS Certificate Manager (ACM)](https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html) that covers the domain you plan to use.
+
+<Alert type="info">
+
+The certificate **must** be created in the `us-east-1` region — this is an AWS requirement for certificates used with CloudFront distributions.
+
+</Alert>
+
+<Alert type="info">
+
+Learn how to request a public certificate in the official [AWS documentation](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html#request-public-console). Read more about [alternate domain name requirements](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/CNAMEs.html#alternate-domain-names-requirements) for CloudFront.
+
+</Alert>
+
+## Configure the Custom Domain
+
+Add `Infra.Admin.CustomDomains` to `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Admin.CustomDomains
+        domains={["my.domain.com"]}
+        sslMethod="sni-only"
+        certificateArn="arn:aws:acm:us-east-1:636962863878:certificate/3baf9092-fb27-4efb-9409-XXXXXXXX"
+      />
+    </>
+  );
+};
+```
+
+Replace `my.domain.com` with your domain and `certificateArn` with the ARN of your ACM certificate.
+
+After making the change, redeploy:
+
+```
+yarn webiny deploy
+```
+
+Use `--env <name>` to target a specific environment if needed.
+
+## Point Your Domain to CloudFront
+
+Once deployed, Webiny will output the CloudFront domain name for the Admin Area distribution (e.g. `d111111abcdef8.cloudfront.net`).
+
+Add a **CNAME** record with your DNS provider pointing your domain to that CloudFront domain name:
+
+| Type  | Name            | Value                           |
+| ----- | --------------- | ------------------------------- |
+| CNAME | `my.domain.com` | `d111111abcdef8.cloudfront.net` |
+
+<Alert type="info">
+
+DNS changes can take a few minutes to propagate. Use a service like [DNS Checker](https://dnschecker.org/) to verify that your CNAME record is live.
+
+</Alert>
+
+Once propagated, the Admin Area will be accessible at your custom domain.

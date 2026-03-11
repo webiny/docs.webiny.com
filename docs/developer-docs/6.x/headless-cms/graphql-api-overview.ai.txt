@@ -4,97 +4,106 @@ Source of Information:
 1. Webiny Headless CMS GraphQL API architecture
 2. Read API vs Manage API design patterns
 3. API key authentication and permissions system
-4. GraphQL endpoint structure and locale handling
-5. Learn Webiny reading-data.mdx and writing-data.mdx lessons (context only)
+4. Learn Webiny archived lesson: headless-cms/archived/understanding-different-apis.mdx (primary reference)
 
 Key Documentation Decisions:
-- Created conceptual overview of all three GraphQL APIs
-- Explained Read vs Preview vs Manage API differences and use cases
-- Documented authentication via API keys with different permission levels
-- Included decision table for choosing the right API
-- Mentioned GraphQL playground for testing all APIs
-- Compared SDK approach vs direct GraphQL queries
-- Made it accessible for developers new to Webiny CMS
-- Focused on concepts, not code examples (those go in "Using the GraphQL API")
+- Updated for v6: locales no longer exist, endpoints have no /{locale} suffix
+- Removed "SDK vs Direct GraphQL" section (SDK details belong in a separate SDK doc)
+- Removed locale scope from API Key Scope section (locales removed in v6)
+- Added Response Structure section documenting the values/system fields split
+- Added Reference Fields section documenting the key behavioral difference across APIs
+- Folded API Key Scope into a Tenant Scope section (locale scope removed)
+- Added API Comparison table (from reference lesson) for quick reference
+- Moved "Finding Your API URLs" earlier in the doc (before Authentication)
+- Focused on concepts and behavioral differences, not code examples
 
 Document Structure:
 - What You'll Learn
 - Overview (three APIs: Read, Preview, and Manage)
-- Read API section (use cases, characteristics, endpoint)
-- Preview API section (use cases, characteristics, endpoint)
-- Manage API section (use cases, characteristics, endpoint)
-- Authentication (API keys, header format)
-- API Key Scope (locale and tenant scoping)
+- The Three APIs section
+  - Read API (use cases, characteristics, endpoint)
+  - Preview API (use cases, characteristics, endpoint)
+  - Manage API (use cases, characteristics, endpoint)
+- Finding Your API URLs (yarn webiny info, API Playground)
+- Authentication (API keys, header format, permission levels)
+- Tenant Scope (multi-tenant deployments)
 - Choosing the Right API (decision table)
-- GraphQL Playground (how to access and use all three)
-- SDK vs Direct GraphQL (comparison)
+- API Comparison (feature matrix)
+- Response Structure (values object, system fields, meta field)
+- Reference Fields Across APIs (behavioral differences with examples)
+- GraphQL Playground (how to access and use)
 
 Read API:
 - Read-only access to published content
 - Designed for public-facing applications
 - Queries only, no mutations
 - Returns only published entries
+- No meta field
+- User fields in values object, system fields at top level
+- Reference fields: can query nested values, returns null for unpublished references
 - Optimized for performance and caching
-- Safe to expose to frontend
-- Requires read-only API key
-- Endpoint: /cms/read/{locale}
+- Endpoint: /cms/read
 
 Preview API:
 - Read-only access to all content (draft, published, unpublished)
 - Designed for preview features and draft mode
 - Queries only, no mutations
-- Returns latest version of all entries
-- For authenticated editors or staging environments
-- Requires preview or manage API key
-- Endpoint: /cms/preview/{locale}
+- Returns latest revision of all entries (published or draft)
+- No meta field
+- User fields in values object, system fields at top level
+- Reference fields: can query nested values, returns complete data even for unpublished references
+- Should not be cached aggressively
+- Endpoint: /cms/preview
 
 Manage API:
-- Full CRUD access to all content
-- Designed for admin panels and backend integrations
+- Full CRUD access to all content and all revisions
+- Designed for admin panels and backend integrations; used by Webiny Admin internally
 - Queries and mutations
-- Access to draft, published, unpublished entries
-- Supports versioning and revisions
+- Access to draft, published, unpublished entries; all revisions
+- Includes meta field with status (published/draft/unpublished) and version number
+- User fields in values object, system fields at top level
+- Reference fields: returns metadata (id, entryId, modelId) only; cannot query nested values
 - Never expose to frontend
-- Requires full-access API key
-- Can also access Preview and Read APIs
-- Endpoint: /cms/manage/{locale}
+- Endpoint: /cms/manage
+
+Response Structure (all APIs):
+- User-defined fields: inside values object
+- System fields (id, entryId, createdOn, lastPublishedOn, etc.): top level
+- meta field: Manage API only (status, version)
 
 Authentication:
 - API keys created in Settings → Access Management → API Keys
 - Passed via Authorization: Bearer {key} header
-- Read API key: read-only permission, safe for frontend, Read API only
+- Read API key: read-only permission, safe for frontend
 - Preview API key: preview or full access permission, server-side/authenticated only
-- Manage API key: full access permission, server-side only, all APIs
+- Manage API key: full access permission, server-side only, never expose publicly
 
-API Key Scope:
-- Locale scope: restrict to specific locales
-- Tenant scope: tenant-specific in multi-tenant setups
-- Tenant ID via x-tenant header
+Tenant Scope:
+- API keys are tenant-specific in multi-tenant deployments
+- Tenant ID passed via x-tenant header
+- No locale scope in v6 (locales removed)
+
+Finding API URLs:
+- yarn webiny info — displays all API endpoints including CMS URLs
+- API Playground in Webiny Admin — URL shown at top of playground interface
 
 GraphQL Playground:
 - Interactive GraphiQL interface
 - Schema documentation explorer
 - Query editor with autocomplete
 - Add API key in HTTP Headers panel
-- All three APIs (Read, Preview, Manage) have playgrounds
-
-SDK vs Direct GraphQL:
-- SDK (recommended): type-safe methods, automatic API selection, Result pattern
-- Direct GraphQL: full control, complex queries, manual configuration
-- Most use cases: SDK is simpler and more maintainable
+- All three APIs (Read, Preview, Manage) accessible
 
 Related Documents:
 - headless-cms/using-graphql-api.mdx - Practical guide with code examples
 - headless-cms/builder/model.mdx - Creating models programmatically
-- core-concepts/webiny-sdk.mdx - SDK initialization and usage
 
 Key Code Locations (Webiny source):
 - packages/api-headless-cms/src/graphql/ - GraphQL schema and resolvers
-- packages/sdk/src/cms/ - Webiny SDK CMS client implementation
 
 Tone Guidelines:
 - Conceptual and explanatory
 - Focus on "what" and "when", not "how" (code examples in separate doc)
-- Help developers understand the two-API architecture
+- Help developers understand the three-API architecture and their behavioral differences
 - Clear decision guidance for choosing the right API
 - Accessible to developers new to Headless CMS

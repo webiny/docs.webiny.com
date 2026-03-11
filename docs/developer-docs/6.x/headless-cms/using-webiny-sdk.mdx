@@ -1,7 +1,7 @@
 ---
 id: cms8gql2
-title: Using the GraphQL API
-description: Practical guide to querying and mutating content using the Webiny SDK
+title: Using the Webiny SDK
+description: Practical guide to querying and mutating Headless CMS content using the Webiny SDK
 ---
 
 import { Alert } from "@/components/Alert";
@@ -17,14 +17,12 @@ import { Alert } from "@/components/Alert";
 
 ## Overview
 
-This guide covers practical examples of working with Headless CMS content using the Webiny SDK. The SDK provides type-safe methods for querying and mutating content, with automatic API selection and built-in error handling.
-
-For an explanation of the Read and Manage APIs, see [GraphQL API Overview](/docs/{version}/headless-cms/graphql-api-overview).
+This guide covers practical examples of working with Headless CMS content using the [Webiny SDK](/{version}/core-concepts/webiny-sdk). The SDK is the recommended way to interact with a Webiny instance from external JavaScript or TypeScript applications such as Next.js, Vue, SvelteKit, or Node.js scripts. It provides type-safe methods for querying and mutating content, with automatic API selection and built-in error handling.
 
 ## Prerequisites
 
 - Webiny SDK initialized in your project
-- API key with appropriate permissions (read-only or full-access)
+- [API key](/{version}/core-concepts/webiny-sdk#authentication) with appropriate permissions (read-only or full-access)
 - At least one content model created in Headless CMS
 
 ## Defining TypeScript Types
@@ -54,6 +52,29 @@ export interface ProductCategory {
 - Reference fields use `CmsEntryData<T>` type
 - Optional fields use `?` suffix
 
+Pass your interface as a generic to SDK methods for full type safety:
+
+```typescript
+// ✅ Type-safe - product.values is typed as Product
+const result = await sdk.cms.getEntry<Product>({
+  modelId: "product",
+  entryId: "abc123",
+  fields: ["id", "entryId", "values.name", "values.price"]
+});
+
+if (result.isOk()) {
+  const name = result.value.values.name; // string (autocomplete works)
+  const price = result.value.values.price; // number
+}
+
+// ❌ No type safety - product.values is any
+const result = await sdk.cms.getEntry({
+  modelId: "product",
+  entryId: "abc123",
+  fields: ["id", "entryId", "values.name", "values.price"]
+});
+```
+
 ## Querying Entries
 
 ### List All Entries
@@ -63,7 +84,8 @@ import { sdk } from "@/lib/webiny";
 import type { Product } from "@/lib/types";
 
 const result = await sdk.cms.listEntries<Product>({
-  modelId: "product"
+  modelId: "product",
+  fields: ["id", "entryId", "values.name", "values.description", "values.price", "values.sku"]
 });
 
 if (result.isOk()) {
@@ -77,6 +99,7 @@ if (result.isOk()) {
 ```typescript
 const result = await sdk.cms.listEntries<Product>({
   modelId: "product",
+  fields: ["id", "entryId", "values.name", "values.price"],
   sort: ["values.name_ASC"]
 });
 ```
@@ -93,9 +116,9 @@ const result = await sdk.cms.listEntries<Product>({
 ```typescript
 const result = await sdk.cms.listEntries<Product>({
   modelId: "product",
+  fields: ["id", "entryId", "values.name", "values.price"],
   where: {
-    "values.price_gte": 100,
-    "values.category.values.slug": "electronics"
+    "values.price_gte": 100
   }
 });
 ```
@@ -118,6 +141,7 @@ const result = await sdk.cms.listEntries<Product>({
 ```typescript
 const result = await sdk.cms.listEntries<Product>({
   modelId: "product",
+  fields: ["id", "entryId", "values.name", "values.price"],
   limit: 10,
   after: cursor // from previous response
 });
@@ -134,7 +158,8 @@ if (result.isOk()) {
 ```typescript
 const result = await sdk.cms.getEntry<Product>({
   modelId: "product",
-  entryId: "abc123"
+  entryId: "abc123",
+  fields: ["id", "entryId", "values.name", "values.description", "values.price", "values.sku"]
 });
 
 if (result.isOk()) {
@@ -143,7 +168,35 @@ if (result.isOk()) {
 }
 ```
 
-## Creating Entries
+### Working with Reference Fields
+
+To retrieve data from a referenced entry, include the nested field paths in `fields`. Reference field values are accessed via `values.{referenceField}.values.{nestedField}`:
+
+```typescript
+const result = await sdk.cms.getEntry<Product>({
+  modelId: "product",
+  entryId: "abc123",
+  fields: [
+    "id",
+    "entryId",
+    "values.name",
+    "values.price",
+    "values.category.id",
+    "values.category.values.name",
+    "values.category.values.slug"
+  ]
+});
+
+if (result.isOk()) {
+  const product = result.value;
+  console.log(`Category: ${product.values.category.values.name}`);
+  console.log(`Slug: ${product.values.category.values.slug}`);
+}
+```
+
+## Mutating Entries
+
+### Creating Entries
 
 ```typescript
 const result = await sdk.cms.createEntry<Product>({
@@ -153,7 +206,8 @@ const result = await sdk.cms.createEntry<Product>({
     description: "High-performance laptop",
     price: 1299,
     sku: "LAP-001"
-  }
+  },
+  fields: ["id", "entryId", "values.name", "values.price"]
 });
 
 if (result.isOk()) {
@@ -168,7 +222,7 @@ if (result.isOk()) {
 - Entry is created in draft status
 - Call `publishEntry()` to make it publicly visible
 
-## Updating Entries
+### Updating Entries
 
 ```typescript
 const result = await sdk.cms.updateEntry<Product>({
@@ -176,7 +230,8 @@ const result = await sdk.cms.updateEntry<Product>({
   entryId: "abc123",
   values: {
     price: 1199 // updated price
-  }
+  },
+  fields: ["id", "entryId", "values.name", "values.price"]
 });
 
 if (result.isOk()) {
@@ -186,12 +241,13 @@ if (result.isOk()) {
 
 **Note:** `updateEntry()` only modifies the specified fields. Other fields remain unchanged.
 
-## Publishing Entries
+### Publishing Entries
 
 ```typescript
 const result = await sdk.cms.publishEntry({
   modelId: "product",
-  entryId: "abc123"
+  entryId: "abc123",
+  fields: ["id", "entryId", "values.name", "values.price"]
 });
 
 if (result.isOk()) {
@@ -201,7 +257,7 @@ if (result.isOk()) {
 
 Publishing makes an entry available via the Read API. Unpublished (draft) entries are only accessible via the Manage API.
 
-## Deleting Entries
+### Deleting Entries
 
 ```typescript
 const result = await sdk.cms.deleteEntry({
@@ -214,8 +270,6 @@ if (result.isOk()) {
 }
 ```
 
-**Warning:** Deletion is permanent and cannot be undone.
-
 ## Error Handling
 
 All SDK methods return a Result type. Always check for errors before accessing the value:
@@ -223,7 +277,8 @@ All SDK methods return a Result type. Always check for errors before accessing t
 ```typescript
 const result = await sdk.cms.getEntry<Product>({
   modelId: "product",
-  entryId: "abc123"
+  entryId: "abc123",
+  fields: ["id", "entryId", "values.name", "values.price"]
 });
 
 if (result.isFail()) {
@@ -241,153 +296,3 @@ const product = result.value;
 - Permission denied (API key lacks permissions)
 - Validation errors (required fields missing)
 - Network errors (API unreachable)
-
-## Working with Reference Fields
-
-When a field references another model, the SDK returns the full referenced entry:
-
-```typescript
-const result = await sdk.cms.getEntry<Product>({
-  modelId: "product",
-  entryId: "abc123"
-});
-
-if (result.isOk()) {
-  const product = result.value;
-  const category = product.values.category;
-
-  if (category) {
-    console.log(`Category: ${category.values.name}`);
-    console.log(`Slug: ${category.values.slug}`);
-  }
-}
-```
-
-**Reference field structure:**
-
-```typescript
-{
-  id: string; // Entry meta ID
-  entryId: string; // Business ID
-  values: {
-    // Field values
-    name: string;
-    slug: string;
-  }
-}
-```
-
-## Server Components vs Client Components
-
-**Server Components (recommended for queries):**
-
-```typescript app/products/page.tsx
-import { sdk } from "@/lib/webiny";
-import type { Product } from "@/lib/types";
-
-export default async function ProductsPage() {
-  const result = await sdk.cms.listEntries<Product>({
-    modelId: "product"
-  });
-
-  if (result.isFail()) {
-    return <div>Error: {result.error.message}</div>;
-  }
-
-  const products = result.value.data;
-
-  return (
-    <div>
-      {products.map(product => (
-        <div key={product.id}>{product.values.name}</div>
-      ))}
-    </div>
-  );
-}
-```
-
-**Server Actions (for mutations):**
-
-```typescript app/actions.ts
-"use server";
-
-import { sdk } from "@/lib/webiny";
-import type { Product } from "@/lib/types";
-
-export async function createProduct(formData: FormData) {
-  const result = await sdk.cms.createEntry<Product>({
-    modelId: "product",
-    values: {
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      price: Number(formData.get("price")),
-      sku: formData.get("sku") as string
-    }
-  });
-
-  if (result.isFail()) {
-    return { error: result.error.message };
-  }
-
-  return { success: true, productId: result.value.id };
-}
-```
-
-## Entry Structure
-
-Every entry returned by the SDK has this structure:
-
-```typescript
-{
-  id: string; // Internal entry ID
-  entryId: string; // Business ID (stable across versions)
-  createdOn: string; // ISO timestamp
-  savedOn: string; // ISO timestamp
-  createdBy: {
-    // User who created the entry
-    id: string;
-    displayName: string;
-  }
-  ownedBy: {
-    // User who owns the entry
-    id: string;
-    displayName: string;
-  }
-  values: {
-    // Your field values
-    name: string;
-    description: string;
-    // ... other fields
-  }
-  meta: {
-    // Entry metadata
-    title: string; // Entry title (for display)
-    status: string; // "draft" | "published" | "unpublished"
-    version: number; // Entry version
-    locked: boolean; // Whether entry is locked for editing
-  }
-}
-```
-
-## Type Safety
-
-Pass your interface as a generic to SDK methods for full type safety:
-
-```typescript
-// ✅ Type-safe - product.values is typed as Product
-const result = await sdk.cms.getEntry<Product>({
-  modelId: "product",
-  entryId: "abc123"
-});
-
-if (result.isOk()) {
-  const name = result.value.values.name; // string (autocomplete works)
-  const price = result.value.values.price; // number
-}
-
-// ❌ No type safety - product.values is any
-const result = await sdk.cms.getEntry({
-  modelId: "product",
-  entryId: "abc123"
-});
-```

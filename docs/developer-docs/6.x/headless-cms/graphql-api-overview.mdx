@@ -5,11 +5,15 @@ description: Understand the Read, Preview, and Manage GraphQL APIs and how to ac
 ---
 
 import { Alert } from "@/components/Alert";
+import { Image } from "@/components/Image";
+import webinyInfoOutput from "./assets/webiny-info-output.png";
+import apiPlaygroundUrlLocation from "./assets/api-playground-url-location.png";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
 - What are the Read, Preview, and Manage APIs?
 - When to use each API?
+- How the APIs differ in response structure and reference field behavior?
 - How to access the GraphQL APIs?
 
 </Alert>
@@ -18,7 +22,9 @@ import { Alert } from "@/components/Alert";
 
 Webiny Headless CMS exposes three separate GraphQL APIs: the **Read API** for fetching published content, the **Preview API** for viewing draft content, and the **Manage API** for full CRUD operations. All APIs are available via HTTP endpoints and require authentication via API keys.
 
-## Read API
+## The Three APIs
+
+### Read API
 
 The Read API provides read-only access to **published content**. It returns only entries that have been published by content editors and is designed for public-facing applications like websites, mobile apps, and marketing sites.
 
@@ -33,19 +39,19 @@ The Read API provides read-only access to **published content**. It returns only
 
 - Read-only operations (queries only, no mutations)
 - Returns only published entries
+- No `meta` field in responses (status and version info omitted)
+- User-defined fields are in the `values` object; system fields (`id`, `entryId`, `createdOn`, etc.) at the top level
+- Reference fields can query nested `values` from referenced entries, but return `null` if the referenced entry is not published
 - Optimized for performance with caching
 - Safe to expose to frontend applications
-- Requires read-only API key
 
 **GraphQL endpoint:**
 
 ```
-https://{your-api-url}/cms/read/{locale}
+https://{your-api-url}/cms/read
 ```
 
-The `{locale}` parameter specifies the content locale (e.g., `en-US`, `de-DE`). If your project uses a single locale, use the default locale configured in your CMS.
-
-## Preview API
+### Preview API
 
 The Preview API provides read-only access to **all content**, including draft, published, and unpublished entries. It is designed for preview features where editors need to see unpublished content before publishing, such as preview buttons or draft mode in Next.js.
 
@@ -59,20 +65,21 @@ The Preview API provides read-only access to **all content**, including draft, p
 **Key characteristics:**
 
 - Read-only operations (queries only, no mutations)
-- Returns all entries (draft, published, unpublished)
-- Returns the latest version of each entry
-- Requires preview or manage API key
-- Can be exposed to authenticated editors only
+- Returns the latest revision of all entries (draft or published)
+- No `meta` field in responses
+- User-defined fields are in the `values` object; system fields at the top level
+- Reference fields can query nested `values` from referenced entries, and return complete data even if the referenced entry is unpublished
+- Should not be cached aggressively (content changes frequently)
 
 **GraphQL endpoint:**
 
 ```
-https://{your-api-url}/cms/preview/{locale}
+https://{your-api-url}/cms/preview
 ```
 
-## Manage API
+### Manage API
 
-The Manage API provides full CRUD access to all content, including draft, published, and unpublished entries. It is designed for admin panels, content management interfaces, and backend integrations that need to create, update, or delete content.
+The Manage API provides full CRUD access to all content, including draft, published, and unpublished entries. It is designed for admin panels, content management interfaces, and backend integrations that need to create, update, or delete content. This is the API used internally by the Webiny Admin application.
 
 **Use the Manage API when:**
 
@@ -85,16 +92,55 @@ The Manage API provides full CRUD access to all content, including draft, publis
 **Key characteristics:**
 
 - Full CRUD operations (queries and mutations)
-- Access to all entries (draft, published, unpublished)
+- Access to all entries and all revisions (draft, published, unpublished)
+- Includes a `meta` field with `status` (`published`, `draft`, `unpublished`) and `version` number
+- User-defined fields are in the `values` object; system fields at the top level
+- Reference fields return metadata (`id`, `entryId`, `modelId`) but **cannot** query nested `values` from referenced entries
 - Supports content versioning and revisions
-- Requires full-access API key
 - Should never be exposed to frontend applications
 
 **GraphQL endpoint:**
 
 ```
-https://{your-api-url}/cms/manage/{locale}
+https://{your-api-url}/cms/manage
 ```
+
+### API Comparison
+
+| Feature                      | Manage API       | Read API        | Preview API   |
+| ---------------------------- | ---------------- | --------------- | ------------- |
+| Returns published content    | Yes              | Yes             | Yes           |
+| Returns draft content        | Yes              | No              | Yes           |
+| Returns all revisions        | Yes              | No              | No            |
+| Supports mutations           | Yes              | No              | No            |
+| Includes `meta` field        | Yes              | No              | No            |
+| Nested reference `values`    | No               | Yes             | Yes           |
+| Shows unpublished references | Yes              | No              | Yes           |
+| Caching friendly             | No               | Yes             | No            |
+| Use case                     | Admin interfaces | Production apps | Preview modes |
+
+## Finding Your API URLs
+
+**Option 1: Via Webiny CLI**
+
+Run `yarn webiny info` in your terminal to see all API endpoints, including the three Headless CMS GraphQL API URLs.
+
+<Image src={webinyInfoOutput} alt="Webiny info command output showing API endpoints" />
+
+**Option 2: Via API Playground**
+
+Navigate to **API Playground** in the Webiny Admin sidebar. The URL for the currently selected API is displayed at the top of the playground interface.
+
+<Image
+  src={apiPlaygroundUrlLocation}
+  alt="API Playground interface showing the API URL at the top"
+/>
+
+<Alert type="info">
+
+To learn more about the API Playground and how to use it to explore and test your APIs, see [API Playground](/{version}/headless-cms/api-playground).
+
+</Alert>
 
 ## Authentication
 
@@ -123,23 +169,16 @@ API keys are created in **Settings → Access Management → API Keys** in the W
 - Grant "Full Access" permission for Headless CMS
 - Must be kept secret (server-side only)
 - Can create, update, delete, and publish entries via Manage API
-- Can also access Preview and Read APIs
 
-## API Key Scope
+<Alert type="warning">
 
-API keys can be scoped to specific locales and tenants:
+All three API types require authentication via API keys. Never expose Manage or Preview API keys in public frontend code.
 
-**Locale scope:**
+</Alert>
 
-- API keys can be restricted to specific locales
-- Useful for multi-language sites with separate API keys per language
-- Configure in API key settings under "Locales"
+## Tenant Scope
 
-**Tenant scope:**
-
-- In multi-tenant deployments, API keys are tenant-specific
-- Each tenant has its own set of API keys
-- Tenant ID is passed via `x-tenant` header
+In multi-tenant deployments, API keys are tenant-specific. Each tenant has its own set of API keys, and the tenant ID is passed via the `x-tenant` header.
 
 ## Choosing the Right API
 
@@ -155,59 +194,60 @@ API keys can be scoped to specific locales and tenants:
 | Import content from external system        | Manage API  |
 | Publish/unpublish entries programmatically | Manage API  |
 
-## GraphQL Playground
+## Response Structure
 
-All three APIs provide a GraphQL playground for exploring the schema and testing queries:
+All three APIs share a common structure where user-defined fields live inside a `values` object and system fields are at the top level:
 
-**Read API Playground:**
-
-```
-https://{your-api-url}/cms/read/{locale}
-```
-
-**Preview API Playground:**
-
-```
-https://{your-api-url}/cms/preview/{locale}
-```
-
-**Manage API Playground:**
-
-```
-https://{your-api-url}/cms/manage/{locale}
-```
-
-Open the playground URL in your browser to access the GraphiQL interface. You'll need to add your API key in the HTTP Headers panel:
-
-```json
+```graphql
 {
-  "Authorization": "Bearer {your-api-key}"
+  id
+  entryId
+  createdOn
+  lastPublishedOn
+  values {
+    title
+    description
+    # ... your model fields
+  }
 }
 ```
 
-The playground provides:
+The key structural difference is the `meta` field: only the **Manage API** includes it. The Read and Preview APIs omit it since status and version information is not needed for content consumption.
 
-- Interactive query editor with autocomplete
-- Schema documentation explorer
-- Query history and saved queries
-- Response formatting and error display
+## Reference Fields Across APIs
 
-## SDK vs Direct GraphQL
+Reference fields behave differently across the three APIs:
 
-You can access the Headless CMS GraphQL APIs in two ways:
+**Manage API** — returns reference metadata only, cannot query nested `values`:
 
-**Using the Webiny SDK (recommended):**
+```graphql
+category {
+  id
+  entryId
+  modelId
+}
+```
 
-- Type-safe methods like `sdk.cms.listEntries()` and `sdk.cms.createEntry()`
-- Automatic API selection (Read vs Manage based on operation)
-- Built-in error handling with Result pattern
-- TypeScript support with generics
+**Read API** — can query nested `values`, but returns `null` for unpublished references:
 
-**Using direct GraphQL queries:**
+```graphql
+category {
+  id
+  values {
+    name
+    slug
+  }
+}
+```
 
-- Full control over queries and responses
-- Useful for complex queries not covered by SDK
-- Requires manual endpoint and header configuration
-- Use any GraphQL client (Apollo, urql, etc.)
+**Preview API** — can query nested `values` and returns complete data even for unpublished references:
 
-For most use cases, the Webiny SDK provides a simpler and more maintainable approach.
+```graphql
+category {
+  id
+  values {
+    name
+    slug
+  }
+}
+```

@@ -45,11 +45,12 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group
         title={"Headless CMS"}
         icon={"/docs/menu-icons/headless-cms.svg"}
-        link={"headless-cms/about"}
+        link={"headless-cms/graphql-api-overview"}
       >
         <Page hidden link={"headless-cms/about"} />
         <Page link={"headless-cms/graphql-api-overview"} title={"GraphQL API Overview"} />
-        <Page link={"headless-cms/using-graphql-api"} title={"Using the GraphQL API"} />
+        <Page link={"headless-cms/api-playground"} title={"API Playground"} />
+        <Page link={"headless-cms/using-webiny-sdk"} title={"Using the Webiny SDK"} />
         {/*<Group title={"Backend"}>*/}
         {/*  <Page link={"headless-cms/event-handler/group"} />*/}
         {/*  <Page link={"headless-cms/event-handler/model"} />*/}
@@ -70,6 +71,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       </Group>
       <Group title={"Admin"} icon={"/docs/menu-icons/admin.svg"} link={"admin/whitelabeling"}>
         <Page link={"admin/whitelabeling"} />
+        <Page link={"admin/connect-custom-domain"} />
       </Group>
       <Group
         title={"Website Builder"}
