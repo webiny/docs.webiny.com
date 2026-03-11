@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import { usePage } from "./usePage";
 import { getDocsSection } from "@/layouts/sidebar/utils/getDocsSection";
-import semver from "semver";
 
 export function useHomepage() {
     const { page } = usePage();
@@ -15,10 +14,8 @@ export function useHomepage() {
 
     if (!page.version) {
         url = "/get-started/welcome";
-    } else if (semver.gte(/^\d+\.x$/.test(page.version) ? page.version.replace("x", "0.0") : page.version.replace("x", "0"), "5.39.0")) {
-        url = "/{version}/get-started/welcome";
     } else {
-        url = "/{version}/get-started/install-webiny";
+        url = "/{version}/get-started/welcome";
     }
 
     let docsSection = getDocsSection(router.pathname);

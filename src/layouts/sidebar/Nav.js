@@ -10,6 +10,10 @@ export function Nav({ nav }) {
     const activeNav = useActiveNav(nav, router.pathname);
     const { activeItemRef, scrollRef } = useAutoScroll(router.pathname);
 
+    // If no group owns the current page, fall back to homepage-style nav
+    const hasActiveGroup = activeNav.some(el => el.isActiveChild);
+    const effectiveMode = mode === "dev-content" && !hasActiveGroup ? "dev-homepage" : mode;
+
     return (
         <nav
             ref={scrollRef}
@@ -22,7 +26,7 @@ export function Nav({ nav }) {
                         element={el}
                         key={index}
                         ref={activeItemRef}
-                        mode={mode}
+                        mode={effectiveMode}
                         depthOverrides={depthOverrides}
                     />
                 ))}

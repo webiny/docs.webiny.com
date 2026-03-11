@@ -1,10 +1,10 @@
 import { useRouter } from "next/router";
 import { useHomepage } from "@/hooks/useHomepage";
 
-export const HorizontalLine = () => {
+export const HorizontalLine = ({ visible }) => {
     const router = useRouter();
     const { homepageUrl } = useHomepage();
-    const showFullMenu = router.pathname === homepageUrl;
+    const showFullMenu = visible || router.pathname === homepageUrl;
 
     if (!showFullMenu) {
         return null;

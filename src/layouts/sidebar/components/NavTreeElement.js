@@ -46,7 +46,7 @@ export const NavTreeElement = forwardRef(({ element, depth = 0, mode, depthOverr
     );
 
     if (type === "separator") {
-        return <HorizontalLine />;
+        return <HorizontalLine visible={mode === "dev-homepage"} />;
     }
 
     if (type === "page") {
