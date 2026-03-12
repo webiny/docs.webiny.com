@@ -61,6 +61,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         />
         <Page link={"headless-cms/event-handlers"} title={"Event Handlers"} />
         {/*<Group title={"Backend"}>*/}
+        {/*  <Page link={"headless-cms/event-handler/group"} />*/}
+        {/*  <Page link={"headless-cms/event-handler/model"} />*/}
+        {/*  <Page link={"headless-cms/event-handler/entry"} />*/}
+        {/*  <Page link={"headless-cms/event-handler/entry-extended"} />*/}
         {/*  <Page link={"headless-cms/use-case/group"} />*/}
         {/*  <Page link={"headless-cms/use-case/model"} />*/}
         {/*  <Page link={"headless-cms/use-case/entry"} />*/}
