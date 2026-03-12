@@ -1,0 +1,52 @@
+AI Context: Date/Time and Identity Meta Fields (date-time-and-identity-meta-fields.mdx)
+
+## Source of Information
+
+1. `docs/developer-docs/5.x/headless-cms/references/date-time-and-identity-meta-fields.mdx` — original v5 article; ported for v6
+2. `docs/developer-docs/6.x/headless-cms/using-webiny-sdk.mdx` — SDK query patterns (listEntries, fields, where)
+
+## Key Changes from v5 Article
+
+1. Removed "Can I use this? Available since v5.39.0" alert — no version references in v6 docs
+2. Removed v5 GraphQL query example — replaced with SDK-based example using `sdk.cms.listEntries()`
+3. Removed v5 lifecycle events code example (`ContextPlugin`) — v6 uses class-based event handlers; no replacement example added (would bloat this reference article)
+4. "Introduction" heading → "Overview" to match v6 article conventions
+5. Meta fields do NOT use the `values.` prefix — they are top-level system fields
+
+## Understanding
+
+### Two levels of meta fields
+
+- **Revision-level**: prefixed with `revision` — describe a specific revision; change with each revision operation
+- **Entry-level**: no prefix — describe the entry as a whole; `createdOn` is set once and never changes
+
+### Nullability rules
+
+- `createdOn`, `savedOn`, `revisionCreatedOn`, `revisionSavedOn`, `createdBy`, `savedBy`, `revisionCreatedBy`, `revisionSavedBy` — never null
+- All `modified*`, `*PublishedOn`, `*PublishedBy`, `deleted*`, `restored*` — can be null
+
+### modified vs saved
+
+- `savedOn` is updated on every write (including create)
+- `modifiedOn` is only set after the first update — null if entry was never updated
+- After first update: `modifiedOn === savedOn` always
+
+### SDK usage
+
+Meta fields are top-level fields — no `values.` prefix:
+```typescript
+fields: ["id", "entryId", "createdOn", "lastPublishedOn", "createdBy", "values.title"]
+where: { createdOn_between: ["2024-01-01", "2024-12-31"] }
+sort: ["createdOn_DESC"]
+```
+
+## Related Documents
+
+- `using-webiny-sdk.mdx` — full SDK query/mutation reference
+- `migrating-to-webiny.mdx` — links here for meta field migration guidance
+- `advanced-filtering.mdx` — filtering by meta fields (createdOn_between, etc.)
+
+## Tone Guidelines
+
+- Reference article — concise, table-driven, minimal prose
+- FAQ section kept from v5 — it answers the most common confusion (modified vs saved)

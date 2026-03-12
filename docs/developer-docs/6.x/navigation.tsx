@@ -51,6 +51,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"headless-cms/graphql-api-overview"} title={"GraphQL API Overview"} />
         <Page link={"headless-cms/api-playground"} title={"API Playground"} />
         <Page link={"headless-cms/using-webiny-sdk"} title={"Using the Webiny SDK"} />
+        <Page link={"headless-cms/advanced-filtering"} title={"Advanced Filtering"} />
         <Page
           link={"headless-cms/content-models-via-code"}
           title={"Define Content Models via Code"}
@@ -60,6 +61,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           title={"Content Modeling Best Practices"}
         />
         <Page link={"headless-cms/event-handlers"} title={"Event Handlers"} />
+        <Page link={"headless-cms/migrating-to-webiny"} title={"Migrating to Webiny"} />
+        <Page
+          link={"headless-cms/date-time-and-identity-meta-fields"}
+          title={"Date/Time and Identity Meta Fields"}
+        />
         {/*<Group title={"Backend"}>*/}
         {/*  <Page link={"headless-cms/event-handler/group"} />*/}
         {/*  <Page link={"headless-cms/event-handler/model"} />*/}

@@ -1,0 +1,106 @@
+---
+id: hcms6meta
+title: Date/Time and Identity Meta Fields
+description: Learn about the date/time and identity-related meta fields that are automatically available on all content entries.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What are meta fields and where do they come from?
+- What is the difference between revision-level and entry-level meta fields?
+- What is the difference between `modified` and `saved` fields?
+
+</Alert>
+
+## Overview
+
+Apart from the fields defined in a content model, all content entries automatically have a set of date/time and identity-related meta fields. For example:
+
+- `createdOn` — the date/time when an entry was first created
+- `lastPublishedOn` — the date/time when an entry was last published
+- `revisionCreatedOn` — the date/time when a specific revision was created
+- `revisionFirstPublishedOn` — the date/time when a specific revision was first published
+
+These fields are populated automatically by the system. You can use them when querying entries via the SDK or when implementing event handlers.
+
+## Revision-level vs. Entry-level Fields
+
+Meta fields exist at two levels.
+
+**Revision-level** fields carry the `revision` prefix and describe a specific revision of an entry. They change each time a new revision is created, modified, or published.
+
+**Entry-level** fields have no prefix and describe the entry as a whole. They reflect the state of the entry across all revisions — for example, `createdOn` is set when the entry is first created and never changes, regardless of how many revisions are added later.
+
+## Meta Fields Reference
+
+### Revision-level Meta Fields
+
+| Field                      | Description                                         | Can be `null` |
+| -------------------------- | --------------------------------------------------- | ------------- |
+| `revisionCreatedOn`        | When this revision was created.                     | No            |
+| `revisionModifiedOn`       | When this revision was last modified.               | Yes           |
+| `revisionSavedOn`          | When this revision was last saved.                  | No            |
+| `revisionFirstPublishedOn` | When this revision was first published.             | Yes           |
+| `revisionLastPublishedOn`  | When this revision was last published.              | Yes           |
+| `revisionDeletedOn`        | When this revision was moved to the trash.          | Yes           |
+| `revisionRestoredOn`       | When this revision was restored from the trash.     | Yes           |
+| `revisionCreatedBy`        | The user who created this revision.                 | No            |
+| `revisionModifiedBy`       | The user who last modified this revision.           | Yes           |
+| `revisionSavedBy`          | The user who last saved this revision.              | No            |
+| `revisionFirstPublishedBy` | The user who first published this revision.         | Yes           |
+| `revisionLastPublishedBy`  | The user who last published this revision.          | Yes           |
+| `revisionDeletedBy`        | The user who moved this revision to the trash.      | Yes           |
+| `revisionRestoredBy`       | The user who restored this revision from the trash. | Yes           |
+
+### Entry-level Meta Fields
+
+| Field              | Description                                     | Can be `null` |
+| ------------------ | ----------------------------------------------- | ------------- |
+| `createdOn`        | When the entry was first created.               | No            |
+| `modifiedOn`       | When the entry was last modified.               | Yes           |
+| `savedOn`          | When the entry was last saved.                  | No            |
+| `firstPublishedOn` | When the entry was first published.             | Yes           |
+| `lastPublishedOn`  | When the entry was last published.              | Yes           |
+| `deletedOn`        | When the entry was moved to the trash.          | Yes           |
+| `restoredOn`       | When the entry was restored from the trash.     | Yes           |
+| `createdBy`        | The user who created the entry.                 | No            |
+| `modifiedBy`       | The user who last modified the entry.           | Yes           |
+| `savedBy`          | The user who last saved the entry.              | No            |
+| `firstPublishedBy` | The user who first published the entry.         | Yes           |
+| `lastPublishedBy`  | The user who last published the entry.          | Yes           |
+| `deletedBy`        | The user who moved the entry to the trash.      | Yes           |
+| `restoredBy`       | The user who restored the entry from the trash. | Yes           |
+
+## Using Meta Fields
+
+Meta fields are available as top-level fields (no `values.` prefix) when querying via the SDK:
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "createdOn", "lastPublishedOn", "createdBy", "values.title"],
+  sort: ["createdOn_DESC"]
+});
+```
+
+You can also filter by them:
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title", "createdOn"],
+  where: {
+    createdOn_between: ["2024-01-01", "2024-12-31"]
+  }
+});
+```
+
+## FAQ
+
+### What is the difference between `modified` and `saved`?
+
+`savedOn` / `savedBy` are set on every write — including the initial create. They are never `null`.
+
+`modifiedOn` / `modifiedBy` are only set after the first update. If an entry has never been updated, `modifiedOn` is `null`. After the first update, `modifiedOn` and `savedOn` will always have the same value.

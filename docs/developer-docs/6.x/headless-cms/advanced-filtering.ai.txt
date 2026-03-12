@@ -1,0 +1,62 @@
+AI Context: Advanced Filtering (advanced-filtering.mdx)
+
+## Source of Information
+
+1. `docs/developer-docs/5.x/headless-cms/basics/using-graphql-api-advanced-filtering.mdx` — original v5 article; ported and updated for v6
+2. `docs/developer-docs/6.x/headless-cms/using-webiny-sdk.mdx` — SDK usage patterns (listEntries, where syntax)
+
+## Key Changes from v5 Article
+
+1. Raw GraphQL queries replaced with `sdk.cms.listEntries({ where: ... })` — v6 docs use SDK, not raw GraphQL
+2. User field filters now use `values.` prefix (e.g. `values.title_contains`, `values.category`) — in v5 fields were at the root
+3. System meta fields (`createdOn`, `savedOn`, etc.) do NOT use `values.` prefix — they stay at the root
+4. Removed "In the 5.x version of Webiny we introduced..." — no version references
+5. Removed link to `date-time-and-identity-meta-fields` reference (no v6 equivalent) — replaced with inline note
+6. Removed `meta` block from v5 raw GraphQL examples (not relevant in SDK context)
+7. Reference field filter values are strings (entry IDs), not integers — updated examples accordingly
+
+## Understanding
+
+### Filter key convention
+- User-defined fields: `values.{fieldId}_{operator}` (e.g. `values.title_contains`, `values.price_gte`)
+- System fields: `{fieldId}_{operator}` (e.g. `createdOn_between`, `savedOn_gte`)
+- Reference fields: filter by ID string, e.g. `"values.category": "some-entry-id"`
+
+### AND semantics
+- All conditions in the array must match
+- Multiple root-level filters behave as implicit AND
+- Use AND array when you need to repeat the same operator key (not possible at root level)
+
+### OR semantics
+- At least one condition must match
+- Multiple filters within a single OR branch are implicitly ANDed together
+
+### Nesting
+- AND and OR can be nested indefinitely
+- Deep nesting has performance implications, especially on DynamoDB-only deployments
+
+### SDK usage
+```typescript
+sdk.cms.listEntries<Article>({
+    modelId: "article",
+    fields: [...],
+    where: {
+        OR: [...],
+        AND: [...],
+        "values.someField_operator": value
+    }
+})
+```
+
+## Related Documents
+
+- `using-webiny-sdk.mdx` — full SDK reference for listEntries, filters, pagination
+- `graphql-api-overview.mdx` — overview of the three APIs
+- `content-models-via-code.mdx` — field IDs used in filter keys come from content model definitions
+
+## Tone Guidelines
+
+- Lead each example with a plain-English description of what is being searched for
+- Show the "equivalent condition" as a pseudo-SQL string after each query — helps readers verify understanding
+- Keep examples practical (article/category/author model)
+- No analogies, no marketing language

@@ -1,0 +1,273 @@
+---
+id: hcms6af01
+title: Advanced Filtering
+description: Learn how to use AND and OR conditionals to build complex filters when querying Headless CMS entries.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to use `AND` and `OR` conditionals when filtering entries
+- How nested `AND` / `OR` queries work
+- How to combine both conditionals in a single query
+
+</Alert>
+
+## Overview
+
+Both `AND` and `OR` conditionals are arrays of filter conditions. The available filter keys depend on the fields defined on the model you are querying. All user-defined field filters use the `values.` prefix (e.g. `values.title_contains`).
+
+The examples below use the Webiny SDK. The `where` object is passed directly to `sdk.cms.listEntries()`.
+
+## The `AND` Conditional
+
+`AND` requires **all** conditions in the array to match. It behaves the same as placing filters at the root of `where`, with the added ability to repeat the same operator multiple times (which is not possible at the root level).
+
+### Simple `AND` Examples
+
+#### Search for entries where the title contains both "headless" and "cms"
+
+At the root level you can only use `values.title_contains` once. Wrapping conditions in `AND` lets you apply the same filter key multiple times:
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    AND: [{ "values.title_contains": "headless" }, { "values.title_contains": "cms" }]
+  }
+});
+```
+
+Equivalent condition: `(values.title contains "headless" AND values.title contains "cms")`
+
+#### Combine a root-level filter with `AND`
+
+Root-level filters and `AND` are applied together — all must match:
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    "values.category": "cat-id-1",
+    AND: [{ "values.title_contains": "headless" }, { "values.title_contains": "cms" }]
+  }
+});
+```
+
+Equivalent condition: `(values.category = "cat-id-1" AND values.title contains "headless" AND values.title contains "cms")`
+
+### Complex `AND` Example
+
+Search for articles that:
+
+- are in category `cat-id-1`
+- have both "headless" and "cms" in the title
+- are authored by one of three authors
+- were created in 2022
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    "values.category": "cat-id-1",
+    AND: [
+      { "values.title_contains": "headless" },
+      { "values.title_contains": "cms" },
+      {
+        AND: [
+          { "values.author_in": ["author-5", "author-6", "author-7"] },
+          { createdOn_between: ["2022-01-01", "2022-12-31"] }
+        ]
+      }
+    ]
+  }
+});
+```
+
+Equivalent condition: `(values.category = "cat-id-1" AND values.title contains "headless" AND values.title contains "cms" AND (values.author in [...] AND createdOn between 2022))`
+
+<Alert type="info">
+
+`createdOn` is a system meta field available on all entries. It does not use the `values.` prefix.
+
+</Alert>
+
+The same query can be flattened when there is no need for repeated keys:
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    "values.category": "cat-id-1",
+    AND: [{ "values.title_contains": "headless" }, { "values.title_contains": "cms" }],
+    "values.author_in": ["author-5", "author-6", "author-7"],
+    createdOn_between: ["2022-01-01", "2022-12-31"]
+  }
+});
+```
+
+This produces the same result as the nested version above.
+
+## The `OR` Conditional
+
+`OR` requires **at least one** condition in the array to match.
+
+### Simple `OR` Examples
+
+#### Search for entries where the title contains "headless" or "cms"
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    OR: [{ "values.title_contains": "headless" }, { "values.title_contains": "cms" }]
+  }
+});
+```
+
+Equivalent condition: `(values.title contains "headless" OR values.title contains "cms")`
+
+#### Multiple filters inside one `OR` branch
+
+When an `OR` branch contains more than one filter, all filters in that branch must match (implicit AND within the branch):
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    OR: [
+      { "values.title_contains": "headless", "values.category": "cat-id-1" },
+      { "values.title_contains": "cms" }
+    ]
+  }
+});
+```
+
+Equivalent condition: `((values.title contains "headless" AND values.category = "cat-id-1") OR values.title contains "cms")`
+
+### Complex `OR` Example
+
+Search for articles that match any of:
+
+- title contains "headless"
+- title contains "cms"
+- category is `cat-id-1` or `cat-id-2`
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    OR: [
+      { "values.title_contains": "headless" },
+      { "values.title_contains": "cms" },
+      {
+        OR: [{ "values.category": "cat-id-1" }, { "values.category": "cat-id-2" }]
+      }
+    ]
+  }
+});
+```
+
+Equivalent condition: `(values.title contains "headless" OR values.title contains "cms" OR (values.category = "cat-id-1" OR values.category = "cat-id-2"))`
+
+## Mixing `AND` and `OR`
+
+### `OR` at the root with nested `AND` and `OR`
+
+Search for articles that match any of:
+
+- title contains "headless"
+- title contains "cms"
+- title contains both "webiny" and "serverless", and was created in January 2021 or January 2022
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    OR: [
+      { "values.title_contains": "headless" },
+      { "values.title_contains": "cms" },
+      {
+        AND: [
+          { "values.title_contains": "webiny" },
+          { "values.title_contains": "serverless" },
+          {
+            OR: [
+              { createdOn_between: ["2021-01-01", "2021-01-31"] },
+              { createdOn_between: ["2022-01-01", "2022-01-31"] }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+});
+```
+
+### `AND` at the root with nested `OR` and `AND`
+
+Search for articles that match all of:
+
+- title contains "headless"
+- title contains "cms"
+- title contains "webiny" or "serverless", or was created in January 2021 or January 2022
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    AND: [
+      { "values.title_contains": "headless" },
+      { "values.title_contains": "cms" },
+      {
+        OR: [
+          { "values.title_contains": "webiny" },
+          { "values.title_contains": "serverless" },
+          {
+            AND: [
+              { createdOn_between: ["2021-01-01", "2021-01-31"] },
+              { createdOn_between: ["2022-01-01", "2022-01-31"] }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+});
+```
+
+### `OR` and `AND` both at the root level
+
+Search for articles that:
+
+- are written by author `author-1` OR are in category `cat-id-2`
+- AND have both "headless" and "cms" in the title
+
+```typescript
+const result = await sdk.cms.listEntries<Article>({
+  modelId: "article",
+  fields: ["id", "entryId", "values.title"],
+  where: {
+    OR: [{ "values.author": "author-1" }, { "values.category": "cat-id-2" }],
+    AND: [{ "values.title_contains": "headless" }, { "values.title_contains": "cms" }]
+  }
+});
+```
+
+Equivalent condition: `((values.author = "author-1" OR values.category = "cat-id-2") AND (values.title contains "headless" AND values.title contains "cms"))`
+
+<Alert type="warning">
+
+`AND` and `OR` conditionals can be nested indefinitely, but deep nesting may result in performance issues — particularly on DynamoDB-only deployments. Keep nesting shallow where possible.
+
+</Alert>
