@@ -93,6 +93,8 @@ interface ExtractedSymbol {
   abstractionKind?: AbstractionKind;
   /** The resolved Interface members (from IFoo that createAbstraction<IFoo> wraps) */
   interfaceMembers?: InterfaceMember[];
+  /** JSDoc on the IFoo interface itself (description paragraph) */
+  interfaceJsDoc?: string;
   /** Resolved namespace type members: Interface, Input, Return, Error, Event, etc. */
   namespaceTypes?: NamespaceMember[];
   /** For eventHandler: the payload fields of the event */
@@ -360,16 +362,21 @@ function getIsolatedProject(): Project {
 
 /**
  * Search a source file (and any files it re-exports from) for an interface by name.
- * Returns the interface members, or [] if not found.
+ * Returns the interface members and interface-level JSDoc, or empty if not found.
  */
+interface InterfaceResult {
+  members: InterfaceMember[];
+  jsDoc: string;
+}
+
 function extractInterfaceMembers(
   sf: SourceFile,
   interfaceName: string,
   pkgMap?: Map<string, string>,
   visited = new Set<string>()
-): InterfaceMember[] {
+): InterfaceResult {
   const filePath = sf.getFilePath();
-  if (visited.has(filePath)) return [];
+  if (visited.has(filePath)) return { members: [], jsDoc: "" };
   visited.add(filePath);
 
   // Search all interfaces in this file
@@ -380,23 +387,29 @@ function extractInterfaceMembers(
 
   const iface = allIfaces.find(i => i.getName() === interfaceName);
   if (iface) {
-    return iface.getMembers().map(m => ({
-      signature: m.getText().trim().replace(/;$/, ""),
-      jsDoc: extractJsDoc(m)
-    }));
+    return {
+      members: iface.getMembers().map(m => ({
+        signature: m.getText().trim().replace(/;$/, ""),
+        jsDoc: extractJsDoc(m)
+      })),
+      jsDoc: extractJsDoc(iface)
+    };
   }
 
-  // Raw text fallback for this file
+  // Raw text fallback for this file (no JSDoc available here)
   const src = sf.getFullText();
   const rawMatch = src.match(
     new RegExp(`interface\\s+${interfaceName}\\s*(?:<[^{]*>)?\\s*\\{([^}]+)\\}`)
   );
   if (rawMatch) {
-    return rawMatch[1]
-      .split("\n")
-      .map(l => l.trim())
-      .filter(l => l && !l.startsWith("//") && l !== "{" && l !== "}")
-      .map(l => ({ signature: l.replace(/;$/, ""), jsDoc: "" }));
+    return {
+      members: rawMatch[1]
+        .split("\n")
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith("//") && l !== "{" && l !== "}")
+        .map(l => ({ signature: l.replace(/;$/, ""), jsDoc: "" })),
+      jsDoc: ""
+    };
   }
 
   // Follow re-exports into sibling files (handles index.ts -> abstractions.ts pattern)
@@ -407,7 +420,6 @@ function extractInterfaceMembers(
 
       let resolvedPath: string | null = null;
       if (modSpec.startsWith(".")) {
-        // Relative import — resolve relative to this file's directory
         const dir = sf.getDirectoryPath();
         resolvedPath = join(dir, modSpec.replace(/\.js$/, ".ts"));
       } else {
@@ -419,14 +431,14 @@ function extractInterfaceMembers(
       try {
         const siblingSf = sf.getProject().addSourceFileAtPath(resolvedPath);
         const result = extractInterfaceMembers(siblingSf, interfaceName, pkgMap, visited);
-        if (result.length > 0) return result;
+        if (result.members.length > 0) return result;
       } catch {
         continue;
       }
     }
   }
 
-  return [];
+  return { members: [], jsDoc: "" };
 }
 
 /** Extract fields from an interface declaration as EventPayloadField[] */
@@ -682,6 +694,7 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
         const eventPayloadFields: EventPayloadField[] = [];
         let eventTypeName: string | undefined;
         let eventPayloadName: string | undefined;
+        let interfaceJsDoc: string | undefined;
 
         if (abstractionKind === "eventHandler") {
           // IEventHandler<SomeEvent> or IEventHandler<DomainEvent<SomePayload>>
@@ -707,9 +720,13 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
             jsDoc: ""
           });
         } else {
-          // useCase or service — resolve the IFoo interface, following re-exports
-          const resolved = extractInterfaceMembers(sf, genericArg, PKG_MAP);
-          interfaceMembers.push(...resolved);
+          // useCase or service — resolve the IFoo interface.
+          // Start from the file where createAbstraction<IFoo> is actually defined
+          // (which may be a deep source file, not the barrel re-exporting it).
+          const nodeSf = node.getSourceFile();
+          const resolved = extractInterfaceMembers(nodeSf, genericArg, PKG_MAP);
+          interfaceMembers.push(...resolved.members);
+          if (resolved.jsDoc) interfaceJsDoc = resolved.jsDoc;
         }
 
         // Extract namespace types — first try the co-located nsDecl, then search by name
@@ -741,6 +758,7 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
           sourceFile: sf.getFilePath(),
           abstractionKind,
           interfaceMembers,
+          interfaceJsDoc,
           namespaceTypes,
           eventPayloadFields,
           eventTypeName,
@@ -1086,22 +1104,21 @@ function renderSymbolSection(
   // Abstraction: rich rendering
   // -------------------------------------------------------------------------
   if (sym.kind === "abstraction") {
-    // Interface section
+    // Interface section — description paragraph + method table
     if (sym.interfaceMembers && sym.interfaceMembers.length > 0) {
       lines.push(`**Interface \`${sym.name}.Interface\`:**`);
       lines.push("");
-      lines.push("```typescript");
-      lines.push(`interface ${sym.name}.Interface {`);
-      for (const m of sym.interfaceMembers) {
-        if (m.jsDoc) {
-          for (const docLine of m.jsDoc.split("\n")) {
-            lines.push(`    // ${docLine}`);
-          }
-        }
-        lines.push(`    ${m.signature};`);
+      if (sym.interfaceJsDoc) {
+        lines.push(sym.interfaceJsDoc);
+        lines.push("");
       }
-      lines.push("}");
-      lines.push("```");
+      lines.push("| Method | Description |");
+      lines.push("| ------ | ----------- |");
+      for (const m of sym.interfaceMembers) {
+        const sig = m.signature.replace(/\|/g, "\\|");
+        const desc = m.jsDoc ? m.jsDoc.replace(/\|/g, "\\|") : "—";
+        lines.push(`| \`${sig}\` | ${desc} |`);
+      }
       lines.push("");
     }
 
