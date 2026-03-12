@@ -59,11 +59,8 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           link={"headless-cms/content-modeling-best-practices"}
           title={"Content Modeling Best Practices"}
         />
+        <Page link={"headless-cms/event-handlers"} title={"Event Handlers"} />
         {/*<Group title={"Backend"}>*/}
-        {/*  <Page link={"headless-cms/event-handler/group"} />*/}
-        {/*  <Page link={"headless-cms/event-handler/model"} />*/}
-        {/*  <Page link={"headless-cms/event-handler/entry"} />*/}
-        {/*  <Page link={"headless-cms/event-handler/entry-extended"} />*/}
         {/*  <Page link={"headless-cms/use-case/group"} />*/}
         {/*  <Page link={"headless-cms/use-case/model"} />*/}
         {/*  <Page link={"headless-cms/use-case/entry"} />*/}
@@ -90,6 +87,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/setup-nextjs"} title={"Setup Next.js Project"} />
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
+        <Page link={"website-builder/event-handlers"} title={"Event Handlers"} />
       </Group>
       {/*<Group title={"GraphQL"} icon={"/docs/menu-icons/webiny-overview.svg"} link={"graphql/about"}>*/}
       {/*  <Page link={"graphql/about"} />*/}

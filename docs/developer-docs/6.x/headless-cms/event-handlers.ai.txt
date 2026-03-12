@@ -1,0 +1,77 @@
+AI Context: Event Handlers (event-handlers.mdx)
+
+## Source of Information
+
+1. `docs/developer-docs/5.x/headless-cms/references/lifecycle-events.mdx` — v5 lifecycle events reference (ContextPlugin subscribe pattern — do NOT use in v6)
+2. `docs/developer-docs/6.x/headless-cms/event-handler/entry.mdx` — v6 Entry event handler reference with all handler names and code templates
+3. `docs/developer-docs/6.x/headless-cms/event-handler/model.mdx` — v6 Model event handler reference
+4. `docs/developer-docs/6.x/headless-cms/event-handler/group.mdx` — v6 Group event handler reference
+5. `docs/developer-docs/6.x/headless-cms/event-handler/entry-extended.mdx` — extended real-world entry handler example (unique field check using ListEntriesUseCase)
+6. `docs/developer-docs/6.x/headless-cms/content-models-via-code.mdx` — tone/structure reference
+
+## Key Documentation Decisions
+
+1. This is a conceptual "about" article, not a reference. It explains the pattern and shows 2-3 real examples. It links to the per-resource reference pages for the full event list.
+2. The v5 `ContextPlugin.subscribe()` pattern is completely removed — the v6 pattern uses `XxxEventHandler.createImplementation()` with a class.
+3. Examples were chosen for practical value: unique slug validation (Before handler, validation use case) and publish webhook (After handler, side effect use case).
+4. The "Before vs After" comparison table is the key conceptual anchor — it answers the most common question developers have.
+5. Navigation registration enables the event-handler reference sub-pages (`entry`, `model`, `group`, `entry-extended`) as well. These were previously commented out.
+
+## Understanding
+
+### Event handler lifecycle
+
+- `Before` handlers run before the database write. They receive `input` (raw user data) and the prepared entity.
+- `After` handlers run after the write. They receive the persisted entity.
+- Throwing in a `Before` handler aborts the operation; subsequent handlers for that event are skipped.
+- `After` handlers cannot abort — the operation is complete.
+
+### v6 class-based pattern
+
+Every handler is a class implementing `[Resource][Before|After][Operation]EventHandler.Interface`.
+The `handle(event)` method receives: `payload` (operation-specific data), `occurredAt` (timestamp), `eventType` (string identifier).
+`createImplementation({ implementation, dependencies })` wires DI.
+The file must `export default` the result of `createImplementation`.
+
+### Event payload structure
+
+- Entry handlers: `payload.entry`, `payload.model`, `payload.input` (Before only)
+- Model handlers: `payload.model`, `payload.input` (Before only)
+- Group handlers: `payload.group`, `payload.input` (Before only)
+- After-update handlers also have `payload.original` (the pre-update entity)
+
+### Naming convention
+
+- Abstraction token: `[Resource][Before|After][Operation]EventHandler`
+- Class: `[Resource][Before|After][Operation]EventHandlerImpl`
+- Import alias: `[Resource][Before|After][Operation]EventHandlerAbstraction` (to avoid collision with the registered constant)
+
+### Registration
+
+Registered in `webiny.config.tsx` via `<Api.Extension src="...">` — one `Api.Extension` per handler file.
+Order of `Api.Extension` entries determines execution order when multiple handlers subscribe to the same event.
+
+## Related Documents
+
+- `event-handler/entry.mdx` — full list of Entry event handlers (reference)
+- `event-handler/model.mdx` — full list of Model event handlers (reference)
+- `event-handler/group.mdx` — full list of Group event handlers (reference)
+- `event-handler/entry-extended.mdx` — extended before-create example with ListEntriesUseCase
+- `content-models-via-code.mdx` — same DI and registration patterns
+- `core-concepts/di.mdx` — DI system details
+- `core-concepts/result.mdx` — Result pattern (used in ListEntriesUseCase result handling)
+
+## Key Code Locations
+
+- v6 entry event handler abstractions: `packages/api-headless-cms/src/export/entry/eventHandlers/`
+- v6 model event handler abstractions: `packages/api-headless-cms/src/export/model/eventHandlers/`
+- v6 group event handler abstractions: `packages/api-headless-cms/src/export/group/eventHandlers/`
+
+## Tone Guidelines
+
+- Practical and instructional — this is an "about" page that bridges concept and implementation
+- Show the "why" before the "how": explain Before vs After semantics before showing code
+- Keep the anatomy section abstract/generic; make the examples concrete and realistic
+- Do not reproduce the full event list — link to reference pages instead
+- Address the reader as "you"
+- No analogies, no marketing language

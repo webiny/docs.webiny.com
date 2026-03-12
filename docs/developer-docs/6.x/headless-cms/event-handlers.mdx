@@ -1,0 +1,194 @@
+---
+id: hn4p8xqk
+title: Event Handlers
+description: Learn how to react to Headless CMS lifecycle events using the event handler pattern in Webiny v6.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What are event handlers and when should you use them?
+- How do "Before" and "After" handlers differ?
+- How to implement a real-world event handler using the v6 class-based pattern?
+- How to register event handlers in your project?
+
+</Alert>
+
+## Overview
+
+Event handlers let you hook into Headless CMS lifecycle events — points in time immediately before or after an operation (create, update, delete, publish, etc.) completes. You implement a class, register it as an extension, and the system calls it automatically during that operation.
+
+Use event handlers when you need to:
+
+- Validate data before it is written (e.g., enforce a unique slug)
+- Trigger side effects after an operation (e.g., notify an external system after an entry is published)
+- Audit or log changes across groups, models, or entries
+
+Event handlers are available for all three Headless CMS resources: **Groups**, **Models**, and **Entries**.
+
+## Before vs. After Handlers
+
+Every operation has two hook points:
+
+| Handler type | When it runs     | Can block the operation?         | Payload contains                                   |
+| ------------ | ---------------- | -------------------------------- | -------------------------------------------------- |
+| `Before`     | Before the write | Yes — throw an error to abort    | `input` (raw user input), the entity being written |
+| `After`      | After the write  | No — operation already completed | The fully persisted entity                         |
+
+Use `Before` handlers for validation and authorization. Use `After` handlers for side effects like sending notifications or syncing data to external systems.
+
+## Anatomy of an Event Handler
+
+Every event handler follows the same structure:
+
+```typescript extensions/cms/entry/eventHandler/update/beforeUpdate.ts
+import { EntryBeforeUpdateEventHandler } from "webiny/api/cms/entry";
+import { Logger } from "webiny/api/logger";
+
+// 1. Implement the handler class
+class EntryBeforeUpdateEventHandlerImpl implements EntryBeforeUpdateEventHandler.Interface {
+  public constructor(private logger: Logger.Interface) {}
+
+  public async handle(event: EntryBeforeUpdateEventHandler.Event): Promise<void> {
+    const { entry, original, input, model } = event.payload;
+    // your logic here
+  }
+}
+
+// 2. Register and export
+export default EntryBeforeUpdateEventHandler.createImplementation({
+  implementation: EntryBeforeUpdateEventHandlerImpl,
+  dependencies: [Logger]
+});
+```
+
+Key points:
+
+- The class must implement the `Interface` type exported from the abstraction namespace.
+- The `handle` method receives an `event` object with `payload`, `occurredAt`, and `eventType`.
+- `payload` contains the resource-specific data (e.g., `entry`, `model`, `input`).
+- Dependencies are injected via the constructor using the DI system — you do not instantiate them yourself.
+- The file must use `export default`.
+
+## Example: Enforce a Unique Slug
+
+This `Before` handler prevents creating an entry when another entry with the same `slug` value already exists. It queries the database and throws if a duplicate is found.
+
+```typescript extensions/cms/entry/eventHandler/create/beforeCreate.ts
+import { EntryBeforeCreateEventHandler, ListEntriesUseCase } from "webiny/api/cms/entry";
+import { Logger } from "webiny/api/logger";
+
+class EntryBeforeCreateEventHandlerImpl implements EntryBeforeCreateEventHandler.Interface {
+  public constructor(
+    private logger: Logger.Interface,
+    private listEntriesUseCase: ListEntriesUseCase.Interface
+  ) {}
+
+  public async handle(event: EntryBeforeCreateEventHandler.Event): Promise<void> {
+    const { entry, model } = event.payload;
+
+    // only run for the "article" model
+    if (model.modelId !== "article") {
+      return;
+    }
+
+    const slug = entry.values.slug;
+    if (!slug) {
+      return;
+    }
+
+    const result = await this.listEntriesUseCase.execute(model, {
+      where: {
+        values: {
+          slug
+        }
+      },
+      limit: 1
+    });
+
+    if (result.isFail()) {
+      this.logger.error("Error checking for duplicate slug:", result.error);
+      return;
+    }
+
+    if (result.value.meta.totalCount > 0) {
+      throw new Error(`An entry with slug "${slug}" already exists.`);
+    }
+  }
+}
+
+export default EntryBeforeCreateEventHandler.createImplementation({
+  implementation: EntryBeforeCreateEventHandlerImpl,
+  dependencies: [Logger, ListEntriesUseCase]
+});
+```
+
+## Example: Notify an External System on Publish
+
+This `After` handler fires after an entry is published. It calls an external webhook with the published entry data.
+
+```typescript extensions/cms/entry/eventHandler/publish/afterPublish.ts
+import { EntryAfterPublishEventHandler } from "webiny/api/cms/entry";
+import { Logger } from "webiny/api/logger";
+
+class EntryAfterPublishEventHandlerImpl implements EntryAfterPublishEventHandler.Interface {
+  public constructor(private logger: Logger.Interface) {}
+
+  public async handle(event: EntryAfterPublishEventHandler.Event): Promise<void> {
+    const { entry, model } = event.payload;
+
+    this.logger.info(`Entry published: ${entry.id} (model: ${model.modelId})`);
+
+    await fetch("https://example.com/webhooks/cms-publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        modelId: model.modelId,
+        entryId: entry.entryId,
+        id: entry.id
+      })
+    });
+  }
+}
+
+export default EntryAfterPublishEventHandler.createImplementation({
+  implementation: EntryAfterPublishEventHandlerImpl,
+  dependencies: [Logger]
+});
+```
+
+## Registering Event Handlers
+
+After creating your handler files, register them in `webiny.config.tsx` using `Api.Extension`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... all your other extensions */}
+      <Api.Extension src={"/extensions/cms/entry/eventHandler/create/beforeCreate.ts"} />
+      <Api.Extension src={"/extensions/cms/entry/eventHandler/publish/afterPublish.ts"} />
+    </>
+  );
+};
+```
+
+Each handler file is a separate `Api.Extension` entry. The order of registration determines the execution order when multiple handlers listen to the same event.
+
+<Alert type="warning">
+
+If a `Before` handler throws an error, the operation is aborted and subsequent handlers for the same event are not called. Design your validation logic accordingly.
+
+</Alert>
+
+## Available Events
+
+Events are organized by resource type. See the reference pages for the full list of available handlers:
+
+- [Entry Event Handlers](/{version}/reference/api/cms/entry#entry-after-create-event-handler) — create, update, delete, publish, unpublish, move, and more
+- [Model Event Handlers](/{version}/reference/api/cms/model#model-after-create-event-handler) — create, update, delete, and clone
+- [Group Event Handlers](/{version}/reference/api/cms/group#group-after-create-event-handler) — create, update, and delete
