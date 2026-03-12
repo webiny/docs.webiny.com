@@ -37,26 +37,43 @@ import { TaskDefinition } from "webiny/api/tasks";
 
 Core TaskDefinition - minimal interface
 
+```typescript
+interface TaskDefinition.Interface {
+    id: string;
+    title: string;
+    description?: string;
+    maxIterations?: number;
+    databaseLogs?: boolean;
+    isPrivate?: boolean;
+    run(params: ITaskRunParams<I, O>): Promise<ITaskResult<I, O>>;
+    onBeforeTrigger?(params: ITaskBeforeTriggerParams<I>): Promise<void>;
+    onDone?(params: ITaskLifecycleHook<I, O>): Promise<void>;
+    onError?(params: ITaskLifecycleHook<I, O>): Promise<void>;
+    onAbort?(params: ITaskLifecycleHook<I, O>): Promise<void>;
+    onMaxIterations?(params: ITaskLifecycleHook<I, O>): Promise<void>;
+    createInputValidation?(
+        params: ITaskCreateInputValidationParams
+    ): GenericRecord<keyof I, zod.Schema> | zod.Schema;
+}
+```
+
 | Method                                                                              | Description                                              |
 | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `id: string`                                                                        | —                                                        |
-| `title: string`                                                                     | —                                                        |
-| `description?: string`                                                              | —                                                        |
-| `maxIterations?: number`                                                            | —                                                        |
-| `databaseLogs?: boolean`                                                            | —                                                        |
-| `isPrivate?: boolean`                                                               | —                                                        |
-| `run(params: ITaskRunParams<I, O>): Promise<ITaskResult<I, O>>`                     | Core run method - receives ONLY input params             |
+| `id: string()`                                                                      | —                                                        |
+| `title: string()`                                                                   | —                                                        |
+| `description?: string()`                                                            | —                                                        |
+| `maxIterations?: number()`                                                          | —                                                        |
+| `databaseLogs?: boolean()`                                                          | —                                                        |
+| `isPrivate?: boolean()`                                                             | —                                                        |
+| `run()`                                                                             | Core run method - receives ONLY input params             |
 | All runtime dependencies (logging, state management, etc.) come from TaskController |
-| `onBeforeTrigger?(params: ITaskBeforeTriggerParams<I>): Promise<void>`              | Optional lifecycle hooks - receive task data, no context |
-| `onDone?(params: ITaskLifecycleHook<I, O>): Promise<void>`                          | —                                                        |
-| `onError?(params: ITaskLifecycleHook<I, O>): Promise<void>`                         | —                                                        |
-| `onAbort?(params: ITaskLifecycleHook<I, O>): Promise<void>`                         | —                                                        |
-| `onMaxIterations?(params: ITaskLifecycleHook<I, O>): Promise<void>`                 | —                                                        |
-
-| `createInputValidation?(
-        params: ITaskCreateInputValidationParams
-    ): GenericRecord<keyof I, zod.Schema> \| zod.Schema` | Create a validation schema for the task input.
-This will be used to validate the input before the task is triggered. |
+| `onBeforeTrigger?()`                                                                | Optional lifecycle hooks - receive task data, no context |
+| `onDone?()`                                                                         | —                                                        |
+| `onError?()`                                                                        | —                                                        |
+| `onAbort?()`                                                                        | —                                                        |
+| `onMaxIterations?()`                                                                | —                                                        |
+| `createInputValidation?()`                                                          | Create a validation schema for the task input.           |
+| This will be used to validate the input before the task is triggered.               |
 
 **Types:**
 
@@ -109,22 +126,23 @@ import { TaskService } from "webiny/api/tasks";
 
 **Interface `TaskService.Interface`:**
 
-| Method | Description |
-| ------ | ----------- |
-
-| `trigger: <
+```typescript
+interface TaskService.Interface {
+    trigger: <
         T extends TaskDefinition.TaskInput = TaskDefinition.TaskInput,
         O extends IGenericOutput = IGenericOutput
     >(
         params: ITaskTriggerParams<T>
-    ) => Promise<Result<ITask<T, O>, BaseError>>` | — |
-| `abort: <
+    ) => Promise<Result<ITask<T, O>, BaseError>>;
+    abort: <
         T extends TaskDefinition.TaskInput = TaskDefinition.TaskInput,
         O extends IGenericOutput = IGenericOutput
     >(
         params: ITaskAbortParams
-    ) => Promise<Result<ITask<T, O>, BaseError>>` | — |
-| `fetchServiceInfo: (input: ITask<any, any> \| string) => Promise<Result<IServiceInfo, BaseError>>` | — |
+    ) => Promise<Result<ITask<T, O>, BaseError>>;
+    fetchServiceInfo: (input: ITask<any, any> | string) => Promise<Result<IServiceInfo, BaseError>>;
+}
+```
 
 **Types:**
 

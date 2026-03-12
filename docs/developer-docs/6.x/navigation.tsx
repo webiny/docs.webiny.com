@@ -126,13 +126,17 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"cli/info"} />
       </Group>
       <Group
-        title={"Cloud Infrastructure"}
+        title={"Deployments and Infrastructure"}
         icon={"/docs/menu-icons/infrastructure.svg"}
         link={"infrastructure/diagrams"}
       >
-        <Page link={"infrastructure/diagrams"} title={"Overview"} />
+        <Page link={"infrastructure/diagrams"} title={"Cloud Infrastructure Overview"} />
         <Page link={"infrastructure/introduction"} title={"Database Setups"} />
         <Page link={"infrastructure/deployment-modes"} title={"Deployment Modes"} />
+        <Page
+          link={"infrastructure/deploy-webiny-project-cf-template"}
+          title={'"Deploy Webiny Project" CloudFormation Template'}
+        />
         <Group title={"Extensions"} link={"infrastructure/extensions/aws-tags"}>
           <Page link={"infrastructure/extensions/aws-tags"} title={"AWS Tags"} />
           <Page
