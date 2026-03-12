@@ -1,0 +1,172 @@
+---
+id: wb7eh2pq
+title: Event Handlers
+description: Learn how to react to Website Builder page lifecycle events using the event handler pattern.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What are event handlers and when should you use them?
+- How do "Before" and "After" handlers differ?
+- How to implement a real-world event handler using the class-based pattern?
+- How to register event handlers in your project?
+
+</Alert>
+
+## Overview
+
+Event handlers let you hook into Website Builder page lifecycle events — points in time immediately before or after an operation (create, update, delete, publish, etc.) completes. You implement a class, register it as an extension, and the system calls it automatically during that operation.
+
+Use event handlers when you need to:
+
+- Validate or modify page data before it is written (e.g., enforce a slug format)
+- Trigger side effects after an operation (e.g., notify an external system after a page is published)
+- Audit or log changes to pages
+
+## Before vs. After Handlers
+
+Every operation has two hook points:
+
+| Handler type | When it runs     | Can block the operation?         | Payload contains                  |
+| ------------ | ---------------- | -------------------------------- | --------------------------------- |
+| `Before`     | Before the write | Yes — throw an error to abort    | `input` (raw data being written)  |
+| `After`      | After the write  | No — operation already completed | `page` (the fully persisted page) |
+
+Use `Before` handlers for validation and data transformation. Use `After` handlers for side effects like webhooks or cache invalidation.
+
+## Anatomy of an Event Handler
+
+Every event handler follows the same structure:
+
+```typescript extensions/website-builder/page/eventHandler/update/beforeUpdate.ts
+import { PageBeforeUpdateHandler } from "webiny/api/website-builder/page";
+import { Logger } from "webiny/api/logger";
+
+class PageBeforeUpdateHandlerImpl implements PageBeforeUpdateHandler.Interface {
+  public constructor(private logger: Logger.Interface) {}
+
+  public async handle(event: PageBeforeUpdateHandler.Event): Promise<void> {
+    const { original, input } = event.payload;
+    // your logic here
+  }
+}
+
+export default PageBeforeUpdateHandler.createImplementation({
+  implementation: PageBeforeUpdateHandlerImpl,
+  dependencies: [Logger]
+});
+```
+
+Key points:
+
+- The class must implement the `Interface` type exported from the handler namespace.
+- The `handle` method receives an `event` object — access data via `event.payload`.
+- `Before` handlers receive `input` (what is being written); `After` handlers receive `page` (what was persisted).
+- Dependencies are injected via the constructor — you do not instantiate them yourself.
+- The file must use `export default`.
+
+## Example: Enforce a Slug Format
+
+This `Before` handler runs before a page is created and throws if the slug does not match a required pattern.
+
+```typescript extensions/website-builder/page/eventHandler/create/beforeCreate.ts
+import { PageBeforeCreateHandler } from "webiny/api/website-builder/page";
+import { Logger } from "webiny/api/logger";
+
+class PageBeforeCreateHandlerImpl implements PageBeforeCreateHandler.Interface {
+  public constructor(private logger: Logger.Interface) {}
+
+  public async handle(event: PageBeforeCreateHandler.Event): Promise<void> {
+    const { input } = event.payload;
+
+    const slug = input.path;
+    if (!slug) {
+      return;
+    }
+
+    // enforce that all page paths start with "/"
+    if (!slug.startsWith("/")) {
+      throw new Error(`Page path must start with "/". Received: "${slug}"`);
+    }
+
+    this.logger.info(`Page path validated: ${slug}`);
+  }
+}
+
+export default PageBeforeCreateHandler.createImplementation({
+  implementation: PageBeforeCreateHandlerImpl,
+  dependencies: [Logger]
+});
+```
+
+## Example: Notify an External System on Publish
+
+This `After` handler fires after a page is published and sends the page data to an external webhook.
+
+```typescript extensions/website-builder/page/eventHandler/publish/afterPublish.ts
+import { PageAfterPublishHandler } from "webiny/api/website-builder/page";
+import { Logger } from "webiny/api/logger";
+
+class PageAfterPublishHandlerImpl implements PageAfterPublishHandler.Interface {
+  public constructor(private logger: Logger.Interface) {}
+
+  public async handle(event: PageAfterPublishHandler.Event): Promise<void> {
+    const { page } = event.payload;
+
+    this.logger.info(`Page published: ${page.id} (${page.path})`);
+
+    await fetch("https://example.com/webhooks/page-published", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: page.id,
+        path: page.path,
+        title: page.title
+      })
+    });
+  }
+}
+
+export default PageAfterPublishHandler.createImplementation({
+  implementation: PageAfterPublishHandlerImpl,
+  dependencies: [Logger]
+});
+```
+
+## Registering Event Handlers
+
+After creating your handler files, register them in `webiny.config.tsx` using `Api.Extension`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... all your other extensions */}
+      <Api.Extension src={"/extensions/website-builder/page/eventHandler/create/beforeCreate.ts"} />
+      <Api.Extension
+        src={"/extensions/website-builder/page/eventHandler/publish/afterPublish.ts"}
+      />
+    </>
+  );
+};
+```
+
+Each handler file is a separate `Api.Extension` entry. The order of registration determines the execution order when multiple handlers listen to the same event.
+
+<Alert type="warning">
+
+If a `Before` handler throws an error, the operation is aborted and subsequent handlers for the same event are not called. Design your validation logic accordingly.
+
+</Alert>
+
+## Available Events
+
+See the reference pages for the full list of available handlers:
+
+- [Page Event Handlers](/{version}/reference/api/website-builder/page#page-after-create-handler) — create, update, delete, publish, unpublish, duplicate, move, and revision creation
+- [Redirect Event Handlers](/{version}/reference/api/website-builder/redirect#redirect-after-create-handler) — create, update, delete, and move

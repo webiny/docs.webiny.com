@@ -51,6 +51,15 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"headless-cms/graphql-api-overview"} title={"GraphQL API Overview"} />
         <Page link={"headless-cms/api-playground"} title={"API Playground"} />
         <Page link={"headless-cms/using-webiny-sdk"} title={"Using the Webiny SDK"} />
+        <Page
+          link={"headless-cms/content-models-via-code"}
+          title={"Define Content Models via Code"}
+        />
+        <Page
+          link={"headless-cms/content-modeling-best-practices"}
+          title={"Content Modeling Best Practices"}
+        />
+        <Page link={"headless-cms/event-handlers"} title={"Event Handlers"} />
         {/*<Group title={"Backend"}>*/}
         {/*  <Page link={"headless-cms/event-handler/group"} />*/}
         {/*  <Page link={"headless-cms/event-handler/model"} />*/}
@@ -82,6 +91,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/setup-nextjs"} title={"Setup Next.js Project"} />
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
+        <Page link={"website-builder/event-handlers"} title={"Event Handlers"} />
       </Group>
       {/*<Group title={"GraphQL"} icon={"/docs/menu-icons/webiny-overview.svg"} link={"graphql/about"}>*/}
       {/*  <Page link={"graphql/about"} />*/}
@@ -159,8 +169,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/admin/cms"} title={"Root"} />
             <Page link={"reference/admin/cms/entry/editor"} title={"Editor"} />
             <Page link={"reference/admin/cms/entry/list"} title={"List"} />
-            <Page link={"reference/admin/cms/fieldRenderers/dynamic-zone"} title={"Dynamic Zone"} />
-            <Page link={"reference/admin/cms/fieldRenderers/object"} title={"Object"} />
+            <Page
+              link={"reference/admin/cms/field-renderers/dynamic-zone"}
+              title={"Dynamic Zone"}
+            />
+            <Page link={"reference/admin/cms/field-renderers/object"} title={"Object"} />
             <Page link={"reference/admin/cms/lexical"} title={"Lexical Editor"} />
             <Page link={"reference/admin/cms/model"} title={"Model"} />
           </Group>

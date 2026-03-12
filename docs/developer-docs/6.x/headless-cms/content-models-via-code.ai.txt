@@ -1,0 +1,59 @@
+AI Context: Define Content Models via Code (headless-cms/content-models-via-code.mdx)
+
+Source of Information:
+1. 5.x doc: docs/developer-docs/5.x/headless-cms/extending/content-models-via-code.mdx
+2. Learn Webiny lesson: lw/content/lessons/headless-cms/creating-content-model-via-code.mdx (primary v6 reference)
+
+Key Documentation Decisions:
+- v6 uses ModelFactory API with fluent builder pattern — NOT createModelPlugin/createModelGroupPlugin from v5
+- No locales in v6 — removed "define model for specific locale" example from v5
+- No tenant-specific example kept (can be added later if needed)
+- Groups: v6 uses string identifier like "ungrouped" in .public() — no separate group plugin needed in basic case
+- Kept: basic example, reference fields, object fields, available renderers table, best practices
+- Removed: FAQ section (too verbose), security/authorization example, diff-ts code blocks (not idiomatic for v6 docs)
+- Registration via Api.Extension in webiny.config.tsx
+- Deployment via yarn webiny deploy api or yarn webiny watch api
+
+v6 ModelFactory API:
+- Import: import { ModelFactory } from "webiny/api/cms/model"
+- Class implements ModelFactory.Interface
+- Method: async execute(builder: ModelFactory.Builder)
+- Returns array of builder chains
+- Export: ModelFactory.createImplementation({ implementation, dependencies })
+- .public({ modelId, name, group }) — makes model publicly accessible
+- .description() — model description
+- .singularApiName() / .pluralApiName() — GraphQL query names
+- .layout() — field arrangement in Admin UI
+- .titleFieldId() — field used as entry title in list views
+
+Field types (fluent):
+- fields.text(), fields.longText(), fields.richText()
+- fields.number(), fields.boolean(), fields.datetime()
+- fields.file(), fields.ref(), fields.object()
+- .list() — makes field a list/array
+- .renderer(name) — UI renderer
+- .label(), .help(), .required(), .unique()
+- .minLength(), .maxLength(), .gte(), .lte(), .pattern()
+- .models([{ modelId }]) — for ref fields
+- .fields(subfields => ...) — for object fields
+
+Immutable properties (must never change after creation with data):
+- modelId
+- fieldId
+- type
+- multipleValues
+- settings.models (can add, never remove)
+- settings.fields (same rules as parent)
+
+Registration:
+- In webiny.config.tsx: <Api.Extension src={"/extensions/fileName.ts"} />
+
+Related Documents:
+- headless-cms/content-modeling-best-practices.mdx
+- core-concepts/di.mdx
+- headless-cms/graphql-api-overview.mdx
+
+Tone Guidelines:
+- Technical reference with practical examples
+- Code-first — let examples carry the explanation
+- Concise prose, avoid repeating what code already shows

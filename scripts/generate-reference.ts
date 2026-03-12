@@ -23,7 +23,7 @@ import slugify from "@sindresorhus/slugify";
 
 const WEBINY_PKG = "/Users/adrian/dev/wby-next/packages/webiny";
 const WEBINY_MONOREPO = "/Users/adrian/dev/wby-next/packages";
-const DOCS_ROOT = join(process.cwd(), "docs/developer-docs/6.0.x");
+const DOCS_ROOT = join(process.cwd(), "docs/developer-docs/6.x");
 const REF_DIR = join(DOCS_ROOT, "reference");
 const NAV_FILE = join(DOCS_ROOT, "navigation.tsx");
 
@@ -1748,8 +1748,8 @@ ${symbolNames}
 Import Path: webiny/${doc.relPath}
 
 Related Documents:
-- docs/developer-docs/6.0.x/basic/di.mdx — DI pattern used by all abstractions
-- docs/developer-docs/6.0.x/basic/result.mdx — Result type used in use case returns
+- docs/developer-docs/6.x/basic/di.mdx — DI pattern used by all abstractions
+- docs/developer-docs/6.x/basic/result.mdx — Result type used in use case returns
 
 Tone Guidelines:
 - This is a reference page — terse, API-focused, no prose beyond what's necessary
