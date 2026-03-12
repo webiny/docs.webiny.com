@@ -1,0 +1,132 @@
+---
+id: hcms6mig1
+title: Migrating to Webiny Headless CMS
+description: Learn how to approach migrating your existing content to Webiny Headless CMS.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to plan a content migration
+- How to model your content in Webiny
+- How to migrate content via the GraphQL API
+- What to consider for reference fields, meta fields, rich text, and assets
+
+</Alert>
+
+## Overview
+
+Migrating content from one CMS to another is a complex task that requires planning and preparation. This article walks through the key steps and things to consider when moving your existing content into Webiny Headless CMS.
+
+The process follows three broad phases:
+
+1. **Plan the migration** — define your goals and scope before touching anything
+2. **Model your content** — create content models and fields in Webiny
+3. **Migrate your content** — write and run a migration script that pushes content via the GraphQL API
+
+## Planning the Migration
+
+Before starting, be clear about what you want to achieve. Are you migrating to gain better scalability through serverless infrastructure? To improve developer experience? To give editors a better authoring UI? Having a concrete goal lets you measure success after the migration.
+
+A common mistake is carrying the messiness of the old system into the new one — recreating disorganized models, unused fields, and legacy naming conventions. Treat the migration as an opportunity to clean up your content structure, not just transplant it.
+
+## Modeling Your Content
+
+Once you have a clear goal, create the content models and fields in Webiny. There are two ways to do this:
+
+- **UI editor** — create models interactively in the Admin app
+- **Code** — [define models programmatically](/{version}/headless-cms/content-models-via-code); recommended for teams that want models in version control
+
+If you're migrating from a traditional CMS (Drupal, WordPress, Sitecore, AEM) and are also rewriting your frontend, take the opportunity to improve on the existing data structure. If you're keeping the frontend as-is, staying close to the original structure minimizes the mapping work in your migration script.
+
+See [Content Modeling Best Practices](/{version}/headless-cms/content-modeling-best-practices) for guidance on structuring models well from the start.
+
+## Migrating Your Content
+
+With the models in place, the migration itself is a Node.js script that reads content from your old CMS and writes it into Webiny using the [Webiny SDK](/{version}/headless-cms/using-webiny-sdk).
+
+To authenticate, create an API key with write permissions in the Admin app under **API Keys** and configure the SDK with it. Each entry is created as a draft — call `publishEntry()` afterward if the entry should be publicly visible.
+
+A minimal migration loop looks like:
+
+```typescript
+import { sdk } from "./webiny"; // your initialized SDK instance
+
+for (const article of articlesFromOldCms) {
+  const result = await sdk.cms.createEntry({
+    modelId: "article",
+    data: {
+      values: {
+        title: article.title,
+        slug: article.slug,
+        body: article.body
+      }
+    },
+    fields: ["id", "entryId"]
+  });
+
+  if (result.isFail()) {
+    console.error(`Failed to migrate "${article.title}":`, result.error.message);
+    continue;
+  }
+
+  await sdk.cms.publishEntryRevision({
+    modelId: "article",
+    revisionId: result.value.id,
+    fields: ["id"]
+  });
+}
+```
+
+For large datasets, run the migration in batches rather than all at once. This keeps individual runs recoverable and avoids hitting API throughput limits.
+
+## Additional Considerations
+
+### Reference Fields
+
+Most CMS platforms have reference fields that link one content item to another. The typical challenge: you need to create all referenced items first, then map their old IDs to new Webiny IDs before creating the items that reference them.
+
+Webiny lets you migrate content along with its original IDs from the source system. If you set the `entryId` of each entry to match the ID from your old system, all cross-references resolve automatically — no manual ID mapping required and no strict ordering of migration batches.
+
+### Date, Time, and Identity Meta Fields
+
+Webiny automatically sets meta fields (`createdOn`, `modifiedOn`, `createdBy`, `modifiedBy`, `firstPublishedOn`, `lastPublishedOn`) whenever an entry is written. If you don't supply these in your migration script, Webiny will set them to the time of migration — which means your content may appear in a different order on the frontend than it did before.
+
+To preserve the original timestamps and authorship, include these meta fields explicitly in your mutation input. This ensures ordering, pagination, and "last modified" displays remain consistent with your previous system.
+
+See [Date/Time and Identity Meta Fields](/{version}/headless-cms/date-time-and-identity-meta-fields) for the full list of available fields.
+
+### Rich Text Content
+
+Rich text migration is complex and depends heavily on the source format. Reach out on the [Webiny Slack community](https://webiny.com/slack) to discuss the best approach for your specific situation before starting.
+
+### Assets (Images, Videos, Files)
+
+Migrating assets is a separate step from migrating content entries. The general process:
+
+1. Upload each file programmatically via the File Manager API
+2. Record the new Webiny URL returned for each asset
+3. Update any content entries that reference those assets with the new URLs
+
+By default, uploaded assets get a new URL. If your existing content references assets by URL (particularly inside rich text), this will break those references. To avoid this, Webiny supports **file aliases** — you can assign an alias to an uploaded file that preserves the original URL, so existing references continue to work without modification.
+
+<Alert type="info">
+
+If you need to replace the built-in File Manager with a third-party DAM solution, reach out to the Webiny team to discuss that path before starting your migration.
+
+</Alert>
+
+## Summary
+
+The migration process in brief:
+
+1. Define a clear goal for the migration
+2. Model your content in Webiny — use code-defined models for production projects
+3. Write a migration script that reads from your old CMS and writes to the Webiny Manage API
+4. Handle reference fields by preserving original entry IDs
+5. Include meta fields in your script to preserve timestamps and authorship
+6. Upload assets separately and use file aliases to preserve URLs
+7. Run in batches; verify each batch before proceeding
+
+For questions or help with your migration, reach out on the [Webiny Slack community](https://webiny.com/slack).

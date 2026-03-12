@@ -1,0 +1,61 @@
+AI Context: Migrating to Webiny Headless CMS (migrating-to-webiny.mdx)
+
+## Source of Information
+
+1. `https://github.com/webiny/docs.webiny.com/blob/9c1e464e9ff8abdfeae2ab02ad1e223fc7e41614/docs/developer-docs/5.39.x/headless-cms/basics/migrating-to-webiny.mdx` — original v5.39.x article; ported and updated for v6
+2. `docs/developer-docs/6.x/headless-cms/graphql-api-overview.mdx` — v6 API overview (linked)
+3. `docs/developer-docs/6.x/headless-cms/content-models-via-code.mdx` — ModelFactory API (linked)
+4. `docs/developer-docs/6.x/headless-cms/content-modeling-best-practices.mdx` — modeling guidance (linked)
+
+## Key Changes from v5 Article
+
+1. No locale prefix on endpoints — v6 Manage API is `/cms/manage` (not `/cms/manage/{locale}`)
+2. Links updated: `content-models-via-code` replaces old `extending/content-models-via-code`; `graphql-api-overview` replaces old `basics/graphql-api`
+3. Removed link to `date-time-and-identity-meta-fields` reference article (no v6 equivalent yet) — described inline instead
+4. Removed link to `programmatic-file-upload` (no v6 equivalent yet) — described inline
+5. Removed link to `lexical-tools` (no v6 equivalent yet) — described inline with the HTML → Lexical approach
+6. Removed link to `file-aliases` release note (v5.35.0) — described inline as a feature
+7. Removed mention of "SDK" for programmatic access — v6 uses API keys + GraphQL directly
+8. Summary section added (not in v5) for quick reference
+
+## Understanding
+
+### Migration phases
+
+1. Plan — define goals, avoid importing old messiness
+2. Model — UI editor or ModelFactory code API
+3. Migrate — script reads old CMS, writes to Webiny Manage API in batches
+
+### Entry ID preservation
+
+Setting `entryId` in the mutation to the original system's ID allows cross-references to resolve automatically without ID mapping or strict ordering.
+
+### Meta fields
+
+`createdOn`, `modifiedOn`, `createdBy`, `modifiedBy`, `firstPublishedOn`, `lastPublishedOn` — must be supplied explicitly in the migration script to preserve original timestamps/authorship. Otherwise Webiny sets them to the current time.
+
+### Rich text
+
+Export as HTML from old CMS → run through Webiny's HTML-to-Lexical converter → store Lexical JSON via API. Cannot import HTML directly.
+
+### Assets
+
+Upload via File Manager API → record new URLs → update references. Use file aliases to preserve original URLs and avoid broken references in rich text or other URL-based fields.
+
+### DAM replacement
+
+Replacing the built-in File Manager with a 3rd-party DAM is possible but requires a conversation with the Webiny team.
+
+## Related Documents
+
+- `graphql-api-overview.mdx` — API endpoints and structure
+- `content-models-via-code.mdx` — ModelFactory API
+- `content-modeling-best-practices.mdx` — how to structure models well
+- `using-webiny-sdk.mdx` — SDK usage (for querying; migration writes via raw GraphQL)
+
+## Tone Guidelines
+
+- Practical and actionable — this is a guide for developers executing a migration
+- Acknowledge complexity without dramatizing it
+- The "clean up your content structure" framing from the original is worth keeping — it's good advice
+- No version comparisons (v5 vs v6); this is a standalone v6 article
