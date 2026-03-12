@@ -24,7 +24,18 @@ This page documents everything exported from `webiny/admin/tenancy`. Import any 
 
 **Hooks**
 
-<SymbolList symbols={[{ name: "useTenantContext", anchor: "use-tenant-context" }]} />
+<SymbolList
+  symbols={[
+    { name: "useCurrentTenant", anchor: "use-current-tenant" },
+    { name: "useDisableTenant", anchor: "use-disable-tenant" },
+    { name: "useEnableTenant", anchor: "use-enable-tenant" },
+    { name: "useTenantContext", anchor: "use-tenant-context" }
+  ]}
+/>
+
+**Types**
+
+<SymbolList symbols={[{ name: "TenantEntry", anchor: "tenant-entry" }]} />
 
 ## Components
 
@@ -42,6 +53,74 @@ export const TenantContext = new Abstraction<ITenantContext>("TenantContext");
 
 ## Hooks
 
+### `useCurrentTenant`
+
+**Constant** — imported from `webiny/admin/tenancy`
+
+```typescript
+import { useCurrentTenant } from "webiny/admin/tenancy";
+```
+
+```typescript
+export const useCurrentTenant = () => {
+    const { presenter } = useFeature(CurrentTenantFeature);
+    // The app is not rendered till the tenant is loaded.
+    // If this hook is used, it's safe to assume the tenant is loaded.
+    const [tenant, setTenant] = useState(presenter.vm.tenant as Tenant);
+
+    useEffect(() => {
+        return autorun(() => {
+            const tenant = presenter.vm.tena
+```
+
+### `useDisableTenant`
+
+**Constant** — imported from `webiny/admin/tenancy`
+
+```typescript
+import { useDisableTenant } from "webiny/admin/tenancy";
+```
+
+```typescript
+export const useDisableTenant = (tenant: TenantEntry) => {
+    const { useCase } = useFeature(DisableTenantFeature);
+    const { updateRecordInCache } = useRecords();
+
+    const disableTenant = useCallback(async () => {
+        await useCase.execute(tenant.entryId);
+
+        updateRecordInCache({
+            ...tenant,
+            values: {
+                ...tenant.values,
+                status:
+```
+
+### `useEnableTenant`
+
+**Constant** — imported from `webiny/admin/tenancy`
+
+```typescript
+import { useEnableTenant } from "webiny/admin/tenancy";
+```
+
+```typescript
+export const useEnableTenant = () => {
+    const { useCase } = useFeature(EnableTenantFeature);
+    const [loading, setLoading] = useState(false);
+
+    const enableTenant = useCallback(
+        async (tenantId: string) => {
+            setLoading(true);
+
+            try {
+                await useCase.execute(tenantId);
+            } finally {
+                setLoading(false);
+            }
+
+```
+
 ### `useTenantContext`
 
 **Function** — imported from `webiny/admin/tenancy`
@@ -52,4 +131,20 @@ import { useTenantContext } from "webiny/admin/tenancy";
 
 ```typescript
 export function useTenantContext();
+```
+
+## Types
+
+### `TenantEntry`
+
+**Type** — imported from `webiny/admin/tenancy`
+
+```typescript
+import type { TenantEntry } from "webiny/admin/tenancy";
+```
+
+```typescript
+export interface TenantEntry extends BaseEntry {
+  values: TenantValues;
+}
 ```

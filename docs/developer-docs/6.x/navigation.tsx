@@ -169,8 +169,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             <Page link={"reference/admin/cms"} title={"Root"} />
             <Page link={"reference/admin/cms/entry/editor"} title={"Editor"} />
             <Page link={"reference/admin/cms/entry/list"} title={"List"} />
-            <Page link={"reference/admin/cms/fieldRenderers/dynamic-zone"} title={"Dynamic Zone"} />
-            <Page link={"reference/admin/cms/fieldRenderers/object"} title={"Object"} />
+            <Page
+              link={"reference/admin/cms/field-renderers/dynamic-zone"}
+              title={"Dynamic Zone"}
+            />
+            <Page link={"reference/admin/cms/field-renderers/object"} title={"Object"} />
             <Page link={"reference/admin/cms/lexical"} title={"Lexical Editor"} />
             <Page link={"reference/admin/cms/model"} title={"Model"} />
           </Group>
