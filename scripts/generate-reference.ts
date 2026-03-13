@@ -120,6 +120,17 @@ interface ExtractedSymbol {
   eventPayloadName?: string;
 }
 
+interface Example {
+  /** H2 heading text, e.g. "Basic Usage" */
+  title: string;
+  /** Optional prose paragraph between the heading and the first code block */
+  description: string;
+  /** Raw code block content (without fences) */
+  code: string;
+  /** Language tag from the code fence, e.g. "typescript" */
+  lang: string;
+}
+
 interface EntryPointDoc {
   /** e.g. "webiny/api/cms/entry" */
   importPath: string;
@@ -131,6 +142,8 @@ interface EntryPointDoc {
   description: string;
   /** All symbols exported from this entry point */
   symbols: ExtractedSymbol[];
+  /** Examples parsed from a co-located *.examples.md file, if present */
+  examples?: Example[];
 }
 
 // ---------------------------------------------------------------------------
@@ -859,8 +872,28 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
       const members = node
         .getMembers()
         .map(m => {
+          // Properties (public readonly foo: Bar) — no body, use full text
+          if (Node.isPropertyDeclaration(m)) {
+            return m.getText().trim().replace(/;?$/, ";");
+          }
+          // Constructors and methods — strip the implementation body
+          if (Node.isConstructorDeclaration(m) || Node.isMethodDeclaration(m)) {
+            const body = m.getBody ? m.getBody() : null;
+            if (body) {
+              const bodyStart = body.getStart();
+              const nodeStart = m.getStart();
+              const sig = m
+                .getText()
+                .substring(0, bodyStart - nodeStart)
+                .trim();
+              return sig + ";";
+            }
+            // No body (overload or abstract) — use full text
+            return m.getText().trim().replace(/;?$/, ";");
+          }
+          // Fallback for other member kinds
           const txt = m.getText().trim();
-          return txt.replace(/\{[\s\S]*$/, "").trim() + (txt.includes("{") ? ";" : "");
+          return txt.replace(/;?$/, ";");
         })
         .filter(Boolean);
 
@@ -2054,6 +2087,24 @@ function renderMdx(doc: EntryPointDoc, id: string): string {
     }
   }
 
+  // Examples section — appended at the bottom if a *.examples.md file was found
+  if (doc.examples && doc.examples.length > 0) {
+    lines.push("## Examples");
+    lines.push("");
+    for (const ex of doc.examples) {
+      lines.push(`### ${ex.title}`);
+      lines.push("");
+      if (ex.description) {
+        lines.push(ex.description);
+        lines.push("");
+      }
+      lines.push(`\`\`\`${ex.lang}`);
+      lines.push(ex.code);
+      lines.push("```");
+      lines.push("");
+    }
+  }
+
   return lines.join("\n");
 }
 
@@ -2324,6 +2375,77 @@ function rewriteNavigation(entryPoints: EntryPointDoc[]): void {
 }
 
 // ---------------------------------------------------------------------------
+// Examples: find and parse *.examples.md co-located with export barrels
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a *.examples.md file into Example objects.
+ * Each H2 heading starts a new example. The text between the heading and
+ * the first code fence is the description; the first code fence is the code.
+ */
+function parseExamplesFile(filePath: string): Example[] {
+  const src = readFileSync(filePath, "utf-8");
+  const examples: Example[] = [];
+
+  // Split on H2 headings (## ...)
+  const sections = src.split(/^## /m).slice(1); // drop everything before first ##
+
+  for (const section of sections) {
+    const lines = section.split("\n");
+    const title = lines[0].trim();
+    const rest = lines.slice(1).join("\n");
+
+    // Extract first code fence
+    const fenceMatch = rest.match(/```(\w*)\n([\s\S]*?)```/);
+    if (!fenceMatch) continue;
+
+    const lang = fenceMatch[1] || "typescript";
+    const code = fenceMatch[2].trimEnd();
+
+    // Everything before the code fence (trimmed) is the description
+    const description = rest.slice(0, rest.indexOf("```")).trim();
+
+    examples.push({ title, description, code, lang });
+  }
+
+  return examples;
+}
+
+/**
+ * Walk the re-export chain from a webiny barrel file looking for a sibling
+ * *.examples.md file. Returns the parsed examples, or undefined if not found.
+ *
+ * Convention: examples files live next to either:
+ *   a) The webiny barrel itself (webiny/src/api/logger.ts → logger.examples.md), or
+ *   b) A mirror "exports/" barrel in any @webiny/* package that matches the same
+ *      relative path (e.g. api-core/src/exports/api/logger.examples.md for api/logger)
+ */
+function findExamples(
+  barrelSrc: string,
+  relPath: string,
+  pkgMap: Map<string, string>,
+  project: import("ts-morph").Project
+): Example[] | undefined {
+  // 1. Check co-located with the webiny barrel
+  const sibling = barrelSrc.replace(/\.ts$/, ".examples.md");
+  if (existsSync(sibling)) {
+    const examples = parseExamplesFile(sibling);
+    if (examples.length > 0) return examples;
+  }
+
+  // 2. Check in every @webiny/* package's src/exports/<relPath>.examples.md
+  for (const srcDir of Array.from(pkgMap.values())) {
+    const candidate = join(srcDir, "exports", relPath + ".examples.md");
+    if (existsSync(candidate)) {
+      const examples = parseExamplesFile(candidate);
+      if (examples.length > 0) return examples;
+    }
+  }
+
+  return undefined;
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -2419,12 +2541,15 @@ async function main(): Promise<void> {
       }
     }
 
+    const examples = findExamples(barrelSrc, relPath, pkgMap, project);
+
     const doc: EntryPointDoc = {
       importPath: `webiny/${relPath}`,
       relPath,
       title: toTitle(relPath),
       description: toDescription(relPath),
-      symbols: mergeNamespaceSymbols(symbols)
+      symbols: mergeNamespaceSymbols(symbols),
+      ...(examples ? { examples } : {})
     };
 
     docs.push(doc);

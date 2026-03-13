@@ -506,18 +506,67 @@ import { DynamicFieldset } from "webiny/admin/ui";
 
 ```typescript
 class DynamicFieldset extends React.Component<DynamicFieldsetProps> {
-    static defaultProps: Partial<DynamicFieldsetProps> =;
+    static defaultProps: Partial<DynamicFieldsetProps> = {
+        value: []
+    };
     header: React.ReactNode = null;
     footer: React.ReactNode = null;
     rows: React.ReactNode = null;
     empty: React.ReactNode = null;
-    actions =;
-    removeData = (index: number) =>;
-    addData = (index = -1) =>;
-    renderHeader = (cb: () => React.ReactNode): React.ReactNode =>;
-    renderFooter = (cb: () => React.ReactNode): React.ReactNode =>;
-    renderRow = (cb: ChildrenRenderPropRowCallable): React.ReactNode =>;
-    renderEmpty = (cb: () => React.ReactNode): React.ReactNode =>;
+    actions = {
+        add:
+            (index = -1) =>
+            () =>
+                this.addData(index),
+        remove:
+            (index = -1) =>
+            () =>
+                this.removeData(index)
+    };
+    removeData = (index: number) => {
+        const { value, onChange } = this.props;
+        if (!value) {
+            return;
+        }
+        onChange([...value.slice(0, index), ...value.slice(index + 1)]);
+    };
+    addData = (index = -1) => {
+        const { onChange, onAdd } = this.props;
+        let value = this.props.value;
+        if (!value) {
+            value = [];
+        }
+
+        const newValue = typeof onAdd === "function" ? onAdd() : {};
+
+        if (index < 0) {
+            onChange([...value, newValue]);
+        } else {
+            onChange([...value.slice(0, index + 1), newValue, ...value.slice(index + 1)]);
+        }
+    };
+    renderHeader = (cb: () => React.ReactNode): React.ReactNode => {
+        this.header = cb();
+        return null;
+    };
+    renderFooter = (cb: () => React.ReactNode): React.ReactNode => {
+        this.footer = cb();
+        return null;
+    };
+    renderRow = (cb: ChildrenRenderPropRowCallable): React.ReactNode => {
+        const { value } = this.props;
+        if (!value) {
+            return null;
+        }
+        this.rows = value.map((record, index) => {
+            return <div key={index}>{cb({ data: record, index })}</div>;
+        });
+        return null;
+    };
+    renderEmpty = (cb: () => React.ReactNode): React.ReactNode => {
+        this.empty = cb();
+        return null;
+    };
     public renderComponent(): React.ReactNode;
     public override render();
 }
@@ -1261,13 +1310,16 @@ import { TimeAgo } from "webiny/admin/ui";
 
 ```typescript
 export default class TimeAgo extends React.PureComponent<TimeAgoProps> {
-    static defaultProps:;
-    dom: HTMLTimeElement;
-    componentDidMount(): void;
-    componentDidUpdate(): void;
-    renderTimeAgo(): void;
-    componentWillUnmount(): void;
-    render(): JSX.Element;
+  static defaultProps: {
+    live: boolean;
+    className: string;
+  };
+  dom: HTMLTimeElement;
+  componentDidMount(): void;
+  componentDidUpdate(): void;
+  renderTimeAgo(): void;
+  componentWillUnmount(): void;
+  render(): JSX.Element;
 }
 ```
 

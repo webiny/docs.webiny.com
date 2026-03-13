@@ -30,8 +30,6 @@ import { Logger } from "webiny/api/logger";
 
 **Interface `Logger.Interface`:**
 
-Interface for logging messages at different severity levels.
-
 ```typescript
 interface Logger.Interface {
     trace(objOrMsg: object | string, ...args: any[]): void;
@@ -60,4 +58,64 @@ interface Logger.Interface {
 namespace Logger {
   type Interface = ILogger;
 }
+```
+
+## Examples
+
+### Basic Usage
+
+Simple logger injection and usage:
+
+```typescript
+import { ApiKeyAfterUpdateEventHandler } from "webiny/api/security/api-key";
+import { Logger } from "webiny/api/logger";
+
+class MyApiKeyAfterUpdateImpl implements ApiKeyAfterUpdateEventHandler.Interface {
+  constructor(private logger: Logger.Interface) {}
+
+  async handle() {
+    this.logger.debug("An API key was updated!");
+    this.logger.info("Processing update...");
+  }
+}
+
+const MyApiKeyAfterUpdate = ApiKeyAfterUpdateEventHandler.createImplementation({
+  implementation: MyApiKeyAfterUpdateImpl,
+  dependencies: [Logger]
+});
+
+export default MyApiKeyAfterUpdate;
+```
+
+### Logging Errors
+
+Logging error messages when something goes wrong:
+
+```typescript
+import { ApiKeyAfterUpdateEventHandler } from "webiny/api/security/api-key";
+import { Logger } from "webiny/api/logger";
+
+class MyApiKeyAfterUpdateImpl implements ApiKeyAfterUpdateEventHandler.Interface {
+  constructor(private logger: Logger.Interface) {}
+
+  async handle() {
+    try {
+      // Some operation that might fail
+      await this.processApiKey();
+    } catch (error) {
+      this.logger.error("An error occurred while processing API key:", error);
+    }
+  }
+
+  private async processApiKey() {
+    // Implementation
+  }
+}
+
+const MyApiKeyAfterUpdate = ApiKeyAfterUpdateEventHandler.createImplementation({
+  implementation: MyApiKeyAfterUpdateImpl,
+  dependencies: [Logger]
+});
+
+export default MyApiKeyAfterUpdate;
 ```
