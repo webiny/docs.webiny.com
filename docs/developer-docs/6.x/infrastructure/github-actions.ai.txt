@@ -1,0 +1,75 @@
+AI Context: GitHub Actions (github-actions.mdx)
+
+## Source of Information
+
+1. `~/dev/wby-next4/docs/gh-actions-workflows/pushDev.yml` — dev push workflow
+2. `~/dev/wby-next4/docs/gh-actions-workflows/pushStaging.yml` — staging push workflow
+3. `~/dev/wby-next4/docs/gh-actions-workflows/pushProd.yml` — prod push workflow
+4. `~/dev/wby-next4/docs/gh-actions-workflows/pullRequest.yml` — PR workflow (ephemeral env)
+5. `~/dev/wby-next4/docs/gh-actions-workflows/pullRequestClosed.yml` — PR closed (destroy env)
+6. `docs/developer-docs/5.x/core-development-concepts/ci-cd/setup.mdx` — v5 reference
+
+## Key Documentation Decisions
+
+1. No scaffold — users copy workflow files manually from GitHub
+2. OIDC authentication is the central new concept vs v5; no static AWS_ACCESS_KEY_ID/SECRET in these workflows
+3. `AWS_ROLE_ARN` replaces `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY`
+4. Pull request environments documented as a first-class feature (not mentioned in previous version)
+5. `WEBINY_PROJECT_ID` and `WEBINY_PROJECT_API_KEY` are new secrets not in v5 docs
+6. `DEV_WEBINY_PULUMI_BACKEND_PULL_REQUESTS` is separate from `DEV_WEBINY_PULUMI_BACKEND`
+7. OpenSearch secrets documented as conditional (only for DynamoDB + OpenSearch setup)
+8. `concurrency` setting documented — prevents parallel deploys to same environment
+
+## Understanding
+
+### Workflow files (5 total)
+
+- pushDev.yml — triggered on push to `dev`; format + lint + `yarn webiny deploy --env dev`
+- pushStaging.yml — triggered on push to `staging`; format + lint + deploy staging
+- pushProd.yml — triggered on push to `prod`; format + lint + deploy prod
+- pullRequest.yml — triggered on PR to `dev`; static analysis job + deploy job (deploys core + api + admin to `pr{number}` env)
+- pullRequestClosed.yml — triggered on PR closed to `dev`; destroys `pr{number}` env
+
+### OIDC authentication
+
+- `permissions: id-token: write` enables OIDC token generation
+- `aws-actions/configure-aws-credentials@v4` with `role-to-assume: ${{ secrets.DEV_AWS_ROLE_ARN }}`
+- No static AWS credentials stored — short-lived token assumed per run
+- Requires IAM role in each AWS account that trusts the GitHub OIDC provider
+
+### Full secrets list
+
+AWS:
+- DEV/STAGING/PROD_AWS_ROLE_ARN
+- DEV/STAGING/PROD_AWS_REGION
+
+Pulumi:
+- DEV/STAGING/PROD_PULUMI_SECRETS_PROVIDER
+- DEV/STAGING/PROD_PULUMI_CONFIG_PASSPHRASE
+- DEV/STAGING/PROD_WEBINY_PULUMI_BACKEND
+- DEV_WEBINY_PULUMI_BACKEND_PULL_REQUESTS (PR environments only)
+
+Webiny:
+- DEV/STAGING/PROD_WEBINY_PROJECT_ID
+- DEV/STAGING/PROD_WEBINY_PROJECT_API_KEY
+
+OpenSearch (conditional):
+- DEV_OPENSEARCH_DOMAIN_NAME
+- OPENSEARCH_INDEX_PREFIX is set inline as `pr${{ github.event.pull_request.number }}` — not a secret
+
+### PR environment naming
+
+Env name: `pr{number}` e.g. `pr42`
+Set via: `--env pr${{ github.event.pull_request.number }}`
+Destroyed via: `yarn webiny destroy --env pr{number} --confirm-destroy-env pr{number} --debug`
+
+## Related Documents
+
+- `infrastructure/ci-cd.mdx` — environment strategy, Pulumi backend guidance
+- `infrastructure/deploy-webiny-project-cf-template.mdx` — IAM role permissions
+
+## Tone Guidelines
+
+- Setup guide — action-oriented, not conceptual
+- Secrets lists as code blocks for easy copy-paste
+- OIDC section should explain why (no static credentials) not just how

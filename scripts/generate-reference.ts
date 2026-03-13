@@ -70,6 +70,8 @@ interface NamespaceMember {
   value: string;
   /** Resolved fields if the type alias points to a plain object interface */
   resolvedFields?: ResolvedTypeFields;
+  /** Resolved interface members if the type alias points to a method interface (e.g. Foo.Interface) */
+  resolvedMembers?: { members: InterfaceMember[]; jsDoc: string };
 }
 
 interface EventPayloadField {
@@ -350,6 +352,12 @@ function extractJsDoc(node: Node): string {
     .join("\n");
 }
 
+/** Returns true if a node has an @internal JSDoc tag */
+function isInternalNode(node: Node): boolean {
+  const jsDocNodes = node.getChildrenOfKind(SyntaxKind.JSDoc);
+  return jsDocNodes.some(jd => jd.getText().includes("@internal"));
+}
+
 function cleanDeclarationText(text: string): string {
   return text
     .replace(/\{[\s\S]*\}/g, match => {
@@ -401,10 +409,13 @@ function extractInterfaceMembers(
   const iface = allIfaces.find(i => i.getName() === interfaceName);
   if (iface) {
     return {
-      members: iface.getMembers().map(m => ({
-        signature: m.getText().trim().replace(/;$/, ""),
-        jsDoc: extractJsDoc(m)
-      })),
+      members: iface
+        .getMembers()
+        .filter(m => !isInternalNode(m))
+        .map(m => ({
+          signature: m.getText().trim().replace(/;$/, ""),
+          jsDoc: extractJsDoc(m)
+        })),
       jsDoc: extractJsDoc(iface)
     };
   }
@@ -515,6 +526,48 @@ function resolveModuleSpecifier(
 }
 
 /**
+ * Resolve a "Namespace.Interface" type reference to interface members.
+ * e.g. "GraphQLSchemaBuilder.Interface" → finds GraphQLSchemaBuilder's IGraphQLSchemaBuilder interface.
+ */
+function resolveNamespaceDotInterface(
+  sf: SourceFile,
+  typeText: string,
+  pkgMap: Map<string, string>
+): { members: InterfaceMember[]; jsDoc: string } | null {
+  // Only handle Foo.Interface pattern
+  const m = typeText.match(/^(\w+)\.Interface$/);
+  if (!m) return null;
+  const abstractionName = m[1];
+
+  // Find where abstractionName is imported from
+  for (const decl of sf.getImportDeclarations()) {
+    const named = decl.getNamedImports().find(n => n.getName() === abstractionName);
+    if (!named) continue;
+    const modSpec = decl.getModuleSpecifierValue();
+    const resolvedPath = resolveModuleSpecifier(sf, modSpec, pkgMap);
+    if (!resolvedPath || !existsSync(resolvedPath)) continue;
+    try {
+      const targetSf = sf.getProject().addSourceFileAtPath(resolvedPath);
+      // In the target file, find createAbstraction<IFoo> for this name and extract IFoo
+      const exported = targetSf.getExportedDeclarations();
+      const decls = exported.get(abstractionName);
+      if (!decls) continue;
+      const varDecl = decls.find(d => Node.isVariableDeclaration(d));
+      if (!varDecl || !Node.isVariableDeclaration(varDecl)) continue;
+      const genericArg = getCreateAbstractionGeneric(varDecl);
+      if (!genericArg) continue;
+      const nodeSf = varDecl.getSourceFile();
+      return extractInterfaceMembers(nodeSf, genericArg, pkgMap).members.length > 0
+        ? extractInterfaceMembers(nodeSf, genericArg, pkgMap)
+        : null;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+/**
  * Given a type alias name (e.g. "InstallSystemInput") in a source file, resolves it to
  * an object interface and returns its fields. Only resolves simple aliases:
  *   type Foo = SomeInterface        → fields of SomeInterface
@@ -612,11 +665,14 @@ function resolveInterfaceFields(
 
   const iface = allIfaces.find(i => i.getName() === interfaceName);
   if (iface) {
-    const fields = iface.getProperties().map(p => ({
-      name: p.getName(),
-      typeText: p.getTypeNode()?.getText() ?? "unknown",
-      optional: p.hasQuestionToken()
-    }));
+    const fields = iface
+      .getProperties()
+      .filter(p => !isInternalNode(p))
+      .map(p => ({
+        name: p.getName(),
+        typeText: p.getTypeNode()?.getText() ?? "unknown",
+        optional: p.hasQuestionToken()
+      }));
     return { fields, jsDoc: extractJsDoc(iface) };
   }
 
@@ -930,19 +986,35 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
             })()
           : extractNamespaceTypes(sf, name);
 
-        // For each namespace type that's a resolvable alias (Input, etc.), try to resolve fields
+        // For each namespace type, try to resolve its fields or members
         const nodeSfForTypes = node.getSourceFile();
         namespaceTypes = namespaceTypes.map(t => {
-          // Skip Interface/Return/Errors — only resolve plain input/data types
-          if (t.name === "Interface" || t.name === "Return" || t.name === "Errors") return t;
-          // value is the raw type text e.g. "InstallSystemInput" — only try simple identifiers
-          if (!/^\w+$/.test(t.value.trim())) return t;
-          try {
-            const resolved = resolveTypeToFields(nodeSfForTypes, t.value.trim(), PKG_MAP);
-            if (resolved && resolved.fields.length > 0) return { ...t, resolvedFields: resolved };
-          } catch {
-            // ignore
+          // Skip Interface — it just aliases the abstraction itself
+          if (t.name === "Interface") return t;
+          const val = t.value.trim();
+
+          // Foo.Interface pattern → resolve as method interface
+          if (/^\w+\.Interface$/.test(val)) {
+            try {
+              const resolved = resolveNamespaceDotInterface(nodeSfForTypes, val, PKG_MAP);
+              if (resolved && resolved.members.length > 0)
+                return { ...t, resolvedMembers: resolved };
+            } catch {
+              /* ignore */
+            }
+            return t;
           }
+
+          // Simple identifier → try to resolve as plain object fields
+          if (/^\w+$/.test(val)) {
+            try {
+              const resolved = resolveTypeToFields(nodeSfForTypes, val, PKG_MAP);
+              if (resolved && resolved.fields.length > 0) return { ...t, resolvedFields: resolved };
+            } catch {
+              /* ignore */
+            }
+          }
+
           return t;
         });
 
@@ -1364,36 +1436,51 @@ function renderSymbolSection(
       lines.push("```");
       lines.push("");
 
-      // For each resolved type, emit a field table
+      // For each resolved type, emit a field table or method table
       for (const t of sym.namespaceTypes) {
-        if (!t.resolvedFields || t.resolvedFields.fields.length === 0) continue;
-        const { typeName, isArray, jsDoc, fields } = t.resolvedFields;
-        const label = isArray ? `${typeName}[]` : typeName;
-        lines.push(`**\`${t.name}\` — \`${label}\`:**`);
-        lines.push("");
-        if (jsDoc) {
-          lines.push(jsDoc);
+        if (t.resolvedFields && t.resolvedFields.fields.length > 0) {
+          const { typeName, isArray, jsDoc, fields } = t.resolvedFields;
+          const label = isArray ? `${typeName}[]` : typeName;
+          lines.push(`**\`${t.name}\` — \`${label}\`:**`);
           lines.push("");
+          if (jsDoc) {
+            lines.push(jsDoc);
+            lines.push("");
+          }
+          lines.push("| Field | Type | Required | Description |");
+          lines.push("| ----- | ---- | -------- | ----------- |");
+          for (const f of fields) {
+            const req = f.optional ? "no" : "yes";
+            lines.push(`| \`${f.name}\` | \`${f.typeText.replace(/\|/g, "\\|")}\` | ${req} | — |`);
+          }
+          lines.push("");
+        } else if (t.resolvedMembers && t.resolvedMembers.members.length > 0) {
+          const { members, jsDoc } = t.resolvedMembers;
+          lines.push(`**\`${t.name}\` — \`${t.value}\`:**`);
+          lines.push("");
+          if (jsDoc) {
+            lines.push(jsDoc);
+            lines.push("");
+          }
+          lines.push("```typescript");
+          lines.push(`interface ${t.value} {`);
+          for (const m of members) lines.push(`    ${m.signature};`);
+          lines.push("}");
+          lines.push("```");
+          lines.push("");
+          const hasJsDoc = members.some(m => m.jsDoc);
+          if (hasJsDoc) {
+            lines.push("| Method | Description |");
+            lines.push("| ------ | ----------- |");
+            for (const m of members) {
+              const methodName = m.signature.split("(")[0].trim();
+              const desc = m.jsDoc ? m.jsDoc.replace(/\|/g, "\\|") : "—";
+              lines.push(`| \`${methodName}()\` | ${desc} |`);
+            }
+            lines.push("");
+          }
         }
-        lines.push("| Field | Type | Required | Description |");
-        lines.push("| ----- | ---- | -------- | ----------- |");
-        for (const f of fields) {
-          const req = f.optional ? "no" : "yes";
-          lines.push(`| \`${f.name}\` | \`${f.typeText.replace(/\|/g, "\\|")}\` | ${req} | — |`);
-        }
-        lines.push("");
       }
-    }
-
-    // Usage snippet
-    const usage = renderUsageSnippet(sym, importPath);
-    if (usage) {
-      lines.push(`**Usage:**`);
-      lines.push("");
-      lines.push(`\`\`\`typescript ${usage.file}`);
-      lines.push(usage.body);
-      lines.push("```");
-      lines.push("");
     }
 
     return lines.join("\n");
