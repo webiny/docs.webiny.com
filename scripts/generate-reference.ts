@@ -52,11 +52,26 @@ interface InterfaceMember {
   jsDoc: string;
 }
 
+interface ResolvedTypeFields {
+  /** The interface/type name that was resolved (e.g. "AppInstallationData") */
+  typeName: string;
+  /** Whether it was an array (e.g. InstallSystemInput = AppInstallationData[]) */
+  isArray: boolean;
+  /** JSDoc on the resolved interface */
+  jsDoc: string;
+  /** The fields of the resolved object interface */
+  fields: EventPayloadField[];
+}
+
 interface NamespaceMember {
   /** e.g. "Interface" */
   name: string;
   /** e.g. "ICreateEntryUseCase" or "Promise<Result<CmsEntry, Error>>" */
   value: string;
+  /** Resolved fields if the type alias points to a plain object interface */
+  resolvedFields?: ResolvedTypeFields;
+  /** Resolved interface members if the type alias points to a method interface (e.g. Foo.Interface) */
+  resolvedMembers?: { members: InterfaceMember[]; jsDoc: string };
 }
 
 interface EventPayloadField {
@@ -93,6 +108,8 @@ interface ExtractedSymbol {
   abstractionKind?: AbstractionKind;
   /** The resolved Interface members (from IFoo that createAbstraction<IFoo> wraps) */
   interfaceMembers?: InterfaceMember[];
+  /** JSDoc on the IFoo interface itself (description paragraph) */
+  interfaceJsDoc?: string;
   /** Resolved namespace type members: Interface, Input, Return, Error, Event, etc. */
   namespaceTypes?: NamespaceMember[];
   /** For eventHandler: the payload fields of the event */
@@ -335,6 +352,12 @@ function extractJsDoc(node: Node): string {
     .join("\n");
 }
 
+/** Returns true if a node has an @internal JSDoc tag */
+function isInternalNode(node: Node): boolean {
+  const jsDocNodes = node.getChildrenOfKind(SyntaxKind.JSDoc);
+  return jsDocNodes.some(jd => jd.getText().includes("@internal"));
+}
+
 function cleanDeclarationText(text: string): string {
   return text
     .replace(/\{[\s\S]*\}/g, match => {
@@ -360,16 +383,21 @@ function getIsolatedProject(): Project {
 
 /**
  * Search a source file (and any files it re-exports from) for an interface by name.
- * Returns the interface members, or [] if not found.
+ * Returns the interface members and interface-level JSDoc, or empty if not found.
  */
+interface InterfaceResult {
+  members: InterfaceMember[];
+  jsDoc: string;
+}
+
 function extractInterfaceMembers(
   sf: SourceFile,
   interfaceName: string,
   pkgMap?: Map<string, string>,
   visited = new Set<string>()
-): InterfaceMember[] {
+): InterfaceResult {
   const filePath = sf.getFilePath();
-  if (visited.has(filePath)) return [];
+  if (visited.has(filePath)) return { members: [], jsDoc: "" };
   visited.add(filePath);
 
   // Search all interfaces in this file
@@ -380,23 +408,32 @@ function extractInterfaceMembers(
 
   const iface = allIfaces.find(i => i.getName() === interfaceName);
   if (iface) {
-    return iface.getMembers().map(m => ({
-      signature: m.getText().trim().replace(/;$/, ""),
-      jsDoc: extractJsDoc(m)
-    }));
+    return {
+      members: iface
+        .getMembers()
+        .filter(m => !isInternalNode(m))
+        .map(m => ({
+          signature: m.getText().trim().replace(/;$/, ""),
+          jsDoc: extractJsDoc(m)
+        })),
+      jsDoc: extractJsDoc(iface)
+    };
   }
 
-  // Raw text fallback for this file
+  // Raw text fallback for this file (no JSDoc available here)
   const src = sf.getFullText();
   const rawMatch = src.match(
     new RegExp(`interface\\s+${interfaceName}\\s*(?:<[^{]*>)?\\s*\\{([^}]+)\\}`)
   );
   if (rawMatch) {
-    return rawMatch[1]
-      .split("\n")
-      .map(l => l.trim())
-      .filter(l => l && !l.startsWith("//") && l !== "{" && l !== "}")
-      .map(l => ({ signature: l.replace(/;$/, ""), jsDoc: "" }));
+    return {
+      members: rawMatch[1]
+        .split("\n")
+        .map(l => l.trim())
+        .filter(l => l && !l.startsWith("//") && l !== "{" && l !== "}")
+        .map(l => ({ signature: l.replace(/;$/, ""), jsDoc: "" })),
+      jsDoc: ""
+    };
   }
 
   // Follow re-exports into sibling files (handles index.ts -> abstractions.ts pattern)
@@ -407,7 +444,6 @@ function extractInterfaceMembers(
 
       let resolvedPath: string | null = null;
       if (modSpec.startsWith(".")) {
-        // Relative import — resolve relative to this file's directory
         const dir = sf.getDirectoryPath();
         resolvedPath = join(dir, modSpec.replace(/\.js$/, ".ts"));
       } else {
@@ -419,14 +455,14 @@ function extractInterfaceMembers(
       try {
         const siblingSf = sf.getProject().addSourceFileAtPath(resolvedPath);
         const result = extractInterfaceMembers(siblingSf, interfaceName, pkgMap, visited);
-        if (result.length > 0) return result;
+        if (result.members.length > 0) return result;
       } catch {
         continue;
       }
     }
   }
 
-  return [];
+  return { members: [], jsDoc: "" };
 }
 
 /** Extract fields from an interface declaration as EventPayloadField[] */
@@ -461,6 +497,220 @@ function extractPayloadFields(sf: SourceFile, interfaceName: string): EventPaylo
       return { name: propMatch[1], typeText: propMatch[3], optional: !!propMatch[2] };
     })
     .filter((f): f is EventPayloadField => f !== null);
+}
+
+/**
+ * Resolve a module specifier to an absolute .ts file path.
+ * Handles: relative ("./" "../"), @webiny/* aliases, and "~/*" (local src alias).
+ */
+function resolveModuleSpecifier(
+  sf: SourceFile,
+  modSpec: string,
+  pkgMap: Map<string, string>
+): string | null {
+  if (modSpec.startsWith(".")) {
+    return join(sf.getDirectoryPath(), modSpec.replace(/\.js$/, ".ts"));
+  }
+  if (modSpec.startsWith("~/")) {
+    // "~/" maps to the "src/" root of the current package.
+    // Walk up from the current file to find the "src" directory boundary.
+    const parts = sf.getFilePath().split("/");
+    const srcIdx = parts.lastIndexOf("src");
+    if (srcIdx !== -1) {
+      const srcRoot = parts.slice(0, srcIdx + 1).join("/");
+      return join(srcRoot, modSpec.slice(2).replace(/\.js$/, ".ts"));
+    }
+    return null;
+  }
+  return resolveWebinyImport(modSpec, pkgMap);
+}
+
+/**
+ * Resolve a "Namespace.Interface" type reference to interface members.
+ * e.g. "GraphQLSchemaBuilder.Interface" → finds GraphQLSchemaBuilder's IGraphQLSchemaBuilder interface.
+ */
+function resolveNamespaceDotInterface(
+  sf: SourceFile,
+  typeText: string,
+  pkgMap: Map<string, string>
+): { members: InterfaceMember[]; jsDoc: string } | null {
+  // Only handle Foo.Interface pattern
+  const m = typeText.match(/^(\w+)\.Interface$/);
+  if (!m) return null;
+  const abstractionName = m[1];
+
+  // Find where abstractionName is imported from
+  for (const decl of sf.getImportDeclarations()) {
+    const named = decl.getNamedImports().find(n => n.getName() === abstractionName);
+    if (!named) continue;
+    const modSpec = decl.getModuleSpecifierValue();
+    const resolvedPath = resolveModuleSpecifier(sf, modSpec, pkgMap);
+    if (!resolvedPath || !existsSync(resolvedPath)) continue;
+    try {
+      const targetSf = sf.getProject().addSourceFileAtPath(resolvedPath);
+      // In the target file, find createAbstraction<IFoo> for this name and extract IFoo
+      const exported = targetSf.getExportedDeclarations();
+      const decls = exported.get(abstractionName);
+      if (!decls) continue;
+      const varDecl = decls.find(d => Node.isVariableDeclaration(d));
+      if (!varDecl || !Node.isVariableDeclaration(varDecl)) continue;
+      const genericArg = getCreateAbstractionGeneric(varDecl);
+      if (!genericArg) continue;
+      const nodeSf = varDecl.getSourceFile();
+      return extractInterfaceMembers(nodeSf, genericArg, pkgMap).members.length > 0
+        ? extractInterfaceMembers(nodeSf, genericArg, pkgMap)
+        : null;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+/**
+ * Given a type alias name (e.g. "InstallSystemInput") in a source file, resolves it to
+ * an object interface and returns its fields. Only resolves simple aliases:
+ *   type Foo = SomeInterface        → fields of SomeInterface
+ *   type Foo = SomeInterface[]      → fields of SomeInterface (isArray=true)
+ * Skips generics, unions, Promise<...>, primitives, etc.
+ * Follows re-exports into sibling files.
+ */
+function resolveTypeToFields(
+  sf: SourceFile,
+  typeName: string,
+  pkgMap: Map<string, string>,
+  visited = new Set<string>()
+): ResolvedTypeFields | null {
+  const filePath = sf.getFilePath();
+  if (visited.has(filePath)) return null;
+  visited.add(filePath);
+
+  // Find the type alias in this file
+  const typeAlias = sf.getTypeAliases().find(t => t.getName() === typeName);
+  if (typeAlias) {
+    const typeNode = typeAlias.getTypeNode();
+    if (!typeNode) return null;
+    const typeText = typeNode.getText().trim();
+
+    // Skip anything with generics, unions, intersections, Promise, or primitives
+    if (
+      typeText.includes("<") ||
+      typeText.includes("|") ||
+      typeText.includes("&") ||
+      typeText === "string" ||
+      typeText === "number" ||
+      typeText === "boolean" ||
+      typeText === "any" ||
+      typeText === "void" ||
+      typeText === "unknown"
+    ) {
+      return null;
+    }
+
+    // Array alias: type Foo = Bar[]
+    const arrayMatch = typeText.match(/^(\w+)\[\]$/);
+    if (arrayMatch) {
+      const innerName = arrayMatch[1];
+      const inner = resolveInterfaceFields(sf, innerName, pkgMap);
+      if (!inner) return null;
+      return { typeName: innerName, isArray: true, jsDoc: inner.jsDoc, fields: inner.fields };
+    }
+
+    // Direct alias: type Foo = Bar
+    if (/^\w+$/.test(typeText)) {
+      const inner = resolveInterfaceFields(sf, typeText, pkgMap);
+      if (!inner) return null;
+      return { typeName: typeText, isArray: false, jsDoc: inner.jsDoc, fields: inner.fields };
+    }
+
+    return null;
+  }
+
+  // Follow re-exports
+  for (const decl of sf.getExportDeclarations()) {
+    const modSpec = decl.getModuleSpecifierValue();
+    if (!modSpec) continue;
+    const resolvedPath = resolveModuleSpecifier(sf, modSpec, pkgMap);
+    if (!resolvedPath || !existsSync(resolvedPath)) continue;
+    try {
+      const siblingSf = sf.getProject().addSourceFileAtPath(resolvedPath);
+      const result = resolveTypeToFields(siblingSf, typeName, pkgMap, visited);
+      if (result) return result;
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Find an interface by name in a source file (or via imports) and return its fields + JSDoc.
+ */
+function resolveInterfaceFields(
+  sf: SourceFile,
+  interfaceName: string,
+  pkgMap: Map<string, string>,
+  visited = new Set<string>()
+): { fields: EventPayloadField[]; jsDoc: string } | null {
+  const filePath = sf.getFilePath();
+  if (visited.has(filePath)) return null;
+  visited.add(filePath);
+
+  // Look for the interface in this file
+  const allIfaces = [
+    ...sf.getInterfaces(),
+    ...sf.getStatements().filter(Node.isInterfaceDeclaration)
+  ].filter(Node.isInterfaceDeclaration);
+
+  const iface = allIfaces.find(i => i.getName() === interfaceName);
+  if (iface) {
+    const fields = iface
+      .getProperties()
+      .filter(p => !isInternalNode(p))
+      .map(p => ({
+        name: p.getName(),
+        typeText: p.getTypeNode()?.getText() ?? "unknown",
+        optional: p.hasQuestionToken()
+      }));
+    return { fields, jsDoc: extractJsDoc(iface) };
+  }
+
+  // Follow named imports
+  for (const decl of sf.getImportDeclarations()) {
+    const named = decl.getNamedImports().find(n => n.getName() === interfaceName);
+    if (!named) continue;
+    const modSpec = decl.getModuleSpecifierValue();
+    const resolvedPath = resolveModuleSpecifier(sf, modSpec, pkgMap);
+    if (!resolvedPath || !existsSync(resolvedPath)) continue;
+    try {
+      const siblingSf = sf.getProject().addSourceFileAtPath(resolvedPath);
+      const result = resolveInterfaceFields(siblingSf, interfaceName, pkgMap, visited);
+      if (result) return result;
+    } catch {
+      continue;
+    }
+  }
+
+  // Follow re-exports (export * from "..." or export { X } from "...")
+  for (const decl of sf.getExportDeclarations()) {
+    const namedExports = decl.getNamedExports();
+    // Only follow if it's export * or exports our interface name
+    if (namedExports.length > 0 && !namedExports.some(n => n.getName() === interfaceName)) continue;
+    const modSpec = decl.getModuleSpecifierValue();
+    if (!modSpec) continue;
+    const resolvedPath = resolveModuleSpecifier(sf, modSpec, pkgMap);
+    if (!resolvedPath || !existsSync(resolvedPath)) continue;
+    try {
+      const siblingSf = sf.getProject().addSourceFileAtPath(resolvedPath);
+      const result = resolveInterfaceFields(siblingSf, interfaceName, pkgMap, visited);
+      if (result) return result;
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
 }
 
 /** Extract namespace type members as NamespaceMember[] */
@@ -682,6 +932,7 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
         const eventPayloadFields: EventPayloadField[] = [];
         let eventTypeName: string | undefined;
         let eventPayloadName: string | undefined;
+        let interfaceJsDoc: string | undefined;
 
         if (abstractionKind === "eventHandler") {
           // IEventHandler<SomeEvent> or IEventHandler<DomainEvent<SomePayload>>
@@ -707,9 +958,13 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
             jsDoc: ""
           });
         } else {
-          // useCase or service — resolve the IFoo interface, following re-exports
-          const resolved = extractInterfaceMembers(sf, genericArg, PKG_MAP);
-          interfaceMembers.push(...resolved);
+          // useCase or service — resolve the IFoo interface.
+          // Start from the file where createAbstraction<IFoo> is actually defined
+          // (which may be a deep source file, not the barrel re-exporting it).
+          const nodeSf = node.getSourceFile();
+          const resolved = extractInterfaceMembers(nodeSf, genericArg, PKG_MAP);
+          interfaceMembers.push(...resolved.members);
+          if (resolved.jsDoc) interfaceJsDoc = resolved.jsDoc;
         }
 
         // Extract namespace types — first try the co-located nsDecl, then search by name
@@ -731,6 +986,38 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
             })()
           : extractNamespaceTypes(sf, name);
 
+        // For each namespace type, try to resolve its fields or members
+        const nodeSfForTypes = node.getSourceFile();
+        namespaceTypes = namespaceTypes.map(t => {
+          // Skip Interface — it just aliases the abstraction itself
+          if (t.name === "Interface") return t;
+          const val = t.value.trim();
+
+          // Foo.Interface pattern → resolve as method interface
+          if (/^\w+\.Interface$/.test(val)) {
+            try {
+              const resolved = resolveNamespaceDotInterface(nodeSfForTypes, val, PKG_MAP);
+              if (resolved && resolved.members.length > 0)
+                return { ...t, resolvedMembers: resolved };
+            } catch {
+              /* ignore */
+            }
+            return t;
+          }
+
+          // Simple identifier → try to resolve as plain object fields
+          if (/^\w+$/.test(val)) {
+            try {
+              const resolved = resolveTypeToFields(nodeSfForTypes, val, PKG_MAP);
+              if (resolved && resolved.fields.length > 0) return { ...t, resolvedFields: resolved };
+            } catch {
+              /* ignore */
+            }
+          }
+
+          return t;
+        });
+
         return {
           name,
           kind: "abstraction",
@@ -741,6 +1028,7 @@ function extractSymbol(sf: SourceFile, name: string): ExtractedSymbol | null {
           sourceFile: sf.getFilePath(),
           abstractionKind,
           interfaceMembers,
+          interfaceJsDoc,
           namespaceTypes,
           eventPayloadFields,
           eventTypeName,
@@ -1086,23 +1374,35 @@ function renderSymbolSection(
   // Abstraction: rich rendering
   // -------------------------------------------------------------------------
   if (sym.kind === "abstraction") {
-    // Interface section
+    // Interface section — description, code block for signatures, table for descriptions
     if (sym.interfaceMembers && sym.interfaceMembers.length > 0) {
       lines.push(`**Interface \`${sym.name}.Interface\`:**`);
       lines.push("");
+      if (sym.interfaceJsDoc) {
+        lines.push(sym.interfaceJsDoc);
+        lines.push("");
+      }
+      // Full signatures in a code block
       lines.push("```typescript");
       lines.push(`interface ${sym.name}.Interface {`);
       for (const m of sym.interfaceMembers) {
-        if (m.jsDoc) {
-          for (const docLine of m.jsDoc.split("\n")) {
-            lines.push(`    // ${docLine}`);
-          }
-        }
         lines.push(`    ${m.signature};`);
       }
       lines.push("}");
       lines.push("```");
       lines.push("");
+      // Description table — only rendered if any member has JSDoc
+      const hasAnyJsDoc = sym.interfaceMembers.some(m => m.jsDoc);
+      if (hasAnyJsDoc) {
+        lines.push("| Method | Description |");
+        lines.push("| ------ | ----------- |");
+        for (const m of sym.interfaceMembers) {
+          const methodName = m.signature.split("(")[0].trim();
+          const desc = m.jsDoc ? m.jsDoc.replace(/\|/g, "\\|") : "—";
+          lines.push(`| \`${methodName}()\` | ${desc} |`);
+        }
+        lines.push("");
+      }
     }
 
     // Event payload section
@@ -1135,17 +1435,52 @@ function renderSymbolSection(
       lines.push("}");
       lines.push("```");
       lines.push("");
-    }
 
-    // Usage snippet
-    const usage = renderUsageSnippet(sym, importPath);
-    if (usage) {
-      lines.push(`**Usage:**`);
-      lines.push("");
-      lines.push(`\`\`\`typescript ${usage.file}`);
-      lines.push(usage.body);
-      lines.push("```");
-      lines.push("");
+      // For each resolved type, emit a field table or method table
+      for (const t of sym.namespaceTypes) {
+        if (t.resolvedFields && t.resolvedFields.fields.length > 0) {
+          const { typeName, isArray, jsDoc, fields } = t.resolvedFields;
+          const label = isArray ? `${typeName}[]` : typeName;
+          lines.push(`**\`${t.name}\` — \`${label}\`:**`);
+          lines.push("");
+          if (jsDoc) {
+            lines.push(jsDoc);
+            lines.push("");
+          }
+          lines.push("| Field | Type | Required | Description |");
+          lines.push("| ----- | ---- | -------- | ----------- |");
+          for (const f of fields) {
+            const req = f.optional ? "no" : "yes";
+            lines.push(`| \`${f.name}\` | \`${f.typeText.replace(/\|/g, "\\|")}\` | ${req} | — |`);
+          }
+          lines.push("");
+        } else if (t.resolvedMembers && t.resolvedMembers.members.length > 0) {
+          const { members, jsDoc } = t.resolvedMembers;
+          lines.push(`**\`${t.name}\` — \`${t.value}\`:**`);
+          lines.push("");
+          if (jsDoc) {
+            lines.push(jsDoc);
+            lines.push("");
+          }
+          lines.push("```typescript");
+          lines.push(`interface ${t.value} {`);
+          for (const m of members) lines.push(`    ${m.signature};`);
+          lines.push("}");
+          lines.push("```");
+          lines.push("");
+          const hasJsDoc = members.some(m => m.jsDoc);
+          if (hasJsDoc) {
+            lines.push("| Method | Description |");
+            lines.push("| ------ | ----------- |");
+            for (const m of members) {
+              const methodName = m.signature.split("(")[0].trim();
+              const desc = m.jsDoc ? m.jsDoc.replace(/\|/g, "\\|") : "—";
+              lines.push(`| \`${methodName}()\` | ${desc} |`);
+            }
+            lines.push("");
+          }
+        }
+      }
     }
 
     return lines.join("\n");

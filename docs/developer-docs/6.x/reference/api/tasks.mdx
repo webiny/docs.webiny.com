@@ -35,6 +35,8 @@ import { TaskDefinition } from "webiny/api/tasks";
 
 **Interface `TaskDefinition.Interface`:**
 
+Core TaskDefinition - minimal interface
+
 ```typescript
 interface TaskDefinition.Interface {
     id: string;
@@ -43,22 +45,35 @@ interface TaskDefinition.Interface {
     maxIterations?: number;
     databaseLogs?: boolean;
     isPrivate?: boolean;
-    // Core run method - receives ONLY input params
-    // All runtime dependencies (logging, state management, etc.) come from TaskController
     run(params: ITaskRunParams<I, O>): Promise<ITaskResult<I, O>>;
-    // Optional lifecycle hooks - receive task data, no context
     onBeforeTrigger?(params: ITaskBeforeTriggerParams<I>): Promise<void>;
     onDone?(params: ITaskLifecycleHook<I, O>): Promise<void>;
     onError?(params: ITaskLifecycleHook<I, O>): Promise<void>;
     onAbort?(params: ITaskLifecycleHook<I, O>): Promise<void>;
     onMaxIterations?(params: ITaskLifecycleHook<I, O>): Promise<void>;
-    // Create a validation schema for the task input.
-    // This will be used to validate the input before the task is triggered.
     createInputValidation?(
         params: ITaskCreateInputValidationParams
     ): GenericRecord<keyof I, zod.Schema> | zod.Schema;
 }
 ```
+
+| Method                                                                              | Description                                              |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `id: string()`                                                                      | —                                                        |
+| `title: string()`                                                                   | —                                                        |
+| `description?: string()`                                                            | —                                                        |
+| `maxIterations?: number()`                                                          | —                                                        |
+| `databaseLogs?: boolean()`                                                          | —                                                        |
+| `isPrivate?: boolean()`                                                             | —                                                        |
+| `run()`                                                                             | Core run method - receives ONLY input params             |
+| All runtime dependencies (logging, state management, etc.) come from TaskController |
+| `onBeforeTrigger?()`                                                                | Optional lifecycle hooks - receive task data, no context |
+| `onDone?()`                                                                         | —                                                        |
+| `onError?()`                                                                        | —                                                        |
+| `onAbort?()`                                                                        | —                                                        |
+| `onMaxIterations?()`                                                                | —                                                        |
+| `createInputValidation?()`                                                          | Create a validation schema for the task input.           |
+| This will be used to validate the input before the task is triggered.               |
 
 **Types:**
 
@@ -80,25 +95,6 @@ namespace TaskDefinition {
   type BeforeTriggerParams = ITaskBeforeTriggerParams<I>;
   type LifecycleHookParams = ITaskLifecycleHook<I, O>;
 }
-```
-
-**Usage:**
-
-```typescript extensions/MyImpl.ts
-import { TaskDefinition } from "webiny/api/tasks";
-
-class MyImpl implements MyUseCase.Interface {
-    public constructor(private taskDefinition: TaskDefinition.Interface) {}
-
-    public async execute(/* ... */): Promise<void> {
-        this.taskDefinition.id: string(/* ... */);
-    }
-}
-
-export default MyUseCase.createImplementation({
-    implementation: MyImpl,
-    dependencies: [TaskDefinition]
-});
 ```
 
 ## `TaskService`
@@ -138,23 +134,4 @@ namespace TaskService {
   type TaskInput = TaskDefinition.TaskInput;
   type Task = ITask<I, O>;
 }
-```
-
-**Usage:**
-
-```typescript extensions/MyImpl.ts
-import { TaskService } from "webiny/api/tasks";
-
-class MyImpl implements MyUseCase.Interface {
-    public constructor(private taskService: TaskService.Interface) {}
-
-    public async execute(/* ... */): Promise<void> {
-        await this.taskService.trigger:(/* ... */);
-    }
-}
-
-export default MyUseCase.createImplementation({
-    implementation: MyImpl,
-    dependencies: [TaskService]
-});
 ```

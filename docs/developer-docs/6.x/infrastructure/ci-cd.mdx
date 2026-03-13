@@ -1,0 +1,131 @@
+---
+id: infra6cicd
+title: CI/CD
+description: Best practices for structuring environments, branches, Pulumi state, and deployment workflows for a Webiny project.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to organize environments and AWS accounts
+- How to structure Git branches to mirror environments
+- How to store Pulumi state files for shared environments
+- How deployments flow from `dev` → `staging` → `prod`
+
+</Alert>
+
+## Overview
+
+This article covers the recommended CI/CD setup for a Webiny project. It assumes you are already familiar with CI/CD concepts and focuses on the decisions that are specific to Webiny — environments, branching, Pulumi state management, and deployment workflow.
+
+## Environments
+
+### Shared Environments
+
+The recommended minimum is three long-lived shared environments:
+
+| Environment | Purpose                                                      |
+| ----------- | ------------------------------------------------------------ |
+| `dev`       | Integration target for all feature branches; may be unstable |
+| `staging`   | Production-like environment for release candidate testing    |
+| `prod`      | Live system used by real users; must remain stable           |
+
+Each push to a shared branch should automatically trigger a deployment into its respective environment.
+
+### Isolated Environments
+
+Developers deploy their own short-lived isolated environments for local development and testing. These are deployed from a developer's machine and destroyed when no longer needed. Each developer should use their own AWS account to avoid interfering with shared environments.
+
+### AWS Accounts
+
+The recommended setup is one AWS account per environment — one for `dev`, one for `staging`, one for `prod`, and one per developer for isolated work. [AWS Organizations](https://aws.amazon.com/organizations/) makes managing multiple accounts easier.
+
+Using separate accounts means AWS credentials, Pulumi state buckets, and permissions are fully isolated between environments.
+
+**Consider a dedicated account for ephemeral environments.** If you run ephemeral PR environments in the same AWS account as your long-lived `dev` environment, the account may accumulate orphaned resources over time. Tools like [aws-nuke](https://github.com/ekristen/aws-nuke) can clean these up, but they cannot safely run against an account that also holds a live environment. By routing all ephemeral environments into a dedicated fourth account — separate from `dev`, `staging`, and `prod` — you can safely run aws-nuke or similar tools against that account on a schedule without risking your long-lived environments.
+
+## Branching Strategy
+
+Mirror your environments with long-lived Git branches: `dev`, `staging`, and `prod`. Protect all three against direct pushes — all changes should go through pull requests.
+
+Set `dev` as the default branch. All feature branches are created from `dev` and pull requests target `dev`.
+
+Short-lived branches follow this flow:
+
+```
+feature/my-change → (PR) → dev → (PR) → staging → (PR) → prod
+```
+
+### Hot Fixes
+
+If a critical bug needs an immediate fix in production, a PR can be raised directly against `prod`. Once merged, sync the fix back down: merge `prod` → `staging` → `dev`.
+
+## Pulumi State Files
+
+Webiny uses [Pulumi](https://www.pulumi.com/) for infrastructure deployments. Pulumi records the state of all deployed resources in state files — these must not be lost.
+
+### Local File System (default)
+
+By default, state files are stored in `.pulumi` folders within the project. This is suitable for individual developer environments only. The `.pulumi` folder is not checked into version control.
+
+### Amazon S3 (recommended for shared environments)
+
+For `dev`, `staging`, and `prod`, store state files in an S3 bucket within the same AWS account used for that environment. Create the bucket manually before the first deployment, then set:
+
+```bash
+WEBINY_PULUMI_BACKEND=s3://your-bucket-name
+```
+
+Since each environment uses its own AWS account, you end up with one S3 bucket per environment.
+
+### Pulumi Service
+
+Alternatively, use the [Pulumi Service](https://www.pulumi.com/product/pulumi-cloud/) for managed state storage with built-in locking, history, and secret encryption:
+
+```bash
+WEBINY_PULUMI_BACKEND=https://api.pulumi.com
+PULUMI_ACCESS_TOKEN=pul-xyzabc123
+```
+
+When using Pulumi Service, remove `PULUMI_SECRETS_PROVIDER` and `PULUMI_CONFIG_PASSPHRASE` — the service provides its own secrets handling.
+
+<Alert type="warning">
+
+Do not lose your `PULUMI_CONFIG_PASSPHRASE` when using the passphrase secrets provider. Without it, you cannot redeploy or destroy existing infrastructure.
+
+</Alert>
+
+## Deployment Workflow
+
+### 1. Feature development
+
+A developer branches from `dev`, makes changes, and opens a PR back to `dev`. Tests run against a short-lived ephemeral environment. On approval, the branch is merged and the `dev` environment is redeployed.
+
+### 2. Release to staging
+
+When `dev` is ready for a release, open a PR from `dev` → `staging`. Once merged, `staging` is redeployed. QA and stakeholders test the release candidate.
+
+If bugs are found in `staging`, raise fixes as PRs against `staging` directly (not `dev`). At the end of the release cycle, merge `staging` back into `dev` to keep them in sync.
+
+### 3. Release to production
+
+Once `staging` is approved, open a PR from `staging` → `prod`. Once merged, `prod` is redeployed and the release is live.
+
+## GitHub Actions
+
+Everything outlined in this article is implemented in the ready-made GitHub Actions workflow files Webiny provides. See [GitHub Actions](/{version}/infrastructure/github-actions) for the full setup guide — workflow files, OIDC authentication, and required repository secrets.
+
+## FAQ
+
+### Can I have more than three shared environments?
+
+Yes. Add additional long-lived branches and environments as needed — a common addition is a `uat` environment between `staging` and `prod`.
+
+### Are environment names fixed?
+
+No. `dev`, `staging`, and `prod` are conventions, not hard-coded values. Use whatever naming your organization follows.
+
+### What happens if two deployments are triggered simultaneously?
+
+Pulumi locks state during a deployment. The second deployment will be rejected with an error until the first completes.

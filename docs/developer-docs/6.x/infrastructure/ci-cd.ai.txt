@@ -1,0 +1,56 @@
+AI Context: CI/CD (ci-cd.mdx)
+
+## Source of Information
+
+1. `docs/developer-docs/5.x/core-development-concepts/ci-cd/introduction.mdx` — overview and phases
+2. `docs/developer-docs/5.x/core-development-concepts/ci-cd/environments.mdx` — shared/isolated environments, AWS accounts
+3. `docs/developer-docs/5.x/core-development-concepts/ci-cd/version-control.mdx` — GitHub flow, branching
+4. `docs/developer-docs/5.x/core-development-concepts/ci-cd/cloud-infrastructure-state-files.mdx` — Pulumi backends
+5. `docs/developer-docs/5.x/core-development-concepts/ci-cd/workflows.mdx` — merging strategies, release cycle
+
+## Key Documentation Decisions
+
+1. Six v5 articles collapsed into one — target audience is experienced AWS/DevOps engineers who don't need CI/CD explained
+2. Removed: what is CI/CD, CI/CD phases diagram, what is Git/GitHub, what is Pulumi (assumed knowledge)
+3. Removed: references to v5 scaffold (`yarn webiny scaffold`) — not relevant in v6
+4. Removed: "Can I bring additional tools?" FAQ — too basic
+5. Removed: testing article content — not in scope for this article
+6. Kept: environment table, AWS accounts recommendation, branching strategy, Pulumi state backend options, deployment flow, hot fix pattern
+7. GitHub Actions is a separate article (`github-actions.mdx`)
+8. Staging merge strategy: kept the recommended "PR against staging, then sync back to dev" approach
+9. No version references anywhere
+
+## Understanding
+
+### Environment structure
+- 3 shared long-lived: dev, staging, prod
+- Isolated: per developer, per developer AWS account
+- Each shared env: own AWS account, own S3 bucket for Pulumi state
+
+### Pulumi state backends
+- Local `.pulumi` folder: developer environments only, not in VCS
+- S3: recommended for shared envs; one bucket per env/account; set via `WEBINY_PULUMI_BACKEND=s3://...`
+- Pulumi Service: managed option with locking/history; set via `WEBINY_PULUMI_BACKEND=https://api.pulumi.com` + `PULUMI_ACCESS_TOKEN`
+- When using Pulumi Service: remove `PULUMI_SECRETS_PROVIDER` and `PULUMI_CONFIG_PASSPHRASE`
+
+### Deployment flow
+feature branch → PR → dev → PR → staging → PR → prod
+
+### Hot fix flow
+PR directly to prod → merge prod → staging → dev
+
+### Staging merge strategy (recommended)
+Fix bugs found in staging by PRing against staging (not dev). At end of cycle, merge staging back to dev.
+
+## Related Documents
+
+- `infrastructure/github-actions.mdx` — GitHub Actions workflow setup
+- `infrastructure/deploy-webiny-project-cf-template.mdx` — IAM permissions for CI/CD
+- `infrastructure/deployment-modes.mdx` — dev vs prod infrastructure differences
+
+## Tone Guidelines
+
+- Assumes experienced AWS/DevOps audience — no hand-holding on basic concepts
+- Prescriptive: "the recommended setup is..." not "you could consider..."
+- Table-driven where possible for environment/backend comparison
+- FAQ section for edge cases only

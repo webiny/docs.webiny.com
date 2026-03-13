@@ -1,0 +1,189 @@
+---
+id: infra6ghac
+title: GitHub Actions
+description: Set up GitHub Actions workflows to automatically deploy your Webiny project across dev, staging, and prod environments.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What workflow files to add to your repository
+- How OIDC authentication works with these workflows
+- What repository secrets need to be configured
+- How pull request environments work
+
+</Alert>
+
+## Overview
+
+Webiny provides ready-made GitHub Actions workflow files that automatically deploy your project when code is pushed to the `dev`, `staging`, or `prod` branches, and spin up ephemeral environments for pull requests.
+
+The workflow files are available at [github.com/webiny/webiny-js/tree/next/docs/gh-actions-workflows](https://github.com/webiny/webiny-js/tree/next/docs/gh-actions-workflows). Copy them into your repository under `.github/workflows/`.
+
+## Workflow Files
+
+| File                    | Trigger                           | What it does                                                        |
+| ----------------------- | --------------------------------- | ------------------------------------------------------------------- |
+| `pushDev.yml`           | Push to `dev`                     | Runs formatting/lint checks, deploys to `dev` environment           |
+| `pushStaging.yml`       | Push to `staging`                 | Runs formatting/lint checks, deploys to `staging` environment       |
+| `pushProd.yml`          | Push to `prod`                    | Runs formatting/lint checks, deploys to `prod` environment          |
+| `pullRequest.yml`       | PR opened/updated targeting `dev` | Runs static analysis, deploys to ephemeral `pr{number}` environment |
+| `pullRequestClosed.yml` | PR closed targeting `dev`         | Destroys the ephemeral `pr{number}` environment                     |
+
+Each push workflow uses `concurrency` to ensure only one deployment per environment runs at a time — if a new push arrives while a deployment is in progress, the in-progress run is cancelled.
+
+The `--env` value passed to `yarn webiny deploy` matters. `pushProd.yml` uses `--env prod`, which triggers [production deployment mode](/{version}/infrastructure/deployment-modes) with a more robust cloud infrastructure setup. By default, `staging` does not use production mode — if you want `staging` to also deploy with production infrastructure, see the [Deployment Modes](/{version}/infrastructure/deployment-modes) article.
+
+## AWS Authentication (OIDC)
+
+The workflows authenticate to AWS using **OpenID Connect (OIDC)** via the `aws-actions/configure-aws-credentials` action. This means no static `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` credentials are stored as secrets — instead, each workflow assumes an IAM role using a short-lived token:
+
+```yaml
+permissions:
+  id-token: write
+  contents: read
+
+steps:
+  - name: Configure AWS Credentials
+    uses: aws-actions/configure-aws-credentials@v4
+    with:
+      role-to-assume: ${{ secrets.DEV_AWS_ROLE_ARN }}
+      aws-region: ${{ secrets.DEV_AWS_REGION }}
+```
+
+Each AWS account needs an IAM role that trusts the GitHub OIDC provider. The [AWS CloudFormation Template](/{version}/infrastructure/deploy-webiny-project-cf-template) is designed to be used together with this article: you pre-create an IAM role in each AWS account, then deploy the CloudFormation template which attaches the required deployment policies to that role. Use the role ARN as the `*_AWS_ROLE_ARN` secret for the corresponding environment.
+
+For instructions on setting up the GitHub OIDC provider in your AWS account, refer to the [GitHub documentation on configuring OIDC in AWS](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services).
+
+## Repository Secrets
+
+Navigate to your repository **Settings → Secrets and variables → Actions** and add the following secrets. Each secret is defined three times — once per environment — using the environment prefix.
+
+### AWS Role and Region
+
+```bash
+DEV_AWS_ROLE_ARN        # ARN of the IAM role to assume in the dev AWS account
+DEV_AWS_REGION
+
+STAGING_AWS_ROLE_ARN
+STAGING_AWS_REGION
+
+PROD_AWS_ROLE_ARN
+PROD_AWS_REGION
+```
+
+### Pulumi State Backend
+
+Set the Pulumi backend for each environment. Typically an S3 URI within that environment's AWS account:
+
+```bash
+DEV_WEBINY_PULUMI_BACKEND
+STAGING_WEBINY_PULUMI_BACKEND
+PROD_WEBINY_PULUMI_BACKEND
+```
+
+Pull request environments use their own backend so state doesn't mix with `dev`:
+
+```bash
+DEV_WEBINY_PULUMI_BACKEND_PULL_REQUESTS
+```
+
+See [CI/CD](/{version}/infrastructure/ci-cd#pulumi-state-files) for guidance on choosing a backend.
+
+### Pulumi Secrets Provider
+
+These are **optional**. Pulumi supports encrypting sensitive values stored in state files using a passphrase-based secrets provider. If you set `PULUMI_SECRETS_PROVIDER` to `passphrase`, any secrets you explicitly mark in your Pulumi code will be encrypted in the state file using `PULUMI_CONFIG_PASSPHRASE`. See [Managing Secrets with Pulumi](https://www.pulumi.com/blog/managing-secrets-with-pulumi/) for a full explanation of how Pulumi secrets work.
+
+Webiny itself does not store any sensitive data in Pulumi state files, so in most cases these can be left unset. They are worth configuring for `staging` and `prod` if your own infrastructure code stores secrets in state.
+
+```bash
+DEV_PULUMI_SECRETS_PROVIDER       # e.g. "passphrase" — optional
+DEV_PULUMI_CONFIG_PASSPHRASE      # random string — optional
+
+STAGING_PULUMI_SECRETS_PROVIDER
+STAGING_PULUMI_CONFIG_PASSPHRASE
+
+PROD_PULUMI_SECRETS_PROVIDER
+PROD_PULUMI_CONFIG_PASSPHRASE
+```
+
+<Alert type="warning">
+
+If you do configure a `PULUMI_CONFIG_PASSPHRASE`, do not lose it. Without it you cannot redeploy or destroy the infrastructure for that environment.
+
+</Alert>
+
+### Webiny Project
+
+These secrets are required if you have upgraded to the Business or Enterprise tier. They identify your project to the Webiny platform during deployment. See [Upgrade to Business](/{version}/get-started/upgrade) for details.
+
+```bash
+DEV_WEBINY_PROJECT_ID
+DEV_WEBINY_PROJECT_API_KEY
+
+STAGING_WEBINY_PROJECT_ID
+STAGING_WEBINY_PROJECT_API_KEY
+
+PROD_WEBINY_PROJECT_ID
+PROD_WEBINY_PROJECT_API_KEY
+```
+
+### OpenSearch (if applicable)
+
+Only used by the PR workflows (`pullRequest.yml` and `pullRequestClosed.yml`), and only when using the DynamoDB + OpenSearch database setup. The push workflows do not reference OpenSearch secrets — each of those environments provisions its own dedicated OpenSearch domain.
+
+PR environments are typically pointed at a shared OpenSearch domain from the `dev` AWS account. This avoids provisioning a dedicated domain per PR (which would be slow and expensive). See [Using a Shared OpenSearch Domain](/{version}/infrastructure/extensions/opensearch#using-a-shared-open-search-domain) for how to configure your project to use a shared domain.
+
+```bash
+DEV_OPENSEARCH_DOMAIN_NAME    # name of the shared OpenSearch domain in the dev AWS account
+```
+
+`OPENSEARCH_INDEX_PREFIX` is not a secret — the PR workflows set it inline as `pr${{ github.event.pull_request.number }}` so each PR environment gets its own index namespace within the shared domain.
+
+## Pull Request Environments
+
+When a pull request is opened or updated against `dev`, the `pullRequest.yml` workflow runs two jobs:
+
+1. **`build-test-static`** — runs formatting and lint checks (no AWS credentials required)
+2. **`deploy`** — deploys a full ephemeral environment named `pr{number}` (e.g. `pr42`) using the `dev` AWS account credentials
+
+The deploy job requires `pull-requests: write` permission so it can post deployment status comments on the PR. It deploys each application separately:
+
+```yaml
+- name: Deploy core
+  run: yarn webiny deploy core --env pr${{ github.event.pull_request.number }}
+
+- name: Deploy API
+  run: yarn webiny deploy api --env pr${{ github.event.pull_request.number }}
+
+- name: Deploy Admin
+  run: yarn webiny deploy admin --env pr${{ github.event.pull_request.number }}
+```
+
+This gives you a live environment to test changes before merging. The environment uses a separate Pulumi state backend (`DEV_WEBINY_PULUMI_BACKEND_PULL_REQUESTS`) to keep PR state isolated from the `dev` environment.
+
+<Alert type="info">
+
+The PR workflows use the `dev` AWS account credentials by default. If you want to keep ephemeral environments completely separate from your long-lived `dev` environment — for example, to be able to run cleanup tools like [aws-nuke](https://github.com/ekristen/aws-nuke) against the ephemeral account without affecting `dev` — use a dedicated fourth AWS account for PR environments and set the `DEV_AWS_ROLE_ARN` / `DEV_AWS_REGION` secrets for that account. See [CI/CD](/{version}/infrastructure/ci-cd#aws-accounts) for more on this pattern.
+
+</Alert>
+
+When the PR is closed (merged or abandoned), `pullRequestClosed.yml` automatically destroys the ephemeral environment:
+
+```yaml
+- name: Destroy
+  run: yarn webiny destroy --env pr${{ github.event.pull_request.number }} --confirm-destroy-env pr${{ github.event.pull_request.number }} --debug
+```
+
+The `--confirm-destroy-env` flag is required as a safety measure — it must match the `--env` value to confirm you intend to destroy that environment.
+
+## Deployment Triggers
+
+Once secrets are configured:
+
+- Push to `dev` → deploys to the `dev` environment
+- Push to `staging` → deploys to the `staging` environment
+- Push to `prod` → deploys to the `prod` environment
+
+The `staging` and `prod` environments will not deploy until you first push code into those branches. To initialize all three environments after setup, merge `dev` → `staging` → `prod`.
