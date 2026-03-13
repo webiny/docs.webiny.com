@@ -1,0 +1,58 @@
+AI Context: Build and Deploy Hooks (build-and-deploy-hooks.mdx)
+
+## Source of Information
+
+1. `docs/developer-docs/5.x/infrastructure/basics/build-and-deploy-hooks.mdx` — v5 article being ported
+2. `docs/developer-docs/6.x/reference/extensions.mdx` — canonical list of all Infra.* extensions including all Before/After hooks
+3. User instruction: cover Admin.BeforeBuild, Admin.BeforeDeploy, Admin.BeforeWatch, Admin.AfterBuild, Admin.AfterDeploy, Admin.Pulumi, Admin.CustomDomains, Admin.StackOutputValue, Api.BeforeBuild, Api.BeforeDeploy, Api.BeforeWatch, Api.AfterBuild, Api.AfterDeploy, Api.Pulumi
+
+## Key Documentation Decisions
+
+1. Scoped to lifecycle hooks only (Before/After Build/Deploy/Watch) — Admin.Pulumi, Admin.CustomDomains, Admin.StackOutputValue are separate concerns covered elsewhere
+2. Dropped v5 plugin system entirely — no `hook-before-build` plugin type, no `webiny.project.ts`; v6 uses `Infra.*` components in `webiny.config.tsx`
+3. No diagram — v5 had a lifecycle diagram image; not ported (no equivalent asset)
+4. Implementation pattern follows DI convention: class implements `HookName.Interface`, `createImplementation()` export default
+5. Import paths: `webiny/infra/core` → `CoreBeforeBuildHook`, `CoreAfterBuildHook`, etc.; same pattern for `webiny/infra/api` and `webiny/infra/admin`
+6. File naming convention: PascalCase — `BeforeBuild.ts`, `AfterDeploy.ts`, `BeforeWatch.ts`
+7. All three stacks (Core, Api, Admin) documented with their own code sections
+8. BeforeWatch hook documented — triggered before `yarn webiny watch` starts
+
+## Understanding
+
+### V6 hook pattern
+
+All hooks registered via `Infra.[Stack].Before/AfterBuild/Deploy/Watch` components in `webiny.config.tsx`:
+- `src` prop points to a TypeScript file (PascalCase filename)
+- File exports a default via `HookName.createImplementation()`
+- Class implements `HookName.Interface` with an `execute(): Promise<void>` method
+- Multiple hooks for the same event are executed in registration order
+- `Ui` from `webiny/infra` is the standard dependency for logging
+
+### Import paths
+
+- Core hooks: `import { CoreBeforeBuildHook } from "webiny/infra/core"`
+- Api hooks: `import { ApiBeforeBuildHook } from "webiny/infra/api"`
+- Admin hooks: `import { AdminBeforeBuildHook } from "webiny/infra/admin"`
+
+### Available hooks per stack
+
+Core, Api, Admin each have: BeforeBuild, AfterBuild, BeforeDeploy, AfterDeploy, BeforeWatch
+
+### Not covered in this article
+
+- `Infra.Admin.Pulumi` / `Infra.Api.Pulumi` / `Infra.Core.Pulumi` — covered in pulumi-extensions.mdx
+- `Infra.Admin.CustomDomains` — separate topic
+- `Infra.Admin.StackOutputValue` / `Infra.Api.StackOutputValue` / `Infra.Core.StackOutputValue` — separate topic
+
+## Related Documents
+
+- `reference/extensions.mdx` — full list of all Infra.* components
+- `infrastructure/extensions/pulumi-extensions.mdx` — Pulumi-level infrastructure modifications
+- `cli/deploy.mdx` — the deploy command these hooks attach to
+- `cli/watch.mdx` — the watch command BeforeWatch hooks attach to
+
+## Tone Guidelines
+
+- Practical reference with examples — not conceptual
+- Show all three stacks (Core, Api, Admin) with consistent examples
+- Code blocks should be copy-paste ready

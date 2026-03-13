@@ -76,16 +76,17 @@ export const Navigation = () => {
     <NavigationRoot directory={__dirname}>
       <Group title={"Release Notes"}>
         <Page file={"./upgrade-webiny.mdx"} link={"release-notes/upgrade-webiny"} />
-        <Group title={"Release Notes"}>
-          {versions.slice(0, 5).map(version => (
-            <MenuItem key={version} version={version} />
-          ))}
-          <Group title={"Older Releases"}>
-            {versions.slice(5).map(version => (
-              <MenuItem key={version} version={version} />
-            ))}
-          </Group>
-        </Group>
+        {/*TODO: activate again once we have something released.*/}
+        {/*<Group title={"Release Notes"}>*/}
+        {/*  {versions.slice(0, 5).map(version => (*/}
+        {/*    <MenuItem key={version} version={version} />*/}
+        {/*  ))}*/}
+        {/*  <Group title={"Older Releases"}>*/}
+        {/*    {versions.slice(5).map(version => (*/}
+        {/*      <MenuItem key={version} version={version} />*/}
+        {/*    ))}*/}
+        {/*  </Group>*/}
+        {/*</Group>*/}
       </Group>
     </NavigationRoot>
   );

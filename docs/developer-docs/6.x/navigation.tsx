@@ -155,6 +155,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           />
           <Page link={"infrastructure/extensions/opensearch"} title={"Amazon OpenSearch"} />
           <Page link={"infrastructure/extensions/pulumi-extensions"} title={"Pulumi Extensions"} />
+          <Page
+            link={"infrastructure/extensions/build-and-deploy-hooks"}
+            title={"Build and Deploy Hooks"}
+          />
         </Group>
       </Group>
       <Group

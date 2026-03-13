@@ -1,0 +1,96 @@
+---
+id: bd4h9xmk
+title: Build and Deploy Hooks
+description: Run custom logic before or after build, deploy, and watch steps for each project application.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What lifecycle hooks are available for the Core, API, and Admin project applications
+- How to run custom logic before or after build, deploy, and watch steps
+- How to register hooks in `webiny.config.tsx`
+
+</Alert>
+
+## Overview
+
+When you run `yarn webiny deploy` or `yarn webiny watch`, Webiny executes a build step followed by a deploy step for each project application (Core, API, Admin). You can hook into any of these steps using `Infra.*` lifecycle extensions registered in `webiny.config.tsx`.
+
+## Available Hooks
+
+Each project application — `Core`, `Api`, and `Admin` — exposes the same set of hook extensions:
+
+| Extension                                 | When it runs                                         |
+| ----------------------------------------- | ---------------------------------------------------- |
+| `Infra.[ProjectApplication].BeforeBuild`  | Before the application code is compiled              |
+| `Infra.[ProjectApplication].AfterBuild`   | After the application code is compiled               |
+| `Infra.[ProjectApplication].BeforeDeploy` | Before compiled code and infrastructure are deployed |
+| `Infra.[ProjectApplication].AfterDeploy`  | After compiled code and infrastructure are deployed  |
+| `Infra.[ProjectApplication].BeforeWatch`  | Before the watch process starts                      |
+
+Where `[ProjectApplication]` is one of `Core`, `Api`, or `Admin`.
+
+All hooks can be used multiple times — if you register multiple hooks for the same lifecycle event, they are executed in order.
+
+## Example: API Application
+
+Register API hooks in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Api.BeforeBuild src={"/extensions/hooks/api/BeforeBuild.ts"} />
+      <Infra.Api.AfterBuild src={"/extensions/hooks/api/AfterBuild.ts"} />
+      <Infra.Api.BeforeDeploy src={"/extensions/hooks/api/BeforeDeploy.ts"} />
+      <Infra.Api.AfterDeploy src={"/extensions/hooks/api/AfterDeploy.ts"} />
+      <Infra.Api.BeforeWatch src={"/extensions/hooks/api/BeforeWatch.ts"} />
+    </>
+  );
+};
+```
+
+Each hook file exports a default implementation using the DI pattern:
+
+```typescript extensions/hooks/api/BeforeBuild.ts
+import { Ui } from "webiny/infra";
+import { ApiBeforeBuildHook } from "webiny/infra/api";
+
+class ApiBeforeBuildHookImpl implements ApiBeforeBuildHook.Interface {
+  public constructor(private ui: Ui.Interface) {}
+
+  public async execute(): Promise<void> {
+    this.ui.info("Running before API build...");
+  }
+}
+
+export default ApiBeforeBuildHook.createImplementation({
+  implementation: ApiBeforeBuildHookImpl,
+  dependencies: [Ui]
+});
+```
+
+```typescript extensions/hooks/api/AfterDeploy.ts
+import { Ui } from "webiny/infra";
+import { ApiAfterDeployHook } from "webiny/infra/api";
+
+class ApiAfterDeployHookImpl implements ApiAfterDeployHook.Interface {
+  public constructor(private ui: Ui.Interface) {}
+
+  public async execute(): Promise<void> {
+    this.ui.info("API deployment complete.");
+  }
+}
+
+export default ApiAfterDeployHook.createImplementation({
+  implementation: ApiAfterDeployHookImpl,
+  dependencies: [Ui]
+});
+```
+
+The same pattern applies to the `Admin` and `Core` project applications — replace `Api` with `Admin` or `Core` in both the `Infra.*` component names and the import paths (`webiny/infra/admin`, `webiny/infra/core`).
