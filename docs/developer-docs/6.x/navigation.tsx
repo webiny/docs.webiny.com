@@ -103,6 +103,14 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
         <Page link={"website-builder/event-handlers"} title={"Event Handlers"} />
       </Group>
+      <Group
+        title={"Tenant Manager"}
+        icon={"/docs/menu-icons/tenant-manager.svg"}
+        link={"tenant-manager/manage-tenants"}
+      >
+        <Page link={"tenant-manager/manage-tenants"} />
+        <Page link={"tenant-manager/extend-tenant-model"} />
+      </Group>
       {/*<Group title={"GraphQL"} icon={"/docs/menu-icons/webiny-overview.svg"} link={"graphql/about"}>*/}
       {/*  <Page link={"graphql/about"} />*/}
       {/*  <Page link={"graphql/reference"} />*/}
