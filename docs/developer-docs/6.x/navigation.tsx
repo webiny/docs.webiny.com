@@ -61,6 +61,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           title={"Content Modeling Best Practices"}
         />
         <Page link={"headless-cms/event-handlers"} title={"Event Handlers"} />
+        <Page
+          link={"headless-cms/customize-entry-list-columns"}
+          title={"Customize Entry List Columns"}
+        />
         <Page link={"headless-cms/migrating-to-webiny"} title={"Migrating to Webiny"} />
         <Page
           link={"headless-cms/date-time-and-identity-meta-fields"}

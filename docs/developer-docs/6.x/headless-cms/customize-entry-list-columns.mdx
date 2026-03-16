@@ -1,0 +1,238 @@
+---
+id: kp4e7rnx
+title: Customize Entry List Columns
+description: Learn how to add, replace, remove, or reposition columns in the Headless CMS entry list table.
+---
+
+import hcmsDefaultTable from "./assets/hcms-default-table.png";
+import hcmsSimpleColumn from "./assets/hcms-simple-column.png";
+import hcmsCustomCellRenderer from "./assets/hcms-custom-cell-renderer.png";
+import hcmsSortableColumn from "./assets/hcms-sortable-column.png";
+import hcmsVisibleColumn from "./assets/hcms-visible-column.png";
+import hcmsDiscoverColumn from "./assets/hcms-discover-column.png";
+
+import { Alert } from "@/components/Alert";
+import { Image } from "@/components/Image";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to add a column to the entry list table
+- How to render custom cell content
+- How to control column position, visibility, and sortability
+- How to remove or replace an existing column
+
+</Alert>
+
+## Overview
+
+The entry list table displays entries for a given content model. By default, it shows the following columns:
+
+- **Name** — the entry's title field
+- **Author** — the `createdBy` identity
+- **Created** — the `createdOn` date
+- **Modified** — the `savedOn` date
+- **Status** — the status and version of the currently displayed revision
+- **Live** — whether any revision of the entry is published; useful because the table shows the latest revision, which may be a draft while an older revision remains live
+
+<Image src={hcmsDefaultTable} title="Default entry list table columns" />
+
+Columns are configured using [`ContentEntryListConfig`](/{version}/reference/admin/cms/entry/list#content-entry-list-config). You create an extension file, define your columns inside it, and register it as an [`Admin.Extension`](/{version}/reference/extensions#extension-1) in `webiny.config.tsx`.
+
+## Add a Column
+
+### Simple Column
+
+To add a column that displays a field value directly, use `Browser.Table.Column` with the `name`, `header`, and `path` props:
+
+```tsx extensions/product/ProductEntryListColumns.tsx
+import React from "react";
+import { ContentEntryListConfig } from "webiny/admin/cms/entry/list";
+
+const { Browser } = ContentEntryListConfig;
+
+const ProductEntryListColumns = () => {
+  return (
+    <ContentEntryListConfig>
+      <Browser.Table.Column
+        name={"sku"}
+        after={"name"}
+        path={"values.sku"}
+        header={"SKU"}
+        modelIds={["product"]}
+      />
+    </ContentEntryListConfig>
+  );
+};
+
+export default ProductEntryListColumns;
+```
+
+- `name` — unique identifier for the column; also used to reference it in `before`, `after`, and `remove`
+- `header` — column header label
+- `path` — dot-notation path to the value in the entry data (e.g. `values.sku`); use this for simple fields that need no custom rendering
+- `modelIds` — restricts the column to specific content models; omit to apply to all models
+
+<Image src={hcmsSimpleColumn} title="A simple custom column" />
+
+### Custom Cell Renderer
+
+For more control over how a cell is displayed, pass a React component via the `cell` prop. The component can access the current row via `useTableRow()`:
+
+```tsx extensions/product/ProductEntryListColumns.tsx
+import React from "react";
+import { ContentEntryListConfig } from "webiny/admin/cms/entry/list";
+
+const { Browser } = ContentEntryListConfig;
+
+interface ProductTableRow {
+  values: {
+    price: number;
+  };
+}
+
+const PriceCell = () => {
+  const { useTableRow, isFolderRow } = ContentEntryListConfig.Browser.Table.Column;
+  const { row } = useTableRow<ProductTableRow>();
+
+  if (isFolderRow(row)) {
+    return <>{"-"}</>;
+  }
+
+  const formatted = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD"
+  }).format(row.data.values.price);
+
+  return <>{formatted}</>;
+};
+
+const ProductEntryListColumns = () => {
+  return (
+    <ContentEntryListConfig>
+      <Browser.Table.Column
+        name={"price"}
+        after={"sku"}
+        header={"Price"}
+        modelIds={["product"]}
+        cell={<PriceCell />}
+      />
+    </ContentEntryListConfig>
+  );
+};
+
+export default ProductEntryListColumns;
+```
+
+- `useTableRow<T>()` — returns `{ row }` with the full row data; use the generic parameter to type `row.data`
+- `isFolderRow(row)` — returns `true` when the row is a folder rather than an entry; useful for rendering a fallback value
+
+<Image src={hcmsCustomCellRenderer} title="Custom cell renderer" />
+
+### Sortable Column
+
+Set `sortable={true}` to allow users to sort by the column. The field must be included in the model's available sorting options.
+
+```tsx
+<Browser.Table.Column name={"price"} header={"Price"} modelIds={["product"]} sortable={true} />
+```
+
+<Image src={hcmsSortableColumn} title="Sortable column" />
+
+### Column Size
+
+Use `size` to control the initial column width (default: `100`). The value is proportional — `200` means twice the default width. Set `resizable={false}` to prevent users from resizing the column.
+
+```tsx
+<Browser.Table.Column
+  name={"price"}
+  header={"Price"}
+  modelIds={["product"]}
+  size={75}
+  resizable={false}
+/>
+```
+
+### Column Visibility
+
+By default columns are visible. Set `visible={false}` to hide a column initially — users can still show it via the column settings menu.
+
+```tsx
+<Browser.Table.Column name={"price"} header={"Price"} modelIds={["product"]} visible={false} />
+```
+
+<Image src={hcmsVisibleColumn} title="Hidden-by-default column" />
+
+Set `hideable={false}` to lock a column as always-visible, preventing users from toggling it off.
+
+```tsx
+<Browser.Table.Column name={"price"} header={"Price"} modelIds={["product"]} hideable={false} />
+```
+
+### Custom Class Names
+
+Use `className` to apply CSS class names to both the column header and cells:
+
+```tsx
+<Browser.Table.Column
+  name={"price"}
+  header={"Price"}
+  modelIds={["product"]}
+  className={"custom-price-column"}
+/>
+```
+
+## Position a Column
+
+Use `before` or `after` to position a column relative to an existing one:
+
+```tsx
+<Browser.Table.Column name={"price"} header={"Price"} before={"status"} />
+```
+
+## Discover Existing Column Names
+
+To find the names of built-in columns for use with `before`, `after`, or `remove`, use your browser's React DevTools and search for `BaseColumns`:
+
+<Image src={hcmsDiscoverColumn} title="Discovering existing column names with React DevTools" />
+
+## Remove a Column
+
+Pass `remove` to remove an existing column by name:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.Table.Column name={"savedOn"} remove />
+</ContentEntryListConfig>
+```
+
+## Replace a Column
+
+Reference an existing column by name and pass a new `cell` component to replace its renderer:
+
+```tsx
+<ContentEntryListConfig>
+  <Browser.Table.Column
+    name={"status"}
+    header={"Custom Status"}
+    cell={<span>{"Custom Status Cell"}</span>}
+  />
+</ContentEntryListConfig>
+```
+
+## Registering the Extension
+
+Register the extension file as an [`Admin.Extension`](/{version}/reference/extensions#extension-1) in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Admin } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... other extensions */}
+      <Admin.Extension src={"/extensions/product/ProductEntryListColumns.tsx"} />
+    </>
+  );
+};
+```
