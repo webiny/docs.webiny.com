@@ -61,6 +61,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           title={"Content Modeling Best Practices"}
         />
         <Page link={"headless-cms/event-handlers"} title={"Event Handlers"} />
+        <Page
+          link={"headless-cms/customize-entry-list-columns"}
+          title={"Customize Entry List Columns"}
+        />
         <Page link={"headless-cms/migrating-to-webiny"} title={"Migrating to Webiny"} />
         <Page
           link={"headless-cms/date-time-and-identity-meta-fields"}
@@ -132,6 +136,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"cli/watch"} />
         <Page link={"cli/pulumi"} />
         <Page link={"cli/info"} />
+        <Page link={"cli/configure-mcp"} />
       </Group>
       <Group
         title={"Deployments and Infrastructure"}
@@ -163,6 +168,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           />
           <Page link={"infrastructure/extensions/opensearch"} title={"Amazon OpenSearch"} />
           <Page link={"infrastructure/extensions/pulumi-extensions"} title={"Pulumi Extensions"} />
+          <Page
+            link={"infrastructure/extensions/build-and-deploy-hooks"}
+            title={"Build and Deploy Hooks"}
+          />
         </Group>
       </Group>
       <Group
