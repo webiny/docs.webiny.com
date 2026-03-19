@@ -1,0 +1,231 @@
+---
+id: aafeaa2c
+title: Security
+description: Overview of Webiny security strategy.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What You'll Learn">
+
+  - How we approach security at the codebase, infrastructure, application, and data layers
+  - What Webiny handles vs. what is your responsibility
+  - How governance and compliance controls are enforced by design, not convention
+
+</Alert>
+
+## About
+
+Security is not an add-on. If Webiny can't hold up in regulated, high-stakes environments, it's not a serious enterprise platform — and we'd be the first to say so.
+
+Webiny is self-hosted, which means the security posture of your deployment ultimately lives with you. But that doesn't mean we ship you a blank slate. Webiny comes with a well-defined, opinionated security baseline across every layer: codebase, infrastructure, application, and data. This article explains exactly what that baseline is, where the responsibility boundaries sit, and what you can extend or tighten further.
+
+We've structured this article into five sections:
+
+- **Codebase** — how we protect the source code and its dependencies
+- **Infrastructure** — how the deployment architecture reduces your attack surface by default
+- **Application** — how access control, identity, and permissions are modeled
+- **Data** — how your data is stored, encrypted, and governed
+- **Governance & Compliance** — how Webiny supports regulated environments and audit requirements
+
+---
+
+## Codebase
+
+Webiny is open-source under the MIT license. That means the full codebase is publicly inspectable — which is a security advantage for enterprise teams doing due diligence, not a liability.
+
+Every change to the codebase is automatically scanned by [CodeQL](https://securitylab.github.com/tools/codeql), a static analysis engine built for identifying vulnerabilities at the code level. All third-party dependencies are monitored and patched via [Dependabot](https://dependabot.com). No change ships without passing these checks.
+
+For Enterprise customers, Webiny commits to remediating critical vulnerabilities — including zero-day exploits — within 48 hours of a fix or workaround becoming available, or implementing mitigating controls in the interim.
+
+---
+
+## Infrastructure
+
+Webiny runs exclusively on AWS serverless infrastructure. This is a deliberate architectural decision, not a convenience default.
+
+Serverless services eliminate the single largest source of infrastructure security failures: misconfigured long-lived servers. There are no servers to patch, no operating systems to harden, and no persistent compute exposure. AWS is responsible for the security of the underlying compute layer; Webiny's IaC templates define how those services are connected and locked down.
+
+<Alert type="info" title="Webiny Architecture">
+
+  To learn more about Webiny's architecture, visit the [infrastructure and hosting overview](/infrastructure/diagrams).
+
+</Alert>
+
+### Infrastructure as Code, Security-Reviewed
+
+Every Webiny deployment is provisioned through Infrastructure as Code (IaC) templates. These templates have been reviewed by AWS solutions architects and vetted by security teams across multiple enterprise organizations before being shipped. They encode best practices directly: automated backups, multi-AZ deployments for high availability, auto-scaling, and VPC isolation — all applied by default.
+
+You're not configuring this manually and hoping for the best. The secure configuration is the default configuration.
+
+### Deployment Modes
+
+Webiny ships with two deployment templates: `dev` and `prod`. The production template deploys inside a private VPC by default. All backend resources — including your database and search infrastructure — are inaccessible from the public internet without going through the application layer.
+
+<Alert type="warning" title="Use the right deployment mode">
+
+  The `prod` deployment template is required for any environment serving real traffic. [Learn more about deployment modes.](/infrastructure/deployment-modes)
+
+</Alert>
+
+### Amazon VPC Deployment (Enterprise)
+
+Enterprise customers can deploy Webiny into an existing Amazon VPC they already manage. This supports organizations with established network security policies who need Webiny to fit within their existing controls rather than outside them.
+
+Amazon VPC endpoints can be configured for DynamoDB, S3, SQS, and EventBridge — keeping all data operations off the public internet entirely. Webiny can be deployed into an isolated AWS account while still using a centrally managed VPC and its endpoints.
+
+### Web Application Firewall
+
+Webiny deploys a CloudFront distribution in front of API Gateway. This architecture lets you attach a WAF to all incoming traffic without any changes to the application layer.
+
+---
+
+## Application
+
+### Authentication
+
+Webiny ships with AWS Cognito as the default identity provider — a managed, enterprise-grade IdP that handles credential storage, MFA, and token lifecycle out of the box.
+
+The authentication layer is built on a plugin model, which means Cognito is replaceable. In v6, Webiny extends this with native support for SSO via custom SAML 2.0 and OIDC providers. If your organization requires centralized identity governance — federated login through Okta, Azure AD, PingFederate, or any other enterprise IdP — that integration is supported without bespoke engineering work.
+
+### Authorization
+
+Webiny makes a hard architectural separation between authentication (who you are) and authorization (what you can do). External IdPs handle the former; Webiny's permission system handles the latter.
+
+Authorization is modeled as rich, structured permission objects — not flat JWT scopes or simple string roles. This matters for complex organizations where access control is tied to business logic, organizational hierarchy, or content lifecycle state.
+
+In v6, the permission model includes:
+
+- **Role-based access control (RBAC)**: Define roles with fine-grained permission sets and assign them to users or groups.
+- **Folder-level permissions**: Restrict or grant access to specific content folders within the CMS, enabling teams to operate in isolated content spaces.
+- **Field-level permissions**: Control which fields within a content model are readable or writable per role — critical for content types that mix public metadata with sensitive or regulated fields.
+- **Tenant-level isolation**: In multi-tenant deployments, each tenant has completely isolated users, permissions, content, and assets. There is no path for cross-tenant data access at the application level.
+
+---
+
+## Data
+
+Because Webiny is self-hosted in your AWS account, your content, assets, and metadata never leave your infrastructure. There is no Webiny-managed data plane, no shared storage layer, and no third-party processing of your content. This is architectural, not contractual.
+
+Webiny does not use customer data — in any form, including aggregated or anonymized — to train, fine-tune, or improve any AI capabilities. This applies to content, usage patterns, content models, and anything else stored or processed within your Webiny instance. The boundary is enforced by the architecture: since your data never transits Webiny's systems during normal operation, there is nothing for Webiny to collect.
+
+### Storage Layer
+
+Webiny stores content and structured data in Amazon DynamoDB, uses Amazon OpenSearch Service for search indexing, and stores assets in Amazon S3.
+
+**DynamoDB**: All data is encrypted at rest and in transit by default. Point-in-time recovery is configured automatically through Webiny's IaC templates. No additional setup required.
+
+**OpenSearch**: All data is encrypted in transit by default. Encryption at rest is not enabled by default due to key management implications — if you lose access to your KMS key without a recovery strategy, your data becomes permanently inaccessible. We strongly recommend enabling encryption at rest for production workloads, but require you to have a proper key management strategy in place first.
+
+<Alert type="warning" title="OpenSearch Encryption at Rest">
+
+  For production deployments, enable encryption at rest in OpenSearch. Before doing so, ensure you have a KMS key management and recovery strategy in place. For configuration details, see the [AWS OpenSearch encryption documentation](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/encryption-at-rest.html).
+
+</Alert>
+
+**S3**: All buckets are configured to private access only. Public access is blocked at the bucket policy level. Write operations require signed requests. Encryption at rest is enabled by default in v6.
+
+### Backups and Recovery
+
+Automated backups and point-in-time recovery are built into the Webiny deployment templates. In regulated environments where recovery objectives are a compliance requirement, this is part of the baseline, not an optional add-on.
+
+---
+
+## AI & MCP Server
+
+Webiny ships with a built-in MCP (Model Context Protocol) server, which enables AI agents and developer tooling to interact with your Webiny instance — querying content models, retrieving schema information, and assisting with development tasks.
+
+### The MCP server is local
+
+The Webiny MCP server runs locally, inside your own environment. It does not phone home. No queries, no prompts, no schema data, and no content are transmitted to Webiny or any third party as a result of using it. The MCP server is purely a local interface between your agent and your Webiny instance.
+
+### You choose the agent
+
+Webiny's MCP server is agent-agnostic. You connect whichever AI agent or tooling you choose — whether that's a cloud-hosted model like Claude or GPT-4, or a locally-running model like Ollama. If your organization requires that AI interactions stay entirely on-premises, you can run a local model against the local MCP server and no conversation data leaves your network at any point.
+
+The practical implication: the privacy posture of your AI-assisted development workflow is determined by the agent you connect, not by Webiny. Webiny imposes no constraints in either direction.
+
+### No data collection from AI interactions
+
+Webiny does not log, collect, or have visibility into any interactions between your agent and the MCP server. There is no telemetry pipeline from the MCP server back to Webiny.
+
+---
+
+## Governance & Compliance
+
+Security in enterprise content operations isn't just about preventing unauthorized access — it's about maintaining a verifiable record of every change, enforcing approval chains, and making compliance requirements enforceable by the system itself, not by convention.
+
+### Audit Logs
+
+Webiny maintains an immutable audit log of every meaningful action performed in the platform. This includes:
+
+- Content creation, edits, publishing, and deletion
+- Asset uploads, updates, and removals
+- Publishing workflow transitions (approvals, rejections)
+- User and permission changes
+- Administrative and configuration actions
+
+Every log entry captures who performed the action, what changed, and when. For regulated industries — financial services, healthcare, public sector — this is not a reporting convenience; it's a compliance requirement.
+
+### Governance as Code
+
+Webiny's lifecycle event system lets you enforce compliance logic directly in code, not as a UI policy that can be bypassed. You can intercept content lifecycle events — before publication, on workflow transitions, on specific content model changes — and execute your own validation logic.
+
+This means you can:
+
+- Block publication if a required legal review hasn't completed
+- Call an external risk or approval API before allowing a content state change
+- Enforce field-level content validation rules tied to regulatory requirements
+- Trigger automated archiving or retention enforcement
+
+Governance rules become code, which means they're version-controlled, testable, and deployed through your standard CI/CD pipeline — not managed through UI checkboxes.
+
+### Publishing Workflows
+
+Webiny's publishing workflow engine supports configurable multi-step approval chains. You can model processes like `Marketing → Legal → Compliance → Regional Lead → Publish` directly in the platform. Each step has defined reviewers, required comments on rejection, and automated notifications. Nothing reaches a published state without passing every configured step.
+
+All workflow transitions are captured in the audit log.
+
+### Multi-Tenant Isolation
+
+In multi-tenant deployments, each tenant operates in a fully isolated context. Isolation applies to:
+
+- Content and content models
+- Assets and media
+- Users and permission assignments
+- Publishing workflows and settings
+- Configuration
+
+There is no mechanism for tenant A to access tenant B's data. This isolation is enforced at the data access layer, not just the UI. For organizations managing multiple brands, regions, business units, or client environments from a single Webiny instance, this is a foundational security property.
+
+---
+
+## SOC 2 Type I Certified
+
+Webiny has completed an independent SOC 2 Type I examination, conducted by Insight Assurance via Vanta. The audit evaluated Webiny's controls against the AICPA's five trust service principles: security, availability, processing integrity, confidentiality, and privacy.
+
+SOC 2 Type I certifies that the controls are designed correctly. For organizations with compliance requirements that include vendor security assessments, Webiny can provide the SOC 2 report directly upon request through the enterprise agreement process.
+
+---
+
+## FAQ
+
+### Can I use a different identity provider?
+
+Yes. The default authentication implementation is plugin-based. You can replace or extend it to integrate with any IdP — including custom SAML 2.0 or OIDC providers — without forking the core platform. The Enterprise Edition includes native SSO support for the most common enterprise identity providers.
+
+### Can I roll my own authentication system?
+
+Technically yes, but we don't recommend it. Building authentication correctly is hard, and the plugin model gives you enough flexibility to integrate with any serious IdP without writing authentication logic from scratch. Unless you have a very specific requirement that existing IdPs can't satisfy, use an established provider.
+
+### What happens to my data if I stop using Webiny?
+
+Your data lives in your AWS account. Webiny doesn't hold it, can't hold it back, and has no migration or transition cost beyond your own infrastructure. You can terminate usage and retain full access to your DynamoDB tables, S3 buckets, and everything else — permanently. Under the Enterprise Agreement, Webiny is contractually required to delete any incidental data it holds (such as usage metadata) within 10 business days of service cessation.
+
+### Is Webiny compliant with GDPR?
+
+Because Webiny runs in your own cloud infrastructure, data never transits through Webiny's systems in normal operation. Personal data stays within your cloud boundary and is subject to your own data handling policies. The Enterprise Agreement includes a Data Processing Agreement (DPA) with standard contractual clauses (SCCs) for any data that Webiny processes as a sub-processor — for example, during support or professional services engagements.
+
+### Can I get a penetration test or security questionnaire completed?
+
+Yes. Enterprise customers can conduct security reviews, penetration testing against their own Webiny deployment, and request completion of vendor security questionnaires. Because the codebase is open-source, your security team can review the application code directly without requiring special access or NDAs.

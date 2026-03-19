@@ -41,6 +41,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"core-concepts/environment-variables"} />
         <Page link={"core-concepts/webiny-sdk"} />
         <Page link={"core-concepts/debugging"} />
+        <Page link={"core-concepts/security"} />
       </Group>
       <Group
         title={"Headless CMS"}
