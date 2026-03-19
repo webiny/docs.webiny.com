@@ -256,8 +256,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         </Group>
         {/* __REFERENCE_PAGES_END__ */}
       </Group>
-      <Page link={"overview/pricing"} hidden={true} />
-      <Page link={"overview/features/security"} hidden={true} />
       <Separator />
       {children}
     </NavigationRoot>
