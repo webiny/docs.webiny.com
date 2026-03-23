@@ -1,0 +1,227 @@
+---
+id: wbmt7n4k
+title: Multi-Tenant Next.js Setup
+description: Configure a single Next.js application to serve content from multiple Webiny tenants based on domain, subdomain, or other request context.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How a single Next.js app can serve content from multiple Webiny tenants
+- How to resolve tenant identity from the incoming request
+- How to initialize the SDK with the correct tenant per request
+- Which API key strategy fits multi-tenant deployments
+
+</Alert>
+
+## Overview
+
+The default Next.js starter kit connects to one Webiny tenant set by the `NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT` environment variable. For SaaS platforms and multi-tenant deployments, a single Next.js instance can serve content from many tenants by resolving tenant identity at request time.
+
+The pattern has three parts: resolve tenant identity in middleware, propagate it to server components via a request header, then read it when initializing the SDK.
+
+## How Tenant Scoping Works
+
+The `contentSdk.init()` call accepts an `apiTenant` parameter. Normally this is set from the environment variable, but you can pass it dynamically. The SDK then scopes all API calls — page fetching, redirect resolution — to that tenant.
+
+```
+Request arrives
+      │
+      ▼
+middleware.ts       ← resolves tenant from hostname, subdomain, etc.
+      │ sets X-Tenant header
+      ▼
+Server component
+      │
+      ▼
+getTenant()         ← reads X-Tenant header
+      │
+      ▼
+initializeContentSdk({ tenantId })   ← scopes SDK to tenant
+      │
+      ▼
+contentSdk.getPage()   ← fetches pages for that tenant only
+```
+
+## Resolving Tenant in Middleware
+
+Next.js middleware runs before any rendering and is the right place to resolve tenant identity from the request — subdomain, full domain, path prefix, or any other signal — and attach it as a header for downstream components.
+
+Create or update `src/middleware.ts`:
+
+```typescript src/middleware.ts
+import { draftMode } from "next/headers";
+import { NextResponse, type NextRequest } from "next/server";
+
+const ENABLE_DRAFT_MODE_ROUTE = "/api/preview";
+
+export async function middleware(request: NextRequest) {
+  const { searchParams, hostname } = request.nextUrl;
+  const requestHeaders = new Headers(request.headers);
+
+  // Resolve tenant from the wb.tenant query param (sent by the editor iframe),
+  // or fall back to subdomain-based resolution for public traffic.
+  const tenantId = searchParams.get("wb.tenant") ?? resolveTenantFromHostname(hostname);
+
+  if (tenantId) {
+    requestHeaders.set("X-Tenant", tenantId);
+  }
+
+  // Handle preview/draft mode.
+  const previewRequested =
+    searchParams.get("wb.preview") === "true" || searchParams.get("wb.editing") === "true";
+  const previewMode = await draftMode();
+
+  if (previewRequested) {
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
+    if (previewMode.isEnabled) {
+      response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+      return response;
+    }
+    const url = new URL(request.url);
+    url.pathname = ENABLE_DRAFT_MODE_ROUTE;
+    return NextResponse.redirect(url);
+  } else if (!previewRequested && previewMode.isEnabled) {
+    previewMode.disable();
+    return NextResponse.redirect(request.url);
+  }
+
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
+
+function resolveTenantFromHostname(hostname: string): string | undefined {
+  // Example: tenant-a.example.com → "tenant-a"
+  const subdomain = hostname.split(".")[0];
+  return subdomain !== "www" ? subdomain : undefined;
+}
+
+export const config = {
+  matcher: ["/((?!_next|api|static|favicon.ico|.well-known).*)"]
+};
+```
+
+The `wb.tenant` check handles editor traffic: when the Website Builder editor loads your Next.js app in an iframe, it passes the current tenant via this query parameter. Your domain-based resolution runs as a fallback for public visitors.
+
+<Alert type="info" title="Tenant Resolution Strategy">
+
+The example above uses subdomain-based resolution. Replace `resolveTenantFromHostname` with any strategy that fits your routing — full domain matching against a lookup table, a path prefix, a cookie, or a JWT claim.
+
+</Alert>
+
+## Reading Tenant in Server Components
+
+Add a utility that reads the `X-Tenant` header set by middleware:
+
+```typescript src/contentSdk/getTenant.ts
+import { headers } from "next/headers";
+
+export const getTenant = async (): Promise<string> => {
+  try {
+    const headersContainer = await headers();
+    return headersContainer.get("X-Tenant") ?? "root";
+  } catch {
+    return "root";
+  }
+};
+```
+
+The fallback to `"root"` ensures the app keeps working when no tenant header is present, for example during static generation at build time.
+
+## Initializing the SDK Per Request
+
+Update `initializeContentSdk` to accept a `tenantId` parameter. When provided, it overrides the `NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT` environment variable:
+
+```typescript src/contentSdk/initializeContentSdk.ts
+import { contentSdk } from "@webiny/website-builder-nextjs";
+
+interface ContentSdkOptions {
+  tenantId?: string;
+  preview?: boolean;
+}
+
+export const initializeContentSdk = ({ tenantId, preview }: ContentSdkOptions = {}) => {
+  contentSdk.init({
+    apiKey: String(process.env.NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY),
+    apiHost: String(process.env.NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST),
+    apiTenant: tenantId ?? String(process.env.NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT),
+    preview
+  });
+};
+```
+
+Call `getTenant()` and pass the result wherever you initialize the SDK — in `generateStaticParams`, `generateMetadata`, and the page render function:
+
+```typescript src/app/[[...slug]]/page.tsx
+import { draftMode } from "next/headers";
+import { contentSdk } from "@webiny/website-builder-nextjs";
+import { initializeContentSdk, getTenant } from "@/src/contentSdk";
+
+export async function generateStaticParams() {
+  initializeContentSdk({ tenantId: await getTenant() });
+  const pages = await contentSdk.listPages();
+  return pages.map(page => ({
+    slug: page.properties.path.split("/").slice(1)
+  }));
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  initializeContentSdk({ tenantId: await getTenant() });
+  // ...
+}
+
+async function getPage(path: string) {
+  const { isEnabled } = await draftMode();
+  initializeContentSdk({ preview: isEnabled, tenantId: await getTenant() });
+  return await contentSdk.getPage(path);
+}
+```
+
+The root layout passes the tenant to the client-side `ContentSdkInitializer` component:
+
+```typescript src/app/layout.tsx
+import { draftMode } from "next/headers";
+import { ContentSdkInitializer, getTenant } from "@/src/contentSdk";
+import { getTheme } from "@/src/theme";
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+    const tenantId = await getTenant();
+    const { isEnabled } = await draftMode();
+    const { theme } = await getTheme();
+
+    return (
+        <html lang="en">
+            <body>
+                <ContentSdkInitializer draftMode={isEnabled} theme={theme} tenantId={tenantId} />
+                {children}
+            </body>
+        </html>
+    );
+}
+```
+
+`ContentSdkInitializer` is a memoized client component that calls `initializeContentSdk` on the browser side with the same tenant context.
+
+## API Key Strategy
+
+Two approaches work for multi-tenant deployments:
+
+**Universal key** — Create one API key at the root tenant level with read access across all tenants. Set it as `NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY`. The `apiTenant` parameter already scopes all API calls to the correct tenant, so a single key is sufficient for most cases.
+
+**Per-tenant keys** — Each tenant has its own Website Builder API key (auto-created by the platform under **Settings → Access Management → API Keys**). You resolve the key per request by fetching it from your own data store or the Webiny API. This adds per-request key resolution overhead but provides stronger isolation at the credential level.
+
+For most SaaS deployments, a universal key is the simpler and recommended starting point.
+
+## Per-Tenant Theming
+
+The Website Builder supports per-tenant theming — each tenant can have its own fonts, colors, and CSS variables managed through Webiny Admin. In the root layout, fetch the tenant's theme configuration from the Webiny API and merge it with your static base theme before passing it to `ContentSdkInitializer` and injecting it into `<head>`.
+
+```typescript
+// Conceptual example — implementation details depend on your data model.
+const tenantId = await getTenant();
+const { theme } = await getTheme(); // static base theme
+const dynamicTheme = await fetchTenantTheme(tenantId); // per-tenant overrides from Webiny API
+const mergedTheme = mergeThemes(theme, dynamicTheme);
+```
+
+The per-tenant theme data (font family, primary color, etc.) is stored as custom fields on the tenant model in Webiny and fetched via GraphQL with the `X-Tenant` header.

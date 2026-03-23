@@ -1,0 +1,52 @@
+AI Context: Multi-Tenant Next.js Setup (website-builder/multi-tenant-nextjs.mdx)
+
+Source of Information:
+1. /Users/adrian/dev/website-builder-nextjs-presales - Internal POC codebase demonstrating the pattern
+2. Slack thread (Boris → Pavel → Adrian) confirming multi-tenancy is supported and POCs exist
+3. website-builder/setup-nextjs.mdx - Single-tenant baseline this article extends
+4. website-builder/how-it-works.mdx - Architecture context
+
+Key Documentation Decisions:
+1. Based on internal presales POC at ~/dev/website-builder-nextjs-presales - not a public repo
+2. Simplified examples: stripped project-specific component groups (restaurant, retail, clover) from initializeContentSdk
+3. Kept wb.tenant query param handling because the editor iframe passes tenant this way
+4. Subdomain resolution is the example strategy — article makes clear other strategies (domain table, path prefix, cookie) are equally valid
+5. Per-tenant theming kept as brief conceptual section — implementation is project-specific (requires custom fields on tenant model)
+6. Universal API key recommended as default — Pavel confirmed this is a supported approach
+7. Did not document the webinyApi.js GraphQL utility from presales — too project-specific
+8. ContentSdkInitializer is a client component wrapping initializeContentSdk; passes tenantId from server layout to browser side
+
+Understanding Multi-Tenant Architecture:
+- SDK apiTenant param scopes all API calls to that tenant
+- Middleware is the canonical place to resolve tenant identity (runs before all rendering)
+- X-Tenant header propagates tenant ID from middleware to server components
+- getTenant() reads X-Tenant header; falls back to "root" when missing (build-time static generation)
+- initializeContentSdk called in: generateStaticParams, generateMetadata, getPage (server), ContentSdkInitializer (client)
+- Editor loads Next.js in iframe with ?wb.tenant=<id>&wb.editing=true — middleware already handles this via wb.tenant query param check
+
+Key Files in Presales POC:
+- src/middleware.ts — tenant from wb.tenant param; preview mode handling
+- src/contentSdk/getTenant.ts — reads X-Tenant header from next/headers
+- src/contentSdk/initializeContentSdk.ts — accepts tenantId, passes as apiTenant
+- src/contentSdk/ContentSdkInitializer.ts — client-side wrapper (React.memo)
+- src/app/layout.tsx — calls getTenant(), does dynamic theme merge, passes tenantId to ContentSdkInitializer
+- src/app/[[...slug]]/page.tsx — calls initializeContentSdk({ tenantId: await getTenant() }) in all three functions
+
+Dynamic Theming Pattern (from presales layout.tsx):
+- Fetch static base theme from getTheme()
+- Fetch per-tenant dynamic theme (websiteTitle, font, primaryColor, additionalColors) from Webiny GraphQL API with X-Tenant header
+- Merge: dynamic font → fonts array, dynamic colors → cssVariables, CSS injected into <head>
+- Theme stored as custom fields on tenant model in Webiny
+- mergeThemes() is project-specific utility — not included in docs example
+
+Related Documents:
+- website-builder/setup-nextjs.mdx — single-tenant baseline (prerequisite)
+- website-builder/how-it-works.mdx — SDK and architecture overview
+- website-builder/theme.mdx — theme configuration
+- core-concepts/multi-tenancy.mdx — Webiny tenant model and provisioning
+
+Tone Guidelines:
+- Practical and direct — this is an implementation guide for developers setting up multi-tenancy
+- Show real code; explain why each piece exists
+- Don't over-explain; trust the reader can adapt examples to their strategy
+- Keep per-tenant theming brief — it's project-specific, not prescriptive

@@ -49,7 +49,7 @@ docs/developer-docs/6.0.x/
 ├── reference/          # Auto-generated API reference (extensions, admin, API)
 ├── tasks/              # Background task system (about, reference, management)
 ├── tenant-manager/     # Multi-tenancy management (GraphQL API, model extension)
-└── website-builder/    # Website Builder extensibility (Next.js setup, theming, custom components)
+└── website-builder/    # Website Builder extensibility (Next.js setup, multi-tenant setup, theming, custom components)
 ```
 
 ### Key Patterns
