@@ -1,0 +1,157 @@
+AI Context: File Manager (reference/sdk/file-manager.mdx)
+
+Source of Information:
+1. FileManagerSdk.ts — class definition with all method signatures
+2. methods/fileManager/getFile.ts — single file retrieval implementation
+3. methods/fileManager/listFiles.ts — file listing with search, where, sort, pagination
+4. methods/fileManager/createFile.ts — file creation with upload support (small/large files)
+5. methods/fileManager/createFiles.ts — bulk file creation with concurrent uploads
+6. methods/fileManager/updateFile.ts — file metadata update
+7. methods/fileManager/deleteFile.ts — file deletion
+8. methods/fileManager/listTags.ts — tag listing with counts
+9. methods/fileManager/getPresignedPostPayload.ts — presigned POST URL for browser uploads
+10. methods/fileManager/getPresignedPostPayloads.ts — bulk presigned POST URLs
+11. methods/fileManager/createMultiPartUpload.ts — multipart upload initiation for large files
+12. methods/fileManager/completeMultiPartUpload.ts — multipart upload completion
+13. methods/fileManager/fileManagerTypes.ts — all type definitions
+
+Key Documentation Decisions:
+1. Grouped methods into logical sections: Reading (get/list), Creating/Updating (CRUD), Upload Helpers (presigned/multipart)
+2. Documented all method parameters in param tables with Required column
+3. Included return types showing Result pattern with specific error types
+4. Provided complete type reference section for key interfaces
+5. Examples show both simple cases (metadata only) and complex cases (file upload, multipart, batch)
+6. Highlighted automatic upload strategy selection (small vs large files) based on multiPartThreshold
+7. Documented both fail-fast and continue strategies for batch operations
+8. Showed complete flow for presigned POST and multipart upload patterns
+
+File Manager SDK Understanding:
+- `FileManagerSdk` handles file metadata operations (CRUD) and upload orchestration
+- File uploads happen in two stages: (1) upload to S3 via presigned URL, (2) create metadata record
+- Small files (<100MB default) use simple presigned POST; large files use multipart upload
+- `createFile()` intelligently selects upload strategy based on file size
+- `createFiles()` uses p-map for controlled concurrency (default: 5 concurrent uploads)
+- Presigned POST URLs allow direct browser→S3 uploads without proxying through API
+- Multipart uploads split large files into chunks, upload in parallel, then finalize with completeMultiPartUpload
+- All file operations return Result pattern — check isOk() before accessing value
+- Fields parameter controls which properties are returned (same as CMS SDK pattern)
+- Tags are freeform strings; listTags returns usage counts across all files
+- File location uses folderId to organize files in hierarchical structure
+
+Code Patterns:
+1. **Simple file retrieval:**
+   ```typescript
+   const result = await sdk.fileManager.getFile({
+     id: "file-id",
+     fields: ["id", "name", "src", "size"]
+   });
+   ```
+
+2. **List with search and filters:**
+   ```typescript
+   const result = await sdk.fileManager.listFiles({
+     fields: ["id", "name", "src"],
+     search: "logo",
+     where: { type_in: ["image/png", "image/jpeg"] },
+     limit: 10,
+     sort: ["savedOn_DESC"]
+   });
+   ```
+
+3. **File upload (automatic strategy):**
+   ```typescript
+   const result = await sdk.fileManager.createFile({
+     file: fileBlob,
+     data: { name: "photo.jpg", type: "image/jpeg" },
+     fields: ["id", "src"],
+     onProgress: (p) => console.log(`${p.percentage}%`)
+   });
+   ```
+
+4. **Presigned POST upload (manual):**
+   ```typescript
+   // 1. Get presigned POST payload
+   const presigned = await sdk.fileManager.getPresignedPostPayload({
+     name: "file.jpg",
+     type: "image/jpeg",
+     size: 102400
+   });
+   
+   // 2. Upload to S3
+   const formData = new FormData();
+   Object.entries(presigned.value.data.fields).forEach(([k, v]) => {
+     formData.append(k, v);
+   });
+   formData.append("file", fileBlob);
+   await fetch(presigned.value.data.url, { method: "POST", body: formData });
+   
+   // 3. Create file record
+   await sdk.fileManager.createFile({
+     data: {
+       id: presigned.value.file.id,
+       key: presigned.value.file.key,
+       // ... other metadata
+     },
+     fields: ["id", "src"]
+   });
+   ```
+
+5. **Multipart upload:**
+   ```typescript
+   // 1. Create multipart upload
+   const upload = await sdk.fileManager.createMultiPartUpload({
+     data: { name: "large.mp4", type: "video/mp4", size: 500000000 },
+     numberOfParts: 10
+   });
+   
+   // 2. Upload each part
+   for (const part of upload.value.parts) {
+     const chunk = getChunk(part.partNumber - 1);
+     await fetch(part.url, { method: "PUT", body: chunk });
+   }
+   
+   // 3. Complete upload
+   await sdk.fileManager.completeMultiPartUpload({
+     fileKey: upload.value.file.key,
+     uploadId: upload.value.uploadId
+   });
+   ```
+
+6. **Batch upload with error handling:**
+   ```typescript
+   const result = await sdk.fileManager.createFiles({
+     files: [
+       { file: file1, data: { name: "1.jpg", type: "image/jpeg" }, fields: ["id"] },
+       { file: file2, data: { name: "2.jpg", type: "image/jpeg" }, fields: ["id"] }
+     ],
+     concurrency: 3,
+     strategy: "continue" // continue on errors
+   });
+   
+   if (result.isOk()) {
+     console.log(`Success: ${result.value.successful.length}`);
+     console.log(`Failed: ${result.value.failed.length}`);
+   }
+   ```
+
+Related Documents:
+- /docs/developer-docs/6.0.x/core-concepts/webiny-sdk.mdx — SDK overview and initialization
+- /docs/developer-docs/6.0.x/headless-cms/using-webiny-sdk.mdx — CMS SDK usage patterns
+- /docs/developer-docs/6.0.x/reference/sdk/cms.mdx — CMS SDK reference (sibling reference page)
+
+Key Code Locations:
+- packages/sdk/src/FileManagerSdk.ts — main class definition
+- packages/sdk/src/methods/fileManager/*.ts — all method implementations
+- packages/sdk/src/methods/fileManager/utils/uploadToS3.ts — S3 upload helper
+- packages/sdk/src/methods/fileManager/utils/uploadLargeFile.ts — multipart upload logic
+- packages/sdk/src/methods/fileManager/fileManagerTypes.ts — type definitions
+
+Tone Guidelines:
+- Technical reference style — concise, API-focused, minimal prose
+- Every method gets: signature + param table + return type + example
+- Examples are practical and production-ready (error handling, progress callbacks)
+- Highlight automatic behaviors (upload strategy selection, concurrent limits)
+- Type reference section uses code blocks for interfaces (not param tables)
+- No analogies or conceptual explanations — save those for about.mdx (none exists yet)
+- Assume reader knows Result pattern from core-concepts/result.mdx
+- All examples show Result error checking with if (result.isOk())

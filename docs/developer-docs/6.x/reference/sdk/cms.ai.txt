@@ -1,0 +1,128 @@
+AI Context: CMS (reference/sdk/cms.mdx)
+
+Source of Information:
+1. CmsSdk.ts — class definition with all method signatures and type imports
+2. methods/cms/getEntry.ts — getEntry method implementation and JSDoc
+3. methods/cms/listEntries.ts — listEntries method implementation and JSDoc
+4. methods/cms/createEntry.ts — createEntry method implementation and JSDoc
+5. methods/cms/updateEntryRevision.ts — updateEntryRevision method implementation and JSDoc
+6. methods/cms/publishEntryRevision.ts — publishEntryRevision method implementation and JSDoc
+7. methods/cms/unpublishEntryRevision.ts — unpublishEntryRevision method implementation and JSDoc
+8. methods/cms/deleteEntryRevision.ts — deleteEntryRevision method implementation and JSDoc
+9. methods/cms/cmsTypes.ts — type definitions for CmsEntryData, CmsEntryValues, CmsIdentity, CmsEntryStatus
+10. core-concepts/webiny-sdk.mdx — SDK overview, initialization, core concepts
+11. headless-cms/using-webiny-sdk.mdx — practical examples of SDK usage with CMS
+
+Key Documentation Decisions:
+1. Organized methods into "read methods" (getEntry, listEntries) and "write methods" (create, update, publish, unpublish, delete) for clarity
+2. Documented that read methods use Read API by default (published content only), preview: true uses Preview API
+3. Documented that all write methods use Manage API
+4. Emphasized revisionId format ("entryId#revisionNumber" e.g. "abc123#0001")
+5. Created comprehensive parameter tables for each method showing all nested parameters (e.g., params.where.id)
+6. Included practical examples section covering common workflows: filtering+sorting+pagination, create+publish flow, TypeScript generics, error handling
+7. Documented all related types (CmsEntryData, CmsEntryValues, CmsEntryStatus, CmsIdentity) in a dedicated Types section
+8. Emphasized that createEntry creates a draft—publishEntryRevision required for public visibility
+9. Highlighted that updateEntryRevision is a partial update (only specified fields change)
+10. Documented soft delete vs. permanent delete behavior for deleteEntryRevision
+
+Understanding of CmsSdk:
+- CmsSdk is the primary interface for Headless CMS operations from external applications
+- Accessed via sdk.cms on a Webiny instance (not a standalone class users construct)
+- All methods return Result<T, E> types—never throw errors directly
+- Read operations (getEntry, listEntries) default to Read API (published content only)
+- preview: true parameter switches read operations to Preview API (includes unpublished/draft content)
+- Write operations (create, update, publish, unpublish, delete) always use Manage API
+- TypeScript generic <TValues> provides type safety for entry.values field
+- fields parameter controls response shape—use "values.fieldId" for entry fields, "id"/"createdOn" etc. for metadata
+- Revision IDs have format "entryId#revisionNumber" (e.g., "abc123#0001")
+- Entry lifecycle: create (draft) → updateEntryRevision (optional) → publishEntryRevision (public) → unpublishEntryRevision (back to draft) or deleteEntryRevision (soft/permanent delete)
+
+Code Patterns:
+```typescript
+// Initialization
+import { Webiny } from "@webiny/sdk";
+const sdk = new Webiny({ token, endpoint, tenant });
+
+// Type-safe query
+interface Product { name: string; price: number; }
+const result = await sdk.cms.listEntries<Product>({
+  modelId: "product",
+  fields: ["id", "values.name", "values.price"]
+});
+
+// Result pattern
+if (result.isOk()) {
+  const products = result.value.data; // CmsEntryData<Product>[]
+} else {
+  console.error(result.error.message);
+}
+
+// Create + publish workflow
+const createResult = await sdk.cms.createEntry<Product>({
+  modelId: "product",
+  data: { values: { name: "Laptop", price: 1299 } },
+  fields: ["id", "entryId"]
+});
+
+if (createResult.isOk()) {
+  await sdk.cms.publishEntryRevision({
+    modelId: "product",
+    revisionId: createResult.value.id!,
+    fields: ["id", "status"]
+  });
+}
+
+// Filtering and sorting
+const result = await sdk.cms.listEntries<Product>({
+  modelId: "product",
+  where: { "values.price_gte": 100 },
+  sort: { "values.name": "asc" },
+  limit: 20,
+  fields: ["id", "values.name", "values.price"]
+});
+
+// Pagination
+if (result.isOk() && result.value.meta.hasMoreItems) {
+  const nextResult = await sdk.cms.listEntries<Product>({
+    modelId: "product",
+    after: result.value.meta.cursor,
+    fields: ["id", "values.name"]
+  });
+}
+
+// Reference field resolution
+const result = await sdk.cms.getEntry<Product>({
+  modelId: "product",
+  where: { entryId: "abc123" },
+  fields: [
+    "id",
+    "values.name",
+    "values.category.id",
+    "values.category.values.name"
+  ]
+});
+```
+
+Related Documents:
+- reference/sdk/webiny.mdx — Webiny class initialization and configuration
+- reference/sdk/result.mdx — Result pattern details (isOk(), isFail(), value, error)
+- reference/sdk/errors.mdx — Error types (HttpError, GraphQLError, NetworkError)
+- core-concepts/webiny-sdk.mdx — SDK overview, installation, authentication
+- headless-cms/using-webiny-sdk.mdx — Practical SDK usage examples
+
+Key Code Locations:
+- packages/sdk/src/CmsSdk.ts — CmsSdk class definition
+- packages/sdk/src/methods/cms/*.ts — Individual method implementations
+- packages/sdk/src/methods/cms/cmsTypes.ts — Type definitions
+
+Tone Guidelines:
+- Technical reference tone — concise, complete, API-focused
+- Method signature blocks before each parameter table
+- Parameter tables: name, type, required, description columns
+- Minimal prose—let signatures and tables speak
+- Examples show complete working code with type annotations
+- Error handling always demonstrated (isOk() checks)
+- Use TypeScript generics in all examples for type safety demonstration
+- Emphasize Result pattern throughout—never suggest throwing/catching errors
+- "When true/false" instead of "if true/false" for boolean parameter descriptions
+- Active voice for method descriptions: "Retrieves", "Creates", "Publishes", "Deletes"

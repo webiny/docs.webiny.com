@@ -1,0 +1,337 @@
+---
+id: c2rrl3rl
+title: Tenant Manager
+description: TenantManagerSdk reference - create and manage tenants programmatically
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to access the Tenant Manager SDK?
+- How to create and install new tenants?
+- How to disable and enable existing tenants?
+- How to handle tenant management errors?
+
+</Alert>
+
+## Overview
+
+The `TenantManagerSdk` provides methods for creating, installing, disabling, and enabling tenants programmatically. Access it via the `tenantManager` namespace on your Webiny SDK instance. Creating a new tenant requires two steps: `createTenant()` to register the tenant, then `installTenant()` to provision its resources and configurations.
+
+All tenant management operations require an API key with tenant manager permissions.
+
+## Class Reference
+
+### TenantManagerSdk
+
+The Tenant Manager SDK is accessed via `sdk.tenantManager` on a `Webiny` instance:
+
+```typescript
+import { Webiny } from "@webiny/sdk";
+
+const sdk = new Webiny({
+  token: process.env.WEBINY_API_TOKEN!,
+  endpoint: process.env.WEBINY_API_ENDPOINT!,
+  tenant: "root"
+});
+
+// Access tenant manager operations
+const result = await sdk.tenantManager.createTenant({
+  data: {
+    name: "Acme Corp",
+    description: "Acme Corporation tenant"
+  }
+});
+```
+
+## Methods
+
+### createTenant
+
+Creates a new tenant in the system. Returns the tenant ID on success.
+
+```typescript
+async createTenant(
+  params: CreateTenantParams
+): Promise<Result<boolean, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name                      | Type                 | Required | Description                             |
+| ------------------------- | -------------------- | -------- | --------------------------------------- |
+| `params`                  | `CreateTenantParams` | Yes      | Tenant creation parameters              |
+| `params.data`             | `CreateTenantInput`  | Yes      | Tenant data                             |
+| `params.data.id`          | `string`             | No       | Custom tenant ID (generated if omitted) |
+| `params.data.name`        | `string`             | Yes      | Tenant name                             |
+| `params.data.description` | `string`             | No       | Tenant description                      |
+
+**Returns:**
+
+`Result<boolean, HttpError | GraphQLError | NetworkError>` - Success returns `true`, failure returns error with message and code.
+
+**Example:**
+
+```typescript
+const result = await sdk.tenantManager.createTenant({
+  data: {
+    id: "acme",
+    name: "Acme Corp",
+    description: "Acme Corporation tenant"
+  }
+});
+
+if (result.isFail()) {
+  console.error("Failed to create tenant:", result.error.message);
+  return;
+}
+
+console.log("Tenant created successfully");
+```
+
+### installTenant
+
+Installs and provisions a tenant with default settings and configurations. Must be called after `createTenant()` before the tenant is usable.
+
+```typescript
+async installTenant(
+  params: InstallTenantParams
+): Promise<Result<boolean, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name              | Type                  | Required | Description                 |
+| ----------------- | --------------------- | -------- | --------------------------- |
+| `params`          | `InstallTenantParams` | Yes      | Installation parameters     |
+| `params.tenantId` | `string`              | Yes      | ID of the tenant to install |
+
+**Returns:**
+
+`Result<boolean, HttpError | GraphQLError | NetworkError>` - Success returns `true`, failure returns error with message and code.
+
+**Example:**
+
+```typescript
+const result = await sdk.tenantManager.installTenant({
+  tenantId: "acme"
+});
+
+if (result.isFail()) {
+  console.error("Failed to install tenant:", result.error.message);
+  return;
+}
+
+console.log("Tenant installed successfully");
+```
+
+### disableTenant
+
+Disables a tenant, preventing access to its resources. Disabled tenants cannot be accessed until re-enabled.
+
+```typescript
+async disableTenant(
+  params: DisableTenantParams
+): Promise<Result<boolean, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name              | Type                  | Required | Description                 |
+| ----------------- | --------------------- | -------- | --------------------------- |
+| `params`          | `DisableTenantParams` | Yes      | Disable parameters          |
+| `params.tenantId` | `string`              | Yes      | ID of the tenant to disable |
+
+**Returns:**
+
+`Result<boolean, HttpError | GraphQLError | NetworkError>` - Success returns `true`, failure returns error with message and code.
+
+**Example:**
+
+```typescript
+const result = await sdk.tenantManager.disableTenant({
+  tenantId: "acme"
+});
+
+if (result.isFail()) {
+  console.error("Failed to disable tenant:", result.error.message);
+  return;
+}
+
+console.log("Tenant disabled successfully");
+```
+
+### enableTenant
+
+Re-enables a previously disabled tenant, restoring access to its resources.
+
+```typescript
+async enableTenant(
+  params: EnableTenantParams
+): Promise<Result<boolean, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name              | Type                 | Required | Description                |
+| ----------------- | -------------------- | -------- | -------------------------- |
+| `params`          | `EnableTenantParams` | Yes      | Enable parameters          |
+| `params.tenantId` | `string`             | Yes      | ID of the tenant to enable |
+
+**Returns:**
+
+`Result<boolean, HttpError | GraphQLError | NetworkError>` - Success returns `true`, failure returns error with message and code.
+
+**Example:**
+
+```typescript
+const result = await sdk.tenantManager.enableTenant({
+  tenantId: "acme"
+});
+
+if (result.isFail()) {
+  console.error("Failed to enable tenant:", result.error.message);
+  return;
+}
+
+console.log("Tenant enabled successfully");
+```
+
+## Error Handling
+
+All tenant manager methods return a `Result` type. Check for errors before accessing the value:
+
+```typescript
+const result = await sdk.tenantManager.createTenant({
+  data: {
+    name: "Acme Corp"
+  }
+});
+
+if (result.isFail()) {
+  console.error("Error:", result.error.message);
+  console.error("Code:", result.error.code);
+  return;
+}
+
+// Success - result.value is true
+console.log("Operation successful");
+```
+
+**Common error scenarios:**
+
+- Permission denied (API key lacks tenant manager permissions)
+- Tenant already exists (duplicate tenant ID)
+- Tenant not found (invalid tenant ID)
+- Network errors (API unreachable)
+
+## Examples
+
+### Creating and Installing a New Tenant
+
+The complete flow for provisioning a new tenant requires two steps:
+
+```typescript
+import { Webiny } from "@webiny/sdk";
+
+const sdk = new Webiny({
+  token: process.env.WEBINY_API_TOKEN!,
+  endpoint: process.env.WEBINY_API_ENDPOINT!,
+  tenant: "root"
+});
+
+// Step 1: Create the tenant
+const createResult = await sdk.tenantManager.createTenant({
+  data: {
+    id: "acme",
+    name: "Acme Corp",
+    description: "Acme Corporation tenant"
+  }
+});
+
+if (createResult.isFail()) {
+  console.error("Failed to create tenant:", createResult.error.message);
+  return;
+}
+
+console.log("Tenant created successfully");
+
+// Step 2: Install the tenant
+const installResult = await sdk.tenantManager.installTenant({
+  tenantId: "acme"
+});
+
+if (installResult.isFail()) {
+  console.error("Failed to install tenant:", installResult.error.message);
+  return;
+}
+
+console.log("Tenant installed and ready to use");
+```
+
+### Disabling and Enabling a Tenant
+
+```typescript
+// Disable a tenant
+const disableResult = await sdk.tenantManager.disableTenant({
+  tenantId: "acme"
+});
+
+if (disableResult.isFail()) {
+  console.error("Failed to disable tenant:", disableResult.error.message);
+  return;
+}
+
+console.log("Tenant disabled - access blocked");
+
+// Later, re-enable the tenant
+const enableResult = await sdk.tenantManager.enableTenant({
+  tenantId: "acme"
+});
+
+if (enableResult.isFail()) {
+  console.error("Failed to enable tenant:", enableResult.error.message);
+  return;
+}
+
+console.log("Tenant re-enabled - access restored");
+```
+
+### Error Handling Pattern
+
+```typescript
+async function provisionTenant(tenantId: string, name: string) {
+  // Create tenant
+  const createResult = await sdk.tenantManager.createTenant({
+    data: { id: tenantId, name }
+  });
+
+  if (createResult.isFail()) {
+    return {
+      success: false,
+      error: `Create failed: ${createResult.error.message}`
+    };
+  }
+
+  // Install tenant
+  const installResult = await sdk.tenantManager.installTenant({
+    tenantId
+  });
+
+  if (installResult.isFail()) {
+    return {
+      success: false,
+      error: `Install failed: ${installResult.error.message}`
+    };
+  }
+
+  return { success: true };
+}
+
+// Usage
+const result = await provisionTenant("acme", "Acme Corp");
+if (!result.success) {
+  console.error(result.error);
+}
+```

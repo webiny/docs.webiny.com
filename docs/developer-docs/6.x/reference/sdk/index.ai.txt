@@ -1,0 +1,140 @@
+AI Context: Overview (reference/sdk/index.mdx)
+
+Source of Information:
+1. @webiny/sdk/src/index.ts - Main export file listing all public exports
+2. @webiny/sdk/src/Webiny.ts - Main Webiny class implementation
+3. @webiny/sdk/src/types.ts - WebinyConfig interface definition
+4. @webiny/sdk/src/Result.ts - Result class implementation with generics and functional methods
+5. @webiny/sdk/src/BaseError.ts - Abstract base error class
+6. @webiny/sdk/src/errors.ts - HttpError, GraphQLError, NetworkError implementations
+7. docs/developer-docs/6.0.x/core-concepts/webiny-sdk.mdx - Existing SDK overview doc
+8. docs/developer-docs/6.0.x/headless-cms/using-webiny-sdk.mdx - SDK usage examples
+
+Key Documentation Decisions:
+1. Page structure: Overview → Installation → Initialization → Quick Start → Webiny class → WebinyConfig → Result class → Error classes
+2. WebinyConfig documented with all five properties (endpoint, token, tenant, headers, fetch) and their purposes
+3. Result class documented with all static methods (ok, fail), instance methods (isOk, isFail, value, error, map, mapError, flatMap, match), and namespace types (UnwrapResult, UnwrapError)
+4. Error classes documented with their specific properties (HttpError.data.status, GraphQLError.data.code) and example usage patterns
+5. Quick Start section shows the most common pattern: initialize → call method → check isOk()/isFail()
+6. Import path emphasized as @webiny/sdk (not webiny/*) — this is an external package
+7. "Finding Your API Endpoint" alert preserved from existing docs
+8. Error handling pattern documented with switch statement for all three error types
+
+Understanding the Webiny SDK Architecture:
+- External package pattern: @webiny/sdk is installed via npm, not part of the Webiny monorepo extensions system
+- Single entry point: Webiny class constructor instantiates CmsSdk, TenantManagerSdk, FileManagerSdk
+- Singleton pattern recommended: create one instance, reuse throughout application
+- Authentication: token-based using API key from Webiny Admin (Settings → API Keys)
+- API selection: SDK internally chooses Read API vs Manage API based on operation (hidden from user)
+- Result pattern: all async methods return Result<TValue, TError> instead of throwing — forces explicit error handling
+- Error hierarchy: BaseError → HttpError/GraphQLError/NetworkError with discriminated code property
+- Type safety: generic type parameters on Result allow full type inference for success/error paths
+
+Result Pattern Design:
+- Inspired by functional programming (Either, Result types from Rust/Haskell)
+- Two states: ok (success with value) or fail (failure with error)
+- Type guards: isOk() and isFail() narrow types for safe value/error access
+- Functional methods: map, mapError, flatMap for composition without explicit if checks
+- Pattern matching: match() provides exhaustive handling of both cases
+- Namespace utilities: UnwrapResult and UnwrapError extract inner types from Result
+
+WebinyConfig Properties:
+- endpoint: base CloudFront URL (yarn webiny info shows this) — NOT the full /graphql path
+- token: optional but required for authenticated operations (all CMS ops require it)
+- tenant: defaults to "root" — multi-tenancy support
+- headers: optional custom headers merged with defaults (authorization, content-type)
+- fetch: optional custom fetch implementation (useful for testing, proxying, server-side rendering)
+
+Error Classes:
+- HttpError: HTTP transport failures (404, 500, etc.) — has data.status number
+- GraphQLError: API-level errors (validation, permissions) — has optional data.code string
+- NetworkError: fetch itself failed (no connection, DNS failure) — no data property
+- All have code property for switch statements
+- All extend BaseError which has message, data, optional stack
+
+Code Patterns:
+
+## Initialize SDK (singleton):
+```typescript
+import { Webiny } from "@webiny/sdk";
+
+export const sdk = new Webiny({
+  token: process.env.WEBINY_API_TOKEN!,
+  endpoint: process.env.WEBINY_API_ENDPOINT!,
+  tenant: process.env.WEBINY_API_TENANT || "root"
+});
+```
+
+## Basic usage with Result:
+```typescript
+const result = await sdk.cms.listEntries({ modelId: "product" });
+
+if (result.isOk()) {
+  const entries = result.value.data;
+} else {
+  console.error(result.error.message);
+}
+```
+
+## Error handling with discriminated code:
+```typescript
+if (result.isFail()) {
+  switch (result.error.code) {
+    case "HTTP_ERROR":
+      console.error(`HTTP ${result.error.data.status}`);
+      break;
+    case "GRAPHQL_ERROR":
+      console.error(`API error: ${result.error.data.code || "unknown"}`);
+      break;
+    case "NETWORK_ERROR":
+      console.error("Network failure");
+      break;
+  }
+}
+```
+
+## Result functional methods:
+```typescript
+const result = await sdk.cms.getEntry({ modelId: "product", entryId: "123" });
+
+// map transforms success value
+const nameResult = result.map(entry => entry.values.name);
+
+// mapError transforms error
+const httpResult = result.mapError(e => new HttpError(500, e.message));
+
+// flatMap chains Result-returning functions
+const detailsResult = result.flatMap(entry => getDetails(entry.id));
+
+// match handles both cases
+const message = result.match({
+  ok: entry => `Found: ${entry.values.name}`,
+  fail: error => `Error: ${error.message}`
+});
+```
+
+Related Documents:
+- reference/sdk/cms-sdk.mdx - CmsSdk class reference (listEntries, getEntry, createEntry, etc.)
+- reference/sdk/tenant-manager-sdk.mdx - TenantManagerSdk class reference
+- reference/sdk/file-manager-sdk.mdx - FileManagerSdk class reference
+- core-concepts/webiny-sdk.mdx - Conceptual overview of SDK (when to use, core concepts)
+- headless-cms/using-webiny-sdk.mdx - Practical examples and patterns
+
+Key Code Locations:
+- packages/sdk/src/Webiny.ts - Main class constructor and property initialization
+- packages/sdk/src/types.ts - WebinyConfig interface
+- packages/sdk/src/Result.ts - Result class with all methods
+- packages/sdk/src/errors.ts - Error class definitions
+- packages/sdk/src/CmsSdk.ts - CMS operations implementation
+- packages/sdk/src/TenantManagerSdk.ts - Tenant operations implementation
+- packages/sdk/src/FileManagerSdk.ts - File operations implementation
+
+Tone Guidelines:
+- Type: Technical reference
+- Audience: External developers integrating Webiny into their applications
+- Voice: Concise, accurate, API-focused
+- Structure: Method signatures → param tables → return types → minimal examples
+- Focus: What each property/method does, not why or when to use it (that's in core-concepts/webiny-sdk.mdx)
+- Examples: Minimal, type-safe, showing correct usage patterns
+- Emphasis: Result pattern (every method returns Result), error handling (explicit isOk/isFail checks), type safety (generics)
+- Cross-references: Link to sibling reference pages (cms-sdk, tenant-manager-sdk, file-manager-sdk) for module-specific APIs

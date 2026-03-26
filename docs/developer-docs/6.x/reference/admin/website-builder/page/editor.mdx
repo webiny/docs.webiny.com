@@ -18,41 +18,519 @@ import { SymbolList } from "@/components/SymbolList";
 
 This page documents everything exported from `webiny/admin/website-builder/page/editor`. Import any of the items below directly from this path in your Webiny extensions.
 
-**Components**
+**Hooks**
 
-<SymbolList symbols={[{ name: "PageEditorConfig", anchor: "page-editor-config" }]} />
+<SymbolList
+  symbols={[
+    { name: "useActiveElement", anchor: "use-active-element" },
+    { name: "useComponent", anchor: "use-component" },
+    { name: "useCreateElement", anchor: "use-create-element" },
+    { name: "useDeleteElement", anchor: "use-delete-element" },
+    { name: "useDocumentEditor", anchor: "use-document-editor" },
+    { name: "useElementComponentManifest", anchor: "use-element-component-manifest" },
+    { name: "useElementInputs", anchor: "use-element-inputs" },
+    { name: "useHighlightedElement", anchor: "use-highlighted-element" },
+    { name: "usePageEditorConfig", anchor: "use-page-editor-config" },
+    { name: "useSelectFromDocument", anchor: "use-select-from-document" },
+    { name: "useSelectFromEditor", anchor: "use-select-from-editor" },
+    { name: "useUpdateElement", anchor: "use-update-element" }
+  ]}
+/>
 
 **Other**
 
-<SymbolList symbols={[{ name: "Editor", anchor: "editor" }]} />
+<SymbolList
+  symbols={[
+    { name: "$addElementReferenceToParent", anchor: "add-element-reference-to-parent" },
+    { name: "$createElement", anchor: "create-element" },
+    { name: "$deleteElement", anchor: "delete-element" },
+    { name: "$deselectElement", anchor: "deselect-element" },
+    { name: "$getActiveElementId", anchor: "get-active-element-id" },
+    { name: "$getComponentManifestByElementId", anchor: "get-component-manifest-by-element-id" },
+    { name: "$getElementById", anchor: "get-element-by-id" },
+    { name: "$getElementInputValues", anchor: "get-element-input-values" },
+    { name: "$getElementsOfType", anchor: "get-elements-of-type" },
+    { name: "$getFirstElementOfType", anchor: "get-first-element-of-type" },
+    { name: "$highlightElement", anchor: "highlight-element" },
+    { name: "$moveElement", anchor: "move-element" },
+    { name: "$previewElementInputs", anchor: "preview-element-inputs" },
+    { name: "$removeElementReferenceFromParent", anchor: "remove-element-reference-from-parent" },
+    { name: "$selectElement", anchor: "select-element" },
+    { name: "$updateElementInputs", anchor: "update-element-inputs" },
+    { name: "createCommand", anchor: "create-command" },
+    { name: "createElement", anchor: "create-element" },
+    { name: "useElementOverlay", anchor: "use-element-overlay" }
+  ]}
+/>
 
-## Components
+## Hooks
 
-### `PageEditorConfig`
+### `useActiveElement`
 
 **Constant** — imported from `webiny/admin/website-builder/page/editor`
 
 ```typescript
-import { PageEditorConfig } from "webiny/admin/website-builder/page/editor";
+import { useActiveElement } from "webiny/admin/website-builder/page/editor";
 ```
 
 ```typescript
-export const PageEditorConfig = Object.assign(BasePageEditorConfig, EditorConfig);
+export const useActiveElement = () => {
+    const [activeElement, setActiveElement] = useState<DocumentElement | null>(null);
+    const editor = useDocumentEditor();
+
+    useEffect(() => {
+        return autorun(() => {
+            const editorState = editor.getEditorState().read();
+            const documentState = editor.getDocumentState().read();
+
+            const activeElementId = editorState
+```
+
+### `useComponent`
+
+**Constant** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { useComponent } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export const useComponent = (name: string) => {
+  const selector = useCallback((state: EditorState) => state.components[name], [name]);
+
+  return useSelectFromEditor(selector, [name]);
+};
+```
+
+### `useCreateElement`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { useCreateElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function useCreateElement();
+```
+
+### `useDeleteElement`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { useDeleteElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function useDeleteElement();
+```
+
+### `useDocumentEditor`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { useDocumentEditor } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function useDocumentEditor<TDocument extends EditorDocument>();
+```
+
+### `useElementComponentManifest`
+
+**Constant** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { useElementComponentManifest } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export const useElementComponentManifest = (elementId: string) => {
+  const editor = useDocumentEditor();
+  const document = editor.getDocumentState().read();
+  const componentName = document.elements[elementId]?.component.name;
+
+  return useSelectFromEditor(
+    state => {
+      return state.components[componentName];
+    },
+    [componentName]
+  );
+};
+```
+
+### `useElementInputs`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+Returns the resolved input values for the given element, plus an updater callback.
+
+@param elementId The element whose inputs to resolve (null returns {}).
+@param depth How many levels of slot children to resolve (default 0).
+
+```typescript
+import { useElementInputs } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function useElementInputs<T extends Record<string, any> = Record<string, any>>(
+  elementId: string | null,
+  depth = 0
+);
+```
+
+### `useHighlightedElement`
+
+**Constant** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { useHighlightedElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export const useHighlightedElement = () => {
+    const [highlightedElement, setHighlightedElement] = useState<DocumentElement | null>(null);
+    const editor = useDocumentEditor();
+
+    useEffect(() => {
+        return autorun(() => {
+            const editorState = editor.getEditorState().read();
+            const documentState = editor.getDocumentState().read();
+
+            const elementId = ed
+```
+
+### `usePageEditorConfig`
+
+**Constant** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { usePageEditorConfig } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export const usePageEditorConfig = (): PageEditorConfig => {
+  const config = useEditorConfig<PageEditorConfig>();
+
+  return {
+    ...config,
+    pageSettings: {
+      groups: config.pageSettings.groups ?? [],
+      viewMode: config.pageSettings.viewMode ?? "dialog"
+    }
+  };
+};
+```
+
+### `useSelectFromDocument`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+Subscribe to part of the document state.
+@param selector Pick the slice of state you care about.
+@param equals (optional) comparator, defaults to Object.is
+
+```typescript
+import { useSelectFromDocument } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function useSelectFromDocument<TReturn, TDocument extends EditorDocument>(
+  selector: (doc: TDocument) => TReturn,
+  deps: React.DependencyList = [],
+  equals: Equals<TReturn> = deepEqual
+): TReturn;
+```
+
+### `useSelectFromEditor`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+Subscribe to part of the document state.
+@param selector Pick the slice of state you care about.
+@param equals (optional) comparator, defaults to Object.is
+
+```typescript
+import { useSelectFromEditor } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function useSelectFromEditor<T>(
+  selector: (doc: EditorState) => T,
+  deps: React.DependencyList = [],
+  equals: Equals<T> = deepEqual
+): T;
+```
+
+### `useUpdateElement`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { useUpdateElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function useUpdateElement();
 ```
 
 ## Other
 
-### `Editor`
+### `$addElementReferenceToParent`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $addElementReferenceToParent } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $addElementReferenceToParent(
+    document: Document,
+```
+
+### `$createElement`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $createElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $createElement(
+  editor: Editor,
+  payload: CommandPayload<typeof Commands.CreateElement>
+): ConstraintResult | undefined;
+```
+
+### `$deleteElement`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $deleteElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $deleteElement(editor: Editor, id: string, ignoreConstraints = false);
+```
+
+### `$deselectElement`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $deselectElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $deselectElement(editor: Editor);
+```
+
+### `$getActiveElementId`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $getActiveElementId } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $getActiveElementId(editor: Editor);
+```
+
+### `$getComponentManifestByElementId`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $getComponentManifestByElementId } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $getComponentManifestByElementId(
+  editor: Editor,
+  id: string
+): ComponentManifest | undefined;
+```
+
+### `$getElementById`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $getElementById } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $getElementById(document: Document, id: string);
+```
+
+### `$getElementInputValues`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $getElementInputValues } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $getElementInputValues(
+  document: Document,
+  components: Record<string, ComponentManifest>,
+  elementId: string | null,
+  depth = 0
+);
+```
+
+### `$getElementsOfType`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $getElementsOfType } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $getElementsOfType(document: Document, componentName: string);
+```
+
+### `$getFirstElementOfType`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $getFirstElementOfType } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $getFirstElementOfType(document: Document, componentName: string);
+```
+
+### `$highlightElement`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $highlightElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $highlightElement(editor: Editor, id: string | null);
+```
+
+### `$moveElement`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $moveElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $moveElement(document: Document, params: MoveParams): ConstraintResult | undefined;
+```
+
+### `$previewElementInputs`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+Programmatically update an element's inputs in the preview iframe only (via JSON patch).
+Does NOT write to the editor document state.
+
+```typescript
+import { $previewElementInputs } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $previewElementInputs(
+  editor: Editor,
+  elementId: string,
+  updater: (inputs: Record<string, any>) => void
+): void;
+```
+
+### `$removeElementReferenceFromParent`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $removeElementReferenceFromParent } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $removeElementReferenceFromParent(
+    document: Document,
+```
+
+### `$selectElement`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { $selectElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $selectElement(editor: Editor, id: string | null);
+```
+
+### `$updateElementInputs`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+Programmatically update an element's inputs using a callback-based API.
+The updater receives a deep object representation of the element's inputs
+which can be mutated in place.
+
+```typescript
+import { $updateElementInputs } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function $updateElementInputs(
+  editor: Editor,
+  elementId: string,
+  updater: (inputs: Record<string, any>) => void
+): void;
+```
+
+### `createCommand`
+
+**Function** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { createCommand } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export function createCommand<T>(type: string): Command<T>;
+```
+
+### `createElement`
+
+**Constant** — imported from `webiny/admin/website-builder/page/editor`
+
+```typescript
+import { createElement } from "webiny/admin/website-builder/page/editor";
+```
+
+```typescript
+export const createElement = (params: CreateElementParams) => {
+  return {
+    action: "CreateElement",
+    params
+  };
+};
+```
+
+### `useElementOverlay`
 
 **Export** — imported from `webiny/admin/website-builder/page/editor`
 
 ```typescript
-import { Editor } from "webiny/admin/website-builder/page/editor";
-```
-
-```typescript
-export { DefaultEditorConfig } from "./defaultConfig/DefaultEditorConfig.js";
-export * from "./config/index.js";
-export * from "./commands.js";
-export type { ElementInputRendererProps } from "./config/ElementInput.js";
+import { useElementOverlay } from "webiny/admin/website-builder/page/editor";
 ```

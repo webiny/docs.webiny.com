@@ -12,6 +12,7 @@ import { Alert } from "@/components/Alert";
 - How to resolve tenant identity from the incoming request
 - How to initialize the SDK with the correct tenant per request
 - Which API key strategy fits multi-tenant deployments
+- How to fetch per-tenant brand colors server-side and inject them as CSS custom properties
 
 </Alert>
 
@@ -185,18 +186,18 @@ import { ContentSdkInitializer, getTenant } from "@/src/contentSdk";
 import { getTheme } from "@/src/theme";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-    const tenantId = await getTenant();
-    const { isEnabled } = await draftMode();
-    const { theme } = await getTheme();
+  const tenantId = await getTenant();
+  const { isEnabled } = await draftMode();
+  const { theme } = await getTheme();
 
-    return (
-        <html lang="en">
-            <body>
-                <ContentSdkInitializer draftMode={isEnabled} theme={theme} tenantId={tenantId} />
-                {children}
-            </body>
-        </html>
-    );
+  return (
+    <html lang="en">
+      <body>
+        <ContentSdkInitializer draftMode={isEnabled} theme={theme} tenantId={tenantId} />
+        {children}
+      </body>
+    </html>
+  );
 }
 ```
 
@@ -212,16 +213,127 @@ Two approaches work for multi-tenant deployments:
 
 For most SaaS deployments, a universal key is the simpler and recommended starting point.
 
-## Per-Tenant Theming
+### Creating a Universal API Key
 
-The Website Builder supports per-tenant theming — each tenant can have its own fonts, colors, and CSS variables managed through Webiny Admin. In the root layout, fetch the tenant's theme configuration from the Webiny API and merge it with your static base theme before passing it to `ContentSdkInitializer` and injecting it into `<head>`.
+A universal API key must be provisioned programmatically via the `ApiKeyFactory` extension. This factory runs when Webiny boots and ensures the key exists in the root tenant with the permissions you specify.
 
-```typescript
-// Conceptual example — implementation details depend on your data model.
-const tenantId = await getTenant();
-const { theme } = await getTheme(); // static base theme
-const dynamicTheme = await fetchTenantTheme(tenantId); // per-tenant overrides from Webiny API
-const mergedTheme = mergeThemes(theme, dynamicTheme);
+Create the factory file:
+
+```typescript extensions/security/universalApiKey.ts
+import { ApiKeyFactory } from "webiny/api/security";
+
+class UniversalApiKeyImpl implements ApiKeyFactory.Interface {
+  async execute(): ApiKeyFactory.Return {
+    return [
+      {
+        name: "Universal API Key",
+        slug: "universal-key",
+        token: "wat_12345678",
+        permissions: [{ name: "*" }]
+      }
+    ];
+  }
+}
+
+export default ApiKeyFactory.createImplementation({
+  implementation: UniversalApiKeyImpl,
+  dependencies: []
+});
 ```
 
-The per-tenant theme data (font family, primary color, etc.) is stored as custom fields on the tenant model in Webiny and fetched via GraphQL with the `X-Tenant` header.
+Register it in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... your other extensions */}
+      <Api.Extension src={"/extensions/security/universalApiKey.ts"} />
+    </>
+  );
+};
+```
+
+Set the `token` value as `NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY` in your Next.js environment:
+
+```
+NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY=wat_12345678
+```
+
+<Alert type="warning" title="Token security">
+
+Store the token value in a secret manager and inject it at deploy time. Do not commit the raw token to source control. The `permissions: [{ name: "*" }]` grant gives full read access across all tenants — use a more restrictive permission set if your deployment requires it.
+
+</Alert>
+
+## Per-Tenant Theming
+
+Each tenant can carry its own brand colors stored as custom fields on the Webiny tenant model (e.g. `primaryColor`, `secondaryColor`). The recommended pattern is to fetch them server-side in your page component using `@webiny/sdk`, then inject them into `<head>` as CSS custom properties — available on the very first render with no client-side flash.
+
+### Initialize the Webiny SDK
+
+Create a singleton `Sdk` instance using the same environment variables as the Website Builder SDK:
+
+```typescript src/lib/webiny.ts
+import { Sdk } from "@webiny/sdk";
+
+export const sdk = new Sdk({
+  token: process.env.NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY!,
+  endpoint: process.env.NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST!,
+  tenant: process.env.NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT ?? "root"
+});
+```
+
+### Fetch and inject theme colors
+
+Add a server-side helper that calls `sdk.tenantManager.getCurrentTenant()`, reads the custom `extensions.theme` object, and builds a `:root` CSS rule:
+
+```typescript
+async function getTenantThemeCss(): Promise<string> {
+  const result = await sdk.tenantManager.getCurrentTenant();
+  if (!result.isOk()) {
+    return "";
+  }
+  const theme = ((result.value.values.extensions as any)?.theme ?? {}) as {
+    primaryColor?: string;
+    secondaryColor?: string;
+  };
+  const primary = theme.primaryColor || "#000000";
+  const secondary = theme.secondaryColor || "#000000";
+  return `:root { --fub-primary-color: ${primary}; --fub-secondary-color: ${secondary}; }`;
+}
+```
+
+Call it in parallel with your page fetch and inject the result as a `<style>` tag:
+
+```typescript src/app/funnel/[[...slug]]/page.tsx
+export default async function Page({ params, searchParams }: PageProps) {
+  const [page, themeCss] = await Promise.all([getPage(normalizeSlug(slug)), getTenantThemeCss()]);
+
+  return (
+    <div>
+      {themeCss && <style>{themeCss}</style>}
+      <DocumentRenderer document={page} isEditing={isEditing} />
+    </div>
+  );
+}
+```
+
+### Use the CSS variables in components
+
+Any client component can now reference the variables directly — no props, no context:
+
+```tsx
+<button style={{ background: "var(--fub-primary-color)" }}>Next</button>
+```
+
+The custom properties are set on `:root` before any React hydration, so the correct tenant colors are always visible on first paint.
+
+<Alert type="info" title="Tenant model extensions">
+
+The `extensions.theme` object is populated via a custom tenant model extension in Webiny Admin. The field names (`primaryColor`, `secondaryColor`, etc.) depend on how your extension is defined. Cast `values.extensions` to your own typed interface when reading it.
+
+</Alert>

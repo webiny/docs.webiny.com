@@ -1,0 +1,698 @@
+---
+id: c2rrl2zp
+title: File Manager
+description: "FileManagerSdk: upload, retrieve, and manage files"
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to retrieve files and file metadata?
+- How to upload files using presigned URLs?
+- How to handle large file uploads with multipart upload?
+- How to manage file records and tags?
+
+</Alert>
+
+## Overview
+
+The `FileManagerSdk` provides methods for managing files in Webiny File Manager. Access it via `sdk.fileManager` on a `Webiny` instance. The SDK handles file metadata operations (create, read, update, delete) and provides helpers for uploading files to S3 using presigned URLs. For large files, multipart upload is supported automatically based on configurable size thresholds.
+
+## Reading Files
+
+### getFile
+
+Retrieves a single file by ID.
+
+```typescript
+async getFile(params: GetFileParams): Promise<Result<FmFile, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name            | Type            | Required | Description                                              |
+| --------------- | --------------- | -------- | -------------------------------------------------------- |
+| `params`        | `GetFileParams` | Yes      | Parameters for getting the file                          |
+| `params.id`     | `string`        | Yes      | ID of the file to retrieve                               |
+| `params.fields` | `string[]`      | Yes      | Fields to return (e.g., `["id", "name", "src", "size"]`) |
+
+**Returns:**
+
+`Result<FmFile, HttpError | GraphQLError | NetworkError>` — Result containing the file data or an error.
+
+**Example:**
+
+```typescript
+const result = await sdk.fileManager.getFile({
+  id: "67a8f2e1d26d020002c00456",
+  fields: ["id", "name", "src", "size", "type", "createdOn"]
+});
+
+if (result.isOk()) {
+  const file = result.value;
+  console.log(`File: ${file.name}, Size: ${file.size} bytes`);
+} else {
+  console.error("Error:", result.error.message);
+}
+```
+
+### listFiles
+
+Lists files with filtering, sorting, and pagination.
+
+```typescript
+async listFiles(params: ListFilesParams): Promise<Result<ListFilesResult, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name            | Type                   | Required | Description                           |
+| --------------- | ---------------------- | -------- | ------------------------------------- |
+| `params`        | `ListFilesParams`      | Yes      | Parameters for listing files          |
+| `params.fields` | `string[]`             | Yes      | Fields to return for each file        |
+| `params.search` | `string`               | No       | Search query to filter files by name  |
+| `params.where`  | `FmFileListWhereInput` | No       | Filter conditions                     |
+| `params.limit`  | `number`               | No       | Maximum number of files to return     |
+| `params.after`  | `string`               | No       | Cursor for pagination                 |
+| `params.sort`   | `FmFileListSorter[]`   | No       | Sort order (e.g., `["savedOn_DESC"]`) |
+
+**Returns:**
+
+`Result<ListFilesResult, HttpError | GraphQLError | NetworkError>` — Result containing:
+
+- `data` — Array of `FmFile` objects
+- `meta` — Pagination metadata (`cursor`, `hasMoreItems`, `totalCount`)
+
+**Example:**
+
+```typescript
+const result = await sdk.fileManager.listFiles({
+  fields: ["id", "name", "src", "size", "type", "tags"],
+  search: "logo",
+  where: {
+    type_in: ["image/png", "image/jpeg"],
+    tags_in: ["marketing"]
+  },
+  limit: 10,
+  sort: ["savedOn_DESC"]
+});
+
+if (result.isOk()) {
+  const { data, meta } = result.value;
+  console.log(`Found ${data.length} files`);
+
+  if (meta.hasMoreItems) {
+    console.log(`More items available. Cursor: ${meta.cursor}`);
+  }
+}
+```
+
+**Available sort options:**
+
+- `savedOn_ASC` / `savedOn_DESC`
+- `createdOn_ASC` / `createdOn_DESC`
+- `name_ASC` / `name_DESC`
+- `key_ASC` / `key_DESC`
+- `type_ASC` / `type_DESC`
+- `size_ASC` / `size_DESC`
+
+### listTags
+
+Lists all tags used on files with usage counts.
+
+```typescript
+async listTags(params?: ListTagsParams): Promise<Result<FmTag[], HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name                               | Type                   | Required | Description                          |
+| ---------------------------------- | ---------------------- | -------- | ------------------------------------ |
+| `params`                           | `ListTagsParams`       | No       | Parameters for listing tags          |
+| `params.where`                     | `FmTagsListWhereInput` | No       | Filter conditions                    |
+| `params.where.createdBy`           | `string`               | No       | Filter by creator ID                 |
+| `params.where.tags_startsWith`     | `string`               | No       | Filter tags starting with prefix     |
+| `params.where.tags_not_startsWith` | `string`               | No       | Filter tags not starting with prefix |
+
+**Returns:**
+
+`Result<FmTag[], HttpError | GraphQLError | NetworkError>` — Result containing array of tags with counts.
+
+**Example:**
+
+```typescript
+const result = await sdk.fileManager.listTags({
+  where: {
+    tags_startsWith: "prod"
+  }
+});
+
+if (result.isOk()) {
+  result.value.forEach(tag => {
+    console.log(`${tag.tag}: ${tag.count} files`);
+  });
+}
+```
+
+## Creating and Updating Files
+
+### createFile
+
+Creates a new file record in File Manager. If a file is provided, it uploads to S3 first using presigned POST (small files) or multipart upload (large files).
+
+```typescript
+async createFile(params: CreateFileParams): Promise<Result<FmFile, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name                        | Type                                 | Required | Description                                         |
+| --------------------------- | ------------------------------------ | -------- | --------------------------------------------------- |
+| `params`                    | `CreateFileParams`                   | Yes      | Parameters for creating the file                    |
+| `params.data`               | `CreateFileData`                     | Yes      | File metadata                                       |
+| `params.data.name`          | `string`                             | Yes\*    | File name                                           |
+| `params.data.type`          | `string`                             | Yes\*    | MIME type (e.g., `"image/png"`)                     |
+| `params.data.size`          | `number`                             | No       | File size in bytes                                  |
+| `params.data.key`           | `string`                             | No       | Custom S3 key                                       |
+| `params.data.keyPrefix`     | `string`                             | No       | Custom key prefix                                   |
+| `params.data.location`      | `FmLocationInput`                    | No       | Folder location (`{ folderId: string }`)            |
+| `params.data.tags`          | `string[]`                           | No       | Tags for the file                                   |
+| `params.file`               | `Buffer \| Blob \| File`             | No       | Actual file content to upload                       |
+| `params.fields`             | `string[]`                           | Yes      | Fields to return for created file                   |
+| `params.onProgress`         | `(progress: UploadProgress) => void` | No       | Upload progress callback                            |
+| `params.multiPartThreshold` | `number`                             | No       | Threshold in MB for multipart upload (default: 100) |
+| `params.signal`             | `AbortSignal`                        | No       | AbortSignal for cancellation                        |
+
+\*Required when `file` is provided.
+
+**Returns:**
+
+`Result<FmFile, HttpError | GraphQLError | NetworkError>` — Result containing the created file data.
+
+**Example (metadata only):**
+
+```typescript
+const result = await sdk.fileManager.createFile({
+  data: {
+    name: "document.pdf",
+    type: "application/pdf",
+    size: 1024,
+    key: "files/document.pdf",
+    tags: ["legal", "contracts"]
+  },
+  fields: ["id", "name", "key", "src"]
+});
+```
+
+**Example (with file upload):**
+
+```typescript
+const file = new File([buffer], "photo.jpg", { type: "image/jpeg" });
+
+const result = await sdk.fileManager.createFile({
+  file,
+  data: {
+    name: "photo.jpg",
+    type: "image/jpeg",
+    location: { folderId: "root" },
+    tags: ["photos"]
+  },
+  fields: ["id", "name", "src", "size"],
+  onProgress: progress => {
+    console.log(`Upload progress: ${progress.percentage}%`);
+  }
+});
+
+if (result.isOk()) {
+  console.log(`File uploaded: ${result.value.src}`);
+}
+```
+
+### createFiles
+
+Creates multiple file records in bulk with concurrent uploads.
+
+```typescript
+async createFiles(params: CreateFilesParams): Promise<Result<CreateFilesResult, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name                        | Type                                          | Required | Description                                            |
+| --------------------------- | --------------------------------------------- | -------- | ------------------------------------------------------ |
+| `params`                    | `CreateFilesParams`                           | Yes      | Parameters for creating multiple files                 |
+| `params.files`              | `Array<{ file?, data, fields, onProgress? }>` | Yes      | Array of files to create                               |
+| `params.multiPartThreshold` | `number`                                      | No       | Threshold in MB for multipart upload (default: 100)    |
+| `params.concurrency`        | `number`                                      | No       | Number of concurrent uploads (default: 5)              |
+| `params.strategy`           | `BatchUploadStrategy`                         | No       | `"fail-fast"` or `"continue"` (default: `"fail-fast"`) |
+| `params.signal`             | `AbortSignal`                                 | No       | AbortSignal for cancellation                           |
+
+**Returns:**
+
+`Result<CreateFilesResult, HttpError | GraphQLError | NetworkError>` — Result containing:
+
+- `successful` — Array of successfully created `FmFile` objects
+- `failed` — Array of failed uploads with error details
+
+**Example:**
+
+```typescript
+const result = await sdk.fileManager.createFiles({
+  files: [
+    {
+      file: file1,
+      data: { name: "image1.jpg", type: "image/jpeg" },
+      fields: ["id", "name", "src"]
+    },
+    {
+      file: file2,
+      data: { name: "image2.jpg", type: "image/jpeg" },
+      fields: ["id", "name", "src"]
+    }
+  ],
+  concurrency: 3,
+  strategy: "continue"
+});
+
+if (result.isOk()) {
+  console.log(`Successful: ${result.value.successful.length}`);
+  console.log(`Failed: ${result.value.failed.length}`);
+
+  result.value.failed.forEach(item => {
+    console.error(`Failed to upload ${item.data.name}:`, item.error.message);
+  });
+}
+```
+
+### updateFile
+
+Updates file metadata (does not re-upload file content).
+
+```typescript
+async updateFile(params: UpdateFileParams): Promise<Result<FmFile, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name                   | Type               | Required | Description                       |
+| ---------------------- | ------------------ | -------- | --------------------------------- |
+| `params`               | `UpdateFileParams` | Yes      | Parameters for updating the file  |
+| `params.id`            | `string`           | Yes      | ID of the file to update          |
+| `params.data`          | `UpdateFileData`   | Yes      | Updated file metadata             |
+| `params.data.name`     | `string`           | No       | Updated file name                 |
+| `params.data.tags`     | `string[]`         | No       | Updated tags                      |
+| `params.data.location` | `FmLocationInput`  | No       | Updated folder location           |
+| `params.fields`        | `string[]`         | Yes      | Fields to return for updated file |
+
+**Returns:**
+
+`Result<FmFile, HttpError | GraphQLError | NetworkError>` — Result containing the updated file data.
+
+**Example:**
+
+```typescript
+const result = await sdk.fileManager.updateFile({
+  id: "67a8f2e1d26d020002c00456",
+  data: {
+    name: "updated-name.jpg",
+    tags: ["archived", "2024"]
+  },
+  fields: ["id", "name", "tags", "modifiedOn"]
+});
+```
+
+### deleteFile
+
+Deletes a file record from File Manager.
+
+```typescript
+async deleteFile(params: DeleteFileParams): Promise<Result<boolean, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name        | Type               | Required | Description                      |
+| ----------- | ------------------ | -------- | -------------------------------- |
+| `params`    | `DeleteFileParams` | Yes      | Parameters for deleting the file |
+| `params.id` | `string`           | Yes      | ID of the file to delete         |
+
+**Returns:**
+
+`Result<boolean, HttpError | GraphQLError | NetworkError>` — Result containing `true` on success.
+
+**Example:**
+
+```typescript
+const result = await sdk.fileManager.deleteFile({
+  id: "67a8f2e1d26d020002c00456"
+});
+
+if (result.isOk()) {
+  console.log("File deleted successfully");
+}
+```
+
+## Upload Helpers
+
+### getPresignedPostPayload
+
+Gets a presigned POST URL for uploading a file directly to S3 from a browser.
+
+```typescript
+async getPresignedPostPayload(params: GetPresignedPostPayloadParams): Promise<Result<PresignedPostPayloadResponse, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name               | Type                            | Required | Description                                   |
+| ------------------ | ------------------------------- | -------- | --------------------------------------------- |
+| `params`           | `GetPresignedPostPayloadParams` | Yes      | Parameters for getting presigned POST payload |
+| `params.name`      | `string`                        | Yes      | File name                                     |
+| `params.type`      | `string`                        | Yes      | MIME type                                     |
+| `params.size`      | `number`                        | Yes      | File size in bytes                            |
+| `params.key`       | `string`                        | No       | Custom S3 key                                 |
+| `params.keyPrefix` | `string`                        | No       | Custom key prefix                             |
+
+**Returns:**
+
+`Result<PresignedPostPayloadResponse, HttpError | GraphQLError | NetworkError>` — Result containing:
+
+- `data` — Presigned POST payload with `url` and `fields`
+- `file` — File metadata including generated `id` and `key`
+
+**Example:**
+
+```typescript
+const result = await sdk.fileManager.getPresignedPostPayload({
+  name: "upload.jpg",
+  type: "image/jpeg",
+  size: 102400
+});
+
+if (result.isOk()) {
+  const { data, file } = result.value;
+
+  // Upload to S3 using presigned POST
+  const formData = new FormData();
+  Object.entries(data.fields).forEach(([key, value]) => {
+    formData.append(key, value);
+  });
+  formData.append("file", fileBlob);
+
+  await fetch(data.url, {
+    method: "POST",
+    body: formData
+  });
+
+  // Create file record after upload
+  await sdk.fileManager.createFile({
+    data: {
+      id: file.id,
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      key: file.key
+    },
+    fields: ["id", "src"]
+  });
+}
+```
+
+### getPresignedPostPayloads
+
+Gets presigned POST URLs for multiple files in bulk.
+
+```typescript
+async getPresignedPostPayloads(params: GetPresignedPostPayloadsParams): Promise<Result<PresignedPostPayloadResponse[], HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name           | Type                              | Required | Description                                    |
+| -------------- | --------------------------------- | -------- | ---------------------------------------------- |
+| `params`       | `GetPresignedPostPayloadsParams`  | Yes      | Parameters for getting presigned POST payloads |
+| `params.files` | `GetPresignedPostPayloadParams[]` | Yes      | Array of file metadata                         |
+
+**Returns:**
+
+`Result<PresignedPostPayloadResponse[], HttpError | GraphQLError | NetworkError>` — Result containing array of presigned POST payloads.
+
+**Example:**
+
+```typescript
+const result = await sdk.fileManager.getPresignedPostPayloads({
+  files: [
+    { name: "file1.jpg", type: "image/jpeg", size: 102400 },
+    { name: "file2.jpg", type: "image/jpeg", size: 204800 }
+  ]
+});
+
+if (result.isOk()) {
+  result.value.forEach(({ data, file }) => {
+    console.log(`Upload URL for ${file.name}: ${data.url}`);
+  });
+}
+```
+
+### createMultiPartUpload
+
+Initiates a multipart upload for large files.
+
+```typescript
+async createMultiPartUpload(params: CreateMultiPartUploadParams): Promise<Result<MultiPartUploadResponse, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name                    | Type                          | Required | Description                                             |
+| ----------------------- | ----------------------------- | -------- | ------------------------------------------------------- |
+| `params`                | `CreateMultiPartUploadParams` | Yes      | Parameters for creating multipart upload                |
+| `params.data`           | `object`                      | Yes      | File metadata (same as `GetPresignedPostPayloadParams`) |
+| `params.data.name`      | `string`                      | Yes      | File name                                               |
+| `params.data.type`      | `string`                      | Yes      | MIME type                                               |
+| `params.data.size`      | `number`                      | Yes      | File size in bytes                                      |
+| `params.data.key`       | `string`                      | No       | Custom S3 key                                           |
+| `params.data.keyPrefix` | `string`                      | No       | Custom key prefix                                       |
+| `params.numberOfParts`  | `number`                      | Yes      | Number of parts to split file into                      |
+
+**Returns:**
+
+`Result<MultiPartUploadResponse, HttpError | GraphQLError | NetworkError>` — Result containing:
+
+- `uploadId` — Upload ID for tracking
+- `file` — File metadata including `id` and `key`
+- `parts` — Array of presigned URLs for each part (`{ partNumber, url }`)
+
+**Example:**
+
+```typescript
+const fileSize = 500 * 1024 * 1024; // 500 MB
+const chunkSize = 50 * 1024 * 1024; // 50 MB chunks
+const numberOfParts = Math.ceil(fileSize / chunkSize);
+
+const result = await sdk.fileManager.createMultiPartUpload({
+  data: {
+    name: "large-file.mp4",
+    type: "video/mp4",
+    size: fileSize
+  },
+  numberOfParts
+});
+
+if (result.isOk()) {
+  const { uploadId, file, parts } = result.value;
+
+  // Upload each part to S3
+  for (const part of parts) {
+    const chunk = getFileChunk(part.partNumber - 1, chunkSize);
+    await fetch(part.url, {
+      method: "PUT",
+      body: chunk
+    });
+  }
+
+  // Complete the upload
+  await sdk.fileManager.completeMultiPartUpload({
+    fileKey: file.key,
+    uploadId
+  });
+}
+```
+
+### completeMultiPartUpload
+
+Completes a multipart upload after all parts are uploaded.
+
+```typescript
+async completeMultiPartUpload(params: CompleteMultiPartUploadParams): Promise<Result<boolean, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Name              | Type                            | Required | Description                                     |
+| ----------------- | ------------------------------- | -------- | ----------------------------------------------- |
+| `params`          | `CompleteMultiPartUploadParams` | Yes      | Parameters for completing multipart upload      |
+| `params.fileKey`  | `string`                        | Yes      | S3 key from `createMultiPartUpload` response    |
+| `params.uploadId` | `string`                        | Yes      | Upload ID from `createMultiPartUpload` response |
+
+**Returns:**
+
+`Result<boolean, HttpError | GraphQLError | NetworkError>` — Result containing `true` on success.
+
+**Example:**
+
+```typescript
+const result = await sdk.fileManager.completeMultiPartUpload({
+  fileKey: "files/67a8f2e1d26d020002c00456/large-file.mp4",
+  uploadId: "abc123xyz"
+});
+
+if (result.isOk()) {
+  console.log("Multipart upload completed");
+
+  // Create file record
+  await sdk.fileManager.createFile({
+    data: {
+      id: fileId,
+      name: "large-file.mp4",
+      type: "video/mp4",
+      size: fileSize,
+      key: fileKey
+    },
+    fields: ["id", "src"]
+  });
+}
+```
+
+## Type Reference
+
+### FmFile
+
+Represents a file in File Manager.
+
+```typescript
+interface FmFile {
+  id: string;
+  createdOn: Date | string;
+  modifiedOn?: Date | string;
+  savedOn: Date | string;
+  createdBy: FmIdentity;
+  modifiedBy?: FmIdentity;
+  savedBy: FmIdentity;
+  location: FmLocation;
+  src?: string;
+  name?: string;
+  key?: string;
+  type?: string;
+  size?: number;
+  metadata?: FmFile_Metadata;
+  tags?: string[];
+  accessControl?: FmFile_AccessControl;
+  [key: string]: any;
+}
+```
+
+### FmTag
+
+Represents a tag with usage count.
+
+```typescript
+interface FmTag {
+  tag: string;
+  count: number;
+}
+```
+
+### FmListMeta
+
+Pagination metadata for list operations.
+
+```typescript
+interface FmListMeta {
+  cursor: string | null;
+  hasMoreItems: boolean;
+  totalCount: number;
+}
+```
+
+### FmFile_Metadata
+
+File metadata including image dimensions and EXIF data.
+
+```typescript
+interface FmFile_Metadata {
+  image?: {
+    width?: number;
+    height?: number;
+    format?: string;
+    orientation?: number;
+  };
+  exif?: Record<string, any>;
+  iptc?: Record<string, any>;
+  [key: string]: any;
+}
+```
+
+### FmFile_AccessControl
+
+File access control settings.
+
+```typescript
+type FmFile_AccessControl = {
+  type: "public" | "private-authenticated";
+};
+```
+
+### PresignedPostPayloadResponse
+
+Response containing presigned POST data for S3 upload.
+
+```typescript
+interface PresignedPostPayloadResponse {
+  data: {
+    url: string;
+    fields: Record<string, string>;
+  };
+  file: {
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+    key: string;
+  };
+}
+```
+
+### MultiPartUploadResponse
+
+Response containing multipart upload data.
+
+```typescript
+interface MultiPartUploadResponse {
+  uploadId: string;
+  file: {
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+    key: string;
+  };
+  parts: Array<{
+    partNumber: number;
+    url: string;
+  }>;
+}
+```
+
+### UploadProgress
+
+Upload progress callback data.
+
+```typescript
+interface UploadProgress {
+  sent: number;
+  total: number;
+  percentage: number;
+}
+```
