@@ -23,10 +23,15 @@ interface GitHubMilestone {
   state: string;
 }
 
+interface GitHubLabel {
+  name: string;
+}
+
 interface GitHubIssue {
   number: number;
   title: string;
   body: string | null;
+  labels: GitHubLabel[];
   pull_request?: unknown;
   state: string;
 }
@@ -35,6 +40,7 @@ interface PullRequest {
   number: number;
   title: string;
   body: string;
+  url: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -103,10 +109,16 @@ async function fetchPRsForMilestone(milestoneNumber: number): Promise<PullReques
 
     for (const issue of issues) {
       if (!issue.pull_request) continue;
+      const hasNoChangelog = issue.labels.some(l => l.name === "no-changelog");
+      if (hasNoChangelog) {
+        console.log(`  Skipping PR #${issue.number} (no-changelog): ${issue.title}`);
+        continue;
+      }
       prs.push({
         number: issue.number,
         title: issue.title,
-        body: issue.body ?? ""
+        body: issue.body ?? "",
+        url: `https://github.com/${GITHUB_REPO}/pull/${issue.number}`
       });
     }
     page++;
@@ -125,7 +137,7 @@ Here is a real example of a Webiny changelog MDX body for style/tone reference:
 ---
 ## Development
 
-### Introducing the \`webiny-mcp\` Standalone Binary
+### Introducing the \`webiny-mcp\` Standalone Binary ([#5046](https://github.com/webiny/webiny-js/pull/5046))
 
 MCP configuration was previously handled via the \`webiny configure-mcp\` command in the Webiny CLI,
 tying it to Webiny projects. The functionality has been extracted into a dedicated \`webiny-mcp\` binary
@@ -176,7 +188,9 @@ a developer-facing changelog in MDX format from a list of merged pull requests.
     - \`## Page Builder\`
     - \`## Admin\`
     - \`## Infrastructure\`
-- Each individual change is an H3 (\`###\`) under its section.
+- Each individual change is an H3 (\`###\`) under its section. Include a linked PR reference in the
+  heading like this: \`### Some Change Title ([#1234](https://github.com/webiny/webiny-js/pull/1234))\`.
+  If multiple PRs are merged into one item, include all of them: \`([#1234](…), [#1235](…))\`.
 - Merge related PRs into a single changelog item when they address the same feature or fix.
 - **Skip** trivial/internal PRs with no user-facing impact: dependency bumps, CI fixes, chore commits,
   test-only changes, typo fixes, and internal refactors. If a PR title starts with \`chore\`, \`ci\`,
@@ -215,7 +229,7 @@ async function generateChangelogBody(prs: PullRequest[], version: string): Promi
   const prList = prs
     .map(pr => {
       const body = pr.body.trim() ? `\n\n${pr.body.trim()}` : "";
-      return `### PR #${pr.number}: ${pr.title}${body}`;
+      return `### PR #${pr.number} (${pr.url}): ${pr.title}${body}`;
     })
     .join("\n\n---\n\n");
 
