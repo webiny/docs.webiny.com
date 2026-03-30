@@ -1,5 +1,5 @@
 ---
-id: 1854f255
+id: xosvw7g9
 title: Webiny 6.1.0 Changelog
 description: See what's new in Webiny version 6.1.0
 ---
@@ -13,67 +13,168 @@ import { Alert } from "@/components/Alert";
 
 ### Introducing the `webiny-mcp` Standalone Binary
 
-MCP configuration was previously handled via the `webiny configure-mcp` command in the Webiny CLI, tying it to Webiny projects. The functionality has been extracted into a dedicated `webiny-mcp` binary that works in any project, not just Webiny. As part of this change, the `webiny configure-mcp` command has been removed — use `webiny-mcp` directly instead.
+The MCP functionality has been extracted from the Webiny CLI into a dedicated `webiny-mcp` binary that works in any project, not just Webiny projects. The package removes runtime dependencies on `@webiny/cli-core` and React, making it fully standalone. Support for Kiro has also been added.
 
-### `webiny-mcp` CLI Now Supports OpenCode and Kiro Auto-Configuration
+As part of this change, the `webiny configure-mcp` command remains available but the standalone binary is now the recommended approach for MCP configuration.
 
-The `webiny-mcp` CLI can now auto-configure [OpenCode](https://opencode.ai) and [Kiro](https://kiro.dev) in addition to the AI editors it already supported.
+### New Architect Skills for AI-Assisted Development
+
+The monolithic `full-stack-extensions` skill has been replaced with three focused skills:
+
+- `webiny-full-stack-architect` — for end-to-end extension development
+- `webiny-api-architect` — for backend API extensions
+- `webiny-admin-architect` — for admin UI extensions
+
+A new `webiny-api-cms-custom-field-type` skill has been added covering how to build custom CMS field types with `DataFieldBuilder`, `FieldType.Factory`, `FieldTypeValidator.*`, and `FieldBuilderRegistry` module augmentation.
 
 ### Fixed Tailwind CSS Watcher Not Tracking the `/extensions` Folder
 
 If you were writing Tailwind classes inside the `/extensions` folder, those classes would not be recognized by Tailwind and would be missing from the final CSS output. This has been fixed — the Tailwind watcher now scans the `/extensions` folder alongside Webiny's own packages.
 
+### Fixed Extension Import Deduplication
+
+When installing an extension that imports from `webiny/extensions`, the CLI would previously create duplicate imports even if that import already existed. The CLI now correctly appends to existing imports and supports installing multiple components at once via the `components` array in `extension.json`.
+
+### AWS Credentials Check Improvements
+
+The Webiny CLI now provides clearer error messaging when AWS credentials are missing or invalid, helping you diagnose deployment issues faster.
+
 ## Webiny SDK
-
-<Alert type="info">
-
-You can try all SDK methods interactively via the [SDK Playground](/core-concepts/webiny-sdk#sdk-playground) built into your Webiny project.
-
-</Alert>
 
 ### New `tenantManager` and `fileManager` Methods
 
-This release adds a number of new SDK methods to the `tenantManager` and `fileManager` namespaces. Below are a few examples.
+This release adds new SDK methods to the `tenantManager` and `fileManager` namespaces for programmatic tenant installation and file management operations.
 
-**`sdk.tenantManager`** adds tenant lifecycle operations, for example `installTenant`:
+### Search and Meta Fields Support
+
+The SDK now supports search operations and meta field access, providing more comprehensive data retrieval capabilities.
+
+## Admin
+
+### Programmatic Route Transition Guards
+
+The `NavigationPrompt` React component has been replaced with a programmatic API for controlling route transitions:
 
 ```typescript
-const result = await sdk.tenantManager.installTenant({
-  tenantId: "69b95c6b1c84b00002f7ff2a"
-});
-```
+import { useRouter } from "webiny/admin";
 
-**`sdk.fileManager`** adds file upload and listing capabilities. `createFile` supports progress tracking via an `onProgress` callback:
+const { addTransitionGuard, unblockTransition } = useRouter();
 
-```typescript
-const uploadResult = await sdk.fileManager.createFile({
-  file: myFile,
-  data: {
-    name: myFile.name,
-    type: myFile.type,
-    size: myFile.size,
-    tags: ["test", "playground", "inline"],
-    location: { folderId: "root" }
-  },
-  onProgress: progress => {
-    console.log(`Progress: ${progress.percentage}% (${progress.sent}/${progress.total} bytes)`);
+// Register a guard that blocks navigation when form is dirty
+addTransitionGuard({
+  guard: () => !formState.isPristine,
+  onBlocked: () => {
+    // Show confirmation dialog
   }
 });
 
-const listResult = await sdk.fileManager.listFiles({
-  limit: 5,
-  sort: ["createdOn_DESC"]
-});
+// Allow transition after save completes
+unblockTransition();
 ```
 
-### Exposed `search` Parameter in `cms.listEntries`
+This fixes an issue where the previous component relied on React's render cycle to detect dirty state, which was often too late — the component hadn't re-rendered with the latest state when a route transition fired.
 
-The `search` parameter for `cms.listEntries` was supported by the underlying API but not exposed through the SDK. It is now available, allowing you to filter entries by a search term directly from the SDK:
+### New `useHotkeys` Hook
+
+A new `useHotkeys` hook is now available for registering keyboard shortcuts in Admin components.
+
+### New `useBuildParams` Hook
+
+A new presentation hook exposing `BuildParams` to React components, exported via `webiny/admin/build-params`.
+
+### New `useEnvConfig` Hook
+
+A new `useEnvConfig` hook and `EnvConfig` feature for accessing environment configuration in Admin components.
+
+### Fixed Config Re-render Causing Component Unmount/Remount
+
+When a `Config` parent re-rendered, Higher-Order Components could stack transiently in the composition store, causing inner components to unmount and remount repeatedly. This also broke priority-based ordering when secondary configs had already flushed their properties. The composition store now atomically swaps HOCs during re-renders, preventing transient stacking.
+
+## Website Builder
+
+### Configurable Element Overlay Actions
+
+You can now inject custom actions into element overlays in the editor using the new `ElementOverlay` config component:
 
 ```typescript
-const result = await sdk.cms.listEntries({
-  modelId: "product",
-  search: "tri",
-  fields: ["id", "createdOn", "values.name"]
-});
+import { EditorConfig } from "webiny/website-builder";
+
+<EditorConfig>
+  <EditorConfig.ElementOverlay>
+    {({ elementId, box }) => <MyCustomAction elementId={elementId} position={box} />}
+  </EditorConfig.ElementOverlay>
+</EditorConfig>
 ```
+
+New hooks are available: `useElementOverlay`, `useHighlightedElement`, and `usePageEditorConfig`.
+
+### Configurable Page Settings with Drawer/Dialog View Modes
+
+The hardcoded settings dialog has been replaced with a composable, config-driven page settings system:
+
+```typescript
+import { PageSettings } from "webiny/website-builder";
+
+<PageSettings.Group name="seo">
+  <PageSettings.Element name="metaTitle" />
+  <PageSettings.Element name="metaDescription" />
+</PageSettings.Group>
+
+<PageSettings.ViewMode.Dialog />
+// or
+<PageSettings.ViewMode.Drawer />
+```
+
+### Element Constraints and Lifecycle Hooks
+
+Component manifests now support element placement validation and lifecycle hooks:
+
+- **Constraints**: Use `constraints`, `descendantConstraints`, and `canDelete` functions to control where elements can be placed and whether they can be deleted
+- **Lifecycle hooks**: Declare `onChange` and `onDescendantChange` handlers that fire on create/update/delete, enabling cross-element side effects
+
+New editor hooks: `useCreateElement`, `useDeleteElement`, `useUpdateElement`, `useElementInputs`.
+
+### Editor Read-Only Mode
+
+The editor now supports a read-only mode with `IsReadOnly` / `IsNotReadOnly` config components for conditionally rendering UI elements based on edit permissions.
+
+### Improved Editor Layout Calculations
+
+The editor now uses a `data-affects-preview` DOM attribute to dynamically calculate reserved UI space and derive the available preview space, improving layout accuracy.
+
+### Extra Utils and DevTools Improvements
+
+New utility functions have been added to the Website Builder. The DevTools panel has been upgraded with:
+
+- Control of sections and views
+- "Copy value" and full object "copy" capabilities
+- Real-time Website Builder state inspector
+- License inspector
+- CMS model and entry sections
+- Search/filter functionality
+
+## Headless CMS
+
+### `FieldTypeValidator` Namespace Export
+
+All validator interfaces are now exported as `FieldTypeValidator` from `webiny/api/cms/model`, enabling type-safe custom field type authoring:
+
+```typescript
+import { FieldTypeValidator } from "webiny/api/cms/model";
+
+const myValidator: FieldTypeValidator.PatternValidator = {
+  name: "pattern",
+  regex: "^[A-Z]+$",
+  flags: "i"
+};
+```
+
+### ACO Folders Queryable via API Tokens
+
+ACO (Advanced Content Organization) folders can now be queried via API tokens, enabling programmatic folder access in headless integrations.
+
+## Infrastructure
+
+### Infrastructure Package Exports
+
+Infrastructure-related exports have been added to the `webiny` package for easier access to deployment configuration types and utilities.

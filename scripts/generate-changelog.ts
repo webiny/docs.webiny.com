@@ -1,0 +1,302 @@
+/**
+ * Generates a changelog MDX file for a given Webiny release version by:
+ *  1. Fetching all closed PRs from the webiny/webiny-js milestone matching the version
+ *  2. Sending them to Claude (claude-opus-4-5) to produce a structured MDX changelog
+ *  3. Writing the result to docs/release-notes/{version}/changelog.mdx
+ *
+ * Usage:
+ *   yarn tsx scripts/generate-changelog.ts --version 6.1.0
+ */
+
+import "dotenv/config";
+import Anthropic from "@anthropic-ai/sdk";
+import { writeFileSync, mkdirSync } from "fs";
+import { join } from "path";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+interface GitHubMilestone {
+  number: number;
+  title: string;
+  state: string;
+}
+
+interface GitHubIssue {
+  number: number;
+  title: string;
+  body: string | null;
+  pull_request?: unknown;
+  state: string;
+}
+
+interface PullRequest {
+  number: number;
+  title: string;
+  body: string;
+}
+
+// ---------------------------------------------------------------------------
+// CLI args
+// ---------------------------------------------------------------------------
+
+function parseArgs(): { version: string } {
+  const args = process.argv.slice(2);
+  const versionIdx = args.indexOf("--version");
+  if (versionIdx === -1 || !args[versionIdx + 1]) {
+    console.error("Usage: yarn tsx scripts/generate-changelog.ts --version <version>");
+    console.error("Example: yarn tsx scripts/generate-changelog.ts --version 6.1.0");
+    process.exit(1);
+  }
+  return { version: args[versionIdx + 1] };
+}
+
+// ---------------------------------------------------------------------------
+// GitHub helpers
+// ---------------------------------------------------------------------------
+
+const GITHUB_REPO = "webiny/webiny-js";
+const GITHUB_API = "https://api.github.com";
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const res = await fetch(url, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      "User-Agent": "webiny-docs-changelog-generator"
+    }
+  });
+  if (!res.ok) {
+    throw new Error(`GitHub API error ${res.status} for ${url}: ${await res.text()}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+async function findMilestone(version: string): Promise<GitHubMilestone> {
+  const bare = version.replace(/^v/, "");
+  const candidates = [bare, `v${bare}`];
+
+  let page = 1;
+  while (true) {
+    const milestones = await fetchJson<GitHubMilestone[]>(
+      `${GITHUB_API}/repos/${GITHUB_REPO}/milestones?state=all&per_page=100&page=${page}`
+    );
+    if (milestones.length === 0) break;
+
+    const found = milestones.find(m => candidates.includes(m.title));
+    if (found) return found;
+    page++;
+  }
+
+  throw new Error(`No milestone found matching version "${version}" in ${GITHUB_REPO}`);
+}
+
+async function fetchPRsForMilestone(milestoneNumber: number): Promise<PullRequest[]> {
+  const prs: PullRequest[] = [];
+  let page = 1;
+
+  while (true) {
+    const issues = await fetchJson<GitHubIssue[]>(
+      `${GITHUB_API}/repos/${GITHUB_REPO}/issues?milestone=${milestoneNumber}&state=closed&per_page=100&page=${page}`
+    );
+    if (issues.length === 0) break;
+
+    for (const issue of issues) {
+      if (!issue.pull_request) continue;
+      prs.push({
+        number: issue.number,
+        title: issue.title,
+        body: issue.body ?? ""
+      });
+    }
+    page++;
+  }
+
+  return prs;
+}
+
+// ---------------------------------------------------------------------------
+// Claude helpers
+// ---------------------------------------------------------------------------
+
+const STYLE_REFERENCE = `
+Here is a real example of a Webiny changelog MDX body for style/tone reference:
+
+---
+## Development
+
+### Introducing the \`webiny-mcp\` Standalone Binary
+
+MCP configuration was previously handled via the \`webiny configure-mcp\` command in the Webiny CLI,
+tying it to Webiny projects. The functionality has been extracted into a dedicated \`webiny-mcp\` binary
+that works in any project, not just Webiny. As part of this change, the \`webiny configure-mcp\` command
+has been removed — use \`webiny-mcp\` directly instead.
+
+### Fixed Tailwind CSS Watcher Not Tracking the \`/extensions\` Folder
+
+If you were writing Tailwind classes inside the \`/extensions\` folder, those classes would not be
+recognized by Tailwind and would be missing from the final CSS output. This has been fixed — the Tailwind
+watcher now scans the \`/extensions\` folder alongside Webiny's own packages.
+
+## Webiny SDK
+
+<Alert type="info">
+
+You can try all SDK methods interactively via the [SDK Playground](/core-concepts/webiny-sdk#sdk-playground) built into your Webiny project.
+
+</Alert>
+
+### New \`tenantManager\` and \`fileManager\` Methods
+
+This release adds a number of new SDK methods to the \`tenantManager\` and \`fileManager\` namespaces.
+
+\`\`\`typescript
+const result = await sdk.tenantManager.installTenant({
+  tenantId: "69b95c6b1c84b00002f7ff2a"
+});
+\`\`\`
+---
+`.trim();
+
+const SYSTEM_PROMPT = `
+You are a technical writer for Webiny, an open-source serverless CMS platform. Your task is to generate
+a developer-facing changelog in MDX format from a list of merged pull requests.
+
+## Output rules
+
+- Output ONLY the MDX body — no frontmatter, no import statements, no \`<GithubRelease />\` tag.
+  The script wraps your output in all of that automatically.
+- Start directly with the first \`##\` section heading.
+- Group changes into logical H2 (\`##\`) sections. Use only sections that have content. Suggested sections:
+    - \`## Breaking Changes\` — if any, always list these first
+    - \`## Development\`
+    - \`## Webiny SDK\`
+    - \`## Headless CMS\`
+    - \`## Website Builder\`
+    - \`## Page Builder\`
+    - \`## Admin\`
+    - \`## Infrastructure\`
+- Each individual change is an H3 (\`###\`) under its section.
+- Merge related PRs into a single changelog item when they address the same feature or fix.
+- **Skip** trivial/internal PRs with no user-facing impact: dependency bumps, CI fixes, chore commits,
+  test-only changes, typo fixes, and internal refactors. If a PR title starts with \`chore\`, \`ci\`,
+  \`test\`, \`deps\`, or \`refactor\` and the body contains no user-facing changes, skip it entirely.
+
+## Tone and style
+
+- Concise and technical — no filler, no marketing language.
+- Start with the problem or the context, then state what changed.
+- Address the reader as "you" where natural.
+- Backticks for: code, class names, method names, type names, package names, file paths.
+- No emojis. "Webiny" always capitalised.
+- Use \`\`\`typescript code blocks with real API examples when relevant. Always specify the language tag.
+- Do NOT use H1 headings. Do NOT add a "What you'll learn" block.
+
+## MDX conventions
+
+- Code blocks always have a language tag: \`\`\`typescript, \`\`\`graphql, etc.
+- Use \`<Alert type="info">\` (no import needed) only when genuinely useful — supplemental tips or
+  cross-references. Not every section needs one.
+- No shell/bash code blocks.
+- Import paths in examples use the \`webiny/\` prefix (NOT \`@webiny/\`),
+  e.g. \`import { Result } from "webiny/api"\`.
+
+${STYLE_REFERENCE}
+`.trim();
+
+async function generateChangelogBody(prs: PullRequest[], version: string): Promise<string> {
+  const apiKey = process.env.CLAUDE_KEY;
+  if (!apiKey) {
+    throw new Error("CLAUDE_KEY environment variable is not set.");
+  }
+
+  const client = new Anthropic({ apiKey });
+
+  const prList = prs
+    .map(pr => {
+      const body = pr.body.trim() ? `\n\n${pr.body.trim()}` : "";
+      return `### PR #${pr.number}: ${pr.title}${body}`;
+    })
+    .join("\n\n---\n\n");
+
+  const userMessage = `Generate a changelog for Webiny version ${version} based on the following merged pull requests. Apply all the rules in your system prompt.\n\n${prList}`;
+
+  console.log(`  Sending ${prs.length} PRs to Claude (claude-opus-4-5)...`);
+
+  const message = await client.messages.create({
+    model: "claude-opus-4-5",
+    max_tokens: 8192,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userMessage }]
+  });
+
+  const textBlock = message.content.find(b => b.type === "text");
+  if (!textBlock || textBlock.type !== "text") {
+    throw new Error("Claude returned no text content.");
+  }
+
+  return textBlock.text.trim();
+}
+
+// ---------------------------------------------------------------------------
+// MDX file builder
+// ---------------------------------------------------------------------------
+
+function buildMdxFile(version: string, body: string): string {
+  const id = Math.random().toString(36).slice(2, 10);
+
+  return [
+    "---",
+    `id: ${id}`,
+    `title: Webiny ${version} Changelog`,
+    `description: See what's new in Webiny version ${version}`,
+    "---",
+    "",
+    'import { GithubRelease } from "@/components/GithubRelease";',
+    'import { Alert } from "@/components/Alert";',
+    "",
+    `<GithubRelease version={"${version}"} />`,
+    "",
+    body,
+    ""
+  ].join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+async function main(): Promise<void> {
+  const { version } = parseArgs();
+
+  console.log(`\nGenerating changelog for Webiny ${version}...`);
+
+  console.log("  Looking up milestone on GitHub...");
+  const milestone = await findMilestone(version);
+  console.log(`  Found milestone #${milestone.number}: "${milestone.title}"`);
+
+  console.log("  Fetching merged PRs...");
+  const prs = await fetchPRsForMilestone(milestone.number);
+  console.log(`  Found ${prs.length} pull requests.`);
+
+  if (prs.length === 0) {
+    console.warn("  No pull requests found for this milestone. Nothing to generate.");
+    process.exit(0);
+  }
+
+  const body = await generateChangelogBody(prs, version);
+
+  const mdx = buildMdxFile(version, body);
+
+  const outDir = join(process.cwd(), "docs", "release-notes", version);
+  mkdirSync(outDir, { recursive: true });
+  const outPath = join(outDir, "changelog.mdx");
+  writeFileSync(outPath, mdx, "utf-8");
+
+  console.log(`\n✓ Changelog written to: docs/release-notes/${version}/changelog.mdx`);
+}
+
+main().catch(err => {
+  console.error("\nError:", err instanceof Error ? err.message : err);
+  process.exit(1);
+});
