@@ -10,6 +10,63 @@ import { GithubRelease } from "@/components/GithubRelease";
 
 ## Development
 
+### Introducing the `webiny-mcp` Standalone Binary
+
+MCP configuration was previously handled via the `webiny configure-mcp` command in the Webiny CLI, tying it to Webiny projects. The functionality has been extracted into a dedicated `webiny-mcp` binary that works in any project, not just Webiny. As part of this change, the `webiny configure-mcp` command has been removed — use `webiny-mcp` directly instead.
+
+### `webiny-mcp` CLI Now Supports OpenCode and Kiro Auto-Configuration
+
+The `webiny-mcp` CLI can now auto-configure [OpenCode](https://opencode.ai) and [Kiro](https://kiro.dev) in addition to the AI editors it already supported.
+
 ### Fixed Tailwind CSS Watcher Not Tracking the `/extensions` Folder
 
-The Tailwind CSS watcher was only scanning Webiny's own packages for class usage, leaving the `/extensions` folder untracked. Any Tailwind classes used exclusively in custom extensions were stripped from the final CSS output. The watcher now includes the `/extensions` folder, so all classes used in your extensions are correctly detected and included.
+If you were writing Tailwind classes inside the `/extensions` folder, those classes would not be recognized by Tailwind and would be missing from the final CSS output. This has been fixed — the Tailwind watcher now scans the `/extensions` folder alongside Webiny's own packages.
+
+## Webiny SDK
+
+### New `tenantManager` and `fileManager` Methods
+
+This release adds a number of new SDK methods to the `tenantManager` and `fileManager` namespaces. Below are a few examples.
+
+**`sdk.tenantManager`** adds tenant lifecycle operations, for example `installTenant`:
+
+```typescript
+const result = await sdk.tenantManager.installTenant({
+  tenantId: "69b95c6b1c84b00002f7ff2a"
+});
+```
+
+**`sdk.fileManager`** adds file upload and listing capabilities. `createFile` supports progress tracking via an `onProgress` callback:
+
+```typescript
+const uploadResult = await sdk.fileManager.createFile({
+  file: myFile,
+  data: {
+    name: myFile.name,
+    type: myFile.type,
+    size: myFile.size,
+    tags: ["test", "playground", "inline"],
+    location: { folderId: "root" }
+  },
+  onProgress: progress => {
+    console.log(`Progress: ${progress.percentage}% (${progress.sent}/${progress.total} bytes)`);
+  }
+});
+
+const listResult = await sdk.fileManager.listFiles({
+  limit: 5,
+  sort: ["createdOn_DESC"]
+});
+```
+
+### Exposed `search` Parameter in `cms.listEntries`
+
+The `search` parameter for `cms.listEntries` was supported by the underlying API but not exposed through the SDK. It is now available, allowing you to filter entries by a search term directly from the SDK:
+
+```typescript
+const result = await sdk.cms.listEntries({
+  modelId: "product",
+  search: "tri",
+  fields: ["id", "createdOn", "values.name"]
+});
+```
