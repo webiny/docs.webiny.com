@@ -1,0 +1,171 @@
+---
+id: f9rzf4pj
+title: Webiny 6.1.0 Changelog
+description: See what's new in Webiny version 6.1.0
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+
+<GithubRelease version={"6.1.0"} />
+
+## Website Builder
+
+### Trash Bin Support ([#5038](https://github.com/webiny/webiny-js/pull/5038))
+
+Website Builder now includes a trash bin feature, allowing you to recover deleted pages instead of losing them permanently. Deleted pages are moved to the trash bin where they can be restored or permanently removed.
+
+### Scheduler ([#5025](https://github.com/webiny/webiny-js/pull/5025), [#5008](https://github.com/webiny/webiny-js/pull/5008))
+
+Added a complete scheduling interface for Website Builder pages. You can now schedule pages to be published or unpublished at specific times. The scheduler architecture has been refactored to be decoupled from specific apps, making it reusable across Website Builder and Headless CMS.
+
+### Configurable Element Overlay Actions ([#5032](https://github.com/webiny/webiny-js/pull/5032))
+
+You can now inject custom actions into element overlays in the editor using the new `ElementOverlay` config component. This enables extensions to add custom edit buttons or other controls positioned relative to element boxes.
+
+```tsx
+import { PageEditorConfig, useElementOverlay } from "webiny/admin/website-builder/page/editor";
+
+const { ElementOverlay } = PageEditorConfig;
+
+const CustomOverlayAction = () => {
+  const { elementId, isHighlighted } = useElementOverlay();
+
+  if (!isHighlighted) {
+    return null;
+  }
+
+  return (
+    /* Add 32px which is the size of an IconButton. */
+    <ElementOverlay.Element.Container position={{ top: 5, right: 5 + 32 }}>
+      <IconButton
+        icon={<EditIcon />}
+        variant={"secondary"}
+        onClick={() => {
+          // Do something.
+        }}
+      />
+    </ElementOverlay.Element.Container>
+  );
+};
+
+export const Extension = () => {
+  return (
+    <PageEditorConfig>
+      <ElementOverlay.Element name={"editAction"} element={<CustomOverlayAction />} />
+    </PageEditorConfig>
+  );
+};
+```
+
+New hooks are available: `useElementOverlay`, `useHighlightedElement`, and `usePageEditorConfig`.
+
+### Configurable Page Settings with Drawer/Dialog View Modes ([#5029](https://github.com/webiny/webiny-js/pull/5029))
+
+The page settings system is now fully config-driven and extensible. Use `PageSettings.Group`, `PageSettings.Element`, and `PageSettings.ViewMode.Dialog/Drawer` to compose custom settings panels.
+
+### Element Constraints and Lifecycle Hooks ([#5020](https://github.com/webiny/webiny-js/pull/5020))
+
+Component manifests now support element placement validation through `constraints` and `descendantConstraints`.
+
+### Editor Readonly Mode ([#5010](https://github.com/webiny/webiny-js/pull/5010))
+
+The base editor now supports a readonly mode with `IsReadOnly` and `IsNotReadOnly` config components for conditionally rendering UI elements. This is used by the Workflows app to display pages in review mode without allowing edits.
+
+## Headless CMS
+
+### Fixed DynamicZone and Object Fields Collapsing on Save ([#5040](https://github.com/webiny/webiny-js/pull/5040))
+
+DynamicZone and Object fields were collapsing after saving an entry due to unnecessary re-rendering. This has been fixed—field state is now preserved across saves.
+
+### Fixed Missing `live` Field on Singular Models ([#5006](https://github.com/webiny/webiny-js/pull/5006))
+
+The `live` field was missing from the GraphQL schema for singular CMS models and GraphQL error was thrown.
+
+### ACO Folders Now Accessible via API Tokens ([#5031](https://github.com/webiny/webiny-js/pull/5031))
+
+Previously, any attempt to interact with ACO (Advanced Content Organization) folders via API tokens would result in a `NOT AUTHORIZED` error, even when using universal API tokens. This has been fixed — folders can now be queried and managed programmatically using API tokens.
+
+## Admin
+
+### Programmatic Route Transition Guards ([#5049](https://github.com/webiny/webiny-js/pull/5049))
+
+The `NavigationPrompt` React component has been replaced with a programmatic API for blocking route transitions. The new `addTransitionGuard` and `unblockTransition` methods on the router provide reliable control of route transitions that doesn't depend on the React render cycle.
+
+```typescript
+import { useRouter } from "webiny/admin";
+
+const router = useRouter();
+
+// Register a guard
+const unregister = router.addTransitionGuard({
+  guard: () => !form.isPristine,
+  onBlocked: () => showConfirmDialog()
+});
+
+// Allow transition after save
+router.unblockTransition();
+```
+
+### Cancel Button in Schedule Dialog ([#5033](https://github.com/webiny/webiny-js/pull/5033))
+
+The Schedule action dialog now includes a Cancel button to easily cancel a scheduled action.
+
+### `useBuildParams` Hook ([#5046](https://github.com/webiny/webiny-js/pull/5046))
+
+A new `useBuildParams` hook exposes build parameters to React components:
+
+```typescript
+import { useBuildParams } from "webiny/admin/build-params";
+
+const { environment, version } = useBuildParams();
+```
+
+### `useHotkeys` Hook ([#5029](https://github.com/webiny/webiny-js/pull/5029))
+
+A new `useHotkeys` hook is available for registering keyboard shortcuts in admin components.
+
+### `useEnvConfig` Hook ([#5010](https://github.com/webiny/webiny-js/pull/5010))
+
+Access environment configuration via the new `useEnvConfig` hook and `EnvConfig` feature.
+
+## Development
+
+### Standalone `webiny-mcp` Binary ([#5046](https://github.com/webiny/webiny-js/pull/5046), [#5021](https://github.com/webiny/webiny-js/pull/5021))
+
+MCP configuration has been extracted into a standalone `webiny-mcp` binary that works in any project, not just Webiny projects. Use `webiny-mcp` directly to configure Webiny MCP server in both the Webiny project and Website Builder starter kit (Next.js project).
+
+`webiny-mcp` also adds presets for configuring Kiro and OpenCode.
+
+### New MCP Skills for AI-Assisted Development ([#5046](https://github.com/webiny/webiny-js/pull/5046), [#5037](https://github.com/webiny/webiny-js/pull/5037))
+
+- **Architect skills** — added `webiny-full-stack-architect`, `webiny-api-architect`, and `webiny-admin-architect` skills to improve the generated code quality and structure
+- **Custom CMS field type skill** — new `webiny-api-cms-custom-field-type` skill covering `DataFieldBuilder`, `FieldType.Factory`, and `FieldTypeValidator` APIs
+- **Auto-generated skill catalogs** — all exported abstractions from the `webiny` package now have generated catalogs with descriptions and source pointers. This gives your agent much better understanding of each abstraction and makes decision making easier.
+
+### `webiny upgrade` Command ([#5044](https://github.com/webiny/webiny-js/pull/5044))
+
+A new `webiny upgrade` command simplifies upgrading your Webiny project. It calls the Webiny Upgrade tool via npx and executes the upgrade for either a specified version or the latest available.
+
+### Fixed Tailwind CSS Watcher Not Tracking `/extensions` ([#5041](https://github.com/webiny/webiny-js/pull/5041))
+
+Tailwind classes written in the `/extensions` folder were not being recognized. The watcher now scans both Webiny packages and the `/extensions` folder.
+
+### AWS Credentials Check ([#5023](https://github.com/webiny/webiny-js/pull/5023))
+
+Improved AWS credentials validation during deployment with clearer error messages when credentials are missing or invalid.
+
+## Webiny SDK
+
+### New `tenantManager` and `fileManager` Methods ([#5018](https://github.com/webiny/webiny-js/pull/5018))
+
+This release adds new SDK methods to the `tenantManager` and `fileManager` namespaces for programmatic tenant and file management.
+
+### Search and Meta Fields Support ([#5009](https://github.com/webiny/webiny-js/pull/5009))
+
+SDK methods now support search parameters and return meta fields, enabling more powerful queries and access to entry metadata.
+
+## Infrastructure
+
+### Renamed `api-elasticsearch` to `api-opensearch` ([#5036](https://github.com/webiny/webiny-js/pull/5036))
+
+The `api-elasticsearch` package has been renamed to `api-opensearch` and now uses the official OpenSearch client library. If you have custom code referencing the old package name, update your imports accordingly.
