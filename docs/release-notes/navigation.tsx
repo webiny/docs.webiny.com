@@ -47,6 +47,15 @@ export const Navigation = () => {
     });
   }, [releases]);
 
+  const v6Versions = useMemo(() => versions.filter(v => !v.startsWith("5.")), [versions]);
+  const v5Versions = useMemo(() => versions.filter(v => v.startsWith("5.")), [versions]);
+
+  const currentVersions = useMemo(() => v6Versions.slice(0, 5), [v6Versions]);
+  const olderVersions = useMemo(
+    () => [...v6Versions.slice(5), ...v5Versions],
+    [v6Versions, v5Versions]
+  );
+
   function MenuItem({ version }: { version: string }) {
     const predefinedTypes = [ReleaseNotesType.CHANGELOG, ReleaseNotesType.UPGRADE_GUIDE];
     const changeLog = releases[version].find(item => item.type === ReleaseNotesType.CHANGELOG);
@@ -77,11 +86,11 @@ export const Navigation = () => {
       <Group title={"Release Notes"}>
         <Page file={"./upgrade-webiny.mdx"} link={"release-notes/upgrade-webiny"} />
         <Group title={"Release Notes"}>
-          {versions.slice(0, 6).map(version => (
+          {currentVersions.map(version => (
             <MenuItem key={version} version={version} />
           ))}
           <Group title={"Older Releases"}>
-            {versions.slice(5).map(version => (
+            {olderVersions.map(version => (
               <MenuItem key={version} version={version} />
             ))}
           </Group>
