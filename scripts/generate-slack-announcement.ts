@@ -1,7 +1,6 @@
 /**
- * Generates a Slack announcement for a given Webiny release version by reading
- * the changelog MDX file and using Claude to produce a concise, friendly message
- * matching the team's established Slack announcement style.
+ * Generates release announcements for Slack, Twitter, and LinkedIn for a given
+ * Webiny release version by reading the changelog MDX file and using Claude.
  *
  * Usage:
  *   yarn generate:slack-announcement --version 6.1.0
@@ -45,10 +44,10 @@ function readChangelog(version: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Claude prompt
+// Prompts
 // ---------------------------------------------------------------------------
 
-const STYLE_EXAMPLE = `
+const SLACK_STYLE_EXAMPLE = `
 Hello @channel! :wave:
 
 Webiny 5.41.1 is out! :rocket:
@@ -64,7 +63,7 @@ How To Upgrade: https://www.webiny.com/docs/release-notes/5.41.1/upgrade-guide
 And that's all for now. As always, a ton of stuff in the pipeline, so we better get to it. :smile:
 `.trim();
 
-const SYSTEM_PROMPT = `
+const SLACK_PROMPT = `
 You write Slack announcements for Webiny releases. Webiny is an open-source serverless CMS platform.
 
 Your output must be a plain-text Slack message — no markdown formatting, no bullet lists, no headers.
@@ -81,13 +80,11 @@ Follow this structure exactly:
    should be 1–3 sentences. End the last paragraph with "Check out the changelog to learn more."
    or similar.
 6. A "—" separator line followed by a blank line
-7. Blank line
-8. "As usual, the release notes can be found on the following links:point_down::skin-tone-2::"
-9. "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
-10. "How To Upgrade: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
-11. A "—" separator line followed by a blank line
-12. Blank line
-13. Closing line — friendly, forward-looking, slightly playful. 1 sentence. End with an emoji.
+7. "As usual, the release notes can be found on the following links:point_down::skin-tone-2::"
+8. "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
+9. "How To Upgrade: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
+10. A "—" separator line followed by a blank line
+11. Closing line — friendly, forward-looking, slightly playful. 1 sentence. End with an emoji.
 
 Rules:
 - Replace VERSION with the actual release version number in the URLs.
@@ -97,33 +94,91 @@ Rules:
 
 Here is a real example of the style to match:
 
-${STYLE_EXAMPLE}
+${SLACK_STYLE_EXAMPLE}
 `.trim();
 
-async function generateAnnouncement(changelog: string, version: string): Promise<string> {
-  const apiKey = process.env.CLAUDE_KEY;
-  if (!apiKey) {
-    throw new Error("CLAUDE_KEY environment variable is not set.");
-  }
+const TWITTER_PROMPT = `
+You write Twitter/X announcements for Webiny releases. Webiny is an open-source serverless CMS platform.
 
-  const client = new Anthropic({ apiKey });
+Your output must be a plain-text tweet thread — no markdown, no bullet lists.
+No character limit applies, but keep each tweet punchy and focused.
 
+Format as a numbered thread where each tweet is separated by a blank line and prefixed with its number:
+
+1/ Opening tweet — announce the release with energy. Lead with the most exciting change or theme.
+   Include the version number. End with a hook that makes people want to read on.
+
+2/ through N/ — each tweet covers one theme from the changelog (e.g. Website Builder, Headless CMS,
+   Developer tooling). 1–3 sentences per tweet. Concrete and specific — name the actual features.
+   No fluff.
+
+Last tweet — links tweet. Plain text, no emoji overload:
+"Release notes & upgrade guide:
+Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog
+Upgrade guide: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
+
+Rules:
+- Replace VERSION with the actual release version number in the URLs.
+- Use real Unicode emoji sparingly (🚀 ✨ 🛠️ 🎯 etc.) — 1 per tweet max, only where genuinely fitting.
+- "Webiny" is always capitalised.
+- Tone: excited but technical. Speak to developers.
+- Do NOT use hashtags.
+`.trim();
+
+const LINKEDIN_PROMPT = `
+You write LinkedIn announcements for Webiny releases. Webiny is an open-source serverless CMS platform.
+
+Your output must be a plain-text LinkedIn post — no markdown, no bullet lists with dashes or asterisks.
+LinkedIn renders plain text with line breaks, so use blank lines between paragraphs.
+
+Structure:
+
+- Opening hook (1–2 sentences): grab attention, announce the release. Make it feel significant.
+- Blank line
+- 2–4 body paragraphs: each covers a theme from the changelog. Write in a professional but warm tone.
+  Be specific about what changed and why it matters to developers or teams using Webiny.
+  Each paragraph 2–4 sentences.
+- Blank line
+- Closing paragraph: forward-looking, invite engagement (e.g. "Give it a try and let us know what you think.").
+- Blank line
+- Links (plain text, no label formatting):
+  "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
+  "Upgrade guide: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
+
+Rules:
+- Replace VERSION with the actual release version number in the URLs.
+- Use real Unicode emoji very sparingly — at most 2 in the entire post, only in the opening or closing.
+- "Webiny" is always capitalised.
+- Tone: professional, developer-focused, enthusiastic but not hype-y.
+- Do NOT use hashtags.
+- Do NOT use bullet points or numbered lists anywhere.
+`.trim();
+
+// ---------------------------------------------------------------------------
+// Claude calls
+// ---------------------------------------------------------------------------
+
+async function generate(
+  client: Anthropic,
+  systemPrompt: string,
+  changelog: string,
+  version: string,
+  label: string
+): Promise<string> {
   const userMessage =
-    `Generate a Slack announcement for Webiny version ${version}.\n\n` +
+    `Generate a ${label} announcement for Webiny version ${version}.\n\n` +
     `Here is the changelog:\n\n${changelog}`;
-
-  console.log("  Sending changelog to Claude (claude-opus-4-5)...");
 
   const message = await client.messages.create({
     model: "claude-opus-4-5",
-    max_tokens: 1024,
-    system: SYSTEM_PROMPT,
+    max_tokens: 2048,
+    system: systemPrompt,
     messages: [{ role: "user", content: userMessage }]
   });
 
   const textBlock = message.content.find(b => b.type === "text");
   if (!textBlock || textBlock.type !== "text") {
-    throw new Error("Claude returned no text content.");
+    throw new Error(`Claude returned no text content for ${label}.`);
   }
 
   return textBlock.text.trim();
@@ -133,20 +188,43 @@ async function generateAnnouncement(changelog: string, version: string): Promise
 // Main
 // ---------------------------------------------------------------------------
 
+function printSection(label: string, content: string): void {
+  const border = "─".repeat(60);
+  console.log(`\n${border}`);
+  console.log(`  ${label}`);
+  console.log(border);
+  console.log(content);
+  console.log(border);
+}
+
 async function main(): Promise<void> {
   const { version } = parseArgs();
 
-  console.log(`\nGenerating Slack announcement for Webiny ${version}...`);
+  console.log(`\nGenerating announcements for Webiny ${version}...`);
 
   console.log("  Reading changelog...");
   const changelog = readChangelog(version);
   console.log("  Changelog loaded.");
 
-  const announcement = await generateAnnouncement(changelog, version);
+  const apiKey = process.env.CLAUDE_KEY;
+  if (!apiKey) {
+    throw new Error("CLAUDE_KEY environment variable is not set.");
+  }
+  const client = new Anthropic({ apiKey });
 
-  console.log("\n" + "─".repeat(60));
-  console.log(announcement);
-  console.log("─".repeat(60) + "\n");
+  console.log("  Generating Slack, Twitter, and LinkedIn posts in parallel...");
+
+  const [slack, twitter, linkedin] = await Promise.all([
+    generate(client, SLACK_PROMPT, changelog, version, "Slack"),
+    generate(client, TWITTER_PROMPT, changelog, version, "Twitter"),
+    generate(client, LINKEDIN_PROMPT, changelog, version, "LinkedIn")
+  ]);
+
+  printSection("SLACK", slack);
+  printSection("TWITTER", twitter);
+  printSection("LINKEDIN", linkedin);
+
+  console.log();
 }
 
 main().catch(err => {
