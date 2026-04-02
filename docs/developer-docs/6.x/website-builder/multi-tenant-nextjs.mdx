@@ -1,14 +1,14 @@
 ---
 id: wbmt7n4k
-title: Multi-Tenant Next.js Setup
-description: Configure a single Next.js application to serve content from multiple Webiny tenants based on domain, subdomain, or other request context.
+title: Multi-Tenant Setup
+description: Configure a single front-end application to serve content from multiple Webiny tenants based on domain, subdomain, or other request context.
 ---
 
 import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
-- How a single Next.js app can serve content from multiple Webiny tenants
+- How a single front-end app can serve content from multiple Webiny tenants
 - How to resolve tenant identity from the incoming request
 - How to initialize the SDK with the correct tenant per request
 - Which API key strategy fits multi-tenant deployments
@@ -18,11 +18,13 @@ import { Alert } from "@/components/Alert";
 
 ## Overview
 
-The default Next.js starter kit connects to one Webiny tenant set by the `NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT` environment variable. For SaaS platforms and multi-tenant deployments, a single Next.js instance can serve content from many tenants by resolving tenant identity at request time.
+By default, the Website Builder SDK connects to one Webiny tenant configured via an environment variable. For SaaS platforms and multi-tenant deployments, a single front-end instance can serve content from many tenants by resolving tenant identity at request time and passing it to the SDK.
 
-The pattern has three parts: resolve tenant identity in middleware, propagate it to server components via a request header, then read it when initializing the SDK.
+The core idea is the same regardless of framework: resolve the tenant from the incoming request, then pass it to the SDK initializer so all API calls are scoped to that tenant.
 
-## How Tenant Scoping Works
+## Next.js
+
+### How Tenant Scoping Works
 
 The `contentSdk.init()` call accepts an `apiTenant` parameter. Normally this is set from the environment variable, but you can pass it dynamically. The SDK then scopes all API calls — page fetching, redirect resolution — to that tenant.
 
@@ -45,7 +47,7 @@ initializeContentSdk({ tenantId })   ← scopes SDK to tenant
 contentSdk.getPage()   ← fetches pages for that tenant only
 ```
 
-## Resolving Tenant in Middleware
+### Resolving Tenant in Middleware
 
 Next.js middleware runs before any rendering and is the right place to resolve tenant identity from the request — subdomain, full domain, path prefix, or any other signal — and attach it as a header for downstream components.
 
@@ -110,7 +112,7 @@ The example above uses subdomain-based resolution. Replace `resolveTenantFromHos
 
 </Alert>
 
-## Reading Tenant in Server Components
+### Reading Tenant in Server Components
 
 Add a utility that reads the `X-Tenant` header set by middleware:
 
@@ -129,7 +131,7 @@ export const getTenant = async (): Promise<string> => {
 
 The fallback to `"root"` ensures the app keeps working when no tenant header is present, for example during static generation at build time.
 
-## Initializing the SDK Per Request
+### Initializing the SDK Per Request
 
 Update `initializeContentSdk` to accept a `tenantId` parameter. When provided, it overrides the `NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT` environment variable:
 
@@ -203,7 +205,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 `ContentSdkInitializer` is a memoized client component that calls `initializeContentSdk` on the browser side with the same tenant context.
 
-## API Key Strategy
+### API Key Strategy
 
 Two approaches work for multi-tenant deployments:
 
@@ -213,67 +215,15 @@ Two approaches work for multi-tenant deployments:
 
 For most SaaS deployments, a universal key is the simpler and recommended starting point.
 
-### Creating a Universal API Key
+#### Creating a Universal API Key
 
-A universal API key must be provisioned programmatically via the `ApiKeyFactory` extension. This factory runs when Webiny boots and ensures the key exists in the root tenant with the permissions you specify.
+See [Universal API Keys](/{version}/webiny-api/universal-api-keys) for a complete guide on provisioning a universal API key programmatically. Once deployed, set the token as `NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY` in your Next.js environment.
 
-Create the factory file:
-
-```typescript extensions/security/universalApiKey.ts
-import { ApiKeyFactory } from "webiny/api/security";
-
-class UniversalApiKeyImpl implements ApiKeyFactory.Interface {
-  async execute(): ApiKeyFactory.Return {
-    return [
-      {
-        name: "Universal API Key",
-        slug: "universal-key",
-        token: "wat_12345678",
-        permissions: [{ name: "*" }]
-      }
-    ];
-  }
-}
-
-export default ApiKeyFactory.createImplementation({
-  implementation: UniversalApiKeyImpl,
-  dependencies: []
-});
-```
-
-Register it in `webiny.config.tsx`:
-
-```tsx webiny.config.tsx
-import React from "react";
-import { Api } from "webiny/extensions";
-
-export const Extensions = () => {
-  return (
-    <>
-      {/* ... your other extensions */}
-      <Api.Extension src={"/extensions/security/universalApiKey.ts"} />
-    </>
-  );
-};
-```
-
-Set the `token` value as `NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY` in your Next.js environment:
-
-```
-NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY=wat_12345678
-```
-
-<Alert type="warning" title="Token security">
-
-Store the token value in a secret manager and inject it at deploy time. Do not commit the raw token to source control. The `permissions: [{ name: "*" }]` grant gives full read access across all tenants — use a more restrictive permission set if your deployment requires it.
-
-</Alert>
-
-## Per-Tenant Theming
+### Per-Tenant Theming
 
 Each tenant can carry its own brand colors stored as custom fields on the Webiny tenant model (e.g. `primaryColor`, `secondaryColor`). The recommended pattern is to fetch them server-side in your page component using `@webiny/sdk`, then inject them into `<head>` as CSS custom properties — available on the very first render with no client-side flash.
 
-### Initialize the Webiny SDK
+#### Initialize the Webiny SDK
 
 Create a singleton `Sdk` instance using the same environment variables as the Website Builder SDK:
 
@@ -287,9 +237,9 @@ export const sdk = new Sdk({
 });
 ```
 
-### Fetch and inject theme colors
+#### Fetch and inject theme colors
 
-Add a server-side helper that calls `sdk.tenantManager.getCurrentTenant()`, reads the custom `extensions.theme` object, and builds a `:root` CSS rule:
+Add a server-side helper that calls `sdk.tenantManager.getCurrentTenant()`, reads the custom `extensions.theme` object, and builds a `:root` CSS rule. The `extensions.theme` fields are defined via a tenant model extension — see [Extend Tenant Model](/{version}/tenant-manager/extend-tenant-model) for how to add them. This is the simplest approach; alternatively, theme data can also be stored in a single-entry Headless CMS content model and fetched via the CMS API.
 
 ```typescript
 async function getTenantThemeCss(): Promise<string> {
@@ -322,7 +272,7 @@ export default async function Page({ params, searchParams }: PageProps) {
 }
 ```
 
-### Use the CSS variables in components
+#### Use the CSS variables in components
 
 Any client component can now reference the variables directly — no props, no context:
 
@@ -331,9 +281,3 @@ Any client component can now reference the variables directly — no props, no c
 ```
 
 The custom properties are set on `:root` before any React hydration, so the correct tenant colors are always visible on first paint.
-
-<Alert type="info" title="Tenant model extensions">
-
-The `extensions.theme` object is populated via a custom tenant model extension in Webiny Admin. The field names (`primaryColor`, `secondaryColor`, etc.) depend on how your extension is defined. Cast `values.extensions` to your own typed interface when reading it.
-
-</Alert>

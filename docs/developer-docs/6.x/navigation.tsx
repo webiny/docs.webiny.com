@@ -94,6 +94,15 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"admin/connect-custom-domain"} />
       </Group>
       <Group
+        title={"API"}
+        icon={"/docs/menu-icons/admin.svg"}
+        link={"webiny-api/connect-custom-domain"}
+      >
+        <Page link={"webiny-api/connect-custom-domain"} />
+        <Page link={"webiny-api/extend-graphql-schema"} />
+        <Page link={"webiny-api/universal-api-keys"} />
+      </Group>
+      <Group
         title={"Website Builder"}
         icon={"/docs/menu-icons/page-builder.svg"}
         link={"website-builder/how-it-works"}

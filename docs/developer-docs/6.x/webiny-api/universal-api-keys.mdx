@@ -1,0 +1,110 @@
+---
+id: tm8c6wj1
+title: Universal API Keys
+description: Learn how to provision a universal API key programmatically using the ApiKeyFactory extension.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what a universal API key is and when to use one
+- how to create an API key programmatically using `ApiKeyFactory`
+- how to control permissions on the key
+
+</Alert>
+
+## Overview
+
+API keys are used by external clients — such as a Next.js front end, a mobile app, or a CI/CD pipeline — to authenticate requests to the Webiny API. By default, every tenant gets its own API key managed through the Admin UI under **Settings → Access Management → API Keys**.
+
+For multi-tenant deployments, managing one key per tenant becomes impractical. A **universal API key** is a single key provisioned at the root tenant level that can access content across all tenants. The tenant is scoped per request through the `apiTenant` parameter on the SDK, not through the key itself.
+
+Universal keys are created programmatically via the `ApiKeyFactory` extension. The factory runs when Webiny boots and ensures the key exists with the permissions you specify.
+
+## Creating the Extension
+
+Create a new extension file:
+
+```typescript extensions/security/universalApiKey.ts
+import { ApiKeyFactory } from "webiny/api/security";
+
+class UniversalApiKeyImpl implements ApiKeyFactory.Interface {
+  async execute(): ApiKeyFactory.Return {
+    return [
+      {
+        name: "Universal API Key",
+        slug: "universal-key",
+        token: process.env.WEBINY_API_UNIVERSAL_KEY as string,
+        permissions: [{ name: "*" }]
+      }
+    ];
+  }
+}
+
+export default ApiKeyFactory.createImplementation({
+  implementation: UniversalApiKeyImpl,
+  dependencies: []
+});
+```
+
+Set `WEBINY_API_UNIVERSAL_KEY` in your environment before deploying. Generate a strong, random token prefixed with `wat_` (e.g. `wat_` followed by a securely generated string) and store it in your secret manager. Inject it at deploy time — do not commit the value to source control.
+
+Then register it in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... other extensions */}
+      <Api.Extension src={"/extensions/security/universalApiKey.ts"} />
+    </>
+  );
+};
+```
+
+## Key Properties
+
+| Property      | Description                                                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | Human-readable label shown in the Admin UI                                                                                         |
+| `slug`        | Unique identifier for the key; used internally to look up and update the key on each boot                                          |
+| `token`       | The secret value clients include in API requests; must be prefixed with `wat_`; read from an environment variable, never hardcoded |
+| `permissions` | Array of permission objects; `{ name: "*" }` grants full access across all tenants                                                 |
+
+The `slug` field is important: Webiny uses it to determine whether the key already exists. If the key is found by its slug, it is updated in place rather than created again. Use a stable, unique slug for each key in your project.
+
+<Alert type="warning">
+
+Store the token value in a secret manager and inject it at deploy time. Do not commit the raw token to source control.
+
+</Alert>
+
+## Restricting Permissions
+
+The `permissions: [{ name: "*" }]` grant gives broad access. For tighter control, specify the exact permission scopes your clients need. For example, to restrict the key to read-only Website Builder access:
+
+```typescript
+permissions: [{ name: "pb.page", rwd: "r" }, { name: "pb.settings" }];
+```
+
+The available permission names and their options depend on the Webiny applications you have installed. You can inspect the permissions an existing key holds in the Admin UI under **Settings → Access Management → API Keys**.
+
+## Deploying the Key
+
+After creating the extension, deploy the API so the factory runs and the key is provisioned:
+
+```
+yarn webiny deploy api
+```
+
+During development, the key is created on the next boot triggered by watch mode:
+
+```
+yarn webiny watch api
+```
+
+Once deployed, use the token value wherever your client authenticates against the Webiny API — for example, as the `NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY` environment variable in a Next.js project.

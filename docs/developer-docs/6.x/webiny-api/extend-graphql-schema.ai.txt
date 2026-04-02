@@ -1,0 +1,44 @@
+AI Context: Extend the GraphQL Schema (extend-graphql-schema.mdx)
+
+Source of Information:
+1. docs/developer-docs/6.x/graphql/about.mdx — archived about article (structure/concepts)
+2. docs/developer-docs/6.x/graphql/reference.mdx — archived reference article (API signatures)
+3. docs/developer-docs/6.x/graphql/example.mdx — archived example article (full query/mutation examples)
+4. headless-cms/content-models-via-code.mdx — structural reference for the new format
+
+Key Documentation Decisions:
+1. Merged the three archived graphql articles (about, reference, example) into one practical article
+2. Did not carry over the old about/reference structure — the new article leads with a working example
+3. Kept both a query example and a mutation example to show the pattern is symmetric
+4. Used /* GraphQL */ template tag in addTypeDefs() calls — matches codebase convention
+5. Explained the Result pattern inline in the "How It Works" section rather than linking to a hidden doc
+6. Archived graphql/ directory articles intentionally excluded from navigation — data was correct but structure was wrong
+
+Understanding:
+GraphQLSchemaFactory is the extension point for adding custom queries/mutations. It uses a builder pattern:
+- builder.addTypeDefs(sdl) — extends the schema with new types
+- builder.addResolver({ path, dependencies, resolver }) — registers resolver with DI
+- path uses dot notation: "Query.myField" or "Mutation.myMutation"
+- dependencies array is positional — matches resolver factory parameters in order
+- resolver factory returns the actual async resolver function (double-function pattern)
+- All resolver operations return structured { data, error } responses using the Result pattern
+
+Code Patterns:
+- extend type Query / extend type Mutation to add to existing root types
+- Custom response types follow { data, error } or { data, meta, error } shapes
+- CmsError and CmsListMeta are built-in types available in the schema
+- createImplementation wraps the class for DI registration
+
+Related Documents:
+- docs/developer-docs/6.x/core-concepts/di.mdx — dependency injection pattern
+- docs/developer-docs/6.x/core-concepts/result.mdx — Result pattern
+- docs/developer-docs/6.x/reference/api/graphql.mdx — API reference
+
+Key Code Locations:
+- packages/api-graphql — GraphQLSchemaFactory implementation
+- packages/api-headless-cms — GetModelUseCase, ListPublishedEntriesUseCase, CreateEntryUseCase
+
+Tone Guidelines:
+- Technical and practical — lead with working code
+- Explain the "how it works" after the example, not before
+- Same depth and style as headless-cms/content-models-via-code.mdx
