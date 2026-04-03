@@ -1,0 +1,248 @@
+---
+id: f5t4wh6p
+title: File Manager SDK Reference
+description: API reference for the File Manager SDK — methods for uploading and managing files.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What methods are available on `sdk.fileManager`?
+- What parameters each method accepts?
+- What each method returns?
+
+</Alert>
+
+<Alert type="info" title="USAGE EXAMPLES">
+
+See [Using the Webiny SDK](/{version}/headless-cms/using-webiny-sdk) for end-to-end usage examples.
+
+</Alert>
+
+## Overview
+
+The `FileManagerSdk` is accessed via `sdk.fileManager` on a `Webiny` instance. It provides methods for listing, uploading, updating, and deleting files. For large files, use `createMultiPartUpload` followed by `completeMultiPartUpload`. All methods return a `Result` type — see the [SDK overview](/{version}/reference/sdk/overview) for initialization and error handling details.
+
+## Methods
+
+### getFile
+
+Gets a single file from the file manager.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.getFile(params: GetFileParams): Promise<Result<FmFile, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter | Type       | Required | Description           |
+| --------- | ---------- | :------: | --------------------- |
+| `id`      | `string`   |   Yes    | ID of the file to get |
+| `fields`  | `string[]` |   Yes    | —                     |
+
+---
+
+### listFiles
+
+Lists files from the file manager.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.listFiles(params: ListFilesParams): Promise<Result<ListFilesResult, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter | Type                   | Required | Description                       |
+| --------- | ---------------------- | :------: | --------------------------------- |
+| `search`  | `string`               |    No    | Search query                      |
+| `where`   | `FmFileListWhereInput` |    No    | Filter conditions                 |
+| `limit`   | `number`               |    No    | Maximum number of items to return |
+| `after`   | `string`               |    No    | Cursor for pagination             |
+| `sort`    | `FmFileListSorter[]`   |    No    | Sort order                        |
+| `fields`  | `string[]`             |   Yes    | —                                 |
+
+---
+
+### createFile
+
+Creates a new file in the file manager. If a file is provided, it will be uploaded to S3 first, then the record is created. If no file is provided, only the metadata record is created.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.createFile(params: CreateFileParams): Promise<Result<FmFile, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter            | Type                                 | Required | Description                                                    |
+| -------------------- | ------------------------------------ | :------: | -------------------------------------------------------------- |
+| `file`               | `Buffer \| Blob \| File`             |    No    | Optional: The actual file content to upload                    |
+| `data`               | `CreateFileData`                     |   Yes    | The file metadata                                              |
+| `fields`             | `string[]`                           |   Yes    | —                                                              |
+| `onProgress`         | `(progress: UploadProgress) => void` |    No    | Optional: Progress callback                                    |
+| `multiPartThreshold` | `number`                             |    No    | Optional: Threshold in MB for multi-part upload (default: 100) |
+| `signal`             | `AbortSignal`                        |    No    | Optional: AbortSignal for cancellation                         |
+
+---
+
+### createFiles
+
+Creates multiple files in the file manager. If files are provided, they will be uploaded to S3 first, then records are created. If no files are provided, only metadata records are created.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.createFiles(params: CreateFilesParams): Promise<Result<CreateFilesResult, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter            | Type                  | Required | Description                                                    |
+| -------------------- | --------------------- | :------: | -------------------------------------------------------------- |
+| `files`              | `Array<object>`       |   Yes    | Array of files with their data                                 |
+| `multiPartThreshold` | `number`              |    No    | Optional: Threshold in MB for multi-part upload (default: 100) |
+| `concurrency`        | `number`              |    No    | Optional: Number of concurrent uploads (default: 5)            |
+| `strategy`           | `BatchUploadStrategy` |    No    | Optional: Batch upload strategy (default: FAIL_FAST)           |
+| `signal`             | `AbortSignal`         |    No    | Optional: AbortSignal for cancellation                         |
+
+---
+
+### updateFile
+
+Updates a file in the file manager.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.updateFile(params: UpdateFileParams): Promise<Result<FmFile, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter | Type             | Required | Description              |
+| --------- | ---------------- | :------: | ------------------------ |
+| `id`      | `string`         |   Yes    | ID of the file to update |
+| `data`    | `UpdateFileData` |   Yes    | The file data to update  |
+| `fields`  | `string[]`       |   Yes    | —                        |
+
+---
+
+### deleteFile
+
+Deletes a file from the file manager.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.deleteFile(params: DeleteFileParams): Promise<Result<boolean, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter | Type     | Required | Description              |
+| --------- | -------- | :------: | ------------------------ |
+| `id`      | `string` |   Yes    | ID of the file to delete |
+
+---
+
+### listTags
+
+Lists tags from the file manager.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.listTags(params: ListTagsParams): Promise<Result<FmTag[], HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter | Type                   | Required | Description       |
+| --------- | ---------------------- | :------: | ----------------- |
+| `where`   | `FmTagsListWhereInput` |    No    | Filter conditions |
+
+---
+
+### getPresignedPostPayload
+
+Gets a presigned POST payload for uploading a file to S3.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.getPresignedPostPayload(params: GetPresignedPostPayloadParams): Promise<Result<PresignedPostPayloadResponse, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter   | Type     | Required | Description                |
+| ----------- | -------- | :------: | -------------------------- |
+| `name`      | `string` |   Yes    | File name                  |
+| `type`      | `string` |   Yes    | File MIME type             |
+| `size`      | `number` |   Yes    | File size in bytes         |
+| `key`       | `string` |    No    | Optional custom S3 key     |
+| `keyPrefix` | `string` |    No    | Optional custom key prefix |
+
+---
+
+### getPresignedPostPayloads
+
+Gets presigned POST payloads for uploading multiple files to S3.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.getPresignedPostPayloads(params: GetPresignedPostPayloadsParams): Promise<Result<PresignedPostPayloadResponse[], HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter | Type                              | Required | Description                                                     |
+| --------- | --------------------------------- | :------: | --------------------------------------------------------------- |
+| `files`   | `GetPresignedPostPayloadParams[]` |   Yes    | Array of file metadata for which to get presigned POST payloads |
+
+---
+
+### createMultiPartUpload
+
+Creates a multi-part upload for a large file.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.createMultiPartUpload(params: CreateMultiPartUploadParams): Promise<Result<MultiPartUploadResponse, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter       | Type     | Required | Description                            |
+| --------------- | -------- | :------: | -------------------------------------- |
+| `data`          | `object` |   Yes    | File metadata                          |
+| `numberOfParts` | `number` |   Yes    | Number of parts to split the file into |
+
+---
+
+### completeMultiPartUpload
+
+Completes a multi-part upload.
+
+**Signature:**
+
+```typescript
+sdk.fileManager.completeMultiPartUpload(params: CompleteMultiPartUploadParams): Promise<Result<boolean, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter  | Type     | Required | Description                          |
+| ---------- | -------- | :------: | ------------------------------------ |
+| `fileKey`  | `string` |   Yes    | S3 key of the uploaded file          |
+| `uploadId` | `string` |   Yes    | Upload ID from createMultiPartUpload |
+
+---

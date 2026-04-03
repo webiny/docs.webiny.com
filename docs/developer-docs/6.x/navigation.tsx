@@ -188,6 +188,22 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           />
         </Group>
       </Group>
+      <Group
+        title={"Reference"}
+        icon={"/docs/menu-icons/reference-manual.svg"}
+        link={"reference/sdk/overview"}
+      >
+        {/* __REFERENCE_PAGES_START__ */}
+        {/* __SDK_PAGES_START__ */}
+        <Group title={"SDK"} link={"reference/sdk/overview"}>
+          <Page link={"reference/sdk/overview"} title={"Overview"} />
+          <Page link={"reference/sdk/cms"} title={"CMS"} />
+          <Page link={"reference/sdk/file-manager"} title={"File Manager"} />
+          <Page link={"reference/sdk/tenant-manager"} title={"Tenant Manager"} />
+        </Group>
+        {/* __SDK_PAGES_END__ */}
+        {/* __REFERENCE_PAGES_END__ */}
+      </Group>
       <Separator />
       {children}
     </NavigationRoot>
