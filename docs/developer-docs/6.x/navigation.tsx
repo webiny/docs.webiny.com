@@ -43,6 +43,21 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"core-concepts/debugging"} />
         <Page link={"core-concepts/security"} />
       </Group>
+      <Separator title={"Platform"} />
+      <Group title={"Admin"} icon={"/docs/menu-icons/admin.svg"} link={"admin/whitelabeling"}>
+        <Page link={"admin/whitelabeling"} />
+        <Page link={"admin/connect-custom-domain"} />
+      </Group>
+      <Group
+        title={"API"}
+        icon={"/docs/menu-icons/admin.svg"}
+        link={"webiny-api/connect-custom-domain"}
+      >
+        <Page link={"webiny-api/connect-custom-domain"} />
+        <Page link={"webiny-api/extend-graphql-schema"} />
+        <Page link={"webiny-api/universal-api-keys"} />
+      </Group>
+      <Separator title={"Apps"} />
       <Group
         title={"Headless CMS"}
         icon={"/docs/menu-icons/headless-cms.svg"}
@@ -89,19 +104,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         {/*  <Page link={"headless-cms/ui/field-renderer"} />*/}
         {/*</Group>*/}
       </Group>
-      <Group title={"Admin"} icon={"/docs/menu-icons/admin.svg"} link={"admin/whitelabeling"}>
-        <Page link={"admin/whitelabeling"} />
-        <Page link={"admin/connect-custom-domain"} />
-      </Group>
-      <Group
-        title={"API"}
-        icon={"/docs/menu-icons/admin.svg"}
-        link={"webiny-api/connect-custom-domain"}
-      >
-        <Page link={"webiny-api/connect-custom-domain"} />
-        <Page link={"webiny-api/extend-graphql-schema"} />
-        <Page link={"webiny-api/universal-api-keys"} />
-      </Group>
       <Group
         title={"Website Builder"}
         icon={"/docs/menu-icons/page-builder.svg"}
@@ -140,6 +142,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       {/*  <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />*/}
       {/*  <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />*/}
       {/*</Group>*/}
+      <Separator title={"Operations"} />
       <Group title={"CLI"} icon={"/docs/menu-icons/cli.svg"} link={"cli/deploy"}>
         <Page link={"cli/deploy"} />
         <Page link={"cli/destroy"} />

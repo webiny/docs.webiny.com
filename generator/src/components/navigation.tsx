@@ -140,12 +140,14 @@ interface SeparatorProps {
   remove?: boolean;
   before?: string;
   after?: string;
+  title?: string;
 }
 
-export const Separator = ({ after, before, remove }: SeparatorProps) => {
+export const Separator = ({ after, before, remove, title }: SeparatorProps) => {
   return (
     <Property name={"items"} array after={after} before={before} remove={remove}>
       <Property name={"type"} value={"separator"} />
+      {title ? <Property name={"title"} value={title} /> : null}
     </Property>
   );
 };
