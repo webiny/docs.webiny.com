@@ -150,7 +150,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"cli/watch"} />
         <Page link={"cli/pulumi"} />
         <Page link={"cli/info"} />
-        <Page link={"cli/configure-mcp"} />
       </Group>
       <Group
         title={"Deployments and Infrastructure"}
