@@ -33,6 +33,7 @@
 ```
 docs/developer-docs/6.0.x/
 ├── admin/              # Admin area customization (whitelabeling)
+├── webiny-api/         # API customization (custom domain, extend GraphQL schema, universal API keys)
 ├── cli/                # CLI commands reference (deploy, destroy, watch, etc.)
 ├── core-concepts/      # Foundational knowledge: architecture, applications, project structure, DI, Result pattern, multi-tenancy, local dev, env vars
 ├── get-started/        # Welcome, installation, upgrade to Business
@@ -49,7 +50,7 @@ docs/developer-docs/6.0.x/
 ├── reference/          # Auto-generated API reference (extensions, admin, API)
 ├── tasks/              # Background task system (about, reference, management)
 ├── tenant-manager/     # Multi-tenancy management (GraphQL API, model extension)
-└── website-builder/    # Website Builder extensibility (Next.js setup, theming, custom components)
+└── website-builder/    # Website Builder extensibility (Next.js setup, multi-tenant setup, theming, custom components)
 ```
 
 ### Key Patterns
@@ -151,7 +152,7 @@ import type { CmsEntry } from "webiny/api";
 - **Bold** for key labels: `**Naming Convention:**`, `**Key Point:**`
 - Bullet lists use `-`, not numbered lists (even for sequential steps)
 - No emojis in prose
-- Inline links use standard markdown: `[text](/docs/path)`
+- Inline links use standard markdown: `[text](/{version}/path)`
 - "Webiny" always capitalized
 
 ## Tone and Voice

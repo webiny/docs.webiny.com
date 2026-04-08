@@ -1,0 +1,84 @@
+---
+id: s7b2nk9x
+title: Webiny SDK Reference
+description: API reference for the Webiny SDK — a type-safe JavaScript/TypeScript client for interacting with Webiny.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- How to initialize the Webiny SDK?
+- What configuration options are available?
+- What sub-SDKs are available and what they do?
+
+</Alert>
+
+## Overview
+
+The Webiny SDK is a type-safe JavaScript/TypeScript client for interacting with a Webiny instance from external applications — Node.js scripts, Next.js, Vue, SvelteKit, and others.
+
+Install it from npm:
+
+```
+yarn add @webiny/sdk
+```
+
+## Initialization
+
+Create a `Webiny` instance with your endpoint and API token:
+
+```typescript
+import { Webiny } from "@webiny/sdk";
+
+const sdk = new Webiny({
+  endpoint: "https://your-webiny-endpoint.com",
+  token: "your-api-token",
+  tenant: "root" // optional, defaults to "root"
+});
+```
+
+## Configuration
+
+| Option     | Type                     | Required | Description                                                 |
+| ---------- | ------------------------ | :------: | ----------------------------------------------------------- |
+| `endpoint` | `string`                 |   Yes    | The URL of your Webiny API endpoint                         |
+| `token`    | `string`                 |    No    | API token for authentication                                |
+| `tenant`   | `string`                 |    No    | Tenant ID. Defaults to `"root"`                             |
+| `headers`  | `Record<string, string>` |    No    | Additional HTTP headers sent with every request             |
+| `fetch`    | `typeof fetch`           |    No    | Custom fetch implementation. Defaults to the global `fetch` |
+
+## Sub-SDKs
+
+| Property            | Class                                                         | Description                           |
+| ------------------- | ------------------------------------------------------------- | ------------------------------------- |
+| `sdk.cms`           | [`CmsSdk`](/{version}/reference/sdk/cms)                      | Query and mutate Headless CMS entries |
+| `sdk.fileManager`   | [`FileManagerSdk`](/{version}/reference/sdk/file-manager)     | Upload and manage files               |
+| `sdk.tenantManager` | [`TenantManagerSdk`](/{version}/reference/sdk/tenant-manager) | Create and manage tenants             |
+
+## Error Handling
+
+All SDK methods return a `Result<TValue, TError>` type. Use `result.isOk()` and `result.isFail()` to branch on success or failure:
+
+```typescript
+const result = await sdk.cms.getEntry({
+  modelId: "article",
+  where: { entryId: "abc" },
+  fields: ["id"]
+});
+
+if (result.isFail()) {
+  console.error(result.error.message);
+  return;
+}
+
+console.log(result.value); // typed as CmsEntryData<TValues>
+```
+
+### Error types
+
+| Error class    | `code`          | When thrown                                          |
+| -------------- | --------------- | ---------------------------------------------------- |
+| `HttpError`    | `HTTP_ERROR`    | The API responded with a non-2xx HTTP status         |
+| `GraphQLError` | `GRAPHQL_ERROR` | The API returned a GraphQL-level error               |
+| `NetworkError` | `NETWORK_ERROR` | The `fetch` call itself threw (e.g. no connectivity) |

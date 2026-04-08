@@ -11,6 +11,7 @@ import { Alert } from "@/components/Alert";
 - Why define content models via code?
 - How to create a content model using the [`ModelFactory`](/{version}/reference/api/cms/model#model-factory) API?
 - How to define reference fields and object fields?
+- How to create single-entry and private models?
 - How to register models as extensions?
 
 </Alert>
@@ -98,14 +99,15 @@ export const Extensions = () => {
 
 **Model configuration**
 
-| Method                                    | Description                                                                                                                            |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `.public({ modelId, name, group })`       | Model is visible in the Admin sidebar and exposed via the Read, Preview, and Manage GraphQL endpoints                                  |
-| `.private({ modelId, name, group })`      | Model is not visible in the Admin sidebar and not exposed via the public GraphQL endpoints; useful for internal or system-level models |
-| `.description()`                          | Model description shown in the Admin                                                                                                   |
-| `.singularApiName()` / `.pluralApiName()` | GraphQL query names                                                                                                                    |
-| `.layout()`                               | Defines how fields are arranged in rows in the Admin UI (`[["field1", "field2"], ["field3"]]`)                                         |
-| `.titleFieldId()`                         | Which field to use as the entry title in list views                                                                                    |
+| Method                                    | Description                                                                                                                           |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `.public({ modelId, name, group })`       | Model is visible in the Admin sidebar and exposed via the Read, Preview, and Manage GraphQL endpoints                                 |
+| `.private({ modelId, name, group })`      | Model is not visible in the Admin sidebar and not exposed via the public GraphQL endpoints; access data via use cases in backend code |
+| `.singleEntry()`                          | Only one entry of this model can exist; the Admin shows the entry form directly instead of a list view                                |
+| `.description()`                          | Model description shown in the Admin                                                                                                  |
+| `.singularApiName()` / `.pluralApiName()` | GraphQL query names                                                                                                                   |
+| `.layout()`                               | Defines how fields are arranged in rows in the Admin UI (`[["field1", "field2"], ["field3"]]`)                                        |
+| `.titleFieldId()`                         | Which field to use as the entry title in list views                                                                                   |
 
 **Field types**
 
@@ -235,6 +237,41 @@ All renderer names are available via TypeScript autocomplete when calling `.rend
 | Object      | `objectAccordionSingle`, `objectAccordionMultiple`                                                                             |
 | Special     | `dynamicZone`, `hidden`, `passthrough`                                                                                         |
 | UI elements | `uiSeparator`, `uiAlert`, `uiTabs`                                                                                             |
+
+## Single-Entry Models
+
+A single-entry model allows only one entry to exist. Call `.singleEntry()` on the builder to enable this mode. It is useful for global site settings, per-tenant configuration, or any data that should have exactly one record.
+
+```typescript extensions/siteSettingsModel.ts
+import { ModelFactory } from "webiny/api/cms/model";
+
+class SiteSettingsModelImpl implements ModelFactory.Interface {
+  async execute(builder: ModelFactory.Builder) {
+    return [
+      builder
+        .public({
+          modelId: "siteSettings",
+          name: "Site Settings",
+          group: "ungrouped"
+        })
+        .singleEntry()
+        .fields(fields => ({
+          googleAnalyticsId: fields.text().renderer("textInput").label("Google Analytics ID"),
+          facebookPixelId: fields.text().renderer("textInput").label("Facebook Pixel ID")
+        }))
+        .singularApiName("SiteSetting")
+        .pluralApiName("SiteSettings")
+    ];
+  }
+}
+
+export default ModelFactory.createImplementation({
+  implementation: SiteSettingsModelImpl,
+  dependencies: []
+});
+```
+
+The entry is available on both the Manage and Read GraphQL endpoints. The Admin shows the entry form directly — there is no list view.
 
 ## Deploying Changes
 

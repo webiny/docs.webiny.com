@@ -1,0 +1,177 @@
+---
+id: m3q8vcj1
+title: CMS SDK Reference
+description: API reference for the CMS SDK — methods for querying and mutating Headless CMS entries.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What methods are available on `sdk.cms`?
+- What parameters each method accepts?
+- What each method returns?
+
+</Alert>
+
+<Alert type="info" title="USAGE EXAMPLES">
+
+See [Using the Webiny SDK](/{version}/headless-cms/using-webiny-sdk) for end-to-end usage examples.
+
+</Alert>
+
+## Overview
+
+The `CmsSdk` is accessed via `sdk.cms` on a `Webiny` instance. It provides methods for reading and writing Headless CMS entries over GraphQL. All methods return a `Result` type — use `result.isOk()` and `result.isFail()` to handle success and error cases. See the [SDK overview](/{version}/reference/sdk/overview) for initialization and error handling details.
+
+## Methods
+
+### getEntry
+
+Retrieves a single entry from the CMS.
+
+**Signature:**
+
+```typescript
+sdk.cms.getEntry<TValues>(params: GetEntryParams): Promise<Result<CmsEntryData<TValues>, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter       | Type                      | Required | Description                                                                                                                                        |
+| --------------- | ------------------------- | :------: | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`       | `string`                  |   Yes    | The model ID of the entry to retrieve                                                                                                              |
+| `where`         | `GetEntryWhere`           |   Yes    | Where conditions to filter the entry. Can filter by id, entryId, or values                                                                         |
+| `where.id`      | `string`                  |    No    | The revision ID (e.g., "123#0001")                                                                                                                 |
+| `where.entryId` | `string`                  |    No    | The entry ID (e.g., "123")                                                                                                                         |
+| `where.values`  | `Record<string, unknown>` |    No    | Filter by entry values                                                                                                                             |
+| `fields`        | `string[]`                |   Yes    | Fields to include in the response. Use "values." prefix for entry values (e.g., "values.author.name") or specify top-level fields like "createdOn" |
+| `preview`       | `boolean`                 |    No    | When true, uses preview API to access unpublished/draft content. When false (default), uses read API for published content only.                   |
+
+---
+
+### listEntries
+
+Lists entries from the CMS with filtering, sorting, and pagination support.
+
+**Signature:**
+
+```typescript
+sdk.cms.listEntries<TValues>(params: ListEntriesParams): Promise<Result<ListEntriesResult<TValues>, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter | Type                              | Required | Description                                                                                                                                |
+| --------- | --------------------------------- | :------: | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `modelId` | `string`                          |   Yes    | The model ID of entries to list                                                                                                            |
+| `where`   | `Record<string, unknown>`         |    No    | Optional where conditions to filter entries                                                                                                |
+| `sort`    | `Record<string, "asc" \| "desc">` |    No    | Optional sort configuration                                                                                                                |
+| `limit`   | `number`                          |    No    | Maximum number of entries to return (default: 10)                                                                                          |
+| `after`   | `string`                          |    No    | Cursor for pagination                                                                                                                      |
+| `search`  | `string`                          |    No    | Optional full-text search term to filter entries across searchable fields (text, longText fields with fullTextSearch enabled)              |
+| `fields`  | `string[]`                        |   Yes    | Specific fields to return. Use "values." prefix for entry values (e.g., "values.author.name") or specify top-level fields like "createdOn" |
+| `preview` | `boolean`                         |    No    | When true, uses preview API to access unpublished/draft content. When false (default), uses read API for published content only.           |
+
+---
+
+### createEntry
+
+Creates a new entry in the CMS.
+
+**Signature:**
+
+```typescript
+sdk.cms.createEntry<TValues>(params: CreateEntryParams<TValues>): Promise<Result<CreateCmsEntryData<TValues>, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter | Type                          | Required | Description                                                                                                                                        |
+| --------- | ----------------------------- | :------: | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId` | `string`                      |   Yes    | The model ID for the entry                                                                                                                         |
+| `data`    | `CreateCmsEntryData<TValues>` |   Yes    | The entry data to create                                                                                                                           |
+| `fields`  | `string[]`                    |   Yes    | Fields to include in the response. Use "values." prefix for entry values (e.g., "values.author.name") or specify top-level fields like "createdOn" |
+
+---
+
+### updateEntryRevision
+
+Updates an existing entry revision in the CMS.
+
+**Signature:**
+
+```typescript
+sdk.cms.updateEntryRevision<TValues>(params: UpdateEntryRevisionParams<TValues>): Promise<Result<UpdateCmsEntryData<TValues>, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter    | Type                          | Required | Description                                                                                                                                        |
+| ------------ | ----------------------------- | :------: | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`    | `string`                      |   Yes    | The model ID for the entry                                                                                                                         |
+| `revisionId` | `string`                      |   Yes    | The revision ID of the entry to update (e.g., "123#0001")                                                                                          |
+| `data`       | `UpdateCmsEntryData<TValues>` |   Yes    | The updated entry data                                                                                                                             |
+| `fields`     | `string[]`                    |   Yes    | Fields to include in the response. Use "values." prefix for entry values (e.g., "values.author.name") or specify top-level fields like "createdOn" |
+
+---
+
+### deleteEntryRevision
+
+Deletes an entry revision from the CMS.
+
+**Signature:**
+
+```typescript
+sdk.cms.deleteEntryRevision(params: DeleteEntryRevisionParams): Promise<Result<boolean, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter    | Type      | Required | Description                                               |
+| ------------ | --------- | :------: | --------------------------------------------------------- |
+| `modelId`    | `string`  |   Yes    | The model ID of the entry to delete                       |
+| `revisionId` | `string`  |   Yes    | The revision ID of the entry to delete (e.g., "123#0001") |
+| `permanent`  | `boolean` |    No    | Whether to permanently delete the entry (default: false)  |
+
+---
+
+### publishEntryRevision
+
+Publishes an entry revision in the CMS.
+
+**Signature:**
+
+```typescript
+sdk.cms.publishEntryRevision<TValues>(params: PublishEntryRevisionParams): Promise<Result<CmsEntryData<TValues>, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter    | Type       | Required | Description                                                                                       |
+| ------------ | ---------- | :------: | ------------------------------------------------------------------------------------------------- |
+| `modelId`    | `string`   |   Yes    | The model ID of the entry to publish                                                              |
+| `revisionId` | `string`   |   Yes    | The revision ID of the entry to publish (e.g., "123#0001")                                        |
+| `fields`     | `string[]` |   Yes    | Fields to include in response. Use "values." prefix for entry values (e.g., "values.author.name") |
+
+---
+
+### unpublishEntryRevision
+
+Unpublishes an entry revision in the CMS.
+
+**Signature:**
+
+```typescript
+sdk.cms.unpublishEntryRevision<TValues>(params: UnpublishEntryRevisionParams): Promise<Result<CmsEntryData<TValues>, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter    | Type       | Required | Description                                                                                       |
+| ------------ | ---------- | :------: | ------------------------------------------------------------------------------------------------- |
+| `modelId`    | `string`   |   Yes    | The model ID of the entry to unpublish                                                            |
+| `revisionId` | `string`   |   Yes    | The revision ID of the entry to unpublish (e.g., "123#0001")                                      |
+| `fields`     | `string[]` |   Yes    | Fields to include in response. Use "values." prefix for entry values (e.g., "values.author.name") |
+
+---
