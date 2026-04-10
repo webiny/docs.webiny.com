@@ -1,0 +1,111 @@
+---
+id: k7qm3hj9
+title: Teams
+description: Learn how to define security teams in code using the TeamFactory extension.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what `TeamFactory` is and when to use it
+- how to define teams that group roles in code
+- how code-defined teams behave in the Admin UI
+
+</Alert>
+
+## Overview
+
+Teams group roles together and can be assigned to users, granting them all the permissions the included roles provide. By default, teams are managed in the Admin UI under **Settings → Access Management → Teams**. Like manually created roles, manually created teams live only in the database and must be recreated on each new environment.
+
+`TeamFactory` is an extension that lets you define teams in code. Webiny loads them at boot time and merges them with database teams so they appear in the Admin UI like any other team. Because they come from code, they cannot be edited or deleted through the UI.
+
+<Alert type="info">
+
+Teams are an enterprise feature. Confirm your Webiny license includes team support before using `TeamFactory`.
+
+</Alert>
+
+## Creating the Extension
+
+Teams reference roles by their `slug`. Define the required roles first — either in the Admin UI or via [`RoleFactory`](/{version}/security/roles) — then create a team extension that references them:
+
+```typescript extensions/security/contentTeam.ts
+import { TeamFactory } from "webiny/api/security";
+
+class ContentTeamImpl implements TeamFactory.Interface {
+  async execute(): TeamFactory.Return {
+    return [
+      {
+        name: "Content Team",
+        slug: "content-team",
+        description: "Team responsible for managing content across all channels.",
+        roles: ["content-editor", "website-publisher"]
+      }
+    ];
+  }
+}
+
+export default TeamFactory.createImplementation({
+  implementation: ContentTeamImpl,
+  dependencies: []
+});
+```
+
+Then register it in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... other extensions */}
+      <Api.Extension src={"/extensions/security/contentTeam.ts"} />
+    </>
+  );
+};
+```
+
+## Team Properties
+
+| Property      | Description                                                                            |
+| ------------- | -------------------------------------------------------------------------------------- |
+| `name`        | Human-readable label shown in the Admin UI                                             |
+| `slug`        | Unique identifier for the team; used when assigning the team to users                  |
+| `description` | Short description shown in the Admin UI                                                |
+| `roles`       | Array of role slugs the team includes; can mix code-defined and database-created roles |
+
+The `roles` array accepts role slugs — the same `slug` values defined in `RoleFactory` or visible in the Admin UI Roles module. A team can combine code-defined roles and roles created through the UI.
+
+<Alert type="info">
+
+Teams defined via `TeamFactory` are read-only in the Admin UI. Attempts to update or delete them through the UI will be rejected.
+
+</Alert>
+
+## Defining Multiple Teams
+
+A single `execute()` call can return multiple team definitions:
+
+```typescript
+async execute(): TeamFactory.Return {
+  return [
+    {
+      name: "Content Team",
+      slug: "content-team",
+      description: "Manages CMS and Website Builder content.",
+      roles: ["content-editor", "website-publisher"]
+    },
+    {
+      name: "Admin Team",
+      slug: "admin-team",
+      description: "Full platform access.",
+      roles: ["full-access"]
+    }
+  ];
+}
+```
+
+As with `RoleFactory`, you can also split teams across multiple extension files — each registered separately in `webiny.config.tsx`. Webiny merges all `TeamFactory` implementations automatically.

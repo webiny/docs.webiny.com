@@ -1,0 +1,43 @@
+AI Context: Customize Page List Columns (customize-page-list-columns.mdx)
+
+Source of Information:
+1. User-provided working code snippet using PageListConfig.Browser.Table.Column with modifiedBy.displayName example
+2. packages/app-website-builder/src/modules/pages/configs/list/Browser/Table/Column.tsx — Column component, isFolderRow, useTableRow
+3. packages/app-website-builder/src/modules/pages/configs/list/PageListConfig.tsx — PageListConfig shape and Browser export
+4. packages/app-website-builder/src/modules/pages/PagesListConfig.tsx — default column definitions (name, createdBy, createdOn, savedOn, status, live, actions)
+5. packages/app-website-builder/src/domain/Page/PageDto.ts — PageDto fields available in row.data
+6. packages/app-website-builder/src/modules/pages/PagesList/components/Table/Cells/*.tsx — internal cell component patterns
+7. packages/webiny/src/admin/website-builder/page/list.ts — public import path: "webiny/admin/website-builder/page/list"
+8. docs/developer-docs/6.x/headless-cms/customize-entry-list-columns.mdx — structural reference (ported from CMS article)
+
+Key Documentation Decisions:
+1. No `path` prop documented — not verified to work for page data; CMS uses `values.fieldName` but pages have a flat PageDto; user's example always uses custom cell renderer, so document that pattern only
+2. No `modelIds` prop — pages have no content model concept; omitted entirely
+3. PageDto table included — unlike CMS (where field names come from user-defined models), page fields are fixed and worth enumerating for discoverability
+4. row.data is PageDto directly — NOT row.data.values like CMS; this is the critical difference, called out clearly
+5. isFolderRow guard is mandatory — page list has folders; skipping the check causes errors on folder rows
+6. Default column names listed explicitly in "Position a Column" — name, createdBy, createdOn, savedOn, status, live, actions — easier than DevTools for the common case; DevTools tip still included for completeness
+7. Main example uses the user's tested modifiedBy.displayName code — verified working
+
+Key Differences from CMS Customize Entry List Columns:
+- Import: "webiny/admin/website-builder/page/list" vs "webiny/admin/cms/entry/list"
+- Config: PageListConfig vs ContentEntryListConfig
+- No modelIds prop
+- No path prop (use cell renderer instead)
+- row.data is PageDto (flat), not { values: { ... } }
+- Page data fields: id, status, version, createdBy/savedBy/modifiedBy (identity objects), createdOn/savedOn/modifiedOn, properties, live, system
+
+Related Documents:
+- docs/developer-docs/6.x/headless-cms/customize-entry-list-columns.mdx — CMS equivalent
+- docs/developer-docs/6.x/website-builder/event-handlers.mdx — other WB extensibility
+
+Key Code Locations:
+- packages/app-website-builder/src/modules/pages/configs/list/Browser/Table/Column.tsx — Column component
+- packages/app-website-builder/src/modules/pages/PagesListConfig.tsx — default columns
+- packages/app-website-builder/src/domain/Page/PageDto.ts — PageDto type
+- packages/webiny/src/admin/website-builder/page/list.ts — public export path
+
+Tone Guidelines:
+- Practical reference — show code first, explain props inline
+- Call out the isFolderRow guard clearly since it's a runtime error if skipped
+- PageDto table helps discoverability since page fields aren't user-defined like CMS models

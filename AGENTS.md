@@ -49,6 +49,7 @@ docs/developer-docs/6.0.x/
 │   └── features/
 ├── reference/          # Auto-generated API reference (extensions, admin, API)
 ├── tasks/              # Background task system (about, reference, management)
+├── security/           # Security (universal API keys, programmatic roles and teams)
 ├── tenant-manager/     # Multi-tenancy management (GraphQL API, model extension)
 └── website-builder/    # Website Builder extensibility (Next.js setup, multi-tenant setup, theming, custom components)
 ```

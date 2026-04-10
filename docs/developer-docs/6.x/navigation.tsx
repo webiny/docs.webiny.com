@@ -55,7 +55,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"webiny-api/connect-custom-domain"} />
         <Page link={"webiny-api/extend-graphql-schema"} />
-        <Page link={"webiny-api/universal-api-keys"} />
       </Group>
       <Separator title={"Apps"} />
       <Group
@@ -114,6 +113,10 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/multi-tenant-nextjs"} title={"Multi-Tenant Setup"} />
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
+        <Page
+          link={"website-builder/customize-page-list-columns"}
+          title={"Customize Page List Columns"}
+        />
         <Page link={"website-builder/event-handlers"} title={"Event Handlers"} />
       </Group>
       <Group
@@ -123,6 +126,15 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"tenant-manager/manage-tenants"} />
         <Page link={"tenant-manager/extend-tenant-model"} />
+      </Group>
+      <Group
+        title={"Security"}
+        icon={"/docs/menu-icons/enterprise.svg"}
+        link={"security/universal-api-keys"}
+      >
+        <Page link={"security/universal-api-keys"} />
+        <Page link={"security/roles"} />
+        <Page link={"security/teams"} />
       </Group>
       {/*<Group title={"GraphQL"} icon={"/docs/menu-icons/webiny-overview.svg"} link={"graphql/about"}>*/}
       {/*  <Page link={"graphql/about"} />*/}
