@@ -1,0 +1,155 @@
+---
+id: rq6blfkl
+title: Webiny 6.2.0 Changelog
+description: See what's new in Webiny version 6.2.0
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.2.0"} />
+
+## Page Builder
+
+### Language Selector and Indicator for Page Creation ([#5092](https://github.com/webiny/webiny-js/pull/5092))
+
+When creating a new page, you now see a language selector dropdown in the "Create Page" dialog if multiple languages are configured. The selected language is automatically prepended to the page path. If only one language exists, it's auto-assigned without showing the dropdown. A language code tag also appears in the page editor title bar and in the pages list table, making it easier to identify which language each page belongs to.
+
+### Page Translations ([#5083](https://github.com/webiny/webiny-js/pull/5083), [#5081](https://github.com/webiny/webiny-js/pull/5081))
+
+You can now translate a page into a different language directly from the Pages list. Open a page's options menu, click "Translate", select a target language and destination folder, and confirm. The translated page copy is created with the appropriate language assignment and path prefixing, and the editor opens automatically.
+
+### Schedule Publishing from the Editor ([#5059](https://github.com/webiny/webiny-js/pull/5059))
+
+You can now schedule publish and unpublish actions for pages directly from the page editor, matching the scheduling functionality already available in the Headless CMS editor.
+
+## Webiny SDK
+
+<Alert type="info">
+
+You can try all SDK methods interactively via the [SDK Playground](/core-concepts/webiny-sdk#sdk-playground) built into your Webiny project.
+
+</Alert>
+
+### New `sdk.languages` Module ([#5085](https://github.com/webiny/webiny-js/pull/5085))
+
+A new `languages` namespace is now available in the SDK, providing methods to list and retrieve language configurations.
+
+```typescript
+import { createWebinySdk } from "webiny/sdk";
+
+const sdk = createWebinySdk({
+  endpoint: "https://your-api.webiny.io/graphql",
+  token: "your-token"
+});
+
+const languages = await sdk.languages.listLanguages();
+const english = await sdk.languages.getLanguageByCode({ code: "en" });
+```
+
+### SDK Token Parameter Now Supports Async Token Providers ([#5060](https://github.com/webiny/webiny-js/pull/5060))
+
+The SDK's `token` parameter previously only accepted a plain string. It now also accepts an async function that returns a token string, allowing the token to be refreshed on every request. This is useful in contexts where tokens expire, such as inside the admin app.
+
+```typescript
+import { createWebinySdk } from "webiny/sdk";
+
+const sdk = createWebinySdk({
+  endpoint: "https://your-api.webiny.io/graphql",
+  token: async () => {
+    // Fetch a fresh token on each request
+    return await authContext.getIdToken();
+  }
+});
+```
+
+## Headless CMS
+
+### Fixed Schedule Menu Item Crashing on New Unsaved Entries ([#5069](https://github.com/webiny/webiny-js/pull/5069))
+
+When creating a new content entry that had not yet been saved, the Schedule action in the editor menu would malfunction. The Schedule option now appears as disabled until the entry is saved.
+
+## Admin
+
+### Named Dialogs Infrastructure ([#5083](https://github.com/webiny/webiny-js/pull/5083))
+
+A new named dialogs system is available in `@webiny/app-admin`. Dialogs can be registered via `AdminConfig.Dialog`, triggered with `useOpenDialog()`, and consumed with `useDialog()`. Dialogs mount on open and unmount on close, eliminating render overhead when dialogs are not visible.
+
+### Folder Picker Component ([#5083](https://github.com/webiny/webiny-js/pull/5083))
+
+A reusable `FolderPicker` component is now available in `@webiny/app-aco` for selecting folders in forms. It renders a folder tree and returns the selected folder ID.
+
+### Languages Module ([#5081](https://github.com/webiny/webiny-js/pull/5081))
+
+A new `@webiny/languages` package provides language management capabilities with `GetLanguageByCode` and `ListLanguages` use cases, an admin UI for managing language entries, and security permissions integration.
+
+## Development
+
+### Consolidated API Exports to Root ([#5080](https://github.com/webiny/webiny-js/pull/5080), [#5064](https://github.com/webiny/webiny-js/pull/5064))
+
+Commonly used API abstractions like `Logger`, `BuildParams`, `EventPublisher`, `KeyValueStore`, and `DomainEvent` can now be imported directly from `webiny/api`:
+
+```typescript
+import { Logger, BuildParams, EventPublisher } from "webiny/api";
+```
+
+The old sub-path imports (e.g. `webiny/api/logger`) are now deprecated and will be removed in a future release.
+
+### Introduced the `Api.Route` Extension ([#5066](https://github.com/webiny/webiny-js/pull/5066))
+
+You can now register custom REST routes on the API Gateway and GraphQL Lambda directly from `webiny.config.tsx` using the `Api.Route` extension. Route handlers are classes with full dependency injection support:
+
+```typescript
+import { Logger, Route } from "webiny/api";
+
+class MyApiRouteImpl implements Route.Interface {
+  constructor(private logger: Logger.Interface) {}
+
+  async execute(request: Route.Request, reply: Route.Reply) {
+    this.logger.info("Handling GET /my-api-route");
+    return reply.send({ message: request.method });
+  }
+}
+
+export default Route.createImplementation({
+  implementation: MyApiRouteImpl,
+  dependencies: [Logger]
+});
+```
+
+### Injectable Permissions with Domain/Features Layer Separation ([#5076](https://github.com/webiny/webiny-js/pull/5076))
+
+Permission handling has been refactored to use a three-layer structure: `domain/permissionsSchema.ts` → `features/permissions/abstractions.ts` → `features/permissions/feature.ts`. The new `createPermissionsAbstraction` and `createPermissionsFeature` factories replace the monolithic `createPermissions` approach, and all admin and API packages have been migrated to DI-backed permissions.
+
+### Endpoint-Agnostic GraphQL Client ([#5073](https://github.com/webiny/webiny-js/pull/5073))
+
+The low-level `GraphQLClient` is now endpoint-agnostic—`endpoint` is a required field on each request. Two new abstractions are available: `MainGraphQLClient` (points to the main GraphQL API) and `CmsGraphQLClient` (points to `/cms/manage`). This ensures all GraphQL requests travel through the same client infrastructure.
+
+### Webiny Version Displayed During Deploy ([#5058](https://github.com/webiny/webiny-js/pull/5058))
+
+The Webiny version is now printed when running `yarn webiny deploy`, making it easier to verify which version is being deployed.
+
+### Fixed Extension `src` Props Accepting Directory Paths ([#5055](https://github.com/webiny/webiny-js/pull/5055))
+
+Providing a folder path instead of a file path in an extension's `src` prop would silently pass validation and then fail later with a confusing error. Extension `src` props now immediately reject directory paths with a clear message.
+
+## Infrastructure
+
+### Added Custom Domain Support for the API CloudFront Distribution ([#5068](https://github.com/webiny/webiny-js/pull/5068))
+
+You can now configure custom domains and an ACM SSL certificate for the API directly in `webiny.config.tsx` using the new `Infra.Api.CustomDomains` extension:
+
+```tsx
+import { Infra } from "@webiny/project-aws";
+
+export default {
+  extensions: [
+    <Infra.Api.CustomDomains
+      domainName="api.example.com"
+      certificateArn="arn:aws:acm:us-east-1:123456789:certificate/..."
+    />
+  ]
+};
+```
+
+This matches the existing `Infra.Admin.CustomDomains` extension for the Admin app.
