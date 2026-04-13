@@ -1,0 +1,59 @@
+name: Create Release Branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Webiny version (e.g. 6.3.0)"
+        required: true
+        type: string
+
+jobs:
+  create:
+    name: Create release branch and generate initial changelog
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack (Yarn Berry)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Generate changelog
+        env:
+          CLAUDE_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: yarn generate:changelog --version ${{ inputs.version }}
+
+      - name: Create branch, commit, and push
+        run: |
+          git config user.name "webiny-bot"
+          git config user.email "webiny-bot@webiny.com"
+          git checkout -b "release/${{ inputs.version }}"
+          git add .
+          git commit -m "chore: generate changelog for ${{ inputs.version }}"
+          git push origin "release/${{ inputs.version }}"
+
+      - name: Open pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "Release ${{ inputs.version }}" \
+            --base master \
+            --head "release/${{ inputs.version }}" \
+            --body "Release branch for Webiny ${{ inputs.version }}. Triggered by the [Full Release](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) workflow."
