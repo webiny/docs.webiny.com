@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Generate branch name
+        run: echo "BRANCH=release/${{ inputs.version }}-$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 5)" >> $GITHUB_ENV
+
       - name: Generate changelog
         env:
           CLAUDE_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -51,10 +54,10 @@ jobs:
         run: |
           git config user.name "webiny-bot"
           git config user.email "webiny-bot@webiny.com"
-          git checkout -b "release/${{ inputs.version }}"
+          git checkout -b "${{ env.BRANCH }}"
           git add .
           git commit -m "chore: generate changelog for ${{ inputs.version }}"
-          git push origin "release/${{ inputs.version }}"
+          git push origin "${{ env.BRANCH }}"
 
       - name: Open pull request
         env:
@@ -63,5 +66,5 @@ jobs:
           gh pr create \
             --title "Release ${{ inputs.version }}" \
             --base master \
-            --head "release/${{ inputs.version }}" \
+            --head "${{ env.BRANCH }}" \
             --body "Release branch for Webiny ${{ inputs.version }}. Triggered by the [Full Release](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) workflow."
