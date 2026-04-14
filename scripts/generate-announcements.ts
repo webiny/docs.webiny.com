@@ -3,12 +3,12 @@
  * Webiny release version by reading the changelog MDX file and using Claude.
  *
  * Usage:
- *   yarn generate:slack-announcement --version 6.1.0
+ *   yarn generate:announcements --version 6.1.0
  */
 
 import "dotenv/config";
 import Anthropic from "@anthropic-ai/sdk";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 
 // ---------------------------------------------------------------------------
@@ -19,8 +19,8 @@ function parseArgs(): { version: string } {
   const args = process.argv.slice(2);
   const versionIdx = args.indexOf("--version");
   if (versionIdx === -1 || !args[versionIdx + 1]) {
-    console.error("Usage: yarn generate:slack-announcement --version <version>");
-    console.error("Example: yarn generate:slack-announcement --version 6.1.0");
+    console.error("Usage: yarn generate:announcements --version <version>");
+    console.error("Example: yarn generate:announcements --version 6.1.0");
     process.exit(1);
   }
   return { version: args[versionIdx + 1] };
@@ -219,6 +219,20 @@ async function main(): Promise<void> {
     generate(client, TWITTER_PROMPT, changelog, version, "Twitter"),
     generate(client, LINKEDIN_PROMPT, changelog, version, "LinkedIn")
   ]);
+
+  const outDir = join(process.cwd(), "docs", "release-notes", version, "announcements");
+  mkdirSync(outDir, { recursive: true });
+
+  const files: Array<[string, string]> = [
+    ["slack.md", slack],
+    ["twitter.md", twitter],
+    ["linkedin.md", linkedin]
+  ];
+
+  for (const [filename, content] of files) {
+    writeFileSync(join(outDir, filename), content + "\n", "utf-8");
+    console.log(`  ✓ docs/release-notes/${version}/announcements/${filename}`);
+  }
 
   printSection("SLACK", slack);
   printSection("TWITTER", twitter);
