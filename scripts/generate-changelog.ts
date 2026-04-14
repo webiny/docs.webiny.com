@@ -10,7 +10,7 @@
 
 import "dotenv/config";
 import Anthropic from "@anthropic-ai/sdk";
-import { writeFileSync, mkdirSync } from "fs";
+import { writeFileSync, mkdirSync, readFileSync } from "fs";
 import { join } from "path";
 
 // ---------------------------------------------------------------------------
@@ -253,6 +253,23 @@ async function generateChangelogBody(prs: PullRequest[], version: string): Promi
 }
 
 // ---------------------------------------------------------------------------
+// Existing changelog helpers
+// ---------------------------------------------------------------------------
+
+function extractMentionedPRNumbers(filePath: string): Set<number> {
+  try {
+    const content = readFileSync(filePath, "utf-8");
+    const numbers = new Set<number>();
+    for (const match of content.matchAll(/\/pull\/(\d+)/g)) {
+      numbers.add(parseInt(match[1], 10));
+    }
+    return numbers;
+  } catch {
+    return new Set();
+  }
+}
+
+// ---------------------------------------------------------------------------
 // MDX file builder
 // ---------------------------------------------------------------------------
 
@@ -298,16 +315,33 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  const body = await generateChangelogBody(prs, version);
-
-  const mdx = buildMdxFile(version, body);
-
   const outDir = join(process.cwd(), "docs", "release-notes", version);
   mkdirSync(outDir, { recursive: true });
   const outPath = join(outDir, "changelog.mdx");
-  writeFileSync(outPath, mdx, "utf-8");
 
-  console.log(`\n✓ Changelog written to: docs/release-notes/${version}/changelog.mdx`);
+  const alreadyPresent = extractMentionedPRNumbers(outPath);
+  const newPRs = alreadyPresent.size > 0 ? prs.filter(pr => !alreadyPresent.has(pr.number)) : prs;
+
+  if (newPRs.length === 0) {
+    console.log("  All PRs are already in the changelog. Nothing to add.");
+    process.exit(0);
+  }
+
+  if (alreadyPresent.size > 0) {
+    console.log(`  ${alreadyPresent.size} PR(s) already in changelog — generating content for ${newPRs.length} new PR(s)...`);
+  }
+
+  const body = await generateChangelogBody(newPRs, version);
+
+  if (alreadyPresent.size > 0) {
+    const existing = readFileSync(outPath, "utf-8");
+    writeFileSync(outPath, existing.trimEnd() + "\n\n" + body + "\n", "utf-8");
+    console.log(`\n✓ Appended ${newPRs.length} new PR(s) to: docs/release-notes/${version}/changelog.mdx`);
+  } else {
+    const mdx = buildMdxFile(version, body);
+    writeFileSync(outPath, mdx, "utf-8");
+    console.log(`\n✓ Changelog written to: docs/release-notes/${version}/changelog.mdx`);
+  }
 }
 
 main().catch(err => {
