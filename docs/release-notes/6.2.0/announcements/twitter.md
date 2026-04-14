@@ -6,9 +6,9 @@ Multi-language page creation and translation just landed in Page Builder. Create
 
 3/ Scheduling now lives where you work. Publish and unpublish scheduling is available directly in the page editor — no more jumping out of context to set up timed releases.
 
-4/ Webiny SDK gains a new `sdk.languages` module with `getByCode` and `list` methods. Plus, the `token` parameter now accepts async functions for token refresh on every request — perfect for contexts where tokens expire.
+4/ Webiny SDK gains a new `sdk.languages` module with a `listLanguages` method. Plus, the `token` parameter now accepts async functions for token refresh on every request — perfect for contexts where tokens expire.
 
-5/ Developer tooling overhaul: common abstractions like Logger, EventPublisher, and KeyValueStore now export from `webiny/api` root. The new `Api.Route` extension lets you register custom REST routes with full dependency injection, configured automatically for both API Gateway and Fastify.
+5/ Developer tooling overhaul: common abstractions like Logger, EventPublisher, and KeyValueStore now export from `webiny/api` root. The new `Api.Route` extension lets you register custom HTTP routes with full dependency injection, configured automatically for both API Gateway and the runtime HTTP handler.
 
 6/ New endpoint-agnostic GraphQL client with explicit endpoint per request. Use `MainGraphQLClient` or `CmsGraphQLClient` depending on your target. Permission handling also gets a clean three-layer refactor with proper DI support.
 
