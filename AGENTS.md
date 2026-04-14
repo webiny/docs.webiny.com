@@ -153,6 +153,7 @@ import type { CmsEntry } from "webiny/api";
 - Bullet lists use `-`, not numbered lists (even for sequential steps)
 - No emojis in prose
 - Inline links use standard markdown: `[text](/{version}/path)`
+  - do not use /{version} when writing release notes
 - "Webiny" always capitalized
 
 ## Tone and Voice

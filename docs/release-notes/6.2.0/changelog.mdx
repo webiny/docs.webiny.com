@@ -34,6 +34,8 @@ The scheduling feature is now available directly in the page editor, allowing yo
 
 When creating a new content entry that had not yet been saved, the Schedule action in the editor menu would malfunction. The Schedule option now appears as disabled until the entry is saved.
 
+![Schedule menu item disabled on unsaved entries](./assets/schedule-menu-disabled.png)
+
 ## Webiny SDK
 
 ### New `sdk.languages` Module ([#5085](https://github.com/webiny/webiny-js/pull/5085), [#5081](https://github.com/webiny/webiny-js/pull/5081))
@@ -50,6 +52,12 @@ const sdk = createWebiny({
 
 const languages = await sdk.languages.listLanguages();
 ```
+
+<Alert type="info">
+
+You can try `sdk.languages` methods interactively via the [SDK Playground](/core-concepts/webiny-sdk#sdk-playground) built into your Webiny project.
+
+</Alert>
 
 ### Token Parameter Now Supports Async Token Providers ([#5060](https://github.com/webiny/webiny-js/pull/5060))
 
@@ -141,3 +149,46 @@ You can now configure custom domains and an ACM SSL certificate for the API dire
   certificateArn="arn:aws:acm:us-east-1:123456789:certificate/abc123"
 />
 ```
+
+## Development
+
+### MCP Server Auto-Configuration in Project Setup ([#5074](https://github.com/webiny/webiny-js/pull/5074))
+
+The `create-webiny-project` wizard now includes a step that asks which AI agent you use (Claude Code, Cursor, Cline, Copilot, Windsurf, OpenCode, Kiro). For supported agents, the Webiny MCP server is automatically configured in your project directory right after packages are installed — no separate manual step required.
+
+If your agent is not on the list, manual setup instructions are printed at the end of the process after the project has been deployed, so the setup flow is never interrupted.
+
+![MCP server auto-configuration during project setup](./assets/mcp-auto-config.png)
+
+### Updated `Logger` and `BuildParams` Exports ([#5064](https://github.com/webiny/webiny-js/pull/5064))
+
+`Logger` and `BuildParams` can now be imported directly from `webiny/api`:
+
+```typescript
+import { Logger, BuildParams } from "webiny/api";
+```
+
+The previous imports from `webiny/api/logger` and `webiny/api/build-params` still work but are deprecated and will be removed in a future release.
+
+## Headless CMS
+
+### Internal Plugin Architecture Refactored to Abstractions ([#5063](https://github.com/webiny/webiny-js/pull/5063), [#5075](https://github.com/webiny/webiny-js/pull/5075), [#5079](https://github.com/webiny/webiny-js/pull/5079), [#5082](https://github.com/webiny/webiny-js/pull/5082))
+
+Several internal Headless CMS plugins have been converted to the newer abstraction-based architecture introduced in Webiny 6. This change improves code organisation and maintainability but does not affect the public API.
+
+The following plugins have been replaced with their abstraction equivalents:
+
+| Old Plugin                                | New Abstraction                     |
+| ----------------------------------------- | ----------------------------------- |
+| `CmsModelFieldToGraphQLPlugin`            | `CmsModelFieldToGraphQL`            |
+| `CmsModelFieldValidatorPlugin`            | `CmsModelFieldValidator`            |
+| `CmsModelFieldPatternValidatorPlugin`     | `CmsModelFieldPatternValidator`     |
+| `CmsGraphQLSchemaSorterPlugin`            | `CmsGraphQLSchemaSorter`            |
+| `StorageTransformPlugin`                  | `StorageTransform`                  |
+| `CmsEntryElasticsearchBodyModifierPlugin` | `CmsEntryElasticsearchBodyModifier` |
+
+<Alert type="info">
+
+If you have custom code that extends these internal plugins directly, you may need to update your implementation to use the new abstraction classes. The public Headless CMS SDK APIs remain unchanged.
+
+</Alert>
