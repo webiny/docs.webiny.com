@@ -1,39 +1,33 @@
 AI Context: Page Types (page-types.mdx)
 
 Source of Information:
-1. extensions/funnelBuilder/pageType/index.tsx — user-provided working sample (PageListConfig.PageType usage)
-2. extensions/funnelBuilder/pageType/FunnelPageForm.tsx — user-provided form component (Bind, UnsetOnUnmount, useForm, pagePathFromTitle)
-3. packages/app-website-builder/src/modules/pages/configs/list/PageType.tsx — PageTypeProps type definition (name, label, element, remove)
-4. packages/app-website-builder/src/modules/pages/configs/list/PageListConfig.tsx — PageListConfig exports PageType
-5. packages/app-website-builder/src/modules/pages/PagesList/components/Main/CreatePage/CreatePage.tsx — how the dialog works: type selector dropdown, element rendering, metadata.pageType, properties passthrough
-6. packages/app-website-builder/src/modules/pages/PagesList/components/Main/CreatePage/StaticPageForm.tsx — built-in static form pattern
-7. packages/app-website-builder/src/features/pageTypes/PageType.ts — PageType domain type
-8. packages/webiny/src/admin/website-builder.ts — pagePathFromTitle public export path
+1. /Users/adrian/dev/wby-next2/extensions/customPageTypes/RetailPageType.ts — working implementation of PageType.Interface
+2. /Users/adrian/dev/wby-next2/extensions/customPageTypes/FilterPageTypes.ts — working implementation of PageTypeProvider decorator
+3. /Users/adrian/dev/wby-next2/extensions/customPageTypes/index.tsx — feature registration using createFeature + RegisterFeature
+4. /Users/adrian/dev/wby-next2/webiny.config.tsx — Admin.Extension registration pattern
 
 Key Documentation Decisions:
-1. Explained the dialog mechanics upfront (type selector + form, metadata.pageType storage) — this context explains why the pattern works
-2. UnsetOnUnmount is called out explicitly — easy to forget; causes stale data bugs when switching types
-3. Single-type auto-skip behavior documented ("dropdown skipped when only one type") — discovered from CreatePage.tsx (auto-select logic)
-4. Validators shown inline (simple arrow function) — avoids introducing unknown validator utility imports; user's code used a local `required` import
-5. Kept the FunnelPageForm example close to user's tested code; cleaned up validator syntax
-6. pagePathFromTitle utility documented in-context rather than a separate section — it's a one-liner utility, inline explanation suffices
+1. API has changed from JSX-based PageListConfig.PageType to the DI pattern (PageType.Interface + PageTypeProvider.Interface) — old docs were based on funnelBuilder example, now replaced entirely
+2. No custom form component per page type in the new API — a page type is just name + label
+3. Filter section uses decorator pattern — class receives decoratee, filters getPageTypes() result
+4. Feature registration (createFeature + RegisterFeature) is the wiring mechanism — consistent with other admin extensibility docs
+5. Split into three files matching the actual source structure (RetailPageType.ts, FilterPageTypes.ts, index.tsx)
 
 Understanding:
-PageType registration works through usePageTypes() which manages a Map of name -> PageType entries. addPageType adds an entry, removePageType removes by name. The CreatePage dialog renders the selected type's `element` inside a form context. On submit, `formData.properties` and `formData.extensions` and `formData.metadata` are spread into CreatePageParams, with `metadata.pageType: type` always set. This means the form's Bind fields under properties.* become page properties.
-
-The `element` is rendered inside a `<Grid>` that already wraps the type selector, so Grid.Column is used directly (no nested Grid needed).
+PageType.Interface requires: name (string, stored on the page at creation) and label (string, shown in the dropdown).
+PageTypeProvider.Interface requires: getPageTypes() method. The decorator receives the decoratee provider in its constructor, delegates to it, and filters/transforms the result.
+Registration via container.register() for implementations and container.registerDecorator() for decorators — same pattern as other DI-based extensions.
+The FilterPageTypes.ts in the source has the filter commented out — the actual filter logic is .filter(type => type.name !== "static").
 
 Related Documents:
-- docs/developer-docs/6.x/website-builder/customize-page-list-columns.mdx — PageListConfig usage for table columns
+- docs/developer-docs/6.x/website-builder/customize-page-list-columns.mdx — other WB list extensibility
 - docs/developer-docs/6.x/website-builder/custom-component.mdx — other WB extensibility
+- docs/developer-docs/6.x/core-concepts/di.mdx — DI pattern foundational doc
 
 Key Code Locations:
-- packages/app-website-builder/src/modules/pages/configs/list/PageType.tsx — PageTypeProps
-- packages/app-website-builder/src/modules/pages/PagesList/components/Main/CreatePage/CreatePage.tsx — dialog logic
-- packages/webiny/src/admin/website-builder.ts — pagePathFromTitle export
-- packages/app-website-builder/src/modules/pages/PagesList/components/Main/CreatePage/StaticPageForm.tsx — reference form
+- /Users/adrian/dev/wby-next2/extensions/customPageTypes/ — working reference implementation
 
 Tone Guidelines:
-- Practical and complete — show both the form and the registration together
-- Explain the "why" behind UnsetOnUnmount and metadata.pageType storage
-- Keep the example grounded in the funnel builder use case from the sample code
+- Practical and direct — the API is simple, keep explanations brief
+- Show all three files (RetailPageType.ts, FilterPageTypes.ts, index.tsx) as separate code blocks with file paths
+- Explain the decorator pattern briefly in the filter section — not all readers will know what decoratee means

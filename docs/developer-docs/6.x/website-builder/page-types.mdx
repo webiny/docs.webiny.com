@@ -11,113 +11,87 @@ import pageTypesFunnelDialog from "./assets/page-types-funnel-dialog.png";
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
 - what page types are and how they work
-- how to register a custom page type with its own creation form
-- how to remove the built-in page type
+- how to register a custom page type
+- how to filter or remove existing page types
 
 </Alert>
 
 ## Overview
 
-When a user clicks **Create Page** in the Website Builder, a dialog appears with a **Page Type** dropdown and a form below it. Selecting a type changes the form, letting each type collect the properties it needs before the page is created.
+When a user clicks **Create Page** in the Website Builder, a dialog appears with a **Page Type** dropdown. Each entry in the dropdown is a registered page type — identified by a unique name and displayed with a human-readable label.
 
-By default, only the **Static Page** type is registered. It collects a title and a URL path. Page types are registered via `PageListConfig.PageType` — you define a name, a dropdown label, and a React element that renders the creation form.
+By default, only the **Static Page** type is registered. You can add new types and filter existing ones using the `PageType` and `PageTypeProvider` abstractions from `webiny/admin/website-builder`.
 
-The form fields bind directly to the page properties that will be persisted when the dialog is confirmed. Fields under `properties.*` end up on the page's `properties` object. The page type name itself is stored on `metadata.pageType`, making it available for conditional rendering, routing, or API filtering later.
-
-<Image src={pageTypesFunnelDialog} title="Create a Page dialog with a custom Funnel page type" />
+<Image src={pageTypesFunnelDialog} title="Create a Page dialog with page type options" />
 
 ## Add a Page Type
 
-A custom page type consists of two parts: a form component and a `PageListConfig.PageType` registration.
+Implement `PageType.Interface`, which requires two properties: `name` (a unique identifier stored on the page when created) and `label` (the text shown in the dropdown):
 
-### The Form Component
+```typescript extensions/customPageTypes/RetailPageType.ts
+import { PageType } from "webiny/admin/website-builder";
 
-The form component renders inside the Create Page dialog below the type selector. Use `Bind` and `useForm` from `webiny/admin/form` to connect fields to the page data, and `UnsetOnUnmount` to clean up field values when the user switches to a different page type:
+class RetailPageType implements PageType.Interface {
+  name = "retailPage";
+  label = "Retail Page";
+}
 
-```tsx extensions/funnelBuilder/pageType/FunnelPageForm.tsx
-import React from "react";
-import { Grid, Input } from "webiny/admin/ui";
-import { pagePathFromTitle } from "webiny/admin/website-builder";
-import type { FormApi } from "webiny/admin/form";
-import { Bind, UnsetOnUnmount, useForm } from "webiny/admin/form";
-
-const generatePath = (form: FormApi) => () => {
-  const title = form.getValue("properties.title");
-  form.setValue("properties.path", `/funnel/${pagePathFromTitle(title ?? "")}`);
-};
-
-export const FunnelPageForm = () => {
-  const form = useForm();
-
-  return (
-    <>
-      <Grid.Column span={12}>
-        <UnsetOnUnmount name={"properties.title"}>
-          <Bind name={"properties.title"} validators={value => !value && "Title is required."}>
-            <Input label={"Title"} onBlur={generatePath(form)} />
-          </Bind>
-        </UnsetOnUnmount>
-      </Grid.Column>
-      <Grid.Column span={12}>
-        <UnsetOnUnmount name={"properties.path"}>
-          <Bind name={"properties.path"} validators={value => !value && "Path is required."}>
-            <Input label={"Path"} />
-          </Bind>
-        </UnsetOnUnmount>
-      </Grid.Column>
-    </>
-  );
-};
+export default PageType.createImplementation({
+  implementation: RetailPageType,
+  dependencies: []
+});
 ```
 
-- `Bind name={"properties.title"}` — binds the input to `properties.title` on the new page
-- `UnsetOnUnmount` — clears the field value when the user switches to a different page type in the dropdown, preventing stale data from being submitted
-- `useForm()` — gives access to `getValue` and `setValue` for reading and updating other fields, useful for auto-generating the path from the title
-- `pagePathFromTitle` — utility that converts a human-readable title to a URL-safe path segment (e.g. `"My Funnel Page"` → `"my-funnel-page"`)
+## Filter Page Types
 
-### Registering the Page Type
+To remove or filter existing page types, decorate the `PageTypeProvider` abstraction. The decorator receives the original provider as `decoratee` and returns a modified list from `getPageTypes()`:
 
-Create an extension that uses `PageListConfig.PageType` to register the new type:
+```typescript extensions/customPageTypes/FilterPageTypes.ts
+import { PageTypeProvider } from "webiny/admin/website-builder";
 
-```tsx extensions/funnelBuilder/pageType/index.tsx
+class FilterPageTypes implements PageTypeProvider.Interface {
+  constructor(private decoratee: PageTypeProvider.Interface) {}
+
+  getPageTypes() {
+    return this.decoratee.getPageTypes().filter(type => type.name !== "static");
+  }
+}
+
+export default PageTypeProvider.createDecorator({
+  decorator: FilterPageTypes,
+  dependencies: []
+});
+```
+
+This removes the built-in **Static Page** type. Omit the `.filter()` call if you only want to inspect or reorder the list without removing anything.
+
+## Register the Feature
+
+Wire the implementations together using `createFeature` and `RegisterFeature` from `webiny/admin`:
+
+```tsx extensions/customPageTypes/index.tsx
 import React from "react";
-import { PageListConfig } from "webiny/admin/website-builder/page/list";
-import { FunnelPageForm } from "./FunnelPageForm.js";
+import { createFeature, RegisterFeature } from "webiny/admin";
+import RetailPageType from "./RetailPageType.js";
+import FilterPageTypes from "./FilterPageTypes.js";
+
+const CustomPageTypes = createFeature({
+  name: "CustomPageTypes",
+  register(container) {
+    container.register(RetailPageType);
+    container.registerDecorator(FilterPageTypes);
+  }
+});
 
 export default () => {
-  return (
-    <PageListConfig>
-      <PageListConfig.PageType name={"funnel"} label={"Funnel"} element={<FunnelPageForm />} />
-    </PageListConfig>
-  );
+  return <RegisterFeature feature={CustomPageTypes} />;
 };
 ```
 
-### PageType Properties
+- `container.register(RetailPageType)` — adds the new page type to the dropdown
+- `container.registerDecorator(FilterPageTypes)` — applies the filter; omit this line if you don't need to remove existing types
 
-| Prop      | Type              | Description                                                                   |
-| --------- | ----------------- | ----------------------------------------------------------------------------- |
-| `name`    | `string`          | Unique identifier stored on `metadata.pageType` when created                  |
-| `label`   | `string`          | Label shown in the Page Type dropdown                                         |
-| `element` | `React.ReactNode` | Form rendered in the dialog when this type is selected                        |
-| `remove`  | `boolean`         | When `true`, removes an existing type by `name`; other props are not required |
-
-## Remove a Page Type
-
-To remove the built-in **Static Page** type — for example, when replacing it entirely with your own type — pass `remove`:
-
-```tsx
-<PageListConfig>
-  <PageListConfig.PageType name={"static"} remove />
-  <PageListConfig.PageType name={"funnel"} label={"Funnel"} element={<FunnelPageForm />} />
-</PageListConfig>
-```
-
-With the static type removed, the dropdown is skipped automatically when there is only one type registered — the dialog goes straight to the form.
-
-## Registering the Extension
-
-Register the extension file as an [`Admin.Extension`](/{version}/reference/extensions#extension-1) in `webiny.config.tsx`:
+Then register the extension in `webiny.config.tsx`:
 
 ```tsx webiny.config.tsx
 import React from "react";
@@ -127,7 +101,7 @@ export const Extensions = () => {
   return (
     <>
       {/* ... other extensions */}
-      <Admin.Extension src={"/extensions/funnelBuilder/pageType/index.tsx"} />
+      <Admin.Extension src={"/extensions/customPageTypes/index.tsx"} />
     </>
   );
 };
