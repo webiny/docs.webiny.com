@@ -1,0 +1,38 @@
+AI Context: Programmatically Create Roles (roles.mdx)
+
+Source of Information:
+1. packages/api-core/src/features/security/roles/shared/abstractions.ts — RoleFactory interface, CodeRole type, namespace exports
+2. packages/api-core/src/features/security/roles/shared/RoleProvider.ts — how roles are loaded at boot (in-memory, plugin: true flag, slug becomes id)
+3. packages/api-core/__tests__/security/roles.test.ts — usage pattern, CANNOT_UPDATE_PLUGIN_ROLES / CANNOT_DELETE_PLUGIN_ROLES error codes
+4. packages/webiny/src/api/security.ts — public export path: "webiny/api/security"
+5. docs/developer-docs/5.x/security/extensions/programmatically-create-roles-and-teams.mdx — v5 article ported as reference
+6. docs/developer-docs/6.x/security/universal-api-keys.mdx — structural reference for the article format
+
+Key Documentation Decisions:
+1. Two separate articles (roles.mdx + teams.mdx) rather than one combined article — roles and teams are independent abstractions; teams is enterprise-only while roles is available to all
+2. No "Deploying" section — unlike ApiKeyFactory, RoleFactory does NOT persist to the database; roles are loaded in-memory at boot via RoleProvider and merged with database roles at query time
+3. Slug is explained as the role identifier throughout the system (for team assignment, user assignment) rather than just an "idempotency key" — because there is no upsert, the slug IS the id (RoleProvider sets id = slug)
+4. Included the "Copy Permissions as JSON" tip from v5 — still relevant in v6
+5. Multiple roles per execute() shown, plus mention of multiple extensions — because RoleFactory supports multiple: true (RoleProvider collects from all registered factories)
+6. Read-only note uses Alert type="info" not type="warning" — it's informational, not a dangerous caution
+
+Understanding:
+RoleFactory is a createAbstraction-based DI token. RoleProvider (also via createImplementation) collects all registered RoleFactory implementations using dependencies: [[RoleFactory, { multiple: true }]]. On first call to getRoles(), it calls execute() on each factory, flattens the results, and caches them with plugin: true and id = slug. These in-memory roles are then merged with database roles at the GraphQL list/get level. Because plugin: true is set, the security layer rejects update and delete mutations for these roles with CANNOT_UPDATE_PLUGIN_ROLES / CANNOT_DELETE_PLUGIN_ROLES.
+
+The return type is Promise<CodeRole[]> but async execute() returning a plain array satisfies this.
+
+Related Documents:
+- docs/developer-docs/6.x/security/teams.mdx — TeamFactory, references roles by slug
+- docs/developer-docs/6.x/security/universal-api-keys.mdx — similar factory pattern (ApiKeyFactory)
+- docs/developer-docs/6.x/core-concepts/di.mdx — DI pattern used by RoleFactory
+
+Key Code Locations:
+- packages/api-core/src/features/security/roles/shared/abstractions.ts — RoleFactory, CodeRole
+- packages/api-core/src/features/security/roles/shared/RoleProvider.ts — boot-time loading
+- packages/api-core/__tests__/security/roles.test.ts — usage examples and behavior tests
+- packages/webiny/src/api/security.ts — public export
+
+Tone Guidelines:
+- Technical and practical — reader knows what roles are, explain the Webiny-specific factory pattern
+- Lead with the problem (roles don't live in version control) then the solution
+- Table for properties; inline list for permission examples — keeps it scannable

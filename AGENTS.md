@@ -49,6 +49,7 @@ docs/developer-docs/6.0.x/
 │   └── features/
 ├── reference/          # Auto-generated API reference (extensions, admin, API)
 ├── tasks/              # Background task system (about, reference, management)
+├── security/           # Security (universal API keys, programmatic roles and teams)
 ├── tenant-manager/     # Multi-tenancy management (GraphQL API, model extension)
 └── website-builder/    # Website Builder extensibility (Next.js setup, multi-tenant setup, theming, custom components)
 ```
@@ -153,6 +154,7 @@ import type { CmsEntry } from "webiny/api";
 - Bullet lists use `-`, not numbered lists (even for sequential steps)
 - No emojis in prose
 - Inline links use standard markdown: `[text](/{version}/path)`
+  - do not use /{version} when writing release notes
 - "Webiny" always capitalized
 
 ## Tone and Voice

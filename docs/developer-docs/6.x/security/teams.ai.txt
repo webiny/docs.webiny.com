@@ -1,0 +1,38 @@
+AI Context: Programmatically Create Teams (teams.mdx)
+
+Source of Information:
+1. packages/api-core/src/features/security/teams/shared/abstractions.ts — TeamFactory interface, CodeTeam type, namespace exports
+2. packages/api-core/src/features/security/teams/shared/TeamProvider.ts — how teams are loaded at boot (in-memory, plugin: true, slug becomes id)
+3. packages/api-core/__tests__/security/teams.test.ts — usage pattern, CANNOT_UPDATE_PLUGIN_TEAMS / CANNOT_DELETE_PLUGIN_TEAMS, roles referenced by slug
+4. packages/webiny/src/api/security.ts — public export path: "webiny/api/security"
+5. docs/developer-docs/5.x/security/extensions/programmatically-create-roles-and-teams.mdx — v5 article ported as reference
+6. docs/developer-docs/6.x/security/roles.mdx — companion article, referenced for RoleFactory
+
+Key Documentation Decisions:
+1. Article focuses on TeamFactory only — roles are in roles.mdx; cross-link rather than repeat
+2. Enterprise note placed in Overview (before code) — important gating info; reader needs to know before deciding to implement
+3. "Define the required roles first" in the Creating section — teams.roles is an array of role slugs; if slugs don't resolve, teams will be missing their roles; this is the primary footgun
+4. No "Deploying" section — same reasoning as roles.mdx: TeamFactory is loaded in-memory at boot, not persisted to the database
+5. Multiple teams section at the end — same pattern as roles.mdx for consistency
+
+Understanding:
+TeamFactory works identically to RoleFactory but for teams. TeamProvider collects all TeamFactory implementations with { multiple: true } and caches them in memory with plugin: true and id = slug. Teams appear in the list/get API merged with database teams. The roles array contains role slugs; the system resolves these at query time to populate role names and ids. Because plugin: true is set, the security layer rejects update/delete mutations with CANNOT_UPDATE_PLUGIN_TEAMS / CANNOT_DELETE_PLUGIN_TEAMS.
+
+CodeTeam shape: { name: string, slug: string, description: string, roles: string[], system?: boolean }
+The roles field is string[] (slugs), not full Role objects.
+
+Related Documents:
+- docs/developer-docs/6.x/security/roles.mdx — RoleFactory, role slugs referenced by teams
+- docs/developer-docs/6.x/security/universal-api-keys.mdx — similar factory pattern
+- docs/developer-docs/6.x/core-concepts/di.mdx — DI pattern
+
+Key Code Locations:
+- packages/api-core/src/features/security/teams/shared/abstractions.ts — TeamFactory, CodeTeam
+- packages/api-core/src/features/security/teams/shared/TeamProvider.ts — boot-time loading
+- packages/api-core/__tests__/security/teams.test.ts — usage examples and behavior tests
+- packages/webiny/src/api/security.ts — public export
+
+Tone Guidelines:
+- Technical and practical — assume reader has read roles.mdx or is familiar with the pattern
+- Keep the enterprise note factual and brief, not alarming
+- Lead with what teams do (group roles) before explaining the factory pattern

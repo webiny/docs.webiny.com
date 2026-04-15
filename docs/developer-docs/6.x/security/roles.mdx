@@ -1,0 +1,114 @@
+---
+id: rn4x7p2k
+title: Roles
+description: Learn how to define security roles in code using the RoleFactory extension.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what `RoleFactory` is and when to use it
+- how to define roles and their permissions in code
+- how code-defined roles behave in the Admin UI
+
+</Alert>
+
+## Overview
+
+Security roles define what users can access in Webiny. By default, roles are created in the Admin UI under **Settings → Access Management → Roles**. This works for initial setup, but the roles live only in the database: they must be recreated on every new environment and are not tracked in version control.
+
+`RoleFactory` is an extension that lets you define roles in code. Webiny loads them at boot time and merges them with database roles so they appear in the Admin UI like any other role. Because they come from code, they cannot be edited or deleted through the UI.
+
+## Creating the Extension
+
+Create a new extension file:
+
+```typescript extensions/security/contentEditorRole.ts
+import { RoleFactory } from "webiny/api/security";
+
+class ContentEditorRoleImpl implements RoleFactory.Interface {
+  async execute(): RoleFactory.Return {
+    return [
+      {
+        name: "Content Editor",
+        slug: "content-editor",
+        description: "Full access to Headless CMS content entries.",
+        permissions: [{ name: "cms.*" }, { name: "content.i18n" }]
+      }
+    ];
+  }
+}
+
+export default RoleFactory.createImplementation({
+  implementation: ContentEditorRoleImpl,
+  dependencies: []
+});
+```
+
+Then register it in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... other extensions */}
+      <Api.Extension src={"/extensions/security/contentEditorRole.ts"} />
+    </>
+  );
+};
+```
+
+## Role Properties
+
+| Property      | Description                                                               |
+| ------------- | ------------------------------------------------------------------------- |
+| `name`        | Human-readable label shown in the Admin UI                                |
+| `slug`        | Unique identifier used to reference this role from teams and user records |
+| `description` | Short description shown in the Admin UI                                   |
+| `permissions` | Array of permission objects that define what this role grants             |
+
+The `slug` is used as the role's identifier throughout the system. When assigning a code-defined role to a [team](/{version}/security/teams) or a user, you reference it by this slug. Use a stable, unique value — changing a slug is equivalent to deleting the old role and creating a new one.
+
+<Alert type="info">
+
+Roles defined via `RoleFactory` are read-only in the Admin UI. Attempts to update or delete them through the UI will be rejected.
+
+</Alert>
+
+## Defining Permissions
+
+Each permission object requires at minimum a `name` field that identifies the application or resource:
+
+- `{ name: "cms.*" }` — full access to Headless CMS
+- `{ name: "pb.*" }` — full access to Website Builder
+- `{ name: "content.i18n" }` — access to content locales
+- `{ name: "*" }` — full access to everything
+
+The easiest way to build a permissions array for a complex role is to configure it in the Admin UI Role Editor, then click **Copy Permissions as JSON** to copy the exact permission objects and paste them into your code.
+
+A single `execute()` call can return multiple role definitions:
+
+```typescript
+async execute(): RoleFactory.Return {
+  return [
+    {
+      name: "Content Editor",
+      slug: "content-editor",
+      description: "Full access to Headless CMS.",
+      permissions: [{ name: "cms.*" }, { name: "content.i18n" }]
+    },
+    {
+      name: "Website Publisher",
+      slug: "website-publisher",
+      description: "Full access to Website Builder.",
+      permissions: [{ name: "pb.*" }, { name: "content.i18n" }]
+    }
+  ];
+}
+```
+
+Alternatively, split them across multiple extension files — each registered separately in `webiny.config.tsx`. Webiny merges all `RoleFactory` implementations automatically.
