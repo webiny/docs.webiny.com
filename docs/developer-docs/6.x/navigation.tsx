@@ -113,7 +113,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/multi-tenant-nextjs"} title={"Multi-Tenant Setup"} />
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
-        <Page link={"website-builder/page-types"} title={"Page Types"} />
+        <Page hidden link={"website-builder/page-types"} title={"Page Types"} />
         <Page
           link={"website-builder/customize-page-list-columns"}
           title={"Customize Page List Columns"}
@@ -146,6 +146,15 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       {/*  <Page link={"tenant-manager/manage-tenants"} title={"Manage Tenants"} />*/}
       {/*  <Page link={"tenant-manager/extend-tenant-model"} title={"Extend Tenant Model"} />*/}
       {/*</Group>*/}
+      <Group
+        title={"Security"}
+        icon={"/docs/menu-icons/webiny-overview.svg"}
+        link={"security/roles"}
+      >
+        <Page link={"security/roles"} />
+        <Page link={"security/teams"} />
+        <Page link={"security/universal-api-keys"} />
+      </Group>
       <Separator title={"Operations"} />
       <Group title={"CLI"} icon={"/docs/menu-icons/cli.svg"} link={"cli/deploy"}>
         <Page link={"cli/deploy"} />
