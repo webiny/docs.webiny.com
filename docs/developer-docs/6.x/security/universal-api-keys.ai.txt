@@ -1,0 +1,29 @@
+AI Context: Universal API Keys (universal-api-keys.mdx)
+
+Source of Information:
+1. docs/developer-docs/6.x/website-builder/multi-tenant-nextjs.mdx — "API Key Strategy" and "Creating a Universal API Key" sections; code examples taken from there
+2. User-provided code snippet showing ApiKeyFactory pattern
+3. admin/whitelabeling.mdx — structural reference for extension articles
+
+Key Documentation Decisions:
+1. Scoped to the API key provisioning pattern — does not repeat multi-tenancy concepts from multi-tenant-nextjs
+2. Included a properties table to explain slug, name, token, permissions fields clearly
+3. Called out slug as the idempotency key (Webiny looks up by slug to update vs create)
+4. Added a "Restricting Permissions" section to discourage blanket { name: "*" } in production
+5. The wat_ token prefix is documented as required based on the example
+6. Warning about not committing tokens carried over from multi-tenant-nextjs
+
+Understanding:
+ApiKeyFactory is an extension that runs at boot time. It returns an array of key definitions. Each definition has name, slug, token, and permissions. The slug is used for idempotent upsert — if a key with that slug exists it is updated, otherwise created. The token is the raw secret clients send in API requests. permissions is an array of permission objects where name: "*" is the wildcard. For multi-tenant deployments, one universal key at the root tenant with { name: "*" } is the recommended starting point; tenant scoping happens via the apiTenant SDK parameter, not the key.
+
+Related Documents:
+- docs/developer-docs/6.x/website-builder/multi-tenant-nextjs.mdx — usage of universal key in Next.js
+- docs/developer-docs/6.x/reference/api/security/api-key.mdx — API reference
+
+Key Code Locations:
+- packages/api-security — ApiKeyFactory interface and createImplementation
+
+Tone Guidelines:
+- Technical and practical — audience knows what API keys are, explain the Webiny-specific factory pattern
+- Lead with the what/when (overview), then the how (extension + registration)
+- Table for properties adds scannability without verbose prose

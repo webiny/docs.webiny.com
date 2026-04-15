@@ -1,0 +1,208 @@
+---
+id: wb4c9pnx
+title: Customize Page List Columns
+description: Learn how to add, replace, remove, or reposition columns in the Website Builder page list table.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to add a column to the page list table
+- how to render custom cell content
+- how to control column position, visibility, and sortability
+- how to remove or replace an existing column
+
+</Alert>
+
+## Overview
+
+The page list table displays all pages in a folder. By default, it shows the following columns:
+
+- **Name** — the page title and path
+- **Author** — the `createdBy` identity
+- **Created** — the `createdOn` date
+- **Modified** — the `savedOn` date
+- **Status** — the status and version of the current page revision
+- **Live** — whether any revision of the page is currently published
+
+Columns are configured using `PageListConfig`. You create an extension file, define your columns inside it, and register it as an [`Admin.Extension`](/{version}/reference/extensions#extension-1) in `webiny.config.tsx`.
+
+## Add a Column
+
+To add a column with a custom cell renderer, pass a React component via the `cell` prop. The component can access the current row via `useTableRow()` and `isFolderRow()` from `PageListConfig.Browser.Table.Column`:
+
+```tsx extensions/websiteBuilder/PagesListColumns.tsx
+import React from "react";
+import { PageListConfig } from "webiny/admin/website-builder/page/list";
+
+const { Browser } = PageListConfig;
+
+const ModifiedByCell = () => {
+  const { useTableRow, isFolderRow } = PageListConfig.Browser.Table.Column;
+  const { row } = useTableRow();
+
+  if (isFolderRow(row)) {
+    return <>{"-"}</>;
+  }
+
+  return <>{row.data.modifiedBy.displayName}</>;
+};
+
+const PagesListColumns = () => {
+  return (
+    <PageListConfig>
+      <Browser.Table.Column
+        name={"modifiedBy.displayName"}
+        after={"savedOn"}
+        header={"Modified By"}
+        cell={<ModifiedByCell />}
+        sortable={true}
+        visible={true}
+      />
+    </PageListConfig>
+  );
+};
+
+export default PagesListColumns;
+```
+
+- `name` — unique identifier for the column; also used to reference it in `before`, `after`, and `remove`
+- `header` — column header label
+- `cell` — React component to render each cell; receives row data via `useTableRow()`
+- `useTableRow()` — returns `{ row }` with the full page data at `row.data`
+- `isFolderRow(row)` — returns `true` when the row is a folder rather than a page; always handle this case to avoid rendering errors
+
+**Page data shape** — `row.data` is a `PageDto` with these fields available in cell renderers:
+
+| Field        | Type     | Description                                       |
+| ------------ | -------- | ------------------------------------------------- |
+| `id`         | `string` | Page ID                                           |
+| `status`     | `string` | Current revision status (`draft`, `published`, …) |
+| `version`    | `number` | Revision number                                   |
+| `createdBy`  | identity | `{ id, displayName, type }`                       |
+| `createdOn`  | `string` | ISO date string                                   |
+| `savedBy`    | identity | `{ id, displayName, type }`                       |
+| `savedOn`    | `string` | ISO date string                                   |
+| `modifiedBy` | identity | `{ id, displayName, type }`                       |
+| `modifiedOn` | `string` | ISO date string                                   |
+| `properties` | object   | Page properties (e.g. `title`, `path`, `seo`)     |
+| `live`       | object   | Live revision info, or `null` if not published    |
+
+## Sortable Column
+
+Set `sortable={true}` to allow users to sort by the column:
+
+```tsx
+<Browser.Table.Column
+  name={"modifiedBy.displayName"}
+  header={"Modified By"}
+  sortable={true}
+  cell={<ModifiedByCell />}
+/>
+```
+
+## Column Size
+
+Use `size` to control the initial column width (default: `100`). The value is proportional — `200` means twice the default width. Set `resizable={false}` to prevent users from resizing the column:
+
+```tsx
+<Browser.Table.Column
+  name={"modifiedBy.displayName"}
+  header={"Modified By"}
+  size={150}
+  resizable={false}
+  cell={<ModifiedByCell />}
+/>
+```
+
+## Column Visibility
+
+By default columns are visible. Set `visible={false}` to hide a column initially — users can still show it via the column settings menu:
+
+```tsx
+<Browser.Table.Column
+  name={"modifiedBy.displayName"}
+  header={"Modified By"}
+  visible={false}
+  cell={<ModifiedByCell />}
+/>
+```
+
+Set `hideable={false}` to lock a column as always-visible, preventing users from toggling it off:
+
+```tsx
+<Browser.Table.Column name={"name"} header={"Name"} hideable={false} cell={<NameCell />} />
+```
+
+## Custom Class Names
+
+Use `className` to apply CSS class names to both the column header and cells:
+
+```tsx
+<Browser.Table.Column
+  name={"modifiedBy.displayName"}
+  header={"Modified By"}
+  className={"custom-modified-by-column"}
+  cell={<ModifiedByCell />}
+/>
+```
+
+## Position a Column
+
+Use `before` or `after` to position a column relative to an existing one. The built-in column names are: `name`, `createdBy`, `createdOn`, `savedOn`, `status`, `live`, `actions`.
+
+```tsx
+<Browser.Table.Column
+  name={"modifiedBy.displayName"}
+  header={"Modified By"}
+  after={"savedOn"}
+  cell={<ModifiedByCell />}
+/>
+```
+
+## Discover Existing Column Names
+
+To find the names of built-in columns for use with `before`, `after`, or `remove`, use your browser's React DevTools and search for `BaseColumns`.
+
+## Remove a Column
+
+Pass `remove` to remove an existing column by name:
+
+```tsx
+<PageListConfig>
+  <Browser.Table.Column name={"live"} remove />
+</PageListConfig>
+```
+
+## Replace a Column
+
+Reference an existing column by name and pass a new `cell` component to replace its renderer:
+
+```tsx
+<PageListConfig>
+  <Browser.Table.Column
+    name={"status"}
+    header={"Custom Status"}
+    cell={<span>{"Custom Status Cell"}</span>}
+  />
+</PageListConfig>
+```
+
+## Registering the Extension
+
+Register the extension file as an [`Admin.Extension`](/{version}/reference/extensions#extension-1) in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Admin } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... other extensions */}
+      <Admin.Extension src={"/extensions/websiteBuilder/PagesListColumns.tsx"} />
+    </>
+  );
+};
+```

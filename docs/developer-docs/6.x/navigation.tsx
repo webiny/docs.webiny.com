@@ -55,7 +55,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"webiny-api/connect-custom-domain"} />
         <Page link={"webiny-api/extend-graphql-schema"} />
-        <Page link={"webiny-api/universal-api-keys"} />
       </Group>
       <Separator title={"Apps"} />
       <Group
@@ -114,6 +113,11 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/multi-tenant-nextjs"} title={"Multi-Tenant Setup"} />
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
+        <Page link={"website-builder/page-types"} title={"Page Types"} />
+        <Page
+          link={"website-builder/customize-page-list-columns"}
+          title={"Customize Page List Columns"}
+        />
         <Page link={"website-builder/event-handlers"} title={"Event Handlers"} />
       </Group>
       <Group

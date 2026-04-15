@@ -1,0 +1,39 @@
+AI Context: Page Types (page-types.mdx)
+
+Source of Information:
+1. extensions/funnelBuilder/pageType/index.tsx — user-provided working sample (PageListConfig.PageType usage)
+2. extensions/funnelBuilder/pageType/FunnelPageForm.tsx — user-provided form component (Bind, UnsetOnUnmount, useForm, pagePathFromTitle)
+3. packages/app-website-builder/src/modules/pages/configs/list/PageType.tsx — PageTypeProps type definition (name, label, element, remove)
+4. packages/app-website-builder/src/modules/pages/configs/list/PageListConfig.tsx — PageListConfig exports PageType
+5. packages/app-website-builder/src/modules/pages/PagesList/components/Main/CreatePage/CreatePage.tsx — how the dialog works: type selector dropdown, element rendering, metadata.pageType, properties passthrough
+6. packages/app-website-builder/src/modules/pages/PagesList/components/Main/CreatePage/StaticPageForm.tsx — built-in static form pattern
+7. packages/app-website-builder/src/features/pageTypes/PageType.ts — PageType domain type
+8. packages/webiny/src/admin/website-builder.ts — pagePathFromTitle public export path
+
+Key Documentation Decisions:
+1. Explained the dialog mechanics upfront (type selector + form, metadata.pageType storage) — this context explains why the pattern works
+2. UnsetOnUnmount is called out explicitly — easy to forget; causes stale data bugs when switching types
+3. Single-type auto-skip behavior documented ("dropdown skipped when only one type") — discovered from CreatePage.tsx (auto-select logic)
+4. Validators shown inline (simple arrow function) — avoids introducing unknown validator utility imports; user's code used a local `required` import
+5. Kept the FunnelPageForm example close to user's tested code; cleaned up validator syntax
+6. pagePathFromTitle utility documented in-context rather than a separate section — it's a one-liner utility, inline explanation suffices
+
+Understanding:
+PageType registration works through usePageTypes() which manages a Map of name -> PageType entries. addPageType adds an entry, removePageType removes by name. The CreatePage dialog renders the selected type's `element` inside a form context. On submit, `formData.properties` and `formData.extensions` and `formData.metadata` are spread into CreatePageParams, with `metadata.pageType: type` always set. This means the form's Bind fields under properties.* become page properties.
+
+The `element` is rendered inside a `<Grid>` that already wraps the type selector, so Grid.Column is used directly (no nested Grid needed).
+
+Related Documents:
+- docs/developer-docs/6.x/website-builder/customize-page-list-columns.mdx — PageListConfig usage for table columns
+- docs/developer-docs/6.x/website-builder/custom-component.mdx — other WB extensibility
+
+Key Code Locations:
+- packages/app-website-builder/src/modules/pages/configs/list/PageType.tsx — PageTypeProps
+- packages/app-website-builder/src/modules/pages/PagesList/components/Main/CreatePage/CreatePage.tsx — dialog logic
+- packages/webiny/src/admin/website-builder.ts — pagePathFromTitle export
+- packages/app-website-builder/src/modules/pages/PagesList/components/Main/CreatePage/StaticPageForm.tsx — reference form
+
+Tone Guidelines:
+- Practical and complete — show both the form and the registration together
+- Explain the "why" behind UnsetOnUnmount and metadata.pageType storage
+- Keep the example grounded in the funnel builder use case from the sample code
