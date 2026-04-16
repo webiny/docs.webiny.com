@@ -4,7 +4,7 @@ title: Background Tasks
 description: Learn how to create and manage background tasks in Webiny.
 ---
 
-import {Alert} from "@/components/Alert";
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
@@ -32,139 +32,139 @@ import { GetModelUseCase } from "webiny/api/cms/model";
 import { PublishEntryUseCase } from "webiny/api/cms/entry";
 
 interface Input {
-    model: string;
-    list: string[];
-    last?: string;
+  model: string;
+  list: string[];
+  last?: string;
 }
 
 interface OutputItem {
-    id: string;
-    error?: string;
+  id: string;
+  error?: string;
 }
 interface Output {
-    list: OutputItem[];
+  list: OutputItem[];
 }
 
 class PublishEntriesBackgroundTask implements TaskDefinition.Interface {
-    // id of a task - must be unique across the entire system
-    public readonly id = "publishEntriesBackgroundTask";
-    // title of the task - to be displayed in a list of tasks
-    public readonly title = "Publish Entries Task";
-    // description of the task - a brief explanation of what the task does
-    public readonly description = "A background task to publish CMS entries.";
-    // maximum number of iterations before the task goes into the error state
-    public readonly maxIterations = 100;
-    // disable logging
-    public readonly disableDatabaseLogs = true;
-    // make the task private so it doesn't show publicly (graphql api, etc...)
-    public readonly isPrivate = true;
+  // id of a task - must be unique across the entire system
+  public readonly id = "publishEntriesBackgroundTask";
+  // title of the task - to be displayed in a list of tasks
+  public readonly title = "Publish Entries Task";
+  // description of the task - a brief explanation of what the task does
+  public readonly description = "A background task to publish CMS entries.";
+  // maximum number of iterations before the task goes into the error state
+  public readonly maxIterations = 100;
+  // disable logging
+  public readonly disableDatabaseLogs = true;
+  // make the task private so it doesn't show publicly (graphql api, etc...)
+  public readonly isPrivate = true;
 
-    public constructor(
-        private getModel: GetModelUseCase.Interface,
-        private publishEntry: PublishEntryUseCase.Interface
-    ) {}
-    /**
-     * On each task run, this method is called with the input parameters.
-     * The method must return one of the TaskDefinition.Result types.
-     */
-    public async run({
-        input,
-        controller
-    }: TaskDefinition.RunParams<Input, Output>): Promise<TaskDefinition.Result<Input, Output>> {
-        const { model, list } = input;
+  public constructor(
+    private getModel: GetModelUseCase.Interface,
+    private publishEntry: PublishEntryUseCase.Interface
+  ) {}
+  /**
+   * On each task run, this method is called with the input parameters.
+   * The method must return one of the TaskDefinition.Result types.
+   */
+  public async run({
+    input,
+    controller
+  }: TaskDefinition.RunParams<Input, Output>): Promise<TaskDefinition.Result<Input, Output>> {
+    const { model, list } = input;
 
-        const modelResult = await this.getModel.execute(model);
-        if (modelResult.isFail()) {
-            return controller.response.error(modelResult.error);
-        }
-        const cmsModel = modelResult.value;
+    const modelResult = await this.getModel.execute(model);
+    if (modelResult.isFail()) {
+      return controller.response.error(modelResult.error);
+    }
+    const cmsModel = modelResult.value;
 
-        const results: OutputItem[] = [];
-        let last = input.last;
-        const startList = last ? list.slice(list.indexOf(last) + 1) : list;
-        
-        for (const entryId of startList) {
-            if (controller.runtime.isAborted()) {
-                return controller.response.aborted();
-            } else if (controller.runtime.isCloseToTimeout()) {
-                return controller.response.continue({
-                    ...input,
-                    last
-                });
-            }
+    const results: OutputItem[] = [];
+    let last = input.last;
+    const startList = last ? list.slice(list.indexOf(last) + 1) : list;
 
-            last = entryId;
-
-            try {
-                const publishEntryResult = await this.publishEntry.execute(cmsModel, entryId);
-                if (publishEntryResult.isFail()) {
-                    results.push({
-                        id: entryId,
-                        error: publishEntryResult.error.message
-                    });
-                    continue;
-                }
-                results.push({
-                    id: entryId
-                });
-            } catch (ex) {
-                results.push({
-                    id: entryId,
-                    error: ex.message
-                });
-            }
-        }
-        return controller.response.done({
-            list: results
+    for (const entryId of startList) {
+      if (controller.runtime.isAborted()) {
+        return controller.response.aborted();
+      } else if (controller.runtime.isCloseToTimeout()) {
+        return controller.response.continue({
+          ...input,
+          last
         });
-    }
-    /**
-     * Before the task is triggered, this method is called.
-     * Users can do some preparation or checks here and break the execution by throwing an error.
-     */
-    public async onBeforeTrigger(params: TaskDefinition.BeforeTriggerParams<Input>): Promise<void> {
-        //
-    }
-    /**
-     * When the task ends with a done status, this method is called.
-     */
-    public async onDone(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
-        //
-    }
-    /**
-     * When the task ends with an error status, this method is called.
-     */
-    public async onError(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
-        //
-    }
-    /**
-     * When the task ends with an abort status, this method is called.
-     */
-    public async onAbort(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
-        //
-    }
-    /**
-     * When the maximum number of iterations is reached, this method is called.
-     */
-    public async onMaxIterations(
-        params: TaskDefinition.LifecycleHookParams<Input, Output>
-    ): Promise<void> {
-        //
-    }
-    /**
-     * A method to create input validation schema based on the input interface.
-     */
-    public createInputValidation({ validator }: TaskDefinition.CreateInputValidationParams) {
-        return validator.object({
-            model: validator.string().min(1),
-            list: validator.array(validator.string()).min(1).max(10000)
+      }
+
+      last = entryId;
+
+      try {
+        const publishEntryResult = await this.publishEntry.execute(cmsModel, entryId);
+        if (publishEntryResult.isFail()) {
+          results.push({
+            id: entryId,
+            error: publishEntryResult.error.message
+          });
+          continue;
+        }
+        results.push({
+          id: entryId
         });
+      } catch (ex) {
+        results.push({
+          id: entryId,
+          error: ex.message
+        });
+      }
     }
+    return controller.response.done({
+      list: results
+    });
+  }
+  /**
+   * Before the task is triggered, this method is called.
+   * Users can do some preparation or checks here and break the execution by throwing an error.
+   */
+  public async onBeforeTrigger(params: TaskDefinition.BeforeTriggerParams<Input>): Promise<void> {
+    //
+  }
+  /**
+   * When the task ends with a done status, this method is called.
+   */
+  public async onDone(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+    //
+  }
+  /**
+   * When the task ends with an error status, this method is called.
+   */
+  public async onError(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+    //
+  }
+  /**
+   * When the task ends with an abort status, this method is called.
+   */
+  public async onAbort(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+    //
+  }
+  /**
+   * When the maximum number of iterations is reached, this method is called.
+   */
+  public async onMaxIterations(
+    params: TaskDefinition.LifecycleHookParams<Input, Output>
+  ): Promise<void> {
+    //
+  }
+  /**
+   * A method to create input validation schema based on the input interface.
+   */
+  public createInputValidation({ validator }: TaskDefinition.CreateInputValidationParams) {
+    return validator.object({
+      model: validator.string().min(1),
+      list: validator.array(validator.string()).min(1).max(10000)
+    });
+  }
 }
 
 export default TaskDefinition.createImplementation({
-    implementation: PublishEntriesBackgroundTask,
-    dependencies: [GetModelUseCase, PublishEntryUseCase]
+  implementation: PublishEntriesBackgroundTask,
+  dependencies: [GetModelUseCase, PublishEntryUseCase]
 });
 ```
 
@@ -270,10 +270,12 @@ Use this query to view detailed execution logs for debugging. You can filter log
 ```graphql
 query ListBackgroundTaskLogs {
   backgroundTasks {
-    listLogs(where: {
-    # you can list logs from a certain task if you like
-    task: "yourTaskId"
-  }) {
+    listLogs(
+      where: {
+        # you can list logs from a certain task if you like
+        task: "yourTaskId"
+      }
+    ) {
       data {
         id
         createdOn
@@ -299,10 +301,13 @@ Use this mutation to start a task execution with custom input parameters. The ta
 ```graphql
 mutation TriggerATask {
   backgroundTasks {
-    triggerTask(definition: testingRun, input: {
-      someVariableForTestingRunTaskToReceive: "someValue",
-      yetAnotherVariableForTestingRunTaskToReceive: "anotherValue"
-    }) {
+    triggerTask(
+      definition: testingRun
+      input: {
+        someVariableForTestingRunTaskToReceive: "someValue"
+        yetAnotherVariableForTestingRunTaskToReceive: "anotherValue"
+      }
+    ) {
       data {
         id
         definitionId
