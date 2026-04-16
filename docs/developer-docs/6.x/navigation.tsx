@@ -55,6 +55,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"webiny-api/connect-custom-domain"} />
         <Page link={"webiny-api/extend-graphql-schema"} />
+        <Page link={"background-tasks/about"} title={"Background Tasks"} />
       </Group>
       <Separator title={"Apps"} />
       <Group
@@ -133,12 +134,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       {/*  <Page link={"graphql/reference"} />*/}
       {/*  <Page link={"graphql/example"} />*/}
       {/*</Group>*/}
-      {/*<Group title={"Tasks"} icon={"/docs/menu-icons/webiny-overview.svg"} link={"tasks/about"}>*/}
-      {/*  <Page link={"tasks/about"} />*/}
-      {/*  <Page link={"tasks/reference"} />*/}
-      {/*  <Page link={"tasks/management"} />*/}
-      {/*</Group>*/}
-      {/*<Group*/}
+{/*<Group*/}
       {/*  title={"Tenant Manager"}*/}
       {/*  icon={"/docs/menu-icons/webiny-overview.svg"}*/}
       {/*  link={"tenant-manager/manage-tenants"}*/}

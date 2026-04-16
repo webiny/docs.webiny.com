@@ -1,0 +1,395 @@
+---
+id: ifggwkus
+title: Background Tasks
+description: Learn how to create and manage background tasks in Webiny.
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What are Tasks?
+- What methods are available in a task definition?
+- When to use lifecycle hooks?
+- How to trigger tasks via GraphQL?
+- How to monitor task execution and logs?
+- How to abort running tasks?
+- How to trigger tasks programmatically via code?
+
+</Alert>
+
+## Overview
+
+Tasks allow you to run long operations asynchronously without blocking your application. You can process batches, migrate data, or perform bulk operations in the background.
+
+To create a background task, you implement the `TaskDefinition.Interface` and register it using `TaskDefinition.createImplementation()`.
+
+## Example
+
+```typescript
+import { TaskDefinition } from "webiny/api/tasks";
+import { GetModelUseCase } from "webiny/api/cms/model";
+import { PublishEntryUseCase } from "webiny/api/cms/entry";
+
+interface Input {
+    model: string;
+    list: string[];
+    last?: string;
+}
+
+interface OutputItem {
+    id: string;
+    error?: string;
+}
+interface Output {
+    list: OutputItem[];
+}
+
+class PublishEntriesBackgroundTask implements TaskDefinition.Interface {
+    // id of a task - must be unique across the entire system
+    public readonly id = "publishEntriesBackgroundTask";
+    // title of the task - to be displayed in a list of tasks
+    public readonly title = "Publish Entries Task";
+    // description of the task - a brief explanation of what the task does
+    public readonly description = "A background task to publish CMS entries.";
+    // maximum number of iterations before the task goes into the error state
+    public readonly maxIterations = 100;
+    // disable logging
+    public readonly disableDatabaseLogs = true;
+    // make the task private so it doesn't show publicly (graphql api, etc...)
+    public readonly isPrivate = true;
+
+    public constructor(
+        private getModel: GetModelUseCase.Interface,
+        private publishEntry: PublishEntryUseCase.Interface
+    ) {}
+    /**
+     * On each task run, this method is called with the input parameters.
+     * The method must return one of the TaskDefinition.Result types.
+     */
+    public async run({
+        input,
+        controller
+    }: TaskDefinition.RunParams<Input, Output>): Promise<TaskDefinition.Result<Input, Output>> {
+        const { model, list } = input;
+
+        const modelResult = await this.getModel.execute(model);
+        if (modelResult.isFail()) {
+            return controller.response.error(modelResult.error);
+        }
+        const cmsModel = modelResult.value;
+
+        const results: OutputItem[] = [];
+        let last = input.last;
+        const startList = last ? list.slice(list.indexOf(last) + 1) : list;
+        
+        for (const entryId of startList) {
+            if (controller.runtime.isAborted()) {
+                return controller.response.aborted();
+            } else if (controller.runtime.isCloseToTimeout()) {
+                return controller.response.continue({
+                    ...input,
+                    last
+                });
+            }
+
+            last = entryId;
+
+            try {
+                const publishEntryResult = await this.publishEntry.execute(cmsModel, entryId);
+                if (publishEntryResult.isFail()) {
+                    results.push({
+                        id: entryId,
+                        error: publishEntryResult.error.message
+                    });
+                    continue;
+                }
+                results.push({
+                    id: entryId
+                });
+            } catch (ex) {
+                results.push({
+                    id: entryId,
+                    error: ex.message
+                });
+            }
+        }
+        return controller.response.done({
+            list: results
+        });
+    }
+    /**
+     * Before the task is triggered, this method is called.
+     * Users can do some preparation or checks here and break the execution by throwing an error.
+     */
+    public async onBeforeTrigger(params: TaskDefinition.BeforeTriggerParams<Input>): Promise<void> {
+        //
+    }
+    /**
+     * When the task ends with a done status, this method is called.
+     */
+    public async onDone(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+        //
+    }
+    /**
+     * When the task ends with an error status, this method is called.
+     */
+    public async onError(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+        //
+    }
+    /**
+     * When the task ends with an abort status, this method is called.
+     */
+    public async onAbort(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+        //
+    }
+    /**
+     * When the maximum number of iterations is reached, this method is called.
+     */
+    public async onMaxIterations(
+        params: TaskDefinition.LifecycleHookParams<Input, Output>
+    ): Promise<void> {
+        //
+    }
+    /**
+     * A method to create input validation schema based on the input interface.
+     */
+    public createInputValidation({ validator }: TaskDefinition.CreateInputValidationParams) {
+        return validator.object({
+            model: validator.string().min(1),
+            list: validator.array(validator.string()).min(1).max(10000)
+        });
+    }
+}
+
+export default TaskDefinition.createImplementation({
+    implementation: PublishEntriesBackgroundTask,
+    dependencies: [GetModelUseCase, PublishEntryUseCase]
+});
+```
+
+## Available Methods
+
+When creating a background task, you implement the following methods:
+
+### Core Methods
+
+- **`run()`** - The main method where your task logic executes. Required.
+- **`createInputValidation()`** - Validates the input data before the task runs. Optional.
+
+### Lifecycle Hooks
+
+These hooks are called at different stages of task execution:
+
+- **`onBeforeTrigger()`** - Called before the task is triggered.
+- **`onDone()`** - Called when the task completes successfully.
+- **`onError()`** - Called when the task fails with an error.
+- **`onAbort()`** - Called when the task is manually aborted.
+- **`onMaxIterations()`** - Called when the task reaches the maximum iteration limit.
+
+## Task Responses
+
+Inside the `run()` method, you receive a `controller` object that helps you control task execution. You use it to return different responses:
+
+- **`controller.response.done()`** - Task completed successfully.
+- **`controller.response.continue()`** - Task needs more time, will resume in the next iteration.
+- **`controller.response.error()`** - Task encountered an error and should stop.
+- **`controller.response.aborted()`** - Task was manually stopped.
+
+## Controller Runtime Methods
+
+The controller also provides runtime methods to check the task's execution state:
+
+- **`controller.runtime.isAborted()`** - Returns `true` if the task was manually aborted.
+- **`controller.runtime.isCloseToTimeout()`** - Returns `true` if the task is running out of time. Use this to return `continue()` and preserve your progress.
+
+## Managing Tasks via GraphQL
+
+### List Available Task Definitions
+
+Use this query to see all registered background tasks in your system. Each definition includes the task ID, title, and description you defined when creating the task.
+
+```graphql
+query ListTaskDefinitions {
+  backgroundTasks {
+    listDefinitions {
+      data {
+        id
+        title
+        description
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### List All Task Runs
+
+Use this query to see all task executions. Each task run includes its status, timestamps, iterations, input/output data, and more. This helps you monitor task progress and troubleshoot issues.
+
+```graphql
+query ListTasks {
+  backgroundTasks {
+    listTasks {
+      data {
+        id
+        startedOn
+        finishedOn
+        name
+        definitionId
+        iterations
+        parentId
+        executionName
+        eventResponse
+        taskStatus
+        input
+        output
+        # ...more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### List All Task Logs
+
+Use this query to view detailed execution logs for debugging. You can filter logs by task ID to see what happened during a specific task execution. Logs include messages, timestamps, types, and error details.
+
+```graphql
+query ListBackgroundTaskLogs {
+  backgroundTasks {
+    listLogs(where: {
+    # you can list logs from a certain task if you like
+    task: "yourTaskId"
+  }) {
+      data {
+        id
+        createdOn
+        executionName
+        iteration
+        items {
+          message
+          createdOn
+          type
+          data
+          error
+        }
+      }
+    }
+  }
+}
+```
+
+### Trigger a Task
+
+Use this mutation to start a task execution with custom input parameters. The task will be queued and executed asynchronously. You can track its progress using the task ID returned in the response.
+
+```graphql
+mutation TriggerATask {
+  backgroundTasks {
+    triggerTask(definition: testingRun, input: {
+      someVariableForTestingRunTaskToReceive: "someValue",
+      yetAnotherVariableForTestingRunTaskToReceive: "anotherValue"
+    }) {
+      data {
+        id
+        definitionId
+        executionName
+        eventResponse
+        taskStatus
+        input
+        # ... more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+### Abort a Task
+
+Use this mutation to stop a running task. Provide the task ID and optionally a message explaining why the task is being aborted. The task will stop at the next safe checkpoint.
+
+```graphql
+mutation AbortATask {
+  backgroundTasks {
+    # message is optional
+    abortTask(id: "yourTaskId", message: "My Reason for aborting the task") {
+      data {
+        id
+        createdOn
+        savedOn
+        startedOn
+        finishedOn
+        definitionId
+        iterations
+        name
+        input
+        output
+        # ... more fields available
+      }
+      error {
+        message
+        code
+        data
+        stack
+      }
+    }
+  }
+}
+```
+
+## Managing Tasks via Code
+
+### Triggering a Task Programmatically
+
+Use the `TaskService` to trigger tasks directly from your backend code. This is useful when you need to start background tasks as part of your application logic, such as after a user action or during a scheduled process. You can specify the task definition ID, custom input data, delay, parent task relationship, and a display name.
+
+```typescript
+import { TaskService } from "webiny/api/tasks";
+const service = // resolved TaskService
+
+const result = service.trigger({
+    definition: "aTaskDefinitionId",
+    delay: 0,
+    parent: {
+        id: "parentTaskId"
+    },
+    name: "My Task",
+    input: {
+        some: "data",
+        for: "the task"
+    }
+});
+```
+
+### Aborting a Task Programmatically
+
+Use the `TaskService` to abort a running task from your backend code. This is useful when you need to stop tasks programmatically based on application state or business logic. Provide the task ID and optionally a message explaining why the task is being aborted.
+
+```typescript
+import { TaskService } from "webiny/api/tasks";
+const service = // resolved TaskService
+
+const result = service.abort({
+    id: "taskIdToAbort",
+    message: "Optional reason for aborting the task"
+});
+```
