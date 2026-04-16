@@ -1,0 +1,120 @@
+name: Release Announcements
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+
+jobs:
+  announce:
+    name: Generate and send release announcements
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Extract version from branch name
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          VERSION="${BRANCH#release/}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack (Yarn Berry)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Generate announcements
+        env:
+          CLAUDE_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: yarn generate:announcements --version ${{ env.VERSION }}
+
+      - name: Commit and push announcements to master
+        run: |
+          git config user.name "webiny-bot"
+          git config user.email "webiny-bot@webiny.com"
+          git add docs/release-notes/${{ env.VERSION }}/announcements/
+          git commit -m "chore: add announcements for ${{ env.VERSION }}"
+          git push origin master
+
+      - name: Send Slack announcement
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          VERSION="${{ env.VERSION }}"
+          BASE="docs/release-notes/${VERSION}/announcements"
+          SLACK_URL="${REPO_URL}/blob/master/${BASE}/slack.md"
+          TWITTER_URL="${REPO_URL}/blob/master/${BASE}/twitter.md"
+          LINKEDIN_URL="${REPO_URL}/blob/master/${BASE}/linkedin.md"
+
+          # Post main message with links
+          RESPONSE=$(jq -n \
+            --arg channel "release" \
+            --arg version "$VERSION" \
+            --arg slack_url "$SLACK_URL" \
+            --arg twitter_url "$TWITTER_URL" \
+            --arg linkedin_url "$LINKEDIN_URL" \
+            '{
+              "channel": $channel,
+              "text": ("Release " + $version + " announcements ready"),
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ("*Release " + $version + " docs merged* — announcements ready :tada:")
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ("• *Slack* — <" + $slack_url + "|view / edit>\n• *X / Twitter* — <" + $twitter_url + "|view / edit>\n• *LinkedIn* — <" + $linkedin_url + "|view / edit>")
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Text for each is in the thread below. To quickly edit all announcements with AI, open the repo in your IDE."
+                    }
+                  ]
+                }
+              ]
+            }' | curl -s -X POST "https://slack.com/api/chat.postMessage" \
+              -H "Authorization: Bearer $SLACK_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d @-)
+
+          echo "$RESPONSE" | jq .
+          THREAD_TS=$(echo "$RESPONSE" | jq -r '.ts')
+
+          # Post each announcement text as a thread reply
+          for PLATFORM in slack twitter linkedin; do
+            MSG=$(cat "${BASE}/${PLATFORM}.md")
+            jq -n \
+              --arg channel "release" \
+              --arg ts "$THREAD_TS" \
+              --arg text "$MSG" \
+              '{"channel": $channel, "thread_ts": $ts, "text": $text}' | \
+            curl -s -X POST "https://slack.com/api/chat.postMessage" \
+              -H "Authorization: Bearer $SLACK_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d @-
+          done
