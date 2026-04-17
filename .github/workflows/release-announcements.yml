@@ -53,7 +53,7 @@ jobs:
 
       - name: Send Slack announcement
         env:
-          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_CHANNEL_WEBHOOK }}
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
           VERSION="${{ env.VERSION }}"
@@ -62,15 +62,12 @@ jobs:
           TWITTER_URL="${REPO_URL}/blob/master/${BASE}/twitter.md"
           LINKEDIN_URL="${REPO_URL}/blob/master/${BASE}/linkedin.md"
 
-          # Post main message with links
-          RESPONSE=$(jq -n \
-            --arg channel "release" \
+          jq -n \
             --arg version "$VERSION" \
             --arg slack_url "$SLACK_URL" \
             --arg twitter_url "$TWITTER_URL" \
             --arg linkedin_url "$LINKEDIN_URL" \
             '{
-              "channel": $channel,
               "text": ("Release " + $version + " announcements ready"),
               "blocks": [
                 {
@@ -92,29 +89,11 @@ jobs:
                   "elements": [
                     {
                       "type": "mrkdwn",
-                      "text": "Text for each is in the thread below. To quickly edit all announcements with AI, open the repo in your IDE."
+                      "text": "To quickly edit all announcements with AI, open the repo in your IDE."
                     }
                   ]
                 }
               ]
-            }' | curl -s -X POST "https://slack.com/api/chat.postMessage" \
-              -H "Authorization: Bearer $SLACK_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d @-)
-
-          echo "$RESPONSE" | jq .
-          THREAD_TS=$(echo "$RESPONSE" | jq -r '.ts')
-
-          # Post each announcement text as a thread reply
-          for PLATFORM in slack twitter linkedin; do
-            MSG=$(cat "${BASE}/${PLATFORM}.md")
-            jq -n \
-              --arg channel "release" \
-              --arg ts "$THREAD_TS" \
-              --arg text "$MSG" \
-              '{"channel": $channel, "thread_ts": $ts, "text": $text}' | \
-            curl -s -X POST "https://slack.com/api/chat.postMessage" \
-              -H "Authorization: Bearer $SLACK_TOKEN" \
+            }' | curl -s -X POST "$SLACK_WEBHOOK" \
               -H "Content-Type: application/json" \
               -d @-
-          done
