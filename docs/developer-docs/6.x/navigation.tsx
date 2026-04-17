@@ -206,6 +206,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Group title={"SDK"} link={"reference/sdk/overview"}>
           <Page link={"reference/sdk/overview"} title={"Overview"} />
           <Page link={"reference/sdk/cms"} title={"CMS"} />
+          <Page link={"reference/sdk/languages"} title={"Languages"} />
           <Page link={"reference/sdk/file-manager"} title={"File Manager"} />
           <Page link={"reference/sdk/tenant-manager"} title={"Tenant Manager"} />
         </Group>
