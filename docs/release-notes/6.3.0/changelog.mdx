@@ -27,56 +27,6 @@ webiny upgrade --install-version=6.3.0-unstable.abc
 
 Previously, downloading new Pulumi plugins would leave old versions behind, causing the `.webiny/pulumi-cli` folder to grow over time. Old plugin versions are now automatically removed when newer versions are installed.
 
-## Webiny SDK
-
-### Introducing the `Ai` Service ([#5096](https://github.com/webiny/webiny-js/pull/5096))
-
-A new `Ai` service provides a unified abstraction for working with language models across multiple providers. The service wraps the [Vercel AI SDK](https://sdk.vercel.ai/) and integrates with Webiny's dependency injection system.
-
-The service includes:
-
-- `generateText` and `streamText` methods for interacting with language models
-- Built-in provider factories for Anthropic and OpenAI
-- An `AiGateway` that routes requests based on a `provider/model` string format
-
-Configure providers via environment variables:
-
-- `WEBINY_API_ANTHROPIC_API_KEY`
-- `WEBINY_API_OPENAI_API_KEY`
-
-Inject the service into any Route, UseCase, or handler:
-
-```typescript
-import { Ai, Logger, Route } from "webiny/api";
-
-class MyApiRouteImpl implements Route.Interface {
-    constructor(
-        private logger: Logger.Interface,
-        private aiService: Ai.Interface
-    ) {}
-
-    async execute(request: Route.Request, reply: Route.Reply) {
-        const { text } = await this.aiService.generateText({
-            model: "anthropic/claude-sonnet-4-5",
-            prompt: "Is this working?!"
-        });
-
-        return reply.send({ message: text });
-    }
-}
-
-export default Route.createImplementation({
-    implementation: MyApiRouteImpl,
-    dependencies: [Logger, Ai]
-});
-```
-
-Switching providers is a one-line change to the model string — no other code changes required.
-
-### Encryption Passphrase Now Optional ([#5112](https://github.com/webiny/webiny-js/pull/5112))
-
-The encryption service now works without a passphrase configured. When `<Infra.Encryption passphrase="..." />` is omitted, `encrypt` and `decrypt` pass values through unchanged instead of throwing an error. This allows teams to adopt encryption gradually without requiring every environment to have a passphrase configured upfront.
-
 ### Feature API Types Corrected ([#5108](https://github.com/webiny/webiny-js/pull/5108))
 
 The second parameter in the Feature API's `register` method now correctly populates when defined via generics.
