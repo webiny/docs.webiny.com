@@ -209,6 +209,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           <Page link={"reference/sdk/languages"} title={"Languages"} />
           <Page link={"reference/sdk/file-manager"} title={"File Manager"} />
           <Page link={"reference/sdk/tenant-manager"} title={"Tenant Manager"} />
+          <Page link={"reference/sdk/tasks"} title={"Tasks"} />
         </Group>
         {/* __SDK_PAGES_END__ */}
         {/* __REFERENCE_PAGES_END__ */}
