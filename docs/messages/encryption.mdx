@@ -1,0 +1,56 @@
+---
+id: encryption
+title: Deploying to a Production Environment Requires Encryption to be Configured
+---
+
+Looks like you're trying to deploy to a **production environment** without encryption configured.
+
+Encryption protects sensitive data stored in your Webiny project's database. Deploying to a production environment without it is a security risk, which is why Webiny blocks the deployment and shows this message.
+
+## How to Fix
+
+**1. Set the `WEBINY_ENCRYPTION_PASSPHRASE` environment variable**
+
+Add the following to the `.env` file at the root of your Webiny project (create one if it doesn't exist):
+
+```bash
+WEBINY_ENCRYPTION_PASSPHRASE=your-secure-passphrase
+```
+
+Use a strong, randomly generated passphrase. You can generate one with the following command:
+
+```bash
+openssl rand -base64 32
+```
+
+:::danger Keep this value safe
+Once set and deployed, changing the passphrase will make previously encrypted data unreadable. Store it securely (e.g. in a secrets manager) and never commit it to version control.
+:::
+
+**2. Add `<Infra.Encryption>` to your project config**
+
+Open your `webiny.config.ts` file and add the `<Infra.Encryption>` component inside an `<Infra.Env.IsProd>` block:
+
+```tsx
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* Encryption MUST always be configured for production environments. */}
+      <Infra.Env.IsProd>
+        <Infra.Encryption passphrase={process.env.WEBINY_ENCRYPTION_PASSPHRASE} />
+      </Infra.Env.IsProd>
+      {/* ... rest of your config */}
+    </>
+  );
+};
+```
+
+Once both steps are complete, re-run your deploy command:
+
+```bash
+yarn webiny deploy --env prod
+```
+
+If you still encounter issues, feel free to reach out in our [community Slack](https://www.webiny.com/slack).
