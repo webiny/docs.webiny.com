@@ -10,18 +10,13 @@ import { Alert } from "@/components/Alert";
 
 - how to register a build-time parameter in `webiny.config.tsx`
 - how to access it in React components and hooks via `useBuildParams`
+- how to access it in non-React Admin code via `BuildParams`
 
 </Alert>
 
 ## Overview
 
-`useBuildParams` is the correct way to read configuration values inside Admin React components. Values are registered in `webiny.config.tsx` using `Admin.BuildParam` and embedded into the Admin bundle at build time.
-
-<Alert type="warning">
-
-Do not use `process.env.*` to read configuration in React components. Vite/webpack replaces `process.env` references at bundle time with their literal values, making them impossible to vary per environment without rebuilding. Use `Admin.BuildParam` and `useBuildParams` instead.
-
-</Alert>
+`BuildParams` is the mechanism for passing configuration values — determined at build time — into the Admin application. Values are registered in `webiny.config.tsx` using `Admin.BuildParam` and embedded directly into the Admin bundle during the build step. Inside React components and hooks, they are accessed via the `useBuildParams` hook. In non-React Admin code (services, class-based extensions), inject `BuildParams` directly via dependency injection.
 
 ## Registering a Parameter
 
@@ -47,10 +42,15 @@ The `value` can be a string, number, boolean, object, or array.
 
 Use the `useBuildParams` hook anywhere in the Admin React tree:
 
+<Alert type="info">
+
+`useBuildParams` is currently imported from `webiny/admin/build-params`. It will also be available directly from `webiny/admin` in an upcoming release.
+
+</Alert>
+
 ```tsx extensions/SupportBanner.tsx
 import React from "react";
 import { useBuildParams } from "webiny/admin/build-params";
-
 export const SupportBanner = () => {
   const params = useBuildParams();
   const supportEmail = params.get<string>("supportEmail");
@@ -73,11 +73,31 @@ You can also call `useBuildParams` inside a custom hook:
 
 ```typescript extensions/useSupportEmail.ts
 import { useBuildParams } from "webiny/admin/build-params";
-
 export const useSupportEmail = () => {
   const params = useBuildParams();
   return params.get<string>("supportEmail");
 };
+```
+
+## Accessing Parameters in Non-React Code
+
+In class-based Admin extensions (services, event handlers, use cases), inject `BuildParams` via the constructor:
+
+```typescript extensions/MyAdminService.ts
+import { BuildParams } from "webiny/admin/build-params";
+class MyAdminServiceImpl implements MyAdminService.Interface {
+  public constructor(private buildParams: BuildParams.Interface) {}
+
+  public async execute(): Promise<void> {
+    const apiUrl = this.buildParams.get<string>("externalApiUrl");
+    // ...
+  }
+}
+
+export default MyAdminService.createImplementation({
+  implementation: MyAdminServiceImpl,
+  dependencies: [BuildParams]
+});
 ```
 
 ## Deploying
@@ -86,4 +106,10 @@ After adding or changing an `Admin.BuildParam`, rebuild and redeploy the Admin a
 
 ```
 yarn webiny deploy admin
+```
+
+During development, rerunning watch is enough — no full deploy needed:
+
+```
+yarn webiny watch admin
 ```
