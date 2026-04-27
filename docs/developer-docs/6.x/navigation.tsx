@@ -47,6 +47,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group title={"Admin"} icon={"/docs/menu-icons/admin.svg"} link={"admin/whitelabeling"}>
         <Page link={"admin/whitelabeling"} />
         <Page link={"admin/connect-custom-domain"} />
+        <Page link={"admin/build-params"} />
       </Group>
       <Group
         title={"API"}
@@ -56,6 +57,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"webiny-api/connect-custom-domain"} />
         <Page link={"webiny-api/extend-graphql-schema"} />
         <Page link={"webiny-api/api-routes"} />
+        <Page link={"webiny-api/build-params"} />
         <Page link={"background-tasks/about"} title={"Background Tasks"} />
       </Group>
       <Separator title={"Apps"} />

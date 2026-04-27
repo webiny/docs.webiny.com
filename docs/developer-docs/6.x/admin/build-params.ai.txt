@@ -1,0 +1,36 @@
+AI Context: Build-Time Parameters — Admin (build-params.mdx)
+
+Source of Information:
+1. ~/dev/wby-next/packages/project/src/extensions/AdminBuildParam.ts — extension definition, build step (generates BuildParam_<hash>.ts files + feature.ts)
+2. ~/dev/wby-next/packages/app-admin/src/features/buildParams/abstractions.ts — BuildParam, BuildParams interfaces
+3. ~/dev/wby-next/packages/app-admin/src/features/buildParams/BuildParams.ts — BuildParamsImpl
+4. ~/dev/wby-next/packages/app-admin/src/presentation/buildParams/useBuildParams.ts — useBuildParams hook
+5. ~/dev/wby-next/packages/webiny/src/admin/build-params.ts — public import path for useBuildParams
+6. ~/dev/wby-next/skills/user-skills/generated/admin/build-params/SKILL.md — import paths
+7. Slack thread — user pain point: process.env.* in React is replaced at bundle time (build-time substitution hack), not a runtime lookup; Pavel explicitly called it "a dirty hack that should be avoided"
+
+Key Documentation Decisions:
+1. process.env warning is front and center as an Alert — the Slack thread shows this is the exact mistake users make
+2. Shows useBuildParams in both a component AND a custom hook — both are common patterns
+3. Kept short and practical
+
+Understanding:
+- Admin.BuildParam extension: at build time, generates BuildParam_<hash>.ts files + a feature.ts that imports all of them + injects BuildParamsFeature and BuildParamsInternalFeature into Extensions.tsx via RegisterFeature
+- At runtime: useBuildParams() calls useFeature(BuildParamsFeature) which resolves the BuildParams abstraction from the DI container; get(key) finds the value in the registered BuildParam instances
+- Import path for the hook: `import { useBuildParams } from "webiny/admin/build-params"`
+- get<T>(key) returns T | null — null means key was not registered
+- process.env: Vite/webpack replaces process.env.FOO at bundle time with the literal string value baked in during that specific build. This means it's NOT configurable per environment without a rebuild. BuildParams values also embed at build time but are registered in webiny.config.tsx — the central config file — rather than scattered across the codebase.
+
+Key Code Locations:
+- packages/project/src/extensions/AdminBuildParam.ts — extension that generates the bundle files
+- packages/app-admin/src/features/buildParams/ — runtime implementation
+- packages/app-admin/src/presentation/buildParams/useBuildParams.ts — the hook
+- packages/webiny/src/admin/build-params.ts — public import path
+
+Related Documents:
+- docs/developer-docs/6.x/webiny-api/build-params.mdx — API equivalent (BuildParams DI injection)
+- docs/developer-docs/6.x/reference/extensions/admin.mdx — Admin.BuildParam props reference
+
+Tone Guidelines:
+- Short and practical — the warning about process.env is the most important thing to convey
+- Show both component and hook usage patterns

@@ -1,0 +1,34 @@
+AI Context: Build-Time Parameters — API (build-params.mdx)
+
+Source of Information:
+1. ~/dev/wby-next/packages/project/src/extensions/ApiBuildParam.ts — extension definition, build step (embeds values in bundle)
+2. ~/dev/wby-next/packages/api-core/src/features/buildParams/abstractions.ts — BuildParam, BuildParams interfaces
+3. ~/dev/wby-next/packages/api-core/src/features/buildParams/BuildParams.ts — BuildParamsImpl (get() scans BuildParam array)
+4. ~/dev/wby-next/packages/api-core/src/features/encryption/EncryptionService.ts — real-world BuildParams usage pattern
+5. ~/dev/wby-next/skills/user-skills/generated/api/build-params/SKILL.md — import paths
+6. Slack thread — user pain point: process.env in React is a dirty hack; same principle applies to API
+
+Key Documentation Decisions:
+1. Explicitly distinguishes BuildParams (build-time, from webiny.config.tsx) from process.env (Lambda env vars, set at deploy time via infrastructure)
+2. Uses a GraphQL extension as the code example since it's the most common API extension type
+3. Kept short — the concept is simple; the article mirrors the structure of extend-graphql-schema.mdx
+
+Understanding:
+- Api.BuildParam extension: at build time, generates a BuildParam_<hash>.ts class file in apps/api/graphql/src/buildParams/ and injects it into extensions.ts via createRegisterExtensionPlugin
+- At runtime: BuildParamsImpl resolves all registered BuildParam instances (injected as a multiple dependency), then get(key) finds the matching one
+- Import path: `import { BuildParams } from "webiny/api"` — also available at "webiny/api/build-params" (deprecated sub-path)
+- get<T>(key) returns T | null — null means key was not registered
+- Value types: string | number | boolean | object | array (Zod-validated)
+
+Key Code Locations:
+- packages/project/src/extensions/ApiBuildParam.ts — extension that generates the bundle files
+- packages/api-core/src/features/buildParams/ — runtime implementation
+- packages/webiny/src/api.ts and api/build-params.ts — public import paths
+
+Related Documents:
+- docs/developer-docs/6.x/admin/build-params.mdx — Admin equivalent (useBuildParams hook)
+- docs/developer-docs/6.x/reference/extensions/api.mdx — Api.BuildParam props reference
+
+Tone Guidelines:
+- Short and practical — the concept is simple, the code example does the explaining
+- Lead with the distinction from process.env/Lambda env vars

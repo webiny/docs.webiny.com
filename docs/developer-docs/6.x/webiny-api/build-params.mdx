@@ -1,0 +1,95 @@
+---
+id: b5w2nx8k
+title: Build-Time Parameters
+description: Learn how to pass build-time configuration values into API extensions using Api.BuildParam and BuildParams.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to register a build-time parameter in `webiny.config.tsx`
+- how to access it inside an API extension via dependency injection
+
+</Alert>
+
+## Overview
+
+`BuildParams` is the mechanism for passing configuration values — determined at build time — into API extensions. Values are registered in `webiny.config.tsx` using `Api.BuildParam` and embedded directly into the Lambda bundle during the build step.
+
+This is distinct from Lambda environment variables, which are set at deploy time through infrastructure and are available via `process.env`. `BuildParams` are for values that come from your project configuration, not from AWS infrastructure.
+
+## Registering a Parameter
+
+Declare parameters in `webiny.config.tsx` using `Api.BuildParam`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Api.BuildParam paramName={"externalApiUrl"} value={"https://api.example.com"} />
+      <Api.BuildParam paramName={"maxRetries"} value={3} />
+    </>
+  );
+};
+```
+
+The `value` can be a string, number, boolean, object, or array.
+
+## Accessing Parameters in an Extension
+
+Inject `BuildParams` into any API extension class:
+
+```typescript extensions/myApiExtension.ts
+import { BuildParams, GraphQLSchemaFactory } from "webiny/api";
+
+class MyApiExtension implements GraphQLSchemaFactory.Interface {
+  public constructor(private buildParams: BuildParams.Interface) {}
+
+  public async execute(builder: GraphQLSchemaFactory.SchemaBuilder): GraphQLSchemaFactory.Return {
+    const apiUrl = this.buildParams.get<string>("externalApiUrl");
+    const maxRetries = this.buildParams.get<number>("maxRetries");
+
+    builder.addTypeDefs(/* GraphQL */ `
+      type MyConfig {
+        apiUrl: String
+        maxRetries: Int
+      }
+      extend type Query {
+        myConfig: MyConfig
+      }
+    `);
+
+    builder.addResolver({
+      path: "Query.myConfig",
+      dependencies: [],
+      resolver() {
+        return async () => ({
+          apiUrl,
+          maxRetries
+        });
+      }
+    });
+
+    return builder;
+  }
+}
+
+export default GraphQLSchemaFactory.createImplementation({
+  implementation: MyApiExtension,
+  dependencies: [BuildParams]
+});
+```
+
+`buildParams.get<T>(key)` returns the value typed as `T`, or `null` if the key was not registered.
+
+## Deploying
+
+After adding or changing a `BuildParam`, rebuild and redeploy the API:
+
+```
+yarn webiny deploy api
+```
