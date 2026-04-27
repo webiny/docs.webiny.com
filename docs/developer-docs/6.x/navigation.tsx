@@ -55,6 +55,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"webiny-api/connect-custom-domain"} />
         <Page link={"webiny-api/extend-graphql-schema"} />
+        <Page link={"webiny-api/api-routes"} />
         <Page link={"background-tasks/about"} title={"Background Tasks"} />
       </Group>
       <Separator title={"Apps"} />

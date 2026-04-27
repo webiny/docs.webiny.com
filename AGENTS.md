@@ -33,7 +33,7 @@
 ```
 docs/developer-docs/6.0.x/
 ├── admin/              # Admin area customization (whitelabeling)
-├── webiny-api/         # API customization (custom domain, extend GraphQL schema, universal API keys)
+├── webiny-api/         # API customization (custom domain, extend GraphQL schema, custom routes, universal API keys)
 ├── cli/                # CLI commands reference (deploy, destroy, watch, etc.)
 ├── core-concepts/      # Foundational knowledge: architecture, applications, project structure, DI, Result pattern, multi-tenancy, local dev, env vars
 ├── get-started/        # Welcome, installation, upgrade to Business
