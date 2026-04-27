@@ -47,7 +47,7 @@ docs/developer-docs/6.0.x/
 ├── infrastructure/     # Cloud infrastructure (database setups, deployment modes, diagrams)
 ├── overview/           # Pricing, security features
 │   └── features/
-├── reference/          # Auto-generated API reference (extensions, admin, API)
+├── reference/          # API reference (webiny.config.tsx extensions, SDK docs)
 ├── tasks/              # Background task system (about, reference, management)
 ├── security/           # Security (universal API keys, programmatic roles and teams)
 ├── tenant-manager/     # Multi-tenancy management (GraphQL API, model extension)

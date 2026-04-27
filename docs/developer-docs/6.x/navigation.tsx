@@ -200,8 +200,15 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group
         title={"Reference"}
         icon={"/docs/menu-icons/reference-manual.svg"}
-        link={"reference/sdk/overview"}
+        link={"reference/extensions/api"}
       >
+        <Group title={"Extensions"} link={"reference/extensions/api"}>
+          <Page link={"reference/extensions/api"} title={"Api"} />
+          <Page link={"reference/extensions/admin"} title={"Admin"} />
+          <Page link={"reference/extensions/infra"} title={"Infra"} />
+          <Page link={"reference/extensions/cli"} title={"Cli"} />
+          <Page link={"reference/extensions/project"} title={"Project"} />
+        </Group>
         {/* __REFERENCE_PAGES_START__ */}
         {/* __SDK_PAGES_START__ */}
         <Group title={"SDK"} link={"reference/sdk/overview"}>
