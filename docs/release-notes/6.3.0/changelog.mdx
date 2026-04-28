@@ -95,3 +95,160 @@ await sdk.tasks.abortTask({ taskId: "task-123" });
 // Get task logs
 const logs = await sdk.tasks.listLogs({ taskId: "task-123" });
 ```
+
+## Development
+
+### Export `useEnv` Hook from `@webiny/project-aws` ([#5139](https://github.com/webiny/webiny-js/pull/5139))
+
+The `useEnv` hook, which provides access to the current deployment environment context within infrastructure code, was not exported from the `@webiny/project-aws` package. It can now be imported directly:
+
+```typescript
+import { useEnv } from "webiny/project-aws";
+
+const env = useEnv();
+```
+
+### Export `useBuildParams` from Main Admin Entry Point ([#5136](https://github.com/webiny/webiny-js/pull/5136))
+
+The `useBuildParams` hook was previously only importable from a sub-path (`webiny/admin/build-params`) and was missing from the main admin package exports. It is now available from the standard `webiny/admin` import path, consistent with all other admin hooks:
+
+```typescript
+import { useBuildParams } from "webiny/admin";
+```
+
+The sub-path export is now deprecated.
+
+### Download Folder From S3 No Longer Requires AWS Credentials ([#5127](https://github.com/webiny/webiny-js/pull/5127))
+
+Installing extensions from a public S3 bucket previously failed when AWS credentials were present in the environment (e.g. in GitHub Actions) but lacked access to the examples bucket. Downloads now go over plain HTTPS, with no dependency on IAM permissions.
+
+### Upgrade Command Always Logs Full Output ([#5126](https://github.com/webiny/webiny-js/pull/5126))
+
+The `webiny upgrade` command now always outputs full logging information during execution, making it easier to diagnose upgrade issues.
+
+## Webiny SDK
+
+### Added Tasks SDK Module ([#5106](https://github.com/webiny/webiny-js/pull/5106))
+
+External applications can now interact with Webiny Background Tasks through the SDK. The new `sdk.tasks` module lets you list task definitions and runs, retrieve execution logs, trigger new tasks, and abort running tasks:
+
+```typescript
+// List all registered task definitions
+const definitions = await sdk.tasks.listDefinitions();
+
+// List task runs with optional filtering
+const tasks = await sdk.tasks.listTasks({
+  where: { definitionId: "myTaskDefinition" }
+});
+
+// Trigger a new task execution
+const result = await sdk.tasks.triggerTask({
+  definition: "myTaskDefinition",
+  input: { someParam: "value" }
+});
+
+// Abort a running task
+await sdk.tasks.abortTask({ id: "task-run-id" });
+```
+
+The SDK playground includes full TypeScript declarations for the new module, providing autocomplete and type checking.
+
+## Infrastructure
+
+### Added Production Environment Helpers and Encryption Guardrail ([#5129](https://github.com/webiny/webiny-js/pull/5129), [#5131](https://github.com/webiny/webiny-js/pull/5131))
+
+New project templates now include encryption preconfigured for production environments, and deploying to production without encryption configured will fail with a clear error message. Two new components make it easier to scope infrastructure config to production environments:
+
+```tsx
+<Infra.ProductionEnvironments environments={["prod", "prod-eu", "prod-us"]} />
+
+<Infra.Env.IsProd>
+  <Infra.Encryption passphrase={process.env.WEBINY_ENCRYPTION_PASSPHRASE} />
+</Infra.Env.IsProd>
+
+<Infra.Env.IsNotProd>
+  {/* Development-only configuration */}
+</Infra.Env.IsNotProd>
+```
+
+Previously, users with multiple production environments had to repeat the full list of environment names at every `Infra.Env.Is` usage site.
+
+### Added Encryption Service ([#5109](https://github.com/webiny/webiny-js/pull/5109), [#5112](https://github.com/webiny/webiny-js/pull/5112))
+
+A built-in encryption service is now available in the Webiny API layer. Developers can inject `Encryption` into any API feature to encrypt and decrypt strings using AES-256-GCM:
+
+```tsx
+// webiny.config.tsx
+<Infra.Encryption passphrase={process.env.WEBINY_ENCRYPTION_PASSPHRASE} />
+```
+
+```typescript
+import { Encryption } from "webiny/api";
+
+class MyUseCase {
+  constructor(private encryption: Encryption.Interface) {}
+  
+  run() {
+    const cipher = this.encryption.encrypt("sensitive-value");
+    const plain = this.encryption.decrypt(cipher);
+  }
+}
+```
+
+The encryption passphrase is optional — when not configured, `encrypt` and `decrypt` pass values through unchanged, allowing teams to adopt encryption gradually.
+
+### Fixed OpenSearch Domain Being Recreated on Re-deploy ([#5137](https://github.com/webiny/webiny-js/pull/5137))
+
+When a Pulumi resource name prefix was configured (or when upgrading from an older version of Webiny), the OpenSearch domain physical name could change between deploys, causing Pulumi to destroy and recreate the entire cluster. The domain name is now persisted in the stack output and reused on every subsequent deploy to keep it stable.
+
+### Fixed Duplicate Pulumi Resource URN Error When Registering Multiple API Routes ([#5135](https://github.com/webiny/webiny-js/pull/5135))
+
+Deploying two or more `Api.Route` extensions at the same time caused a "Duplicate resource URN" error during `pulumi up`, preventing the deployment from completing. Multiple API routes can now be registered and deployed without conflict.
+
+## Headless CMS
+
+### Introduced AI Service ([#5096](https://github.com/webiny/webiny-js/pull/5096))
+
+A first-class `Ai` service is now available in the Webiny API framework, providing a single, DI-friendly abstraction for working with language models across multiple providers. The service wraps the Vercel AI SDK and includes built-in provider factories for Anthropic and OpenAI:
+
+```typescript
+import { Ai, Route } from "webiny/api";
+
+class MyApiRouteImpl implements Route.Interface {
+  constructor(private aiService: Ai.Interface) {}
+
+  async execute(request: Route.Request, reply: Route.Reply) {
+    const { text } = await this.aiService.generateText({
+      model: "anthropic/claude-sonnet-4-5",
+      prompt: "Is this working?!"
+    });
+
+    return reply.send({ message: text });
+  }
+}
+
+export default Route.createImplementation({
+  implementation: MyApiRouteImpl,
+  dependencies: [Ai]
+});
+```
+
+Configure providers via environment variables:
+- `WEBINY_API_ANTHROPIC_API_KEY`
+- `WEBINY_API_OPENAI_API_KEY`
+
+Switching providers or models requires only changing the model string.
+
+## Admin
+
+### Added Dev Tools Sidebar Section ([#5130](https://github.com/webiny/webiny-js/pull/5130))
+
+The GraphQL Playground and SDK Playground links have been moved from the Support dropdown menu into a new Dev Tools section in the sidebar. Access to each tool can now be managed through the Security permissions panel. The Support dropdown has been removed; the Upgrade link is now a standalone footer item, and Configure Next.js has moved into the Website Builder section.
+
+### Added Auto-Scrolling to Dialogs ([#5134](https://github.com/webiny/webiny-js/pull/5134))
+
+All dialogs now automatically add a vertical scroll bar when content exceeds available height. To disable auto-scrolling, pass `scrollable={false}` to the dialog component.
+
+### Tenant Manager Use Cases and Features Now Exported from Public API ([#5140](https://github.com/webiny/webiny-js/pull/5140))
+
+The tenant manager's use case classes, feature plugins, and TypeScript interfaces are now exported from both `webiny/tenant-manager` and the main `webiny/webiny` package. This enables developers to extend or override tenant management behavior — including getting the current tenant, fetching by ID, creating, updating, enabling, disabling, and installing tenants.
