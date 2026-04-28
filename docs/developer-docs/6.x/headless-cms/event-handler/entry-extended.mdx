@@ -4,7 +4,7 @@ title: Entry Event Handler Extended Example
 description: Extended example of the Entry event handler.
 ---
 
-import {Alert} from "@/components/Alert";
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
@@ -14,6 +14,7 @@ import {Alert} from "@/components/Alert";
 </Alert>
 
 ## Overview
+
 This extended example demonstrates a more complex event handler for the Entry.
 
 ## Before Entry Creation
@@ -22,65 +23,64 @@ This example will check the database for entry with same value as a custom field
 
 ```typescript extensions/cms/entry/eventHandler/create/beforeCreate.ts
 import {
-    EntryBeforeCreateEventHandler as EntryBeforeCreateEventHandlerAbstraction,
-    ListEntriesUseCase
+  EntryBeforeCreateEventHandler as EntryBeforeCreateEventHandlerAbstraction,
+  ListEntriesUseCase
 } from "webiny/api/cms/entry";
 import { Logger } from "webiny/api/logger";
 
 class EntryBeforeCreateEventHandlerImpl
-    implements EntryBeforeCreateEventHandlerAbstraction.Interface
+  implements EntryBeforeCreateEventHandlerAbstraction.Interface
 {
-    public constructor(
-        private logger: Logger.Interface,
-        private listEntriesUseCase: ListEntriesUseCase.Interface
-    ) {}
+  public constructor(
+    private logger: Logger.Interface,
+    private listEntriesUseCase: ListEntriesUseCase.Interface
+  ) {}
 
-    public async handle(event: EntryBeforeCreateEventHandlerAbstraction.Event): Promise<void> {
-        const { payload } = event;
-        const { entry, input, model } = payload;
-        // only process entries if the model ID matches "myTargetModelId"
-        if (model.modelId !== "myTargetModelId") {
-            return;
-        }
-        const targetValue = entry.values.myUniqueFieldId;
-        if (!targetValue) {
-            return;
-        }
-        // let's say you want to make a value from the input unique across all entries in this model
-        const result = await this.listEntriesUseCase.execute(model, {
-            where: {
-                values: {
-                    myUniqueFieldId: targetValue
-                }
-            },
-            limit: 1
-        });
-        // when an error occurs, just log it and allow the creation to proceed
-        if (result.isFail()) {
-            this.logger.error("Error checking for existing entries:", result.error);
-            return;
-        }
-        // no items with the same value found, proceed with creation
-        if (result.value.meta.totalCount === 0) {
-            return;
-        }
-        // maybe throw an error?
-        throw new Error(
-            `An entry with the value "${targetValue}" for the field "myUniqueFieldId" already exists.`
-        );
+  public async handle(event: EntryBeforeCreateEventHandlerAbstraction.Event): Promise<void> {
+    const { payload } = event;
+    const { entry, input, model } = payload;
+    // only process entries if the model ID matches "myTargetModelId"
+    if (model.modelId !== "myTargetModelId") {
+      return;
     }
+    const targetValue = entry.values.myUniqueFieldId;
+    if (!targetValue) {
+      return;
+    }
+    // let's say you want to make a value from the input unique across all entries in this model
+    const result = await this.listEntriesUseCase.execute(model, {
+      where: {
+        values: {
+          myUniqueFieldId: targetValue
+        }
+      },
+      limit: 1
+    });
+    // when an error occurs, just log it and allow the creation to proceed
+    if (result.isFail()) {
+      this.logger.error("Error checking for existing entries:", result.error);
+      return;
+    }
+    // no items with the same value found, proceed with creation
+    if (result.value.meta.totalCount === 0) {
+      return;
+    }
+    // maybe throw an error?
+    throw new Error(
+      `An entry with the value "${targetValue}" for the field "myUniqueFieldId" already exists.`
+    );
+  }
 }
 
 const EntryBeforeCreateEventHandler = EntryBeforeCreateEventHandlerAbstraction.createImplementation(
-    {
-        implementation: EntryBeforeCreateEventHandlerImpl,
-        dependencies: [Logger, ListEntriesUseCase]
-    }
+  {
+    implementation: EntryBeforeCreateEventHandlerImpl,
+    dependencies: [Logger, ListEntriesUseCase]
+  }
 );
 
 export default EntryBeforeCreateEventHandler;
 ```
-
 
 ## Loading Event Handler in Your Project
 
@@ -93,11 +93,11 @@ import React from "react";
 import { Api } from "webiny/extensions";
 
 export const Extensions = () => {
-    return (
-        <>
-            {/* ... all your other extensions */}
-            <Api.Extension src={"/extensions/cms/entry/eventHandler/create/beforeCreate.ts"} />
-        </>
-    );
+  return (
+    <>
+      {/* ... all your other extensions */}
+      <Api.Extension src={"/extensions/cms/entry/eventHandler/create/beforeCreate.ts"} />
+    </>
+  );
 };
 ```

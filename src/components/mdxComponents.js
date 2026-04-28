@@ -36,24 +36,14 @@ export const mdxComponents = {
                 if (props?.children?.props?.originalType === "inlineCode") {
                     return (
                         <code>
-                            <Link href={href}>
-                                {props.children.props.children}
-                            </Link>
+                            <Link href={href}>{props.children.props.children}</Link>
                         </code>
                     );
                 } else {
-                    return (
-                        <Link href={href}>
-                            {props.children}
-                        </Link>
-                    );
+                    return <Link href={href}>{props.children}</Link>;
                 }
             } else {
-                return (
-                    <Link href={href}>
-                        {props.children}
-                    </Link>
-                );
+                return <Link href={href}>{props.children}</Link>;
             }
         }
     })

@@ -1,0 +1,155 @@
+---
+id: m4r7vx2p
+title: Add Custom API Routes
+description: Learn how to register custom HTTP routes on the Webiny API using the Api.Route extension.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to create a custom HTTP route handler with dependency injection
+- how to register the route in `webiny.config.tsx`
+- why a redeployment is required when adding routes
+
+</Alert>
+
+## Overview
+
+The `Api.Route` extension lets you register custom HTTP routes on the Webiny API Gateway and GraphQL Lambda. Route handlers are plain TypeScript classes with full dependency injection support — the same DI pattern used throughout the rest of the API.
+
+Unlike pure application code changes, adding a route modifies both the runtime routing layer (Fastify) and the cloud infrastructure (API Gateway). A redeployment with `yarn webiny deploy api` is required whenever you add, change, or remove a route.
+
+## Creating a Route Handler
+
+Create a TypeScript file in your `extensions/` directory and implement `Route.Interface`:
+
+```typescript extensions/MyApiRoute.ts
+import { Logger, Route } from "webiny/api";
+
+class MyApiRouteImpl implements Route.Interface {
+  public constructor(private logger: Logger.Interface) {}
+
+  public async execute(request: Route.Request, reply: Route.Reply): Promise<void> {
+    this.logger.info("Handling request", { url: request.url });
+    return reply.send({ message: "Hello from my custom route!" });
+  }
+}
+
+export default Route.createImplementation({
+  implementation: MyApiRouteImpl,
+  dependencies: [Logger]
+});
+```
+
+## Registering the Route
+
+Add `Api.Route` to `webiny.config.tsx` with the `method`, `path`, and `src` props:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Api } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... other extensions */}
+      <Api.Route method={"GET"} path={"/my-api-route"} src={"/extensions/MyApiRoute.ts"} />
+    </>
+  );
+};
+```
+
+The `src` path must include the `.ts` extension — omitting it will cause a build failure.
+
+### Props Reference
+
+| Prop        | Type     | Required | Description                                                                       |
+| ----------- | -------- | -------- | --------------------------------------------------------------------------------- |
+| `path`      | `string` | Yes      | Route path, must start with `/`. Use `{paramName}` for path parameters.           |
+| `method`    | `string` | Yes      | HTTP method: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`, or `ANY` |
+| `src`       | `string` | Yes      | Path to the handler file, including the `.ts` extension                           |
+| `routeName` | `string` | No       | Pulumi resource name (kebab-case). Auto-derived from path and method if omitted.  |
+
+Use `ANY` as the method to match all HTTP methods on a given path.
+
+## Deploying the Route
+
+<Alert type="warning">
+
+Adding, changing, or removing a route requires a full API redeployment. Route registration modifies API Gateway configuration — it is not a pure application code change.
+
+</Alert>
+
+After registering a route in `webiny.config.tsx`, deploy the API:
+
+```
+yarn webiny deploy api
+```
+
+During development, use watch mode for automatic redeployment on code changes:
+
+```
+yarn webiny watch api
+```
+
+Watch mode does not re-provision infrastructure. If you change the `path` or `method` in `webiny.config.tsx`, run `yarn webiny deploy api` explicitly.
+
+## Working with Path Parameters and Request Data
+
+Use `{paramName}` in the path to capture path parameters, then access them via `request.params`:
+
+```typescript extensions/GetOrderRoute.ts
+import { Logger, Route } from "webiny/api";
+
+interface OrderParams {
+  orderId: string;
+}
+
+class GetOrderRouteImpl implements Route.Interface {
+  public constructor(private logger: Logger.Interface) {}
+
+  public async execute(request: Route.Request, reply: Route.Reply): Promise<void> {
+    const { orderId } = request.params as OrderParams;
+    const { limit } = request.query as { limit?: string };
+
+    this.logger.info("Fetching order", { orderId });
+
+    return reply.code(200).send({ orderId, limit: limit ?? "10" });
+  }
+}
+
+export default Route.createImplementation({
+  implementation: GetOrderRouteImpl,
+  dependencies: [Logger]
+});
+```
+
+```tsx webiny.config.tsx
+<Api.Route method={"GET"} path={"/orders/{orderId}"} src={"/extensions/GetOrderRoute.ts"} />
+```
+
+### Route.Request
+
+| Property  | Type                                              | Description                                 |
+| --------- | ------------------------------------------------- | ------------------------------------------- |
+| `body`    | `unknown`                                         | Parsed request body                         |
+| `headers` | `Record<string, string \| string[] \| undefined>` | Request headers                             |
+| `method`  | `string`                                          | HTTP method                                 |
+| `url`     | `string`                                          | Full request URL                            |
+| `params`  | `unknown`                                         | Path parameters (e.g. `{ orderId: "abc" }`) |
+| `query`   | `unknown`                                         | Query string parameters                     |
+
+### Route.Reply
+
+| Method                     | Description                          |
+| -------------------------- | ------------------------------------ |
+| `reply.send(data?)`        | Send the response body               |
+| `reply.code(statusCode)`   | Set the HTTP status code (chainable) |
+| `reply.header(key, value)` | Set a response header (chainable)    |
+
+Methods are chainable:
+
+```typescript
+return reply.code(201).header("X-Request-Id", "abc123").send({ created: true });
+```

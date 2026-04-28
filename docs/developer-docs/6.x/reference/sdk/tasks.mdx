@@ -1,0 +1,171 @@
+---
+id: t4x8wqnr
+title: Tasks SDK Reference
+description: API reference for the Tasks SDK — methods for triggering, monitoring, and aborting background tasks.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What methods are available on `sdk.tasks`?
+- What parameters each method accepts?
+- What each method returns?
+
+</Alert>
+
+<Alert type="info" title="BACKGROUND TASKS">
+
+See [Background Tasks](/{version}/background-tasks/about) for a guide on creating and managing background tasks.
+
+</Alert>
+
+## Overview
+
+The `TasksSdk` is accessed via `sdk.tasks` on a `Webiny` instance. It provides methods for triggering and managing background task executions over GraphQL. All methods return a `Result` type — use `result.isOk()` and `result.isFail()` to handle success and error cases. See the [SDK overview](/{version}/reference/sdk/overview) for initialization and error handling details.
+
+## Types
+
+### TaskStatus
+
+```typescript
+type TaskStatus = "pending" | "running" | "completed" | "failed" | "aborted" | "stopped";
+```
+
+### TaskDefinition
+
+Represents a registered background task definition.
+
+| Field         | Type     | Description                                |
+| ------------- | -------- | ------------------------------------------ |
+| `id`          | `string` | The unique task definition ID              |
+| `title`       | `string` | Human-readable title of the task           |
+| `description` | `string` | Optional description of what the task does |
+
+### TaskRun
+
+Represents a single background task execution.
+
+| Field           | Type         | Description                                    |
+| --------------- | ------------ | ---------------------------------------------- |
+| `id`            | `string`     | The task run ID                                |
+| `definitionId`  | `string`     | ID of the task definition that was triggered   |
+| `taskStatus`    | `TaskStatus` | Current status of the task run                 |
+| `startedOn`     | `string`     | ISO timestamp when the task started            |
+| `finishedOn`    | `string`     | ISO timestamp when the task finished           |
+| `name`          | `string`     | Optional display name for the task run         |
+| `iterations`    | `number`     | Number of execution iterations completed       |
+| `parentId`      | `string`     | ID of the parent task, if this is a child task |
+| `executionName` | `string`     | Internal execution name used by the system     |
+| `eventResponse` | `unknown`    | Raw response from the trigger event            |
+| `input`         | `unknown`    | Input data passed when the task was triggered  |
+| `output`        | `unknown`    | Output data produced by the task               |
+
+### TaskLog
+
+Represents a log group for a single task execution iteration.
+
+| Field           | Type            | Description                                  |
+| --------------- | --------------- | -------------------------------------------- |
+| `id`            | `string`        | The log ID                                   |
+| `createdOn`     | `string`        | ISO timestamp when the log was created       |
+| `executionName` | `string`        | Execution name associated with the log       |
+| `iteration`     | `number`        | Iteration number this log belongs to         |
+| `items`         | `TaskLogItem[]` | Individual log entries within this log group |
+
+### TaskLogItem
+
+| Field       | Type      | Description                    |
+| ----------- | --------- | ------------------------------ |
+| `message`   | `string`  | The log message                |
+| `createdOn` | `string`  | ISO timestamp of the log entry |
+| `type`      | `string`  | Log level or category          |
+| `data`      | `unknown` | Optional structured data       |
+| `error`     | `unknown` | Optional error details         |
+
+## Methods
+
+### listDefinitions
+
+Lists all registered background task definitions in the system.
+
+**Signature:**
+
+```typescript
+sdk.tasks.listDefinitions(): Promise<Result<TaskDefinition[], HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:** None.
+
+---
+
+### listTasks
+
+Lists all background task runs.
+
+**Signature:**
+
+```typescript
+sdk.tasks.listTasks(): Promise<Result<TaskRun[], HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:** None.
+
+---
+
+### listLogs
+
+Lists execution logs for background tasks. Optionally filter by task ID.
+
+**Signature:**
+
+```typescript
+sdk.tasks.listLogs(params?: ListLogsParams): Promise<Result<TaskLog[], HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter    | Type     | Required | Description                           |
+| ------------ | -------- | :------: | ------------------------------------- |
+| `where`      | `object` |    No    | Optional filter conditions            |
+| `where.task` | `string` |    No    | Filter logs to a specific task run ID |
+
+---
+
+### triggerTask
+
+Triggers a background task run.
+
+**Signature:**
+
+```typescript
+sdk.tasks.triggerTask(params: TriggerTaskParams): Promise<Result<TaskRun, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter    | Type                      | Required | Description                       |
+| ------------ | ------------------------- | :------: | --------------------------------- |
+| `definition` | `string`                  |   Yes    | The task definition ID to trigger |
+| `input`      | `Record<string, unknown>` |    No    | Input data to pass to the task    |
+
+---
+
+### abortTask
+
+Aborts a running background task.
+
+**Signature:**
+
+```typescript
+sdk.tasks.abortTask(params: AbortTaskParams): Promise<Result<TaskRun, HttpError | GraphQLError | NetworkError>>
+```
+
+**Parameters:**
+
+| Parameter | Type     | Required | Description                           |
+| --------- | -------- | :------: | ------------------------------------- |
+| `id`      | `string` |   Yes    | The task run ID to abort              |
+| `message` | `string` |    No    | Optional reason for aborting the task |
+
+---

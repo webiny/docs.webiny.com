@@ -21,9 +21,7 @@ export const IconHeader = ({ link, title, menuIcon, isActive, isHomepage }) => {
                         <div
                             className={
                                 "flex duration-200 justify-self-center mr-2 w-[24px] h-[24px] rounded justify-center items-center group-hover:grayscale-0 group-hover:bg-light-orange dark:group-hover:bg-dark-orange" +
-                                (isActive
-                                    ? " bg-light-orange dark:bg-dark-orange"
-                                    : " grayscale")
+                                (isActive ? " bg-light-orange dark:bg-dark-orange" : " grayscale")
                             }
                         >
                             {menuIcon}

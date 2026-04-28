@@ -1,0 +1,50 @@
+name: Regenerate Release Notes
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Webiny version (e.g. 6.3.0)"
+        required: true
+        type: string
+
+jobs:
+  regenerate:
+    name: Regenerate changelog and upgrade guide
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: release/${{ inputs.version }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack (Yarn Berry)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Regenerate changelog
+        env:
+          CLAUDE_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: yarn generate:changelog --version ${{ inputs.version }}
+
+      - name: Regenerate upgrade guide
+        run: yarn generate:upgrade-guide --version ${{ inputs.version }}
+
+      - name: Commit and push
+        run: |
+          git config user.name "webiny-bot"
+          git config user.email "webiny-bot@webiny.com"
+          git add docs/release-notes/${{ inputs.version }}/
+          git diff --cached --quiet || git commit -m "chore: regenerate release notes for ${{ inputs.version }}"
+          git push origin release/${{ inputs.version }}

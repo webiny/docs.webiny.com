@@ -1,0 +1,221 @@
+---
+id: m7nxos31
+title: Shared OpenSearch Cluster
+description: Deploy a shared Amazon OpenSearch cluster for use across multiple Webiny development environments.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- when and why to use a shared OpenSearch cluster for development
+- which settings Webiny requires and has tested
+- how to deploy a dev-suitable cluster with Pulumi — basic and HTTPS/fine-grained access variants
+- how to connect your Webiny environments to the shared cluster
+
+</Alert>
+
+## Overview
+
+Running a dedicated OpenSearch domain per developer is expensive. A practical alternative is to deploy one shared cluster and point each developer's Webiny environment at it, using a unique index prefix to isolate their data within the same domain.
+
+The shared cluster must be deployed and managed outside of Webiny — Webiny does not provision it. You can use the AWS console, Terraform, Pulumi, or any infrastructure tooling you already use.
+
+<Alert type="info">
+
+If you do not need OpenSearch in dev at all, see [DynamoDB-Only Dev Environments](/{version}/infrastructure/dynamodb-only) for the simpler alternative.
+
+</Alert>
+
+## Recommended Configuration
+
+The following settings are what Webiny uses internally and has tested against.
+
+| Setting                                  | Recommended value |
+| ---------------------------------------- | ----------------- |
+| Engine version                           | `OpenSearch_3.3`  |
+| Instance type                            | `t3.small.search` |
+| Instance count                           | `1`               |
+| EBS volume type                          | `gp2`             |
+| EBS volume size                          | 10 GB             |
+| `rest.action.multi.allow_explicit_index` | `true`            |
+
+<Alert type="info">
+
+For CI environments where reliability matters more, Webiny uses `r5.large.search` with an instance count of `2`. Scale up from the defaults above as needed.
+
+</Alert>
+
+<Alert type="warning">
+
+A dev cluster deployed without encryption at rest, node-to-node encryption, or HTTPS enforcement relies on AWS defaults. This is acceptable for a private VPC-based cluster, but add these settings for any cluster reachable over a public network.
+
+</Alert>
+
+## Deploying with Pulumi
+
+### Basic
+
+The following program deploys a minimal OpenSearch cluster suitable for shared development use. Access control uses account-level IAM signing, which works with Webiny's default configuration.
+
+```typescript
+import * as aws from "@pulumi/aws";
+import * as pulumi from "@pulumi/pulumi";
+
+const domainName = "my-shared-os";
+
+const domain = new aws.opensearch.Domain(domainName, {
+  domainName,
+  engineVersion: "OpenSearch_3.3",
+  clusterConfig: {
+    instanceType: "t3.small.search",
+    instanceCount: 1
+  },
+  ebsOptions: {
+    ebsEnabled: true,
+    volumeSize: 10,
+    volumeType: "gp2"
+  },
+  advancedOptions: {
+    "rest.action.multi.allow_explicit_index": "true"
+  }
+});
+
+new aws.opensearch.DomainPolicy(`${domainName}-policy`, {
+  domainName: domain.domainName,
+  accessPolicies: pulumi
+    .all([aws.getCallerIdentity({}), domain.arn])
+    .apply(([identity, domainArn]) =>
+      JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Principal: { AWS: identity.accountId },
+            Action: "es:*",
+            Resource: `${domainArn}/*`
+          }
+        ]
+      })
+    )
+});
+
+export const endpoint = domain.endpoint;
+```
+
+Note the `endpoint` output after deploying — you will need it when connecting Webiny.
+
+### With HTTPS and Fine-Grained Access
+
+For clusters accessible over a public network, or for CI environments that require fine-grained access control, add encryption, HTTPS enforcement, and an internal user database. The example below also provisions a custom domain via Route53 and ACM — skip the certificate and DNS resources if you do not need a custom endpoint.
+
+```typescript
+import * as aws from "@pulumi/aws";
+import * as pulumi from "@pulumi/pulumi";
+
+const domainName = "my-shared-os";
+const customEndpoint = "opensearch.example.com";
+const zoneId = "<your-route53-zone-id>";
+const masterUser = process.env.OS_MASTER_USER ?? "admin";
+const masterPassword = process.env.OS_MASTER_PASSWORD!;
+
+const certificate = new aws.acm.Certificate("os-cert", {
+  domainName: customEndpoint,
+  validationMethod: "DNS"
+});
+
+const certValidationRecord = new aws.route53.Record("os-cert-validation-record", {
+  zoneId,
+  name: certificate.domainValidationOptions[0].resourceRecordName,
+  type: "CNAME",
+  ttl: 60,
+  records: [certificate.domainValidationOptions[0].resourceRecordValue]
+});
+
+const certValidation = new aws.acm.CertificateValidation("os-cert-validation", {
+  certificateArn: certificate.arn,
+  validationRecordFqdns: [certValidationRecord.fqdn]
+});
+
+const domain = new aws.opensearch.Domain(
+  domainName,
+  {
+    domainName,
+    engineVersion: "OpenSearch_3.3",
+    clusterConfig: {
+      instanceType: "r5.large.search",
+      instanceCount: 2
+    },
+    ebsOptions: {
+      ebsEnabled: true,
+      volumeSize: 10,
+      volumeType: "gp2"
+    },
+    advancedOptions: {
+      "rest.action.multi.allow_explicit_index": "true"
+    },
+    nodeToNodeEncryption: {
+      enabled: true
+    },
+    encryptAtRest: {
+      enabled: true
+    },
+    advancedSecurityOptions: {
+      enabled: true,
+      internalUserDatabaseEnabled: true,
+      masterUserOptions: {
+        masterUserName: masterUser,
+        masterUserPassword: masterPassword
+      }
+    },
+    domainEndpointOptions: {
+      enforceHttps: true,
+      tlsSecurityPolicy: "Policy-Min-TLS-1-2-2019-07",
+      customEndpointEnabled: true,
+      customEndpoint,
+      customEndpointCertificateArn: certificate.arn
+    }
+  },
+  { dependsOn: [certValidation] }
+);
+
+// The domain access policy is intentionally applied separately via AWS CLI
+// after this deploy completes. Pulumi's DomainPolicy resource intermittently
+// fails with "A change/update is in progress" because the domain is still
+// processing internally when Pulumi attempts to apply the policy.
+
+const cname = new aws.route53.Record("os-cname", {
+  zoneId,
+  name: customEndpoint,
+  type: "CNAME",
+  ttl: 60,
+  records: [domain.endpoint]
+});
+
+export const endpoint = cname.fqdn;
+```
+
+When using fine-grained access control, pass `username` and `password` when connecting Webiny — see [Amazon OpenSearch](/{version}/infrastructure/extensions/opensearch) for the props.
+
+## Connecting Webiny
+
+Once the cluster is running, configure each Webiny environment to point to it. See [Amazon OpenSearch](/{version}/infrastructure/extensions/opensearch) for the full list of configuration options.
+
+A typical dev setup where multiple developers share one cluster looks like this:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Env.Is env={"dev"}>
+        <Infra.OpenSearch enabled={true} domainName={"my-shared-os"} indexPrefix={"alice_"} />
+      </Infra.Env.Is>
+    </>
+  );
+};
+```
+
+Each developer sets a unique `indexPrefix` — for example `alice_` or `bob_` — so their Webiny indexes do not overlap inside the shared cluster. If the cluster is reachable via a custom endpoint, add the `endpoint` prop as well.
