@@ -16,14 +16,14 @@ import { join } from "path";
 // ---------------------------------------------------------------------------
 
 function parseArgs(): { version: string } {
-  const args = process.argv.slice(2);
-  const versionIdx = args.indexOf("--version");
-  if (versionIdx === -1 || !args[versionIdx + 1]) {
-    console.error("Usage: yarn generate:announcements --version <version>");
-    console.error("Example: yarn generate:announcements --version 6.1.0");
-    process.exit(1);
-  }
-  return { version: args[versionIdx + 1] };
+    const args = process.argv.slice(2);
+    const versionIdx = args.indexOf("--version");
+    if (versionIdx === -1 || !args[versionIdx + 1]) {
+        console.error("Usage: yarn generate:announcements --version <version>");
+        console.error("Example: yarn generate:announcements --version 6.1.0");
+        process.exit(1);
+    }
+    return { version: args[versionIdx + 1] };
 }
 
 // ---------------------------------------------------------------------------
@@ -31,16 +31,16 @@ function parseArgs(): { version: string } {
 // ---------------------------------------------------------------------------
 
 function readChangelog(version: string): string {
-  const changelogPath = join(process.cwd(), "docs", "release-notes", version, "changelog.mdx");
+    const changelogPath = join(process.cwd(), "docs", "release-notes", version, "changelog.mdx");
 
-  if (!existsSync(changelogPath)) {
-    throw new Error(
-      `Changelog not found at: docs/release-notes/${version}/changelog.mdx\n` +
-        `Run "yarn generate:changelog --version ${version}" first.`
-    );
-  }
+    if (!existsSync(changelogPath)) {
+        throw new Error(
+            `Changelog not found at: docs/release-notes/${version}/changelog.mdx\n` +
+                `Run "yarn generate:changelog --version ${version}" first.`
+        );
+    }
 
-  return readFileSync(changelogPath, "utf-8");
+    return readFileSync(changelogPath, "utf-8");
 }
 
 // ---------------------------------------------------------------------------
@@ -159,29 +159,29 @@ Rules:
 // ---------------------------------------------------------------------------
 
 async function generate(
-  client: Anthropic,
-  systemPrompt: string,
-  changelog: string,
-  version: string,
-  label: string
+    client: Anthropic,
+    systemPrompt: string,
+    changelog: string,
+    version: string,
+    label: string
 ): Promise<string> {
-  const userMessage =
-    `Generate a ${label} announcement for Webiny version ${version}.\n\n` +
-    `Here is the changelog:\n\n${changelog}`;
+    const userMessage =
+        `Generate a ${label} announcement for Webiny version ${version}.\n\n` +
+        `Here is the changelog:\n\n${changelog}`;
 
-  const message = await client.messages.create({
-    model: "claude-opus-4-5",
-    max_tokens: 2048,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userMessage }]
-  });
+    const message = await client.messages.create({
+        model: "claude-opus-4-5",
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userMessage }]
+    });
 
-  const textBlock = message.content.find(b => b.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error(`Claude returned no text content for ${label}.`);
-  }
+    const textBlock = message.content.find(b => b.type === "text");
+    if (!textBlock || textBlock.type !== "text") {
+        throw new Error(`Claude returned no text content for ${label}.`);
+    }
 
-  return textBlock.text.trim();
+    return textBlock.text.trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -189,59 +189,59 @@ async function generate(
 // ---------------------------------------------------------------------------
 
 function printSection(label: string, content: string): void {
-  const border = "─".repeat(60);
-  console.log(`\n${border}`);
-  console.log(`  ${label}`);
-  console.log(border);
-  console.log(content);
-  console.log(border);
+    const border = "─".repeat(60);
+    console.log(`\n${border}`);
+    console.log(`  ${label}`);
+    console.log(border);
+    console.log(content);
+    console.log(border);
 }
 
 async function main(): Promise<void> {
-  const { version } = parseArgs();
+    const { version } = parseArgs();
 
-  console.log(`\nGenerating announcements for Webiny ${version}...`);
+    console.log(`\nGenerating announcements for Webiny ${version}...`);
 
-  console.log("  Reading changelog...");
-  const changelog = readChangelog(version);
-  console.log("  Changelog loaded.");
+    console.log("  Reading changelog...");
+    const changelog = readChangelog(version);
+    console.log("  Changelog loaded.");
 
-  const apiKey = process.env.CLAUDE_KEY;
-  if (!apiKey) {
-    throw new Error("CLAUDE_KEY environment variable is not set.");
-  }
-  const client = new Anthropic({ apiKey });
+    const apiKey = process.env.CLAUDE_KEY;
+    if (!apiKey) {
+        throw new Error("CLAUDE_KEY environment variable is not set.");
+    }
+    const client = new Anthropic({ apiKey });
 
-  console.log("  Generating Slack, Twitter, and LinkedIn posts in parallel...");
+    console.log("  Generating Slack, Twitter, and LinkedIn posts in parallel...");
 
-  const [slack, twitter, linkedin] = await Promise.all([
-    generate(client, SLACK_PROMPT, changelog, version, "Slack"),
-    generate(client, TWITTER_PROMPT, changelog, version, "Twitter"),
-    generate(client, LINKEDIN_PROMPT, changelog, version, "LinkedIn")
-  ]);
+    const [slack, twitter, linkedin] = await Promise.all([
+        generate(client, SLACK_PROMPT, changelog, version, "Slack"),
+        generate(client, TWITTER_PROMPT, changelog, version, "Twitter"),
+        generate(client, LINKEDIN_PROMPT, changelog, version, "LinkedIn")
+    ]);
 
-  const outDir = join(process.cwd(), "docs", "release-notes", version, "announcements");
-  mkdirSync(outDir, { recursive: true });
+    const outDir = join(process.cwd(), "docs", "release-notes", version, "announcements");
+    mkdirSync(outDir, { recursive: true });
 
-  const files: Array<[string, string]> = [
-    ["slack.md", slack],
-    ["twitter.md", twitter],
-    ["linkedin.md", linkedin]
-  ];
+    const files: Array<[string, string]> = [
+        ["slack.md", slack],
+        ["twitter.md", twitter],
+        ["linkedin.md", linkedin]
+    ];
 
-  for (const [filename, content] of files) {
-    writeFileSync(join(outDir, filename), content + "\n", "utf-8");
-    console.log(`  ✓ docs/release-notes/${version}/announcements/${filename}`);
-  }
+    for (const [filename, content] of files) {
+        writeFileSync(join(outDir, filename), content + "\n", "utf-8");
+        console.log(`  ✓ docs/release-notes/${version}/announcements/${filename}`);
+    }
 
-  printSection("SLACK", slack);
-  printSection("TWITTER", twitter);
-  printSection("LINKEDIN", linkedin);
+    printSection("SLACK", slack);
+    printSection("TWITTER", twitter);
+    printSection("LINKEDIN", linkedin);
 
-  console.log();
+    console.log();
 }
 
 main().catch(err => {
-  console.error("\nError:", err instanceof Error ? err.message : err);
-  process.exit(1);
+    console.error("\nError:", err instanceof Error ? err.message : err);
+    process.exit(1);
 });

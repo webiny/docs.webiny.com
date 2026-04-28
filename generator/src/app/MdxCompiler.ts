@@ -18,43 +18,43 @@ import { mdx } from '@mdx-js/react'
 type RemarkPlugin = () => (tree: Node, file: VFileOptions) => void;
 
 export class MdxCompiler {
-  private compiler: any;
-  private readonly remarkPlugins: RemarkPlugin[];
+    private compiler: any;
+    private readonly remarkPlugins: RemarkPlugin[];
 
-  constructor(remarkPlugins: RemarkPlugin[] = []) {
-    this.remarkPlugins = [
-      // TODO: fix MDX strings within JSX elements (add a new plugin)
-      withTitleCaseHeadings,
-      withTableOfContents,
-      withImages,
-      withSyntaxHighlighting,
-      withSmartQuotes,
-      unwrapImages,
-      removeExports,
-      ...remarkPlugins
-    ];
-  }
-
-  async compile(file: VFileOptions) {
-    const compiler = this.getCompiler();
-
-    const { contents } = await compiler.process(file);
-    return [
-      `/* @jsxRuntime classic */`,
-      `/* @jsx mdx */`,
-      DEFAULT_RENDERER,
-      contents.replace(/export const (.*?) \/\* remove \*\/ =/g, "const $1 ="),
-      `MDXContent.layoutProps = layoutProps;`
-    ].join("\n");
-  }
-
-  private getCompiler() {
-    if (!this.compiler) {
-      this.compiler = createCompiler({
-        remarkPlugins: this.remarkPlugins
-      });
+    constructor(remarkPlugins: RemarkPlugin[] = []) {
+        this.remarkPlugins = [
+            // TODO: fix MDX strings within JSX elements (add a new plugin)
+            withTitleCaseHeadings,
+            withTableOfContents,
+            withImages,
+            withSyntaxHighlighting,
+            withSmartQuotes,
+            unwrapImages,
+            removeExports,
+            ...remarkPlugins
+        ];
     }
 
-    return this.compiler;
-  }
+    async compile(file: VFileOptions) {
+        const compiler = this.getCompiler();
+
+        const { contents } = await compiler.process(file);
+        return [
+            `/* @jsxRuntime classic */`,
+            `/* @jsx mdx */`,
+            DEFAULT_RENDERER,
+            contents.replace(/export const (.*?) \/\* remove \*\/ =/g, "const $1 ="),
+            `MDXContent.layoutProps = layoutProps;`
+        ].join("\n");
+    }
+
+    private getCompiler() {
+        if (!this.compiler) {
+            this.compiler = createCompiler({
+                remarkPlugins: this.remarkPlugins
+            });
+        }
+
+        return this.compiler;
+    }
 }

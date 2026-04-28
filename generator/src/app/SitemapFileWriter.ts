@@ -5,28 +5,28 @@ import { File } from "./File";
 import { SitemapUrl } from "./SitemapUrl";
 
 export class SitemapFileWriter implements IMdxFileWriter {
-  private readonly relativeOutputPath: string;
+    private readonly relativeOutputPath: string;
 
-  constructor(relativeOutputPath: string) {
-    this.relativeOutputPath = relativeOutputPath;
-  }
-
-  async output(mdxFile: MdxFile): Promise<IFile[]> {
-    const hasCanonicalVersion = mdxFile.getData().canonicalVersion;
-
-    if (hasCanonicalVersion) {
-      return []
+    constructor(relativeOutputPath: string) {
+        this.relativeOutputPath = relativeOutputPath;
     }
 
-    const filePath = `${this.relativeOutputPath}/${mdxFile
-      .getOutputPath()
-      .withExtension("sitemap")}`;
+    async output(mdxFile: MdxFile): Promise<IFile[]> {
+        const hasCanonicalVersion = mdxFile.getData().canonicalVersion;
 
-    return [
-      new File({
-        path: filePath,
-        contents: SitemapUrl.create(mdxFile)
-      })
-    ];
-  }
+        if (hasCanonicalVersion) {
+            return [];
+        }
+
+        const filePath = `${this.relativeOutputPath}/${mdxFile
+            .getOutputPath()
+            .withExtension("sitemap")}`;
+
+        return [
+            new File({
+                path: filePath,
+                contents: SitemapUrl.create(mdxFile)
+            })
+        ];
+    }
 }

@@ -13,37 +13,37 @@ import { IMdxFileFilter } from "../../abstractions/IMdxFileFilter";
 import { MdxFileFilter } from "../../app/MdxFileFilter";
 
 export interface VersionedMdxFileFactoryCallable {
-  (data: MdxData, version: Version): VersionedMdxFile;
+    (data: MdxData, version: Version): VersionedMdxFile;
 }
 
 interface VersionedDocumentRootConfigParams {
-  rootDir: string;
-  linkPrefix: `/${string}` | "";
-  outputDir: string;
-  pageLayout: string;
-  mdxFileFactory: VersionedMdxFileFactoryCallable;
-  versionsProvider?: IVersionsProvider;
-  mdxFileOutputFilter?: IMdxFileFilter;
-  mdxFileProcessors?: IMdxProcessor[];
-  mdxRemarkPlugins?: IMdxRemarkPlugin[];
+    rootDir: string;
+    linkPrefix: `/${string}` | "";
+    outputDir: string;
+    pageLayout: string;
+    mdxFileFactory: VersionedMdxFileFactoryCallable;
+    versionsProvider?: IVersionsProvider;
+    mdxFileOutputFilter?: IMdxFileFilter;
+    mdxFileProcessors?: IMdxProcessor[];
+    mdxRemarkPlugins?: IMdxRemarkPlugin[];
 }
 
 export class VersionedDocumentRootConfig implements IDocumentRootConfig {
-  private readonly config: Required<VersionedDocumentRootConfigParams>;
+    private readonly config: Required<VersionedDocumentRootConfigParams>;
 
-  constructor(config: VersionedDocumentRootConfigParams) {
-    const versionsProvider = config.versionsProvider ?? new VersionsProvider(config.rootDir);
+    constructor(config: VersionedDocumentRootConfigParams) {
+        const versionsProvider = config.versionsProvider ?? new VersionsProvider(config.rootDir);
 
-    this.config = {
-      ...config,
-      versionsProvider,
-      mdxRemarkPlugins: config.mdxRemarkPlugins ?? [],
-      mdxFileOutputFilter: config.mdxFileOutputFilter ?? new MdxFileFilter(() => true),
-      mdxFileProcessors: config.mdxFileProcessors ?? []
-    };
-  }
+        this.config = {
+            ...config,
+            versionsProvider,
+            mdxRemarkPlugins: config.mdxRemarkPlugins ?? [],
+            mdxFileOutputFilter: config.mdxFileOutputFilter ?? new MdxFileFilter(() => true),
+            mdxFileProcessors: config.mdxFileProcessors ?? []
+        };
+    }
 
-  getDocumentRootFactory(appConfig: AppConfig): IDocumentRootFactory {
-    return new VersionedDocumentRootFactory(appConfig, this.config);
-  }
+    getDocumentRootFactory(appConfig: AppConfig): IDocumentRootFactory {
+        return new VersionedDocumentRootFactory(appConfig, this.config);
+    }
 }

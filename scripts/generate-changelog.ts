@@ -18,29 +18,29 @@ import { join } from "path";
 // ---------------------------------------------------------------------------
 
 interface GitHubMilestone {
-  number: number;
-  title: string;
-  state: string;
+    number: number;
+    title: string;
+    state: string;
 }
 
 interface GitHubLabel {
-  name: string;
+    name: string;
 }
 
 interface GitHubIssue {
-  number: number;
-  title: string;
-  body: string | null;
-  labels: GitHubLabel[];
-  pull_request?: unknown;
-  state: string;
+    number: number;
+    title: string;
+    body: string | null;
+    labels: GitHubLabel[];
+    pull_request?: unknown;
+    state: string;
 }
 
 interface PullRequest {
-  number: number;
-  title: string;
-  body: string;
-  url: string;
+    number: number;
+    title: string;
+    body: string;
+    url: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -48,14 +48,14 @@ interface PullRequest {
 // ---------------------------------------------------------------------------
 
 function parseArgs(): { version: string } {
-  const args = process.argv.slice(2);
-  const versionIdx = args.indexOf("--version");
-  if (versionIdx === -1 || !args[versionIdx + 1]) {
-    console.error("Usage: yarn tsx scripts/generate-changelog.ts --version <version>");
-    console.error("Example: yarn tsx scripts/generate-changelog.ts --version 6.1.0");
-    process.exit(1);
-  }
-  return { version: args[versionIdx + 1] };
+    const args = process.argv.slice(2);
+    const versionIdx = args.indexOf("--version");
+    if (versionIdx === -1 || !args[versionIdx + 1]) {
+        console.error("Usage: yarn tsx scripts/generate-changelog.ts --version <version>");
+        console.error("Example: yarn tsx scripts/generate-changelog.ts --version 6.1.0");
+        process.exit(1);
+    }
+    return { version: args[versionIdx + 1] };
 }
 
 // ---------------------------------------------------------------------------
@@ -66,65 +66,65 @@ const GITHUB_REPO = "webiny/webiny-js";
 const GITHUB_API = "https://api.github.com";
 
 async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      "User-Agent": "webiny-docs-changelog-generator"
+    const res = await fetch(url, {
+        headers: {
+            Accept: "application/vnd.github+json",
+            "User-Agent": "webiny-docs-changelog-generator"
+        }
+    });
+    if (!res.ok) {
+        throw new Error(`GitHub API error ${res.status} for ${url}: ${await res.text()}`);
     }
-  });
-  if (!res.ok) {
-    throw new Error(`GitHub API error ${res.status} for ${url}: ${await res.text()}`);
-  }
-  return res.json() as Promise<T>;
+    return res.json() as Promise<T>;
 }
 
 async function findMilestone(version: string): Promise<GitHubMilestone> {
-  const bare = version.replace(/^v/, "");
-  const candidates = [bare, `v${bare}`];
+    const bare = version.replace(/^v/, "");
+    const candidates = [bare, `v${bare}`];
 
-  let page = 1;
-  while (true) {
-    const milestones = await fetchJson<GitHubMilestone[]>(
-      `${GITHUB_API}/repos/${GITHUB_REPO}/milestones?state=all&per_page=100&page=${page}`
-    );
-    if (milestones.length === 0) break;
+    let page = 1;
+    while (true) {
+        const milestones = await fetchJson<GitHubMilestone[]>(
+            `${GITHUB_API}/repos/${GITHUB_REPO}/milestones?state=all&per_page=100&page=${page}`
+        );
+        if (milestones.length === 0) break;
 
-    const found = milestones.find(m => candidates.includes(m.title));
-    if (found) return found;
-    page++;
-  }
+        const found = milestones.find(m => candidates.includes(m.title));
+        if (found) return found;
+        page++;
+    }
 
-  throw new Error(`No milestone found matching version "${version}" in ${GITHUB_REPO}`);
+    throw new Error(`No milestone found matching version "${version}" in ${GITHUB_REPO}`);
 }
 
 async function fetchPRsForMilestone(milestoneNumber: number): Promise<PullRequest[]> {
-  const prs: PullRequest[] = [];
-  let page = 1;
+    const prs: PullRequest[] = [];
+    let page = 1;
 
-  while (true) {
-    const issues = await fetchJson<GitHubIssue[]>(
-      `${GITHUB_API}/repos/${GITHUB_REPO}/issues?milestone=${milestoneNumber}&state=closed&per_page=100&page=${page}`
-    );
-    if (issues.length === 0) break;
+    while (true) {
+        const issues = await fetchJson<GitHubIssue[]>(
+            `${GITHUB_API}/repos/${GITHUB_REPO}/issues?milestone=${milestoneNumber}&state=closed&per_page=100&page=${page}`
+        );
+        if (issues.length === 0) break;
 
-    for (const issue of issues) {
-      if (!issue.pull_request) continue;
-      const hasNoChangelog = issue.labels.some(l => l.name === "no-changelog");
-      if (hasNoChangelog) {
-        console.log(`  Skipping PR #${issue.number} (no-changelog): ${issue.title}`);
-        continue;
-      }
-      prs.push({
-        number: issue.number,
-        title: issue.title,
-        body: issue.body ?? "",
-        url: `https://github.com/${GITHUB_REPO}/pull/${issue.number}`
-      });
+        for (const issue of issues) {
+            if (!issue.pull_request) continue;
+            const hasNoChangelog = issue.labels.some(l => l.name === "no-changelog");
+            if (hasNoChangelog) {
+                console.log(`  Skipping PR #${issue.number} (no-changelog): ${issue.title}`);
+                continue;
+            }
+            prs.push({
+                number: issue.number,
+                title: issue.title,
+                body: issue.body ?? "",
+                url: `https://github.com/${GITHUB_REPO}/pull/${issue.number}`
+            });
+        }
+        page++;
     }
-    page++;
-  }
 
-  return prs;
+    return prs;
 }
 
 // ---------------------------------------------------------------------------
@@ -219,37 +219,37 @@ ${STYLE_REFERENCE}
 `.trim();
 
 async function generateChangelogBody(prs: PullRequest[], version: string): Promise<string> {
-  const apiKey = process.env.CLAUDE_KEY;
-  if (!apiKey) {
-    throw new Error("CLAUDE_KEY environment variable is not set.");
-  }
+    const apiKey = process.env.CLAUDE_KEY;
+    if (!apiKey) {
+        throw new Error("CLAUDE_KEY environment variable is not set.");
+    }
 
-  const client = new Anthropic({ apiKey });
+    const client = new Anthropic({ apiKey });
 
-  const prList = prs
-    .map(pr => {
-      const body = pr.body.trim() ? `\n\n${pr.body.trim()}` : "";
-      return `### PR #${pr.number} (${pr.url}): ${pr.title}${body}`;
-    })
-    .join("\n\n---\n\n");
+    const prList = prs
+        .map(pr => {
+            const body = pr.body.trim() ? `\n\n${pr.body.trim()}` : "";
+            return `### PR #${pr.number} (${pr.url}): ${pr.title}${body}`;
+        })
+        .join("\n\n---\n\n");
 
-  const userMessage = `Generate a changelog for Webiny version ${version} based on the following merged pull requests. Apply all the rules in your system prompt.\n\n${prList}`;
+    const userMessage = `Generate a changelog for Webiny version ${version} based on the following merged pull requests. Apply all the rules in your system prompt.\n\n${prList}`;
 
-  console.log(`  Sending ${prs.length} PRs to Claude (claude-opus-4-5)...`);
+    console.log(`  Sending ${prs.length} PRs to Claude (claude-opus-4-5)...`);
 
-  const message = await client.messages.create({
-    model: "claude-opus-4-5",
-    max_tokens: 8192,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userMessage }]
-  });
+    const message = await client.messages.create({
+        model: "claude-opus-4-5",
+        max_tokens: 8192,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userMessage }]
+    });
 
-  const textBlock = message.content.find(b => b.type === "text");
-  if (!textBlock || textBlock.type !== "text") {
-    throw new Error("Claude returned no text content.");
-  }
+    const textBlock = message.content.find(b => b.type === "text");
+    if (!textBlock || textBlock.type !== "text") {
+        throw new Error("Claude returned no text content.");
+    }
 
-  return textBlock.text.trim();
+    return textBlock.text.trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -257,16 +257,16 @@ async function generateChangelogBody(prs: PullRequest[], version: string): Promi
 // ---------------------------------------------------------------------------
 
 function extractMentionedPRNumbers(filePath: string): Set<number> {
-  try {
-    const content = readFileSync(filePath, "utf-8");
-    const numbers = new Set<number>();
-    for (const match of content.matchAll(/\/pull\/(\d+)/g)) {
-      numbers.add(parseInt(match[1], 10));
+    try {
+        const content = readFileSync(filePath, "utf-8");
+        const numbers = new Set<number>();
+        for (const match of content.matchAll(/\/pull\/(\d+)/g)) {
+            numbers.add(parseInt(match[1], 10));
+        }
+        return numbers;
+    } catch {
+        return new Set();
     }
-    return numbers;
-  } catch {
-    return new Set();
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -274,23 +274,23 @@ function extractMentionedPRNumbers(filePath: string): Set<number> {
 // ---------------------------------------------------------------------------
 
 function buildMdxFile(version: string, body: string): string {
-  const id = Math.random().toString(36).slice(2, 10);
+    const id = Math.random().toString(36).slice(2, 10);
 
-  return [
-    "---",
-    `id: ${id}`,
-    `title: Webiny ${version} Changelog`,
-    `description: See what's new in Webiny version ${version}`,
-    "---",
-    "",
-    'import { GithubRelease } from "@/components/GithubRelease";',
-    'import { Alert } from "@/components/Alert";',
-    "",
-    `<GithubRelease version={"${version}"} />`,
-    "",
-    body,
-    ""
-  ].join("\n");
+    return [
+        "---",
+        `id: ${id}`,
+        `title: Webiny ${version} Changelog`,
+        `description: See what's new in Webiny version ${version}`,
+        "---",
+        "",
+        'import { GithubRelease } from "@/components/GithubRelease";',
+        'import { Alert } from "@/components/Alert";',
+        "",
+        `<GithubRelease version={"${version}"} />`,
+        "",
+        body,
+        ""
+    ].join("\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -298,53 +298,57 @@ function buildMdxFile(version: string, body: string): string {
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  const { version } = parseArgs();
+    const { version } = parseArgs();
 
-  console.log(`\nGenerating changelog for Webiny ${version}...`);
+    console.log(`\nGenerating changelog for Webiny ${version}...`);
 
-  console.log("  Looking up milestone on GitHub...");
-  const milestone = await findMilestone(version);
-  console.log(`  Found milestone #${milestone.number}: "${milestone.title}"`);
+    console.log("  Looking up milestone on GitHub...");
+    const milestone = await findMilestone(version);
+    console.log(`  Found milestone #${milestone.number}: "${milestone.title}"`);
 
-  console.log("  Fetching merged PRs...");
-  const prs = await fetchPRsForMilestone(milestone.number);
-  console.log(`  Found ${prs.length} pull requests.`);
+    console.log("  Fetching merged PRs...");
+    const prs = await fetchPRsForMilestone(milestone.number);
+    console.log(`  Found ${prs.length} pull requests.`);
 
-  if (prs.length === 0) {
-    console.warn("  No pull requests found for this milestone. Nothing to generate.");
-    process.exit(0);
-  }
+    if (prs.length === 0) {
+        console.warn("  No pull requests found for this milestone. Nothing to generate.");
+        process.exit(0);
+    }
 
-  const outDir = join(process.cwd(), "docs", "release-notes", version);
-  mkdirSync(outDir, { recursive: true });
-  const outPath = join(outDir, "changelog.mdx");
+    const outDir = join(process.cwd(), "docs", "release-notes", version);
+    mkdirSync(outDir, { recursive: true });
+    const outPath = join(outDir, "changelog.mdx");
 
-  const alreadyPresent = extractMentionedPRNumbers(outPath);
-  const newPRs = alreadyPresent.size > 0 ? prs.filter(pr => !alreadyPresent.has(pr.number)) : prs;
+    const alreadyPresent = extractMentionedPRNumbers(outPath);
+    const newPRs = alreadyPresent.size > 0 ? prs.filter(pr => !alreadyPresent.has(pr.number)) : prs;
 
-  if (newPRs.length === 0) {
-    console.log("  All PRs are already in the changelog. Nothing to add.");
-    process.exit(0);
-  }
+    if (newPRs.length === 0) {
+        console.log("  All PRs are already in the changelog. Nothing to add.");
+        process.exit(0);
+    }
 
-  if (alreadyPresent.size > 0) {
-    console.log(`  ${alreadyPresent.size} PR(s) already in changelog — generating content for ${newPRs.length} new PR(s)...`);
-  }
+    if (alreadyPresent.size > 0) {
+        console.log(
+            `  ${alreadyPresent.size} PR(s) already in changelog — generating content for ${newPRs.length} new PR(s)...`
+        );
+    }
 
-  const body = await generateChangelogBody(newPRs, version);
+    const body = await generateChangelogBody(newPRs, version);
 
-  if (alreadyPresent.size > 0) {
-    const existing = readFileSync(outPath, "utf-8");
-    writeFileSync(outPath, existing.trimEnd() + "\n\n" + body + "\n", "utf-8");
-    console.log(`\n✓ Appended ${newPRs.length} new PR(s) to: docs/release-notes/${version}/changelog.mdx`);
-  } else {
-    const mdx = buildMdxFile(version, body);
-    writeFileSync(outPath, mdx, "utf-8");
-    console.log(`\n✓ Changelog written to: docs/release-notes/${version}/changelog.mdx`);
-  }
+    if (alreadyPresent.size > 0) {
+        const existing = readFileSync(outPath, "utf-8");
+        writeFileSync(outPath, existing.trimEnd() + "\n\n" + body + "\n", "utf-8");
+        console.log(
+            `\n✓ Appended ${newPRs.length} new PR(s) to: docs/release-notes/${version}/changelog.mdx`
+        );
+    } else {
+        const mdx = buildMdxFile(version, body);
+        writeFileSync(outPath, mdx, "utf-8");
+        console.log(`\n✓ Changelog written to: docs/release-notes/${version}/changelog.mdx`);
+    }
 }
 
 main().catch(err => {
-  console.error("\nError:", err instanceof Error ? err.message : err);
-  process.exit(1);
+    console.error("\nError:", err instanceof Error ? err.message : err);
+    process.exit(1);
 });

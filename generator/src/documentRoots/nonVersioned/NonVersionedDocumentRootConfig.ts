@@ -8,31 +8,31 @@ import { AppConfig } from "../../app/AppConfig";
 import { NonVersionedDocumentRootFactory } from "./NonVersionedDocumentRootFactory";
 
 export interface NonVersionedMdxFileFactoryCallable {
-  (data: MdxData): MdxFile;
+    (data: MdxData): MdxFile;
 }
 
 interface NonVersionedDocumentRootConfigParams {
-  rootDir: string;
-  linkPrefix: `/${string}` | "";
-  outputDir: string;
-  pageLayout: string;
-  mdxFileFactory: NonVersionedMdxFileFactoryCallable;
-  mdxFileProcessors?: IMdxProcessor[];
-  mdxRemarkPlugins?: IMdxRemarkPlugin[];
+    rootDir: string;
+    linkPrefix: `/${string}` | "";
+    outputDir: string;
+    pageLayout: string;
+    mdxFileFactory: NonVersionedMdxFileFactoryCallable;
+    mdxFileProcessors?: IMdxProcessor[];
+    mdxRemarkPlugins?: IMdxRemarkPlugin[];
 }
 
 export class NonVersionedDocumentRootConfig implements IDocumentRootConfig {
-  private readonly config: Required<NonVersionedDocumentRootConfigParams>;
+    private readonly config: Required<NonVersionedDocumentRootConfigParams>;
 
-  constructor(config: NonVersionedDocumentRootConfigParams) {
-    this.config = {
-      ...config,
-      mdxRemarkPlugins: config.mdxRemarkPlugins ?? [],
-      mdxFileProcessors: config.mdxFileProcessors ?? []
-    };
-  }
+    constructor(config: NonVersionedDocumentRootConfigParams) {
+        this.config = {
+            ...config,
+            mdxRemarkPlugins: config.mdxRemarkPlugins ?? [],
+            mdxFileProcessors: config.mdxFileProcessors ?? []
+        };
+    }
 
-  getDocumentRootFactory(appConfig: AppConfig): IDocumentRootFactory {
-    return new NonVersionedDocumentRootFactory(appConfig, this.config);
-  }
+    getDocumentRootFactory(appConfig: AppConfig): IDocumentRootFactory {
+        return new NonVersionedDocumentRootFactory(appConfig, this.config);
+    }
 }

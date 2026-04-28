@@ -1,17 +1,17 @@
 import { IFile } from "./IFile";
 
 export interface OnFile {
-  (file: IFile): void;
+    (file: IFile): void;
 }
 
 export interface IDocumentRoot {
-  generate(): Promise<IFile[]>;
+    generate(): Promise<IFile[]>;
 }
 
 export interface OnWatchEvent {
-  (event: string): void;
+    (event: string): void;
 }
 
 export interface IDocumentRootWatcher {
-  watch(onFile: OnFile, onEvent?: OnWatchEvent): Promise<void>;
+    watch(onFile: OnFile, onEvent?: OnWatchEvent): Promise<void>;
 }

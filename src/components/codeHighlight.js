@@ -210,8 +210,8 @@ function highlightCode(code, prismLanguage = "shell") {
                             addedLines.includes(index)
                                 ? "inserted"
                                 : removedLines.includes(index)
-                                ? "deleted"
-                                : "unchanged"
+                                  ? "deleted"
+                                  : "unchanged"
                         }`
                     )
                 )
