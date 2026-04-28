@@ -10,7 +10,7 @@ import { Alert } from "@/components/Alert";
 
 - when and why to use a shared OpenSearch cluster for development
 - which settings Webiny requires and has tested
-- how to deploy a dev-suitable cluster with Pulumi
+- how to deploy a dev-suitable cluster with Pulumi — basic and HTTPS/fine-grained access variants
 - how to connect your Webiny environments to the shared cluster
 
 </Alert>
@@ -20,6 +20,12 @@ import { Alert } from "@/components/Alert";
 Running a dedicated OpenSearch domain per developer is expensive. A practical alternative is to deploy one shared cluster and point each developer's Webiny environment at it, using a unique index prefix to isolate their data within the same domain.
 
 The shared cluster must be deployed and managed outside of Webiny — Webiny does not provision it. You can use the AWS console, Terraform, Pulumi, or any infrastructure tooling you already use.
+
+<Alert type="info">
+
+If you do not need OpenSearch in dev at all, see [DynamoDB-Only Dev Environments](/{version}/infrastructure/dynamodb-only) for the simpler alternative.
+
+</Alert>
 
 ## Recommended Configuration
 
@@ -47,6 +53,8 @@ A dev cluster deployed without encryption at rest, node-to-node encryption, or H
 </Alert>
 
 ## Deploying with Pulumi
+
+### Basic
 
 The following program deploys a minimal OpenSearch cluster suitable for shared development use. Access control uses account-level IAM signing, which works with Webiny's default configuration.
 
@@ -96,6 +104,98 @@ export const endpoint = domain.endpoint;
 ```
 
 Note the `endpoint` output after deploying — you will need it when connecting Webiny.
+
+### With HTTPS and Fine-Grained Access
+
+For clusters accessible over a public network, or for CI environments that require fine-grained access control, add encryption, HTTPS enforcement, and an internal user database. The example below also provisions a custom domain via Route53 and ACM — skip the certificate and DNS resources if you do not need a custom endpoint.
+
+```typescript
+import * as aws from "@pulumi/aws";
+import * as pulumi from "@pulumi/pulumi";
+
+const domainName = "my-shared-os";
+const customEndpoint = "opensearch.example.com";
+const zoneId = "<your-route53-zone-id>";
+const masterUser = process.env.OS_MASTER_USER ?? "admin";
+const masterPassword = process.env.OS_MASTER_PASSWORD!;
+
+const certificate = new aws.acm.Certificate("os-cert", {
+  domainName: customEndpoint,
+  validationMethod: "DNS"
+});
+
+const certValidationRecord = new aws.route53.Record("os-cert-validation-record", {
+  zoneId,
+  name: certificate.domainValidationOptions[0].resourceRecordName,
+  type: "CNAME",
+  ttl: 60,
+  records: [certificate.domainValidationOptions[0].resourceRecordValue]
+});
+
+const certValidation = new aws.acm.CertificateValidation("os-cert-validation", {
+  certificateArn: certificate.arn,
+  validationRecordFqdns: [certValidationRecord.fqdn]
+});
+
+const domain = new aws.opensearch.Domain(
+  domainName,
+  {
+    domainName,
+    engineVersion: "OpenSearch_3.3",
+    clusterConfig: {
+      instanceType: "r5.large.search",
+      instanceCount: 2
+    },
+    ebsOptions: {
+      ebsEnabled: true,
+      volumeSize: 10,
+      volumeType: "gp2"
+    },
+    advancedOptions: {
+      "rest.action.multi.allow_explicit_index": "true"
+    },
+    nodeToNodeEncryption: {
+      enabled: true
+    },
+    encryptAtRest: {
+      enabled: true
+    },
+    advancedSecurityOptions: {
+      enabled: true,
+      internalUserDatabaseEnabled: true,
+      masterUserOptions: {
+        masterUserName: masterUser,
+        masterUserPassword: masterPassword
+      }
+    },
+    domainEndpointOptions: {
+      enforceHttps: true,
+      tlsSecurityPolicy: "Policy-Min-TLS-1-2-2019-07",
+      customEndpointEnabled: true,
+      customEndpoint,
+      customEndpointCertificateArn: certificate.arn
+    }
+  },
+  { dependsOn: [certValidation] }
+);
+
+// The domain access policy is intentionally applied separately via AWS CLI
+// after this deploy completes. Pulumi's DomainPolicy resource intermittently
+// fails with "A change/update is in progress" because the domain is still
+// processing internally when Pulumi attempts to apply the policy.
+
+const cname = new aws.route53.Record("os-cname", {
+  zoneId,
+  name: customEndpoint,
+  type: "CNAME",
+  ttl: 60,
+  records: [domain.endpoint]
+});
+
+export const endpoint = cname.fqdn;
+```
+
+When using fine-grained access control, pass `username` and `password` when connecting Webiny — see [Amazon OpenSearch](/{version}/infrastructure/extensions/opensearch) for the props.
 
 ## Connecting Webiny
 
