@@ -1,0 +1,38 @@
+AI Context: Shared OpenSearch Cluster (infrastructure/opensearch.mdx)
+
+Source of Information:
+1. Developer feedback (Slack) requesting "bring your own cluster" documentation
+2. Kilo's analysis of Webiny's internal Pulumi code — extracted engine version, instance types, EBS config, access policy, and advanced options
+3. Webiny CI Pulumi program (shared by developer) — two variants: with and without custom domain
+4. infrastructure/extensions/opensearch.mdx — how Webiny connects to an existing domain (domainName, indexPrefix, endpoint props)
+
+Key Documentation Decisions:
+- Article is scoped to dev/shared clusters only — production should use dedicated domains (already stated in extensions/opensearch.mdx)
+- Used the simpler variant (no custom domain) as the primary example — the custom domain setup adds Route53, ACM, and cert validation complexity not relevant to the core topic
+- Instance type in example is t3.small.search (cheapest that works) not r5.large.search (CI scale) — an info alert explains CI uses r5.large.search
+- Access policy uses account-level IAM signing (Principal: accountId) — this is what Webiny expects by default; fine-grained access control (username/password) is a separate concern covered in extensions/opensearch.mdx
+- Security warning covers encryption/HTTPS omission — acceptable for VPC-internal clusters, not for public endpoints
+- Pulumi code is flat module style (not a class) — cleaner for documentation, class wrapping adds no value here
+- Intentionally did not include the DomainPolicy Pulumi bug comment (from CI code) — that is an implementation artifact, not user-facing guidance
+- "Connecting Webiny" section shows the indexPrefix pattern but defers full prop documentation to extensions/opensearch.mdx to avoid duplication
+
+Understanding of the Topic:
+- Webiny's own dev OpenSearch uses t3.small.search / 1 instance; CI uses r5.large.search / 2 instances (OpenSearch_3.3)
+- The rest.action.multi.allow_explicit_index advanced option is required by Webiny
+- Account-level IAM access policy (es:* on the domain ARN) is the minimal access Webiny needs
+- indexPrefix isolation is the key mechanism that makes sharing safe — each developer's Webiny instance reads/writes only its prefixed indexes
+- The cluster must exist before Webiny is deployed; Webiny looks it up by domainName via AWS SDK
+
+Related Documents:
+- infrastructure/extensions/opensearch.mdx — Infra.OpenSearch props reference, endpoint/auth config
+- infrastructure/introduction.mdx — Database Setups (when to use DynamoDB-only vs DynamoDB+OpenSearch)
+- infrastructure/extensions/env-specific-config.mdx — Infra.Env.Is pattern used in "Connecting Webiny" example
+
+Key Code Locations:
+- Webiny internal Pulumi: CoreVpc.ts (VPC config), core application OpenSearch resource definition
+- CI Pulumi program: provided by developer directly (not in docs repo)
+
+Tone Guidelines:
+- Practical and operational — the reader is setting up infrastructure, not learning concepts
+- Keep it concise: table for settings, code for deployment, brief explanation for the indexPrefix mechanism
+- Dev-only framing throughout — do not suggest this pattern for production

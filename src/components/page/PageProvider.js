@@ -28,7 +28,7 @@ export const PageProvider = ({ Component, children }) => {
     const { pageData, docsearch } = layoutProps;
 
     if (!pageData) {
-        return <PageNotFound/>;
+        return <PageNotFound />;
     }
 
     const versions = layoutProps.versions || [];

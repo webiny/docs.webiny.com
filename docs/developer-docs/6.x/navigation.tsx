@@ -137,7 +137,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       {/*  <Page link={"graphql/reference"} />*/}
       {/*  <Page link={"graphql/example"} />*/}
       {/*</Group>*/}
-{/*<Group*/}
+      {/*<Group*/}
       {/*  title={"Tenant Manager"}*/}
       {/*  icon={"/docs/menu-icons/webiny-overview.svg"}*/}
       {/*  link={"tenant-manager/manage-tenants"}*/}
@@ -177,6 +177,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         />
         <Page link={"infrastructure/ci-cd"} title={"CI/CD"} />
         <Page link={"infrastructure/github-actions"} title={"GitHub Actions"} />
+        <Page link={"infrastructure/opensearch"} title={"Shared OpenSearch Cluster"} />
         <Group title={"Extensions"} link={"infrastructure/extensions/aws-tags"}>
           <Page link={"infrastructure/extensions/aws-tags"} title={"AWS Tags"} />
           <Page

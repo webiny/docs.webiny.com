@@ -4,9 +4,7 @@ title: Mailer
 description: Overview of the package used to send e-mails.
 ---
 
-
-
-import {Alert} from "@/components/Alert";
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="What You’ll Learn">
 
@@ -29,9 +27,9 @@ The package uses `transports` to send e-mails. The `transport` is an implementat
 
 <Alert type="info" title="Our built-in transport is not working for you?">
 
-  We provide a default STMP transport, which might not work for you. If that is the case, you can create your own transport.
+We provide a default STMP transport, which might not work for you. If that is the case, you can create your own transport.
 
-  Please check the [The Default Transport Is Not Working for Me!](#the-default-transport-is-not-working-for-me) section for more information.
+Please check the [The Default Transport Is Not Working for Me!](#the-default-transport-is-not-working-for-me) section for more information.
 
 </Alert>
 
@@ -126,7 +124,6 @@ We cannot implement all the possible services and providers, so we provide our u
 
 Please read the [Custom Transport](#custom-transport) section for more information.
 
-
 ## Custom Transport
 
 You can create your own transport if you do not like ours. You just need to use the `createTransport` method which returns the transport.
@@ -135,39 +132,38 @@ You can create your own transport if you do not like ours. You just need to use 
 import { createTransport } from "@webiny/api-mailer";
 
 const transport = createTransport(async params => {
-    const { context, settings } = params;
+  const { context, settings } = params;
 
-    if (!settings?.user || !settings?.password) {
-        throw new Error("There are no username and password in the settings. This will not work.");
+  if (!settings?.user || !settings?.password) {
+    throw new Error("There are no username and password in the settings. This will not work.");
+  }
+
+  const myCustomSender = initializeYourCustomSender();
+
+  return {
+    name: "webiny.mailer.myCustomTransport",
+    send: async data => {
+      try {
+        const result = await myCustomSender({
+          ...data,
+          envelope: {
+            user: settings.user,
+            pass: settings.password
+          }
+        });
+        return {
+          result,
+          error: null
+        };
+      } catch (ex) {
+        return {
+          result: null,
+          error: ex
+        };
+      }
     }
-    
-    const myCustomSender = initializeYourCustomSender();
-
-    return {
-        name: "webiny.mailer.myCustomTransport",
-        send: async data => {
-            try {
-                const result = await myCustomSender({
-                    ...data,
-                    envelope: {
-                        user: settings.user,
-                        pass: settings.password
-                    }
-                });
-                return {
-                    result,
-                    error: null,
-                };
-            } catch (ex) {
-                return {
-                    result: null,
-                    error: ex
-                };
-            }
-        }
-    };
+  };
 });
-
 
 // register in your handler
 

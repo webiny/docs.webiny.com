@@ -36,8 +36,7 @@ export function useAutoScroll(pathname) {
                 const bottom = top - scrollRect.height + activeItemRect.height;
 
                 if (scrollable.scrollTop > top || scrollable.scrollTop < bottom) {
-                    scrollable.scrollTop =
-                        top - scrollRect.height / 2 + activeItemRect.height / 2;
+                    scrollable.scrollTop = top - scrollRect.height / 2 + activeItemRect.height / 2;
                 }
             }, 200);
         }
