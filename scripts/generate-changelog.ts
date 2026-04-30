@@ -97,8 +97,14 @@ async function findMilestone(version: string): Promise<GitHubMilestone> {
     throw new Error(`No milestone found matching version "${version}" in ${GITHUB_REPO}`);
 }
 
-async function fetchPRsForMilestone(milestoneNumber: number): Promise<PullRequest[]> {
+interface FetchResult {
+    prs: PullRequest[];
+    noChangelogNumbers: Set<number>;
+}
+
+async function fetchPRsForMilestone(milestoneNumber: number): Promise<FetchResult> {
     const prs: PullRequest[] = [];
+    const noChangelogNumbers = new Set<number>();
     let page = 1;
 
     while (true) {
@@ -112,6 +118,7 @@ async function fetchPRsForMilestone(milestoneNumber: number): Promise<PullReques
             const hasNoChangelog = issue.labels.some(l => l.name === "no-changelog");
             if (hasNoChangelog) {
                 console.log(`  Skipping PR #${issue.number} (no-changelog): ${issue.title}`);
+                noChangelogNumbers.add(issue.number);
                 continue;
             }
             prs.push({
@@ -124,7 +131,7 @@ async function fetchPRsForMilestone(milestoneNumber: number): Promise<PullReques
         page++;
     }
 
-    return prs;
+    return { prs, noChangelogNumbers };
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +276,40 @@ function extractMentionedPRNumbers(filePath: string): Set<number> {
     }
 }
 
+function removePRSections(
+    content: string,
+    prNumbers: Set<number>
+): { updated: string; removed: number[] } {
+    const lines = content.split("\n");
+    const removed: number[] = [];
+    const outputLines: string[] = [];
+    let skipping = false;
+
+    for (const line of lines) {
+        if (line.startsWith("### ")) {
+            const matches = [...line.matchAll(/\/pull\/(\d+)/g)];
+            const nums = matches.map(m => parseInt(m[1], 10));
+            const matched = nums.filter(n => prNumbers.has(n));
+            if (matched.length > 0) {
+                skipping = true;
+                removed.push(...matched);
+                continue;
+            }
+            skipping = false;
+        } else if (line.startsWith("## ")) {
+            skipping = false;
+        }
+
+        if (!skipping) {
+            outputLines.push(line);
+        }
+    }
+
+    // Collapse runs of 3+ blank lines down to 2
+    const updated = outputLines.join("\n").replace(/\n{3,}/g, "\n\n");
+    return { updated, removed };
+}
+
 // ---------------------------------------------------------------------------
 // MDX file builder
 // ---------------------------------------------------------------------------
@@ -307,17 +348,31 @@ async function main(): Promise<void> {
     console.log(`  Found milestone #${milestone.number}: "${milestone.title}"`);
 
     console.log("  Fetching merged PRs...");
-    const prs = await fetchPRsForMilestone(milestone.number);
+    const { prs, noChangelogNumbers } = await fetchPRsForMilestone(milestone.number);
     console.log(`  Found ${prs.length} pull requests.`);
+
+    const outDir = join(process.cwd(), "docs", "release-notes", version);
+    mkdirSync(outDir, { recursive: true });
+    const outPath = join(outDir, "changelog.mdx");
+
+    // Remove any sections already in the changelog whose PRs now carry no-changelog.
+    if (noChangelogNumbers.size > 0) {
+        const alreadyInFile = extractMentionedPRNumbers(outPath);
+        const stale = new Set([...noChangelogNumbers].filter(n => alreadyInFile.has(n)));
+        if (stale.size > 0) {
+            const existing = readFileSync(outPath, "utf-8");
+            const { updated, removed } = removePRSections(existing, stale);
+            writeFileSync(outPath, updated, "utf-8");
+            console.log(
+                `  Removed ${removed.length} no-changelog PR(s) from existing changelog: ${removed.map(n => `#${n}`).join(", ")}`
+            );
+        }
+    }
 
     if (prs.length === 0) {
         console.warn("  No pull requests found for this milestone. Nothing to generate.");
         process.exit(0);
     }
-
-    const outDir = join(process.cwd(), "docs", "release-notes", version);
-    mkdirSync(outDir, { recursive: true });
-    const outPath = join(outDir, "changelog.mdx");
 
     const alreadyPresent = extractMentionedPRNumbers(outPath);
     const newPRs = alreadyPresent.size > 0 ? prs.filter(pr => !alreadyPresent.has(pr.number)) : prs;
