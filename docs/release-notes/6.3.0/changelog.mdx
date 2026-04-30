@@ -252,3 +252,89 @@ All dialogs now automatically add a vertical scroll bar when content exceeds ava
 ### Tenant Manager Use Cases and Features Now Exported from Public API ([#5140](https://github.com/webiny/webiny-js/pull/5140))
 
 The tenant manager's use case classes, feature plugins, and TypeScript interfaces are now exported from both `webiny/tenant-manager` and the main `webiny/webiny` package. This enables developers to extend or override tenant management behavior — including getting the current tenant, fetching by ID, creating, updating, enabling, disabling, and installing tenants.
+
+## Development
+
+### Advanced Form Model for Declarative Admin UI Forms ([#5138](https://github.com/webiny/webiny-js/pull/5138))
+
+A new `FormModel` API is now available for building admin UI forms declaratively. This system powers internal Webiny forms and is available for extension developers building custom admin interfaces.
+
+Key capabilities include:
+
+- **Layout primitives** — tabs, rows, separators, and nested object nodes with per-template inner layouts
+- **Field types** — text, number, boolean, datetime, object (with list mode, dynamic zones, and templates)
+- **Validation** — required fields, Zod schema integration, async validation, conditional required rules, and form-level validation
+- **Field renderers** — inputs, textareas, tags, switches, dropdowns, radio buttons, checkboxes, date/time pickers, object accordions, and dynamic zones
+- **Focus management** — `form.focusField(path)` walks the layout tree, activates ancestor tabs, and focuses the target field
+- **Computed fields** — `computed()` and `computedUntilDirty()` for reactive derivation from other field values
+- **Condition rules** — hide or disable fields based on other field values
+- **List operations** — `addItem`/`removeItem` on field view models so renderers don't manage array slicing directly
+- **Type coercion** — `parseValue` handles string-to-number, truthy-to-boolean conversions at the field builder level
+
+### Self-Cleaning Background Tasks ([#5121](https://github.com/webiny/webiny-js/pull/5121))
+
+Background tasks can now be configured to automatically delete themselves after completion. When enabled, the task runner removes the task record, all logs, child tasks, and their logs from the database once the task finishes successfully.
+
+Enable self-cleaning in your task definition:
+
+```typescript
+import { createTask } from "webiny/tasks";
+
+const myTask = createTask({
+  id: "myTask",
+  title: "My Task",
+  selfClean: true,
+  run: async ({ context }) => {
+    // Task logic here
+  }
+});
+```
+
+### Mailer Configuration via `webiny.config.ts` ([#5114](https://github.com/webiny/webiny-js/pull/5114))
+
+The Mailer package now supports configuration through `webiny.config.ts` instead of requiring plugin-based setup. Additionally, the `replyTo`, `from`, `to`, and `bcc` fields now accept the `Name <email@example.com>` format.
+
+```typescript
+// webiny.config.ts
+export default {
+  mailer: {
+    from: "Support Team <support@example.com>",
+    replyTo: "No Reply <noreply@example.com>"
+  }
+};
+```
+
+## Webiny SDK
+
+### Improved Input Validation and Error Reporting ([#5120](https://github.com/webiny/webiny-js/pull/5120))
+
+The CMS and File Manager SDK methods now validate inputs before making network requests and return descriptive errors for common mistakes:
+
+- **Type validation** — Passing wrong types (e.g. `limit: "sd"`, `search: false`, `fields: []`) returns a `ValidationError` immediately
+- **Field validation** — Misspelled fields (`values.typo`), object-type fields used as leaves (`values.category`), or unknown filter keys (`tags_2in`) return descriptive errors instead of silently returning empty results
+- **Renamed error class** — `GraphQLError` has been renamed to `ApiError` since the transport layer is an implementation detail
+- **Typed `meta` object** — `CmsEntryData` now includes a typed `meta` object with `status`, `modelId`, `version`, `locked`, `title`, `description`, `image`, and `data` fields
+
+These improvements apply to all CMS methods (`listEntries`, `getEntry`, `createEntry`, `updateEntryRevision`, `publishEntryRevision`, `unpublishEntryRevision`, `deleteEntryRevision`), File Manager methods (`listFiles`, `getFile`, `updateFile`), Tasks, and Tenant Manager methods.
+
+## Headless CMS
+
+### AI PowerUps Settings with Provider Presets ([#5133](https://github.com/webiny/webiny-js/pull/5133))
+
+AI PowerUps now includes a pluggable settings architecture for managing AI providers. The first settings group, **Providers**, lets you configure preset AI providers with id, name, description, model, and API key. API keys are encrypted at rest and masked when displayed.
+
+The underlying architecture uses `AiPowerUpsSettingsGroupHandler` and `AiPowerUpsSettingsGroupGraphQLMapper` for group-specific handling, with a top-level `AiPowerUpsSettingsGraphQLMapper` that dispatches to the appropriate group mapper.
+
+## Admin
+
+### Reference Field Responsive Layout ([#5144](https://github.com/webiny/webiny-js/pull/5144))
+
+Reference field entry cards now adapt to the available container width. In narrow panels, cards stack metadata and action buttons vertically; in wider views they use the original single-row layout. The "Create" and "Select" buttons below the list also wrap cleanly at narrow widths.
+
+### Sidebar Footer Hidden When Empty ([#5144](https://github.com/webiny/webiny-js/pull/5144))
+
+The sidebar footer section (including its separator) is now hidden when there are no footer menu items registered, instead of rendering an empty section.
+
+### Sidebar Section Expand Arrow Now Clickable ([#5144](https://github.com/webiny/webiny-js/pull/5144))
+
+Clicking the expand/collapse arrow icon on a collapsible sidebar section now correctly toggles the section open or closed.
