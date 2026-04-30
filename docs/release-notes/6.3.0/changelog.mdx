@@ -118,10 +118,6 @@ import { useBuildParams } from "webiny/admin";
 
 The sub-path export is now deprecated.
 
-### Download Folder From S3 No Longer Requires AWS Credentials ([#5127](https://github.com/webiny/webiny-js/pull/5127))
-
-Installing extensions from a public S3 bucket previously failed when AWS credentials were present in the environment (e.g. in GitHub Actions) but lacked access to the examples bucket. Downloads now go over plain HTTPS, with no dependency on IAM permissions.
-
 ### Upgrade Command Always Logs Full Output ([#5126](https://github.com/webiny/webiny-js/pull/5126))
 
 The `webiny upgrade` command now always outputs full logging information during execution, making it easier to diagnose upgrade issues.
@@ -206,38 +202,6 @@ When a Pulumi resource name prefix was configured (or when upgrading from an old
 Deploying two or more `Api.Route` extensions at the same time caused a "Duplicate resource URN" error during `pulumi up`, preventing the deployment from completing. Multiple API routes can now be registered and deployed without conflict.
 
 ## Headless CMS
-
-### Introduced AI Service ([#5096](https://github.com/webiny/webiny-js/pull/5096))
-
-A first-class `Ai` service is now available in the Webiny API framework, providing a single, DI-friendly abstraction for working with language models across multiple providers. The service wraps the Vercel AI SDK and includes built-in provider factories for Anthropic and OpenAI:
-
-```typescript
-import { Ai, Route } from "webiny/api";
-
-class MyApiRouteImpl implements Route.Interface {
-  constructor(private aiService: Ai.Interface) {}
-
-  async execute(request: Route.Request, reply: Route.Reply) {
-    const { text } = await this.aiService.generateText({
-      model: "anthropic/claude-sonnet-4-5",
-      prompt: "Is this working?!"
-    });
-
-    return reply.send({ message: text });
-  }
-}
-
-export default Route.createImplementation({
-  implementation: MyApiRouteImpl,
-  dependencies: [Ai]
-});
-```
-
-Configure providers via environment variables:
-- `WEBINY_API_ANTHROPIC_API_KEY`
-- `WEBINY_API_OPENAI_API_KEY`
-
-Switching providers or models requires only changing the model string.
 
 ## Admin
 
@@ -338,3 +302,57 @@ The sidebar footer section (including its separator) is now hidden when there ar
 ### Sidebar Section Expand Arrow Now Clickable ([#5144](https://github.com/webiny/webiny-js/pull/5144))
 
 Clicking the expand/collapse arrow icon on a collapsible sidebar section now correctly toggles the section open or closed.
+
+## Headless CMS
+
+### Model Field Compression ([#5145](https://github.com/webiny/webiny-js/pull/5145))
+
+Large CMS models with many fields can exceed DynamoDB item size limits or cause performance issues during model reads. You can now enable field compression to reduce the storage footprint of model definitions.
+
+To enable compression, add the following to your `webiny.config.ts`:
+
+```typescript
+<Api.Cms.ModelFieldCompression enabled={true} />
+```
+
+When enabled, model field definitions are compressed before storage and decompressed on read, allowing models with significantly more fields than previously supported.
+
+## Page Builder
+
+### Page Settings Rebuilt with FormModel Architecture ([#5148](https://github.com/webiny/webiny-js/pull/5148))
+
+The Page Settings panel has been completely rewritten using the new `FormModel` architecture, replacing the previous `react-properties`-based implementation. This brings a cleaner presenter-driven design where each settings group (General, SEO, Social, Schema) is a self-contained class that defines its fields, layout, and data mapping.
+
+**New extension points** allow you to customise Page Settings without modifying core code:
+
+- `PageSettingsGroup` — add entirely new settings tabs
+- `PageSettingsGroupModifier` — inject fields into existing groups
+
+The layout builder now supports positional helpers (`before`/`after`) for precise field placement within groups.
+
+<Alert type="info">
+
+See the `extensions/customPageSettings` example in the repository for a working demonstration of both extension patterns.
+
+</Alert>
+
+## Admin
+
+### New Field Renderers for FormModel
+
+Several new field renderers are now available for use with the `FormModel` architecture:
+
+- `CodeEditorRenderer` — syntax-highlighted code input
+- `FilePickerRenderer` — file selection from File Manager
+- `FileUrlPickerRenderer` — URL-based file input
+- `HorizontalTabsRenderer` — tabbed field layouts
+
+The `DateTimeRenderer` has also been updated to support timezone-aware and date-only modes.
+
+## File Manager
+
+### Fixed AI Image Enrichment Failing Due to Missing API Key ([#5147](https://github.com/webiny/webiny-js/pull/5147))
+
+The AI-powered image tagging feature was broken because the enrichment task read an `apiKey` field that is never stored — only the encrypted form (`apiKeyEncrypted`) is persisted. Every enrichment call failed silently or with an incorrect key.
+
+The task now correctly decrypts the key at runtime using the Encryption abstraction. Additionally, response parsing now uses structured output via the AI SDK's `Output.object` with a Zod schema, eliminating the fragile JSON parsing that broke whenever the model returned markdown-fenced responses.
