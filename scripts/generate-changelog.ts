@@ -481,6 +481,21 @@ async function main(): Promise<void> {
         const mdx = buildMdxFile(version, body);
         writeFileSync(outPath, mdx, "utf-8");
         console.log(`\n✓ Changelog written to: docs/release-notes/${version}/changelog.mdx`);
+
+        // Create a blank changelog.ai.txt scaffold so manual editors know to use it.
+        const aiTxtScaffold = [
+            `AI Context: ${version} Changelog (changelog.mdx)`,
+            "",
+            "This file tracks manual edits made after the generation script ran.",
+            'The script reads the "Skipped PRs" section to avoid re-adding removed entries.',
+            "",
+            "## Skipped PRs",
+            "",
+            "## Manual Rewrites",
+            ""
+        ].join("\n");
+        writeFileSync(aiTxtPath, aiTxtScaffold, "utf-8");
+        console.log(`✓ Scaffold written to: docs/release-notes/${version}/changelog.ai.txt`);
     }
 
     const written = readFileSync(outPath, "utf-8");
