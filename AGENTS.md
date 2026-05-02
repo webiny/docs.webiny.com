@@ -8,6 +8,15 @@
 - All script execution: `yarn <script-name>`
 - All package operations: `yarn add`, `yarn install`, etc.
 
+### Release Notes / Changelog Editing
+
+When editing a generated `changelog.mdx` file, always keep the sibling `changelog.ai.txt` in sync — without being asked:
+
+- **Removed entry** → add the PR number(s) to the `## Skipped PRs` section with a short reason
+- **Rewritten entry** → add a note to the `## Manual Rewrites` section
+
+The `generate-changelog.ts` script reads `## Skipped PRs` to avoid re-adding manually removed entries on the next run. If `changelog.ai.txt` is not updated, removed PRs will reappear.
+
 ### Validation and Quality
 
 - **MDX/.ai.txt Pairing**: Every `.mdx` file must have a corresponding `.ai.txt` companion file

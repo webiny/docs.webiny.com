@@ -6,6 +6,12 @@
  *
  * Usage:
  *   yarn tsx scripts/generate-changelog.ts --version 6.1.0
+ *
+ * Manual edits:
+ *   After editing a generated changelog, keep the sibling changelog.ai.txt up to date:
+ *   - Removed entry  → add the PR number(s) to the "## Skipped PRs" section
+ *   - Rewritten entry → add a note to the "## Manual Rewrites" section
+ *   The script reads "## Skipped PRs" to avoid re-adding removed entries on the next run.
  */
 
 import "dotenv/config";
@@ -276,6 +282,21 @@ function extractMentionedPRNumbers(filePath: string): Set<number> {
     }
 }
 
+function extractSkippedPRNumbers(aiTxtPath: string): Set<number> {
+    try {
+        const content = readFileSync(aiTxtPath, "utf-8");
+        const numbers = new Set<number>();
+        const skippedSection = content.match(/## Skipped PRs\n([\s\S]*?)(?=\n## |\s*$)/);
+        if (!skippedSection) return numbers;
+        for (const match of skippedSection[1].matchAll(/^\s*(\d+)/gm)) {
+            numbers.add(parseInt(match[1], 10));
+        }
+        return numbers;
+    } catch {
+        return new Set();
+    }
+}
+
 function removePRSections(
     content: string,
     prNumbers: Set<number>
@@ -308,6 +329,58 @@ function removePRSections(
     // Collapse runs of 3+ blank lines down to 2
     const updated = outputLines.join("\n").replace(/\n{3,}/g, "\n\n");
     return { updated, removed };
+}
+
+// ---------------------------------------------------------------------------
+// Duplicate section merger
+// ---------------------------------------------------------------------------
+
+function mergeDuplicateH2Sections(content: string): { merged: string; duplicates: string[] } {
+    const lines = content.split("\n");
+    const segments: Array<{ heading: string | null; lines: string[] }> = [];
+    let current: { heading: string | null; lines: string[] } = { heading: null, lines: [] };
+
+    for (const line of lines) {
+        if (/^## /.test(line)) {
+            segments.push(current);
+            current = { heading: line, lines: [] };
+        } else {
+            current.lines.push(line);
+        }
+    }
+    segments.push(current);
+
+    const seen = new Map<string, number>();
+    const out: typeof segments = [];
+    const duplicates: string[] = [];
+
+    for (const seg of segments) {
+        if (seg.heading === null) {
+            out.push(seg);
+            continue;
+        }
+        if (seen.has(seg.heading)) {
+            const existing = out[seen.get(seg.heading)!];
+            while (
+                existing.lines.length > 0 &&
+                existing.lines[existing.lines.length - 1].trim() === ""
+            ) {
+                existing.lines.pop();
+            }
+            existing.lines.push("", ...seg.lines);
+            duplicates.push(seg.heading.slice(3));
+        } else {
+            seen.set(seg.heading, out.length);
+            out.push(seg);
+        }
+    }
+
+    const result = out
+        .flatMap(seg => (seg.heading !== null ? [seg.heading, ...seg.lines] : seg.lines))
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n");
+
+    return { merged: result, duplicates };
 }
 
 // ---------------------------------------------------------------------------
@@ -375,6 +448,14 @@ async function main(): Promise<void> {
     }
 
     const alreadyPresent = extractMentionedPRNumbers(outPath);
+    const aiTxtPath = join(outDir, "changelog.ai.txt");
+    const skipped = extractSkippedPRNumbers(aiTxtPath);
+    if (skipped.size > 0) {
+        console.log(
+            `  Skipping ${skipped.size} manually removed PR(s) from changelog.ai.txt: ${[...skipped].map(n => `#${n}`).join(", ")}`
+        );
+        for (const n of skipped) alreadyPresent.add(n);
+    }
     const newPRs = alreadyPresent.size > 0 ? prs.filter(pr => !alreadyPresent.has(pr.number)) : prs;
 
     if (newPRs.length === 0) {
@@ -400,6 +481,13 @@ async function main(): Promise<void> {
         const mdx = buildMdxFile(version, body);
         writeFileSync(outPath, mdx, "utf-8");
         console.log(`\n✓ Changelog written to: docs/release-notes/${version}/changelog.mdx`);
+    }
+
+    const written = readFileSync(outPath, "utf-8");
+    const { merged, duplicates } = mergeDuplicateH2Sections(written);
+    if (duplicates.length > 0) {
+        writeFileSync(outPath, merged, "utf-8");
+        console.log(`  Merged duplicate section(s): ${duplicates.map(d => `"${d}"`).join(", ")}`);
     }
 }
 

@@ -22,7 +22,7 @@ The feature includes:
 - **Content generation** — generate page sections and content using natural language prompts
 - **Tool pipeline** — AI-generated content is automatically processed through tools that convert text to Lexical editor format and resolve images
 
-### AI Image Enrichment for File Manager ([#5104](https://github.com/webiny/webiny-js/pull/5104), [#5123](https://github.com/webiny/webiny-js/pull/5123))
+### AI Image Enrichment for File Manager ([#5123](https://github.com/webiny/webiny-js/pull/5123))
 
 Images uploaded to the File Manager are now automatically enriched with AI-generated metadata:
 
@@ -30,6 +30,8 @@ Images uploaded to the File Manager are now automatically enriched with AI-gener
 - **Description** — a human-readable description is generated and stored with the file
 
 Both fields can be viewed and edited manually in the file details panel. This runs as a background task after upload, so it doesn't block the upload process.
+
+![AI-generated tags and description in the File Manager file details panel](./assets/ai-image-enrichment.png)
 
 ## Admin
 
@@ -39,14 +41,38 @@ The "API Playground" label in the admin interface has been renamed to "GraphQL P
 
 ![GraphQL Playground in the admin interface](./assets/graphql-playground.png)
 
-### Extended Form Model Capabilities ([#5125](https://github.com/webiny/webiny-js/pull/5125))
+### Added Dev Tools Sidebar Section ([#5130](https://github.com/webiny/webiny-js/pull/5130))
 
-The Admin form system now supports additional field types and layout options:
+The GraphQL Playground and SDK Playground links have been moved from the Support dropdown menu into a new Dev Tools section in the sidebar. Access to each tool can now be managed through the Security permissions panel. The Support dropdown has been removed; the Upgrade link is now a standalone footer item, and Configure Next.js has moved into the Website Builder section.
 
-- **Object fields** — group related fields into nested structures
-- **Vertical tabs renderer** — organize form sections into vertical tab layouts
-- **Textarea renderer** — multiline text input
-- **Passthrough renderer** — render custom components within forms
+![Dev Tools section in the admin sidebar](./assets/dev-tools-sidebar.png)
+
+### Tenant Manager Use Cases and Features Now Exported from Public API ([#5140](https://github.com/webiny/webiny-js/pull/5140))
+
+The tenant manager's use case classes, feature plugins, and TypeScript interfaces are now exported from `webiny/api`. This enables developers to extend or override tenant management behavior — including getting the current tenant, fetching by ID, creating, updating, enabling, disabling, and installing tenants.
+
+### New Field Renderers for FormModel
+
+Several new field renderers are now available for use with the `FormModel` architecture:
+
+- `CodeEditorRenderer` — syntax-highlighted code input
+- `FilePickerRenderer` — file selection from File Manager
+- `FileUrlPickerRenderer` — URL-based file input
+- `HorizontalTabsRenderer` — tabbed field layouts
+
+The `DateTimeRenderer` has also been updated to support timezone-aware and date-only modes.
+
+### New `DatePicker` Component ([#5149](https://github.com/webiny/webiny-js/pull/5149))
+
+A new `DatePicker` component is now available, supporting multiple picker types via a discriminated union on the `type` prop: `date`, `time`, `datetime-local`, `datetime-tz`, `week`, `month`, `year`, `date-range`, `multiple-dates`, `multiple-months`, and `multiple-years`.
+
+```typescript
+import { DatePicker } from "webiny/admin-ui";
+
+<DatePicker type="date" label="Event Date" value={date} onChange={setDate} />
+
+<DatePicker type="date-range" label="Booking Period" value={{ from: startDate, to: endDate }} onChange={setDateRange} />
+```
 
 ## Development
 
@@ -62,51 +88,9 @@ The `webiny upgrade` command now accepts an `--install-version` flag, letting yo
 webiny upgrade --install-version=6.3.0-unstable.abc
 ```
 
-### Old Pulumi Plugin Versions Now Cleaned Up ([#5101](https://github.com/webiny/webiny-js/pull/5101))
-
-Previously, downloading new Pulumi plugins would leave old versions behind, causing the `.webiny/pulumi-cli` folder to grow over time. Old plugin versions are now automatically removed when newer versions are installed.
-
 ### Feature API Types Corrected ([#5108](https://github.com/webiny/webiny-js/pull/5108))
 
 The second parameter in the Feature API's `register` method now correctly populates when defined via generics.
-
-## Webiny SDK
-
-### Tasks SDK Methods ([#5125](https://github.com/webiny/webiny-js/pull/5125))
-
-New SDK methods are available for working with background tasks:
-
-```typescript
-// Trigger a new task
-const result = await sdk.tasks.triggerTask({
-  definition: "aiImageTagging",
-  input: { fileId: "abc123" }
-});
-
-// List running tasks
-const tasks = await sdk.tasks.listTasks({ status: "running" });
-
-// List available task definitions
-const definitions = await sdk.tasks.listDefinitions();
-
-// Abort a running task
-await sdk.tasks.abortTask({ taskId: "task-123" });
-
-// Get task logs
-const logs = await sdk.tasks.listLogs({ taskId: "task-123" });
-```
-
-## Development
-
-### Export `useEnv` Hook from `@webiny/project-aws` ([#5139](https://github.com/webiny/webiny-js/pull/5139))
-
-The `useEnv` hook, which provides access to the current deployment environment context within infrastructure code, was not exported from the `@webiny/project-aws` package. It can now be imported directly:
-
-```typescript
-import { useEnv } from "webiny/project-aws";
-
-const env = useEnv();
-```
 
 ### Export `useBuildParams` from Main Admin Entry Point ([#5136](https://github.com/webiny/webiny-js/pull/5136))
 
@@ -121,103 +105,6 @@ The sub-path export is now deprecated.
 ### Upgrade Command Always Logs Full Output ([#5126](https://github.com/webiny/webiny-js/pull/5126))
 
 The `webiny upgrade` command now always outputs full logging information during execution, making it easier to diagnose upgrade issues.
-
-## Webiny SDK
-
-### Added Tasks SDK Module ([#5106](https://github.com/webiny/webiny-js/pull/5106))
-
-External applications can now interact with Webiny Background Tasks through the SDK. The new `sdk.tasks` module lets you list task definitions and runs, retrieve execution logs, trigger new tasks, and abort running tasks:
-
-```typescript
-// List all registered task definitions
-const definitions = await sdk.tasks.listDefinitions();
-
-// List task runs with optional filtering
-const tasks = await sdk.tasks.listTasks({
-  where: { definitionId: "myTaskDefinition" }
-});
-
-// Trigger a new task execution
-const result = await sdk.tasks.triggerTask({
-  definition: "myTaskDefinition",
-  input: { someParam: "value" }
-});
-
-// Abort a running task
-await sdk.tasks.abortTask({ id: "task-run-id" });
-```
-
-The SDK playground includes full TypeScript declarations for the new module, providing autocomplete and type checking.
-
-## Infrastructure
-
-### Added Production Environment Helpers and Encryption Guardrail ([#5129](https://github.com/webiny/webiny-js/pull/5129), [#5131](https://github.com/webiny/webiny-js/pull/5131))
-
-New project templates now include encryption preconfigured for production environments, and deploying to production without encryption configured will fail with a clear error message. Two new components make it easier to scope infrastructure config to production environments:
-
-```tsx
-<Infra.ProductionEnvironments environments={["prod", "prod-eu", "prod-us"]} />
-
-<Infra.Env.IsProd>
-  <Infra.Encryption passphrase={process.env.WEBINY_ENCRYPTION_PASSPHRASE} />
-</Infra.Env.IsProd>
-
-<Infra.Env.IsNotProd>
-  {/* Development-only configuration */}
-</Infra.Env.IsNotProd>
-```
-
-Previously, users with multiple production environments had to repeat the full list of environment names at every `Infra.Env.Is` usage site.
-
-### Added Encryption Service ([#5109](https://github.com/webiny/webiny-js/pull/5109), [#5112](https://github.com/webiny/webiny-js/pull/5112))
-
-A built-in encryption service is now available in the Webiny API layer. Developers can inject `Encryption` into any API feature to encrypt and decrypt strings using AES-256-GCM:
-
-```tsx
-// webiny.config.tsx
-<Infra.Encryption passphrase={process.env.WEBINY_ENCRYPTION_PASSPHRASE} />
-```
-
-```typescript
-import { Encryption } from "webiny/api";
-
-class MyUseCase {
-  constructor(private encryption: Encryption.Interface) {}
-  
-  run() {
-    const cipher = this.encryption.encrypt("sensitive-value");
-    const plain = this.encryption.decrypt(cipher);
-  }
-}
-```
-
-The encryption passphrase is optional — when not configured, `encrypt` and `decrypt` pass values through unchanged, allowing teams to adopt encryption gradually.
-
-### Fixed OpenSearch Domain Being Recreated on Re-deploy ([#5137](https://github.com/webiny/webiny-js/pull/5137))
-
-When a Pulumi resource name prefix was configured (or when upgrading from an older version of Webiny), the OpenSearch domain physical name could change between deploys, causing Pulumi to destroy and recreate the entire cluster. The domain name is now persisted in the stack output and reused on every subsequent deploy to keep it stable.
-
-### Fixed Duplicate Pulumi Resource URN Error When Registering Multiple API Routes ([#5135](https://github.com/webiny/webiny-js/pull/5135))
-
-Deploying two or more `Api.Route` extensions at the same time caused a "Duplicate resource URN" error during `pulumi up`, preventing the deployment from completing. Multiple API routes can now be registered and deployed without conflict.
-
-## Headless CMS
-
-## Admin
-
-### Added Dev Tools Sidebar Section ([#5130](https://github.com/webiny/webiny-js/pull/5130))
-
-The GraphQL Playground and SDK Playground links have been moved from the Support dropdown menu into a new Dev Tools section in the sidebar. Access to each tool can now be managed through the Security permissions panel. The Support dropdown has been removed; the Upgrade link is now a standalone footer item, and Configure Next.js has moved into the Website Builder section.
-
-### Added Auto-Scrolling to Dialogs ([#5134](https://github.com/webiny/webiny-js/pull/5134))
-
-All dialogs now automatically add a vertical scroll bar when content exceeds available height. To disable auto-scrolling, pass `scrollable={false}` to the dialog component.
-
-### Tenant Manager Use Cases and Features Now Exported from Public API ([#5140](https://github.com/webiny/webiny-js/pull/5140))
-
-The tenant manager's use case classes, feature plugins, and TypeScript interfaces are now exported from both `webiny/tenant-manager` and the main `webiny/webiny` package. This enables developers to extend or override tenant management behavior — including getting the current tenant, fetching by ID, creating, updating, enabling, disabling, and installing tenants.
-
-## Development
 
 ### Advanced Form Model for Declarative Admin UI Forms ([#5138](https://github.com/webiny/webiny-js/pull/5138))
 
@@ -270,38 +157,107 @@ export default {
 
 ## Webiny SDK
 
+### Added Tasks SDK Module ([#5106](https://github.com/webiny/webiny-js/pull/5106))
+
+External applications can now interact with Webiny Background Tasks through the SDK. The new `sdk.tasks` module lets you list task definitions and runs, retrieve execution logs, trigger new tasks, and abort running tasks:
+
+```typescript
+// List all registered task definitions
+const definitions = await sdk.tasks.listDefinitions();
+
+// List task runs with optional filtering
+const tasks = await sdk.tasks.listTasks({
+  where: { definitionId: "myTaskDefinition" }
+});
+
+// Trigger a new task execution
+const result = await sdk.tasks.triggerTask({
+  definition: "myTaskDefinition",
+  input: { someParam: "value" }
+});
+
+// Abort a running task
+await sdk.tasks.abortTask({ id: "task-run-id" });
+```
+
+The SDK playground includes full TypeScript declarations for the new module, providing autocomplete and type checking.
+
 ### Improved Input Validation and Error Reporting ([#5120](https://github.com/webiny/webiny-js/pull/5120))
 
-The CMS and File Manager SDK methods now validate inputs before making network requests and return descriptive errors for common mistakes:
+All SDK methods now validate inputs before making network requests and return descriptive errors for common mistakes:
 
 - **Type validation** — Passing wrong types (e.g. `limit: "sd"`, `search: false`, `fields: []`) returns a `ValidationError` immediately
 - **Field validation** — Misspelled fields (`values.typo`), object-type fields used as leaves (`values.category`), or unknown filter keys (`tags_2in`) return descriptive errors instead of silently returning empty results
 - **Renamed error class** — `GraphQLError` has been renamed to `ApiError` since the transport layer is an implementation detail
 - **Typed `meta` object** — `CmsEntryData` now includes a typed `meta` object with `status`, `modelId`, `version`, `locked`, `title`, `description`, `image`, and `data` fields
 
-These improvements apply to all CMS methods (`listEntries`, `getEntry`, `createEntry`, `updateEntryRevision`, `publishEntryRevision`, `unpublishEntryRevision`, `deleteEntryRevision`), File Manager methods (`listFiles`, `getFile`, `updateFile`), Tasks, and Tenant Manager methods.
+## Deployments
 
-## Headless CMS
+### Old Pulumi Plugin Versions Now Cleaned Up ([#5101](https://github.com/webiny/webiny-js/pull/5101))
 
-### AI PowerUps Settings with Provider Presets ([#5133](https://github.com/webiny/webiny-js/pull/5133))
+Previously, downloading new Pulumi plugins would leave old versions behind, causing the `.webiny/pulumi-cli` folder to grow over time. Old plugin versions are now automatically removed when newer versions are installed.
 
-AI PowerUps now includes a pluggable settings architecture for managing AI providers. The first settings group, **Providers**, lets you configure preset AI providers with id, name, description, model, and API key. API keys are encrypted at rest and masked when displayed.
+### `Infra.Env.useEnv` Hook for Infrastructure Extensions ([#5139](https://github.com/webiny/webiny-js/pull/5139))
 
-The underlying architecture uses `AiPowerUpsSettingsGroupHandler` and `AiPowerUpsSettingsGroupGraphQLMapper` for group-specific handling, with a top-level `AiPowerUpsSettingsGraphQLMapper` that dispatches to the appropriate group mapper.
+The `Infra.Env.useEnv` hook is now available via `webiny/extensions`. It returns the deployment environment name passed via the `--env` CLI flag (e.g. `webiny deploy --env prod`), so extension authors no longer need to rely on `process.env.STAGE` or similar environment variables:
 
-## Admin
+```tsx
+import { Infra } from "webiny/extensions";
 
-### Reference Field Responsive Layout ([#5144](https://github.com/webiny/webiny-js/pull/5144))
+const MyResourceNamePrefix = () => {
+  const env = Infra.Env.useEnv();
 
-Reference field entry cards now adapt to the available container width. In narrow panels, cards stack metadata and action buttons vertically; in wider views they use the original single-row layout. The "Create" and "Select" buttons below the list also wrap cleanly at narrow widths.
+  return <Infra.PulumiResourceNamePrefix prefix={`wby6-${env.name}-`} />;
+};
 
-### Sidebar Footer Hidden When Empty ([#5144](https://github.com/webiny/webiny-js/pull/5144))
+export default MyResourceNamePrefix;
+```
 
-The sidebar footer section (including its separator) is now hidden when there are no footer menu items registered, instead of rendering an empty section.
+For more details, see [Reading the Current Environment](/infrastructure/extensions/env-specific-config#reading-the-current-environment).
 
-### Sidebar Section Expand Arrow Now Clickable ([#5144](https://github.com/webiny/webiny-js/pull/5144))
+### Added Encryption Service ([#5109](https://github.com/webiny/webiny-js/pull/5109), [#5112](https://github.com/webiny/webiny-js/pull/5112))
 
-Clicking the expand/collapse arrow icon on a collapsible sidebar section now correctly toggles the section open or closed.
+A built-in encryption service is now available in the Webiny API layer. Inject `Encryption` into any API feature to encrypt and decrypt strings using AES-256-GCM:
+
+```typescript
+import { Encryption, Route } from "webiny/api";
+
+class MyApiRouteImpl implements Route.Interface {
+  constructor(private encryption: Encryption.Interface) {}
+
+  async execute(request: Route.Request, reply: Route.Reply) {
+    const cipher = this.encryption.encrypt("sensitive-value");
+    const plain = this.encryption.decrypt(cipher);
+
+    return reply.send({ cipher, plain });
+  }
+}
+
+export default Route.createImplementation({
+  implementation: MyApiRouteImpl,
+  dependencies: [Encryption]
+});
+```
+
+Configure the passphrase in `webiny.config.tsx`:
+
+```tsx
+<Infra.Env.IsProd>
+  <Infra.Encryption passphrase={process.env.WEBINY_ENCRYPTION_PASSPHRASE || ""} />
+</Infra.Env.IsProd>
+```
+
+New projects already include this configuration. If you're upgrading, add it to your `webiny.config.tsx` — your existing deployments won't break, but deploying to a [production environment](/infrastructure/extensions/production-environments) without encryption configured will be blocked until it's set up. For full details, see the [Encryption](/infrastructure/extensions/encryption) article.
+
+### OpenSearch Domains Now Properly Prefixed ([#5137](https://github.com/webiny/webiny-js/pull/5137))
+
+OpenSearch domain names are now correctly prefixed with the configured Pulumi resource name prefix. Previously, the prefix was not applied to the domain name, causing a mismatch between the resource name and the actual AWS domain.
+
+If you already have a deployed OpenSearch cluster, nothing will change — your domain will continue to operate without the prefix. If you want the prefix applied, you can redeploy; be aware this will recreate the domain and cause data loss. We intentionally did not apply the prefix automatically to existing clusters for this reason.
+
+### Fixed Duplicate Pulumi Resource URN Error When Registering Multiple API Routes ([#5135](https://github.com/webiny/webiny-js/pull/5135))
+
+Deploying two or more `Api.Route` extensions at the same time caused a "Duplicate resource URN" error during `pulumi up`, preventing the deployment from completing. Multiple API routes can now be registered and deployed without conflict.
 
 ## Headless CMS
 
@@ -323,84 +279,15 @@ When enabled, model field definitions are compressed before storage and decompre
 
 The Page Settings panel has been completely rewritten using the new `FormModel` architecture, replacing the previous `react-properties`-based implementation. This brings a cleaner presenter-driven design where each settings group (General, SEO, Social, Schema) is a self-contained class that defines its fields, layout, and data mapping.
 
-**New extension points** allow you to customise Page Settings without modifying core code:
+New extension points allow you to customise Page Settings without modifying core code:
 
 - `PageSettingsGroup` — add entirely new settings tabs
 - `PageSettingsGroupModifier` — inject fields into existing groups
 
 The layout builder now supports positional helpers (`before`/`after`) for precise field placement within groups.
 
-<Alert type="info">
-
-See the `extensions/customPageSettings` example in the repository for a working demonstration of both extension patterns.
-
-</Alert>
-
-## Admin
-
-### New Field Renderers for FormModel
-
-Several new field renderers are now available for use with the `FormModel` architecture:
-
-- `CodeEditorRenderer` — syntax-highlighted code input
-- `FilePickerRenderer` — file selection from File Manager
-- `FileUrlPickerRenderer` — URL-based file input
-- `HorizontalTabsRenderer` — tabbed field layouts
-
-The `DateTimeRenderer` has also been updated to support timezone-aware and date-only modes.
-
 ## File Manager
 
 ### Fixed AI Image Enrichment Failing Due to Missing API Key ([#5147](https://github.com/webiny/webiny-js/pull/5147))
 
-The AI-powered image tagging feature was broken because the enrichment task read an `apiKey` field that is never stored — only the encrypted form (`apiKeyEncrypted`) is persisted. Every enrichment call failed silently or with an incorrect key.
-
-The task now correctly decrypts the key at runtime using the Encryption abstraction. Additionally, response parsing now uses structured output via the AI SDK's `Output.object` with a Zod schema, eliminating the fragile JSON parsing that broke whenever the model returned markdown-fenced responses.
-
-## Admin
-
-### New `DatePicker` Component with Multiple Variants ([#5149](https://github.com/webiny/webiny-js/pull/5149))
-
-A new `DatePicker` component has been added to `@webiny/admin-ui`, supporting 11 different picker types through a discriminated union on the `type` prop:
-
-- `date` — single date selection
-- `time` — time-only selection
-- `datetime-local` — date and time without timezone
-- `datetime-tz` — date and time with timezone selection
-- `week` — week picker
-- `month` — single month selection
-- `year` — single year selection
-- `date-range` — select a start and end date
-- `multiple-dates` — select multiple individual dates
-- `multiple-months` — select multiple months
-- `multiple-years` — select multiple years
-
-The component is built on `react-day-picker` and integrates with existing form primitives for labels, descriptions, notes, and error messages.
-
-```typescript
-import { DatePicker } from "webiny/admin-ui";
-
-// Single date picker
-<DatePicker
-  type="date"
-  label="Event Date"
-  value={date}
-  onChange={setDate}
-/>
-
-// Date range picker
-<DatePicker
-  type="date-range"
-  label="Booking Period"
-  value={{ from: startDate, to: endDate }}
-  onChange={setDateRange}
-/>
-
-// Date with timezone
-<DatePicker
-  type="datetime-tz"
-  label="Meeting Time"
-  value={dateTime}
-  onChange={setDateTime}
-/>
-```
+The AI-powered image tagging feature was broken because the enrichment task read an `apiKey` field that is never stored — only the encrypted form (`apiKeyEncrypted`) is persisted. The task now correctly decrypts the key at runtime using the `Encryption` service. Response parsing has also been improved to use structured output with a Zod schema, eliminating fragile JSON parsing that broke when the model returned markdown-fenced responses.

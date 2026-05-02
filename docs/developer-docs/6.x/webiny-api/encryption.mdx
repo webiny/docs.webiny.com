@@ -1,0 +1,56 @@
+---
+id: kn8p2wxq
+title: Encryption
+description: Learn how to encrypt and decrypt values in your API extensions using the built-in Encryption service.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to inject the `Encryption` service into your API extensions
+- how to encrypt and decrypt string values using AES-256-GCM
+
+</Alert>
+
+## Overview
+
+The `Encryption` service lets you encrypt and decrypt strings inside any API extension using AES-256-GCM. It is available as a DI token from `webiny/api` and follows the same injection pattern as other built-in services.
+
+The passphrase is configured separately in `webiny.config.tsx` via `Infra.Encryption`. See the [Encryption infrastructure article](/{version}/infrastructure/extensions/encryption) for setup instructions.
+
+## Usage
+
+Inject `Encryption` into any API class via the constructor and declare it in `dependencies`:
+
+```typescript extensions/MyApiRoute.ts
+import { Encryption, Route } from "webiny/api";
+
+class MyApiRouteImpl implements Route.Interface {
+  public constructor(private encryption: Encryption.Interface) {}
+
+  public async execute(request: Route.Request, reply: Route.Reply): Promise<void> {
+    const cipher = this.encryption.encrypt("sensitive-value");
+    const plain = this.encryption.decrypt(cipher);
+
+    return reply.send({ cipher, plain });
+  }
+}
+
+export default Route.createImplementation({
+  implementation: MyApiRouteImpl,
+  dependencies: [Encryption]
+});
+```
+
+The same pattern works in any other API extension type — use cases, event handlers, GraphQL resolvers, etc.
+
+## Behaviour When Not Configured
+
+When no passphrase is configured (e.g. in development environments), `encrypt` and `decrypt` pass values through unchanged. This means extensions that use `Encryption` work in all environments without modification — encryption is simply a no-op when not set up.
+
+<Alert type="warning">
+
+Deploying to a [production environment](/{version}/infrastructure/extensions/production-environments) without a passphrase configured will fail. Encryption must be set up before deploying to production.
+
+</Alert>

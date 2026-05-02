@@ -58,6 +58,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"webiny-api/extend-graphql-schema"} />
         <Page link={"webiny-api/api-routes"} />
         <Page link={"webiny-api/build-params"} />
+        <Page link={"webiny-api/encryption"} title={"Encryption"} />
         <Page link={"background-tasks/about"} title={"Background Tasks"} />
       </Group>
       <Separator title={"Apps"} />
@@ -199,6 +200,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             link={"infrastructure/extensions/build-and-deploy-hooks"}
             title={"Build and Deploy Hooks"}
           />
+          <Page link={"infrastructure/extensions/encryption"} title={"Encryption"} />
         </Group>
       </Group>
       <Group
