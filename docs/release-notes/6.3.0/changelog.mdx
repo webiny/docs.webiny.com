@@ -286,3 +286,28 @@ New extension points allow you to customise Page Settings without modifying core
 
 The layout builder now supports positional helpers (`before`/`after`) for precise field placement within groups.
 
+## Infrastructure
+
+### CorePulumi, ApiPulumi, and AdminPulumi Extensions Now Have Proper TypeScript Typing ([#5150](https://github.com/webiny/webiny-js/pull/5150))
+
+When implementing a custom Pulumi handler, the `execute` method's `app` parameter previously had to be typed as `any`. It can now be typed using `CorePulumi.Params` (or `ApiPulumi.Params` / `AdminPulumi.Params`), giving full access to app resources, outputs, and environment with proper type checking.
+
+```typescript
+import { Ui } from "webiny/infra";
+import { CorePulumi } from "webiny/infra/core";
+
+class MyCorePulumiHandlerImpl implements CorePulumi.Interface {
+    constructor(private ui: Ui.Interface) {}
+
+    execute(app: CorePulumi.Params) {
+        this.ui.info("🔮 Executing MyCorePulumiHandler with environment:", app.env);
+    }
+}
+
+export default CorePulumi.createImplementation({
+    implementation: MyCorePulumiHandlerImpl,
+    dependencies: [Ui]
+});
+```
+
+This also fixes a longstanding bug in `createAdminPulumiApp` that was incorrectly casting to `CorePulumiApp` instead of `AdminPulumiApp`.
