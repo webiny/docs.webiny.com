@@ -255,9 +255,54 @@ OpenSearch domain names are now correctly prefixed with the configured Pulumi re
 
 If you already have a deployed OpenSearch cluster, nothing will change — your domain will continue to operate without the prefix. If you want the prefix applied, you can redeploy; be aware this will recreate the domain and cause data loss. We intentionally did not apply the prefix automatically to existing clusters for this reason.
 
+### CorePulumi, ApiPulumi, and AdminPulumi Extensions Now Have Proper TypeScript Typing ([#5150](https://github.com/webiny/webiny-js/pull/5150))
+
+When implementing a custom Pulumi handler, the `execute` method's `app` parameter previously had to be typed as `any`. It can now be typed using `CorePulumi.Params` (or `ApiPulumi.Params` / `AdminPulumi.Params`), giving full access to app resources, outputs, and environment with proper type checking.
+
+```typescript
+import { Ui } from "webiny/infra";
+import { CorePulumi } from "webiny/infra/core";
+
+class MyCorePulumiHandlerImpl implements CorePulumi.Interface {
+    constructor(private ui: Ui.Interface) {}
+
+    execute(app: CorePulumi.Params) {
+        this.ui.info("Executing MyCorePulumiHandler with environment:", app.env);
+    }
+}
+
+export default CorePulumi.createImplementation({
+    implementation: MyCorePulumiHandlerImpl,
+    dependencies: [Ui]
+});
+```
+
+This also fixes a longstanding bug in `createAdminPulumiApp` that was incorrectly casting to `CorePulumiApp` instead of `AdminPulumiApp`.
+
 ### Fixed Duplicate Pulumi Resource URN Error When Registering Multiple API Routes ([#5135](https://github.com/webiny/webiny-js/pull/5135))
 
 Deploying two or more `Api.Route` extensions at the same time caused a "Duplicate resource URN" error during `pulumi up`, preventing the deployment from completing. Multiple API routes can now be registered and deployed without conflict.
+
+## New Documentation
+
+This release adds the following new developer documentation:
+
+**API**
+- [Add Custom API Routes](/webiny-api/api-routes) — register custom HTTP endpoints on the Webiny API using the `Api.Route` extension
+- [Build-Time Parameters](/webiny-api/build-params) — access build-time configuration in your API extensions
+- [Encryption](/webiny-api/encryption) — inject and use the `Encryption` service to encrypt/decrypt values in API extensions
+
+**Admin**
+- [Build-Time Parameters](/admin/build-params) — access build-time configuration in Admin extensions
+
+**Deployments and Infrastructure**
+- [DynamoDB-Only Dev Environments](/infrastructure/dynamodb-only) — run Webiny locally without OpenSearch
+- [Shared OpenSearch Cluster](/infrastructure/opensearch) — configure a shared OpenSearch cluster across environments
+- [Encryption](/infrastructure/extensions/encryption) — configure the encryption passphrase in `webiny.config.tsx`
+
+**Reference**
+- [Api Extensions](/reference/extensions/api), [Admin Extensions](/reference/extensions/admin), [Infra Extensions](/reference/extensions/infra), [Cli Extensions](/reference/extensions/cli), [Project Extensions](/reference/extensions/project) — full reference for all `webiny/extensions` components
+- [Tasks SDK](/reference/sdk/tasks) — full reference for the `sdk.tasks` module
 
 ## Headless CMS
 
@@ -286,28 +331,3 @@ New extension points allow you to customise Page Settings without modifying core
 
 The layout builder now supports positional helpers (`before`/`after`) for precise field placement within groups.
 
-## Infrastructure
-
-### CorePulumi, ApiPulumi, and AdminPulumi Extensions Now Have Proper TypeScript Typing ([#5150](https://github.com/webiny/webiny-js/pull/5150))
-
-When implementing a custom Pulumi handler, the `execute` method's `app` parameter previously had to be typed as `any`. It can now be typed using `CorePulumi.Params` (or `ApiPulumi.Params` / `AdminPulumi.Params`), giving full access to app resources, outputs, and environment with proper type checking.
-
-```typescript
-import { Ui } from "webiny/infra";
-import { CorePulumi } from "webiny/infra/core";
-
-class MyCorePulumiHandlerImpl implements CorePulumi.Interface {
-    constructor(private ui: Ui.Interface) {}
-
-    execute(app: CorePulumi.Params) {
-        this.ui.info("🔮 Executing MyCorePulumiHandler with environment:", app.env);
-    }
-}
-
-export default CorePulumi.createImplementation({
-    implementation: MyCorePulumiHandlerImpl,
-    dependencies: [Ui]
-});
-```
-
-This also fixes a longstanding bug in `createAdminPulumiApp` that was incorrectly casting to `CorePulumiApp` instead of `AdminPulumiApp`.
