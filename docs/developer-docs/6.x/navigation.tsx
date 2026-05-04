@@ -228,6 +228,9 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         </Group>
         {/* __SDK_PAGES_END__ */}
         {/* __REFERENCE_PAGES_END__ */}
+        <Group title={"Admin"} link={"reference/admin/form-model"}>
+          <Page link={"reference/admin/form-model"} title={"Form Model"} />
+        </Group>
       </Group>
       <Separator />
       {children}
