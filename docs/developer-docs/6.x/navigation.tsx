@@ -119,6 +119,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
         <Page link={"website-builder/page-types"} title={"Page Types"} />
+        <Page link={"website-builder/page-settings"} title={"Page Settings"} />
         <Page
           link={"website-builder/customize-page-list-columns"}
           title={"Customize Page List Columns"}

@@ -1,0 +1,215 @@
+---
+id: ps8g4wn2
+title: Page Settings
+description: Learn how to add custom settings groups and modify existing ones in the Website Builder page settings drawer.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to add a new settings group (tab) to the page settings drawer
+- how to modify an existing settings group with additional fields
+- where to store custom page data (`doc.extensions`)
+
+</Alert>
+
+## Overview
+
+The page settings drawer in the Website Builder editor contains tabbed groups — General, SEO, Social, and Schema. Each group defines a form with fields that map to and from the page document.
+
+You can add entirely new tabs using the `PageSettingsGroup` abstraction, or inject fields into existing tabs using `PageSettingsGroupModifier`. Both are available from `webiny/admin/website-builder/page/editor`.
+
+<Alert type="warning" title="IMPORTANT">
+
+Store all custom data in `doc.extensions` — never write to `doc.properties`, which is reserved for built-in system properties (title, path, snippet, image, tags, seo, social). Writing custom fields into `doc.properties` risks naming collisions with future Webiny updates.
+
+</Alert>
+
+## Add a Settings Group
+
+A new settings group appears as its own tab in the page settings drawer. Implement `PageSettingsGroup.Interface` with these members:
+
+| Member | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Unique group identifier |
+| `label` | `string` | Tab label shown in the UI |
+| `description` | `string` (optional) | Description shown below the tab label |
+| `icon` | `{ type: "icon", name: string }` (optional) | FontAwesome icon for the tab |
+| `buildForm(form)` | method | Define fields and layout |
+| `mapToForm(doc)` | method | Read from the page document to populate the form |
+| `mapFromForm(formData, doc)` | method | Write form values back to the page document |
+
+```typescript extensions/myPageSettings/PublishingSettingsGroup.ts
+import { PageSettingsGroup } from "webiny/admin/website-builder/page/editor";
+
+class PublishingSettingsGroupImpl implements PageSettingsGroup.Interface {
+  name = "publishing";
+  label = "Publishing";
+  description = "Configure publishing schedule and visibility.";
+  icon = { type: "icon", name: "fas/calendar-alt" };
+
+  buildForm(form: PageSettingsGroup.FormBuilder): void {
+    form.fields(fields => ({
+      publishDate: fields.datetime().withTimezone().label("Publish date"),
+      unpublishDate: fields.datetime().dateOnly().label("Unpublish date"),
+      visibility: fields
+        .text()
+        .label("Visibility")
+        .options([
+          { label: "Public", value: "public" },
+          { label: "Private", value: "private" },
+          { label: "Password Protected", value: "password" }
+        ])
+        .defaultValue("public"),
+      featured: fields.boolean().label("Featured page")
+    }));
+
+    form.layout(layout => [
+      layout.row("publishDate"),
+      layout.row("unpublishDate"),
+      layout.row("visibility"),
+      layout.row("featured")
+    ]);
+  }
+
+  mapToForm(doc: PageSettingsGroup.PageDocument): Record<string, any> {
+    const publishing = doc.extensions?.publishing;
+    return {
+      publishDate: publishing?.publishDate ?? null,
+      unpublishDate: publishing?.unpublishDate ?? null,
+      visibility: publishing?.visibility ?? "public",
+      featured: publishing?.featured ?? false
+    };
+  }
+
+  mapFromForm(formData: Record<string, any>, doc: PageSettingsGroup.PageDocument): void {
+    doc.extensions.publishing = doc.extensions.publishing ?? {};
+    doc.extensions.publishing.publishDate = formData.publishDate;
+    doc.extensions.publishing.unpublishDate = formData.unpublishDate;
+    doc.extensions.publishing.visibility = formData.visibility;
+    doc.extensions.publishing.featured = formData.featured;
+  }
+}
+
+export const PublishingSettingsGroup = PageSettingsGroup.createImplementation({
+  implementation: PublishingSettingsGroupImpl,
+  dependencies: []
+});
+```
+
+### Data Mapping
+
+The `mapToForm` and `mapFromForm` methods bridge the page document and the settings form:
+
+- `mapToForm(doc)` — reads from `doc.extensions` and returns an object whose keys match the field names defined in `buildForm`. Provide sensible defaults for missing values.
+- `mapFromForm(formData, doc)` — receives form values and writes them back to `doc.extensions`. Always namespace your data under your group name (e.g., `doc.extensions.publishing`) to avoid collisions with other extensions.
+
+## Modify an Existing Settings Group
+
+A modifier injects fields into an existing tab without replacing it. Implement `PageSettingsGroupModifier.Interface`:
+
+| Member | Type | Description |
+| --- | --- | --- |
+| `group` | `string` | Name of the target group to modify |
+| `modifyForm(form)` | method | Add fields and layout entries to the existing group |
+| `mapToForm(doc)` | method (optional) | Supply values for the new fields |
+| `mapFromForm(formData, doc)` | method (optional) | Persist the new field values |
+
+The built-in group names are: `"general"`, `"seo"`, `"social"`, `"schema"`.
+
+```typescript extensions/myPageSettings/GeneralSettingsModifier.ts
+import { PageSettingsGroupModifier } from "webiny/admin/website-builder/page/editor";
+
+class GeneralSettingsModifierImpl implements PageSettingsGroupModifier.Interface {
+  group = "general";
+
+  modifyForm(form: PageSettingsGroupModifier.FormBuilder): void {
+    form.fields(fields => ({
+      expirationDate: fields.datetime().monthOnly().label("Expiration month")
+    }));
+
+    form.layout(layout => [layout.row("expirationDate").after("snippet")]);
+  }
+
+  mapToForm(doc: PageSettingsGroupModifier.PageDocument): Record<string, any> {
+    return {
+      expirationDate: doc.extensions?.expirationDate ?? null
+    };
+  }
+
+  mapFromForm(formData: Record<string, any>, doc: PageSettingsGroupModifier.PageDocument): void {
+    doc.extensions.expirationDate = formData.expirationDate;
+  }
+}
+
+export const GeneralSettingsModifier = PageSettingsGroupModifier.createImplementation({
+  implementation: GeneralSettingsModifierImpl,
+  dependencies: []
+});
+```
+
+### Layout Positioning
+
+Use `.after("existingFieldName")` to position new fields relative to built-in fields. The built-in field names for each group:
+
+- **general**: `title`, `path`, `snippet`, `image`, `tags`
+- **seo**: `title`, `description`, `metaTags`, `canonicalUrl`, `noIndex`, `noFollow`
+- **social**: `title`, `description`, `image`, `metaTags`
+- **schema**: `structuredSchema`
+
+## Register the Feature
+
+Wire the implementations together using `createFeature` and `RegisterFeature` from `webiny/admin`:
+
+```tsx extensions/myPageSettings/index.tsx
+import React from "react";
+import { createFeature, RegisterFeature } from "webiny/admin";
+import { PublishingSettingsGroup } from "./PublishingSettingsGroup.js";
+import { GeneralSettingsModifier } from "./GeneralSettingsModifier.js";
+
+const MyPageSettingsFeature = createFeature({
+  name: "MyPageSettings",
+  register(container) {
+    container.register(PublishingSettingsGroup);
+    container.register(GeneralSettingsModifier);
+  }
+});
+
+export default () => {
+  return <RegisterFeature feature={MyPageSettingsFeature} />;
+};
+```
+
+- `container.register(PublishingSettingsGroup)` — adds a new tab to the settings drawer
+- `container.register(GeneralSettingsModifier)` — injects fields into the existing General tab; omit this line if you don't need to modify existing groups
+
+Then register the extension in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Admin } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... other extensions */}
+      <Admin.Extension src={"/extensions/myPageSettings/index.tsx"} />
+    </>
+  );
+};
+```
+
+## The Page Document Model
+
+The `doc` parameter in `mapToForm` / `mapFromForm` has three top-level namespaces:
+
+```typescript
+interface IPageDocument {
+  properties: { ... };   // SYSTEM — title, path, snippet, seo, social, etc.
+  metadata: { ... };     // SYSTEM — document metadata
+  extensions: { ... };   // YOUR DATA — use this for all custom fields
+}
+```
+
+`doc.properties` and `doc.metadata` are managed by the system. Always read/write your custom data via `doc.extensions`, namespaced under your group name (e.g., `doc.extensions.publishing`, `doc.extensions.analytics`).
