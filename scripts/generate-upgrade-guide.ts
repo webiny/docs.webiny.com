@@ -109,7 +109,23 @@ You can omit the version to upgrade to the latest available:
 yarn webiny upgrade
 \`\`\`
 
+Add the \`--debug\` flag to get verbose output during the upgrade:
+
+\`\`\`bash
+yarn webiny upgrade ${version} --debug
+\`\`\`
+
 Once the upgrade has finished, running the \`yarn webiny --version\` command in your terminal should return **${version}**.
+
+<Alert type="info">
+
+If the above command fails or is not available in your setup, you can run the upgrade script directly via \`npx\`:
+
+\`\`\`bash
+npx https://github.com/webiny/webiny-upgrades-v6 ${version} --debug
+\`\`\`
+
+</Alert>
 
 ### 2. Deploy Your Project
 
