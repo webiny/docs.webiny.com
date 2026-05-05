@@ -2,16 +2,18 @@ Hello @channel! :wave:
 
 Webiny 6.3.0 is out! :rocket:
 
-This is a big one for AI capabilities! We've introduced AI PowerUps that let you generate page content directly in the Website Builder using OpenAI or Anthropic. Plus, images uploaded to File Manager now automatically get AI-generated tags and descriptions for better searchability — all happening in the background so it doesn't slow you down.
+This release brings AI PowerUps to Webiny — you can now configure OpenAI or Anthropic in Admin settings and generate page content directly in the Website Builder using natural language prompts. Images uploaded to the File Manager are automatically enriched with AI-generated tags and descriptions, making them much easier to find later.
 
-On the developer side, there's a ton of goodies: a new declarative FormModel API for building admin forms, a Tasks SDK module for interacting with background tasks, a built-in encryption service, and mailer configuration now lives in your webiny.config.ts. We've also upgraded TypeScript to 6.0.3 and Storybook to v10.
+On the developer side, there's a lot to dig into: TypeScript has been upgraded to 6.0.3, the new FormModel API gives you a declarative way to build admin forms, background tasks can now self-clean after completion, and the SDK gains a full tasks module for interacting with background jobs from external apps. We've also added a built-in encryption service, improved input validation across the SDK, and fixed a handful of infrastructure and deployment issues.
 
-The Admin UI got some love too — the new Dev Tools sidebar section keeps GraphQL and SDK Playground handy, and Page Settings has been completely rebuilt with the new FormModel architecture, making it much easier to extend. Check out the changelog to learn more.
+The Admin UI gets a reorganised sidebar with a new Dev Tools section, Page Settings has been rebuilt on the FormModel architecture for easier extensibility, and there's a stack of new documentation covering custom API routes, encryption, form models, and more. Check out the changelog to learn more.
+
 —
 
 As usual, the release notes can be found on the following links:point_down::skin-tone-2::
 Changelog: https://www.webiny.com/docs/release-notes/6.3.0/changelog
 How To Upgrade: https://www.webiny.com/docs/release-notes/6.3.0/upgrade-guide
+
 —
 
-Lots of AI magic in this one — now go build something smart! :zap:
+Lots of AI goodness in this one — go play with it and let us know what you build! :sparkles:

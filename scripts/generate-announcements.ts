@@ -106,13 +106,12 @@ Use blank lines between paragraphs.
 
 Structure:
 
-- Opening hook (1–2 sentences): grab attention, announce the release. Make it feel significant.
+- Opening line: announce the release. 1 sentence.
 - Blank line
-- 2–4 body paragraphs: each covers a theme from the changelog. Write in a professional but warm tone.
-  Be specific about what changed and why it matters to developers or teams using Webiny.
-  Each paragraph 2–4 sentences.
+- 2–3 body paragraphs. Group changes into themes rather than listing every item. Each paragraph
+  1–3 sentences. Be warm and specific but don't try to cover everything — pick the highlights.
 - Blank line
-- Closing paragraph: forward-looking, invite engagement (e.g. "Give it a try and let us know what you think.").
+- Closing line: forward-looking, invite engagement. 1 sentence.
 - Blank line
 - Links (plain text):
   "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
@@ -120,9 +119,10 @@ Structure:
 
 Rules:
 - Replace VERSION with the actual release version number in the URLs.
-- Use real Unicode emoji very sparingly — at most 2 in the entire post, only in the opening or closing.
+- Use real Unicode emoji very sparingly — at most 1 in the entire post, only in the opening or closing.
 - "Webiny" is always capitalised.
 - Tone: professional, developer-focused, enthusiastic but not hype-y.
+- Keep the whole post short — roughly the same length as a Slack announcement.
 - Do NOT use hashtags.
 - Do NOT use bullet points or numbered lists anywhere.
 `.trim();
