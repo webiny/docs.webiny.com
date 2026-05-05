@@ -8,6 +8,15 @@
 - All script execution: `yarn <script-name>`
 - All package operations: `yarn add`, `yarn install`, etc.
 
+### Release Notes / Changelog Editing
+
+When editing a generated `changelog.mdx` file, always keep the sibling `changelog.ai.txt` in sync — without being asked:
+
+- **Removed entry** → add the PR number(s) to the `## Skipped PRs` section with a short reason
+- **Rewritten entry** → add a note to the `## Manual Rewrites` section
+
+The `generate-changelog.ts` script reads `## Skipped PRs` to avoid re-adding manually removed entries on the next run. If `changelog.ai.txt` is not updated, removed PRs will reappear.
+
 ### Validation and Quality
 
 - **MDX/.ai.txt Pairing**: Every `.mdx` file must have a corresponding `.ai.txt` companion file
@@ -33,7 +42,7 @@
 ```
 docs/developer-docs/6.0.x/
 ├── admin/              # Admin area customization (whitelabeling)
-├── webiny-api/         # API customization (custom domain, extend GraphQL schema, universal API keys)
+├── webiny-api/         # API customization (custom domain, extend GraphQL schema, custom routes, universal API keys)
 ├── cli/                # CLI commands reference (deploy, destroy, watch, etc.)
 ├── core-concepts/      # Foundational knowledge: architecture, applications, project structure, DI, Result pattern, multi-tenancy, local dev, env vars
 ├── get-started/        # Welcome, installation, upgrade to Business
@@ -47,7 +56,7 @@ docs/developer-docs/6.0.x/
 ├── infrastructure/     # Cloud infrastructure (database setups, deployment modes, diagrams)
 ├── overview/           # Pricing, security features
 │   └── features/
-├── reference/          # Auto-generated API reference (extensions, admin, API)
+├── reference/          # API reference (webiny.config.tsx extensions, SDK docs)
 ├── tasks/              # Background task system (about, reference, management)
 ├── security/           # Security (universal API keys, programmatic roles and teams)
 ├── tenant-manager/     # Multi-tenancy management (GraphQL API, model extension)

@@ -1,0 +1,1200 @@
+---
+id: r7k3m9vx
+title: Form Model Reference
+description: API reference for the Form Model system — declarative forms for the Webiny admin UI.
+---
+
+import {Alert} from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+  - How to create forms using the `FormModel` API?
+  - What field types are available and how to configure them?
+  - How to arrange fields with the layout builder?
+  - How to add validation, conditional visibility, and computed fields?
+  - What built-in renderers are available?
+  - How to create custom field renderers?
+
+</Alert>
+
+<Alert type="info" title="USAGE EXAMPLES">
+
+  See [Page Settings](/{version}/website-builder/page-settings) for end-to-end usage examples.
+
+</Alert>
+
+## Overview
+
+The Form Model is Webiny's declarative form system for the admin UI. It provides a fluent builder API for defining fields, arranging them with a layout builder, validating with Zod schemas or imperative rules, and rendering with React. Fields support conditional visibility, computed values, and deeply nested object structures with dynamic zones.
+
+The typical workflow is: define fields via `form.fields()`, arrange them with `form.setLayout()`, and render with the `<FormView>` component. For extending existing forms (e.g., page settings), use `form.fields()` and `form.layout()` to add new fields and layout nodes to an existing form model.
+
+## FormModel
+
+### !field
+
+Gets a single field instance by name. Supports dot-notation paths for nested object fields.
+
+**Signature:**
+
+```typescript
+form.field(name: string): IField
+```
+
+**Parameters:**
+
+| Parameter | Type     | Required | Description                                                  |
+| --------- | -------- | :------: | ------------------------------------------------------------ |
+| `name`    | `string` |   Yes    | Field name, or dot-notation path (e.g. `"address.city"`) |
+
+---
+
+### !getField
+
+Gets a field instance by name, returning `undefined` if the field does not exist.
+
+**Signature:**
+
+```typescript
+form.getField(name: string): IField | undefined
+```
+
+**Parameters:**
+
+| Parameter | Type     | Required | Description |
+| --------- | -------- | :------: | ----------- |
+| `name`    | `string` |   Yes    | Field name  |
+
+---
+
+### !fields
+
+Defines or adds fields to the form model. Can be called multiple times to extend an existing form.
+
+**Signature:**
+
+```typescript
+form.fields(factory: (fields: IFieldBuilderRegistry) => Record<string, IFieldBuilder | undefined>): void
+```
+
+**Parameters:**
+
+| Parameter | Type       | Required | Description                                                                             |
+| --------- | ---------- | :------: | --------------------------------------------------------------------------------------- |
+| `factory` | `function` |   Yes    | Callback receiving the field builder registry, returns a record of named field builders |
+
+---
+
+### !removeField
+
+Removes a field from the form model.
+
+**Signature:**
+
+```typescript
+form.removeField(name: string): void
+```
+
+**Parameters:**
+
+| Parameter | Type     | Required | Description              |
+| --------- | -------- | :------: | ------------------------ |
+| `name`    | `string` |   Yes    | Name of the field to remove |
+
+---
+
+### !layout
+
+Modifies the existing layout by adding, removing, or repositioning layout nodes.
+
+**Signature:**
+
+```typescript
+form.layout(factory: (layout: ILayoutModifier) => (LayoutNode | IPositionedLayoutNode)[]): void
+```
+
+**Parameters:**
+
+| Parameter | Type       | Required | Description                                                            |
+| --------- | ---------- | :------: | ---------------------------------------------------------------------- |
+| `factory` | `function` |   Yes    | Callback receiving the layout modifier, returns an array of layout nodes |
+
+**Overload — access a layout node by ID:**
+
+```typescript
+form.layout(nodeId: string): ILayoutNodeAccessHandle
+```
+
+| Parameter | Type     | Required | Description                  |
+| --------- | -------- | :------: | ---------------------------- |
+| `nodeId`  | `string` |   Yes    | ID of the layout node to access |
+
+---
+
+### !setLayout
+
+Sets the initial form layout. Use this when defining a form from scratch.
+
+**Signature:**
+
+```typescript
+form.setLayout(factory: (layout: ILayoutBuilder) => ILayoutNodeBuilder[]): void
+```
+
+**Parameters:**
+
+| Parameter | Type       | Required | Description                                                         |
+| --------- | ---------- | :------: | ------------------------------------------------------------------- |
+| `factory` | `function` |   Yes    | Callback receiving the layout builder, returns an array of builders |
+
+---
+
+### !getData
+
+Returns all form data as a plain object.
+
+**Signature:**
+
+```typescript
+form.getData(): Record<string, unknown>
+```
+
+_This method takes no parameters._
+
+---
+
+### !setData
+
+Sets the form data, populating all field values.
+
+**Signature:**
+
+```typescript
+form.setData(data: Record<string, unknown>): void
+```
+
+**Parameters:**
+
+| Parameter | Type                      | Required | Description       |
+| --------- | ------------------------- | :------: | ----------------- |
+| `data`    | `Record<string, unknown>` |   Yes    | The form data object |
+
+---
+
+### !validate
+
+Validates all fields and form-level rules. Returns `true` if the form is valid.
+
+**Signature:**
+
+```typescript
+form.validate(): Promise<boolean>
+```
+
+_This method takes no parameters._
+
+---
+
+### !submit
+
+Validates the form and returns the form data if valid, or `false` if validation fails.
+
+**Signature:**
+
+```typescript
+form.submit<T = Record<string, unknown>>(): Promise<T | false>
+```
+
+_This method takes no parameters._
+
+---
+
+### !addRule
+
+Adds a cross-field validation rule. Accepts a Zod schema or an imperative validation function.
+
+**Signature:**
+
+```typescript
+form.addRule(rule: FormRule): void
+```
+
+**Parameters:**
+
+| Parameter | Type       | Required | Description                                          |
+| --------- | ---------- | :------: | ---------------------------------------------------- |
+| `rule`    | `FormRule` |   Yes    | A `z.ZodTypeAny` schema or a `(form) => IFormError[]` function |
+
+---
+
+### !reset
+
+Resets the form to its initial state, clearing all dirty flags and validation results.
+
+**Signature:**
+
+```typescript
+form.reset(): void
+```
+
+_This method takes no parameters._
+
+---
+
+### !focusField
+
+Focuses a specific field, automatically activating any tabs needed to make it visible.
+
+**Signature:**
+
+```typescript
+form.focusField(name: string): void
+```
+
+**Parameters:**
+
+| Parameter | Type     | Required | Description              |
+| --------- | -------- | :------: | ------------------------ |
+| `name`    | `string` |   Yes    | Name of the field to focus |
+
+---
+
+### Properties
+
+| Property    | Type              | Description                                    |
+| ----------- | ----------------- | ---------------------------------------------- |
+| `isDirty`   | `boolean`         | Whether any field value has changed             |
+| `isValid`   | `boolean \| null` | Validation result, `null` if not yet validated |
+| `submitted` | `boolean`         | Whether the form has been submitted             |
+| `errors`    | `IFormError[]`    | Array of `{ path, label?, message }` objects   |
+| `vm`        | `IFormVM`         | View model for rendering                        |
+
+---
+
+## Field Types
+
+All fields are created via the `fields` registry callback passed to `form.fields()`. Each factory method returns a chainable field builder.
+
+### !text
+
+Creates a text field. Value: `string | null`. Default renderer: `textInput`.
+
+**Signature:**
+
+```typescript
+fields.text(): TextFieldBuilder
+```
+
+---
+
+### !number
+
+Creates a number field. Value: `number | null`. Default renderer: `numberInput`. Automatically normalizes string input to numbers.
+
+**Signature:**
+
+```typescript
+fields.number(): NumberFieldBuilder
+```
+
+---
+
+### !boolean
+
+Creates a boolean field. Value: `boolean | null`. Default renderer: `switch`.
+
+**Signature:**
+
+```typescript
+fields.boolean(): BooleanFieldBuilder
+```
+
+---
+
+### !datetime
+
+Creates a date/time field. Default renderer: `dateTimeInput`. Call a variant method to set the subtype:
+
+| Variant                                   | Value Format                  | Description          |
+| ----------------------------------------- | ----------------------------- | -------------------- |
+| `.dateOnly()`                             | `"2026-05-01"`                | Calendar date only   |
+| `.timeOnly()`                             | `"14:30:00"`                  | Time only            |
+| `.withTimezone()`                         | `"2026-05-01T14:30:00+02:00"` | Date+time with offset |
+| `.withoutTimezone()`                      | `"2026-05-01T14:30:00.000Z"` | Date+time in UTC     |
+| `.monthOnly()`                            | `"2026-05"`                   | Month picker         |
+| `.weekOnly(options?)`                     | `"2026-W18"`                  | Week picker          |
+| `.yearOnly(options?)`                     | `2026`                        | Year picker          |
+| `.dateRange()`                            | `{ from, to }`                | Date range picker    |
+| `.multipleDates()`                        | `string[]`                    | Multiple dates       |
+| `.multipleMonths()`                       | `string[]`                    | Multiple months      |
+| `.multipleYears(options?)`                | `number[]`                    | Multiple years       |
+
+Additional chainable methods:
+
+| Method                   | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `.presets([...])`        | Quick-select preset buttons with label and value function |
+| `.displayFormat(format)` | Custom display format using date-fns tokens    |
+
+**Signature:**
+
+```typescript
+fields.datetime(): DateTimeFieldBuilder
+```
+
+---
+
+### !file
+
+Creates a file field. Value: `FileValue | null` (object with `id`, `name`, `size`, `mimeType`, `src`, `width`, `height`). Default renderer: `filePicker`.
+
+**Signature:**
+
+```typescript
+fields.file(): FileFieldBuilder
+```
+
+---
+
+### !fileUrl
+
+Creates a file URL field. Value: `string | null` (URL only). Default renderer: `fileUrlPicker`.
+
+**Signature:**
+
+```typescript
+fields.fileUrl(): FileUrlFieldBuilder
+```
+
+---
+
+### !object
+
+Creates an object field for nested structures, lists, and dynamic zones. Value: `Record<string, unknown> | null`. Default renderer: `objectAccordionSingle`.
+
+**Signature:**
+
+```typescript
+fields.object(): ObjectFieldBuilder
+```
+
+See [Object Fields](#object-fields) for the full object-specific API.
+
+---
+
+## Field Builder Methods
+
+These chainable methods are available on **all** field builders returned by the field type factories.
+
+### !label
+
+Sets the field label.
+
+**Signature:**
+
+```typescript
+builder.label(text: string): this
+```
+
+---
+
+### !description
+
+Sets the description text displayed below the field.
+
+**Signature:**
+
+```typescript
+builder.description(text: string): this
+```
+
+---
+
+### !help
+
+Sets the help text.
+
+**Signature:**
+
+```typescript
+builder.help(text: string): this
+```
+
+---
+
+### !note
+
+Sets a supplementary note.
+
+**Signature:**
+
+```typescript
+builder.note(text: string): this
+```
+
+---
+
+### !placeholder
+
+Sets the input placeholder text.
+
+**Signature:**
+
+```typescript
+builder.placeholder(text: string): this
+```
+
+---
+
+### !defaultValue
+
+Sets the default value. Can be a static value or a function for dynamic defaults.
+
+**Signature:**
+
+```typescript
+builder.defaultValue(value: unknown): this
+```
+
+---
+
+### !required
+
+Marks the field as required.
+
+**Signature:**
+
+```typescript
+builder.required(message?: string): this
+```
+
+**Parameters:**
+
+| Parameter | Type     | Required | Description                        |
+| --------- | -------- | :------: | ---------------------------------- |
+| `message` | `string` |    No    | Custom validation error message |
+
+---
+
+### !requiredWhen
+
+Conditionally marks the field as required based on other field values.
+
+**Signature:**
+
+```typescript
+builder.requiredWhen(fn: (form: IFormModel) => boolean, message?: string): this
+```
+
+**Parameters:**
+
+| Parameter | Type       | Required | Description                             |
+| --------- | ---------- | :------: | --------------------------------------- |
+| `fn`      | `function` |   Yes    | Predicate receiving the form model      |
+| `message` | `string`   |    No    | Custom validation error message      |
+
+---
+
+### !schema
+
+Sets a Zod validation schema for the field.
+
+**Signature:**
+
+```typescript
+builder.schema(zodSchema: z.ZodTypeAny): this
+```
+
+**Parameters:**
+
+| Parameter   | Type           | Required | Description       |
+| ----------- | -------------- | :------: | ----------------- |
+| `zodSchema` | `z.ZodTypeAny` |   Yes    | Zod schema object |
+
+---
+
+### !renderer
+
+Overrides the default renderer for the field.
+
+**Signature:**
+
+```typescript
+builder.renderer(name: string, settings?: Record<string, unknown>): this
+```
+
+**Parameters:**
+
+| Parameter  | Type                      | Required | Description                    |
+| ---------- | ------------------------- | :------: | ------------------------------ |
+| `name`     | `string`                  |   Yes    | Renderer name                  |
+| `settings` | `Record<string, unknown>` |    No    | Renderer-specific settings  |
+
+---
+
+### !options
+
+Adds value options. Automatically switches text/number fields to the `dropdown` renderer.
+
+**Signature:**
+
+```typescript
+builder.options(opts: IValueOption[] | ((form: IFormModel) => IValueOption[])): this
+```
+
+**Parameters:**
+
+| Parameter | Type                           | Required | Description                                      |
+| --------- | ------------------------------ | :------: | ------------------------------------------------ |
+| `opts`    | `IValueOption[] \| function` |   Yes    | Static array or function returning options dynamically |
+
+Each `IValueOption` has: `{ label: string, value: string | number, disabled?: boolean }`.
+
+---
+
+### !list
+
+Converts the field to an array field. Automatically switches renderers (e.g., `textInput` to `textInputs`, `objectAccordionSingle` to `objectAccordionMultiple`).
+
+**Signature:**
+
+```typescript
+builder.list(): this
+```
+
+---
+
+### !hidden
+
+Hides the field from the UI. The value remains in the form data.
+
+**Signature:**
+
+```typescript
+builder.hidden(): this
+```
+
+---
+
+### !disabled
+
+Disables the field.
+
+**Signature:**
+
+```typescript
+builder.disabled(value?: boolean): this
+```
+
+---
+
+### !rules
+
+Sets conditional visibility and disable rules for the field. See [Conditional Rules](#conditional-rules).
+
+**Signature:**
+
+```typescript
+builder.rules(rules: IRule[]): this
+```
+
+---
+
+### !computed
+
+Makes the field always computed — its value is recalculated whenever dependencies change.
+
+**Signature:**
+
+```typescript
+builder.computed(fn: (form: IFormModel) => unknown): this
+```
+
+---
+
+### !computedUntilDirty
+
+Makes the field computed until the user manually edits it.
+
+**Signature:**
+
+```typescript
+builder.computedUntilDirty(fn: (form: IFormModel) => unknown): this
+```
+
+---
+
+### !beforeChange
+
+Adds a transform that runs before a value change is applied. Return the transformed value.
+
+**Signature:**
+
+```typescript
+builder.beforeChange(fn: (value: unknown, form: IFormModel) => unknown): this
+```
+
+---
+
+### !afterChange
+
+Adds a callback that runs after a value change is applied.
+
+**Signature:**
+
+```typescript
+builder.afterChange(fn: (value: unknown, form: IFormModel) => void): this
+```
+
+---
+
+### !afterSetValue
+
+Adds a callback that runs after a programmatic `setValue()` call.
+
+**Signature:**
+
+```typescript
+builder.afterSetValue(fn: (value: unknown, form: IFormModel) => void): this
+```
+
+---
+
+### !onBlur
+
+Adds a callback that runs when the field loses focus.
+
+**Signature:**
+
+```typescript
+builder.onBlur(fn: (value: unknown, form: IFormModel) => void): this
+```
+
+---
+
+### !cloneValue
+
+Sets custom clone logic for when a list item containing this field is duplicated.
+
+**Signature:**
+
+```typescript
+builder.cloneValue(fn: (value: unknown) => unknown): this
+```
+
+---
+
+### !tags
+
+Tags the field for programmatic lookup.
+
+**Signature:**
+
+```typescript
+builder.tags(tags: string[]): this
+```
+
+---
+
+## Field Instance
+
+The `IField` interface represents a runtime field instance, returned by `form.field("name")`.
+
+### !getValue
+
+Gets the current field value.
+
+**Signature:**
+
+```typescript
+field.getValue<T = unknown>(): T
+```
+
+---
+
+### !setValue
+
+Sets the field value, triggering `beforeChange` and `afterChange` callbacks.
+
+**Signature:**
+
+```typescript
+field.setValue(value: unknown): void
+```
+
+---
+
+### !setValueSilent
+
+Sets the field value without triggering callbacks.
+
+**Signature:**
+
+```typescript
+field.setValueSilent(value: unknown): void
+```
+
+---
+
+### !as
+
+Casts the field to a typed field interface.
+
+**Signature:**
+
+```typescript
+field.as<T extends keyof FieldTypeMap>(type: T): FieldTypeMap[T]
+```
+
+**Parameters:**
+
+| Parameter | Type     | Required | Description                                         |
+| --------- | -------- | :------: | --------------------------------------------------- |
+| `type`    | `string` |   Yes    | Field type to cast to (e.g. `"object"`, `"text"`) |
+
+---
+
+### !validate
+
+Validates the field against its schema, required status, and rules.
+
+**Signature:**
+
+```typescript
+field.validate(options?: { force?: boolean }): Promise<boolean>
+```
+
+---
+
+### !blur
+
+Triggers the blur event on the field.
+
+**Signature:**
+
+```typescript
+field.blur(): void
+```
+
+---
+
+### !focus
+
+Requests focus on the field.
+
+**Signature:**
+
+```typescript
+field.focus(): void
+```
+
+---
+
+### !remove
+
+Removes the field from the form model.
+
+**Signature:**
+
+```typescript
+field.remove(): void
+```
+
+---
+
+### !setDisabled
+
+Sets the disabled state of the field.
+
+**Signature:**
+
+```typescript
+field.setDisabled(value: boolean): void
+```
+
+---
+
+### !setVisible
+
+Sets the visibility of the field.
+
+**Signature:**
+
+```typescript
+field.setVisible(value: boolean): void
+```
+
+---
+
+### Properties
+
+| Property        | Type              | Description                              |
+| --------------- | ----------------- | ---------------------------------------- |
+| `name`          | `string`          | Field name                               |
+| `type`          | `string`          | Field type (e.g. `"text"`, `"number"`) |
+| `visible`       | `boolean`         | Whether the field is visible             |
+| `disabled`      | `boolean`         | Whether the field is disabled            |
+| `qualifiedName` | `string`          | Full dot-notation path for nested fields |
+| `isComputed`    | `boolean`         | Whether the field is computed            |
+| `vm`            | `IFieldVM`        | View model for rendering                 |
+
+---
+
+## Object Fields
+
+Object fields support nested structures, lists, and dynamic zones (templates). Access via `form.field("name").as("object")` or use the `ObjectFieldBuilder`.
+
+### Builder Methods
+
+#### !fields
+
+Defines child fields for the object.
+
+**Signature:**
+
+```typescript
+builder.fields(fn: (fields: IFieldBuilderRegistry) => Record<string, IFieldBuilder>): this
+```
+
+---
+
+#### !template
+
+Defines a dynamic zone template. Calling `.template()` automatically switches the renderer to `dynamicZone`.
+
+**Signature:**
+
+```typescript
+builder.template(id: string, configure: (t: ITemplateBuilder) => void): this
+```
+
+The `ITemplateBuilder` supports:
+
+| Method                  | Description                                   |
+| ----------------------- | --------------------------------------------- |
+| `.label(text)`          | Template display name                         |
+| `.icon(icon)`           | Template icon                                 |
+| `.fields(fn)`           | Define template fields                        |
+| `.visible(predicate)`   | Conditional template visibility               |
+
+---
+
+#### !listSchema
+
+Adds a Zod validation schema for the list as a whole.
+
+**Signature:**
+
+```typescript
+builder.listSchema(schema: z.ZodTypeAny): this
+```
+
+---
+
+### Runtime Methods
+
+These methods are available on `IObjectField`, accessed via `form.field("name").as("object")`.
+
+#### !addItem
+
+Adds a new item to a list object field. For templated fields, pass a template ID.
+
+**Signature:**
+
+```typescript
+objectField.addItem(templateIdOrData?: string | Record<string, unknown>, data?: Record<string, unknown>): void
+```
+
+---
+
+#### !removeItem
+
+Removes an item from a list object field by index.
+
+**Signature:**
+
+```typescript
+objectField.removeItem(index: number): void
+```
+
+---
+
+#### !moveItem
+
+Moves an item within a list object field.
+
+**Signature:**
+
+```typescript
+objectField.moveItem(fromIndex: number, toIndex: number): void
+```
+
+---
+
+#### !duplicateItem
+
+Duplicates an item in a list object field.
+
+**Signature:**
+
+```typescript
+objectField.duplicateItem(index: number): void
+```
+
+---
+
+#### !setTemplate
+
+Sets the active template on a single-value templated object field.
+
+**Signature:**
+
+```typescript
+objectField.setTemplate(templateId: string): void
+```
+
+---
+
+#### Runtime Template Management
+
+Templates can be added or removed at runtime via the `templates` property:
+
+```typescript
+const sections = form.field("sections").as("object");
+
+sections.templates.remove("text");
+
+sections.templates.add("banner", t => {
+    t.label("Banner").fields(f => ({
+        headline: f.text().label("Headline").required()
+    }));
+});
+```
+
+---
+
+### Properties
+
+| Property             | Type              | Description                               |
+| -------------------- | ----------------- | ----------------------------------------- |
+| `isList`             | `boolean`         | Whether this is a list object field        |
+| `isTemplated`        | `boolean`         | Whether templates are defined              |
+| `activeTemplateId`   | `string \| null` | Currently selected template ID             |
+| `availableTemplates` | `ITemplateVM[]`   | Available templates                        |
+| `children`           | `Map<string, IField>` | Child fields (for single objects)     |
+| `items`              | `IListItemField[]` | List items (for list objects)             |
+
+---
+
+## Layout Builder
+
+The layout builder controls how fields are arranged in the UI. Use `form.setLayout()` for initial layout definition, or `form.layout()` to modify an existing layout.
+
+### !row
+
+Arranges one or more fields in a horizontal row.
+
+**Signature:**
+
+```typescript
+layout.row(...fieldIds: string[]): IRowBuilder
+```
+
+---
+
+### !separator
+
+Adds a visual divider between layout sections.
+
+**Signature:**
+
+```typescript
+layout.separator(): ISeparatorBuilder
+```
+
+---
+
+### !tabs
+
+Creates a tabbed layout container.
+
+**Signature:**
+
+```typescript
+layout.tabs(id?: string): ITabsBuilder
+```
+
+The `ITabsBuilder` supports chaining:
+
+| Method                            | Description                                   |
+| --------------------------------- | --------------------------------------------- |
+| `.renderer(name)`                 | Set tab renderer (e.g. `"tabsVertical"`)     |
+| `.tab(id, configure)`             | Add a tab                                     |
+| `.rules(rules)`                   | Conditional visibility rules for the tab group |
+
+The tab `configure` callback receives an `ITabBuilder`:
+
+| Method                | Description                  |
+| --------------------- | ---------------------------- |
+| `.label(text)`        | Tab label                    |
+| `.description(text)`  | Tab description              |
+| `.icon(icon)`         | Tab icon                     |
+| `.layout(fn)`         | Tab content layout           |
+| `.rules(rules)`       | Tab-level visibility rules   |
+
+---
+
+### !element
+
+Adds a custom rendered element to the layout.
+
+**Signature:**
+
+```typescript
+layout.element(renderer: string, props?: Record<string, unknown>): IElementBuilder
+```
+
+---
+
+### !object
+
+Defines the inner layout for an object field.
+
+**Signature:**
+
+```typescript
+layout.object(fieldName: string, layout: (l: ILayoutBuilder) => ILayoutNodeBuilder[]): IObjectBuilder
+```
+
+**Overload — per-template layouts for dynamic zones:**
+
+```typescript
+layout.object(fieldName: string, templateLayouts: Record<string, (l: ILayoutBuilder) => ILayoutNodeBuilder[]>): IObjectBuilder
+```
+
+---
+
+### Positioning
+
+When modifying an existing layout, use `.after()` or `.before()` to position relative to existing fields:
+
+```typescript
+layout.row("newField").after("existingField");
+layout.row("anotherField").before("existingField");
+```
+
+The `.replace(target)` method removes the target and inserts the new node in its place.
+
+---
+
+## Conditional Rules
+
+Rules control field visibility and disabled state based on other field values. Pass them via the `.rules()` builder method.
+
+**Rule structure:**
+
+| Property   | Type     | Description                        |
+| ---------- | -------- | ---------------------------------- |
+| `type`     | `string` | Rule type (use `"condition"`)     |
+| `target`   | `string` | Field name to watch                |
+| `operator` | `string` | Comparison operator (see below)    |
+| `value`    | `string \| null` | Comparison value (`null` for unary operators) |
+| `action`   | `string` | `"hide"` or `"disable"`          |
+
+### Operators
+
+| Operator       | Description                                   |
+| -------------- | --------------------------------------------- |
+| `"eq"`         | Equal to value                                |
+| `"neq"`        | Not equal to value                            |
+| `"isEmpty"`    | Null, undefined, empty string, or empty array |
+| `"isNotEmpty"` | Has a non-empty value                         |
+| `"isTruthy"`   | Boolean coercion is true                      |
+| `"isFalsy"`    | Boolean coercion is false                     |
+| `"matches"`    | Exact string match                            |
+
+---
+
+## Built-in Renderers
+
+| Renderer                  | Field Type                 | Settings                                                        | Description                              |
+| ------------------------- | -------------------------- | --------------------------------------------------------------- | ---------------------------------------- |
+| `textInput`               | text                       | --                                                               | Single-line text input                   |
+| `textarea`                | text                       | `{ rows?: number }`                                             | Multi-line text area                     |
+| `textInputs`              | text (list)                | `{ addItemLabel?: string }`                                     | List of text inputs                      |
+| `textareas`               | text (list)                | `{ addItemLabel?: string }`                                     | List of textareas                        |
+| `tags`                    | text (list)                | --                                                               | Comma-separated tag input                |
+| `codeEditor`              | text                       | `{ language?: string, height?: number }`                        | Code editor with syntax highlighting     |
+| `dropdown`                | text, number               | --                                                               | Select dropdown (auto when `.options()`) |
+| `radioButtons`            | text, number               | --                                                               | Radio button group                       |
+| `checkboxes`              | text (list), number (list) | --                                                               | Checkbox group                           |
+| `numberInput`             | number                     | --                                                               | Number input                             |
+| `numberInputs`            | number (list)              | `{ addItemLabel?: string }`                                     | List of number inputs                    |
+| `switch`                  | boolean                    | --                                                               | Toggle switch                            |
+| `dateTimeInput`           | datetime                   | `{ type, displayFormat?, yearRange?, weekStartsOn?, presets? }` | Date/time picker                         |
+| `dateTimeInputs`          | datetime (list)            | `{ type, displayFormat?, weekStartsOn?, addItemLabel? }`        | List of date/time pickers                |
+| `filePicker`              | file                       | --                                                               | File picker with full metadata           |
+| `fileUrlPicker`           | fileUrl                    | --                                                               | File picker returning URL only           |
+| `objectAccordionSingle`   | object                     | `{ open?: boolean }`                                            | Single object in accordion               |
+| `objectAccordionMultiple` | object (list)              | `{ open?, container?, itemTitle?, addItemLabel? }`              | List of objects in accordions            |
+| `dynamicZone`             | object (templates)         | `{ container?: boolean }`                                       | Template picker zone                     |
+| `passthrough`             | object                     | --                                                               | Renders child fields inline              |
+| `keyValueTags`            | object (list)              | `{ addItemLabel?: string }`                                     | Key-value tag pairs                      |
+| `hidden`                  | any                        | --                                                               | Hidden field (no UI rendered)            |
+
+### Automatic Renderer Switching
+
+- Calling `.options()` on text/number fields switches to `dropdown`
+- Calling `.list()` on datetime switches to `dateTimeInputs`
+- Calling `.list()` on object switches to `objectAccordionMultiple`
+- Calling `.template()` on object switches to `dynamicZone`
+
+---
+
+## Custom Renderers
+
+### !createFieldRenderer
+
+Creates a custom field renderer component.
+
+**Signature:**
+
+```typescript
+createFieldRenderer<TName extends string>(
+    render: (props: { field: RendererField<TName> }) => React.ReactNode
+): React.ComponentType<{ field: IFieldVM }>
+```
+
+---
+
+### !createObjectFieldRenderer
+
+Creates a custom renderer for object fields.
+
+**Signature:**
+
+```typescript
+createObjectFieldRenderer<TName extends string>(
+    render: (props: { field: ObjectRendererField<TName> }) => React.ReactNode
+): React.ComponentType<{ field: IFieldVM }>
+```
+
+---
+
+## FormView
+
+The `FormView` component renders a form model in the UI.
+
+**Signature:**
+
+```typescript
+<FormView form={formModel.vm} renderers={fieldRenderers} layoutRenderers={layoutRenderers} />
+```
+
+**Props:**
+
+| Prop              | Type              | Required | Description                         |
+| ----------------- | ----------------- | :------: | ----------------------------------- |
+| `form`            | `IFormVM`         |   Yes    | The form view model                 |
+| `renderers`       | `FieldRenderers`  |    No    | Custom field renderer overrides     |
+| `layoutRenderers` | `LayoutRenderers` |    No    | Custom layout renderer overrides    |

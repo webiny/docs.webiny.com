@@ -47,6 +47,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       <Group title={"Admin"} icon={"/docs/menu-icons/admin.svg"} link={"admin/whitelabeling"}>
         <Page link={"admin/whitelabeling"} />
         <Page link={"admin/connect-custom-domain"} />
+        <Page link={"admin/build-params"} />
       </Group>
       <Group
         title={"API"}
@@ -55,6 +56,9 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       >
         <Page link={"webiny-api/connect-custom-domain"} />
         <Page link={"webiny-api/extend-graphql-schema"} />
+        <Page link={"webiny-api/api-routes"} />
+        <Page link={"webiny-api/build-params"} />
+        <Page link={"webiny-api/encryption"} title={"Encryption"} />
         <Page link={"background-tasks/about"} title={"Background Tasks"} />
       </Group>
       <Separator title={"Apps"} />
@@ -115,6 +119,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"website-builder/theme"} title={"Configure Theme"} />
         <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
         <Page link={"website-builder/page-types"} title={"Page Types"} />
+        <Page link={"website-builder/page-settings"} title={"Page Settings"} />
         <Page
           link={"website-builder/customize-page-list-columns"}
           title={"Customize Page List Columns"}
@@ -134,7 +139,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
       {/*  <Page link={"graphql/reference"} />*/}
       {/*  <Page link={"graphql/example"} />*/}
       {/*</Group>*/}
-{/*<Group*/}
+      {/*<Group*/}
       {/*  title={"Tenant Manager"}*/}
       {/*  icon={"/docs/menu-icons/webiny-overview.svg"}*/}
       {/*  link={"tenant-manager/manage-tenants"}*/}
@@ -174,6 +179,8 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         />
         <Page link={"infrastructure/ci-cd"} title={"CI/CD"} />
         <Page link={"infrastructure/github-actions"} title={"GitHub Actions"} />
+        <Page link={"infrastructure/dynamodb-only"} title={"DynamoDB-Only Dev Environments"} />
+        <Page link={"infrastructure/opensearch"} title={"Shared OpenSearch Cluster"} />
         <Group title={"Extensions"} link={"infrastructure/extensions/aws-tags"}>
           <Page link={"infrastructure/extensions/aws-tags"} title={"AWS Tags"} />
           <Page
@@ -194,13 +201,21 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             link={"infrastructure/extensions/build-and-deploy-hooks"}
             title={"Build and Deploy Hooks"}
           />
+          <Page link={"infrastructure/extensions/encryption"} title={"Encryption"} />
         </Group>
       </Group>
       <Group
         title={"Reference"}
         icon={"/docs/menu-icons/reference-manual.svg"}
-        link={"reference/sdk/overview"}
+        link={"reference/extensions/api"}
       >
+        <Group title={"Extensions"} link={"reference/extensions/api"}>
+          <Page link={"reference/extensions/api"} title={"Api"} />
+          <Page link={"reference/extensions/admin"} title={"Admin"} />
+          <Page link={"reference/extensions/infra"} title={"Infra"} />
+          <Page link={"reference/extensions/cli"} title={"Cli"} />
+          <Page link={"reference/extensions/project"} title={"Project"} />
+        </Group>
         {/* __REFERENCE_PAGES_START__ */}
         {/* __SDK_PAGES_START__ */}
         <Group title={"SDK"} link={"reference/sdk/overview"}>
@@ -209,9 +224,13 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           <Page link={"reference/sdk/languages"} title={"Languages"} />
           <Page link={"reference/sdk/file-manager"} title={"File Manager"} />
           <Page link={"reference/sdk/tenant-manager"} title={"Tenant Manager"} />
+          <Page link={"reference/sdk/tasks"} title={"Tasks"} />
         </Group>
         {/* __SDK_PAGES_END__ */}
         {/* __REFERENCE_PAGES_END__ */}
+        <Group title={"Admin"} link={"reference/admin/form-model"}>
+          <Page link={"reference/admin/form-model"} title={"Form Model"} />
+        </Group>
       </Group>
       <Separator />
       {children}

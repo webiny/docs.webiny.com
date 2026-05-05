@@ -1,0 +1,81 @@
+---
+id: mx4t7vkp
+title: Encryption
+description: Learn how to configure and use the built-in encryption service in Webiny.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to configure the encryption passphrase in `webiny.config.tsx`
+- how to inject and use the `Encryption` service in your API extensions
+
+</Alert>
+
+## Overview
+
+Webiny includes a built-in encryption service that lets you encrypt and decrypt strings using AES-256-GCM. It is available as a DI token (`Encryption`) that can be injected into any API feature.
+
+The passphrase is configured in `webiny.config.tsx` via `Infra.Encryption`. When not configured, `encrypt` and `decrypt` pass values through unchanged, so existing deployments continue to work without modification.
+
+<Alert type="warning">
+
+Deploying to a [production environment](/{version}/infrastructure/extensions/production-environments) without encryption configured will fail with an error. Configure the passphrase before deploying to production.
+
+</Alert>
+
+## Configuration
+
+Set the passphrase in `webiny.config.tsx`. Scope it to production environments so development deployments are unaffected:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Infra.Env.IsProd>
+        <Infra.Encryption passphrase={process.env.WEBINY_ENCRYPTION_PASSPHRASE || ""} />
+      </Infra.Env.IsProd>
+    </>
+  );
+};
+```
+
+Store the passphrase in an environment variable and never commit it to source control.
+
+## Usage
+
+Inject `Encryption` into any API feature:
+
+```typescript
+import { Encryption, Route } from "webiny/api";
+
+class MyApiRouteImpl implements Route.Interface {
+  constructor(private encryption: Encryption.Interface) {}
+
+  async execute(request: Route.Request, reply: Route.Reply) {
+    const cipher = this.encryption.encrypt("sensitive-value");
+    const plain = this.encryption.decrypt(cipher);
+
+    return reply.send({ cipher, plain });
+  }
+}
+
+export default Route.createImplementation({
+  implementation: MyApiRouteImpl,
+  dependencies: [Encryption]
+});
+```
+
+## Redeploying After Changes
+
+After making changes, redeploy by running the [`webiny deploy`](/{version}/cli/deploy) command:
+
+```
+yarn webiny deploy
+```
+
+Use `--env <name>` to target a specific environment if needed.

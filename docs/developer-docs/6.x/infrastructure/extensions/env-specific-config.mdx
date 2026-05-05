@@ -9,6 +9,7 @@ import { Alert } from "@/components/Alert";
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
 - how to apply different infrastructure settings per environment using `Infra.Env.Is`
+- how to read the current environment name inside extension logic using `Infra.Env.useEnv`
 
 </Alert>
 
@@ -40,6 +41,31 @@ export const Extensions = () => {
 ```
 
 `Infra.Env.Is` accepts either a single environment name string or an array of names. Any `Infra.*` component can be nested inside it.
+
+## Reading the Current Environment
+
+Use `Infra.Env.useEnv` when you need the environment name as a value inside your own extension logic — for example, to build a resource name prefix dynamically:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Infra } from "webiny/extensions";
+
+const MyResourceNamePrefix = () => {
+  const env = Infra.Env.useEnv();
+
+  return <Infra.PulumiResourceNamePrefix prefix={`myapp-${env.name}-`} />;
+};
+
+export const Extensions = () => {
+  return (
+    <>
+      <MyResourceNamePrefix />
+    </>
+  );
+};
+```
+
+`env.name` returns the value passed via `--env` when running `webiny deploy --env <name>`.
 
 ## Redeploying After Changes
 

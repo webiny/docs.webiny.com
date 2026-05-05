@@ -10,6 +10,7 @@ A TypeScript validation script that ensures every `.mdx` file in `docs/developer
 ## Requirements
 
 ### Functional
+
 - Validate bidirectional pairing between `.mdx` and `.ai.txt` files
 - Scope limited to `docs/developer-docs/6.0.x/` directory only
 - Support glob-based exception patterns
@@ -18,6 +19,7 @@ A TypeScript validation script that ensures every `.mdx` file in `docs/developer
 - Standalone script callable from CI or build process
 
 ### Non-Functional
+
 - TypeScript for type safety and code clarity
 - JSON configuration for easy maintenance
 - Use existing project dependencies where possible
@@ -48,6 +50,7 @@ scripts/validate-mdx-pairing.ts   ← TypeScript validation script
 ### Integration
 
 **Package.json script:**
+
 ```json
 "scripts": {
   "validate:mdx": "tsx scripts/validate-mdx-pairing.ts"
@@ -57,6 +60,7 @@ scripts/validate-mdx-pairing.ts   ← TypeScript validation script
 **Run with:** `yarn validate:mdx`
 
 **Future integration points:**
+
 - CI/GitHub Actions
 - Pre-build validation
 - Pre-commit hooks (optional)
@@ -158,6 +162,7 @@ printResults(result: ValidationResult): void
 Only show the direction(s) with issues:
 
 **Missing .ai.txt files:**
+
 ```
 ✗ Validation failed
 
@@ -167,6 +172,7 @@ Missing .ai.txt files:
 ```
 
 **Orphaned .ai.txt files:**
+
 ```
 ✗ Validation failed
 
@@ -220,9 +226,11 @@ throw new Error(`Cannot read directory: ${config.targetDir}`);
 ## Dependencies
 
 ### New Dependencies
+
 - `tsx` (devDependency) - TypeScript execution runtime
 
 ### Existing Dependencies
+
 - `globby` - File pattern matching
 - `fs-extra` - File system operations
 - `minimatch` - Glob pattern matching (via globby)
@@ -246,6 +254,7 @@ The initial `.mdx-validation.json` includes the 4 currently missing files as exc
 ## Future Enhancements
 
 Potential additions (not in initial scope):
+
 - `--quiet` flag for CI (suppress success messages)
 - `--fix` flag to generate missing .ai.txt stub files
 - Multiple target directories

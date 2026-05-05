@@ -1,0 +1,109 @@
+---
+id: v9r4mf6c
+title: Build-Time Parameters
+description: Learn how to pass build-time configuration values into Admin components using Admin.BuildParam and useBuildParams.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- how to register a build-time parameter in `webiny.config.tsx`
+- how to access it in React components and hooks via `useBuildParams`
+- how to access it in non-React Admin code via `BuildParams`
+
+</Alert>
+
+## Overview
+
+`BuildParams` is the mechanism for passing configuration values — determined at build time — into the Admin application. Values are registered in `webiny.config.tsx` using `Admin.BuildParam` and embedded directly into the Admin bundle during the build step. Inside React components and hooks, they are accessed via the `useBuildParams` hook. In non-React Admin code (services, class-based extensions), inject `BuildParams` directly via dependency injection.
+
+## Registering a Parameter
+
+Declare parameters in `webiny.config.tsx` using `Admin.BuildParam`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Admin } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <Admin.BuildParam paramName={"supportEmail"} value={"support@example.com"} />
+      <Admin.BuildParam paramName={"featureXEnabled"} value={true} />
+    </>
+  );
+};
+```
+
+The `value` can be a string, number, boolean, object, or array.
+
+## Accessing Parameters in a Component
+
+Use the `useBuildParams` hook anywhere in the Admin React tree:
+
+```tsx extensions/SupportBanner.tsx
+import React from "react";
+import { useBuildParams } from "webiny/admin";
+export const SupportBanner = () => {
+  const params = useBuildParams();
+  const supportEmail = params.get<string>("supportEmail");
+
+  if (!supportEmail) {
+    return null;
+  }
+
+  return (
+    <div>
+      Need help? Email us at <a href={`mailto:${supportEmail}`}>{supportEmail}</a>
+    </div>
+  );
+};
+```
+
+`params.get<T>(key)` returns the value typed as `T`, or `null` if the key was not registered.
+
+You can also call `useBuildParams` inside a custom hook:
+
+```typescript extensions/useSupportEmail.ts
+import { useBuildParams } from "webiny/admin";
+export const useSupportEmail = () => {
+  const params = useBuildParams();
+  return params.get<string>("supportEmail");
+};
+```
+
+## Accessing Parameters in Non-React Code
+
+In class-based Admin extensions (services, event handlers, use cases), inject `BuildParams` via the constructor:
+
+```typescript extensions/MyAdminService.ts
+import { BuildParams } from "webiny/admin";
+class MyAdminServiceImpl implements MyAdminService.Interface {
+  public constructor(private buildParams: BuildParams.Interface) {}
+
+  public async execute(): Promise<void> {
+    const apiUrl = this.buildParams.get<string>("externalApiUrl");
+    // ...
+  }
+}
+
+export default MyAdminService.createImplementation({
+  implementation: MyAdminServiceImpl,
+  dependencies: [BuildParams]
+});
+```
+
+## Deploying
+
+After adding or changing an `Admin.BuildParam`, rebuild and redeploy the Admin app:
+
+```
+yarn webiny deploy admin
+```
+
+During development, rerunning watch is enough — no full deploy needed:
+
+```
+yarn webiny watch admin
+```

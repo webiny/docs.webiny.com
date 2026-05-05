@@ -5,6 +5,7 @@ export const Navigation = () => {
   return (
     <NavigationRoot directory={__dirname} linkPrefix={"messages"}>
       <Page link={"./cloudwatch"} hidden={true} />
+      <Page link={"./encryption"} hidden={false} />
       <Page link={"./lambda-edge-warning"} hidden={true} />
       <Page link={"./missing-stack-output"} hidden={true} />
       <Page link={"./webiny-package-versions-check"} hidden={true} />

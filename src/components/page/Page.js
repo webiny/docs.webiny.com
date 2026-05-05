@@ -17,7 +17,7 @@ export const Page = () => {
 
     return (
         <>
-            <Title suffix="Webiny Docs"/>
+            <Title suffix="Webiny Docs" />
             <Head>
                 <meta key="twitter:card" name="twitter:card" content="summary_large_image" />
                 <meta key="twitter:site" name="twitter:site" content="@WebinyCMS" />
@@ -63,7 +63,10 @@ export const Page = () => {
                     href="/feeds/feed.json"
                 />
                 {page.canonicalPath ? (
-                    <link rel="canonical" href={"https://docs.webiny.com/docs" + page.canonicalPath} />
+                    <link
+                        rel="canonical"
+                        href={"https://docs.webiny.com/docs" + page.canonicalPath}
+                    />
                 ) : null}
             </Head>
             <SearchProvider>

@@ -4,7 +4,7 @@ title: Private Model Builder and Usage
 description: About Private Models, how and where to use them.
 ---
 
-import {Alert} from "@/components/Alert";
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
@@ -27,26 +27,26 @@ Private models are not exposed through the GraphQL API, so you need to expose th
 import { ModelFactory } from "webiny/api/cms/model";
 
 class UserLogImpl implements ModelFactory.Interface {
-    public async execute(builder: ModelFactory.Builder): ModelFactory.Return {
-        return [
-            builder
-                .private({
-                    name: "UserLog",
-                    modelId: "userLog"
-                })
-                .fields(fieldBuilder => {
-                    return {
-                        id: fieldBuilder.text().label("id").required(),
-                        ip: fieldBuilder.text().label("ip").required()
-                    };
-                })
-        ];
-    }
+  public async execute(builder: ModelFactory.Builder): ModelFactory.Return {
+    return [
+      builder
+        .private({
+          name: "UserLog",
+          modelId: "userLog"
+        })
+        .fields(fieldBuilder => {
+          return {
+            id: fieldBuilder.text().label("id").required(),
+            ip: fieldBuilder.text().label("ip").required()
+          };
+        })
+    ];
+  }
 }
 
 const UserLog = ModelFactory.createImplementation({
-    implementation: UserLogImpl,
-    dependencies: []
+  implementation: UserLogImpl,
+  dependencies: []
 });
 
 export default UserLog;
@@ -62,37 +62,37 @@ import { CreateEntryUseCase } from "webiny/api/cms/entry";
 import { GetModelUseCase } from "webiny/api/cms/model";
 
 class LogUser implements AfterAuthenticationHandler.Interface {
-    public constructor(
-        private createEntryUseCase: CreateEntryUseCase.Interface,
-        private getModelUseCase: GetModelUseCase.Interface
-    ) {}
+  public constructor(
+    private createEntryUseCase: CreateEntryUseCase.Interface,
+    private getModelUseCase: GetModelUseCase.Interface
+  ) {}
 
-    public async handle(event: AfterAuthenticationHandler.Event) {
-        const { payload } = event;
-        const { identity } = payload;
-        if (identity.isAnonymous()) {
-            return;
-        }
-        const model = await this.getModel();
-        await this.createEntryUseCase.execute(model, {
-            values: {
-                userId: identity.id
-            }
-        });
+  public async handle(event: AfterAuthenticationHandler.Event) {
+    const { payload } = event;
+    const { identity } = payload;
+    if (identity.isAnonymous()) {
+      return;
     }
+    const model = await this.getModel();
+    await this.createEntryUseCase.execute(model, {
+      values: {
+        userId: identity.id
+      }
+    });
+  }
 
-    private async getModel() {
-        const result = await this.getModelUseCase.execute("userLog");
-        if (result.isFail()) {
-            throw new Error(result.error.message);
-        }
-        return result.value;
+  private async getModel() {
+    const result = await this.getModelUseCase.execute("userLog");
+    if (result.isFail()) {
+      throw new Error(result.error.message);
     }
+    return result.value;
+  }
 }
 
 export default AfterAuthenticationHandler.createImplementation({
-    implementation: LogUser,
-    dependencies: [CreateEntryUseCase, GetModelUseCase]
+  implementation: LogUser,
+  dependencies: [CreateEntryUseCase, GetModelUseCase]
 });
 ```
 
@@ -114,22 +114,21 @@ import { ListEntriesUseCase } from "webiny/api/cms/entry";
 
 const modelResult = await this.getModelUseCase.execute("userLog");
 if (modelResult.isFail()) {
-    throw new Error(model.error.message);
+  throw new Error(model.error.message);
 }
 const model = modelResult.value;
 
 const entriesResult = await this.listEntriesUseCase.execute(model, {
-    where: {
-        userId: "some-user-id"
-    }
+  where: {
+    userId: "some-user-id"
+  }
 });
 if (entriesResult.isFail()) {
-    throw new Error(entriesResult.error.message);
+  throw new Error(entriesResult.error.message);
 }
 const userLogs = entriesResult.value;
 
 console.log({
-    userLogs
+  userLogs
 });
-
 ```

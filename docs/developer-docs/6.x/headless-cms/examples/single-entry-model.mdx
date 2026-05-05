@@ -3,7 +3,8 @@ id: cxmf6k99
 title: Single Entry Model Builder and Usage
 description: About Single Entry Models, how and where to use them.
 ---
-import {Alert} from "@/components/Alert";
+
+import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
@@ -24,48 +25,43 @@ import { ModelFactory } from "webiny/api/cms/model";
 import { ListGroupsUseCase } from "webiny/api/cms/group";
 
 class SettingsImpl implements ModelFactory.Interface {
-    public constructor(private listGroupsUseCase: ListGroupsUseCase.Interface) {}
+  public constructor(private listGroupsUseCase: ListGroupsUseCase.Interface) {}
 
-    public async execute(builder: ModelFactory.Builder): ModelFactory.Return {
-        const groups = await this.listGroupsUseCase.execute();
-        if (groups.isFail()) {
-            throw new Error(`Could not load groups: ${groups.error.message}`);
-        }
-        const [group] = groups.value;
-
-        if (!group) {
-            throw new Error(`At least one group must exist to create models.`);
-        }
-
-        return [
-            builder
-                .public({
-                  name: "Settings",
-                  modelId: "settings",
-                  group: group.slug,
-                  singularApiName: "Setting",
-                  pluralApiName: "Settings"
-                })
-                .singleEntry()
-                .description("A model used to store settings.")
-                .fields(fieldBuilder => {
-                    return {
-                        googleAnalytics: fieldBuilder
-                            .text()
-                            .label("Google Analytics")
-                            .required(),
-                        facebookPixel: fieldBuilder
-                            .text()
-                            .label("Facebook Pixel")
-                    };
-                })
-        ];
+  public async execute(builder: ModelFactory.Builder): ModelFactory.Return {
+    const groups = await this.listGroupsUseCase.execute();
+    if (groups.isFail()) {
+      throw new Error(`Could not load groups: ${groups.error.message}`);
     }
+    const [group] = groups.value;
+
+    if (!group) {
+      throw new Error(`At least one group must exist to create models.`);
+    }
+
+    return [
+      builder
+        .public({
+          name: "Settings",
+          modelId: "settings",
+          group: group.slug,
+          singularApiName: "Setting",
+          pluralApiName: "Settings"
+        })
+        .singleEntry()
+        .description("A model used to store settings.")
+        .fields(fieldBuilder => {
+          return {
+            googleAnalytics: fieldBuilder.text().label("Google Analytics").required(),
+            facebookPixel: fieldBuilder.text().label("Facebook Pixel")
+          };
+        })
+    ];
+  }
 }
 
 const Settings = ModelFactory.createImplementation({
-    implementation: SettingsImpl,
-    dependencies: [ListGroupsUseCase]
+  implementation: SettingsImpl,
+  dependencies: [ListGroupsUseCase]
 });
 
 export default Settings;

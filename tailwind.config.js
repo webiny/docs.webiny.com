@@ -31,7 +31,7 @@ module.exports = {
                 "dark-grey-2": "#33363B",
                 "dark-grey-3": "#1F2227",
                 "dark-grey-4": "#2A2C31",
-                "dark-grey-5": '#25282E',
+                "dark-grey-5": "#25282E",
                 "light-grey": "#CBCBCB",
                 "light-grey-2": "#959595",
                 "light-grey-3": "#6D738A",
@@ -95,7 +95,7 @@ module.exports = {
                         },
                         h5: {
                             fontWeight: 700,
-                            fontSize: "1rem",
+                            fontSize: "1rem"
                         },
                         "h1 *, h2 *, h3 *, h4 *": {
                             fontSize: "inherit !important"

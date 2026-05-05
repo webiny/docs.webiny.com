@@ -99,4 +99,3 @@ console.log(`  Redirects:    ${redirectSlugs.length} pages need /docs/{slug} →
 
 fs.writeFileSync(OUTPUT_FILE, JSON.stringify(redirectSlugs, null, 2));
 console.log(`  Written to:   ${OUTPUT_FILE}`);
-

@@ -1,0 +1,49 @@
+AI Context: Add Custom API Routes (api-routes.mdx)
+
+Source of Information:
+1. docs/release-notes/6.2.0/changelog.mdx — introduced in 6.2.0, #5066
+2. github.com/webiny/webiny-js PR #5066 — full implementation details, SKILL.md, ApiRoute.tsx
+3. docs/developer-docs/6.x/webiny-api/extend-graphql-schema.mdx — structural reference for sibling article
+
+Key Documentation Decisions:
+1. Leads with a brief overview explaining the infra-level implication (redeployment required) upfront — this is the most important thing to convey
+2. Covers path parameters and Route.Request/Route.Reply tables together since they are closely related
+3. Props reference is a table under Registering the Route (not a separate top-level section) — keeps the page linear and practical
+4. Avoided documenting BuildParams usage (available but not core to understanding routes) — keeps the article focused
+5. Does not call out export default — it's universal across all extensions, not a special rule here
+
+Understanding:
+Api.Route is a build-time extension in @webiny/project-aws (ApiRoute.tsx). At build time it:
+- Injects a createContextPlugin into apps/api/graphql/src/extensions.ts (registers the handler class in DI)
+- Injects a createRoute call (registers the Fastify route with hardcoded path/method from props)
+At deploy time (Pulumi):
+- Runs RegisterRoutesPulumi which calls graphql.addRoute({ name, path, method }) on the ApiGraphql Pulumi module
+- This creates the actual API Gateway route
+
+Route.Interface: execute(request: Route.Request, reply: Route.Reply): Promise<void>
+Route.createImplementation({ implementation, dependencies }) — same pattern as all other Webiny abstractions
+Supported methods: DELETE, GET, HEAD, PATCH, POST, PUT, OPTIONS, ANY
+Path parameters use {paramName} syntax (API Gateway/Fastify convention)
+Route.Request: body, headers, method, url, params, query
+Route.Reply: send(data?), code(statusCode), header(key, value) — chainable
+
+Key Rules from PR:
+- src must include .ts extension
+- Changing path or method requires yarn webiny deploy api (watch mode won't reprovision infra)
+- routeName prop is optional — auto-derived from path+method if omitted
+
+Related Documents:
+- docs/developer-docs/6.x/webiny-api/extend-graphql-schema.mdx — alternative: add a GraphQL endpoint instead
+- docs/developer-docs/6.x/core-concepts/di.mdx — DI pattern
+- docs/developer-docs/6.x/cli/deploy.mdx — deploy command reference
+
+Key Code Locations:
+- packages/project-aws/src/extensions/ApiRoute.tsx — extension implementation
+- packages/project-aws/src/extensions/RegisterRoutesPulumi.ts — Pulumi route registration
+- packages/handler/src/abstractions/Route.ts — Route.Interface, Route.Request, Route.Reply types
+- extensions/MyApiRoute.ts — example handler file in project root
+
+Tone Guidelines:
+- Practical and direct — lead with working code
+- Redeploy requirement is a warning, not an afterthought — mention in overview and again as an Alert before the deploy section
+- Same depth and style as extend-graphql-schema.mdx

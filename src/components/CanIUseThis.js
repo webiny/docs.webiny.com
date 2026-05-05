@@ -3,11 +3,7 @@ import { Alert } from "@/components/Alert";
 
 const LicenseMessage = ({ enterprise, business }) => {
     if (enterprise) {
-        return (
-            <p>
-                Webiny Enterprise license is required to use this feature.
-            </p>
-        );
+        return <p>Webiny Enterprise license is required to use this feature.</p>;
     }
 
     if (business) {
