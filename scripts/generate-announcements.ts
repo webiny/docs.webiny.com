@@ -1,5 +1,5 @@
 /**
- * Generates release announcements for Slack, Twitter, and LinkedIn for a given
+ * Generates release announcements for Slack and social media (X / LinkedIn) for a given
  * Webiny release version by reading the changelog MDX file and using Claude.
  *
  * Usage:
@@ -97,39 +97,12 @@ Here is a real example of the style to match:
 ${SLACK_STYLE_EXAMPLE}
 `.trim();
 
-const TWITTER_PROMPT = `
-You write Twitter/X announcements for Webiny releases. Webiny is an open-source serverless CMS platform.
+const SOCIAL_PROMPT = `
+You write social media announcements for Webiny releases. Webiny is an open-source serverless CMS platform.
+This post will be used on both X/Twitter and LinkedIn.
 
-Your output must be a plain-text tweet thread — no markdown, no bullet lists.
-No character limit applies, but keep each tweet punchy and focused.
-
-Format as a numbered thread where each tweet is separated by a blank line and prefixed with its number:
-
-1/ Opening tweet — announce the release with energy. Lead with the most exciting change or theme.
-   Include the version number. End with a hook that makes people want to read on.
-
-2/ through N/ — each tweet covers one theme from the changelog (e.g. Website Builder, Headless CMS,
-   Developer tooling). 1–3 sentences per tweet. Concrete and specific — name the actual features.
-   No fluff.
-
-Last tweet — links tweet. Plain text, no emoji overload:
-"Release notes & upgrade guide:
-Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog
-Upgrade guide: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
-
-Rules:
-- Replace VERSION with the actual release version number in the URLs.
-- Use real Unicode emoji sparingly (🚀 ✨ 🛠️ 🎯 etc.) — 1 per tweet max, only where genuinely fitting.
-- "Webiny" is always capitalised.
-- Tone: excited but technical. Speak to developers.
-- Do NOT use hashtags.
-`.trim();
-
-const LINKEDIN_PROMPT = `
-You write LinkedIn announcements for Webiny releases. Webiny is an open-source serverless CMS platform.
-
-Your output must be a plain-text LinkedIn post — no markdown, no bullet lists with dashes or asterisks.
-LinkedIn renders plain text with line breaks, so use blank lines between paragraphs.
+Your output must be plain text — no markdown, no bullet lists with dashes or asterisks.
+Use blank lines between paragraphs.
 
 Structure:
 
@@ -141,7 +114,7 @@ Structure:
 - Blank line
 - Closing paragraph: forward-looking, invite engagement (e.g. "Give it a try and let us know what you think.").
 - Blank line
-- Links (plain text, no label formatting):
+- Links (plain text):
   "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
   "Upgrade guide: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
 
@@ -212,12 +185,11 @@ async function main(): Promise<void> {
     }
     const client = new Anthropic({ apiKey });
 
-    console.log("  Generating Slack, Twitter, and LinkedIn posts in parallel...");
+    console.log("  Generating Slack and social posts in parallel...");
 
-    const [slack, twitter, linkedin] = await Promise.all([
+    const [slack, social] = await Promise.all([
         generate(client, SLACK_PROMPT, changelog, version, "Slack"),
-        generate(client, TWITTER_PROMPT, changelog, version, "Twitter"),
-        generate(client, LINKEDIN_PROMPT, changelog, version, "LinkedIn")
+        generate(client, SOCIAL_PROMPT, changelog, version, "social")
     ]);
 
     const outDir = join(process.cwd(), "docs", "release-notes", version, "announcements");
@@ -225,8 +197,7 @@ async function main(): Promise<void> {
 
     const files: Array<[string, string]> = [
         ["slack.md", slack],
-        ["twitter.md", twitter],
-        ["linkedin.md", linkedin]
+        ["social.md", social]
     ];
 
     for (const [filename, content] of files) {
@@ -235,8 +206,7 @@ async function main(): Promise<void> {
     }
 
     printSection("SLACK", slack);
-    printSection("TWITTER", twitter);
-    printSection("LINKEDIN", linkedin);
+    printSection("SOCIAL (X / LinkedIn)", social);
 
     console.log();
 }
