@@ -67,6 +67,9 @@ function inferPreviousVersion(version: string): string {
 function buildUpgradeGuideMdx(version: string, previousVersion: string): string {
     const id = Math.random().toString(36).slice(2, 10);
 
+    // previousVersion is like "6.2.x" — derive example patch versions from it
+    const prevBase = previousVersion.replace(".x", "");
+
     return `---
 id: ${id}
 title: Upgrade from ${previousVersion} to ${version}
@@ -92,10 +95,18 @@ Make sure to check out the [${version} changelog](./changelog) to get familiar w
 
 ### 1. Upgrade Webiny Packages
 
-Upgrade all Webiny NPM packages by running the following command:
+Upgrade all Webiny packages by running the following command:
 
 \`\`\`bash
-yarn up "@webiny/*@${version}"
+yarn webiny upgrade ${version}
+\`\`\`
+
+Note that the command above will run upgrades for all available versions of Webiny up to ${version}. If there are upgrades for ${prevBase}.1, ${prevBase}.5, they will be ran.
+
+You can omit the version to upgrade to the latest available:
+
+\`\`\`bash
+yarn webiny upgrade
 \`\`\`
 
 Once the upgrade has finished, running the \`yarn webiny --version\` command in your terminal should return **${version}**.
