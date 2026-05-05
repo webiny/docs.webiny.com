@@ -98,7 +98,7 @@ Make sure to check out the [${version} changelog](./changelog) to get familiar w
 Upgrade all Webiny packages by running the following command:
 
 \`\`\`bash
-yarn webiny upgrade ${version}
+yarn webiny upgrade ${version} --debug
 \`\`\`
 
 Note that the command above will run upgrades for all available versions of Webiny up to ${version}. If there are upgrades for ${prevBase}.1, ${prevBase}.5, they will be ran.
@@ -106,13 +106,7 @@ Note that the command above will run upgrades for all available versions of Webi
 You can omit the version to upgrade to the latest available:
 
 \`\`\`bash
-yarn webiny upgrade
-\`\`\`
-
-Add the \`--debug\` flag to get verbose output during the upgrade:
-
-\`\`\`bash
-yarn webiny upgrade ${version} --debug
+yarn webiny upgrade --debug
 \`\`\`
 
 Once the upgrade has finished, running the \`yarn webiny --version\` command in your terminal should return **${version}**.
