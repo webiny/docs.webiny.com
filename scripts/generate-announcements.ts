@@ -127,6 +127,30 @@ Rules:
 - Do NOT use bullet points or numbered lists anywhere.
 `.trim();
 
+const FOLLOWUP_TWEETS_PROMPT = `
+You write follow-up tweets for Webiny releases. Webiny is an open-source serverless CMS platform.
+These tweets will be posted one per day in the days after the release to keep content flowing.
+
+Pick 3–4 of the most interesting features or improvements from the changelog. Write one standalone
+tweet per feature. Each tweet must work completely on its own — no references to "yesterday's release"
+or numbering like "1/4".
+
+Format: separate each tweet with a blank line and a "---" divider.
+
+Each tweet:
+- 1–3 sentences. Focused on one specific thing.
+- Concrete and specific — name the actual feature, explain what it does or why it matters.
+- End with the changelog link: https://www.webiny.com/docs/release-notes/VERSION/changelog
+- At most 1 emoji per tweet, only where genuinely fitting.
+
+Rules:
+- Replace VERSION with the actual release version number in the URL.
+- "Webiny" is always capitalised.
+- Tone: excited but technical. Speak to developers.
+- Do NOT use hashtags.
+- Do NOT start every tweet with "Webiny" — vary the openings.
+`.trim();
+
 // ---------------------------------------------------------------------------
 // Claude calls
 // ---------------------------------------------------------------------------
@@ -185,11 +209,12 @@ async function main(): Promise<void> {
     }
     const client = new Anthropic({ apiKey });
 
-    console.log("  Generating Slack and social posts in parallel...");
+    console.log("  Generating Slack, social, and follow-up tweets in parallel...");
 
-    const [slack, social] = await Promise.all([
+    const [slack, social, tweets] = await Promise.all([
         generate(client, SLACK_PROMPT, changelog, version, "Slack"),
-        generate(client, SOCIAL_PROMPT, changelog, version, "social")
+        generate(client, SOCIAL_PROMPT, changelog, version, "social"),
+        generate(client, FOLLOWUP_TWEETS_PROMPT, changelog, version, "follow-up tweets")
     ]);
 
     const outDir = join(process.cwd(), "docs", "release-notes", version, "announcements");
@@ -197,7 +222,8 @@ async function main(): Promise<void> {
 
     const files: Array<[string, string]> = [
         ["slack.md", slack],
-        ["social.md", social]
+        ["social.md", social],
+        ["tweets.md", tweets]
     ];
 
     for (const [filename, content] of files) {
@@ -207,6 +233,7 @@ async function main(): Promise<void> {
 
     printSection("SLACK", slack);
     printSection("SOCIAL (X / LinkedIn)", social);
+    printSection("FOLLOW-UP TWEETS", tweets);
 
     console.log();
 }
