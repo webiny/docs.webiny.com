@@ -19,10 +19,7 @@ export const AdditionalNotes = () => {
 
             <Alert type="info">
                 Learn more about different deployment environments in the{" "}
-                <a href={"../../core-development-concepts/ci-cd/environments"}>
-                    CI/CD / Environments
-                </a>{" "}
-                key topic.
+                <a href={"/docs/infrastructure/ci-cd"}>CI/CD / Environments</a> key topic.
             </Alert>
         </>
     );
