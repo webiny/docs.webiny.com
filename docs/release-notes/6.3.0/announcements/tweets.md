@@ -1,21 +1,21 @@
-Fresh in Webiny 6.3.0 — AI PowerUps let you generate page content directly in the Website Builder using natural language prompts. Configure your OpenAI or Anthropic connection in Admin settings and let AI draft sections while you focus on the bigger picture.
+Webiny 6.3.0 introduces AI PowerUps — configure OpenAI or Anthropic in Admin settings, then generate page content and sections directly in Website Builder using natural language prompts. Your AI-generated content automatically converts to Lexical editor format.
 
 https://www.webiny.com/docs/release-notes/6.3.0/changelog
 
 ---
 
-Ever upload an image and immediately forget what it was? Webiny's File Manager now enriches uploads automatically — AI analyzes each image and assigns tags plus a description, all in the background. Search just got smarter. 🔍
+Images uploaded to File Manager now get AI-generated tags and descriptions automatically. Runs as a background task so uploads stay fast, but your assets become instantly searchable. Both fields remain editable if you want to refine them.
 
 https://www.webiny.com/docs/release-notes/6.3.0/changelog
 
 ---
 
-The new Tasks SDK module opens up background task orchestration to external applications. List definitions, trigger runs, fetch logs, abort jobs — all through the SDK with full TypeScript support.
+Need to trigger background tasks from external apps? The SDK now includes a full `sdk.tasks` module — list definitions, trigger executions, fetch logs, or abort running tasks. All with proper TypeScript support in the SDK playground.
 
 https://www.webiny.com/docs/release-notes/6.3.0/changelog
 
 ---
 
-Need to encrypt sensitive values in your API extensions? Webiny 6.3.0 ships with a built-in encryption service using AES-256-GCM. Inject `Encryption` into any feature and you're set — no external dependencies required.
+Building custom admin forms? The new FormModel API gives you a declarative system with tabs, dynamic zones, Zod validation, computed fields, and focus management. It powers internal Webiny forms and is now available for extension developers.
 
 https://www.webiny.com/docs/release-notes/6.3.0/changelog

@@ -1,12 +1,12 @@
-Webiny 6.3.0 is here! 🚀
+Webiny 6.3.0 is now available! 🚀
 
-This release introduces AI PowerUps — you can now connect OpenAI or Anthropic in Admin settings and generate page content directly in Website Builder using natural language prompts. Images uploaded to File Manager are automatically enriched with AI-generated tags and descriptions, making assets easier to find without manual metadata entry.
+This release introduces AI PowerUps, bringing AI-assisted content creation directly into the platform. You can now configure OpenAI or Anthropic in your Admin settings and use natural language prompts to generate page content in the Website Builder. Images uploaded to the File Manager are also automatically enriched with AI-generated tags and descriptions, making your media library more searchable without extra manual work.
 
-For extension developers, there's a lot to dig into. The new FormModel API provides a declarative way to build admin forms with tabs, validation, computed fields, and dynamic zones. The SDK now includes a tasks module for triggering and managing background tasks from external apps, and all SDK methods validate inputs before hitting the network with descriptive error messages when something's off.
+For developers, there's a new declarative FormModel API for building admin UI forms — the same system now powering Page Settings internally. The SDK gains a tasks module for interacting with Background Tasks from external applications, and input validation across all SDK methods now catches common mistakes before they hit the network.
 
-Infrastructure and deployment also got attention — a built-in encryption service is available in the API layer, Pulumi extensions now have proper TypeScript typing, and old Pulumi plugin versions clean themselves up automatically.
+Infrastructure improvements include a new Encryption service for securing sensitive values in your API extensions, plus better TypeScript typing for Pulumi handlers. The upgrade also brings TypeScript 6.0.3, cleaned-up Pulumi plugin management, and a bunch of export fixes that improve compatibility with modern bundler toolchains.
 
-Check the full changelog and let us know what you're building with these new capabilities.
+We'd love to hear how these features work for you in your projects.
 
 Changelog: https://www.webiny.com/docs/release-notes/6.3.0/changelog
 Upgrade guide: https://www.webiny.com/docs/release-notes/6.3.0/upgrade-guide
