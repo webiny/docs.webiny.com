@@ -1,4 +1,4 @@
-Webiny 6.3.0 starts rolling out AI PowerUps — initially for paid plans. Connect OpenAI or Anthropic in Admin settings and generate page sections from natural language prompts directly in the Website Builder.
+Fresh in Webiny 6.3.0 — AI PowerUps let you generate page content directly in the Website Builder using natural language prompts. Configure your OpenAI or Anthropic connection in Admin settings and let AI draft sections while you focus on the bigger picture.
 
 https://www.webiny.com/docs/release-notes/6.3.0/changelog
 
@@ -16,6 +16,6 @@ https://www.webiny.com/docs/release-notes/6.3.0/changelog
 
 ---
 
-Need to encrypt sensitive values in your API extensions? Webiny 6.3.0 ships with a built-in encryption service using AES-256-GCM. Inject the Encryption service into any feature and you're set — no external dependencies required.
+Need to encrypt sensitive values in your API extensions? Webiny 6.3.0 ships with a built-in encryption service using AES-256-GCM. Inject `Encryption` into any feature and you're set — no external dependencies required.
 
 https://www.webiny.com/docs/release-notes/6.3.0/changelog

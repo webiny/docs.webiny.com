@@ -91,10 +91,6 @@ Rules:
 - Do NOT add any extra sections, bullet lists, or formatting beyond what is described above.
 - "Webiny" is always capitalised.
 - Keep the whole message short — it should be readable in 30 seconds.
-- Tone should be warm and conversational, not hype-y. Do NOT use phrases like "This is a big one!",
-  "This is huge!", "exciting stuff", or similar superlatives. Let the features speak for themselves.
-- If the changelog indicates a feature is in early access, paid-only, or rolling out gradually,
-  reflect that accurately — don't present it as fully available to everyone.
 - Do NOT mention CLI flags, upgrade command options, logging settings, or other low-level tooling
   details (e.g. --force flags, default logging changes). Focus on product and developer experience.
 - Do NOT mention low-level infrastructure internals in the highlights — no Pulumi hooks, env hooks,
@@ -130,11 +126,8 @@ Rules:
 - Replace VERSION with the actual release version number in the URLs.
 - Use real Unicode emoji very sparingly — at most 1 in the entire post, only in the opening or closing.
 - "Webiny" is always capitalised.
-- Tone: professional, developer-focused, matter-of-fact. Do NOT use phrases like "This is a big one!",
-  "exciting stuff", or similar superlatives. Let the features speak for themselves.
+- Tone: professional, developer-focused, enthusiastic but not hype-y.
 - Keep the whole post short — roughly the same length as a Slack announcement.
-- If the changelog indicates a feature is in early access, paid-only, or rolling out gradually,
-  reflect that accurately — don't present it as fully available to everyone.
 - Do NOT use hashtags.
 - Do NOT use bullet points or numbered lists anywhere.
 - Do NOT mention CLI flags, upgrade command options, logging settings, or low-level infrastructure
