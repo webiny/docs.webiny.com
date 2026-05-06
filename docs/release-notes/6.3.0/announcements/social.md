@@ -1,14 +1,12 @@
-Webiny 6.3.0 is here, and it's one of our most feature-rich releases yet 🚀
+Webiny 6.3.0 is here! 🚀
 
-This release introduces AI PowerUps, bringing intelligent content generation directly into the Website Builder. Configure OpenAI or Anthropic in your Admin settings, then use natural language prompts to generate page sections and content. The File Manager also gets smarter — uploaded images are now automatically enriched with AI-generated tags and descriptions, making your media library instantly more searchable without manual effort.
+This release introduces AI PowerUps — you can now connect OpenAI or Anthropic in Admin settings and generate page content directly in Website Builder using natural language prompts. Images uploaded to File Manager are automatically enriched with AI-generated tags and descriptions, making assets easier to find without manual metadata entry.
 
-The admin interface sees several quality-of-life improvements. A new Dev Tools sidebar section consolidates the GraphQL Playground and SDK Playground links with proper permission controls. The new DatePicker component supports everything from simple date selection to date ranges and multiple selections. Page Settings has been completely rebuilt using our new FormModel architecture, making it far easier to extend with custom settings groups and fields.
+For extension developers, there's a lot to dig into. The new FormModel API provides a declarative way to build admin forms with tabs, validation, computed fields, and dynamic zones. The SDK now includes a tasks module for triggering and managing background tasks from external apps, and all SDK methods validate inputs before hitting the network with descriptive error messages when something's off.
 
-For developers, this release brings a powerful new FormModel API for building declarative admin forms with tabs, validation, computed fields, and conditional logic. The SDK now includes a tasks module for triggering and managing background tasks from external applications. Speaking of background tasks, they can now be configured to clean up after themselves automatically. We've also added a built-in encryption service using AES-256-GCM, and the mailer now supports configuration directly in webiny.config.ts.
+Infrastructure and deployment also got attention — a built-in encryption service is available in the API layer, Pulumi extensions now have proper TypeScript typing, and old Pulumi plugin versions clean themselves up automatically.
 
-On the infrastructure side, TypeScript has been upgraded to 6.0.3, Storybook to version 10, and numerous dependency updates improve security and compatibility. The upgrade command now includes a force flag and better default logging, while old Pulumi plugin versions are automatically cleaned up to save disk space.
-
-We're excited to see what you build with these new capabilities. Give 6.3.0 a try and let us know what you think.
+Check the full changelog and let us know what you're building with these new capabilities.
 
 Changelog: https://www.webiny.com/docs/release-notes/6.3.0/changelog
 Upgrade guide: https://www.webiny.com/docs/release-notes/6.3.0/upgrade-guide

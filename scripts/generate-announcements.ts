@@ -91,6 +91,11 @@ Rules:
 - Do NOT add any extra sections, bullet lists, or formatting beyond what is described above.
 - "Webiny" is always capitalised.
 - Keep the whole message short — it should be readable in 30 seconds.
+- Do NOT mention CLI flags, upgrade command options, logging settings, or other low-level tooling
+  details (e.g. --force flags, default logging changes). Focus on product and developer experience.
+- Do NOT mention low-level infrastructure internals in the highlights — no Pulumi hooks, env hooks,
+  plugin cleanup, OpenSearch prefixing, or deployment plumbing. If infra improvements are worth
+  mentioning at all, describe them in terms of developer benefit, not implementation details.
 
 Here is a real example of the style to match:
 
@@ -106,13 +111,12 @@ Use blank lines between paragraphs.
 
 Structure:
 
-- Opening hook (1–2 sentences): grab attention, announce the release. Make it feel significant.
+- Opening line: announce the release. 1 sentence.
 - Blank line
-- 2–4 body paragraphs: each covers a theme from the changelog. Write in a professional but warm tone.
-  Be specific about what changed and why it matters to developers or teams using Webiny.
-  Each paragraph 2–4 sentences.
+- 2–3 body paragraphs. Group changes into themes rather than listing every item. Each paragraph
+  1–3 sentences. Be warm and specific but don't try to cover everything — pick the highlights.
 - Blank line
-- Closing paragraph: forward-looking, invite engagement (e.g. "Give it a try and let us know what you think.").
+- Closing line: forward-looking, invite engagement. 1 sentence.
 - Blank line
 - Links (plain text):
   "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
@@ -120,11 +124,45 @@ Structure:
 
 Rules:
 - Replace VERSION with the actual release version number in the URLs.
-- Use real Unicode emoji very sparingly — at most 2 in the entire post, only in the opening or closing.
+- Use real Unicode emoji very sparingly — at most 1 in the entire post, only in the opening or closing.
 - "Webiny" is always capitalised.
 - Tone: professional, developer-focused, enthusiastic but not hype-y.
+- Keep the whole post short — roughly the same length as a Slack announcement.
 - Do NOT use hashtags.
 - Do NOT use bullet points or numbered lists anywhere.
+- Do NOT mention CLI flags, upgrade command options, logging settings, or low-level infrastructure
+  details (e.g. Pulumi internals, env hooks, --force flags). Stick to product and developer experience highlights.
+- Do NOT end with a catch-all paragraph listing minor fixes. If there's nothing left worth highlighting
+  at that point, stop — the closing line is enough.
+`.trim();
+
+const FOLLOWUP_TWEETS_PROMPT = `
+You write follow-up tweets for Webiny releases. Webiny is an open-source serverless CMS platform.
+These tweets will be posted one per day in the days after the release to keep content flowing.
+
+Pick 3–4 of the most interesting features or improvements from the changelog. Write one standalone
+tweet per feature. Each tweet must work completely on its own — no references to "yesterday's release"
+or numbering like "1/4".
+
+Format: separate each tweet with a blank line and a "---" divider.
+
+Each tweet:
+- 1–3 sentences. Focused on one specific thing.
+- Concrete and specific — name the actual feature, explain what it does or why it matters.
+- Vary the structure — don't make every tweet feel the same. Some can open with a question,
+  some can frame a problem the feature solves, some can just lead with the capability.
+- End with the changelog link: https://www.webiny.com/docs/release-notes/VERSION/changelog
+- At most 1 emoji per tweet, only where genuinely fitting.
+
+Rules:
+- Replace VERSION with the actual release version number in the URL.
+- "Webiny" is always capitalised.
+- Tone: excited but technical. Speak to developers.
+- Do NOT use hashtags.
+- Do NOT start every tweet with "Webiny" — vary the openings.
+- Do NOT use backticks or any code formatting — plain text only.
+- Do NOT mention CLI flags, upgrade command options, logging settings, or low-level infrastructure
+  details. Focus on product and developer experience.
 `.trim();
 
 // ---------------------------------------------------------------------------
@@ -185,11 +223,12 @@ async function main(): Promise<void> {
     }
     const client = new Anthropic({ apiKey });
 
-    console.log("  Generating Slack and social posts in parallel...");
+    console.log("  Generating Slack, social, and follow-up tweets in parallel...");
 
-    const [slack, social] = await Promise.all([
+    const [slack, social, tweets] = await Promise.all([
         generate(client, SLACK_PROMPT, changelog, version, "Slack"),
-        generate(client, SOCIAL_PROMPT, changelog, version, "social")
+        generate(client, SOCIAL_PROMPT, changelog, version, "social"),
+        generate(client, FOLLOWUP_TWEETS_PROMPT, changelog, version, "follow-up tweets")
     ]);
 
     const outDir = join(process.cwd(), "docs", "release-notes", version, "announcements");
@@ -197,7 +236,8 @@ async function main(): Promise<void> {
 
     const files: Array<[string, string]> = [
         ["slack.md", slack],
-        ["social.md", social]
+        ["social.md", social],
+        ["tweets.md", tweets]
     ];
 
     for (const [filename, content] of files) {
@@ -207,6 +247,7 @@ async function main(): Promise<void> {
 
     printSection("SLACK", slack);
     printSection("SOCIAL (X / LinkedIn)", social);
+    printSection("FOLLOW-UP TWEETS", tweets);
 
     console.log();
 }
