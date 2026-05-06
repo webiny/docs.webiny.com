@@ -2,7 +2,7 @@ Hello @channel! :wave:
 
 Webiny 6.3.0 is out! :rocket:
 
-This release introduces AI PowerUps — you can now connect OpenAI or Anthropic to generate page content directly in the Website Builder, and images uploaded to the File Manager automatically get AI-generated tags and descriptions for better searchability.
+This release introduces AI PowerUps, rolling out first for paid plans. Connect OpenAI or Anthropic in your Admin settings to generate page content directly in the Website Builder, and images uploaded to the File Manager now automatically get AI-generated tags and descriptions for better searchability.
 
 On the developer side, there's a lot to dig into. The new Tasks SDK lets external apps trigger and manage background tasks, the Encryption service provides built-in AES-256-GCM encryption for your API features, and the FormModel API gives you a powerful declarative way to build admin forms. TypeScript has been upgraded to 6.0.3, and Pulumi extensions now have proper typing so you can stop using `any` everywhere.
 

@@ -1,4 +1,4 @@
-Webiny 6.3.0 introduces AI PowerUps — configure OpenAI or Anthropic in Admin settings, then generate page content and sections directly in Website Builder using natural language prompts. Your AI-generated content automatically converts to Lexical editor format.
+Webiny 6.3.0 introduces AI PowerUps, rolling out first for paid plans. Configure OpenAI or Anthropic in Admin settings, then generate page content and sections directly in Website Builder using natural language prompts.
 
 https://www.webiny.com/docs/release-notes/6.3.0/changelog
 
@@ -10,7 +10,7 @@ https://www.webiny.com/docs/release-notes/6.3.0/changelog
 
 ---
 
-Need to trigger background tasks from external apps? The SDK now includes a full `sdk.tasks` module — list definitions, trigger executions, fetch logs, or abort running tasks. All with proper TypeScript support in the SDK playground.
+Need to trigger background tasks from external apps? The SDK now includes a full tasks module — list definitions, trigger executions, fetch logs, or abort running tasks. All with proper TypeScript support.
 
 https://www.webiny.com/docs/release-notes/6.3.0/changelog
 

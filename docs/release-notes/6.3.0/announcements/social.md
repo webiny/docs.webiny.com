@@ -1,6 +1,6 @@
 Webiny 6.3.0 is now available! 🚀
 
-This release introduces AI PowerUps, bringing AI-assisted content creation directly into the platform. You can now configure OpenAI or Anthropic in your Admin settings and use natural language prompts to generate page content in the Website Builder. Images uploaded to the File Manager are also automatically enriched with AI-generated tags and descriptions, making your media library more searchable without extra manual work.
+This release introduces AI PowerUps, rolling out first for paid plans. Connect OpenAI or Anthropic in your Admin settings and use natural language prompts to generate page content in the Website Builder. Images uploaded to the File Manager are also automatically enriched with AI-generated tags and descriptions, making your media library more searchable without extra manual work.
 
 For developers, there's a new declarative FormModel API for building admin UI forms — the same system now powering Page Settings internally. The SDK gains a tasks module for interacting with Background Tasks from external applications, and input validation across all SDK methods now catches common mistakes before they hit the network.
 
