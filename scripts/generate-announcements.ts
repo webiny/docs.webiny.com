@@ -113,8 +113,9 @@ Structure:
 
 - Opening line: announce the release. 1 sentence.
 - Blank line
-- 2–3 body paragraphs. Group changes into themes rather than listing every item. Each paragraph
-  1–3 sentences. Be warm and specific but don't try to cover everything — pick the highlights.
+- 2 body paragraphs max. Group changes into themes rather than listing every item. Each paragraph
+  1–3 sentences. Pick the most impactful highlights — leave out anything that isn't clearly
+  interesting to a developer or end user (no infra internals, no tooling minutiae).
 - Blank line
 - Closing line: forward-looking, invite engagement. 1 sentence.
 - Blank line
