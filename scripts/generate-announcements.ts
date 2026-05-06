@@ -91,6 +91,11 @@ Rules:
 - Do NOT add any extra sections, bullet lists, or formatting beyond what is described above.
 - "Webiny" is always capitalised.
 - Keep the whole message short — it should be readable in 30 seconds.
+- Do NOT mention CLI flags, upgrade command options, logging settings, or other low-level tooling
+  details (e.g. --force flags, default logging changes). Focus on product and developer experience.
+- Do NOT mention low-level infrastructure internals in the highlights — no Pulumi hooks, env hooks,
+  plugin cleanup, OpenSearch prefixing, or deployment plumbing. If infra improvements are worth
+  mentioning at all, describe them in terms of developer benefit, not implementation details.
 
 Here is a real example of the style to match:
 
@@ -125,6 +130,10 @@ Rules:
 - Keep the whole post short — roughly the same length as a Slack announcement.
 - Do NOT use hashtags.
 - Do NOT use bullet points or numbered lists anywhere.
+- Do NOT mention CLI flags, upgrade command options, logging settings, or low-level infrastructure
+  details (e.g. Pulumi internals, env hooks, --force flags). Stick to product and developer experience highlights.
+- Do NOT end with a catch-all paragraph listing minor fixes. If there's nothing left worth highlighting
+  at that point, stop — the closing line is enough.
 `.trim();
 
 const FOLLOWUP_TWEETS_PROMPT = `
@@ -140,6 +149,8 @@ Format: separate each tweet with a blank line and a "---" divider.
 Each tweet:
 - 1–3 sentences. Focused on one specific thing.
 - Concrete and specific — name the actual feature, explain what it does or why it matters.
+- Vary the structure — don't make every tweet feel the same. Some can open with a question,
+  some can frame a problem the feature solves, some can just lead with the capability.
 - End with the changelog link: https://www.webiny.com/docs/release-notes/VERSION/changelog
 - At most 1 emoji per tweet, only where genuinely fitting.
 
@@ -149,6 +160,9 @@ Rules:
 - Tone: excited but technical. Speak to developers.
 - Do NOT use hashtags.
 - Do NOT start every tweet with "Webiny" — vary the openings.
+- Do NOT use backticks or any code formatting — plain text only.
+- Do NOT mention CLI flags, upgrade command options, logging settings, or low-level infrastructure
+  details. Focus on product and developer experience.
 `.trim();
 
 // ---------------------------------------------------------------------------

@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Extract version from branch name
@@ -43,13 +44,25 @@ jobs:
           CLAUDE_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: yarn generate:announcements --version ${{ env.VERSION }}
 
-      - name: Commit and push announcements to master
+      - name: Commit and push announcements to branch
         run: |
           git config user.name "webiny-bot"
           git config user.email "webiny-bot@webiny.com"
+          git checkout -b release-announcements/${{ env.VERSION }}
           git add docs/release-notes/${{ env.VERSION }}/announcements/
           git commit -m "chore: add announcements for ${{ env.VERSION }}"
-          git push origin master
+          git push origin release-announcements/${{ env.VERSION }}
+
+      - name: Create PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --title "chore: add announcements for ${{ env.VERSION }}" \
+            --body "Release announcements for ${{ env.VERSION }} — please review and merge to publish." \
+            --base master \
+            --head release-announcements/${{ env.VERSION }})
+          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
 
       - name: Send Slack announcement
         env:
@@ -58,30 +71,33 @@ jobs:
         run: |
           VERSION="${{ env.VERSION }}"
           BASE="docs/release-notes/${VERSION}/announcements"
-          SLACK_URL="${REPO_URL}/blob/master/${BASE}/slack.md"
-          SOCIAL_URL="${REPO_URL}/blob/master/${BASE}/social.md"
-          TWEETS_URL="${REPO_URL}/blob/master/${BASE}/tweets.md"
+          ANNOUNCE_BRANCH="release-announcements/${VERSION}"
+          SLACK_URL="${REPO_URL}/blob/${ANNOUNCE_BRANCH}/${BASE}/slack.md"
+          SOCIAL_URL="${REPO_URL}/blob/${ANNOUNCE_BRANCH}/${BASE}/social.md"
+          TWEETS_URL="${REPO_URL}/blob/${ANNOUNCE_BRANCH}/${BASE}/tweets.md"
+          PR_URL="${{ env.PR_URL }}"
 
           jq -n \
             --arg version "$VERSION" \
+            --arg pr_url "$PR_URL" \
             --arg slack_url "$SLACK_URL" \
             --arg social_url "$SOCIAL_URL" \
             --arg tweets_url "$TWEETS_URL" \
             '{
-              "text": ("Release " + $version + " announcements ready"),
+              "text": ("Release " + $version + " announcements ready for review"),
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ("*Release " + $version + " docs merged* — announcements ready :tada:")
+                    "text": ("*Release " + $version + " announcements ready* — please review and merge :eyes:")
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ("• *Slack* — <" + $slack_url + "|view / edit>\n• *X / LinkedIn* — <" + $social_url + "|view / edit>\n• *Follow-up tweets* — <" + $tweets_url + "|view / edit>")
+                    "text": ("• *PR* — <" + $pr_url + "|review / merge>\n• *Slack* — <" + $slack_url + "|view / edit>\n• *X / LinkedIn* — <" + $social_url + "|view / edit>\n• *Follow-up tweets* — <" + $tweets_url + "|view / edit>")
                   }
                 },
                 {
