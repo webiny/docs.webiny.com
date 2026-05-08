@@ -3,9 +3,9 @@ import Router from "next/router";
 import { NavigationProvider } from "@/components/page/Navigation";
 import { Page } from "@/components/page/Page";
 import { PageProvider } from "@/components/page/PageProvider";
+import { Telemetry } from "@/components/Telemetry";
 import ProgressBar from "@badrap/bar-of-progress";
 import { ResizeObserver } from "@juggle/resize-observer";
-import { WTS } from "wts/src/web";
 import "../css/fonts.css";
 import "../css/main.css";
 
@@ -31,34 +31,14 @@ Router.events.on("routeChangeStart", () => progress.start());
 Router.events.on("routeChangeComplete", () => progress.finish());
 Router.events.on("routeChangeError", () => progress.finish());
 
-const isBrowser = typeof window !== "undefined";
-
-if (isBrowser) {
-    // For the first page load
-    setTimeout(async () => {
-        if (window.heap) {
-            window.wts = new WTS();
-            window.wts.identify();
-        }
-    }, 500);
-
-    // Subsequent route changes
-    Router.onRouteChangeComplete = _url => {
-        // Webiny Telemetry System
-        // trigger telemetry when changing routes
-
-        if (window.wts) {
-            window.wts.identify();
-        }
-    };
-}
-
 export default function App({ Component, pageProps }) {
     return (
-        <NavigationProvider>
-            <PageProvider Component={Component} pageProps={pageProps}>
-                <Page />
-            </PageProvider>
-        </NavigationProvider>
+        <Telemetry>
+            <NavigationProvider>
+                <PageProvider Component={Component} pageProps={pageProps}>
+                    <Page />
+                </PageProvider>
+            </NavigationProvider>
+        </Telemetry>
     );
 }

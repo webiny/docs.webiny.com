@@ -62,45 +62,6 @@ export default class Document extends NextDocument {
                         }}
                     />
 
-                    <script
-                        type="text/javascript"
-                        dangerouslySetInnerHTML={{
-                            __html: `
-              (window.heap = window.heap || []),
-              (heap.load = function(e, t) {
-                  (window.heap.appid = e), (window.heap.config = t = t || {});
-                  var r = document.createElement("script");
-                  (r.type = "text/javascript"),
-                      (r.async = !0),
-                      (r.src = "https://cdn.heapanalytics.com/js/heap-" + e + ".js");
-                  var a = document.getElementsByTagName("script")[0];
-                  a.parentNode.insertBefore(r, a);
-                  for (
-                      var n = function(e) {
-                              return function() {
-                                  heap.push([e].concat(Array.prototype.slice.call(arguments, 0)));
-                              };
-                          },
-                          p = [
-                              "addEventProperties",
-                              "addUserProperties",
-                              "clearEventProperties",
-                              "identify",
-                              "resetIdentity",
-                              "removeEventProperty",
-                              "setEventProperties",
-                              "track",
-                              "unsetEventProperty"
-                          ],
-                          o = 0;
-                      o < p.length;
-                      o++
-                  )
-                      heap[p[o]] = n(p[o]);
-              });
-              `
-                        }}
-                    />
                     {/* Google Tag Manager */}
                     <script
                         type="text/javascript"
@@ -112,12 +73,6 @@ export default class Document extends NextDocument {
                             })(window,document,'script','dataLayer','GTM-5TG2W9G');`
                         }}
                     />
-                    <script
-                        defer
-                        site="MZFYOTYQ"
-                        src="https://banquet-golden-years.webiny.com/script.js"
-                    ></script>
-
                     <script
                         async
                         src="https://widget.kapa.ai/kapa-widget.bundle.js"
