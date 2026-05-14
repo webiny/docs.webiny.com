@@ -1,0 +1,108 @@
+---
+id: ef2hssss
+title: Webiny 6.4.0 Changelog
+description: See what's new in Webiny version 6.4.0
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.4.0"} />
+
+## Headless CMS
+
+### CMS Models Cache Now Includes Plugin-Registered Models ([#5208](https://github.com/webiny/webiny-js/pull/5208))
+
+When listing CMS content models, plugin-registered models were fetched outside the cache boundary. Even when the cache was warm, every request triggered a fresh plugin model lookup. Plugin models are now fetched inside the cache boundary along with database models, so a cache hit returns the complete merged list without any additional lookups.
+
+### Added Revision Description Field ([#5165](https://github.com/webiny/webiny-js/pull/5165))
+
+Content model entry revisions can now include a description. When an entry is published, the revision description is stored alongside the revision metadata, making it easier to track what changed between versions.
+
+## Webiny SDK
+
+### Removed Standalone Entity Type Exports ([#5152](https://github.com/webiny/webiny-js/pull/5152))
+
+Standalone domain entity types are no longer exported from `@webiny/sdk`. Types such as `FmFile`, `CmsEntryData`, `TaskStatus`, and similar low-level shapes have been removed from the public API. Method parameter types, result wrappers, and input/filter types remain exported. Consumers should rely on TypeScript inference to obtain entity shapes from method return types rather than importing these internal types directly.
+
+### WebSockets Service Now Exported from `webiny/api` ([#5203](https://github.com/webiny/webiny-js/pull/5203))
+
+The `Websockets` service abstraction was not previously accessible from the main `webiny/api` entry point, requiring deep imports to use it in custom API routes. It can now be imported directly and injected as a dependency into any `Route` implementation.
+
+```typescript
+import { Route, Websockets } from "webiny/api";
+
+interface BroadcastBody {
+    message: string;
+    type: "info" | "warning" | "success";
+}
+
+class BroadcastNotificationRoute implements Route.Interface {
+    constructor(private websockets: Websockets.Interface) {}
+
+    async execute(request: Route.Request, reply: Route.Reply) {
+        const { message, type } = request.body as BroadcastBody;
+
+        const connectionsResult = await this.websockets.listConnections();
+        if (connectionsResult.isOk() && connectionsResult.value.length > 0) {
+            await this.websockets.sendToConnections(connectionsResult.value, {
+                action: "app.notification",
+                data: { message, type, sentAt: new Date().toISOString() }
+            });
+        }
+
+        reply.send({ notified: connectionsResult.value?.length ?? 0 });
+    }
+}
+
+export default Route.createImplementation({
+    implementation: BroadcastNotificationRoute,
+    dependencies: [Websockets]
+});
+```
+
+## Website Builder
+
+### Read-Only Mode for Non-Draft Page Revisions ([#5164](https://github.com/webiny/webiny-js/pull/5164))
+
+The Website Builder editor now opens published and previously published page revisions in read-only mode. Only draft revisions remain fully editable, preventing accidental modifications to live content.
+
+### Published Pages Open Clean URL from Pages List ([#5151](https://github.com/webiny/webiny-js/pull/5151))
+
+Clicking the link icon next to a published page in the pages list now opens the page's public URL without preview query parameters. Draft and unpublished pages continue to open the preview link with `wb.*` params.
+
+## Admin
+
+### Added MultiSelect Component ([#5200](https://github.com/webiny/webiny-js/pull/5200))
+
+A new `MultiSelect` component is now available in `@webiny/admin-ui`. It works like the existing `Select` component but allows picking multiple values via a checkbox dropdown. The trigger displays all selected labels inline by default; enable `showSelectionCount` to show a compact count summary instead (e.g. "3 items selected").
+
+### Added Toggle and ToggleGroup Components ([#5159](https://github.com/webiny/webiny-js/pull/5159))
+
+Two new form input components have been added to `@webiny/admin-ui`: `Toggle`, a button that switches between active and inactive states supporting text, icons, or both; and `ToggleGroup`, which groups multiple toggles for single or multi-select scenarios with an optional bordered container. Both components support `primary`, `outline`, `ghost`, and `ghost-negative` visual variants and integrate with the standard form validation and notes API.
+
+### Dialog Loading Overlay Now Covers the Entire Dialog ([#5168](https://github.com/webiny/webiny-js/pull/5168))
+
+The loading spinner shown while a dialog action was in progress was being clipped, appearing only over the dialog body and cutting off at the footer. It now covers the full dialog surface, including the header and footer. The `Dialog` component gains a first-class `loading` prop (`boolean | { text?: string }`) that handles overlay rendering internally.
+
+### Fixed Audit Logs Infinite Scroll Discarding Previously Loaded Records ([#5175](https://github.com/webiny/webiny-js/pull/5175))
+
+When scrolling through the audit logs list, loading more records replaced the current page instead of appending to it. Users could not scroll back to see earlier entries, and the scroll position jumped to the top on each page load. Previously loaded records are now accumulated across pages, and the scroll position is preserved when new entries are appended.
+
+### Fixed Dynamic Zone Template Gallery Bottom Spacing ([#5166](https://github.com/webiny/webiny-js/pull/5166))
+
+The template picker modal in the Dynamic Zone field was cutting off the last row of template tiles. A missing bottom margin has been added so all templates are fully visible and accessible when scrolling.
+
+### Removed `@webiny/ui` Backward-Compatibility Package ([#5196](https://github.com/webiny/webiny-js/pull/5196), [#5192](https://github.com/webiny/webiny-js/pull/5192), [#5191](https://github.com/webiny/webiny-js/pull/5191), [#5188](https://github.com/webiny/webiny-js/pull/5188))
+
+The `@webiny/ui` package was a thin wrapper around `@webiny/admin-ui` kept for backward compatibility during the migration period. With all consumers now importing directly from `@webiny/admin-ui`, the package has been fully removed from the repository. This change affected `app-headless-cms`, `app-graphql-playground`, `app-trash-bin`, `app-website-builder`, `app-workflows`, `lexical-editor-actions`, `cognito`, `app-scheduler`, `app-security-access-management`, `app-admin`, and `app-audit-logs`.
+
+## Development
+
+### Replace Babel with rslib for Package Compilation ([#5173](https://github.com/webiny/webiny-js/pull/5173))
+
+Package source files are now compiled using rslib in bundleless mode instead of Babel. This brings faster incremental builds in watch mode (rslib uses rspack's native watcher) and eliminates the Babel dependency from the compilation path. Declaration files (`.d.ts`) continue to be generated by the TypeScript compiler as before. The public API of `createBuildPackage` and `createWatchPackage` is unchanged — no modifications needed to any `webiny.config.js` files.
+
+### Upgraded Rsbuild and Rspack to v2 ([#5167](https://github.com/webiny/webiny-js/pull/5167))
+
+The bundling toolchain used to build the Webiny Admin app and Lambda functions has been upgraded from Rsbuild v1 / Rspack v1 to Rsbuild v2 / Rspack v2, bringing improved performance, reduced installation size, and various upstream fixes.
