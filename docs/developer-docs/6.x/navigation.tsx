@@ -125,6 +125,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           title={"Customize Page List Columns"}
         />
         <Page link={"website-builder/event-handlers"} title={"Event Handlers"} />
+        <Page link={"website-builder/preview-url-modifier"} title={"Preview URL Modifier"} />
       </Group>
       <Group
         title={"Tenant Manager"}
