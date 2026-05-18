@@ -19,6 +19,20 @@ When listing CMS content models, plugin-registered models were fetched outside t
 
 Content model entry revisions can now include a description. When an entry is published, the revision description is stored alongside the revision metadata, making it easier to track what changed between versions.
 
+### AI Personas and Projects for Content Generation ([#5194](https://github.com/webiny/webiny-js/pull/5194), [#5202](https://github.com/webiny/webiny-js/pull/5202))
+
+The AI Powerups package now supports configurable personas and file-backed project contexts that shape AI-generated content tone and audience targeting.
+
+**Personas** are presets with a name, description, and style that influence how the AI generates content. **Projects** are file-backed contexts with token budget validation, version-tracked caching, and default persona bindings. Together, they let you define consistent content guidelines for different brands, audiences, or content types.
+
+The implementation uses a manifest-based approach where the AI model fetches project files on demand via a `read_project_file` tool instead of receiving all content upfront. Generation results now include telemetry data (files read, cache hits, tool calls made, total steps) in the websocket response.
+
+Additionally, the `AiImageEnrichment` functionality was moved from `api-file-manager` to `ai-powerups` to resolve a circular package dependency.
+
+### Fixed Ordered List Numbering in Lexical Editor ([#5194](https://github.com/webiny/webiny-js/pull/5194))
+
+Ordered list items now get correct sequential numbering when importing HTML content into the Lexical rich text editor. Previously, imported lists could display incorrect numbers.
+
 ## Webiny SDK
 
 ### Removed Standalone Entity Type Exports ([#5152](https://github.com/webiny/webiny-js/pull/5152))
@@ -71,6 +85,33 @@ The Website Builder editor now opens published and previously published page rev
 
 Clicking the link icon next to a published page in the pages list now opens the page's public URL without preview query parameters. Draft and unpublished pages continue to open the preview link with `wb.*` params.
 
+### Custom Query Parameters for Live Preview URLs ([#5215](https://github.com/webiny/webiny-js/pull/5215))
+
+Previously, there was no way to inject custom query parameters into Website Builder's live preview URLs without modifying framework code. You can now register a `PreviewUrlModifier` via the DI container to append any query parameters you need to all preview URLs — including asynchronously fetched values such as signed tokens.
+
+```typescript
+import { PreviewUrlModifier } from "webiny/api-website-builder";
+
+container.register(PreviewUrlModifier, {
+  useFactory: () => ({
+    async modify(url: URL): Promise<void> {
+      const token = await fetchSignedToken();
+      url.searchParams.set("preview_token", token);
+    }
+  })
+});
+```
+
+The modifier applies to both the in-editor iframe URL and the page list preview links.
+
+### Fixed Model Registration and GraphQL Field Registry Bug ([#5220](https://github.com/webiny/webiny-js/pull/5220))
+
+Website Builder page and redirect models were migrated to the `ModelFactory` pattern and their registrations moved to run before context plugins, matching the pattern used in other packages. Additionally, a bug was fixed where the CMS GraphQL field type registry could be constructed with no field type implementations, causing GraphQL input types to generate empty and produce a schema error.
+
+### Website Builder UI Improvements ([#5160](https://github.com/webiny/webiny-js/pull/5160))
+
+This release includes various UI improvements to the Website Builder interface.
+
 ## Admin
 
 ### Added MultiSelect Component ([#5200](https://github.com/webiny/webiny-js/pull/5200))
@@ -93,15 +134,15 @@ When scrolling through the audit logs list, loading more records replaced the cu
 
 The template picker modal in the Dynamic Zone field was cutting off the last row of template tiles. A missing bottom margin has been added so all templates are fully visible and accessible when scrolling.
 
-### Removed `@webiny/ui` Backward-Compatibility Package ([#5196](https://github.com/webiny/webiny-js/pull/5196), [#5192](https://github.com/webiny/webiny-js/pull/5192), [#5191](https://github.com/webiny/webiny-js/pull/5191), [#5188](https://github.com/webiny/webiny-js/pull/5188))
+### Replaced File Picker Component ([#5214](https://github.com/webiny/webiny-js/pull/5214))
 
-The `@webiny/ui` package was a thin wrapper around `@webiny/admin-ui` kept for backward compatibility during the migration period. With all consumers now importing directly from `@webiny/admin-ui`, the package has been fully removed from the repository. This change affected `app-headless-cms`, `app-graphql-playground`, `app-trash-bin`, `app-website-builder`, `app-workflows`, `lexical-editor-actions`, `cognito`, `app-scheduler`, `app-security-access-management`, `app-admin`, and `app-audit-logs`.
+The legacy `react-butterfiles` library has been replaced with a new `BrowserFilePicker` component in `@webiny/app-admin`. The new component uses a presenter-based architecture with proper MIME type detection and size validation. This change affects file upload flows in the File Manager and CMS model import — no API changes are required, but the underlying implementation is now more robust.
+
+### Form Model Enhancements ([#5194](https://github.com/webiny/webiny-js/pull/5194))
+
+The form model system now supports `hiddenWhen` conditional visibility, improved error handling via `FormErrors` and `PresenterErrors`, a multi-file picker field type, and better focus management.
 
 ## Development
-
-### Replace Babel with rslib for Package Compilation ([#5173](https://github.com/webiny/webiny-js/pull/5173))
-
-Package source files are now compiled using rslib in bundleless mode instead of Babel. This brings faster incremental builds in watch mode (rslib uses rspack's native watcher) and eliminates the Babel dependency from the compilation path. Declaration files (`.d.ts`) continue to be generated by the TypeScript compiler as before. The public API of `createBuildPackage` and `createWatchPackage` is unchanged — no modifications needed to any `webiny.config.js` files.
 
 ### Upgraded Rsbuild and Rspack to v2 ([#5167](https://github.com/webiny/webiny-js/pull/5167))
 
