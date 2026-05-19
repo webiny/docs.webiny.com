@@ -1,0 +1,121 @@
+---
+id: a3f8kd92
+title: File URL Formatter
+description: Learn how to customize file and image URLs in the Webiny admin UI using the FileUrlFormatter extension point.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what the FileUrlFormatter extension point is and where it applies
+- how to implement and register a custom file URL formatter
+- how to remap query parameters for your own CDN or image service
+
+</Alert>
+
+## Overview
+
+Every image URL rendered inside a `FilePicker` component in the Webiny admin UI — thumbnails in the Headless CMS field editor, the Website Builder file input, and any custom field that uses `FilePicker` — passes through the `FileUrlFormatter` extension point before being displayed.
+
+The default formatter (registered by the File Manager app) appends `?width=128` to the URL so thumbnails are served at a sensible size. You can replace this behaviour entirely: remap the `width` parameter to your CDN's own syntax, add authentication tokens, rewrite the host, or apply any other transformation your image delivery pipeline requires.
+
+<Alert type="info">
+
+Only one `FileUrlFormatter` is active at a time. When you register your own implementation it replaces the File Manager default — the last implementation registered wins.
+
+</Alert>
+
+## Implement the Formatter
+
+Create a class that implements `FileUrlFormatter.Interface`. The single required method is `format(url: URL, params?: FileUrlFormatter.Params): void`. Mutate the `url` object in place — no return value is expected.
+
+`params` carries the caller's intent. The `width` key is the only built-in parameter; any additional keys you pass when calling `format` are forwarded as-is and your implementation can act on them.
+
+```typescript extensions/fileUrlFormatter/MyFileUrlFormatter.ts
+import { FileUrlFormatter } from "webiny/admin/file-manager";
+
+class MyFileUrlFormatter implements FileUrlFormatter.Interface {
+    format(url: URL, params?: FileUrlFormatter.Params): void {
+        if (params?.width !== undefined) {
+            // Map the standard "width" intent to your CDN's query parameter
+            url.searchParams.delete("width");
+            url.searchParams.set("my_width", String(params.width));
+        }
+    }
+}
+
+export const MyFileUrlFormatterImpl = FileUrlFormatter.createImplementation({
+    implementation: MyFileUrlFormatter,
+    dependencies: []
+});
+```
+
+## Register the Formatter
+
+Wrap the implementation in a feature and mount it with `RegisterFeature`:
+
+```tsx extensions/fileUrlFormatter/index.tsx
+import React from "react";
+import { createFeature, RegisterFeature } from "webiny/admin";
+import { MyFileUrlFormatterImpl } from "./MyFileUrlFormatter.js";
+
+const FileUrlFormatterFeature = createFeature({
+    name: "MyApp/FileUrlFormatter",
+    register(container) {
+        container.register(MyFileUrlFormatterImpl).inSingletonScope();
+    }
+});
+
+export default () => <RegisterFeature feature={FileUrlFormatterFeature} />;
+```
+
+Then add the extension to your `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+<Admin.Extension src={"@/extensions/fileUrlFormatter/index.tsx"} />
+```
+
+## How It Works
+
+When Webiny boots it resolves the active `FileUrlFormatter` from the DI container and makes it available throughout the admin UI via `AdminUiProvider`. The `FilePicker` component's presenter applies `format(url, { width: 128 })` when building its view model, so the formatted URL is already in place before any render component sees it.
+
+| Scenario | Thumbnail URL |
+|---|---|
+| File Manager loaded, no custom formatter | `https://cdn.example.com/img.jpg?width=128` |
+| Custom formatter registered | URL transformed by your `format` implementation |
+| File Manager not loaded | URL unchanged |
+
+## Type Reference
+
+All types are accessed through the `FileUrlFormatter` namespace — no direct imports from internal packages needed.
+
+| Type | Description |
+|---|---|
+| `FileUrlFormatter.Interface` | Implement this in your formatter class |
+| `FileUrlFormatter.Params` | Type of the `params` argument: `{ width?: number; [key: string]: unknown }` |
+
+## Full Example — Replacing `width` with a CDN-Specific Parameter
+
+```typescript extensions/fileUrlFormatter/MyFileUrlFormatter.ts
+import { FileUrlFormatter } from "webiny/admin/file-manager";
+
+class MyCdnFormatter implements FileUrlFormatter.Interface {
+    format(url: URL, params?: FileUrlFormatter.Params): void {
+        // Remove the standard width param
+        url.searchParams.delete("width");
+
+        // Apply your CDN's resizing syntax
+        if (params?.width !== undefined) {
+            url.searchParams.set("w", String(params.width));
+            url.searchParams.set("fit", "crop");
+            url.searchParams.set("auto", "format");
+        }
+    }
+}
+
+export const MyCdnFormatterImpl = FileUrlFormatter.createImplementation({
+    implementation: MyCdnFormatter,
+    dependencies: []
+});
+```

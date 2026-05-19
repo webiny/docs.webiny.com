@@ -48,6 +48,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"admin/whitelabeling"} />
         <Page link={"admin/connect-custom-domain"} />
         <Page link={"admin/build-params"} />
+        <Page link={"admin/file-url-formatter"} />
       </Group>
       <Group
         title={"API"}
