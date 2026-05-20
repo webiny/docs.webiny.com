@@ -41,6 +41,24 @@ Text fields now support compression when storing large values. When enabled, the
 
 Introduced a new Webhooks system for Headless CMS. The API layer provides the foundation for defining webhook endpoints and triggering them based on content events, while the Admin UI offers a management interface for configuring webhooks directly from the dashboard.
 
+### Refactored Asset Delivery to Use Dependency Injection ([#5226](https://github.com/webiny/webiny-js/pull/5226))
+
+The asset delivery system has been migrated from a custom manual DI container to the standard `createFeature`/`createAbstraction` system from `webiny/feature`. This brings asset delivery in line with other Webiny subsystems and reduces boilerplate.
+
+Key changes:
+
+- Asset delivery interfaces and implementations moved from `delivery/AssetDelivery/` to `features/assetDelivery/`, co-locating abstractions with their default implementations
+- S3-specific concerns (`S3Client`, `S3Bucket`, config) extracted into dedicated abstractions in `api-file-manager-s3`, registered via `createS3AssetDeliveryFeature`
+- Private files support (authorizer, processor decorator) is conditionally registered based on WCP context
+
+This is an internal refactor with no changes to the public API.
+
+### Fixed File Fields Provider to Support Private Files Licensing ([#5229](https://github.com/webiny/webiny-js/pull/5229))
+
+The hardcoded `FILE_FIELDS` import has been replaced with an injectable `FileFieldsProvider` abstraction. This allows the `accessControl.type` field to be conditionally included only when private files are licensed via WCP.
+
+All SDK gateways and repositories now resolve file fields dynamically through dependency injection, ensuring that unlicensed features don't expose fields that aren't available.
+
 ## Webiny SDK
 
 ### Removed Standalone Entity Type Exports ([#5152](https://github.com/webiny/webiny-js/pull/5152))
