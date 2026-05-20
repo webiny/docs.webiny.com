@@ -33,6 +33,14 @@ Additionally, the `AiImageEnrichment` functionality was moved from `api-file-man
 
 Ordered list items now get correct sequential numbering when importing HTML content into the Lexical rich text editor. Previously, imported lists could display incorrect numbers.
 
+### Text Field Compression Storage ([#5213](https://github.com/webiny/webiny-js/pull/5213))
+
+Text fields now support compression when storing large values. When enabled, the field stores a compressed representation containing the compression algorithm and the compressed value. This can significantly reduce storage costs for content-heavy text fields.
+
+### Webhooks API ([#5218](https://github.com/webiny/webiny-js/pull/5218), [#5219](https://github.com/webiny/webiny-js/pull/5219))
+
+Introduced a new Webhooks system for Headless CMS. The API layer provides the foundation for defining webhook endpoints and triggering them based on content events, while the Admin UI offers a management interface for configuring webhooks directly from the dashboard.
+
 ## Webiny SDK
 
 ### Removed Standalone Entity Type Exports ([#5152](https://github.com/webiny/webiny-js/pull/5152))
@@ -112,6 +120,30 @@ Website Builder page and redirect models were migrated to the `ModelFactory` pat
 
 This release includes various UI improvements to the Website Builder interface.
 
+### Custom Query Parameters for Live Preview URLs ([#5222](https://github.com/webiny/webiny-js/pull/5222))
+
+Previously, there was no way to inject custom query parameters into Website Builder's live preview URLs without modifying framework code. A new `PreviewUrlModifier` extension point lets you append any query parameters to all preview URLs — including asynchronously fetched values such as signed tokens.
+
+```typescript
+import { createFeature } from "webiny/feature";
+import { PreviewUrlModifier } from "webiny/website-builder/admin";
+
+export const CustomPreviewUrl = createFeature(async container => {
+  container.register(PreviewUrlModifier, async () => ({
+    async modify(url: URL) {
+      const token = await fetchSignedToken();
+      url.searchParams.set("preview_token", token);
+    }
+  }));
+});
+```
+
+The modifier applies to both the in-editor iframe URL and the page list preview links.
+
+### Page Revision Descriptions ([#5189](https://github.com/webiny/webiny-js/pull/5189))
+
+Page revisions in Website Builder now support descriptions. When publishing a page, you can add a description to the revision to help track what changed — useful for teams collaborating on content updates.
+
 ## Admin
 
 ### Added MultiSelect Component ([#5200](https://github.com/webiny/webiny-js/pull/5200))
@@ -142,8 +174,53 @@ The legacy `react-butterfiles` library has been replaced with a new `BrowserFile
 
 The form model system now supports `hiddenWhen` conditional visibility, improved error handling via `FormErrors` and `PresenterErrors`, a multi-file picker field type, and better focus management.
 
+### Lexical Form Field Type ([#5227](https://github.com/webiny/webiny-js/pull/5227))
+
+Added a `lexical` field type to the FormModel system, enabling rich text editing in custom forms via `fields.lexical()`. The field produces a value containing both the Lexical editor state and the rendered HTML.
+
+As part of this change, the Lexical editor export path moved from `webiny/admin/lexical` to `webiny/admin/ui/lexical`, and the CMS/Website Builder editor configs were renamed from `ExpandedEditorConfig`/`CompactEditorConfig` to `LexicalEditorConfig.Expanded`/`LexicalEditorConfig.Compact`.
+
+### File URL Formatter Extension Point ([#5210](https://github.com/webiny/webiny-js/pull/5210))
+
+Added a `FileUrlFormatter` extension point that allows projects to customize how file and image URLs are constructed in the admin UI. By default, the File Manager appends a `?width=128` query parameter to image URLs for responsive thumbnail delivery. Projects can replace this behaviour with their own CDN-specific URL transformation:
+
+```typescript
+import { createFeature } from "webiny/feature";
+import { FileUrlFormatter } from "webiny/file-manager/admin";
+
+export const CdnUrlFormatter = createFeature(async container => {
+  container.register(FileUrlFormatter, async () => ({
+    format(url: string, options: { width?: number }) {
+      // Remap to your CDN's resize syntax
+      return `https://cdn.example.com/resize/${options.width}/${url}`;
+    }
+  }));
+});
+```
+
+### Replaced `timeago-react` with Custom Implementation ([#5225](https://github.com/webiny/webiny-js/pull/5225))
+
+The `timeago-react` package (flagged as compromised) has been replaced with a custom `TimeAgo` component built on the Temporal API. The component API remains unchanged — existing `<TimeAgo datetime={...} />` usage works without modification. Live updates now use adaptive intervals that stop entirely after 1 hour of elapsed time.
+
 ## Development
 
 ### Upgraded Rsbuild and Rspack to v2 ([#5167](https://github.com/webiny/webiny-js/pull/5167))
 
 The bundling toolchain used to build the Webiny Admin app and Lambda functions has been upgraded from Rsbuild v1 / Rspack v1 to Rsbuild v2 / Rspack v2, bringing improved performance, reduced installation size, and various upstream fixes.
+
+## Infrastructure
+
+### API Bundle Size Limit ([#5221](https://github.com/webiny/webiny-js/pull/5221))
+
+Added a new `Infra.Api.MaxBundleSize` extension that enforces a configurable size limit on the API Lambda bundle at build time. The default limit is 4.5 MB. If your built bundle exceeds the limit, the build fails with a clear error message pointing to the exact config change needed to raise it:
+
+```typescript
+// webiny.config.tsx
+import { Infra } from "webiny/infra";
+
+export default {
+  extensions: [
+    Infra.Api.MaxBundleSize({ maxSize: 5 * 1024 * 1024 }) // 5 MB
+  ]
+};
+```
