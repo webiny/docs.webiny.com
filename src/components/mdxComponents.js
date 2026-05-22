@@ -11,6 +11,7 @@ import { ExternalLink } from "./ExternalLink";
 import { GithubRelease } from "./GithubRelease";
 import { ExtensionsGettingStarted } from "./ExtensionsGettingStarted";
 import { EnterpriseFeaturesNotice } from "./EnterpriseFeaturesNotice";
+import { StandaloneVersionNotice } from "./StandaloneVersionNotice";
 import { stripBasePath } from "@/utils/stripBasePath";
 
 export const mdxComponents = {
@@ -25,6 +26,7 @@ export const mdxComponents = {
     ExternalLink,
     GithubRelease,
     EnterpriseFeaturesNotice,
+    StandaloneVersionNotice,
     ExtensionsGettingStarted,
     ol: props => <ol {...props} style={{ "--start": props.start ?? 1 }} />,
     a: forwardRef((props, _) => {

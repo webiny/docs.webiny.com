@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import clsx from "clsx";
 import { inputFooterButton, inputFooterInput, inputFooterForm } from "./InputFooter.module.css";
 
-export function InputFooter({ className }) {
+export function InputFooter({ className, formId = "g9f1i1" }) {
     const [isFormSubmitted, setIsFormSubmitted] = useState(false);
     const inputRef = useRef(null);
 
@@ -12,7 +12,7 @@ export function InputFooter({ className }) {
                 event.preventDefault();
 
                 fetch(
-                    "https://app.mailerlite.com/webforms/submit/g9f1i1?fields%5Bemail%5D=" +
+                    `https://app.mailerlite.com/webforms/submit/${formId}?fields%5Bemail%5D=` +
                         encodeURIComponent(inputRef.current.value) +
                         "&ml-submit=1&ajax=1",
                     {
