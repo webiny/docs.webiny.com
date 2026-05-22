@@ -59,6 +59,18 @@ The hardcoded `FILE_FIELDS` import has been replaced with an injectable `FileFie
 
 All SDK gateways and repositories now resolve file fields dynamically through dependency injection, ensuring that unlicensed features don't expose fields that aren't available.
 
+### Webhooks Integration for CMS Events ([#5224](https://github.com/webiny/webiny-js/pull/5224))
+
+The Webhooks package now integrates with the Headless CMS, allowing you to trigger webhooks on CMS entry lifecycle events. This enables external systems to react to content changes in real time — useful for cache invalidation, search index updates, or workflow automation.
+
+### Entry Data Factories for CMS Features ([#5205](https://github.com/webiny/webiny-js/pull/5205))
+
+CMS features can now receive entry data factories via dependency injection rather than relying on internal static methods. This change improves testability and allows you to customize how entry data is constructed in advanced use cases.
+
+### Removed Legacy APW Entry Meta Field ([#5206](https://github.com/webiny/webiny-js/pull/5206))
+
+The `meta` field previously used by the legacy Advanced Publishing Workflow (APW) has been removed from CMS entries. If you were relying on this field in custom code, you'll need to update your implementation to use the current APW APIs.
+
 ## Webiny SDK
 
 ### Removed Standalone Entity Type Exports ([#5152](https://github.com/webiny/webiny-js/pull/5152))
@@ -162,6 +174,10 @@ The modifier applies to both the in-editor iframe URL and the page list preview 
 
 Page revisions in Website Builder now support descriptions. When publishing a page, you can add a description to the revision to help track what changed — useful for teams collaborating on content updates.
 
+### Webhooks Integration for Pages and Redirects ([#5224](https://github.com/webiny/webiny-js/pull/5224))
+
+Website Builder now supports webhooks for page and redirect events. You can configure external endpoints to receive notifications when pages are published, unpublished, or deleted — and when redirects are created or modified.
+
 ## Admin
 
 ### Added MultiSelect Component ([#5200](https://github.com/webiny/webiny-js/pull/5200))
@@ -220,11 +236,29 @@ export const CdnUrlFormatter = createFeature(async container => {
 
 The `timeago-react` package (flagged as compromised) has been replaced with a custom `TimeAgo` component built on the Temporal API. The component API remains unchanged — existing `<TimeAgo datetime={...} />` usage works without modification. Live updates now use adaptive intervals that stop entirely after 1 hour of elapsed time.
 
+### Background Tasks UI ([#5232](https://github.com/webiny/webiny-js/pull/5232))
+
+A new admin interface for viewing background tasks is now available. You can list all tasks and inspect their status, making it easier to monitor long-running operations like bulk imports or scheduled jobs.
+
 ## Development
 
 ### Upgraded Rsbuild and Rspack to v2 ([#5167](https://github.com/webiny/webiny-js/pull/5167))
 
 The bundling toolchain used to build the Webiny Admin app and Lambda functions has been upgraded from Rsbuild v1 / Rspack v1 to Rsbuild v2 / Rspack v2, bringing improved performance, reduced installation size, and various upstream fixes.
+
+### Support for Environment-Specific `.env` Files ([#5237](https://github.com/webiny/webiny-js/pull/5237))
+
+Webiny now loads environment-specific `.env` files in addition to the base `.env`. When deploying with a given environment name, the SDK first loads `.env` for shared defaults, then loads `.env.<environment>` (e.g. `.env.production`) if it exists — values in the environment-specific file take precedence.
+
+This simplifies managing different configurations across environments without modifying the base `.env` file.
+
+### Async Encryption Interface ([#5233](https://github.com/webiny/webiny-js/pull/5233))
+
+The `encrypt` and `decrypt` methods on the `IEncryption` interface now return `Promise<string>` instead of `string`. This change prepares the encryption abstraction for async backends like AWS KMS or hardware security modules. If you've implemented a custom encryption provider, update your methods to be async.
+
+### Fixed Gzip Decompression for Non-JSON Values ([#5198](https://github.com/webiny/webiny-js/pull/5198))
+
+The `@webiny/utils` gzip helpers now handle decompression correctly when the original value wasn't JSON-stringified before compression. Previously this would throw a parse error — now it returns the raw decompressed value if JSON parsing fails.
 
 ## Infrastructure
 
@@ -242,3 +276,13 @@ export default {
   ]
 };
 ```
+
+## Webhooks
+
+### Delivery List and View UI ([#5231](https://github.com/webiny/webiny-js/pull/5231))
+
+The Webhooks admin interface now includes a delivery history view. You can list all webhook deliveries, filter by app, entity, and event type, and inspect individual delivery details including request/response payloads and status codes.
+
+### Fixed Encryption Key Storage ([#5230](https://github.com/webiny/webiny-js/pull/5230))
+
+The encryption key used for securing webhook secrets was not being persisted correctly, which could cause decryption failures after restarts. This has been fixed — encryption keys are now stored properly in the settings.
