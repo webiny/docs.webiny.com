@@ -12,7 +12,7 @@ const { App, AppConfig } = require("@webiny/docs-generator");
 const { default: docsConfig } = require("./docs.config");
 
 (async () => {
-    const { watch, watchOnly, version } = yargs
+    const { watch, watchOnly, version } = yargs()
         .version(false)
         .option("v", {
             alias: "version",
