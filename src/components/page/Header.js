@@ -2,7 +2,7 @@ import { useNavigation } from "@/components/page/Navigation";
 import Router from "next/router";
 import { usePage } from "@/hooks/usePage";
 import { useHomepage } from "@/hooks/useHomepage";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogBackdrop } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
@@ -54,7 +54,7 @@ export function NavPopover({ display = "md:hidden", className, ...props }) {
                 open={isOpen}
                 onClose={() => setIsOpen(false)}
             >
-                <Dialog.Overlay className="fixed top-[3.375rem] inset-0 bg-black/20 backdrop-blur-sm dark:bg-slate-900/80" />
+                <DialogBackdrop className="fixed top-[3.375rem] inset-0 bg-black/20 backdrop-blur-sm dark:bg-slate-900/80" />
                 <div
                     className={clsx(
                         "fixed top-[4.3125rem] right-[0.875rem] w-full max-w-[16.4375rem] bg-white rounded-lg pt-5 text-base font-semibold text-slate-900 dark:text-slate-400 dark:highlight-white/5 dark:bg-dark-grey-2",
