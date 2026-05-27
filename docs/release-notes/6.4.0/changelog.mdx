@@ -75,6 +75,10 @@ The `meta` field previously used by the legacy Advanced Publishing Workflow (APW
 
 Resolved failing tests in the Website Builder API and application packages, ensuring test suite stability.
 
+### Dynamic Zone Template Gallery Search and List View ([#5245](https://github.com/webiny/webiny-js/pull/5245))
+
+The dynamic zone template picker now includes a search bar to filter templates by name, and a grid/list view toggle. The list view provides a compact alternative to the existing card grid, making it easier to navigate projects with many templates.
+
 ## Webiny SDK
 
 ### Removed Standalone Entity Type Exports ([#5152](https://github.com/webiny/webiny-js/pull/5152))
@@ -268,6 +272,14 @@ The `@webiny/utils` gzip helpers now handle decompression correctly when the ori
 
 The internal release tooling no longer uses Lerna. Versioning and publishing are now handled by custom utilities that build the dependency graph directly from workspace `package.json` files. This change has no impact on Webiny users — it streamlines Webiny's own release process.
 
+### Bundle Analysis with RSDoctor ([#5254](https://github.com/webiny/webiny-js/pull/5254))
+
+The `webiny build` command now supports an `--analyze` flag that enables RSDoctor bundle analysis. When passed, it generates detailed reports on bundle composition and build performance, helping diagnose large bundles and slow builds.
+
+### Desktop Notifications on Build Completion ([#5251](https://github.com/webiny/webiny-js/pull/5251))
+
+The build script now sends native OS notifications when a build completes or fails, so you don't have to watch the terminal. Works on macOS and Linux.
+
 ## Infrastructure
 
 ### API Bundle Size Limit ([#5221](https://github.com/webiny/webiny-js/pull/5221))
@@ -284,6 +296,14 @@ export default {
   ]
 };
 ```
+
+### SMTP Transport TLS Configuration Fixed ([#5253](https://github.com/webiny/webiny-js/pull/5253))
+
+The SMTP transport in the mailer API could not negotiate TLS/SSL connections because nodemailer's `secure` option was never passed through. This made it impossible to connect to modern SMTP providers (Gmail, AWS SES, etc.) that require explicit TLS configuration.
+
+The fix adds a `secure` field to transport settings and changes the default port from 25 (blocked by most cloud providers) to 587 (STARTTLS). When `secure` is not explicitly set, it defaults to `true` for port 465 (implicit TLS) and `false` otherwise.
+
+Transport creation errors now return a distinct `TransportCreateError` type instead of being thrown as unhandled exceptions.
 
 ## Webhooks
 
@@ -316,3 +336,33 @@ const theme = new Theme({
 Dropdowns (font size, color picker, alignment) inside modal dialogs were being clipped by the dialog's scroll container. These dropdowns now use Radix UI's portal mechanism, ensuring they render above the dialog and remain fully visible.
 
 The floating link editor also had positioning issues inside dialogs — it would overflow viewport edges or become unclickable. The editor now portals into the dialog content element and uses viewport-edge clamping to stay within bounds.
+
+## Background Tasks
+
+### Configurable Task Retention Settings ([#5249](https://github.com/webiny/webiny-js/pull/5249))
+
+Background task run retention is now configurable through both the Admin UI and infrastructure code. A new settings page at **Settings > System > Background Tasks** lets you set how long completed task runs are kept (0–3650 days, where 0 means never delete).
+
+You can also set a default retention period via your infrastructure code:
+
+```typescript
+import { Api } from "webiny/pulumi";
+
+export default () => {
+  return {
+    api: Api.configure({
+      backgroundTasks: {
+        retentionDays: 180
+      }
+    })
+  };
+};
+```
+
+The priority order is: admin UI setting → infrastructure default → hardcoded default (90 days).
+
+<Alert type="info">
+
+The `@webiny/tasks` package has been consolidated into `@webiny/background-tasks`. Update your imports accordingly if you were using the tasks API directly.
+
+</Alert>
