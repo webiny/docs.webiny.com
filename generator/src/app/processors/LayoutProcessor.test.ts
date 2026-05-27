@@ -13,6 +13,6 @@ describe("LayoutProcessor", () => {
 
         const processor = new LayoutProcessor(input);
 
-        expect(processor.process("")).toEqual(testOutput);
+        expect((processor as any).process("")).toEqual(testOutput);
     });
 });
