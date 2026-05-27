@@ -38,7 +38,7 @@ module.exports.createWebpackConfig = (config, options) => {
         use: [
             {
                 loader: "@svgr/webpack",
-                options: { svgoConfig: { plugins: { removeViewBox: false } } }
+                options: { svgoConfig: { plugins: [{ name: "removeViewBox", active: false }] } }
             },
             {
                 loader: "file-loader",

@@ -15,7 +15,7 @@ import React from 'react'
 import { mdx } from '@mdx-js/react'
 `;
 
-type RemarkPlugin = () => (tree: Node, file: VFileOptions) => void;
+type RemarkPlugin = (...args: any[]) => any;
 
 export class MdxCompiler {
     private compiler: any;
@@ -35,7 +35,7 @@ export class MdxCompiler {
         ];
     }
 
-    async compile(file: VFileOptions) {
+    async compile(file: any) {
         const compiler = this.getCompiler();
 
         const { contents } = await compiler.process(file);
