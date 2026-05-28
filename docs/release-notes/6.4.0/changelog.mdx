@@ -33,6 +33,56 @@ Additionally, the `AiImageEnrichment` functionality was moved from `api-file-man
 
 Ordered list items now get correct sequential numbering when importing HTML content into the Lexical rich text editor. Previously, imported lists could display incorrect numbers.
 
+### Text Field Compression Storage ([#5213](https://github.com/webiny/webiny-js/pull/5213))
+
+Text fields now support compression when storing large values. When enabled, the field stores a compressed representation containing the compression algorithm and the compressed value. This can significantly reduce storage costs for content-heavy text fields.
+
+### Webhooks API ([#5218](https://github.com/webiny/webiny-js/pull/5218), [#5219](https://github.com/webiny/webiny-js/pull/5219))
+
+Introduced a new Webhooks system for Headless CMS. The API layer provides the foundation for defining webhook endpoints and triggering them based on content events, while the Admin UI offers a management interface for configuring webhooks directly from the dashboard.
+
+### Refactored Asset Delivery to Use Dependency Injection ([#5226](https://github.com/webiny/webiny-js/pull/5226))
+
+The asset delivery system has been migrated from a custom manual DI container to the standard `createFeature`/`createAbstraction` system from `webiny/feature`. This brings asset delivery in line with other Webiny subsystems and reduces boilerplate.
+
+Key changes:
+
+- Asset delivery interfaces and implementations moved from `delivery/AssetDelivery/` to `features/assetDelivery/`, co-locating abstractions with their default implementations
+- S3-specific concerns (`S3Client`, `S3Bucket`, config) extracted into dedicated abstractions in `api-file-manager-s3`, registered via `createS3AssetDeliveryFeature`
+- Private files support (authorizer, processor decorator) is conditionally registered based on WCP context
+
+This is an internal refactor with no changes to the public API.
+
+### Fixed File Fields Provider to Support Private Files Licensing ([#5229](https://github.com/webiny/webiny-js/pull/5229))
+
+The hardcoded `FILE_FIELDS` import has been replaced with an injectable `FileFieldsProvider` abstraction. This allows the `accessControl.type` field to be conditionally included only when private files are licensed via WCP.
+
+All SDK gateways and repositories now resolve file fields dynamically through dependency injection, ensuring that unlicensed features don't expose fields that aren't available.
+
+### Webhooks Integration for CMS Events ([#5224](https://github.com/webiny/webiny-js/pull/5224))
+
+The Webhooks package now integrates with the Headless CMS, allowing you to trigger webhooks on CMS entry lifecycle events. This enables external systems to react to content changes in real time — useful for cache invalidation, search index updates, or workflow automation.
+
+### Entry Data Factories for CMS Features ([#5205](https://github.com/webiny/webiny-js/pull/5205))
+
+CMS features can now receive entry data factories via dependency injection rather than relying on internal static methods. This change improves testability and allows you to customize how entry data is constructed in advanced use cases.
+
+### Removed Legacy APW Entry Meta Field ([#5206](https://github.com/webiny/webiny-js/pull/5206))
+
+The `meta` field previously used by the legacy Advanced Publishing Workflow (APW) has been removed from CMS entries. If you were relying on this field in custom code, you'll need to update your implementation to use the current APW APIs.
+
+### Fixed Website Builder Tests ([#5195](https://github.com/webiny/webiny-js/pull/5195))
+
+Resolved failing tests in the Website Builder API and application packages, ensuring test suite stability.
+
+### Dynamic Zone Template Gallery Search and List View ([#5245](https://github.com/webiny/webiny-js/pull/5245))
+
+The dynamic zone template picker now includes a search bar to filter templates by name, and a grid/list view toggle. The list view provides a compact alternative to the existing card grid, making it easier to navigate projects with many templates.
+
+### Webhooks: Deliveries View Is Now a Standalone Page ([#5244](https://github.com/webiny/webiny-js/pull/5244))
+
+The webhook deliveries view has been refactored from an embedded component to a dedicated standalone page. This improves navigation clarity and makes delivery logs easier to access and manage independently from the webhook configuration screen.
+
 ## Webiny SDK
 
 ### Removed Standalone Entity Type Exports ([#5152](https://github.com/webiny/webiny-js/pull/5152))
@@ -112,6 +162,34 @@ Website Builder page and redirect models were migrated to the `ModelFactory` pat
 
 This release includes various UI improvements to the Website Builder interface.
 
+### Custom Query Parameters for Live Preview URLs ([#5222](https://github.com/webiny/webiny-js/pull/5222))
+
+Previously, there was no way to inject custom query parameters into Website Builder's live preview URLs without modifying framework code. A new `PreviewUrlModifier` extension point lets you append any query parameters to all preview URLs — including asynchronously fetched values such as signed tokens.
+
+```typescript
+import { createFeature } from "webiny/feature";
+import { PreviewUrlModifier } from "webiny/website-builder/admin";
+
+export const CustomPreviewUrl = createFeature(async container => {
+  container.register(PreviewUrlModifier, async () => ({
+    async modify(url: URL) {
+      const token = await fetchSignedToken();
+      url.searchParams.set("preview_token", token);
+    }
+  }));
+});
+```
+
+The modifier applies to both the in-editor iframe URL and the page list preview links.
+
+### Page Revision Descriptions ([#5189](https://github.com/webiny/webiny-js/pull/5189))
+
+Page revisions in Website Builder now support descriptions. When publishing a page, you can add a description to the revision to help track what changed — useful for teams collaborating on content updates.
+
+### Webhooks Integration for Pages and Redirects ([#5224](https://github.com/webiny/webiny-js/pull/5224))
+
+Website Builder now supports webhooks for page and redirect events. You can configure external endpoints to receive notifications when pages are published, unpublished, or deleted — and when redirects are created or modified.
+
 ## Admin
 
 ### Added MultiSelect Component ([#5200](https://github.com/webiny/webiny-js/pull/5200))
@@ -142,8 +220,157 @@ The legacy `react-butterfiles` library has been replaced with a new `BrowserFile
 
 The form model system now supports `hiddenWhen` conditional visibility, improved error handling via `FormErrors` and `PresenterErrors`, a multi-file picker field type, and better focus management.
 
+### Lexical Form Field Type ([#5227](https://github.com/webiny/webiny-js/pull/5227))
+
+Added a `lexical` field type to the FormModel system, enabling rich text editing in custom forms via `fields.lexical()`. The field produces a value containing both the Lexical editor state and the rendered HTML.
+
+As part of this change, the Lexical editor export path moved from `webiny/admin/lexical` to `webiny/admin/ui/lexical`, and the CMS/Website Builder editor configs were renamed from `ExpandedEditorConfig`/`CompactEditorConfig` to `LexicalEditorConfig.Expanded`/`LexicalEditorConfig.Compact`.
+
+### File URL Formatter Extension Point ([#5210](https://github.com/webiny/webiny-js/pull/5210))
+
+Added a `FileUrlFormatter` extension point that allows projects to customize how file and image URLs are constructed in the admin UI. By default, the File Manager appends a `?width=128` query parameter to image URLs for responsive thumbnail delivery. Projects can replace this behaviour with their own CDN-specific URL transformation:
+
+```typescript
+import { createFeature } from "webiny/feature";
+import { FileUrlFormatter } from "webiny/file-manager/admin";
+
+export const CdnUrlFormatter = createFeature(async container => {
+  container.register(FileUrlFormatter, async () => ({
+    format(url: string, options: { width?: number }) {
+      // Remap to your CDN's resize syntax
+      return `https://cdn.example.com/resize/${options.width}/${url}`;
+    }
+  }));
+});
+```
+
+### Replaced `timeago-react` with Custom Implementation ([#5225](https://github.com/webiny/webiny-js/pull/5225))
+
+The `timeago-react` package (flagged as compromised) has been replaced with a custom `TimeAgo` component built on the Temporal API. The component API remains unchanged — existing `<TimeAgo datetime={...} />` usage works without modification. Live updates now use adaptive intervals that stop entirely after 1 hour of elapsed time.
+
+### Background Tasks UI ([#5232](https://github.com/webiny/webiny-js/pull/5232))
+
+A new admin interface for viewing background tasks is now available. You can list all tasks and inspect their status, making it easier to monitor long-running operations like bulk imports or scheduled jobs.
+
 ## Development
 
 ### Upgraded Rsbuild and Rspack to v2 ([#5167](https://github.com/webiny/webiny-js/pull/5167))
 
 The bundling toolchain used to build the Webiny Admin app and Lambda functions has been upgraded from Rsbuild v1 / Rspack v1 to Rsbuild v2 / Rspack v2, bringing improved performance, reduced installation size, and various upstream fixes.
+
+### Support for Environment-Specific `.env` Files ([#5237](https://github.com/webiny/webiny-js/pull/5237))
+
+Webiny now loads environment-specific `.env` files in addition to the base `.env`. When deploying with a given environment name, the SDK first loads `.env` for shared defaults, then loads `.env.<environment>` (e.g. `.env.production`) if it exists — values in the environment-specific file take precedence.
+
+This simplifies managing different configurations across environments without modifying the base `.env` file.
+
+### Async Encryption Interface ([#5233](https://github.com/webiny/webiny-js/pull/5233))
+
+The `encrypt` and `decrypt` methods on the `IEncryption` interface now return `Promise<string>` instead of `string`. This change prepares the encryption abstraction for async backends like AWS KMS or hardware security modules. If you've implemented a custom encryption provider, update your methods to be async.
+
+### Fixed Gzip Decompression for Non-JSON Values ([#5198](https://github.com/webiny/webiny-js/pull/5198))
+
+The `@webiny/utils` gzip helpers now handle decompression correctly when the original value wasn't JSON-stringified before compression. Previously this would throw a parse error — now it returns the raw decompressed value if JSON parsing fails.
+
+### Removed Lerna from Release Pipeline ([#5241](https://github.com/webiny/webiny-js/pull/5241))
+
+The internal release tooling no longer uses Lerna. Versioning and publishing are now handled by custom utilities that build the dependency graph directly from workspace `package.json` files. This change has no impact on Webiny users — it streamlines Webiny's own release process.
+
+### Bundle Analysis with RSDoctor ([#5254](https://github.com/webiny/webiny-js/pull/5254))
+
+The `webiny build` command now supports an `--analyze` flag that enables RSDoctor bundle analysis. When passed, it generates detailed reports on bundle composition and build performance, helping diagnose large bundles and slow builds.
+
+### Desktop Notifications on Build Completion ([#5251](https://github.com/webiny/webiny-js/pull/5251))
+
+The build script now sends native OS notifications when a build completes or fails, so you don't have to watch the terminal. Works on macOS and Linux.
+
+### Webiny Telemetry System v3 ([#5197](https://github.com/webiny/webiny-js/pull/5197))
+
+The Webiny Telemetry System (WTS) has been completely re-implemented. The new system connects user sessions across the web, CLI, and admin app, providing a unified view of telemetry data. The implementation continues to respect user telemetry preferences — if telemetry is disabled in your project, no data is collected.
+
+## Infrastructure
+
+### API Bundle Size Limit ([#5221](https://github.com/webiny/webiny-js/pull/5221))
+
+Added a new `Infra.Api.MaxBundleSize` extension that enforces a configurable size limit on the API Lambda bundle at build time. The default limit is 4.5 MB. If your built bundle exceeds the limit, the build fails with a clear error message pointing to the exact config change needed to raise it:
+
+```typescript
+// webiny.config.tsx
+import { Infra } from "webiny/infra";
+
+export default {
+  extensions: [
+    Infra.Api.MaxBundleSize({ maxSize: 5 * 1024 * 1024 }) // 5 MB
+  ]
+};
+```
+
+### SMTP Transport TLS Configuration Fixed ([#5253](https://github.com/webiny/webiny-js/pull/5253))
+
+The SMTP transport in the mailer API could not negotiate TLS/SSL connections because nodemailer's `secure` option was never passed through. This made it impossible to connect to modern SMTP providers (Gmail, AWS SES, etc.) that require explicit TLS configuration.
+
+The fix adds a `secure` field to transport settings and changes the default port from 25 (blocked by most cloud providers) to 587 (STARTTLS). When `secure` is not explicitly set, it defaults to `true` for port 465 (implicit TLS) and `false` otherwise.
+
+Transport creation errors now return a distinct `TransportCreateError` type instead of being thrown as unhandled exceptions.
+
+## Webhooks
+
+### Delivery List and View UI ([#5231](https://github.com/webiny/webiny-js/pull/5231))
+
+The Webhooks admin interface now includes a delivery history view. You can list all webhook deliveries, filter by app, entity, and event type, and inspect individual delivery details including request/response payloads and status codes.
+
+### Fixed Encryption Key Storage ([#5230](https://github.com/webiny/webiny-js/pull/5230))
+
+The encryption key used for securing webhook secrets was not being persisted correctly, which could cause decryption failures after restarts. This has been fixed — encryption keys are now stored properly in the settings.
+
+## Page Builder
+
+### Added Font Size Toolbar Action for Lexical Editor ([#5235](https://github.com/webiny/webiny-js/pull/5235))
+
+The Lexical rich text editor now includes a **Font Size** action in the toolbar. When your cursor is collapsed (no selection), applying a font size expands to the full paragraph automatically.
+
+The `Theme` class constructor has been updated to accept an object with a `fontSizes` property:
+
+```typescript
+import { Theme } from "webiny/lexical-editor";
+
+const theme = new Theme({
+  fontSizes: ["12px", "14px", "16px", "18px", "24px", "32px"]
+});
+```
+
+### Fixed Dropdown and Link Editor Positioning in Dialogs ([#5235](https://github.com/webiny/webiny-js/pull/5235))
+
+Dropdowns (font size, color picker, alignment) inside modal dialogs were being clipped by the dialog's scroll container. These dropdowns now use Radix UI's portal mechanism, ensuring they render above the dialog and remain fully visible.
+
+The floating link editor also had positioning issues inside dialogs — it would overflow viewport edges or become unclickable. The editor now portals into the dialog content element and uses viewport-edge clamping to stay within bounds.
+
+## Background Tasks
+
+### Configurable Task Retention Settings ([#5249](https://github.com/webiny/webiny-js/pull/5249))
+
+Background task run retention is now configurable through both the Admin UI and infrastructure code. A new settings page at **Settings > System > Background Tasks** lets you set how long completed task runs are kept (0–3650 days, where 0 means never delete).
+
+You can also set a default retention period via your infrastructure code:
+
+```typescript
+import { Api } from "webiny/pulumi";
+
+export default () => {
+  return {
+    api: Api.configure({
+      backgroundTasks: {
+        retentionDays: 180
+      }
+    })
+  };
+};
+```
+
+The priority order is: admin UI setting → infrastructure default → hardcoded default (90 days).
+
+<Alert type="info">
+
+The `@webiny/tasks` package has been consolidated into `@webiny/background-tasks`. Update your imports accordingly if you were using the tasks API directly.
+
+</Alert>
