@@ -76,46 +76,6 @@ The dynamic zone template picker now includes a search bar to filter templates b
 
 <Video src={dynamicZoneSearchVideo} />
 
-## Webiny SDK
-
-### WebSockets Service Now Exported from `webiny/api` ([#5203](https://github.com/webiny/webiny-js/pull/5203))
-
-The `Websockets` service abstraction was not previously accessible from the main `webiny/api` entry point, requiring deep imports to use it in custom code. It can now be imported directly and injected via the DI container into any class — routes, event lifecycle handlers, custom features, or anywhere dependency injection is available.
-
-Below is a simple example using a Route:
-
-```typescript
-import { Route, Websockets } from "webiny/api";
-
-interface BroadcastBody {
-    message: string;
-    type: "info" | "warning" | "success";
-}
-
-class BroadcastNotificationRoute implements Route.Interface {
-    constructor(private websockets: Websockets.Interface) {}
-
-    async execute(request: Route.Request, reply: Route.Reply) {
-        const { message, type } = request.body as BroadcastBody;
-
-        const connectionsResult = await this.websockets.listConnections();
-        if (connectionsResult.isOk() && connectionsResult.value.length > 0) {
-            await this.websockets.sendToConnections(connectionsResult.value, {
-                action: "app.notification",
-                data: { message, type, sentAt: new Date().toISOString() }
-            });
-        }
-
-        reply.send({ notified: connectionsResult.value?.length ?? 0 });
-    }
-}
-
-export default Route.createImplementation({
-    implementation: BroadcastNotificationRoute,
-    dependencies: [Websockets]
-});
-```
-
 ## Website Builder
 
 ### Read-Only Mode for Non-Draft Page Revisions ([#5164](https://github.com/webiny/webiny-js/pull/5164))
@@ -242,6 +202,44 @@ The `timeago-react` package (flagged as compromised) has been replaced with a cu
 A new admin interface for viewing background tasks is now available. You can list all tasks and inspect their status, making it easier to monitor long-running operations like bulk imports or scheduled jobs.
 
 ## Development
+
+### WebSockets Service Now Exported from `webiny/api` ([#5203](https://github.com/webiny/webiny-js/pull/5203))
+
+The `Websockets` service abstraction was not previously accessible from the main `webiny/api` entry point, requiring deep imports to use it in custom code. It can now be imported directly and injected via the DI container into any class — routes, event lifecycle handlers, custom features, or anywhere dependency injection is available.
+
+Below is a simple example using a Route:
+
+```typescript
+import { Route, Websockets } from "webiny/api";
+
+interface BroadcastBody {
+    message: string;
+    type: "info" | "warning" | "success";
+}
+
+class BroadcastNotificationRoute implements Route.Interface {
+    constructor(private websockets: Websockets.Interface) {}
+
+    async execute(request: Route.Request, reply: Route.Reply) {
+        const { message, type } = request.body as BroadcastBody;
+
+        const connectionsResult = await this.websockets.listConnections();
+        if (connectionsResult.isOk() && connectionsResult.value.length > 0) {
+            await this.websockets.sendToConnections(connectionsResult.value, {
+                action: "app.notification",
+                data: { message, type, sentAt: new Date().toISOString() }
+            });
+        }
+
+        reply.send({ notified: connectionsResult.value?.length ?? 0 });
+    }
+}
+
+export default Route.createImplementation({
+    implementation: BroadcastNotificationRoute,
+    dependencies: [Websockets]
+});
+```
 
 ### Upgraded Rsbuild and Rspack to v2 ([#5167](https://github.com/webiny/webiny-js/pull/5167))
 
