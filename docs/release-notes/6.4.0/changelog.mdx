@@ -6,14 +6,21 @@ description: See what's new in Webiny version 6.4.0
 
 import { GithubRelease } from "@/components/GithubRelease";
 import { Alert } from "@/components/Alert";
+import dynamicZoneSearchVideo from "./assets/dynamic-zone-search-list-view.mp4";
+import cleanUrlPagesList from "./assets/clean-url-pages-list.png";
+import multiSelectComponent from "./assets/multiselect-component.png";
+import toggleComponents from "./assets/toggle-components.png";
+import dialogLoadingOverlay from "./assets/dialog-loading-overlay.png";
+import auditLogsScroll from "./assets/audit-logs-scroll.mp4";
+import rsdoctorBundleAnalysis from "./assets/rsdoctor-bundle-analysis.png";
 
 <GithubRelease version={"6.4.0"} />
 
 ## Headless CMS
 
-### CMS Models Cache Now Includes Plugin-Registered Models ([#5208](https://github.com/webiny/webiny-js/pull/5208))
+### Fixed CMS Plugin Models Not Being Cached ([#5208](https://github.com/webiny/webiny-js/pull/5208))
 
-When listing CMS content models, plugin-registered models were fetched outside the cache boundary. Even when the cache was warm, every request triggered a fresh plugin model lookup. Plugin models are now fetched inside the cache boundary along with database models, so a cache hit returns the complete merged list without any additional lookups.
+Plugin-registered CMS content models were not being cached, causing unnecessary lookups on every request and slowing down the backend API. Plugin models are now cached alongside database models, improving API performance.
 
 ### Added Revision Description Field ([#5165](https://github.com/webiny/webiny-js/pull/5165))
 
@@ -37,10 +44,6 @@ Ordered list items now get correct sequential numbering when importing HTML cont
 
 Text fields now support compression when storing large values. When enabled, the field stores a compressed representation containing the compression algorithm and the compressed value. This can significantly reduce storage costs for content-heavy text fields.
 
-### Webhooks API ([#5218](https://github.com/webiny/webiny-js/pull/5218), [#5219](https://github.com/webiny/webiny-js/pull/5219))
-
-Introduced a new Webhooks system for Headless CMS. The API layer provides the foundation for defining webhook endpoints and triggering them based on content events, while the Admin UI offers a management interface for configuring webhooks directly from the dashboard.
-
 ### Refactored Asset Delivery to Use Dependency Injection ([#5226](https://github.com/webiny/webiny-js/pull/5226))
 
 The asset delivery system has been migrated from a custom manual DI container to the standard `createFeature`/`createAbstraction` system from `webiny/feature`. This brings asset delivery in line with other Webiny subsystems and reduces boilerplate.
@@ -59,10 +62,6 @@ The hardcoded `FILE_FIELDS` import has been replaced with an injectable `FileFie
 
 All SDK gateways and repositories now resolve file fields dynamically through dependency injection, ensuring that unlicensed features don't expose fields that aren't available.
 
-### Webhooks Integration for CMS Events ([#5224](https://github.com/webiny/webiny-js/pull/5224))
-
-The Webhooks package now integrates with the Headless CMS, allowing you to trigger webhooks on CMS entry lifecycle events. This enables external systems to react to content changes in real time — useful for cache invalidation, search index updates, or workflow automation.
-
 ### Entry Data Factories for CMS Features ([#5205](https://github.com/webiny/webiny-js/pull/5205))
 
 CMS features can now receive entry data factories via dependency injection rather than relying on internal static methods. This change improves testability and allows you to customize how entry data is constructed in advanced use cases.
@@ -71,27 +70,19 @@ CMS features can now receive entry data factories via dependency injection rathe
 
 The `meta` field previously used by the legacy Advanced Publishing Workflow (APW) has been removed from CMS entries. If you were relying on this field in custom code, you'll need to update your implementation to use the current APW APIs.
 
-### Fixed Website Builder Tests ([#5195](https://github.com/webiny/webiny-js/pull/5195))
-
-Resolved failing tests in the Website Builder API and application packages, ensuring test suite stability.
-
 ### Dynamic Zone Template Gallery Search and List View ([#5245](https://github.com/webiny/webiny-js/pull/5245))
 
 The dynamic zone template picker now includes a search bar to filter templates by name, and a grid/list view toggle. The list view provides a compact alternative to the existing card grid, making it easier to navigate projects with many templates.
 
-### Webhooks: Deliveries View Is Now a Standalone Page ([#5244](https://github.com/webiny/webiny-js/pull/5244))
-
-The webhook deliveries view has been refactored from an embedded component to a dedicated standalone page. This improves navigation clarity and makes delivery logs easier to access and manage independently from the webhook configuration screen.
+<Video src={dynamicZoneSearchVideo} />
 
 ## Webiny SDK
 
-### Removed Standalone Entity Type Exports ([#5152](https://github.com/webiny/webiny-js/pull/5152))
-
-Standalone domain entity types are no longer exported from `@webiny/sdk`. Types such as `FmFile`, `CmsEntryData`, `TaskStatus`, and similar low-level shapes have been removed from the public API. Method parameter types, result wrappers, and input/filter types remain exported. Consumers should rely on TypeScript inference to obtain entity shapes from method return types rather than importing these internal types directly.
-
 ### WebSockets Service Now Exported from `webiny/api` ([#5203](https://github.com/webiny/webiny-js/pull/5203))
 
-The `Websockets` service abstraction was not previously accessible from the main `webiny/api` entry point, requiring deep imports to use it in custom API routes. It can now be imported directly and injected as a dependency into any `Route` implementation.
+The `Websockets` service abstraction was not previously accessible from the main `webiny/api` entry point, requiring deep imports to use it in custom code. It can now be imported directly and injected via the DI container into any class — routes, event lifecycle handlers, custom features, or anywhere dependency injection is available.
+
+Below is a simple example using a Route:
 
 ```typescript
 import { Route, Websockets } from "webiny/api";
@@ -135,6 +126,8 @@ The Website Builder editor now opens published and previously published page rev
 
 Clicking the link icon next to a published page in the pages list now opens the page's public URL without preview query parameters. Draft and unpublished pages continue to open the preview link with `wb.*` params.
 
+<Image src={cleanUrlPagesList} alt="Clean URL link icon for published pages in pages list" />
+
 ### Custom Query Parameters for Live Preview URLs ([#5215](https://github.com/webiny/webiny-js/pull/5215))
 
 Previously, there was no way to inject custom query parameters into Website Builder's live preview URLs without modifying framework code. You can now register a `PreviewUrlModifier` via the DI container to append any query parameters you need to all preview URLs — including asynchronously fetched values such as signed tokens.
@@ -153,10 +146,6 @@ container.register(PreviewUrlModifier, {
 ```
 
 The modifier applies to both the in-editor iframe URL and the page list preview links.
-
-### Fixed Model Registration and GraphQL Field Registry Bug ([#5220](https://github.com/webiny/webiny-js/pull/5220))
-
-Website Builder page and redirect models were migrated to the `ModelFactory` pattern and their registrations moved to run before context plugins, matching the pattern used in other packages. Additionally, a bug was fixed where the CMS GraphQL field type registry could be constructed with no field type implementations, causing GraphQL input types to generate empty and produce a schema error.
 
 ### Website Builder UI Improvements ([#5160](https://github.com/webiny/webiny-js/pull/5160))
 
@@ -186,31 +175,31 @@ The modifier applies to both the in-editor iframe URL and the page list preview 
 
 Page revisions in Website Builder now support descriptions. When publishing a page, you can add a description to the revision to help track what changed — useful for teams collaborating on content updates.
 
-### Webhooks Integration for Pages and Redirects ([#5224](https://github.com/webiny/webiny-js/pull/5224))
-
-Website Builder now supports webhooks for page and redirect events. You can configure external endpoints to receive notifications when pages are published, unpublished, or deleted — and when redirects are created or modified.
-
 ## Admin
 
 ### Added MultiSelect Component ([#5200](https://github.com/webiny/webiny-js/pull/5200))
 
 A new `MultiSelect` component is now available in `@webiny/admin-ui`. It works like the existing `Select` component but allows picking multiple values via a checkbox dropdown. The trigger displays all selected labels inline by default; enable `showSelectionCount` to show a compact count summary instead (e.g. "3 items selected").
 
+<Image src={multiSelectComponent} alt="MultiSelect component showing multiple selections" />
+
 ### Added Toggle and ToggleGroup Components ([#5159](https://github.com/webiny/webiny-js/pull/5159))
 
 Two new form input components have been added to `@webiny/admin-ui`: `Toggle`, a button that switches between active and inactive states supporting text, icons, or both; and `ToggleGroup`, which groups multiple toggles for single or multi-select scenarios with an optional bordered container. Both components support `primary`, `outline`, `ghost`, and `ghost-negative` visual variants and integrate with the standard form validation and notes API.
+
+<Image src={toggleComponents} alt="Toggle and ToggleGroup components in the admin UI" />
 
 ### Dialog Loading Overlay Now Covers the Entire Dialog ([#5168](https://github.com/webiny/webiny-js/pull/5168))
 
 The loading spinner shown while a dialog action was in progress was being clipped, appearing only over the dialog body and cutting off at the footer. It now covers the full dialog surface, including the header and footer. The `Dialog` component gains a first-class `loading` prop (`boolean | { text?: string }`) that handles overlay rendering internally.
 
+<Image src={dialogLoadingOverlay} alt="Dialog loading overlay covering the entire dialog" />
+
 ### Fixed Audit Logs Infinite Scroll Discarding Previously Loaded Records ([#5175](https://github.com/webiny/webiny-js/pull/5175))
 
 When scrolling through the audit logs list, loading more records replaced the current page instead of appending to it. Users could not scroll back to see earlier entries, and the scroll position jumped to the top on each page load. Previously loaded records are now accumulated across pages, and the scroll position is preserved when new entries are appended.
 
-### Fixed Dynamic Zone Template Gallery Bottom Spacing ([#5166](https://github.com/webiny/webiny-js/pull/5166))
-
-The template picker modal in the Dynamic Zone field was cutting off the last row of template tiles. A missing bottom margin has been added so all templates are fully visible and accessible when scrolling.
+<Video src={auditLogsScroll} />
 
 ### Replaced File Picker Component ([#5214](https://github.com/webiny/webiny-js/pull/5214))
 
@@ -228,7 +217,7 @@ As part of this change, the Lexical editor export path moved from `webiny/admin/
 
 ### File URL Formatter Extension Point ([#5210](https://github.com/webiny/webiny-js/pull/5210))
 
-Added a `FileUrlFormatter` extension point that allows projects to customize how file and image URLs are constructed in the admin UI. By default, the File Manager appends a `?width=128` query parameter to image URLs for responsive thumbnail delivery. Projects can replace this behaviour with their own CDN-specific URL transformation:
+Added a `FileUrlFormatter` extension point that allows projects to customize how file and image URLs are constructed in the admin UI. This is especially useful for projects using a custom DAM or CDN — you can remap file URLs to your own delivery infrastructure without touching framework code.
 
 ```typescript
 import { createFeature } from "webiny/feature";
@@ -280,13 +269,7 @@ The internal release tooling no longer uses Lerna. Versioning and publishing are
 
 The `webiny build` command now supports an `--analyze` flag that enables RSDoctor bundle analysis. When passed, it generates detailed reports on bundle composition and build performance, helping diagnose large bundles and slow builds.
 
-### Desktop Notifications on Build Completion ([#5251](https://github.com/webiny/webiny-js/pull/5251))
-
-The build script now sends native OS notifications when a build completes or fails, so you don't have to watch the terminal. Works on macOS and Linux.
-
-### Webiny Telemetry System v3 ([#5197](https://github.com/webiny/webiny-js/pull/5197))
-
-The Webiny Telemetry System (WTS) has been completely re-implemented. The new system connects user sessions across the web, CLI, and admin app, providing a unified view of telemetry data. The implementation continues to respect user telemetry preferences — if telemetry is disabled in your project, no data is collected.
+<Image src={rsdoctorBundleAnalysis} alt="RSDoctor bundle analysis output" />
 
 ## Infrastructure
 
@@ -315,13 +298,9 @@ Transport creation errors now return a distinct `TransportCreateError` type inst
 
 ## Webhooks
 
-### Delivery List and View UI ([#5231](https://github.com/webiny/webiny-js/pull/5231))
+### Webhooks (Beta) ([#5218](https://github.com/webiny/webiny-js/pull/5218), [#5219](https://github.com/webiny/webiny-js/pull/5219), [#5224](https://github.com/webiny/webiny-js/pull/5224), [#5231](https://github.com/webiny/webiny-js/pull/5231), [#5244](https://github.com/webiny/webiny-js/pull/5244))
 
-The Webhooks admin interface now includes a delivery history view. You can list all webhook deliveries, filter by app, entity, and event type, and inspect individual delivery details including request/response payloads and status codes.
-
-### Fixed Encryption Key Storage ([#5230](https://github.com/webiny/webiny-js/pull/5230))
-
-The encryption key used for securing webhook secrets was not being persisted correctly, which could cause decryption failures after restarts. This has been fixed — encryption keys are now stored properly in the settings.
+Webhooks are a new beta feature that lets you trigger external HTTP endpoints when content changes. You can configure webhooks from the admin dashboard, subscribe to CMS entry lifecycle events (create, update, publish, delete) and Website Builder page and redirect events, and inspect delivery history with full request/response payloads.
 
 ## Page Builder
 
