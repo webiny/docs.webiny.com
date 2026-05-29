@@ -60,6 +60,10 @@ The dynamic zone template picker now includes a search bar to filter templates b
 
 <Video src={dynamicZoneSearchVideo} />
 
+### Fixed Dynamic Zone Template Gallery Clipping ([#5166](https://github.com/webiny/webiny-js/pull/5166))
+
+The template picker modal in the Dynamic Zone field was cutting off the last row of template tiles. A missing bottom margin has been added so all templates are fully visible and accessible when scrolling.
+
 ## Website Builder
 
 ### AI Personas and Projects for Content Generation (Beta) ([#5194](https://github.com/webiny/webiny-js/pull/5194), [#5202](https://github.com/webiny/webiny-js/pull/5202))
@@ -141,6 +145,18 @@ Dropdowns (font size, color picker, alignment) inside modal dialogs were being c
 
 The floating link editor also had positioning issues inside dialogs — it would overflow viewport edges or become unclickable. The editor now portals into the dialog content element and uses viewport-edge clamping to stay within bounds.
 
+### Vue 3 and Nuxt Integration ([#5143](https://github.com/webiny/webiny-js/pull/5143))
+
+Website Builder now supports Vue 3 and Nuxt applications. Two new packages — `@webiny/website-builder-vue` and `@webiny/website-builder-nuxt` — provide the same document rendering, live editing, and state management capabilities as the existing React and Next.js integrations. All built-in editor components (Grid, Image, Rich Text, Box, etc.) are available in the Vue ecosystem.
+
+### Custom Query Parameters for Live Preview URLs ([#5222](https://github.com/webiny/webiny-js/pull/5222))
+
+You can now inject custom query parameters into Website Builder's live preview URLs by registering a `PreviewUrlModifier` via the DI container. The modifier receives the full `URL` object and can mutate it however needed — including async operations like fetching signed tokens from a remote API. It applies to both the in-editor iframe URL and the page list preview links.
+
+### Fixed Model Registration and GraphQL Field Registry ([#5220](https://github.com/webiny/webiny-js/pull/5220))
+
+Website Builder page and redirect models were migrated to the `ModelFactory` pattern with registrations moved to run before context plugins. Additionally, a bug was fixed where the CMS GraphQL field type registry could be constructed with no field type implementations, causing GraphQL input types to generate empty and produce a schema error.
+
 ## Admin
 
 ### Added MultiSelect Component ([#5200](https://github.com/webiny/webiny-js/pull/5200))
@@ -200,6 +216,15 @@ class MyFileUrlFormatter implements FileUrlFormatter.Interface {
 ### Replaced `timeago-react` with Custom Implementation ([#5225](https://github.com/webiny/webiny-js/pull/5225))
 
 The `timeago-react` package (flagged as compromised) has been replaced with a custom `TimeAgo` component built on the Temporal API. The component API remains unchanged — existing `<TimeAgo datetime={...} />` usage works without modification. Live updates now use adaptive intervals that stop entirely after 1 hour of elapsed time.
+
+### Improved Form Validation and List Loading States ([#5257](https://github.com/webiny/webiny-js/pull/5257))
+
+- **Form validation**: Parent objects no longer show redundant "Invalid value" errors when only their child fields have validation failures
+- **List loading**: The pagination system now distinguishes between initial load and "load more" operations, eliminating skeleton flash when loading additional items
+
+### Fixed File Manager Field Visibility ([#5229](https://github.com/webiny/webiny-js/pull/5229))
+
+The `accessControl.type` field in file queries was always included, even when the Private Files feature wasn't licensed. This has been fixed — the field now appears only when `canUsePrivateFiles()` returns true.
 
 ## Development
 
@@ -269,6 +294,14 @@ The `webiny build` command now supports an `--analyze` flag that enables RSDocto
 
 <Image src={rsdoctorBundleAnalysis} alt="RSDoctor bundle analysis output" />
 
+### Desktop Notification on Build Completion ([#5251](https://github.com/webiny/webiny-js/pull/5251))
+
+The build script now sends a native desktop notification when a build completes or fails, so you don't have to keep watching the terminal. Works on macOS and Linux. The notification includes the project name.
+
+### Yarn Configuration Defaults Loaded from Template ([#5258](https://github.com/webiny/webiny-js/pull/5258))
+
+The `SetupYarn` step now reads `.yarnrc.yml` defaults from the example template file instead of hardcoding them, making the template the single source of truth for Yarn settings. The `--assign-to-yarnrc` flag still overrides any template value.
+
 ## Infrastructure
 
 ### API Bundle Size Limit ([#5221](https://github.com/webiny/webiny-js/pull/5221))
@@ -309,6 +342,21 @@ Webhooks are a new beta feature that lets you trigger external HTTP endpoints wh
   <Image src={webhookForm} alt={"Webhook Form"}/>
 </Gallery>
 
+### Full Webhook Management System ([#5199](https://github.com/webiny/webiny-js/pull/5199))
+
+Webiny now includes a complete webhook management system covering domain modelling, persistence, GraphQL API, background delivery, and security.
+
+Key features:
+- **CRUD operations** for webhooks and delivery logs via GraphQL
+- **Standard Webhooks spec** for payload signing and verification
+- **Background delivery** — delivery records are created immediately when events fire, then processed asynchronously with full status tracking (`pending` → `delivering` → `delivered`/`failed`)
+- **Manual trigger and resend** — test webhooks via GraphQL or resend failed deliveries (creates a new delivery record, preserving history)
+- **Permission-gated** — CRUD operations require `webhooks.webhook` permission, but delivery itself fires regardless of user permissions
+
+### Fixed Webhook Settings Encryption Storage ([#5230](https://github.com/webiny/webiny-js/pull/5230))
+
+The webhook encryption key was not being stored properly, which could cause signature verification failures. This has been fixed.
+
 ## Background Tasks
 
 ### Background Tasks UI (Beta) ([#5232](https://github.com/webiny/webiny-js/pull/5232))
@@ -336,3 +384,17 @@ The priority order is: admin UI setting → infrastructure default → hardcoded
   The `@webiny/tasks` package has been consolidated into `@webiny/background-tasks`. Update your imports accordingly if you were using the tasks API directly.
 
 </Alert>
+
+## Webiny SDK
+
+### Removed Standalone Entity Type Exports ([#5152](https://github.com/webiny/webiny-js/pull/5152))
+
+The SDK no longer exports raw domain entity types like `FmFile`, `CmsEntryData`, `TaskDefinition`, etc. These types were not intended as part of the public API — SDK methods already return fully typed results, so you can rely on TypeScript inference instead:
+
+```typescript
+// Instead of importing FmFile, infer it from the method return type
+const result = await sdk.fileManager.getFile({ id: "abc123" });
+if (result.ok) {
+  const file = result.data; // Type is inferred automatically
+}
+```
