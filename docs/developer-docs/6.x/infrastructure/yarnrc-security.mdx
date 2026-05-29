@@ -1,0 +1,153 @@
+---
+id: yr5s3c8k
+title: .yarnrc.yml Security
+description: Harden your Webiny project against supply chain attacks using Yarn security settings.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- why you should harden your Webiny project against supply chain attacks
+- which Yarn security settings to add to your `.yarnrc.yml`
+- what each setting does and how to customize it
+- how to troubleshoot installation failures caused by these settings
+
+</Alert>
+
+## Overview
+
+Every Webiny project uses Yarn as its package manager and has a `.yarnrc.yml` configuration file in the project root. Yarn supports several security settings that you can add to this file to protect your project against supply chain attacks - malicious code that enters your application through compromised or deceptive npm packages.
+
+This page explains the settings Webiny recommends and how to add them to your project.
+
+## Recommended Settings
+
+Add the following settings to the `.yarnrc.yml` file in your project root:
+
+```yaml .yarnrc.yml
+enableScripts: false
+
+npmMinimalAgeGate: 3d
+npmPreapprovedPackages:
+  - "@webiny/*"
+  - "wts-client"
+
+approvedGitRepositories:
+  - "https://github.com/webiny/webiny-upgrades-v6"
+```
+
+The sections below explain what each setting does and how to adjust it for your needs.
+
+## Lifecycle Scripts
+
+```yaml .yarnrc.yml
+enableScripts: false
+```
+
+When `enableScripts` is set to `false`, Yarn skips all package lifecycle scripts - `postinstall`, `preinstall`, `install`, and similar hooks defined in a dependency's `package.json`. This is the single most effective defense against malicious packages, since the majority of supply chain attacks rely on lifecycle scripts to execute arbitrary code during installation.
+
+<Alert type="warning" title="When a dependency requires scripts">
+
+Some legitimate packages (native modules, packages that compile binaries) rely on `postinstall` scripts. If you add such a dependency and it does not work after installation, you may need to explicitly allow scripts for that package. See [Allowing Scripts for Specific Packages](#allowing-scripts-for-specific-packages) below.
+
+</Alert>
+
+### Allowing Scripts for Specific Packages
+
+Rather than setting `enableScripts` back to `true` globally, allow scripts only for the packages that need them by adding a `packageExtensions` entry:
+
+```yaml .yarnrc.yml
+enableScripts: false
+
+packageExtensions:
+  "some-native-package@*":
+    scripts:
+      postinstall: "node ./build.js"
+```
+
+## Package Age Gate
+
+```yaml .yarnrc.yml
+npmMinimalAgeGate: 3d
+```
+
+The `npmMinimalAgeGate` setting tells Yarn to reject any package version that was published to the npm registry less than the specified duration ago. This creates a time buffer that helps protect against:
+
+- **Typosquatting** - malicious packages with names similar to popular ones
+- **Account takeover** - compromised maintainer accounts pushing malicious updates
+- **Star-jacking** - newly published malicious packages designed to look trustworthy
+
+With a value of `3d`, you cannot install a package version that was published less than three days ago. This gives the community and automated scanners time to flag malicious releases before they reach your project.
+
+### Preapproved Packages
+
+```yaml .yarnrc.yml
+npmPreapprovedPackages:
+  - "@webiny/*"
+  - "wts-client"
+```
+
+Packages listed under `npmPreapprovedPackages` are exempt from the age gate. The `@webiny/*` glob pattern covers all Webiny packages, which are published by the Webiny team and need to be installable immediately after release.
+
+If you publish your own packages or work with a trusted vendor whose packages you need immediately after release, add them to the list:
+
+```yaml .yarnrc.yml
+npmPreapprovedPackages:
+  - "@webiny/*"
+  - "wts-client"
+  - "@your-org/*"
+```
+
+### Adjusting the Age Gate Duration
+
+You can increase or decrease the duration to match your risk tolerance:
+
+```yaml .yarnrc.yml
+# More conservative - wait a full week
+npmMinimalAgeGate: 7d
+
+# Less conservative - wait one day
+npmMinimalAgeGate: 1d
+```
+
+A longer duration provides more protection but delays access to new releases. A shorter duration gives faster access but reduces the window for malicious packages to be caught.
+
+## Approved Git Repositories
+
+```yaml .yarnrc.yml
+approvedGitRepositories:
+  - "https://github.com/webiny/webiny-upgrades-v6"
+```
+
+The `approvedGitRepositories` setting restricts which Git repositories Yarn is allowed to use as a dependency source. Any `git+https://...` or `github:...` dependency that does not match an entry in this list is rejected.
+
+Webiny uses this to allow the upgrade repository - the mechanism for applying Webiny version upgrades - while blocking all other Git-based dependencies by default.
+
+### Adding a Git Repository
+
+If your project needs a dependency from a Git repository, add its URL to the list:
+
+```yaml .yarnrc.yml
+approvedGitRepositories:
+  - "https://github.com/webiny/webiny-upgrades-v6"
+  - "https://github.com/your-org/your-private-package"
+```
+
+## Troubleshooting
+
+### "Package was published less than X ago"
+
+The age gate blocked a package version. You have three options:
+
+- **Wait** - try again after the age gate duration has passed
+- **Preapprove** - add the package to `npmPreapprovedPackages` if you trust the publisher
+- **Lower the gate** - reduce `npmMinimalAgeGate` (not recommended unless you understand the risk)
+
+### "Lifecycle scripts are disabled"
+
+A package tried to run a script during installation but `enableScripts: false` blocked it. If the package needs scripts to function correctly, allow them for that specific package rather than enabling scripts globally.
+
+### "Git repository is not approved"
+
+A dependency points to a Git repository that is not in `approvedGitRepositories`. Add the repository URL to the list if you trust it.

@@ -181,6 +181,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"infrastructure/github-actions"} title={"GitHub Actions"} />
         <Page link={"infrastructure/dynamodb-only"} title={"DynamoDB-Only Dev Environments"} />
         <Page link={"infrastructure/opensearch"} title={"Shared OpenSearch Cluster"} />
+        <Page link={"infrastructure/yarnrc-security"} />
         <Group title={"Extensions"} link={"infrastructure/extensions/aws-tags"}>
           <Page link={"infrastructure/extensions/aws-tags"} title={"AWS Tags"} />
           <Page
