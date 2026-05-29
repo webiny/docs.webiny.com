@@ -10,6 +10,7 @@ import dynamicZoneSearchVideo from "./assets/dynamic-zone-search-list-view.mp4";
 import cleanUrlPagesList from "./assets/clean-url-pages-list.png";
 import multiSelectComponent from "./assets/multiselect-component.png";
 import toggleComponents from "./assets/toggle-components.png";
+import pageEditorUiOverhaul from "./assets/page-editor-ui-overhaul.gif";
 import dialogLoadingOverlay from "./assets/dialog-loading-overlay.png";
 import auditLogsScroll from "./assets/audit-logs-scroll.mp4";
 import rsdoctorBundleAnalysis from "./assets/rsdoctor-bundle-analysis.png";
@@ -78,6 +79,12 @@ The dynamic zone template picker now includes a search bar to filter templates b
 
 ## Website Builder
 
+### Page Editor UI Overhaul ([#5211](https://github.com/webiny/webiny-js/pull/5211))
+
+The Website Builder page editor received a significant visual refresh. The drag preview indicator is now a designed pill-shaped component showing the element name and icon — a dotted border when dragging, solid fill when over a valid drop slot. The Style sidebar has been redesigned with a consistent label-left / control-right row layout across all sections (Layout, Border, Background, Visibility). The element overlay now displays the component icon alongside its name. Boolean and Visibility inputs use compact segmented controls instead of switches.
+
+<Image src={pageEditorUiOverhaul} alt="Website Builder page editor UI overhaul" />
+
 ### Read-Only Mode for Non-Draft Page Revisions ([#5164](https://github.com/webiny/webiny-js/pull/5164))
 
 The Website Builder editor now opens published and previously published page revisions in read-only mode. Only draft revisions remain fully editable, preventing accidental modifications to live content.
@@ -93,15 +100,17 @@ Clicking the link icon next to a published page in the pages list now opens the 
 Previously, there was no way to inject custom query parameters into Website Builder's live preview URLs without modifying framework code. You can now register a `PreviewUrlModifier` via the DI container to append any query parameters you need to all preview URLs — including asynchronously fetched values such as signed tokens.
 
 ```typescript
-import { PreviewUrlModifier } from "webiny/api-website-builder";
+import { PreviewUrlModifier } from "webiny/admin/website-builder";
 
-container.register(PreviewUrlModifier, {
-  useFactory: () => ({
-    async modify(url: URL): Promise<void> {
-      const token = await fetchSignedToken();
-      url.searchParams.set("preview_token", token);
+class MyPreviewUrlModifier implements PreviewUrlModifier.Interface {
+    async modify(url: URL) {
+        url.searchParams.set("x-my-token", "abc123");
     }
-  })
+}
+
+export default PreviewUrlModifier.createImplementation({
+    implementation: MyPreviewUrlModifier,
+    dependencies: []
 });
 ```
 
@@ -134,6 +143,26 @@ The modifier applies to both the in-editor iframe URL and the page list preview 
 ### Page Revision Descriptions ([#5189](https://github.com/webiny/webiny-js/pull/5189))
 
 Page revisions in Website Builder now support descriptions. When publishing a page, you can add a description to the revision to help track what changed — useful for teams collaborating on content updates.
+
+### Added Font Size Toolbar Action for Lexical Editor ([#5235](https://github.com/webiny/webiny-js/pull/5235))
+
+The Lexical rich text editor now includes a **Font Size** action in the toolbar. When your cursor is collapsed (no selection), applying a font size expands to the full paragraph automatically.
+
+The `Theme` class constructor has been updated to accept an object with a `fontSizes` property:
+
+```typescript
+import { Theme } from "webiny/lexical-editor";
+
+const theme = new Theme({
+  fontSizes: ["12px", "14px", "16px", "18px", "24px", "32px"]
+});
+```
+
+### Fixed Dropdown and Link Editor Positioning in Dialogs ([#5235](https://github.com/webiny/webiny-js/pull/5235))
+
+Dropdowns (font size, color picker, alignment) inside modal dialogs were being clipped by the dialog's scroll container. These dropdowns now use Radix UI's portal mechanism, ensuring they render above the dialog and remain fully visible.
+
+The floating link editor also had positioning issues inside dialogs — it would overflow viewport edges or become unclickable. The editor now portals into the dialog content element and uses viewport-edge clamping to stay within bounds.
 
 ## Admin
 
@@ -275,14 +304,17 @@ The `webiny build` command now supports an `--analyze` flag that enables RSDocto
 
 Added a new `Infra.Api.MaxBundleSize` extension that enforces a configurable size limit on the API Lambda bundle at build time. The default limit is 4.5 MB. If your built bundle exceeds the limit, the build fails with a clear error message pointing to the exact config change needed to raise it:
 
-```typescript
+```tsx
 // webiny.config.tsx
+import React from "react";
 import { Infra } from "webiny/infra";
 
-export default {
-  extensions: [
-    Infra.Api.MaxBundleSize({ maxSize: 5 * 1024 * 1024 }) // 5 MB
-  ]
+export const Extensions = () => {
+    return (
+        <>
+            <Infra.Api.MaxBundleSize maxSize={2097152} />
+        </>
+    );
 };
 ```
 
@@ -299,28 +331,6 @@ Transport creation errors now return a distinct `TransportCreateError` type inst
 ### Webhooks (Beta) ([#5218](https://github.com/webiny/webiny-js/pull/5218), [#5219](https://github.com/webiny/webiny-js/pull/5219), [#5224](https://github.com/webiny/webiny-js/pull/5224), [#5231](https://github.com/webiny/webiny-js/pull/5231), [#5244](https://github.com/webiny/webiny-js/pull/5244))
 
 Webhooks are a new beta feature that lets you trigger external HTTP endpoints when content changes. You can configure webhooks from the admin dashboard, subscribe to CMS entry lifecycle events (create, update, publish, delete) and Website Builder page and redirect events, and inspect delivery history with full request/response payloads.
-
-## Page Builder
-
-### Added Font Size Toolbar Action for Lexical Editor ([#5235](https://github.com/webiny/webiny-js/pull/5235))
-
-The Lexical rich text editor now includes a **Font Size** action in the toolbar. When your cursor is collapsed (no selection), applying a font size expands to the full paragraph automatically.
-
-The `Theme` class constructor has been updated to accept an object with a `fontSizes` property:
-
-```typescript
-import { Theme } from "webiny/lexical-editor";
-
-const theme = new Theme({
-  fontSizes: ["12px", "14px", "16px", "18px", "24px", "32px"]
-});
-```
-
-### Fixed Dropdown and Link Editor Positioning in Dialogs ([#5235](https://github.com/webiny/webiny-js/pull/5235))
-
-Dropdowns (font size, color picker, alignment) inside modal dialogs were being clipped by the dialog's scroll container. These dropdowns now use Radix UI's portal mechanism, ensuring they render above the dialog and remain fully visible.
-
-The floating link editor also had positioning issues inside dialogs — it would overflow viewport edges or become unclickable. The editor now portals into the dialog content element and uses viewport-edge clamping to stay within bounds.
 
 ## Background Tasks
 
