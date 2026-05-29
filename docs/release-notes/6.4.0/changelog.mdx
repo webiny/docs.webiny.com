@@ -14,6 +14,13 @@ import pageEditorUiOverhaul from "./assets/page-editor-ui-overhaul.gif";
 import dialogLoadingOverlay from "./assets/dialog-loading-overlay.png";
 import auditLogsScroll from "./assets/audit-logs-scroll.mp4";
 import rsdoctorBundleAnalysis from "./assets/rsdoctor-bundle-analysis.png";
+import aiProjects from "./assets/ai-projects.png";
+import bgTaskExecutions from "./assets/bgTaskExecutions.png";
+import bgTaskSettings from "./assets/bgTaskSettings.png";
+import webhookDeliveries from "./assets/webhook-deliveries.png";
+import webhookForm from "./assets/webhook-form.png";
+import webhooks from "./assets/webhooks.png";
+import lexicalFontSize from "./assets/lexical-font-size.png";
 
 <GithubRelease version={"6.4.0"} />
 
@@ -26,20 +33,6 @@ Plugin-registered CMS content models were not being cached, causing unnecessary 
 ### Added Revision Description Field ([#5165](https://github.com/webiny/webiny-js/pull/5165))
 
 Content model entry revisions can now include a description. When an entry is published, the revision description is stored alongside the revision metadata, making it easier to track what changed between versions.
-
-### AI Personas and Projects for Content Generation ([#5194](https://github.com/webiny/webiny-js/pull/5194), [#5202](https://github.com/webiny/webiny-js/pull/5202))
-
-The AI Powerups package now supports configurable personas and file-backed project contexts that shape AI-generated content tone and audience targeting.
-
-**Personas** are presets with a name, description, and style that influence how the AI generates content. **Projects** are file-backed contexts with token budget validation, version-tracked caching, and default persona bindings. Together, they let you define consistent content guidelines for different brands, audiences, or content types.
-
-The implementation uses a manifest-based approach where the AI model fetches project files on demand via a `read_project_file` tool instead of receiving all content upfront. Generation results now include telemetry data (files read, cache hits, tool calls made, total steps) in the websocket response.
-
-Additionally, the `AiImageEnrichment` functionality was moved from `api-file-manager` to `ai-powerups` to resolve a circular package dependency.
-
-### Fixed Ordered List Numbering in Lexical Editor ([#5194](https://github.com/webiny/webiny-js/pull/5194))
-
-Ordered list items now get correct sequential numbering when importing HTML content into the Lexical rich text editor. Previously, imported lists could display incorrect numbers.
 
 ### Text Field Compression Storage ([#5213](https://github.com/webiny/webiny-js/pull/5213))
 
@@ -57,19 +50,9 @@ Key changes:
 
 This is an internal refactor with no changes to the public API.
 
-### Fixed File Fields Provider to Support Private Files Licensing ([#5229](https://github.com/webiny/webiny-js/pull/5229))
-
-The hardcoded `FILE_FIELDS` import has been replaced with an injectable `FileFieldsProvider` abstraction. This allows the `accessControl.type` field to be conditionally included only when private files are licensed via WCP.
-
-All SDK gateways and repositories now resolve file fields dynamically through dependency injection, ensuring that unlicensed features don't expose fields that aren't available.
-
 ### Entry Data Factories for CMS Features ([#5205](https://github.com/webiny/webiny-js/pull/5205))
 
 CMS features can now receive entry data factories via dependency injection rather than relying on internal static methods. This change improves testability and allows you to customize how entry data is constructed in advanced use cases.
-
-### Removed Legacy APW Entry Meta Field ([#5206](https://github.com/webiny/webiny-js/pull/5206))
-
-The `meta` field previously used by the legacy Advanced Publishing Workflow (APW) has been removed from CMS entries. If you were relying on this field in custom code, you'll need to update your implementation to use the current APW APIs.
 
 ### Dynamic Zone Template Gallery Search and List View ([#5245](https://github.com/webiny/webiny-js/pull/5245))
 
@@ -79,11 +62,17 @@ The dynamic zone template picker now includes a search bar to filter templates b
 
 ## Website Builder
 
-### Page Editor UI Overhaul ([#5211](https://github.com/webiny/webiny-js/pull/5211))
+### AI Personas and Projects for Content Generation (Beta) ([#5194](https://github.com/webiny/webiny-js/pull/5194), [#5202](https://github.com/webiny/webiny-js/pull/5202))
 
-The Website Builder page editor received a significant visual refresh. The drag preview indicator is now a designed pill-shaped component showing the element name and icon — a dotted border when dragging, solid fill when over a valid drop slot. The Style sidebar has been redesigned with a consistent label-left / control-right row layout across all sections (Layout, Border, Background, Visibility). The element overlay now displays the component icon alongside its name. Boolean and Visibility inputs use compact segmented controls instead of switches.
+The AI Powerups package now supports configurable personas and file-backed project contexts that shape AI-generated content tone and audience targeting.
 
-<Image src={pageEditorUiOverhaul} alt="Website Builder page editor UI overhaul" />
+**Personas** are presets with a name, description, and style that influence how the AI generates content. **Projects** are file-backed contexts with token budget validation, version-tracked caching, and default persona bindings. Together, they let you define consistent content guidelines for different brands, audiences, or content types.
+
+The implementation uses a manifest-based approach where the AI model fetches project files on demand via a `read_project_file` tool instead of receiving all content upfront. Generation results now include telemetry data (files read, cache hits, tool calls made, total steps) in the websocket response.
+
+Additionally, the `AiImageEnrichment` functionality was moved from `api-file-manager` to `ai-powerups` to resolve a circular package dependency.
+
+<Image src={aiProjects} alt="AI projects and personas" />
 
 ### Read-Only Mode for Non-Draft Page Revisions ([#5164](https://github.com/webiny/webiny-js/pull/5164))
 
@@ -116,29 +105,11 @@ export default PreviewUrlModifier.createImplementation({
 
 The modifier applies to both the in-editor iframe URL and the page list preview links.
 
-### Website Builder UI Improvements ([#5160](https://github.com/webiny/webiny-js/pull/5160))
+### Page Editor UI Overhaul ([#5211](https://github.com/webiny/webiny-js/pull/5211))
 
-This release includes various UI improvements to the Website Builder interface.
+The Website Builder page editor received a significant visual refresh. The drag preview indicator is now a designed pill-shaped component showing the element name and icon — a dotted border when dragging, solid fill when over a valid drop slot. The Style sidebar has been redesigned with a consistent label-left / control-right row layout across all sections (Layout, Border, Background, Visibility). The element overlay now displays the component icon alongside its name. Boolean and Visibility inputs use compact segmented controls instead of switches.
 
-### Custom Query Parameters for Live Preview URLs ([#5222](https://github.com/webiny/webiny-js/pull/5222))
-
-Previously, there was no way to inject custom query parameters into Website Builder's live preview URLs without modifying framework code. A new `PreviewUrlModifier` extension point lets you append any query parameters to all preview URLs — including asynchronously fetched values such as signed tokens.
-
-```typescript
-import { createFeature } from "webiny/feature";
-import { PreviewUrlModifier } from "webiny/website-builder/admin";
-
-export const CustomPreviewUrl = createFeature(async container => {
-  container.register(PreviewUrlModifier, async () => ({
-    async modify(url: URL) {
-      const token = await fetchSignedToken();
-      url.searchParams.set("preview_token", token);
-    }
-  }));
-});
-```
-
-The modifier applies to both the in-editor iframe URL and the page list preview links.
+<Image src={pageEditorUiOverhaul} alt="Website Builder page editor UI overhaul" />
 
 ### Page Revision Descriptions ([#5189](https://github.com/webiny/webiny-js/pull/5189))
 
@@ -157,6 +128,12 @@ const theme = new Theme({
   fontSizes: ["12px", "14px", "16px", "18px", "24px", "32px"]
 });
 ```
+
+<Image src={lexicalFontSize} alt="Lexical Font Size Selector" />
+
+### Fixed Ordered List Numbering in Lexical Editor ([#5194](https://github.com/webiny/webiny-js/pull/5194))
+
+Ordered list items now get correct sequential numbering when importing HTML content into the Lexical rich text editor. Previously, imported lists could display incorrect numbers.
 
 ### Fixed Dropdown and Link Editor Positioning in Dialogs ([#5235](https://github.com/webiny/webiny-js/pull/5235))
 
@@ -209,26 +186,20 @@ As part of this change, the Lexical editor export path moved from `webiny/admin/
 Added a `FileUrlFormatter` extension point that allows projects to customize how file and image URLs are constructed in the admin UI. This is especially useful for projects using a custom DAM or CDN — you can remap file URLs to your own delivery infrastructure without touching framework code.
 
 ```typescript
-import { createFeature } from "webiny/feature";
-import { FileUrlFormatter } from "webiny/file-manager/admin";
+import { FileUrlFormatter } from "webiny/admin/ui/file-manager";
 
-export const CdnUrlFormatter = createFeature(async container => {
-  container.register(FileUrlFormatter, async () => ({
-    format(url: string, options: { width?: number }) {
-      // Remap to your CDN's resize syntax
-      return `https://cdn.example.com/resize/${options.width}/${url}`;
+class MyFileUrlFormatter implements FileUrlFormatter.Interface {
+  format(url: URL, params?: FileUrlFormatter.Params): void {
+    if (params?.width !== undefined) {
+      url.searchParams.set("my_width", String(params.width));
     }
-  }));
-});
+  }
+}
 ```
 
 ### Replaced `timeago-react` with Custom Implementation ([#5225](https://github.com/webiny/webiny-js/pull/5225))
 
 The `timeago-react` package (flagged as compromised) has been replaced with a custom `TimeAgo` component built on the Temporal API. The component API remains unchanged — existing `<TimeAgo datetime={...} />` usage works without modification. Live updates now use adaptive intervals that stop entirely after 1 hour of elapsed time.
-
-### Background Tasks UI ([#5232](https://github.com/webiny/webiny-js/pull/5232))
-
-A new admin interface for viewing background tasks is now available. You can list all tasks and inspect their status, making it easier to monitor long-running operations like bulk imports or scheduled jobs.
 
 ## Development
 
@@ -332,32 +303,36 @@ Transport creation errors now return a distinct `TransportCreateError` type inst
 
 Webhooks are a new beta feature that lets you trigger external HTTP endpoints when content changes. You can configure webhooks from the admin dashboard, subscribe to CMS entry lifecycle events (create, update, publish, delete) and Website Builder page and redirect events, and inspect delivery history with full request/response payloads.
 
+<Gallery>
+  <Image src={webhookDeliveries} alt={"Webhook Deliveries"}/>
+  <Image src={webhooks} alt={"Webhooks"}/>
+  <Image src={webhookForm} alt={"Webhook Form"}/>
+</Gallery>
+
 ## Background Tasks
+
+### Background Tasks UI (Beta) ([#5232](https://github.com/webiny/webiny-js/pull/5232))
+
+A new admin interface for viewing background tasks is now available. You can list all tasks and inspect their status, making it easier to monitor long-running operations like bulk imports or scheduled jobs.
+
+<Image src={bgTaskExecutions} alt="Background Task Executions" />
 
 ### Configurable Task Retention Settings ([#5249](https://github.com/webiny/webiny-js/pull/5249))
 
 Background task run retention is now configurable through both the Admin UI and infrastructure code. A new settings page at **Settings > System > Background Tasks** lets you set how long completed task runs are kept (0–3650 days, where 0 means never delete).
 
+<Image src={bgTaskSettings} alt="Background Task Settings" />
+
 You can also set a default retention period via your infrastructure code:
 
-```typescript
-import { Api } from "webiny/pulumi";
-
-export default () => {
-  return {
-    api: Api.configure({
-      backgroundTasks: {
-        retentionDays: 180
-      }
-    })
-  };
-};
+```tsx
+<Api.BackgroundTasks retentionDays={10} />
 ```
 
 The priority order is: admin UI setting → infrastructure default → hardcoded default (90 days).
 
 <Alert type="info">
 
-The `@webiny/tasks` package has been consolidated into `@webiny/background-tasks`. Update your imports accordingly if you were using the tasks API directly.
+  The `@webiny/tasks` package has been consolidated into `@webiny/background-tasks`. Update your imports accordingly if you were using the tasks API directly.
 
 </Alert>
