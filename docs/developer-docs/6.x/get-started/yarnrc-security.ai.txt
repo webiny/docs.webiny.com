@@ -1,39 +1,33 @@
 AI Context: .yarnrc.yml Security (yarnrc-security.mdx)
 
 Source of Information:
-1. Webiny v6 .yarnrc.yml files from webiny-js-v6 and webiny-js-v6-next repositories
-2. Yarn Berry (v4) documentation for enableScripts, npmMinimalAgeGate, npmPreapprovedPackages, approvedGitRepositories
-3. Comparison with webiny-js (v5) .yarnrc.yml which lacks these security settings — confirms these are new in v6
+1. Webiny v6 example template: packages/create-webiny-project/_templates/base/example.yarnrc.yml
+2. Yarn Berry documentation for enableScripts, npmMinimalAgeGate, npmPreapprovedPackages, approvedGitRepositories
 
 Key Documentation Decisions:
-1. Positioned as a "get-started" page because users will encounter these settings early when adding dependencies
-2. Focused on practical troubleshooting — users will land here when an install fails, not when browsing docs
+1. Framed as a recommendation users opt into — these settings are not yet shipped by default with new projects
+2. Positioned as a "get-started" page because users should harden their project early
 3. Explained each setting individually with its own section and code examples
 4. Deliberately avoided recommending users disable settings globally — always guide toward per-package or scoped exceptions
-5. Did not cover non-security .yarnrc.yml settings (nodeLinker, compressionLevel, yarnPath) — those are standard Yarn config, not Webiny-specific security
+5. Did not cover non-security .yarnrc.yml settings (nodeLinker, compressionLevel) — those are standard Yarn config, not security-related
+6. Did not mention yarnPath or Yarn version — that can change between writing and release
+7. Used @webiny/* glob pattern for preapproved packages (matches the template), not individual package names
 
 Understanding of .yarnrc.yml Security Settings:
-- enableScripts: false — the primary defense against supply chain attacks via lifecycle scripts (postinstall, preinstall). Most npm malware relies on postinstall hooks. Webiny v6 ships with this disabled by default.
-- npmMinimalAgeGate: 3d — time buffer before newly published packages can be installed. Protects against typosquatting, account takeover, and star-jacking. The v6-next repo uses 1d instead of 3d.
-- npmPreapprovedPackages — exemptions from the age gate. Only Webiny's own packages (@webiny/di, @webiny/stdlib, @webiny/wts-client, wts-client) are preapproved.
-- approvedGitRepositories — restricts git-based dependencies to a whitelist. Only the upgrade repository is approved by default.
-
-Difference Between v6 and v6-next:
-- v6: npmMinimalAgeGate: 3d, includes @webiny/wts-client in preapproved
-- v6-next: npmMinimalAgeGate: 1d, does not include @webiny/wts-client in preapproved
-- Both share enableScripts: false and approvedGitRepositories
+- enableScripts: false — the primary defense against supply chain attacks via lifecycle scripts (postinstall, preinstall). Most npm malware relies on postinstall hooks.
+- npmMinimalAgeGate: 3d — time buffer before newly published packages can be installed. Protects against typosquatting, account takeover, and star-jacking.
+- npmPreapprovedPackages — exemptions from the age gate. Uses @webiny/* glob to cover all Webiny packages plus wts-client.
+- approvedGitRepositories — restricts git-based dependencies to a whitelist. Only the upgrade repository (webiny-upgrades-v6) is approved.
 
 Related Documents:
-- get-started/quickstart.mdx — references prerequisites and project setup where .yarnrc.yml is generated
+- get-started/quickstart.mdx — references prerequisites and project setup where .yarnrc.yml lives
 - get-started/upgrade.mdx — the upgrade mechanism uses approvedGitRepositories (webiny-upgrades-v6)
 
 Key Code Locations:
-- /webiny-js-v6/.yarnrc.yml — the production v6 security config
-- /webiny-js-v6-next/.yarnrc.yml — the next-branch v6 security config
-- /webiny-js/.yarnrc.yml — v5 config (no security settings, for comparison)
+- /webiny-js-v6/packages/create-webiny-project/_templates/base/example.yarnrc.yml — the source template for recommended settings
 
 Tone Guidelines:
-- Practical and reassuring — users will arrive here frustrated by a failed install
-- Explain the "why" briefly (supply chain attacks) but focus on the "how to fix"
+- Practical and encouraging — guide users to harden their project, not lecture about security
+- Explain the "why" briefly (supply chain attacks) but focus on the "how to set up"
 - Never recommend disabling security globally — always guide toward scoped exceptions
 - Keep code examples minimal and copy-paste ready

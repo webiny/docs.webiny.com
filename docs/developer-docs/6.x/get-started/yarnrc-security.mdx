@@ -1,45 +1,43 @@
 ---
 id: yr5s3c8k
 title: .yarnrc.yml Security
-description: Understand the supply chain security settings Webiny applies through .yarnrc.yml and how to customize them.
+description: Harden your Webiny project against supply chain attacks using Yarn security settings.
 ---
 
 import { Alert } from "@/components/Alert";
 
 <Alert type="success" title="WHAT YOU'LL LEARN">
 
-- what supply chain protections Webiny enables by default
-- how each `.yarnrc.yml` security setting works
-- how to add packages to the preapproved list or adjust the age gate
+- why you should harden your Webiny project against supply chain attacks
+- which Yarn security settings to add to your `.yarnrc.yml`
+- what each setting does and how to customize it
 - how to troubleshoot installation failures caused by these settings
 
 </Alert>
 
 ## Overview
 
-Webiny projects ship with a `.yarnrc.yml` file that includes security settings designed to protect against supply chain attacks. These settings block lifecycle scripts, reject very recently published packages, and restrict Git-based dependencies to approved repositories.
+Every Webiny project uses Yarn as its package manager and has a `.yarnrc.yml` configuration file in the project root. Yarn supports several security settings that you can add to this file to protect your project against supply chain attacks - malicious code that enters your application through compromised or deceptive npm packages.
 
-If you run into an installation error that mentions a blocked script, an age gate, or a disallowed Git repository, this page explains what happened and how to resolve it.
+This page explains the settings Webiny recommends and how to add them to your project.
 
-## Default Settings
+## Recommended Settings
 
-A freshly created Webiny project includes the following security-related settings in `.yarnrc.yml`:
+Add the following settings to the `.yarnrc.yml` file in your project root:
 
 ```yaml .yarnrc.yml
 enableScripts: false
 
 npmMinimalAgeGate: 3d
 npmPreapprovedPackages:
-  - "@webiny/di"
-  - "@webiny/stdlib"
-  - "@webiny/wts-client"
+  - "@webiny/*"
   - "wts-client"
 
 approvedGitRepositories:
   - "https://github.com/webiny/webiny-upgrades-v6"
 ```
 
-The sections below explain each setting in detail.
+The sections below explain what each setting does and how to adjust it for your needs.
 
 ## Lifecycle Scripts
 
@@ -47,7 +45,7 @@ The sections below explain each setting in detail.
 enableScripts: false
 ```
 
-When `enableScripts` is set to `false`, Yarn skips all package lifecycle scripts — `postinstall`, `preinstall`, `install`, and similar hooks defined in a dependency's `package.json`. This is the single most effective defense against malicious packages, since the majority of supply chain attacks rely on lifecycle scripts to execute arbitrary code during installation.
+When `enableScripts` is set to `false`, Yarn skips all package lifecycle scripts - `postinstall`, `preinstall`, `install`, and similar hooks defined in a dependency's `package.json`. This is the single most effective defense against malicious packages, since the majority of supply chain attacks rely on lifecycle scripts to execute arbitrary code during installation.
 
 <Alert type="warning" title="When a dependency requires scripts">
 
@@ -57,7 +55,7 @@ Some legitimate packages (native modules, packages that compile binaries) rely o
 
 ### Allowing Scripts for Specific Packages
 
-Rather than setting `enableScripts` back to `true` globally, allow scripts only for the packages that need them by adding a `supportedArchitectures` or `packageExtensions` entry, or by using Yarn's `enableScripts` per-package override:
+Rather than setting `enableScripts` back to `true` globally, allow scripts only for the packages that need them by adding a `packageExtensions` entry:
 
 ```yaml .yarnrc.yml
 enableScripts: false
@@ -68,12 +66,6 @@ packageExtensions:
       postinstall: "node ./build.js"
 ```
 
-Alternatively, you can run scripts manually after installation for a specific package:
-
-```bash
-yarn run postinstall --cwd node_modules/some-native-package
-```
-
 ## Package Age Gate
 
 ```yaml .yarnrc.yml
@@ -82,9 +74,9 @@ npmMinimalAgeGate: 3d
 
 The `npmMinimalAgeGate` setting tells Yarn to reject any package version that was published to the npm registry less than the specified duration ago. This creates a time buffer that helps protect against:
 
-- **Typosquatting** — malicious packages with names similar to popular ones
-- **Account takeover** — compromised maintainer accounts pushing malicious updates
-- **Star-jacking** — newly published malicious packages designed to look trustworthy
+- **Typosquatting** - malicious packages with names similar to popular ones
+- **Account takeover** - compromised maintainer accounts pushing malicious updates
+- **Star-jacking** - newly published malicious packages designed to look trustworthy
 
 With a value of `3d`, you cannot install a package version that was published less than three days ago. This gives the community and automated scanners time to flag malicious releases before they reach your project.
 
@@ -92,25 +84,19 @@ With a value of `3d`, you cannot install a package version that was published le
 
 ```yaml .yarnrc.yml
 npmPreapprovedPackages:
-  - "@webiny/di"
-  - "@webiny/stdlib"
-  - "@webiny/wts-client"
+  - "@webiny/*"
   - "wts-client"
 ```
 
-Packages listed under `npmPreapprovedPackages` are exempt from the age gate. Webiny's own packages are preapproved because they are published by the Webiny team and need to be installable immediately after release.
-
-### Adding a Package to the Preapproved List
+Packages listed under `npmPreapprovedPackages` are exempt from the age gate. The `@webiny/*` glob pattern covers all Webiny packages, which are published by the Webiny team and need to be installable immediately after release.
 
 If you publish your own packages or work with a trusted vendor whose packages you need immediately after release, add them to the list:
 
 ```yaml .yarnrc.yml
 npmPreapprovedPackages:
-  - "@webiny/di"
-  - "@webiny/stdlib"
-  - "@webiny/wts-client"
+  - "@webiny/*"
   - "wts-client"
-  - "@your-org/your-package"
+  - "@your-org/*"
 ```
 
 ### Adjusting the Age Gate Duration
@@ -118,10 +104,10 @@ npmPreapprovedPackages:
 You can increase or decrease the duration to match your risk tolerance:
 
 ```yaml .yarnrc.yml
-# More conservative — wait a full week
+# More conservative - wait a full week
 npmMinimalAgeGate: 7d
 
-# Less conservative — wait one day
+# Less conservative - wait one day
 npmMinimalAgeGate: 1d
 ```
 
@@ -136,7 +122,7 @@ approvedGitRepositories:
 
 The `approvedGitRepositories` setting restricts which Git repositories Yarn is allowed to use as a dependency source. Any `git+https://...` or `github:...` dependency that does not match an entry in this list is rejected.
 
-Webiny uses this to allow the upgrade repository — the mechanism for applying Webiny version upgrades — while blocking all other Git-based dependencies by default.
+Webiny uses this to allow the upgrade repository - the mechanism for applying Webiny version upgrades - while blocking all other Git-based dependencies by default.
 
 ### Adding a Git Repository
 
@@ -152,11 +138,11 @@ approvedGitRepositories:
 
 ### "Package was published less than X ago"
 
-This means the age gate blocked a package version. You have three options:
+The age gate blocked a package version. You have three options:
 
-- **Wait** — try again after the age gate duration has passed
-- **Preapprove** — add the package to `npmPreapprovedPackages` if you trust the publisher
-- **Lower the gate** — reduce `npmMinimalAgeGate` (not recommended unless you understand the risk)
+- **Wait** - try again after the age gate duration has passed
+- **Preapprove** - add the package to `npmPreapprovedPackages` if you trust the publisher
+- **Lower the gate** - reduce `npmMinimalAgeGate` (not recommended unless you understand the risk)
 
 ### "Lifecycle scripts are disabled"
 
