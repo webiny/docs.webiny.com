@@ -16,6 +16,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"get-started/local-development"} />
         <Page link={"get-started/deploy-webiny"} />
         <Page link={"get-started/upgrade"} />
+        <Page link={"get-started/yarnrc-security"} />
       </Group>
       <Group
         title={"Build with AI"}
