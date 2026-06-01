@@ -28,7 +28,7 @@ export class AppConfig {
     }
 
     getLinkValidator() {
-        return this.props.linkValidator || new LinkValidator(() => true);
+        return this.props.linkValidator || new LinkValidator([], () => true);
     }
 
     getMdxRemarkPlugins() {

@@ -3,6 +3,7 @@ process.env.NODE_PATH = process.cwd();
 const tsNode = require("ts-node");
 const { resolve } = require("path");
 const yargs = require("yargs");
+const rimraf = require("rimraf");
 
 tsNode.register({
     dir: resolve(__dirname, "./generator")
@@ -12,7 +13,7 @@ const { App, AppConfig } = require("@webiny/docs-generator");
 const { default: docsConfig } = require("./docs.config");
 
 (async () => {
-    const { watch, watchOnly, version } = yargs
+    const { watch, watchOnly, version } = yargs()
         .version(false)
         .option("v", {
             alias: "version",
@@ -49,7 +50,6 @@ const { default: docsConfig } = require("./docs.config");
 
     try {
         if (docsConfig.cleanOutputDir) {
-            const rimraf = require("rimraf");
             console.log("Cleaning output directory...");
             docsConfig.cleanOutputDir.forEach(dir => rimraf.sync(dir));
         }

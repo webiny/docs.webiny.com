@@ -1,0 +1,84 @@
+---
+id: a3f8kd92
+title: File URL Formatter
+description: Learn how to customize file and image URLs in the Webiny admin app using the FileUrlFormatter extension point.
+---
+
+import { Alert } from "@/components/Alert";
+import fileUrlFormatter from "./assets/file-url-formatter.png";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what the FileUrlFormatter extension point is and where it applies
+- how to implement and register a custom file URL formatter
+- how to remap query parameters for your own CDN or image service
+
+</Alert>
+
+## Overview
+
+<Alert type="info">
+
+This extension point is most relevant if you are replacing Webiny's built-in File Manager with your own Digital Asset Manager (DAM). If you are using the default File Manager, no configuration is needed.
+
+</Alert>
+
+File URLs for images displayed in the Admin app pass through the `FileUrlFormatter` extension point before being rendered.
+
+You can customize how those URLs are constructed: remap parameters to your CDN's own syntax, add authentication tokens, rewrite the host, or apply any other transformation your image delivery pipeline requires. For example, `FilePicker` calls `format(url, { width: 128 })` when rendering thumbnails — a custom formatter can intercept that and swap the standard `?width=N` for whatever your CDN expects.
+
+<Alert type="info">
+
+Only one `FileUrlFormatter` is active at a time. When you register your own implementation it replaces the File Manager default — the last implementation registered wins.
+
+</Alert>
+
+## Implement the Formatter
+
+Create an implementation of `FileUrlFormatter`. The `url` object is mutable — modify it in place. `params.width` is the only supported parameter.
+
+```typescript extensions/fileUrlFormatter/MyFileUrlFormatter.ts
+import { FileUrlFormatter } from "webiny/admin/file-manager";
+
+class MyFileUrlFormatter implements FileUrlFormatter.Interface {
+    format(url: URL, params?: FileUrlFormatter.Params): void {
+        if (params?.width !== undefined) {
+            url.searchParams.set("my_width", String(params.width));
+        }
+    }
+}
+
+export const MyFileUrlFormatterImpl = FileUrlFormatter.createImplementation({
+    implementation: MyFileUrlFormatter,
+    dependencies: []
+});
+```
+
+## Register the Formatter
+
+Wrap the implementation in a feature and mount it with `RegisterFeature`:
+
+```tsx extensions/fileUrlFormatter/index.tsx
+import React from "react";
+import { createFeature, RegisterFeature } from "webiny/admin";
+import { MyFileUrlFormatterImpl } from "./MyFileUrlFormatter.js";
+
+const FileUrlFormatterFeature = createFeature({
+    name: "MyApp/FileUrlFormatter",
+    register(container) {
+        container.register(MyFileUrlFormatterImpl).inSingletonScope();
+    }
+});
+
+export default () => <RegisterFeature feature={FileUrlFormatterFeature} />;
+```
+
+Then add the extension to your `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+<Admin.Extension src={"@/extensions/fileUrlFormatter/index.tsx"} />
+```
+
+With the extension registered, file thumbnails in the Admin app will use your formatter. Here is the result:
+
+<Image src={fileUrlFormatter} alt="File URL Formatter result" />

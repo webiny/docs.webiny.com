@@ -15,6 +15,11 @@ When editing a generated `changelog.mdx` file, always keep the sibling `changelo
 - **Removed entry** → add the PR number(s) to the `## Skipped PRs` section with a short reason
 - **Rewritten entry** → add a note to the `## Manual Rewrites` section
 
+**Writing style for changelog entries:**
+
+- Keep entries user-facing — describe the impact for the user, not internal implementation details (e.g. "X wasn't cached, slowing down the API" rather than "X was fetched outside the cache boundary")
+- Entry descriptions should be 1-2 sentences. Bullet lists for key changes only when there are multiple distinct sub-items.
+
 The `generate-changelog.ts` script reads `## Skipped PRs` to avoid re-adding manually removed entries on the next run. If `changelog.ai.txt` is not updated, removed PRs will reappear.
 
 ### Validation and Quality
@@ -129,6 +134,17 @@ Alert types:
 #### Image
 
 - use <Image/> (src/components/Image.js) component when adding images
+
+#### Video
+
+- use `<Video>` (global MDX component, no import needed) for embedded videos
+- Video files must be **imported** as ESM imports, not referenced by string path:
+
+  ```mdx
+  import myVideo from "./assets/my-video.mp4";
+
+  <Video src={myVideo} controls={true} />
+  ```
 
 ### Code Blocks
 

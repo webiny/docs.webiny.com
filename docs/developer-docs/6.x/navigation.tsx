@@ -48,6 +48,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"admin/whitelabeling"} />
         <Page link={"admin/connect-custom-domain"} />
         <Page link={"admin/build-params"} />
+        <Page link={"admin/file-url-formatter"} />
       </Group>
       <Group
         title={"API"}
@@ -125,6 +126,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           title={"Customize Page List Columns"}
         />
         <Page link={"website-builder/event-handlers"} title={"Event Handlers"} />
+        <Page link={"website-builder/preview-url-modifier"} title={"Preview URL Modifier"} />
       </Group>
       <Group
         title={"Tenant Manager"}
@@ -181,6 +183,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"infrastructure/github-actions"} title={"GitHub Actions"} />
         <Page link={"infrastructure/dynamodb-only"} title={"DynamoDB-Only Dev Environments"} />
         <Page link={"infrastructure/opensearch"} title={"Shared OpenSearch Cluster"} />
+        <Page link={"infrastructure/yarnrc-security"} />
         <Group title={"Extensions"} link={"infrastructure/extensions/aws-tags"}>
           <Page link={"infrastructure/extensions/aws-tags"} title={"AWS Tags"} />
           <Page

@@ -1,4 +1,4 @@
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogBackdrop } from "@headlessui/react";
 import { Nav } from "./Nav";
 
 export function MobileDrawer({ isOpen, onClose, nav }) {
@@ -9,7 +9,7 @@ export function MobileDrawer({ isOpen, onClose, nav }) {
             onClose={onClose}
             className="fixed z-50 inset-0 overflow-y-auto lg:hidden"
         >
-            <Dialog.Overlay className="fixed inset-0 bg-black/20 backdrop-blur-sm dark:bg-slate-900/80" />
+            <DialogBackdrop className="fixed inset-0 bg-black/20 backdrop-blur-sm dark:bg-slate-900/80" />
             <div className="relative bg-white w-[21.25rem] max-w-[calc(100%-3rem)] p-6 dark:bg-dark-grey-2 overflow-scroll h-full">
                 <button
                     type="button"
