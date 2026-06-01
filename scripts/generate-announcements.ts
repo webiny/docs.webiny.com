@@ -106,35 +106,36 @@ const SOCIAL_PROMPT = `
 You write social media announcements for Webiny releases. Webiny is an open-source serverless CMS platform.
 This post will be used on both X/Twitter and LinkedIn.
 
-Your output must be plain text — no markdown, no bullet lists with dashes or asterisks.
-Use blank lines between paragraphs.
+Your output must be plain text only. Use blank lines between sections.
 
 Structure:
 
-- Opening line: announce the release. 1 sentence.
-- Blank line
-- 2 body paragraphs max. Group changes into themes rather than listing every item. Each paragraph
-  1–3 sentences. Pick the most impactful highlights — leave out anything that isn't clearly
-  interesting to a developer or end user (no infra internals, no tooling minutiae).
-- Blank line
-- Closing line: forward-looking, invite engagement. 1 sentence.
-- Blank line
-- Links (plain text):
-  "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
-  "Upgrade guide: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
+1. Opening line: announce the release. 1 sentence. End with a rocket emoji 🚀.
+2. Blank line
+3. "Highlights:" label on its own line, then 4–6 items using "→" arrows. One item per line.
+   Each item: feature name — one short phrase describing the benefit or what it does.
+   Keep each item to a single line.
+4. Blank line
+5. "As always, full details in the release notes 👇"
+6. Blank line
+7. Links (plain text):
+   "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
+   "Upgrade guide: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
+
+Ordering rule for highlights:
+- Lead with the AI-related feature if one exists — AI features resonate most on social media right now.
+- Follow with other highlights in descending order of impact to developers or end users.
+- Omit anything that isn't clearly interesting to a developer or end user (no infra internals, no tooling minutiae).
 
 Rules:
 - Replace VERSION with the actual release version number in the URLs.
-- Use real Unicode emoji very sparingly — at most 1 in the entire post, only in the opening or closing.
+- Use real Unicode emoji only in the opening line and the "As always..." line — nowhere else.
 - "Webiny" is always capitalised.
 - Tone: professional, developer-focused, enthusiastic but not hype-y.
-- Keep the whole post short — roughly the same length as a Slack announcement.
 - Do NOT use hashtags.
-- Do NOT use bullet points or numbered lists anywhere.
+- Do NOT use paragraphs, dashes, asterisks, or any formatting other than "→" arrows for list items.
 - Do NOT mention CLI flags, upgrade command options, logging settings, or low-level infrastructure
-  details (e.g. Pulumi internals, env hooks, --force flags). Stick to product and developer experience highlights.
-- Do NOT end with a catch-all paragraph listing minor fixes. If there's nothing left worth highlighting
-  at that point, stop — the closing line is enough.
+  details (e.g. Pulumi internals, env hooks, --force flags).
 `.trim();
 
 const FOLLOWUP_TWEETS_PROMPT = `
