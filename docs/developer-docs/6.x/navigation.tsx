@@ -48,6 +48,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
         <Page link={"admin/whitelabeling"} />
         <Page link={"admin/connect-custom-domain"} />
         <Page link={"admin/build-params"} />
+        <Page link={"admin/file-url-formatter"} />
       </Group>
       <Group
         title={"API"}
@@ -125,6 +126,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
           title={"Customize Page List Columns"}
         />
         <Page link={"website-builder/event-handlers"} title={"Event Handlers"} />
+        <Page link={"website-builder/preview-url-modifier"} title={"Preview URL Modifier"} />
       </Group>
       <Group
         title={"Tenant Manager"}

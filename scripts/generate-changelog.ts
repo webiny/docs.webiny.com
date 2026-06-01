@@ -212,6 +212,8 @@ a developer-facing changelog in MDX format from a list of merged pull requests.
 ## Tone and style
 
 - Concise and technical — no filler, no marketing language.
+- **Keep entries user-facing.** Describe the impact for the user, not internal implementation details. For example, say "X wasn't cached, slowing down the API" rather than "X was fetched outside the cache boundary". Skip PRs that have no user-facing impact.
+- Each entry should be 1-2 sentences. Use a bullet list for key changes only when there are multiple distinct sub-items.
 - Start with the problem or the context, then state what changed.
 - Address the reader as "you" where natural.
 - Backticks for: code, class names, method names, type names, package names, file paths.

@@ -1,0 +1,109 @@
+---
+id: m4x7pq2n
+title: Preview URL Modifier
+description: Learn how to inject custom query parameters into Website Builder's live preview URLs.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what the PreviewUrlModifier extension point is and where it applies
+- how to implement and register a custom preview URL modifier
+- how to use async operations (e.g. fetching a signed token) inside a modifier
+
+</Alert>
+
+## Overview
+
+Every live preview URL that Website Builder generates — in the page editor iframe, the address bar's copy link button, and the pages list — can be customized via the `PreviewUrlModifier` extension point.
+
+When registered, the modifier receives the fully-constructed `URL` object just before it is used. You can add, remove, or change any query parameter, including ones fetched asynchronously from a remote API.
+
+<Alert type="info">
+
+Only one `PreviewUrlModifier` can be registered per project. Avoid setting parameters that start with `wb.` — those are reserved for internal Website Builder use.
+
+</Alert>
+
+## Implement the Modifier
+
+Create a class that implements `PreviewUrlModifier.Interface`. The single required method is `modify(url: URL): Promise<void>`. Mutate the `url` object in place — the return value is ignored.
+
+```typescript extensions/previewUrlModifier/MyPreviewUrlModifier.ts
+import { PreviewUrlModifier } from "webiny/admin/website-builder";
+
+class MyPreviewUrlModifier implements PreviewUrlModifier.Interface {
+  async modify(url: URL) {
+    url.searchParams.set("my-param", "my-value");
+  }
+}
+
+export default PreviewUrlModifier.createImplementation({
+  implementation: MyPreviewUrlModifier,
+  dependencies: []
+});
+```
+
+### Async Example — Fetching a Signed Token
+
+Mark the method `async` to perform any async work before the URL is handed back:
+
+```typescript extensions/previewUrlModifier/MyPreviewUrlModifier.ts
+import { PreviewUrlModifier } from "webiny/admin/website-builder";
+
+class MyPreviewUrlModifier implements PreviewUrlModifier.Interface {
+  async modify(url: URL) {
+    const token = await fetch("/api/preview-token").then(r => r.text());
+    url.searchParams.set("token", token);
+  }
+}
+
+export default PreviewUrlModifier.createImplementation({
+  implementation: MyPreviewUrlModifier,
+  dependencies: []
+});
+```
+
+## Register the Feature
+
+Wire the implementation into the DI container using `createFeature` and `RegisterFeature`:
+
+```tsx extensions/previewUrlModifier/index.tsx
+import React from "react";
+import { createFeature, RegisterFeature } from "webiny/admin";
+import MyPreviewUrlModifier from "./MyPreviewUrlModifier.js";
+
+const PreviewUrlModifierFeature = createFeature({
+  name: "MyApp/PreviewUrlModifier",
+  register(container) {
+    container.register(MyPreviewUrlModifier);
+  }
+});
+
+export default () => <RegisterFeature feature={PreviewUrlModifierFeature} />;
+```
+
+Then register the extension in `webiny.config.tsx`:
+
+```tsx webiny.config.tsx
+import React from "react";
+import { Admin } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ... other extensions */}
+      <Admin.Extension src={"@/extensions/previewUrlModifier/index.tsx"} />
+    </>
+  );
+};
+```
+
+## Where the Modifier Applies
+
+| Surface | Description |
+|---|---|
+| Editor iframe | The live-editing iframe in the page editor |
+| Address bar link | The "copy preview link" button in the editor toolbar |
+| Pages list | Preview icon links in the pages list table |
