@@ -22,7 +22,6 @@ export class DocumentRootWatcher implements IDocumentRootWatcher {
             .map(file => file.getSourcePath())
             .filter((value?: string): value is string => !!value)
             .map(path => this.enforceExtensionOrGlob(path));
-
         const watcher = watch([...paths, ...this.additionalFiles]);
 
         watcher
@@ -38,6 +37,8 @@ export class DocumentRootWatcher implements IDocumentRootWatcher {
     }
 
     private enforceExtensionOrGlob(value: string) {
-        return [".js", ".ts", ".tsx"].some(ext => value.endsWith(ext)) ? value : `${value}*`;
+        return [".js", ".ts", ".tsx", ".mdx"].some(ext => value.endsWith(ext))
+            ? value
+            : `${value}*`;
     }
 }

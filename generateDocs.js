@@ -3,6 +3,7 @@ process.env.NODE_PATH = process.cwd();
 const tsNode = require("ts-node");
 const { resolve } = require("path");
 const yargs = require("yargs");
+const { hideBin } = require("yargs/helpers");
 const rimraf = require("rimraf");
 
 tsNode.register({
@@ -13,7 +14,7 @@ const { App, AppConfig } = require("@webiny/docs-generator");
 const { default: docsConfig } = require("./docs.config");
 
 (async () => {
-    const { watch, watchOnly, version } = yargs()
+    const { watch, watchOnly, version } = yargs(hideBin(process.argv))
         .version(false)
         .option("v", {
             alias: "version",
