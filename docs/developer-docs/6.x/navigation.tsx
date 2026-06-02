@@ -190,7 +190,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                 />
                 <Page link={"infrastructure/opensearch"} title={"Shared OpenSearch Cluster"} />
                 <Page link={"infrastructure/yarnrc-security"} />
-                <Page link={"infrastructure/webhook-verification"} />
                 <Group title={"Extensions"} link={"infrastructure/extensions/aws-tags"}>
                     <Page link={"infrastructure/extensions/aws-tags"} title={"AWS Tags"} />
                     <Page
