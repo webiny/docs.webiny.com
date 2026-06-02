@@ -1,0 +1,84 @@
+---
+id: sbwmyo92
+title: Webhook Verification
+description: Verify incoming Webiny webhook payloads using the Webiny SDK to ensure authenticity and integrity.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- Why you should verify webhook payloads before processing them
+- Which headers Webiny sends with every webhook delivery
+- How to use `createVerifyWebhookPayload` from `@webiny/sdk` to verify a payload
+- How to handle verification failures
+  
+</Alert>
+
+## Overview
+
+When Webiny delivers a webhook, it signs the payload so that your receiving service can confirm two things: the request genuinely came from Webiny, and the payload was not tampered with in transit.
+
+Webiny follows the [Standard Webhooks](https://www.standardwebhooks.com) specification. Every delivery includes a set of headers that carry a message ID, a timestamp, and a cryptographic signature. The `@webiny/sdk` package provides a `createVerifyWebhookPayload` function that checks these headers against the raw request body and your signing secret.
+
+<Alert type="warning" title="Node.js only">
+
+`@webiny/sdk/webhooks` relies on the `standardwebhooks` library, which is not compatible with browser environments. Only use it in server-side code.
+
+</Alert>
+
+## Webhook Headers
+
+Webiny sends three headers with every webhook delivery:
+
+| Header | Description |
+|---|---|
+| `webhook-id` | A unique identifier for the message. You can use this to detect duplicate deliveries. |
+| `webhook-timestamp` | A Unix timestamp (in seconds) of when the message was sent. |
+| `webhook-signature` | A Base64-encoded signature computed from the message ID, timestamp, and body using your signing secret. |
+
+Your receiving endpoint must forward all three headers — along with the **raw request body** — to the verification function. Parsing the body as JSON before verification will invalidate the signature.
+
+## Verifying a Payload
+
+Start by creating a verification function with your signing secret:
+
+```typescript
+import { createVerifyWebhookPayload } from "@webiny/sdk/webhooks";
+
+const verifyWebhookPayload = createVerifyWebhookPayload(process.env.WEBHOOK_SECRET);
+```
+
+`createVerifyWebhookPayload` accepts the signing secret and returns an async function you call for each incoming request. If the secret is `undefined`, the returned function throws immediately — this lets you catch misconfigured environments early.
+
+Call the returned function with the raw body and the three webhook headers:
+
+```typescript
+const result = await verifyWebhookPayload(rawBody, {
+    "webhook-id": headers["webhook-id"],
+    "webhook-timestamp": headers["webhook-timestamp"],
+    "webhook-signature": headers["webhook-signature"]
+});
+```
+
+The function returns a [`Result`](/docs/developer-docs/6.x/core-concepts/basic/result) — check it before processing the payload:
+
+```typescript
+if (result.isFail()) {
+    // Signature is invalid — reject the request.
+    console.error("Webhook verification failed:", result.error);
+    return;
+}
+
+const payload = result.value;
+```
+
+## Error Handling
+
+Verification fails when:
+
+- **The signature does not match** — the payload was tampered with or the wrong secret was used.
+- **The timestamp is too old** — the `standardwebhooks` library rejects messages outside a tolerance window to prevent replay attacks.
+- **A required header is missing** — one or more of the three webhook headers was not included in the request.
+
+When verification fails, `result.isFail()` returns `true` and `result.error` contains the underlying error with a message describing the reason. Do not process the payload — return an appropriate HTTP error status to the caller.
