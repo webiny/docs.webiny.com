@@ -100,7 +100,8 @@ async function findMilestone(version: string): Promise<GitHubMilestone> {
         page++;
     }
 
-    throw new Error(`No milestone found matching version "${version}" in ${GITHUB_REPO}`);
+    console.log("No milestone found.");
+    process.exit(0);
 }
 
 interface FetchResult {
