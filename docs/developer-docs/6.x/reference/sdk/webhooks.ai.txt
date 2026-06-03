@@ -1,0 +1,40 @@
+AI Context: Webhook Verification (webhook-verification.mdx)
+
+Source of Information:
+1. Webiny SDK source: packages/sdk/src/methods/webhooks/verifyWebhookPayload.ts
+2. Webiny API core abstractions: packages/api-core/src/features/webhooks/WebhookVerifyPayload/abstractions.ts
+3. Standard Webhooks specification: https://www.standardwebhooks.com
+4. standardwebhooks npm package (used internally by the SDK)
+
+Key Documentation Decisions:
+1. Focused exclusively on the SDK's createVerifyWebhookPayload function — no DI container or feature registration
+2. Did not cover setting up a receiver endpoint (Express, Next.js, etc.) — the article is about the verification API itself
+3. Did not explain the Result pattern inline — linked to existing core-concepts/basic/result docs
+4. Did not cover the signing side (how Webiny signs outgoing payloads) — that is internal
+5. Mentioned the Node.js-only constraint prominently since the import path looks like it could be used anywhere
+6. Did not cover webhook configuration in the Admin UI — the article assumes webhooks are already set up
+7. Used process.env.WEBHOOK_SECRET as the idiomatic way to pass the secret — the SDK accepts any string
+
+Understanding of Webhook Verification:
+- Webiny follows the Standard Webhooks spec for signing and verifying payloads
+- Three headers are sent with every delivery: webhook-id, webhook-timestamp, webhook-signature
+- The SDK function createVerifyWebhookPayload is a factory — call it once with the secret, then reuse the returned function per request
+- If the secret is undefined, the factory returns a function that throws immediately (fail-fast for misconfigured environments)
+- Verification uses HMAC-SHA256 under the hood (via standardwebhooks library)
+- The standardwebhooks library enforces a timestamp tolerance window to prevent replay attacks
+- The raw body must be passed — parsing to JSON before verification breaks the signature
+
+Related Documents:
+- core-concepts/basic/result.mdx — the Result pattern used by the verification return type
+- headless-cms/event-handlers.mdx — shows webhook calls from the Webiny side (outgoing, not incoming verification)
+
+Key Code Locations:
+- /webiny-js-v6/packages/sdk/src/methods/webhooks/verifyWebhookPayload.ts — the SDK implementation
+- /webiny-js-v6/packages/api-core/src/features/webhooks/WebhookVerifyPayload/abstractions.ts — the interface and header types
+- /webiny-js-v6/packages/webhooks/src/api/features/WebhookVerifyPayload/WebhookVerifyPayload.ts — the internal API implementation (not SDK)
+
+Tone Guidelines:
+- Direct and practical — the reader wants to verify webhooks, not learn cryptography
+- Explain "why verify" briefly, then focus on "how to verify"
+- Keep code examples minimal and copy-paste ready
+- Trust the reader to know Result pattern basics — just link to the docs

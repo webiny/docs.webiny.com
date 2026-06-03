@@ -8,8 +8,6 @@ export class CompositeDocumentRootWatcher implements IDocumentRootWatcher {
     }
 
     async watch(onFile: OnFile, onEvent?: OnWatchEvent): Promise<void> {
-        this.documentRootWatchers.forEach(documentRootWatcher =>
-            documentRootWatcher.watch(onFile, onEvent)
-        );
+        await Promise.all(this.documentRootWatchers.map(w => w.watch(onFile, onEvent)));
     }
 }

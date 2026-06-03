@@ -13,7 +13,13 @@ function PageViewTracker() {
  */
 export function Telemetry({ children }) {
     return (
-        <TelemetryProvider source="docs">
+        <TelemetryProvider
+          source="docs"
+          sessionRecording={{
+            posthogKey: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+            apiHost: "https://s.webiny.com"
+          }}
+        >
             <PageViewTracker />
             {children}
         </TelemetryProvider>
