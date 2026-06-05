@@ -17,7 +17,8 @@ export function Telemetry({ children }) {
           source="docs"
           sessionRecording={{
             posthogKey: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-            apiHost: "https://s.webiny.com"
+            apiHost: "https://s.webiny.com",
+            loadPostHog: () => import("posthog-js")
           }}
         >
             <PageViewTracker />
