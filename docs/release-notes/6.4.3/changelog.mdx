@@ -1,0 +1,83 @@
+---
+id: anre1c68
+title: Webiny 6.4.3 Changelog
+description: See what's new in Webiny version 6.4.3
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.4.3"} />
+
+## Headless CMS
+
+### Fixed Workflow State Dirty Detection and Review Flow ([#5283](https://github.com/webiny/webiny-js/pull/5283))
+
+MobX observable proxies were being passed directly to `structuredClone` and `JSON.stringify` in the workflow state management code, which could cause runtime errors or produce inconsistent snapshots. The `WorkflowStateModel.toJS()` method was also returning model class instances instead of plain data objects for step properties. These issues have been fixed — workflow state dirty detection, review flows (request review, approve, reject), and list pagination now work reliably.
+
+### Fixed Scheduled Actions Failing on Non-Root Tenants ([#5287](https://github.com/webiny/webiny-js/pull/5287))
+
+Scheduled publish and unpublish actions created on non-root tenants would fail to execute. The event handler ran in the root tenant context and couldn't locate entries stored under the originating tenant. This has been fixed — scheduled actions now correctly track and execute within their original tenant context.
+
+### Fixed Content Entry Patch Operations Failing in Certain Edge Cases ([#5317](https://github.com/webiny/webiny-js/pull/5317))
+
+Patch operations on content entries could fail unexpectedly in certain edge cases. This has been fixed to ensure reliable updates when using the patch API.
+
+## Admin
+
+### Prevent Duplicate Team Selections in Workflow Steps ([#5286](https://github.com/webiny/webiny-js/pull/5286))
+
+When configuring workflow steps, users could previously select the same team multiple times in the teams autocomplete field. The `TeamsMultiAutocomplete` component now enforces unique selections, preventing duplicate team entries.
+
+### Consistent, Click-to-Edit Title in the Page and Content Model Editors ([#5306](https://github.com/webiny/webiny-js/pull/5306))
+
+The title in the top-left of the Website Builder page editor and the Headless CMS content model editor previously looked and behaved differently. They now share the same appearance and behavior — orange text that highlights on hover and turns into an inline field when clicked — so renaming a page or a content model feels the same across both editors.
+
+## Workflows
+
+### Fix Teams Selector Not Working in Workflow Step Form ([#5285](https://github.com/webiny/webiny-js/pull/5285))
+
+After a recent UI library migration, the teams selector in the workflow step form stopped working — selecting a team would still show a validation error, and previously saved teams were not shown as selected when editing. Both issues are now fixed.
+
+## Infrastructure
+
+### Custom Domains via Dynamically Created Infrastructure ([#5298](https://github.com/webiny/webiny-js/pull/5298))
+
+You can now point a custom domain at your Admin or API app and have Webiny provision the required SSL certificate during deployment, instead of creating and supplying one beforehand. Inject `SetApiCustomDomains` or `SetAdminCustomDomains` into your Pulumi implementation to create the certificate and attach the domain in a single deploy:
+
+```typescript
+import * as aws from "@pulumi/aws";
+import { ApiPulumi, SetApiCustomDomains } from "webiny/infra/api";
+
+class ApiCustomDomain implements ApiPulumi.Interface {
+    constructor(private setCustomDomains: SetApiCustomDomains.Interface) {}
+
+    execute(app: ApiPulumi.Params) {
+        const certificate = app.addResource(aws.acm.Certificate, {
+            name: "api-custom-domain-cert",
+            config: { domainName: "api.example.com", validationMethod: "DNS" }
+        });
+
+        this.setCustomDomains.execute({
+            domains: ["api.example.com"],
+            acmCertificateArn: certificate.output.arn
+        });
+    }
+}
+
+export default ApiPulumi.createImplementation({
+    implementation: ApiCustomDomain,
+    dependencies: [SetApiCustomDomains]
+});
+```
+
+### Fixed Remote Pulumi Backend Detection for Custom Production Environments ([#5305](https://github.com/webiny/webiny-js/pull/5305))
+
+Deploying to a custom production environment (e.g. `staging` registered via `Infra.ProductionEnvironments`) would fail with `Cannot deploy to production with local state files.` even when a remote Pulumi backend was correctly configured and state was being written to S3.
+
+Two issues caused this:
+
+- The production environment validation was hard-coded to only check `prod` and `production`, ignoring any custom environments you registered via `Infra.ProductionEnvironments`.
+- The remote backend detection checked different environment variables (`WEBINY_CLI_PULUMI_BACKEND`) than what the Pulumi login service actually used (`WEBINY_PULUMI_BACKEND`), so it always concluded no remote backend was configured.
+
+Both services now use `WEBINY_CLI_PULUMI_BACKEND` as the canonical variable, with `WEBINY_PULUMI_BACKEND` supported as a legacy fallback for backwards compatibility. No changes to your existing CI/CD configuration are required.
