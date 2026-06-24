@@ -70,3 +70,14 @@ export default ApiPulumi.createImplementation({
     dependencies: [SetApiCustomDomains]
 });
 ```
+
+### Fixed Remote Pulumi Backend Detection for Custom Production Environments ([#5305](https://github.com/webiny/webiny-js/pull/5305))
+
+Deploying to a custom production environment (e.g. `staging` registered via `Infra.ProductionEnvironments`) would fail with `Cannot deploy to production with local state files.` even when a remote Pulumi backend was correctly configured and state was being written to S3.
+
+Two issues caused this:
+
+- The production environment validation was hard-coded to only check `prod` and `production`, ignoring any custom environments you registered via `Infra.ProductionEnvironments`.
+- The remote backend detection checked different environment variables (`WEBINY_CLI_PULUMI_BACKEND`) than what the Pulumi login service actually used (`WEBINY_PULUMI_BACKEND`), so it always concluded no remote backend was configured.
+
+Both services now use `WEBINY_CLI_PULUMI_BACKEND` as the canonical variable, with `WEBINY_PULUMI_BACKEND` supported as a legacy fallback for backwards compatibility. No changes to your existing CI/CD configuration are required.
