@@ -15,6 +15,7 @@ import { HandbookMdxFile } from "./docs/handbook/HandbookMdxFile";
 import { UserGuideMdxFile } from "./docs/user-guides/UserGuideMdxFile";
 import { UserGuidesVersionProvider } from "./docs/user-guides/UserGuidesVersionProvider";
 import { ReleaseNotesMdxFile } from "./docs/release-notes/ReleaseNotesMdxFile";
+import { MessagesMdxFile } from "./docs/messages/MessagesMdxFile";
 
 // @ts-expect-error
 import { redirects } from "./vercel.json";
@@ -114,6 +115,7 @@ export default {
             "get-started",
             "handbook",
             "infrastructure",
+            "messages",
             "overview",
             "reference",
             "release-notes",
@@ -182,6 +184,17 @@ export default {
             outputDir: path.resolve("src/pages"),
             pageLayout: "@/layouts/HandbookLayout",
             mdxFileFactory: (data: MdxData) => new HandbookMdxFile(data)
+        }),
+
+        /* Messages */
+        new NonVersionedDocumentRootConfig({
+            rootDir: path.resolve("docs/messages"),
+            // The `messages` prefix comes from the <NavigationRoot> in docs/messages/navigation.tsx,
+            // so the document root prefix stays empty to avoid duplicating it.
+            linkPrefix: "",
+            outputDir: path.resolve("src/pages"),
+            pageLayout: "@/layouts/MessagesLayout",
+            mdxFileFactory: (data: MdxData) => new MessagesMdxFile(data)
         })
     ]
 };
