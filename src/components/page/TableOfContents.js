@@ -1,6 +1,7 @@
 import { createContext, Fragment, useCallback, useEffect, useState, useContext } from "react";
 import clsx from "clsx";
 import { scroll } from "@/css/scroll.module.css";
+import { SidebarTools } from "./SidebarTools";
 
 const TableOfContentsContext = createContext();
 
@@ -84,11 +85,18 @@ export function TableOfContents() {
 
     let pageHasSubsections = section => section.children.length > 0;
 
+    const hasTableOfContents = tableOfContents.length > 0;
+
     return (
         <div
-            className={`fixed z-20 top-[4.15rem] bottom-0 right-[max(0px,calc(50%-48.5rem))] 3xl:right-[max(0px,calc(50%-50rem))] w-[19.5rem] 3xl:w-[22rem] pl-[4.3125rem] pr-[1.8125rem] overflow-y-auto hidden xl:block ${scroll}`}
+            className={`fixed z-20 top-[4.15rem] bottom-0 right-[max(0px,calc(50%-48.5rem))] 3xl:right-[max(0px,calc(50%-50rem))] w-[19.5rem] 3xl:w-[22rem] pl-[4.3125rem] pr-[1.8125rem] pb-10 overflow-y-auto hidden xl:block ${scroll}`}
         >
-            <div className="border-l-2 border-orange pl-5 pt-[0.3125rem] pb-2.5 mt-[1.725rem]">
+            {hasTableOfContents && (
+                <>
+                <p className="text-sidebar-right-title font-semibold text-dark-blue dark:text-white mt-[1.725rem] mb-3">
+                    On this page
+                </p>
+                <div className="border-l-2 border-orange pl-5 pt-[0.3125rem] pb-2.5">
                 <ul className="text-nav-link not-prose font-roboto">
                     {tableOfContents.map((section, index) => (
                         <Fragment key={section.slug}>
@@ -142,7 +150,11 @@ export function TableOfContents() {
                         </Fragment>
                     ))}
                 </ul>
-            </div>
+                </div>
+                </>
+            )}
+
+            <SidebarTools divider={hasTableOfContents} />
         </div>
     );
 }

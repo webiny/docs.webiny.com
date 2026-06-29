@@ -5,7 +5,8 @@ function flatPages(links, pages = []) {
     for (const link of links) {
         if (link.type === "page") {
             pages.push(link);
-        } else if (link.type === "collapsable" || link.type === "section") {
+        } else if (Array.isArray(link.items)) {
+            // Recurse into any container node (group, collapsable, section, ...).
             flatPages(link.items, pages);
         }
     }

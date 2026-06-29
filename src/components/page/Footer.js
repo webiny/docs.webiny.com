@@ -1,16 +1,4 @@
 import Link from "next/link";
-import { InputFooter } from "./InputFooter";
-
-const ArrowIcon = (
-    <svg width="6" height="11" viewBox="0 0 6 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-            d="M1 10.374L5.36871 5.57778L1.03281 0.625754"
-            className="stroke-dark-blue dark:stroke-white"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        />
-    </svg>
-);
 
 export function Footer({ previous, next }) {
     return (
@@ -49,61 +37,6 @@ export function Footer({ previous, next }) {
                     )}
                 </div>
             )}
-            <div className="pt-[1.875rem] grid md:grid-cols-2 gap-y-[1.875rem] md:gap-y-0 md:gap-x-10">
-                <div className="grid gap-y-1.5 text-[0.875rem] md:text-[1rem] leading-7">
-                    <div className="flex">
-                        <div className="mr-2.5 pt-2.5 h-7 w-1.5">{ArrowIcon}</div>
-                        <p>
-                            Questions? &nbsp;
-                            <a
-                                href="https://www.webiny.com/slack"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="font-source-sans-pro text-orange underline hover:decoration-2"
-                            >
-                                Find us on slack.
-                            </a>
-                        </p>
-                    </div>
-                    <div className="flex">
-                        <div className="mr-2.5 pt-2.5 h-7 w-1.5">{ArrowIcon}</div>
-                        <p>
-                            Found a bug on the page, &nbsp;
-                            <a
-                                href="https://github.com/webiny/docs.webiny.com"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="font-source-sans-pro text-orange underline hover:decoration-2"
-                            >
-                                submit an issue or a PR.
-                            </a>
-                        </p>
-                    </div>
-                    <div className="flex">
-                        <div className="mr-2.5 pt-2.5 h-7 w-1.5">{ArrowIcon}</div>
-                        <p>
-                            Check out our &nbsp;
-                            <a
-                                href="https://www.webiny.com/roadmap"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="font-source-sans-pro text-orange underline hover:decoration-2"
-                            >
-                                roadmap.
-                            </a>
-                        </p>
-                    </div>
-                </div>
-                <div>
-                    <p className="text-[0.875rem] md:text-[1rem] leading-7 font-bold">
-                        Join our developer newsletter
-                    </p>
-                    <InputFooter className="mt-2.5 mb-[0.3125rem]" />
-                    <p className="text-[0.75rem] leading-[0.875rem] dark:text-light-grey-5">
-                        You can unsubscribe at any time.
-                    </p>
-                </div>
-            </div>
         </footer>
     );
 }

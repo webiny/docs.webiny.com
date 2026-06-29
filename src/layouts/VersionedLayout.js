@@ -59,7 +59,7 @@ export function VersionedLayout({ titleSuffix, children, ...props }) {
                             </Link>
                         </Footer>
 
-                        {page.tableOfContents.length > 0 && <TableOfContents />}
+                        <TableOfContents />
                     </div>
                 </TableOfContentsProvider>
             </VersionedSidebarLayout>

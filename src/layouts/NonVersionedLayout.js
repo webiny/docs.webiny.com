@@ -53,7 +53,7 @@ export function NonVersionedLayout({ titleSuffix, children }) {
                             <SourceFile />
                         </Footer>
 
-                        {page.tableOfContents.length > 0 && <TableOfContents />}
+                        <TableOfContents />
                     </div>
                 </TableOfContentsProvider>
             </SidebarLayout>
