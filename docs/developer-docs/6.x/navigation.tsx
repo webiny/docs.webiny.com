@@ -77,6 +77,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                     link={"headless-cms/content-models-via-code"}
                     title={"Define Content Models via Code"}
                 />
+                <Page link={"headless-cms/live-preview"} title={"Live preview"} />
                 <Page
                     link={"headless-cms/content-modeling-best-practices"}
                     title={"Content Modeling Best Practices"}
