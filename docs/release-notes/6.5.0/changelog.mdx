@@ -34,6 +34,18 @@ import { ContentEntryEditorConfig } from "webiny/admin/cms/entry/editor";
 
 The content model editor has been significantly redesigned. The Edit/Preview tabs now appear as a segmented control in the top bar. The fields sidebar collapses into an 80×80 icon grid with smooth animations. Field cards have been restyled with field-type icons and updated typography. Drag-and-drop uses a proper cursor overlay with label and icon instead of the previous orange circle, and drop zones have cleaner styling. The settings panel now opens in a drawer instead of a full-screen overlay. The preview tab shows a friendly empty state with an illustration and "Switch to edit mode" button when no fields exist.
 
+### New Revision Button for Published and Unpublished Entries ([#5352](https://github.com/webiny/webiny-js/pull/5352), [#5353](https://github.com/webiny/webiny-js/pull/5353), [#5347](https://github.com/webiny/webiny-js/pull/5347))
+
+When editing a published or unpublished entry, you now see a "New Revision" button alongside "Publish". Previously, if an entry was published and then unpublished, the UI didn't make it clear how to create a new revision. The "All Revisions" option is now always visible in the revisions dropdown, and saving a locked entry automatically creates a new revision instead of failing.
+
+### Refactored CMS Architecture with Presenter/Feature Pattern ([#5323](https://github.com/webiny/webiny-js/pull/5323))
+
+Content entries, content models, and related modules have been refactored to use a new presenter/feature architecture with dependency injection. Key improvements include:
+
+- Folder creation no longer triggers a full `ListFolders` reload — the cache is populated from the create response
+- Sorting by name now works correctly for both folders and entries
+- The `app-headless-cms-common` package is now types-only, reducing bundle size
+
 ## Website Builder
 
 ### Nuxt Starter Kit Configuration ([#5265](https://github.com/webiny/webiny-js/pull/5265))
@@ -47,6 +59,14 @@ Object fields now work in the page editor. Previously, declaring an `object` inp
 ### Preview Domain Trailing Slash Fix ([#5332](https://github.com/webiny/webiny-js/pull/5332))
 
 Adding a trailing slash to the preview domain (e.g., `http://localhost:3000/`) no longer produces broken preview links with double slashes. The domain is now normalized automatically.
+
+### Always Show "All Revisions" in Page Revision Menu ([#5348](https://github.com/webiny/webiny-js/pull/5348))
+
+The "All revisions" option in the revisions menu is now always visible when editing a page, regardless of how many revisions exist. Previously it could be hidden in certain states.
+
+### Redirects List Rewritten with ListView Component ([#5261](https://github.com/webiny/webiny-js/pull/5261))
+
+The redirects list has been rewritten using the new `ListPresenter` abstraction and `ListView` compound component. This fixes a bug where folders would not display correctly when a folder had subfolders but no redirect records.
 
 ## Admin
 
@@ -75,3 +95,24 @@ Form field callbacks can now navigate the form tree to access sibling and parent
   Delete
 </DropdownMenu.Item>
 ```
+
+### Upgraded tailwind-merge to v3 ([#5263](https://github.com/webiny/webiny-js/pull/5263))
+
+The internal class-merging utility used for admin UI components was updated to version 3. This ensures correct conflict resolution behavior for Tailwind CSS v4 class names, including border widths, padding, and margin utilities.
+
+## Development
+
+### Custom GraphQL Playground Built from Scratch ([#5357](https://github.com/webiny/webiny-js/pull/5357))
+
+The GraphQL Playground has been completely rewritten, replacing the old CDN-loaded `graphql-playground-react` with a custom implementation built on Monaco Editor. The new playground includes several improvements:
+
+- **Schema Docs Explorer** — a right-side drawer for browsing the introspected schema with stack-based type navigation, search across type names, field names, arguments, and enum values, and clickable type references
+- **Query History** — localStorage-backed execution history (capped at 100 entries) with search, restore-to-active-tab, open-in-new-tab, and individual delete
+- **Tab-based architecture** — each tab has its own GraphQL client with independent auth and tenant headers. System tabs (Manage, Read, Preview APIs) have read-only endpoints; duplicate them to get an editable copy
+- **Comment-preserving prettifier** — formats queries while keeping your comments intact
+
+The playground uses a DI-based `PlaygroundTabRegistry`, allowing any package to contribute its own tabs. If you need custom client behavior, implement `PlaygroundClient.Interface` or use the provided factories with custom `getToken`/`getTenant` overrides.
+
+### Dev Tools Permissions No Longer Duplicated Across Playground Apps ([#5338](https://github.com/webiny/webiny-js/pull/5338))
+
+The GraphQL Playground and SDK Playground apps each used to register the other app's permissions as well as their own, which could show permissions for apps that weren't installed. Each app now contributes only its own permissions, and they're combined into a single "Dev Tools" group automatically.
