@@ -161,6 +161,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                 <Page link={"security/roles"} />
                 <Page link={"security/teams"} />
                 <Page link={"security/universal-api-keys"} />
+                <Page link={"security/cognito-federation"} />
             </Group>
             <Separator title={"Operations"} />
             <Group title={"CLI"} icon={"/docs/menu-icons/cli.svg"} link={"cli/deploy"}>
