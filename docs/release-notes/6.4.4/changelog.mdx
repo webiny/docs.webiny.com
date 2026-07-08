@@ -26,3 +26,45 @@ If an environment was already deployed before being marked as production, the ne
 ### Faster Stack Output Reads via Local Caching ([#5375](https://github.com/webiny/webiny-js/pull/5375))
 
 Every stack output lookup previously ran a Pulumi command, which made repeated reads slow—especially during deploys, watch mode, and output lookups that query the same stack multiple times. Stack outputs are now cached locally (under `.webiny/caches/stack-output`) and reused on subsequent reads. The cache is automatically cleared when an app is destroyed, so results always stay accurate.
+
+## Admin
+
+### Cognito Federation and Multi-Factor Authentication Support ([#5376](https://github.com/webiny/webiny-js/pull/5376))
+
+Webiny now supports federated sign-in through Amazon Cognito, allowing users to authenticate via external identity providers such as Google, Facebook, Apple, Amazon, and any OIDC-compliant provider (e.g., Microsoft Entra ID). This eliminates the need for users to manage separate Webiny credentials when your organization already has an identity provider in place.
+
+To enable federation, use the `federation` prop on the `<Cognito />` extension:
+
+```typescript
+import { Cognito } from "webiny/api-security-cognito";
+
+export default createExtension({
+  type: "api",
+  name: "api.security.cognito",
+  create() {
+    return [
+      new Cognito({
+        federation: {
+          providers: [
+            {
+              type: "oidc",
+              name: "EntraID",
+              label: "Sign in with Microsoft"
+            }
+          ]
+        }
+      })
+    ];
+  }
+});
+```
+
+Federated users are automatically detected via the `identities` claim in the JWT token and flagged as external, triggering the `ExternalIdpUserSyncHandler` for identity mapping and provisioning.
+
+The login screen can be customized through the `adminConfig` extension point to control which providers appear, whether username/password credentials are shown, and to set custom titles or descriptions.
+
+<Alert type="info">
+
+For new deployments, the `custom:id` attribute maximum length has been increased to 256 characters to accommodate longer OIDC `sub` values from some identity providers. Existing deployments retain the 36-character limit.
+
+</Alert>
