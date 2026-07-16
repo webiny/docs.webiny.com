@@ -91,6 +91,42 @@ The "All revisions" option in the revisions menu is now always visible when edit
 
 The redirects list has been rewritten using the new `ListPresenter` abstraction and `ListView` compound component. This fixes a bug where folders would not display correctly when a folder had subfolders but no redirect records.
 
+### A/B Testing for Pages ([#5349](https://github.com/webiny/webiny-js/pull/5349))
+
+You can now run A/B tests on Website Builder pages directly from the Admin UI. Create an experiment on any page, define full-page variants with different content, set traffic splits, and activate or pause experiments instantly.
+
+**How it works:**
+
+- **Create experiments** — Open a page in the editor, navigate to the Experiments panel, and create a new experiment with one or more variants.
+- **Edit variants** — Each variant is a complete page snapshot that you edit on the normal editor canvas.
+- **Set traffic splits** — Configure what percentage of visitors see each variant (e.g., 50% control, 25% variant A, 25% variant B).
+- **Activate and pause** — Start the experiment when ready; pause it at any time to instantly revert all visitors to the control page.
+
+**SDK integration:**
+
+The SDK handles variant assignment automatically. A single `getPageWithExperiment` call fetches the page, determines the visitor's bucket, and returns the appropriate variant content:
+
+```typescript
+import { contentSdk } from "webiny/website-builder-nextjs";
+
+const { page } = await contentSdk.getPageWithExperiment(path, {
+  searchParams: search
+});
+```
+
+Visitor assignment is deterministic and sticky — the same visitor always sees the same variant without storing any assignment data. A `wb_ab_vid` cookie (random UUID, 1-year expiry, no PII) ensures consistent bucketing across sessions.
+
+**Testing and QA:**
+
+- Force a specific variant with `?wb-variant=<variantEntryId>` to preview any variant regardless of traffic split.
+- Pause an experiment to immediately revert all traffic to the control page — no cache purge required.
+
+<Alert type="info">
+
+Variants follow your existing publishing workflow. A variant only serves to visitors after both the variant is marked "ready" and the parent page is published.
+
+</Alert>
+
 ## Admin
 
 ### Workflow State Folder Permissions ([#5331](https://github.com/webiny/webiny-js/pull/5331))
