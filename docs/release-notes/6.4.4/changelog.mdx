@@ -68,3 +68,31 @@ The login screen can be customized through the `adminConfig` extension point to 
 For new deployments, the `custom:id` attribute maximum length has been increased to 256 characters to accommodate longer OIDC `sub` values from some identity providers. Existing deployments retain the 36-character limit.
 
 </Alert>
+
+## Headless CMS
+
+### Unified OpenSearch Index Abstraction for CMS Models ([#5436](https://github.com/webiny/webiny-js/pull/5436))
+
+A new `CmsModelOpenSearchIndex` abstraction gives you per-model control over OpenSearch index settings and shared-index behavior. Previously, index configuration relied on a last-wins pattern that made it difficult to override settings for specific models. The new approach uses the decorator pattern, allowing you to control whether a model uses a shared index across tenants or gets its own isolated index.
+
+```typescript
+import { CmsModelOpenSearchIndex } from "webiny/api-headless-cms-ddb-es";
+
+CmsModelOpenSearchIndex.createDecorator({
+    decorator: class CustomIndex implements CmsModelOpenSearchIndex.Interface {
+        constructor(private original: CmsModelOpenSearchIndex.Interface) {}
+
+        async execute(params: CmsModelOpenSearchIndex.Params): Promise<CmsModelOpenSearchIndex.Result> {
+            const result = await this.original.execute(params);
+            // Force per-tenant index for models tagged with "isolated"
+            if (params.model.tags?.includes("isolated")) {
+                return { ...result, shared: false };
+            }
+            return result;
+        }
+    },
+    dependencies: []
+});
+```
+
+This replaces the old `CmsEntryOpenSearchIndex` abstraction — if you were using it, migrate to the new decorator-based approach.
