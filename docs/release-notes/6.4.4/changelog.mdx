@@ -96,3 +96,18 @@ CmsModelOpenSearchIndex.createDecorator({
 ```
 
 This replaces the old `CmsEntryOpenSearchIndex` abstraction — if you were using it, migrate to the new decorator-based approach.
+
+### Fixed Prototype Pollution Vulnerability in Where Condition Parsing ([#5373](https://github.com/webiny/webiny-js/pull/5373))
+
+A second-order prototype pollution vulnerability was found in the Headless CMS GraphQL `where` condition parser. Sending a crafted dot-notation key like `toString.call` as a filter key could corrupt built-in JavaScript prototypes (e.g., `Object.prototype.toString`), potentially affecting all subsequent requests in the same Lambda invocation.
+
+The fix introduces two defenses:
+
+- Keys like `__proto__`, `constructor`, and `prototype` are now explicitly forbidden and will throw an error.
+- The dot-notation expander now uses `Object.hasOwn()` instead of a truthiness check, preventing inherited prototype methods from being mistaken for existing nested objects.
+
+<Alert type="warning">
+
+This is a security fix. Upgrade as soon as possible. No action is required beyond upgrading - the fix is fully internal.
+
+</Alert>
