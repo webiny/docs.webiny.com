@@ -23,6 +23,7 @@ import "dotenv/config";
 import Anthropic from "@anthropic-ai/sdk";
 import { writeFileSync, mkdirSync, readFileSync } from "fs";
 import { join } from "path";
+import { REVIEW_MARKER } from "./changelog-constants";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -49,6 +50,7 @@ interface GitHubPull {
     title: string;
     body: string | null;
     labels: GitHubLabel[];
+    user: { login: string } | null;
 }
 
 interface PullRequest {
@@ -56,6 +58,7 @@ interface PullRequest {
     title: string;
     body: string;
     url: string;
+    author: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -228,7 +231,8 @@ async function fetchPRs(numbers: number[]): Promise<FetchResult> {
             number: pull.number,
             title: pull.title,
             body: pull.body ?? "",
-            url: `https://github.com/${GITHUB_REPO}/pull/${pull.number}`
+            url: `https://github.com/${GITHUB_REPO}/pull/${pull.number}`,
+            author: pull.user?.login ?? "unknown"
         });
     }
 
@@ -481,6 +485,40 @@ function mergeDuplicateH2Sections(content: string): { merged: string; duplicates
 }
 
 // ---------------------------------------------------------------------------
+// Review markers
+// ---------------------------------------------------------------------------
+
+/**
+ * Inserts a per-item review marker (an MDX comment) directly beneath every H3
+ * heading, attributing the item to the author(s) of the referenced PR(s). The
+ * marker is invisible in the rendered page but visible in the PR diff; reviewers
+ * delete the line to confirm the entry. CI fails while any marker remains.
+ *
+ * Markers are added deterministically after generation (not by Claude), so they
+ * stay correct regardless of how Claude grouped or reordered the PRs.
+ */
+function addReviewMarkers(body: string, authorByPR: Map<number, string>): string {
+    const lines = body.split("\n");
+    const out: string[] = [];
+
+    for (const line of lines) {
+        out.push(line);
+        if (!line.startsWith("### ")) continue;
+
+        const prNumbers = [...line.matchAll(/\/pull\/(\d+)/g)].map(m => parseInt(m[1], 10));
+        if (prNumbers.length === 0) continue;
+
+        const authors = [...new Set(prNumbers.map(n => authorByPR.get(n)).filter(Boolean))];
+        if (authors.length === 0) continue;
+
+        const handles = authors.map(a => `@${a}`).join(" ");
+        out.push(`{/* ${REVIEW_MARKER} ${handles} — confirm this entry, then delete this line */}`);
+    }
+
+    return out.join("\n");
+}
+
+// ---------------------------------------------------------------------------
 // MDX file builder
 // ---------------------------------------------------------------------------
 
@@ -584,7 +622,9 @@ async function main(): Promise<void> {
         );
     }
 
-    const body = await generateChangelogBody(newPRs, version);
+    const rawBody = await generateChangelogBody(newPRs, version);
+    const authorByPR = new Map(newPRs.map(pr => [pr.number, pr.author]));
+    const body = addReviewMarkers(rawBody, authorByPR);
 
     if (alreadyPresent.size > 0) {
         const existing = readFileSync(outPath, "utf-8");

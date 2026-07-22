@@ -22,10 +22,15 @@ When editing a generated `changelog.mdx` file, always keep the sibling `changelo
 
 The `generate-changelog.ts` script reads `## Skipped PRs` to avoid re-adding manually removed entries on the next run. If `changelog.ai.txt` is not updated, removed PRs will reappear.
 
+PRs for a release are discovered from the release commits (the `(#NNNN)` references between the previous release tag and this version's tag/branch), **not** from a GitHub milestone — so a forgotten milestone no longer drops entries. Run `yarn generate:changelog --version <v> --dry-run` to preview the PRs that would be included.
+
+**Review markers:** every generated entry gets an MDX comment beneath its `###` heading naming the PR author(s), e.g. `{/* REVIEW-PENDING @author — confirm this entry, then delete this line */}`. Each author must inspect their entry and delete that line. CI (`.github/workflows/check-release-notes.yml`, via `yarn check:changelog-review`) fails on any PR to master that still contains a `REVIEW-PENDING` marker, so release notes cannot be published until every entry is confirmed.
+
 ### Validation and Quality
 
 - **MDX/.ai.txt Pairing**: Every `.mdx` file must have a corresponding `.ai.txt` companion file
 - Run `yarn validate:mdx` to verify pairing before commits/PRs
+- Run `yarn check:changelog-review` to verify no unresolved `REVIEW-PENDING` markers remain
 - Exceptions are defined in `.mdx-validation.json` (supports exact paths and glob patterns)
 - The validation script (`scripts/validate-mdx-pairing.ts`) checks bidirectionally
 
