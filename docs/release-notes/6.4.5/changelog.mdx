@@ -1,0 +1,95 @@
+---
+id: kkn9hcba
+title: Webiny 6.4.5 Changelog
+description: See what's new in Webiny version 6.4.5
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.4.5"} />
+
+## Development
+
+### Faster Stack Output Reads via Local Caching ([#5375](https://github.com/webiny/webiny-js/pull/5375))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Every stack output lookup previously ran a Pulumi command, adding latency to deploys, watch mode, and other CLI operations. Stack outputs are now cached locally after the first read, and the cache is automatically cleared when an app is destroyed so results stay accurate.
+
+### Custom Production Environments Are Now Recognized During Deployment ([#5371](https://github.com/webiny/webiny-js/pull/5371))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Marking an environment as production in your project configuration via `Infra.ProductionEnvironments` had no effect — only the built-in `prod` and `production` names received production-grade infrastructure such as a VPC. Custom production environments (like `stage`) are now correctly recognized and deployed with the appropriate production setup.
+
+<Alert type="info">
+
+If you previously deployed an environment before marking it as production, the next deploy will create the VPC and migrate existing Lambdas into it. Review `pulumi preview` and deploy during a maintenance window.
+
+</Alert>
+
+## Admin
+
+### Cognito Federation and MFA Support ([#5376](https://github.com/webiny/webiny-js/pull/5376))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+You can now configure federated sign-in with external identity providers (Google, Facebook, Apple, Amazon, or any OIDC provider like Microsoft Entra ID) directly through the `<Cognito />` extension. The login screen automatically displays configured providers, and federated users are detected via the JWT `identities` claim and synced through the new `ExternalIdpUserSyncHandler`.
+
+```typescript
+import { Cognito } from "webiny/api-security-cognito";
+
+Cognito.configure({
+  federation: {
+    providers: ["Google", "Facebook"],
+    oidc: [{
+      name: "EntraID",
+      issuer: "https://login.microsoftonline.com/..."
+    }]
+  }
+});
+```
+
+The `custom:id` attribute max length has been increased to 256 characters for new deployments to accommodate longer OIDC `sub` values.
+
+## Headless CMS
+
+### Fixed Scheduled Publish/Unpublish Failing with Invalid Name Error ([#5447](https://github.com/webiny/webiny-js/pull/5447))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Scheduling a CMS entry to publish or unpublish would fail with an AWS EventBridge validation error because the generated schedule name contained illegal characters (`/`) and exceeded the 64-character limit. Schedule names now use a valid AWS-compliant format.
+
+### Unified OpenSearch Index Configuration Abstraction ([#5436](https://github.com/webiny/webiny-js/pull/5436))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+A new `CmsModelOpenSearchIndex` abstraction gives you per-model control over OpenSearch index settings and whether indices are shared across tenants. You can now use the decorator pattern to customize index behavior for specific models:
+
+```typescript
+import { CmsModelOpenSearchIndex } from "webiny/api-headless-cms-ddb-es";
+
+CmsModelOpenSearchIndex.createDecorator({
+  decorator: class CustomIndex implements CmsModelOpenSearchIndex.Interface {
+    constructor(private original: CmsModelOpenSearchIndex.Interface) {}
+
+    async execute(params: CmsModelOpenSearchIndex.Params): Promise<CmsModelOpenSearchIndex.Result> {
+      const result = await this.original.execute(params);
+      // Force per-tenant index for models tagged with "isolated"
+      if (params.model.tags?.includes("isolated")) {
+        return { ...result, shared: false };
+      }
+      return result;
+    }
+  },
+  dependencies: []
+});
+```
+
+## Infrastructure
+
+### Fixed Fastify Logging Deprecation Warning ([#5451](https://github.com/webiny/webiny-js/pull/5451))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The Fastify handler now uses the recommended `LogController` API, eliminating deprecation warnings in Lambda logs.
+
+### Security Fix for Prototype Pollution Vulnerability ([#5373](https://github.com/webiny/webiny-js/pull/5373))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+A second-order prototype pollution vulnerability in the `transformWhereToNested` function has been fixed.
