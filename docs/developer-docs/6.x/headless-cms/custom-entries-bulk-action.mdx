@@ -1,0 +1,300 @@
+---
+id: bkq7f3d2
+title: Custom Entries Bulk Action
+description: Learn how to create a custom Headless CMS entries bulk action that Webiny runs as a background task.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- What a Headless CMS entries bulk action is
+- How Webiny turns a bulk action into a background task and a GraphQL mutation
+- How to implement the API-side bulk action (`loadData` / `processData`)
+- How to add the Admin-side button that triggers it
+- How to make the task converge and finish
+- How to notify the user in real time as entries are processed
+
+</Alert>
+
+<Alert type="info">
+
+The APIs on this page are available from **Webiny 6.5.0**. The bulk action itself is
+imported from `webiny/api/cms/entry`.
+
+</Alert>
+
+## Overview
+
+A bulk action lets an editor select multiple entries in the Headless CMS entry list and run a single operation over all of them — for example, apply a discount to every selected product.
+
+The important thing to understand is what Webiny does with a bulk action you register. For every `EntriesBulkAction`, the framework automatically generates:
+
+- a pair of **background tasks** (a "list" task that paginates the matching entries, and a "process" task that runs once per entry, in batches), and
+- a **GraphQL mutation** that the Admin app calls to trigger those tasks.
+
+So you never schedule, chunk, retry, or resume-on-timeout anything yourself — that machinery comes from the [background tasks](/{version}/developer-docs/background-tasks/about) system. You only describe **what** to do: which entries to operate on, and what to do to each one.
+
+A full-stack bulk action has two parts:
+
+1. **API** — the `EntriesBulkAction` implementation (the background-task body).
+2. **Admin** — a button in the entry list that triggers it.
+
+The example below implements an "Apply Discount" bulk action on a `product` model.
+
+## The API-Side Bulk Action
+
+You implement `EntriesBulkAction.Interface` and register it with `EntriesBulkAction.createImplementation()`. The interface has two methods:
+
+- `loadData(model, params)` — collect the entries to operate on. Runs in the "list" task.
+- `processData(model, params)` — operate on a single entry. Runs in the "process" task.
+
+```typescript extensions/applyDiscount/api/ApplyDiscountBulkAction.ts
+import {
+  EntriesBulkAction,
+  GetLatestRevisionByEntryIdUseCase,
+  ListLatestEntriesUseCase,
+  UpdateEntryUseCase,
+} from "webiny/api/cms/entry";
+
+const DEFAULT_DISCOUNT_PERCENT = 10;
+
+// The `data` payload the Admin action sends with each trigger.
+interface ApplyDiscountData {
+  percent?: number;
+}
+
+class ApplyDiscountBulkActionImpl implements EntriesBulkAction.Interface<ApplyDiscountData> {
+  // The action name. Webiny PascalCases it into the task id + GraphQL enum value, so
+  // "applyDiscount" is triggered from the frontend with `action: "ApplyDiscount"`.
+  public readonly name = "applyDiscount";
+
+  // Only expose this bulk action on the "product" model.
+  public readonly modelIds = ["product"];
+
+  public constructor(
+    private readonly listLatestEntries: ListLatestEntriesUseCase.Interface,
+    private readonly getLatestRevision: GetLatestRevisionByEntryIdUseCase.Interface,
+    private readonly updateEntry: UpdateEntryUseCase.Interface,
+  ) {}
+
+  public async loadData(
+    model: EntriesBulkAction.Model,
+    params: EntriesBulkAction.LoadDataParams,
+  ): Promise<EntriesBulkAction.LoadDataResult> {
+    // `params.where` already carries the selection scope sent from the Admin UI.
+    const where: Record<string, unknown> = {
+      ...params.where,
+      "values.onSale_not": true,
+    };
+    const result = await this.listLatestEntries.execute(model, {
+      ...params,
+      where,
+    });
+    return result.value;
+  }
+
+  public async processData(
+    model: EntriesBulkAction.Model,
+    params: EntriesBulkAction.ProcessParams<ApplyDiscountData>,
+  ): Promise<void> {
+    const percent = params.data?.percent ?? DEFAULT_DISCOUNT_PERCENT;
+
+    // `params.id` is a revision id (e.g. "<entryId>#0001"); strip the version.
+    const entryId = params.id.split("#")[0];
+
+    const revision = await this.getLatestRevision.execute(model, {
+      id: entryId,
+    });
+    if (revision.isFail()) {
+      throw revision.error;
+    }
+
+    const entry = revision.value;
+    const currentPrice = Number(entry.values.price) || 0;
+    const newPrice = Math.round(currentPrice * (1 - percent / 100) * 100) / 100;
+
+    const updated = await this.updateEntry.execute(
+      model,
+      entry.id,
+      { values: { price: newPrice, onSale: true } },
+      { skipValidation: true },
+    );
+    if (updated.isFail()) {
+      throw updated.error;
+    }
+  }
+}
+
+export default EntriesBulkAction.createImplementation({
+  implementation: ApplyDiscountBulkActionImpl,
+  dependencies: [
+    ListLatestEntriesUseCase,
+    GetLatestRevisionByEntryIdUseCase,
+    UpdateEntryUseCase,
+  ],
+});
+```
+
+### Making the Task Converge
+
+This is the single most important detail. The tasks engine calls `loadData` **repeatedly** — after each processing round it re-lists to check whether more work remains, and it stops only when `loadData` returns zero entries.
+
+That means your filter **must exclude entries that have already been processed**, otherwise the task never converges: it would re-discount the same products forever and eventually fail with a `maxIterations` error.
+
+In the example, `processData` sets `onSale: true`, and `loadData` filters those out with `"values.onSale_not": true`. Each round shrinks the working set until nothing is left, and the task finishes.
+
+<Alert type="warning" title="Storage-level `where`, not GraphQL `where`">
+
+The bulk-action list path talks to storage directly and bypasses the GraphQL where-transform. At the storage layer, custom fields are namespaced under `values.` (system fields like `id` stay top-level), so you write the filter as `"values.onSale_not"`. A bare `onSale_not` cannot be resolved and throws _"There is no field with the fieldId onSale"_.
+
+</Alert>
+
+### `skipValidation`
+
+`processData` updates the entry with `{ skipValidation: true }` because this is a targeted, system-driven field update — it should not fail just because some unrelated field on the entry happens to be empty or invalid. Full validation still runs when a human edits the entry in the Admin app.
+
+### Success and Failure Per Entry
+
+Inside `processData`, **throwing** marks that single entry as _failed_ in the task report; **returning** marks it _done_. The rest of the batch keeps going either way.
+
+## The Admin-Side Button
+
+The button lives in the content entry list and triggers the background task. The browser does **not** loop over entries — it hands the whole selection to the API and the task processes it server-side. The user can navigate away while it runs.
+
+```tsx extensions/applyDiscount/admin/ApplyDiscountAction.tsx
+import React from "react";
+import { observer } from "mobx-react-lite";
+import {
+  BulkActionButton,
+  useBulkActionDialog,
+  useFeature,
+} from "webiny/admin";
+import { useToast } from "webiny/admin/ui";
+import { useModel } from "webiny/admin/cms";
+import {
+  BulkActionFeature,
+  useContentEntriesPresenter,
+} from "webiny/admin/cms/entry/list";
+
+const DISCOUNT_PERCENT = 10;
+
+export const ApplyDiscountAction = observer(() => {
+  const { model } = useModel();
+  const presenter = useContentEntriesPresenter();
+  const { showConfirmationDialog } = useBulkActionDialog();
+  const { showSuccessToast } = useToast();
+  const { useCase: bulkAction } = useFeature(BulkActionFeature);
+
+  const selection = presenter.list.vm.selection;
+  const selectedItems = presenter.list.vm.rows.filter((row) =>
+    selection.selectedIds.has(row.id),
+  );
+
+  const openDialog = () =>
+    showConfirmationDialog({
+      title: "Apply discount",
+      message: `Apply a ${DISCOUNT_PERCENT}% discount to ${selection.label}? This runs as a background task, so you can keep working while it processes.`,
+      loadingLabel: `Processing ${selection.label}`,
+      execute: async () => {
+        // Scope the task to the selected entries. When "select all" (across pages) is
+        // active, omit the filter so the task processes everything matching the view.
+        const where = selection.allSelected
+          ? undefined
+          : { id_in: selectedItems.map((item) => item.id) };
+
+        await bulkAction.execute({
+          model,
+          action: "ApplyDiscount",
+          where,
+          data: { percent: DISCOUNT_PERCENT },
+        });
+
+        presenter.list.actions.selection.deselectAll();
+
+        showSuccessToast({
+          title: "Discount task started",
+          description: `Applying -${DISCOUNT_PERCENT}% in the background. You can keep working.`,
+        });
+      },
+    });
+
+  return (
+    <BulkActionButton
+      text={`Apply -${DISCOUNT_PERCENT}%`}
+      tooltipContent={`Apply ${DISCOUNT_PERCENT}% discount to ${selection.label}`}
+      onClick={openDialog}
+    />
+  );
+});
+```
+
+A few things to note:
+
+- `useFeature(BulkActionFeature)` resolves the use case whose `execute()` fires the generated GraphQL mutation.
+- `action: "ApplyDiscount"` is the PascalCased form of the API `name` (`"applyDiscount"`).
+- `where` is the selection scope. Pass `{ id_in: [...] }` for an explicit selection, or `undefined` when the user chose "select all" across pages, so the task processes everything matching the current view.
+- `data` is the arbitrary payload delivered to `processData` as `params.data` (here, the discount percentage).
+
+## Registering the Bulk Action
+
+On the Admin side, register the button in `ContentEntryListConfig` with a `Browser.BulkAction` whose `name` matches the API `name`:
+
+```tsx extensions/applyDiscount/admin/Extension.tsx
+import React from "react";
+import { ContentEntryListConfig } from "webiny/admin/cms/entry/list";
+import { ApplyDiscountAction } from "./ApplyDiscountAction.js";
+
+const { Browser } = ContentEntryListConfig;
+
+export default () => {
+  return (
+    <ContentEntryListConfig>
+      <Browser.BulkAction
+        name={"applyDiscount"}
+        element={<ApplyDiscountAction />}
+        modelIds={["product"]}
+      />
+    </ContentEntryListConfig>
+  );
+};
+```
+
+Then wire both sides into your project with a single extension component and register it in `webiny.config.tsx`:
+
+```tsx extensions/applyDiscount/ApplyDiscountExtension.tsx
+import React from "react";
+import { Admin, Api } from "webiny/extensions";
+
+export const ApplyDiscountExtension = () => {
+  return (
+    <>
+      <Api.Extension
+        src={"@/extensions/applyDiscount/api/ApplyDiscountBulkAction.ts"}
+      />
+      <Admin.Extension src={"@/extensions/applyDiscount/admin/Extension.tsx"} />
+    </>
+  );
+};
+```
+
+```tsx webiny.config.tsx
+import { ApplyDiscountExtension } from "@/extensions/applyDiscount/ApplyDiscountExtension.js";
+
+export const Extensions = () => {
+  return (
+    <>
+      {/* ...other extensions... */}
+      <ApplyDiscountExtension />
+    </>
+  );
+};
+```
+
+## Monitoring the Task
+
+Because a bulk action _is_ a background task, you monitor and troubleshoot it exactly like any other task — list runs, inspect input/output, read logs, or abort it. See [Background Tasks](/{version}/developer-docs/background-tasks/about#managing-tasks-via-graph-ql) for the available GraphQL queries and mutations.
+
+## Real-Time Notifications (Optional)
+
+Since processing happens in the background, it's nice to tell the user as each entry completes. You can emit a websocket message from `processData` and toast it in the Admin app. See [Generate AI Summary Bulk Action](/{version}/developer-docs/headless-cms/ai-summary-bulk-action) for a complete example that adds per-entry websocket notifications on top of the pattern shown here.

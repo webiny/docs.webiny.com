@@ -24,6 +24,12 @@ Tasks allow you to run long operations asynchronously without blocking your appl
 
 To create a background task, you implement the `TaskDefinition.Interface` and register it using `TaskDefinition.createImplementation()`.
 
+<Alert type="info">
+
+Background tasks also power Headless CMS bulk actions: every custom [entries bulk action](/{version}/developer-docs/headless-cms/custom-entries-bulk-action) you register is automatically turned into a pair of background tasks (plus a GraphQL mutation) — so you get batching, resume-on-timeout, and monitoring for free, without defining a `TaskDefinition` yourself.
+
+</Alert>
+
 ## Example
 
 ```typescript
@@ -61,7 +67,7 @@ class PublishEntriesBackgroundTask implements TaskDefinition.Interface {
 
   public constructor(
     private getModel: GetModelUseCase.Interface,
-    private publishEntry: PublishEntryUseCase.Interface
+    private publishEntry: PublishEntryUseCase.Interface,
   ) {}
   /**
    * On each task run, this method is called with the input parameters.
@@ -69,8 +75,10 @@ class PublishEntriesBackgroundTask implements TaskDefinition.Interface {
    */
   public async run({
     input,
-    controller
-  }: TaskDefinition.RunParams<Input, Output>): Promise<TaskDefinition.Result<Input, Output>> {
+    controller,
+  }: TaskDefinition.RunParams<Input, Output>): Promise<
+    TaskDefinition.Result<Input, Output>
+  > {
     const { model, list } = input;
 
     const modelResult = await this.getModel.execute(model);
@@ -89,82 +97,95 @@ class PublishEntriesBackgroundTask implements TaskDefinition.Interface {
       } else if (controller.runtime.isCloseToTimeout()) {
         return controller.response.continue({
           ...input,
-          last
+          last,
         });
       }
 
       last = entryId;
 
       try {
-        const publishEntryResult = await this.publishEntry.execute(cmsModel, entryId);
+        const publishEntryResult = await this.publishEntry.execute(
+          cmsModel,
+          entryId,
+        );
         if (publishEntryResult.isFail()) {
           results.push({
             id: entryId,
-            error: publishEntryResult.error.message
+            error: publishEntryResult.error.message,
           });
           continue;
         }
         results.push({
-          id: entryId
+          id: entryId,
         });
       } catch (ex) {
         results.push({
           id: entryId,
-          error: ex.message
+          error: ex.message,
         });
       }
     }
     return controller.response.done({
-      list: results
+      list: results,
     });
   }
   /**
    * Before the task is triggered, this method is called.
    * Users can do some preparation or checks here and break the execution by throwing an error.
    */
-  public async onBeforeTrigger(params: TaskDefinition.BeforeTriggerParams<Input>): Promise<void> {
+  public async onBeforeTrigger(
+    params: TaskDefinition.BeforeTriggerParams<Input>,
+  ): Promise<void> {
     //
   }
   /**
    * When the task ends with a done status, this method is called.
    */
-  public async onDone(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+  public async onDone(
+    params: TaskDefinition.LifecycleHookParams<Input, Output>,
+  ): Promise<void> {
     //
   }
   /**
    * When the task ends with an error status, this method is called.
    */
-  public async onError(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+  public async onError(
+    params: TaskDefinition.LifecycleHookParams<Input, Output>,
+  ): Promise<void> {
     //
   }
   /**
    * When the task ends with an abort status, this method is called.
    */
-  public async onAbort(params: TaskDefinition.LifecycleHookParams<Input, Output>): Promise<void> {
+  public async onAbort(
+    params: TaskDefinition.LifecycleHookParams<Input, Output>,
+  ): Promise<void> {
     //
   }
   /**
    * When the maximum number of iterations is reached, this method is called.
    */
   public async onMaxIterations(
-    params: TaskDefinition.LifecycleHookParams<Input, Output>
+    params: TaskDefinition.LifecycleHookParams<Input, Output>,
   ): Promise<void> {
     //
   }
   /**
    * A method to create input validation schema based on the input interface.
    */
-  public createInputValidation({ validator }: TaskDefinition.CreateInputValidationParams) {
+  public createInputValidation({
+    validator,
+  }: TaskDefinition.CreateInputValidationParams) {
     return validator.object({
       model: validator.string().min(1),
-      list: validator.array(validator.string()).min(1).max(10000)
+      list: validator.array(validator.string()).min(1).max(10000),
     });
   }
 }
 
 export default TaskDefinition.createImplementation({
   implementation: PublishEntriesBackgroundTask,
-  dependencies: [GetModelUseCase, PublishEntryUseCase]
+  dependencies: [GetModelUseCase, PublishEntryUseCase],
 });
 ```
 
