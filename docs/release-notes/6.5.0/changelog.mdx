@@ -1,0 +1,330 @@
+---
+id: mfffzjjg
+title: Webiny 6.5.0 Changelog
+description: See what's new in Webiny version 6.5.0
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.5.0"} />
+
+## Headless CMS
+
+### AI-Powered Content Generation ([#5333](https://github.com/webiny/webiny-js/pull/5333))
+
+You can now generate CMS entry content using AI directly from the entry editor. A new AI button in the editor header opens a prompt dialog — describe what you want, and the generated content populates your entry fields in real time via WebSocket. The system understands your model's schema including nested objects, dynamic zones, validation rules, and predefined values. Rich text fields receive proper Lexical editor state through an internal conversion pipeline.
+
+### Configurable New Entry Wizard ([#5354](https://github.com/webiny/webiny-js/pull/5354))
+
+You can now inject a custom wizard UI that appears before the entry form opens. This lets you gather initial values (e.g., from a template selector or AI prompt) and pre-fill the form with those values already marked as dirty.
+
+```typescript
+import { ContentEntryEditorConfig } from "webiny/admin/cms/entry/editor";
+
+<ContentEntryEditorConfig>
+  <ContentEntryEditorConfig.NewEntryWizard
+    element={<YourWizardComponent />}
+    modelIds={["article", "blogPost"]}
+  />
+</ContentEntryEditorConfig>
+```
+
+### Redesigned Content Model Editor ([#5259](https://github.com/webiny/webiny-js/pull/5259), [#5289](https://github.com/webiny/webiny-js/pull/5289), [#5290](https://github.com/webiny/webiny-js/pull/5290))
+
+The content model editor has been significantly redesigned. The Edit/Preview tabs now appear as a segmented control in the top bar. The fields sidebar collapses into an 80×80 icon grid with smooth animations. Field cards have been restyled with field-type icons and updated typography. Drag-and-drop uses a proper cursor overlay with label and icon instead of the previous orange circle, and drop zones have cleaner styling. The settings panel now opens in a drawer instead of a full-screen overlay. The preview tab shows a friendly empty state with an illustration and "Switch to edit mode" button when no fields exist.
+
+### New Revision Button for Published and Unpublished Entries ([#5352](https://github.com/webiny/webiny-js/pull/5352), [#5353](https://github.com/webiny/webiny-js/pull/5353), [#5347](https://github.com/webiny/webiny-js/pull/5347))
+
+When editing a published or unpublished entry, you now see a "New Revision" button alongside "Publish". Previously, if an entry was published and then unpublished, the UI didn't make it clear how to create a new revision. The "All Revisions" option is now always visible in the revisions dropdown, and saving a locked entry automatically creates a new revision instead of failing.
+
+### Refactored CMS Architecture with Presenter/Feature Pattern ([#5323](https://github.com/webiny/webiny-js/pull/5323))
+
+Content entries, content models, and related modules have been refactored to use a new presenter/feature architecture with dependency injection. Key improvements include:
+
+- Folder creation no longer triggers a full `ListFolders` reload — the cache is populated from the create response
+- Sorting by name now works correctly for both folders and entries
+- The `app-headless-cms-common` package is now types-only, reducing bundle size
+
+### AI-Powered Entry Creation Wizard ([#5356](https://github.com/webiny/webiny-js/pull/5356))
+
+You can now enable AI-assisted content generation when creating new CMS entries. A new "Generate with AI" toggle in Model Settings (`settings.aiEntryWizard`) controls whether new entries open with an inline AI content generation form. When enabled, the wizard pre-fills the entry form with AI-generated content based on your prompt. A skip button lets you bypass the wizard and start with an empty form.
+
+The wizard system now supports priority-based registration, so custom wizards can override the default AI wizard when needed.
+
+### Augmentable Model Settings Interface ([#5391](https://github.com/webiny/webiny-js/pull/5391))
+
+Models can now carry custom settings via a new `IModelSettings` augmentable interface. This allows you to attach feature flags or other metadata directly to a model definition using the `.settings()` fluent builder method.
+
+```typescript
+import { createModel } from "webiny/headless-cms";
+
+const Article = createModel()
+  .name("Article")
+  .settings({ aiEntryWizard: true })
+  .fields([
+    // ...
+  ]);
+```
+
+The interface can be augmented from external packages to add type-safe custom properties. Models without `.settings()` default to an empty object.
+
+### Live Preview SDK for Next.js Applications ([#5435](https://github.com/webiny/webiny-js/pull/5435))
+
+A new set of packages enables real-time live preview for headless CMS content in Next.js applications. When editors make changes in the CMS admin, those changes appear instantly in your frontend without requiring a page refresh or republish.
+
+The SDK includes:
+
+- **`cms-sdk`** — Core live preview functionality with postMessage-based editor bridge, entry store management, reference resolution, and dynamic zone support
+- **`cms-nextjs`** — Next.js-specific integration for seamless React component rendering
+- **`content-sdk`** and **`content-sdk-nextjs`** — Content delivery utilities for fetching published content
+
+```typescript
+import { createCmsClient } from "webiny/cms-nextjs";
+
+const client = createCmsClient({
+  endpoint: "https://your-webiny-api.com/cms/preview/en-US",
+  token: "your-preview-token"
+});
+
+// Entries update in real-time as editors make changes
+const entry = await client.getEntry({ model: "article", id: "abc123" });
+```
+
+The CMS admin now includes a preview pane that renders your frontend components in an iframe, automatically syncing entry changes as you type. Dynamic zones and object fields support drag-and-drop reordering directly in the preview.
+
+### New `getModel` SDK Method with Wildcard Field Expansion ([#5435](https://github.com/webiny/webiny-js/pull/5435))
+
+The SDK now exposes a `getModel` method that returns full model definitions including field metadata. It supports wildcard field expansion for nested structures and automatically resolves referenced models, making it easier to build dynamic rendering logic based on your content model schema.
+
+### Stricter Datetime Field Validation ([#5435](https://github.com/webiny/webiny-js/pull/5435))
+
+The API now enforces format validation on datetime fields. Previously, malformed date strings could be saved without error. Invalid formats are now rejected at the API level with a descriptive validation message.
+
+### New `asset` Field Type for Images and Files ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+A new first-class `asset` field type is now available in the Headless CMS field palette. This replaces the existing `file` field (now deprecated but still functional for existing models). The new field type provides:
+
+- Built-in image editing with crop and focal point controls
+- Per-entry image transforms that are baked into the delivery URL
+- A unified `FmAsset` GraphQL type with proper metadata handling
+
+When you add an `asset` field to a content model, editors can select files from the File Manager and apply custom crops directly in the entry form. These edits are stored on the entry itself, so the same source image can be cropped differently across entries.
+
+```typescript
+// Asset field values now include the processed URL with crop params
+const entry = await sdk.cms.getEntry({
+  model: "article",
+  id: "abc123"
+});
+
+// entry.coverImage.url includes ?crop=... when edited
+console.log(entry.coverImage.url);
+```
+
+<Alert type="info">
+
+Existing content models using the `file` field will continue to work. You can migrate to the new `asset` field type when convenient.
+
+</Alert>
+
+## Website Builder
+
+### Nuxt Starter Kit Configuration ([#5265](https://github.com/webiny/webiny-js/pull/5265))
+
+The "Configure Next.js" option has been renamed to "Configure Starter Kit" and now includes a Nuxt tab alongside Next.js. The Nuxt tab generates ready-to-use environment configuration for the [Webiny Nuxt starter kit](https://github.com/webiny/website-builder-nuxt), pulling real deployment values (API key, API host, tenant ID, admin host) that you can copy directly into your project's `.env` file.
+
+### Editable Object and List Fields ([#5295](https://github.com/webiny/webiny-js/pull/5295))
+
+Object fields now work in the page editor. Previously, declaring an `object` input on a component rendered nothing. Object fields now appear as clickable rows that open slide-out panels containing their child inputs. Lists of objects show as reorderable rows with add/remove/move controls and an empty state. Nested objects stack panels over each other with backdrop dimming, and all values persist correctly through the round-trip.
+
+### Preview Domain Trailing Slash Fix ([#5332](https://github.com/webiny/webiny-js/pull/5332))
+
+Adding a trailing slash to the preview domain (e.g., `http://localhost:3000/`) no longer produces broken preview links with double slashes. The domain is now normalized automatically.
+
+### Always Show "All Revisions" in Page Revision Menu ([#5348](https://github.com/webiny/webiny-js/pull/5348))
+
+The "All revisions" option in the revisions menu is now always visible when editing a page, regardless of how many revisions exist. Previously it could be hidden in certain states.
+
+### Redirects List Rewritten with ListView Component ([#5261](https://github.com/webiny/webiny-js/pull/5261))
+
+The redirects list has been rewritten using the new `ListPresenter` abstraction and `ListView` compound component. This fixes a bug where folders would not display correctly when a folder had subfolders but no redirect records.
+
+### A/B Testing for Pages ([#5349](https://github.com/webiny/webiny-js/pull/5349))
+
+You can now run A/B tests on Website Builder pages directly from the Admin UI. Create an experiment on any page, define full-page variants with different content, set traffic splits, and activate or pause experiments instantly.
+
+**How it works:**
+
+- **Create experiments** — Open a page in the editor, navigate to the Experiments panel, and create a new experiment with one or more variants.
+- **Edit variants** — Each variant is a complete page snapshot that you edit on the normal editor canvas.
+- **Set traffic splits** — Configure what percentage of visitors see each variant (e.g., 50% control, 25% variant A, 25% variant B).
+- **Activate and pause** — Start the experiment when ready; pause it at any time to instantly revert all visitors to the control page.
+
+**SDK integration:**
+
+The SDK handles variant assignment automatically. A single `getPageWithExperiment` call fetches the page, determines the visitor's bucket, and returns the appropriate variant content:
+
+```typescript
+import { contentSdk } from "webiny/website-builder-nextjs";
+
+const { page } = await contentSdk.getPageWithExperiment(path, {
+  searchParams: search
+});
+```
+
+Visitor assignment is deterministic and sticky — the same visitor always sees the same variant without storing any assignment data. A `wb_ab_vid` cookie (random UUID, 1-year expiry, no PII) ensures consistent bucketing across sessions.
+
+**Testing and QA:**
+
+- Force a specific variant with `?wb-variant=<variantEntryId>` to preview any variant regardless of traffic split.
+- Pause an experiment to immediately revert all traffic to the control page — no cache purge required.
+
+<Alert type="info">
+
+Variants follow your existing publishing workflow. A variant only serves to visitors after both the variant is marked "ready" and the parent page is published.
+
+</Alert>
+
+### Fixed Live Preview Updates for Asset Fields ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+Live preview in the CMS entry editor now correctly updates when you change asset field values. Previously, MobX observable proxies weren't being unwrapped before diffing, causing preview updates to fail silently. The fix also ensures:
+
+- Clearing an asset sends `null` instead of an object with null properties
+- Asset URLs recompute immediately when crop settings change
+- The editing SDK only activates when the preview iframe is showing a CMS entry
+
+## Admin
+
+### Workflow State Folder Permissions ([#5331](https://github.com/webiny/webiny-js/pull/5331))
+
+Workflow states now respect Folder Level Permissions. Users only see workflow states for records in folders they can access — restricted users no longer see states for entries or pages outside their allowed folders. As part of this change, moving entries or pages with active workflow states is now blocked to prevent permission inconsistencies.
+
+### Real-Time AI Image Enrichment Notifications ([#5326](https://github.com/webiny/webiny-js/pull/5326))
+
+When you upload an image and AI finishes generating its tags and description, you now receive an on-screen notification in real time. Only the person who uploaded the image is notified, not everyone signed in.
+
+### Content Reviews Widget Loading States ([#5328](https://github.com/webiny/webiny-js/pull/5328))
+
+The Content Reviews dashboard widgets now show skeleton placeholders while loading and a clear empty-state illustration when a tab has no items. The widget maintains a stable height across loading, populated, and empty states with no layout jump.
+
+### Form Field Context and Navigation ([#5330](https://github.com/webiny/webiny-js/pull/5330))
+
+Form field callbacks can now navigate the form tree to access sibling and parent fields via `IFieldScope` and `IFieldNavigator`. This enables computed, hidden, disabled, and required callbacks that depend on related field values. Dynamic zone copy/paste is also now supported.
+
+### Destructive Dropdown Menu Variant ([#5310](https://github.com/webiny/webiny-js/pull/5310))
+
+`DropdownMenu.Item` now exposes a `variant="destructive"` prop for delete-style actions, replacing the need to copy a long className string onto every red menu item.
+
+```tsx
+<DropdownMenu.Item variant="destructive" onClick={handleDelete}>
+  Delete
+</DropdownMenu.Item>
+```
+
+### Upgraded tailwind-merge to v3 ([#5263](https://github.com/webiny/webiny-js/pull/5263))
+
+The internal class-merging utility used for admin UI components was updated to version 3. This ensures correct conflict resolution behavior for Tailwind CSS v4 class names, including border widths, padding, and margin utilities.
+
+### Review Boxes Empty States ([#5319](https://github.com/webiny/webiny-js/pull/5319))
+
+Improved empty state handling for review boxes throughout the admin interface.
+
+### New EmptyState Design System Component ([#5344](https://github.com/webiny/webiny-js/pull/5344))
+
+A reusable `EmptyState` component has been added to the design system for communicating "no data" situations consistently across the Admin interface. It supports six context-appropriate illustration types (content, table, listing, layout, upload, select), optional title and description text, optional action buttons, and three sizes (small, default, large).
+
+The Content Reviews dashboard widgets now use this shared component, which keeps the widget height stable through loading and empty states — previously the widget could jump in height once loading finished.
+
+## Development
+
+### Custom GraphQL Playground Built from Scratch ([#5357](https://github.com/webiny/webiny-js/pull/5357))
+
+The GraphQL Playground has been completely rewritten, replacing the old CDN-loaded `graphql-playground-react` with a custom implementation built on Monaco Editor. The new playground includes several improvements:
+
+- **Schema Docs Explorer** — a right-side drawer for browsing the introspected schema with stack-based type navigation, search across type names, field names, arguments, and enum values, and clickable type references
+- **Query History** — localStorage-backed execution history (capped at 100 entries) with search, restore-to-active-tab, open-in-new-tab, and individual delete
+- **Tab-based architecture** — each tab has its own GraphQL client with independent auth and tenant headers. System tabs (Manage, Read, Preview APIs) have read-only endpoints; duplicate them to get an editable copy
+- **Comment-preserving prettifier** — formats queries while keeping your comments intact
+
+The playground uses a DI-based `PlaygroundTabRegistry`, allowing any package to contribute its own tabs. If you need custom client behavior, implement `PlaygroundClient.Interface` or use the provided factories with custom `getToken`/`getTenant` overrides.
+
+### Dev Tools Permissions No Longer Duplicated Across Playground Apps ([#5338](https://github.com/webiny/webiny-js/pull/5338))
+
+The GraphQL Playground and SDK Playground apps each used to register the other app's permissions as well as their own, which could show permissions for apps that weren't installed. Each app now contributes only its own permissions, and they're combined into a single "Dev Tools" group automatically.
+
+### Removed Apollo Client from Multiple Packages ([#5345](https://github.com/webiny/webiny-js/pull/5345), [#5342](https://github.com/webiny/webiny-js/pull/5342), [#5340](https://github.com/webiny/webiny-js/pull/5340), [#5339](https://github.com/webiny/webiny-js/pull/5339), [#5336](https://github.com/webiny/webiny-js/pull/5336), [#5335](https://github.com/webiny/webiny-js/pull/5335))
+
+Apollo Client has been removed from several packages including ACO, Audit Logs, File Manager, Website Builder, Workflows, and Cognito. These packages now use Webiny's internal GraphQL client infrastructure instead.
+
+### OpenSearch Client Refactored to Use Dependency Injection ([#5311](https://github.com/webiny/webiny-js/pull/5311), [#5301](https://github.com/webiny/webiny-js/pull/5301))
+
+The `OpenSearchContext` abstraction and `context.opensearch`/`context.elasticsearch` properties have been removed. All consumers now resolve the OpenSearch client directly via the `OpenSearchClient` dependency injection token.
+
+```typescript
+import { OpenSearchClient } from "webiny/api-opensearch";
+
+// Inject the client via DI instead of accessing context.opensearch
+```
+
+### Removed Unused `app-file-manager-s3` Package ([#5341](https://github.com/webiny/webiny-js/pull/5341))
+
+The `app-file-manager-s3` package has been removed as it was no longer used anywhere in the codebase.
+
+### Vue `shallowRef` Now Properly Triggers Re-renders ([#5262](https://github.com/webiny/webiny-js/pull/5262))
+
+When using Vue's `shallowRef` in Webiny extensions, changes to the ref value were not always triggering component re-renders as expected. This has been fixed to ensure `shallowRef` behaves consistently with Vue's reactivity system, properly updating the UI when the reference changes.
+
+### TypeScript 7 and Dependency Updates ([#5396](https://github.com/webiny/webiny-js/pull/5396))
+
+Webiny now uses TypeScript 7.0.2. Most dependencies have also been updated to their latest compatible versions. If you encounter type errors after upgrading, ensure your IDE and local TypeScript version are in sync with the project.
+
+## AI
+
+### AI Prompt File Attachments and Audit Logging ([#5384](https://github.com/webiny/webiny-js/pull/5384))
+
+You can now attach additional files (text, PDF, DOCX) to AI prompts in both the Headless CMS and Website Builder. The files are converted to markdown and included in the prompt context, allowing the AI to reference document content when generating responses.
+
+AI operations are now recorded in the audit logs. Each generation creates a single merged record capturing the before/after state, with detailed tabs showing the system prompt, user prompt, and LLM response in the audit log viewer.
+
+### Audit Logs UI Improvements ([#5384](https://github.com/webiny/webiny-js/pull/5384))
+
+The audit logs interface has been updated with a filter drawer, improved date/time pickers with proper ISO output, and fixed pagination when scrolling through filtered results.
+
+## File Manager
+
+### File Type Filtering in File Picker ([#5384](https://github.com/webiny/webiny-js/pull/5384))
+
+The File Manager picker now respects the `accept` prop to filter file listings. When you specify accepted file types, only matching files are shown in the listing while folders remain visible for navigation. Duplicate selections in multi-file mode are also now prevented.
+
+### Image Delivery Pipeline with Server-Side Transforms ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+Images served through the File Manager now support server-side transforms including crop, format conversion, and quality adjustments. When you edit an image's crop or focal point — whether in the File Manager, CMS asset picker, or Website Builder — the transform parameters are encoded directly into the delivery URL.
+
+The File Manager metadata structure has been updated:
+
+- `metadata.imageEdit` moved to `metadata.image`
+- `hotspot` renamed to `focalPoint` throughout
+- New fields: `metadata.image.{crop, focalPoint, alt, caption}`
+
+### Shared Image Editor Component ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+A unified `ImageEditor` component now powers image editing across the File Manager, CMS asset picker, and Website Builder file inputs. This provides a consistent editing experience with crop handles and focal point selection regardless of where you're working with images.
+
+## Webiny SDK
+
+### Unified Asset Type ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+The SDK now exports a canonical `Asset` type shared by both the CMS asset field and Website Builder file inputs. This removes the previous duplicate type definitions.
+
+All `Webiny`-prefixed names have been simplified:
+
+- `WebinyImage` → `Image`
+- `WebinyAsset` → `Asset`
+- `getWebinyAssetUrl` → `getAssetUrl`
+
+```typescript
+import { Asset, getAssetUrl } from "webiny/sdk";
+
+const url = getAssetUrl(asset, { width: 800, format: "webp" });
+```
