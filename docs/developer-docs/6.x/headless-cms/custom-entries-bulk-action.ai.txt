@@ -1,0 +1,31 @@
+AI Context: Custom Entries Bulk Action (custom-entries-bulk-action.mdx)
+
+## Source of Information
+
+1. wby-next5 `extensions/bulkActions/applyDiscount/**` — the working "Apply Discount" demo this doc documents (API bulk action, Admin button, extension wiring, websocket handler).
+2. Public API exposed in Webiny 6.5.0 via the `webiny` package (PR #5411): `EntriesBulkAction` from `webiny/api/cms/entry`.
+
+## Key Documentation Decisions
+
+1. New feature in 6.5.0 — includes a single "available from 6.5.0" info callout. No other version callouts.
+2. Import path: `EntriesBulkAction` from `webiny/api/cms/entry` (NOT `webiny/api/cms/bulk-actions` — that alias was dropped during API review).
+3. Central framing: an `EntriesBulkAction` is auto-turned into a pair of background tasks (list + process) plus a GraphQL mutation. The developer only describes what to do.
+4. The convergence rule is the load-bearing concept — `loadData` is called repeatedly until it returns zero entries, so the filter MUST exclude already-processed entries. Given its own section + it's why `processData` sets a flag.
+5. Storage-level `where`: custom fields are namespaced `values.<field>` at storage; bulk-action list path bypasses the GraphQL where-transform. Documented as a warning callout (repro error: "There is no field with the fieldId onSale").
+6. `skipValidation: true` explained (targeted system update; human edits still validate).
+7. Throw = entry failed, return = entry done.
+8. Admin button uses `webiny/admin` (`BulkActionButton`, `useBulkActionDialog`, `useFeature`) + `webiny/admin/cms/entry/list` (`BulkActionFeature`, `useContentEntriesPresenter`, `ContentEntryListConfig`). `action` is the PascalCased API `name`.
+9. `where` scoping: `{ id_in }` for explicit selection, `undefined` for select-all-across-pages.
+10. Websocket notifications deferred to the sibling AI page to keep this page focused.
+
+## Key API Shapes
+
+- `EntriesBulkAction.Interface<TData>` — `name`, `modelIds?`, `batchSize?`, `loadData(model, params)`, `processData(model, params)`.
+- Namespace types: `.Model`, `.LoadDataParams`, `.LoadDataResult`, `.ProcessParams<TData>`.
+- `EntriesBulkAction.createImplementation({ implementation, dependencies })`, `export default`.
+- Frontend trigger: `bulkAction.execute({ model, action, where, data })`.
+
+## Links Used
+
+- `/{version}/developer-docs/background-tasks/about` (+ #managing-tasks-via-graph-ql anchor)
+- Sibling: `/{version}/developer-docs/headless-cms/ai-summary-bulk-action`
