@@ -101,6 +101,33 @@ The SDK now exposes a `getModel` method that returns full model definitions incl
 
 The API now enforces format validation on datetime fields. Previously, malformed date strings could be saved without error. Invalid formats are now rejected at the API level with a descriptive validation message.
 
+### New `asset` Field Type for Images and Files ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+A new first-class `asset` field type is now available in the Headless CMS field palette. This replaces the existing `file` field (now deprecated but still functional for existing models). The new field type provides:
+
+- Built-in image editing with crop and focal point controls
+- Per-entry image transforms that are baked into the delivery URL
+- A unified `FmAsset` GraphQL type with proper metadata handling
+
+When you add an `asset` field to a content model, editors can select files from the File Manager and apply custom crops directly in the entry form. These edits are stored on the entry itself, so the same source image can be cropped differently across entries.
+
+```typescript
+// Asset field values now include the processed URL with crop params
+const entry = await sdk.cms.getEntry({
+  model: "article",
+  id: "abc123"
+});
+
+// entry.coverImage.url includes ?crop=... when edited
+console.log(entry.coverImage.url);
+```
+
+<Alert type="info">
+
+Existing content models using the `file` field will continue to work. You can migrate to the new `asset` field type when convenient.
+
+</Alert>
+
 ## Website Builder
 
 ### Nuxt Starter Kit Configuration ([#5265](https://github.com/webiny/webiny-js/pull/5265))
@@ -158,6 +185,14 @@ Visitor assignment is deterministic and sticky — the same visitor always sees 
 Variants follow your existing publishing workflow. A variant only serves to visitors after both the variant is marked "ready" and the parent page is published.
 
 </Alert>
+
+### Fixed Live Preview Updates for Asset Fields ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+Live preview in the CMS entry editor now correctly updates when you change asset field values. Previously, MobX observable proxies weren't being unwrapped before diffing, causing preview updates to fail silently. The fix also ensures:
+
+- Clearing an asset sends `null` instead of an object with null properties
+- Asset URLs recompute immediately when crop settings change
+- The editing SDK only activates when the preview iframe is showing a CMS entry
 
 ## Admin
 
@@ -261,3 +296,35 @@ The audit logs interface has been updated with a filter drawer, improved date/ti
 ### File Type Filtering in File Picker ([#5384](https://github.com/webiny/webiny-js/pull/5384))
 
 The File Manager picker now respects the `accept` prop to filter file listings. When you specify accepted file types, only matching files are shown in the listing while folders remain visible for navigation. Duplicate selections in multi-file mode are also now prevented.
+
+### Image Delivery Pipeline with Server-Side Transforms ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+Images served through the File Manager now support server-side transforms including crop, format conversion, and quality adjustments. When you edit an image's crop or focal point — whether in the File Manager, CMS asset picker, or Website Builder — the transform parameters are encoded directly into the delivery URL.
+
+The File Manager metadata structure has been updated:
+
+- `metadata.imageEdit` moved to `metadata.image`
+- `hotspot` renamed to `focalPoint` throughout
+- New fields: `metadata.image.{crop, focalPoint, alt, caption}`
+
+### Shared Image Editor Component ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+A unified `ImageEditor` component now powers image editing across the File Manager, CMS asset picker, and Website Builder file inputs. This provides a consistent editing experience with crop handles and focal point selection regardless of where you're working with images.
+
+## Webiny SDK
+
+### Unified Asset Type ([#5481](https://github.com/webiny/webiny-js/pull/5481))
+
+The SDK now exports a canonical `Asset` type shared by both the CMS asset field and Website Builder file inputs. This removes the previous duplicate type definitions.
+
+All `Webiny`-prefixed names have been simplified:
+
+- `WebinyImage` → `Image`
+- `WebinyAsset` → `Asset`
+- `getWebinyAssetUrl` → `getAssetUrl`
+
+```typescript
+import { Asset, getAssetUrl } from "webiny/sdk";
+
+const url = getAssetUrl(asset, { width: 800, format: "webp" });
+```
