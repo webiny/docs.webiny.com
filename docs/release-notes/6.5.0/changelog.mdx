@@ -240,6 +240,14 @@ A reusable `EmptyState` component has been added to the design system for commun
 
 The Content Reviews dashboard widgets now use this shared component, which keeps the widget height stable through loading and empty states — previously the widget could jump in height once loading finished.
 
+### Renamed Frontend Integration API Key and Environment Variables ([#5507](https://github.com/webiny/webiny-js/pull/5507))
+
+The API key slug for frontend integration has been renamed from `website-builder` to `frontend-integration`, and environment variable prefixes now use `NEXT_PUBLIC_WEBINY_`. Existing projects using the `website-builder` slug will continue to work through a legacy fallback.
+
+### Tenant Theme Extension with Font Selector ([#5507](https://github.com/webiny/webiny-js/pull/5507))
+
+A new `TenantThemeExtension` has been added to the Next.js starter kit, enabling per-tenant theme customization including a font selector. Themes are merged at runtime based on the current tenant.
+
 ## Development
 
 ### Custom GraphQL Playground Built from Scratch ([#5357](https://github.com/webiny/webiny-js/pull/5357))
@@ -336,6 +344,36 @@ import { Asset, getAssetUrl } from "webiny/sdk";
 
 const url = getAssetUrl(asset, { width: 800, format: "webp" });
 ```
+
+### Unified Frontend SDK with Result-Based API ([#5507](https://github.com/webiny/webiny-js/pull/5507))
+
+The frontend SDK packages have been consolidated into a single unified entry point. The new `@webiny/sdk-frontend` and `@webiny/sdk-nextjs` packages replace the previous `@webiny/content-sdk` and `@webiny/content-sdk-nextjs` packages.
+
+Initialize the SDK once with `sdk.init()` to access all domains — CMS, Website Builder, languages, file manager, and more — through a single configuration:
+
+```typescript
+import { sdk } from "webiny/sdk-nextjs";
+
+sdk.init({
+  endpoint: "https://your-api.webiny.com/graphql",
+  token: "your-api-token",
+  tenant: "root"
+});
+
+const result = await sdk.cms.entries.list({ model: "article" });
+```
+
+All SDK methods now return `Result<T, Error>` for consistent error handling across the frontend.
+
+<Alert type="info">
+
+The configuration props have been renamed: `apiHost` → `endpoint`, `apiKey` → `token`, `apiTenant` → `tenant`.
+
+</Alert>
+
+### Fixed Stale Language Cache in Create Page Dialog ([#5507](https://github.com/webiny/webiny-js/pull/5507))
+
+Adding a new language in the Admin and then opening the Create Page dialog would show stale language options until a page reload. The `CreateEntryRepository`, `UpdateEntryRepository`, and `DeleteEntryRepository` now publish lifecycle events (`EntryAfterCreateEvent`, `EntryAfterUpdateEvent`, `EntryAfterDeleteEvent`) that keep the frontend cache in sync.
 
 ## Page Builder
 
