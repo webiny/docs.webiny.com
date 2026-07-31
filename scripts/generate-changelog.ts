@@ -168,7 +168,7 @@ async function findPreviousTag(version: string): Promise<string> {
 
 /**
  * Resolves the "head" ref to diff against `base`. Prefers the `vX.Y.Z` tag; if it
- * does not exist yet (release not tagged), falls back to the `X.Y.x` line branch.
+ * does not exist yet (release not tagged), falls back to the `release/X.Y.Z` branch.
  */
 async function resolveHeadRef(version: string): Promise<string> {
     const bare = version.replace(/^v/, "");
@@ -179,13 +179,11 @@ async function resolveHeadRef(version: string): Promise<string> {
     );
     if (tag) return versionTag;
 
-    const [major, minor] = bare.split(".");
-    const lineBranch = `${major}.${minor}.x`;
+    const releaseBranch = `release/${bare}`;
     console.log(
-        `  Tag ${versionTag} not found — falling back to the ${lineBranch} branch. ` +
-            `Note: this may include commits from later patch releases on the same line.`
+        `  Tag ${versionTag} not found — falling back to the ${releaseBranch} branch.`
     );
-    return lineBranch;
+    return releaseBranch;
 }
 
 /**
