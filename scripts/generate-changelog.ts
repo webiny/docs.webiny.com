@@ -1,13 +1,11 @@
 /**
  * Generates a changelog MDX file for a given Webiny release version by:
- *  1. Diffing the previous release tag against this version's tag on webiny/webiny-js
- *     and extracting the PR numbers referenced in the commit messages (`(#1234)`)
- *  2. Fetching each PR and sending them to Claude (claude-opus-4-5) to produce a
- *     structured MDX changelog
+ *  1. Fetching all closed PRs from the webiny/webiny-js milestone matching the version
+ *  2. Sending them to Claude (claude-opus-4-5) to produce a structured MDX changelog
  *  3. Writing the result to docs/release-notes/{version}/changelog.mdx
  *
- * PR discovery is commit-based (not milestone-based), so a release still gets a
- * complete changelog even if PRs were never assigned to a milestone.
+ * PR discovery is milestone-based: assign a PR to the `X.Y.Z` milestone for it to
+ * appear in that release's changelog. PRs labeled `no-changelog` are skipped.
  *
  * Usage:
  *   yarn tsx scripts/generate-changelog.ts --version 6.1.0
@@ -33,24 +31,20 @@ interface GitHubLabel {
     name: string;
 }
 
-interface GitHubTag {
-    name: string;
+interface GitHubMilestone {
+    number: number;
+    title: string;
+    state: string;
 }
 
-interface GitHubCommit {
-    commit: { message: string };
-}
-
-interface GitHubCompare {
-    commits: GitHubCommit[];
-}
-
-interface GitHubPull {
+interface GitHubIssue {
     number: number;
     title: string;
     body: string | null;
     labels: GitHubLabel[];
     user: { login: string } | null;
+    pull_request?: unknown;
+    state: string;
 }
 
 interface PullRequest {
@@ -101,106 +95,27 @@ async function fetchJson<T>(url: string): Promise<T> {
 }
 
 /**
- * Like fetchJson, but returns null on 404 instead of throwing — used to probe
- * for a version tag that may not have been created yet.
+ * Finds the milestone whose title matches the target version (`X.Y.Z` or `vX.Y.Z`).
+ * Exits cleanly with a message if no matching milestone exists.
  */
-async function fetchJsonOrNull<T>(url: string): Promise<T | null> {
-    const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-    const res = await fetch(url, {
-        headers: {
-            Accept: "application/vnd.github+json",
-            "User-Agent": "webiny-docs-changelog-generator",
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
-        }
-    });
-    if (res.status === 404) return null;
-    if (!res.ok) {
-        throw new Error(`GitHub API error ${res.status} for ${url}: ${await res.text()}`);
-    }
-    return res.json() as Promise<T>;
-}
+async function findMilestone(version: string): Promise<GitHubMilestone> {
+    const bare = version.replace(/^v/, "");
+    const candidates = [bare, `v${bare}`];
 
-/**
- * Compares two semver strings. Returns >0 if a>b, <0 if a<b, 0 if equal.
- * Handles the `vX.Y.Z` tag format (leading `v` is stripped).
- */
-function compareSemver(a: string, b: string): number {
-    const parse = (v: string) => v.replace(/^v/, "").split(".").map(n => parseInt(n, 10) || 0);
-    const pa = parse(a);
-    const pb = parse(b);
-    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-        const diff = (pa[i] ?? 0) - (pb[i] ?? 0);
-        if (diff !== 0) return diff;
-    }
-    return 0;
-}
-
-/**
- * Finds the release tag immediately preceding `version` by fetching all tags and
- * picking the highest one that is strictly lower than the target version.
- */
-async function findPreviousTag(version: string): Promise<string> {
-    const target = version.replace(/^v/, "");
-    const semverTag = /^v?\d+\.\d+\.\d+$/;
-
-    const tags: string[] = [];
     let page = 1;
     while (true) {
-        const batch = await fetchJson<GitHubTag[]>(
-            `${GITHUB_API}/repos/${GITHUB_REPO}/tags?per_page=100&page=${page}`
+        const milestones = await fetchJson<GitHubMilestone[]>(
+            `${GITHUB_API}/repos/${GITHUB_REPO}/milestones?state=all&per_page=100&page=${page}`
         );
-        if (batch.length === 0) break;
-        tags.push(...batch.map(t => t.name));
+        if (milestones.length === 0) break;
+
+        const found = milestones.find(m => candidates.includes(m.title));
+        if (found) return found;
         page++;
     }
 
-    const previous = tags
-        .filter(t => semverTag.test(t))
-        .filter(t => compareSemver(t, target) < 0)
-        .sort(compareSemver)
-        .pop();
-
-    if (!previous) {
-        throw new Error(`Could not determine the previous release tag for ${version}.`);
-    }
-    return previous;
-}
-
-/**
- * Resolves the "head" ref to diff against `base`. Prefers the `vX.Y.Z` tag; if it
- * does not exist yet (release not tagged), falls back to the `release/X.Y.Z` branch.
- */
-async function resolveHeadRef(version: string): Promise<string> {
-    const bare = version.replace(/^v/, "");
-    const versionTag = `v${bare}`;
-
-    const tag = await fetchJsonOrNull<GitHubTag>(
-        `${GITHUB_API}/repos/${GITHUB_REPO}/git/ref/tags/${versionTag}`
-    );
-    if (tag) return versionTag;
-
-    const releaseBranch = `release/${bare}`;
-    console.log(
-        `  Tag ${versionTag} not found — falling back to the ${releaseBranch} branch.`
-    );
-    return releaseBranch;
-}
-
-/**
- * Extracts PR numbers referenced as `(#1234)` in the commit messages between two refs.
- */
-async function fetchPRNumbersInRange(base: string, head: string): Promise<number[]> {
-    const compare = await fetchJson<GitHubCompare>(
-        `${GITHUB_API}/repos/${GITHUB_REPO}/compare/${base}...${head}`
-    );
-
-    const numbers = new Set<number>();
-    for (const c of compare.commits) {
-        for (const match of c.commit.message.matchAll(/\(#(\d+)\)/g)) {
-            numbers.add(parseInt(match[1], 10));
-        }
-    }
-    return [...numbers].sort((a, b) => a - b);
+    console.log("No milestone found.");
+    process.exit(0);
 }
 
 interface FetchResult {
@@ -208,30 +123,36 @@ interface FetchResult {
     noChangelogNumbers: Set<number>;
 }
 
-async function fetchPRs(numbers: number[]): Promise<FetchResult> {
+async function fetchPRsForMilestone(milestoneNumber: number): Promise<FetchResult> {
     const prs: PullRequest[] = [];
     const noChangelogNumbers = new Set<number>();
+    let page = 1;
 
-    for (const number of numbers) {
-        const pull = await fetchJsonOrNull<GitHubPull>(
-            `${GITHUB_API}/repos/${GITHUB_REPO}/pulls/${number}`
+    while (true) {
+        const issues = await fetchJson<GitHubIssue[]>(
+            `${GITHUB_API}/repos/${GITHUB_REPO}/issues?milestone=${milestoneNumber}&state=closed&per_page=100&page=${page}`
         );
-        // Referenced number that isn't actually a PR (e.g. an issue) — skip it.
-        if (!pull) continue;
+        if (issues.length === 0) break;
 
-        const hasNoChangelog = pull.labels.some(l => l.name === "no-changelog");
-        if (hasNoChangelog) {
-            console.log(`  Skipping PR #${pull.number} (no-changelog): ${pull.title}`);
-            noChangelogNumbers.add(pull.number);
-            continue;
+        for (const issue of issues) {
+            // The issues endpoint returns both issues and PRs; keep only PRs.
+            if (!issue.pull_request) continue;
+
+            const hasNoChangelog = issue.labels.some(l => l.name === "no-changelog");
+            if (hasNoChangelog) {
+                console.log(`  Skipping PR #${issue.number} (no-changelog): ${issue.title}`);
+                noChangelogNumbers.add(issue.number);
+                continue;
+            }
+            prs.push({
+                number: issue.number,
+                title: issue.title,
+                body: issue.body ?? "",
+                url: `https://github.com/${GITHUB_REPO}/pull/${issue.number}`,
+                author: issue.user?.login ?? "unknown"
+            });
         }
-        prs.push({
-            number: pull.number,
-            title: pull.title,
-            body: pull.body ?? "",
-            url: `https://github.com/${GITHUB_REPO}/pull/${pull.number}`,
-            author: pull.user?.login ?? "unknown"
-        });
+        page++;
     }
 
     return { prs, noChangelogNumbers };
@@ -549,17 +470,12 @@ async function main(): Promise<void> {
 
     console.log(`\nGenerating changelog for Webiny ${version}...`);
 
-    console.log("  Resolving release range on GitHub...");
-    const [previousTag, headRef] = await Promise.all([
-        findPreviousTag(version),
-        resolveHeadRef(version)
-    ]);
-    console.log(`  Diffing ${previousTag}...${headRef} for referenced PRs...`);
-    const prNumbers = await fetchPRNumbersInRange(previousTag, headRef);
-    console.log(`  Found ${prNumbers.length} referenced PR(s) in commit messages.`);
+    console.log("  Looking up milestone on GitHub...");
+    const milestone = await findMilestone(version);
+    console.log(`  Found milestone #${milestone.number}: "${milestone.title}"`);
 
-    console.log("  Fetching PR details...");
-    const { prs, noChangelogNumbers } = await fetchPRs(prNumbers);
+    console.log("  Fetching merged PRs...");
+    const { prs, noChangelogNumbers } = await fetchPRsForMilestone(milestone.number);
     console.log(`  ${prs.length} pull request(s) eligible for the changelog.`);
 
     if (dryRun) {
@@ -594,7 +510,7 @@ async function main(): Promise<void> {
     }
 
     if (prs.length === 0) {
-        console.warn("  No pull requests found for this release range. Nothing to generate.");
+        console.warn("  No pull requests found for this milestone. Nothing to generate.");
         process.exit(0);
     }
 
