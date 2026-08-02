@@ -1,0 +1,22 @@
+AI Context: Generate AI Summary Bulk Action (ai-summary-bulk-action.mdx)
+
+## Source of Information
+
+1. wby-next5 `extensions/bulkActions/aiContent/**` — the working "Generate AI summary" demo (API bulk action, dropdown Admin button, websocket handler, extension wiring).
+2. Public APIs (Webiny 6.5.0): `EntriesBulkAction` (`webiny/api/cms/entry`), `CmsGenerateEntryContentUseCase` (`webiny/api/ai-powerups`), `GetSettingsFeature` (`webiny/admin/ai-powerups`), `WebsocketEventHandler` (`webiny/admin/websockets`), `WebsocketsSendToIdentityUseCase` + `IdentityContext` (`webiny/api`, `webiny/api/security`).
+
+## Key Documentation Decisions
+
+1. Explicitly a follow-on to custom-entries-bulk-action.mdx — reader is told to read that first. This page only covers the AI-specific deltas.
+2. Delegates generation to AI Power Ups `CmsGenerateEntryContentUseCase` rather than a raw AI call — so it follows the editor's configured provider + persona/project. Do NOT show model/key handling.
+3. `CmsGenerateEntryContentUseCase.execute(...)` returns `Result` with `value.values` = the generated entry as a structured object (keyed by fieldId). Doc reads `result.value.values.aiSummary` directly, no parse. (This is the reshaped API from webiny-js#5477, targeting release/6.5.0 alongside these docs; serialization now happens only at the transport edge — the task's websocket stream.)
+4. Re-runnable convergence via a per-run token: contrast with the discount page's permanent boolean flag. `runId` fresh per click; `processData` stamps `aiSummarizedRun`; `loadData` filters `aiSummarizedRun_not: runId`. Given its own section.
+5. GraphQL where nests custom fields under `values: {}`; backend `loadData` flattens to `values.<field>`. Shown on both sides (frontend builds nested, backend flattens).
+6. Button is a `DropdownMenu` of AI contexts loaded from `GetSettingsFeature`: Projects, Writer Personas, Reader Personas, plus "Default (no context)". Graceful when AI Power Ups unconfigured (catch → only Default).
+7. Websockets: API emits via `WebsocketsSendToIdentityUseCase` keyed to `IdentityContext.getIdentity()`, best-effort (never fail the task). Admin `WebsocketEventHandler` filters by `action` and toasts via `Notifications`. Registered with `createFeature` + `RegisterFeature`.
+8. Requires AI Power Ups configured — info callout at top.
+
+## Links Used
+
+- Prereq/base: `/{version}/developer-docs/headless-cms/custom-entries-bulk-action` (+ #making-the-task-converge, #registering-the-bulk-action anchors)
+- `/{version}/developer-docs/build-with-ai/ai-assisted-development`
