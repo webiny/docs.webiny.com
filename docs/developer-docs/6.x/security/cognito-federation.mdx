@@ -1,0 +1,255 @@
+---
+id: a7k2m9x1
+title: Cognito Federation
+description: Add federated sign-in (Google, Microsoft Entra ID, OIDC) to the Admin app while keeping Cognito as your user pool.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what Cognito Federation is and when to use it
+- how to add external identity providers to the login screen
+- how federated users are synced into Webiny
+- how to customize identity mapping and login screen behavior
+
+</Alert>
+
+## Overview
+
+By default, Webiny uses a Cognito User Pool where admin users are created manually through the Admin app. Cognito Federation lets you connect external identity providers — Google, Microsoft Entra ID, Facebook, Apple, or any OIDC-compatible provider — so users can sign in with their existing corporate or social credentials.
+
+Unlike switching to Okta or Auth0 (which replace Cognito entirely), federation keeps Cognito as your user pool. The external provider handles authentication; Cognito issues the tokens; Webiny manages the users.
+
+### What Happens When a Federated User Signs In
+
+1. The user clicks a provider button (e.g., "Sign in with Microsoft") on the login screen.
+2. Cognito redirects to the external identity provider.
+3. After authentication, Cognito creates a session with an `idToken` that includes an `identities` claim.
+4. Webiny detects the `identities` claim and marks the user as **external**.
+5. On first login, the user is automatically created in Webiny with the roles and teams derived from token claims.
+6. On subsequent logins, the user profile is updated if claims have changed.
+
+External users appear in the Admin app's user management with a read-only badge — they cannot be edited or deleted through the UI since they are managed by the external identity provider.
+
+## Configuring Federation
+
+Add a `federation` prop to the `<Cognito />` extension in your `webiny.config.tsx`. This single declaration handles:
+
+- **AWS infrastructure** — creates the Cognito User Pool Domain, Identity Provider resources, and configures OAuth on the User Pool Client
+- **Admin login screen** — shows provider buttons and configures Amplify for the OAuth redirect flow
+
+```tsx webiny.config.tsx
+import { Cognito } from "@webiny/cognito";
+
+<Cognito
+  federation={{
+    domain: "my-app",
+    callbackUrls: ["http://localhost:3001", "https://admin.example.com"],
+    responseType: "code",
+    identityProviders: [
+      {
+        name: "EntraID",
+        type: "oidc",
+        label: "Sign in with Microsoft",
+        providerDetails: {
+          attributes_request_method: "POST",
+          authorize_scopes: "email profile openid",
+          client_id: String(process.env.ENTRA_CLIENT_ID),
+          client_secret: String(process.env.ENTRA_CLIENT_SECRET),
+          oidc_issuer: String(process.env.ENTRA_ISSUER),
+        }
+      }
+    ]
+  }}
+/>
+```
+
+### Federation Config Reference
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `domain` | `string` | Yes | — | Cognito User Pool domain prefix |
+| `callbackUrls` | `string[]` | Yes | — | OAuth callback URLs (localhost for dev, real domain for prod) |
+| `logoutUrls` | `string[]` | No | same as `callbackUrls` | OAuth logout redirect URLs |
+| `responseType` | `"code"` or `"token"` | No | `"code"` | OAuth response type |
+| `allowCredentialsLogin` | `boolean` | No | `true` | Whether to show the email/password form alongside provider buttons |
+| `identityProviders` | array | Yes | — | List of external identity providers |
+
+### Identity Provider Config
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | `"google"`, `"facebook"`, `"amazon"`, `"apple"`, or `"oidc"` | Yes | Provider type |
+| `name` | `string` | For OIDC | Provider name in Cognito (e.g., `"EntraID"`) |
+| `label` | `string` | Yes | Button text on the login screen |
+| `providerDetails` | `object` | Yes | AWS Cognito provider details — varies by type |
+| `attributeMapping` | `object` | No | Override default claim-to-attribute mapping |
+
+<Alert type="info">
+
+For OIDC providers, `providerDetails` must include `client_id`, `client_secret`, and `oidc_issuer`. For social providers (Google, Facebook, etc.), see the [AWS documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-social-idp.html) for the required fields.
+
+</Alert>
+
+## SSO-Only Mode
+
+To hide the email/password form and show only the federated provider buttons, set `allowCredentialsLogin: false`:
+
+```tsx
+<Cognito
+  federation={{
+    domain: "my-app",
+    callbackUrls: ["http://localhost:3001"],
+    allowCredentialsLogin: false,
+    identityProviders: [
+      {
+        name: "EntraID",
+        type: "oidc",
+        label: "Sign in with Microsoft",
+        providerDetails: { /* ... */ }
+      }
+    ]
+  }}
+/>
+```
+
+The login screen will display a description telling users they'll be redirected to an external service.
+
+## Custom Identity Mapping
+
+By default, federated users are created in Webiny with the `full-access` role. To control how token claims map to Webiny roles and teams, provide an `apiConfig` extension:
+
+```tsx webiny.config.tsx
+<Cognito
+  federation={{ /* ... */ }}
+  apiConfig={"/extensions/cognito/api.ts"}
+/>
+```
+
+```typescript extensions/cognito/api.ts
+import { CognitoIdpConfig } from "@webiny/cognito";
+
+class MyConfig implements CognitoIdpConfig.Interface {
+    getIdentity(token: CognitoIdpConfig.JwtPayload) {
+        const groups: string[] = (token["cognito:groups"] as string[]) || [];
+
+        return {
+            roles: groups.includes("admins") ? ["full-access"] : ["content-editor"],
+            teams: groups.filter(g => g.startsWith("team-")),
+        };
+    }
+}
+
+export default CognitoIdpConfig.createImplementation({
+    implementation: MyConfig,
+    dependencies: []
+});
+```
+
+<Alert type="info">
+
+You only need to return the fields you want to override. Default values for `id`, `displayName`, and `profile` are automatically derived from standard Cognito token claims (`custom:id`, `given_name`, `family_name`, `email`).
+
+</Alert>
+
+## Custom Login Screen Behavior
+
+For advanced login screen customization — such as IP-based credential whitelisting or custom provider buttons — provide an `adminConfig` extension that implements `CognitoSignInConfig`:
+
+```tsx webiny.config.tsx
+<Cognito
+  federation={{ /* ... */ }}
+  adminConfig={"/extensions/cognito/admin.tsx"}
+/>
+```
+
+```tsx extensions/cognito/admin.tsx
+import { CognitoSignInConfig } from "@webiny/cognito/admin";
+
+class MySignInConfig implements CognitoSignInConfig.Interface {
+    async getConfig() {
+        return {
+            oauth: {
+                scopes: ["profile", "email", "openid"],
+                redirectSignIn: [window.location.origin],
+                redirectSignOut: [window.location.origin],
+                responseType: "code" as const,
+            },
+            allowCredentialsLogin: false,
+            providers: [
+                { name: "EntraID", label: "Sign in with Microsoft" }
+            ],
+            title: "Welcome",
+            description: "Use your corporate credentials to sign in.",
+        };
+    }
+}
+
+export default CognitoSignInConfig.createImplementation({
+    implementation: MySignInConfig,
+    dependencies: []
+});
+```
+
+Because `getConfig()` is async, you can perform runtime checks before returning the config:
+
+```tsx extensions/cognito/admin.tsx
+import { CognitoSignInConfig } from "@webiny/cognito/admin";
+
+const ALLOWED_IPS = ["1.2.3.4", "5.6.7.8"];
+
+class MySignInConfig implements CognitoSignInConfig.Interface {
+    async getConfig() {
+        let allowCredentials = false;
+        if (process.env.REACT_APP_STAGE !== "prod") {
+            const res = await fetch("https://api64.ipify.org?format=json");
+            const { ip } = await res.json();
+            allowCredentials = ALLOWED_IPS.includes(ip);
+        }
+
+        return {
+            oauth: {
+                scopes: ["profile", "email", "openid"],
+                redirectSignIn: [window.location.origin],
+                redirectSignOut: [window.location.origin],
+                responseType: "code" as const,
+            },
+            allowCredentialsLogin: allowCredentials,
+            providers: [
+                { name: "EntraID", label: "Sign in with Microsoft" }
+            ],
+        };
+    }
+}
+
+export default CognitoSignInConfig.createImplementation({
+    implementation: MySignInConfig,
+    dependencies: []
+});
+```
+
+## Setting It Up with AI
+
+If you have the Webiny MCP server connected, you can configure federation with a single prompt:
+
+> Set up Cognito Federation with Microsoft Entra ID. My tenant ID is `0ae3d912-...`, client ID is `f62ee823-...`, and client secret is `~Hp8Q~...`. Use SSO-only mode — no password login. Map all federated users to the `full-access` role.
+
+The AI assistant has access to the `webiny-cognito-federation` and `webiny-configure-entraid` skills and will generate the complete configuration.
+
+## Deploy Order
+
+1. **Deploy Core** — creates the Cognito User Pool Domain and Identity Provider resources
+   ```bash
+   yarn webiny deploy core --env=dev
+   ```
+
+2. **Configure the external IdP** — update the redirect URI in your identity provider's settings to:
+   `https://{cognitoUserPoolDomain}/oauth2/idpresponse`
+   (get the domain from `yarn webiny output core --env=dev`)
+
+3. **Deploy API + Admin**
+   ```bash
+   yarn webiny deploy api --env=dev
+   yarn webiny deploy admin --env=dev
+   ```

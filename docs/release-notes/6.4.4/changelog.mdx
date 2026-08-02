@@ -1,0 +1,117 @@
+---
+id: k5mqyohu
+title: Webiny 6.4.4 Changelog
+description: See what's new in Webiny version 6.4.4
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.4.4"} />
+
+## Infrastructure
+
+### Custom Production Environments Are Now Recognized During Deployment ([#5371](https://github.com/webiny/webiny-js/pull/5371))
+
+Marking an environment as a production environment via the `Infra.ProductionEnvironments` setting in `webiny.config.tsx` previously had no effect — only the built-in `prod` and `production` names were treated as production, so custom environments (like `stage`) never received production-grade infrastructure such as a VPC. Configured production environments are now correctly recognized and deployed with the appropriate production setup.
+
+<Alert type="warning">
+
+If an environment was already deployed before being marked as production, the next deploy will create the VPC, move existing Lambdas into it, add VPC endpoints, and enable resource protection. This is a disruptive infrastructure migration that may replace resources and cause downtime. Review `pulumi preview` carefully and deploy during a maintenance window.
+
+</Alert>
+
+## Development
+
+### Faster Stack Output Reads via Local Caching ([#5375](https://github.com/webiny/webiny-js/pull/5375))
+
+Every stack output lookup previously ran a Pulumi command, which made repeated reads slow—especially during deploys, watch mode, and output lookups that query the same stack multiple times. Stack outputs are now cached locally (under `.webiny/caches/stack-output`) and reused on subsequent reads. The cache is automatically cleared when an app is destroyed, so results always stay accurate.
+
+## Admin
+
+### Cognito Federation and Multi-Factor Authentication Support ([#5376](https://github.com/webiny/webiny-js/pull/5376))
+
+Webiny now supports federated sign-in through Amazon Cognito, allowing users to authenticate via external identity providers such as Google, Facebook, Apple, Amazon, and any OIDC-compliant provider (e.g., Microsoft Entra ID). This eliminates the need for users to manage separate Webiny credentials when your organization already has an identity provider in place.
+
+To enable federation, use the `federation` prop on the `<Cognito />` extension:
+
+```typescript
+import { Cognito } from "webiny/api-security-cognito";
+
+export default createExtension({
+  type: "api",
+  name: "api.security.cognito",
+  create() {
+    return [
+      new Cognito({
+        federation: {
+          providers: [
+            {
+              type: "oidc",
+              name: "EntraID",
+              label: "Sign in with Microsoft"
+            }
+          ]
+        }
+      })
+    ];
+  }
+});
+```
+
+Federated users are automatically detected via the `identities` claim in the JWT token and flagged as external, triggering the `ExternalIdpUserSyncHandler` for identity mapping and provisioning.
+
+The login screen can be customized through the `adminConfig` extension point to control which providers appear, whether username/password credentials are shown, and to set custom titles or descriptions.
+
+<Alert type="info">
+
+For new deployments, the `custom:id` attribute maximum length has been increased to 256 characters to accommodate longer OIDC `sub` values from some identity providers. Existing deployments retain the 36-character limit.
+
+</Alert>
+
+## Headless CMS
+
+### Unified OpenSearch Index Abstraction for CMS Models ([#5436](https://github.com/webiny/webiny-js/pull/5436))
+
+A new `CmsModelOpenSearchIndex` abstraction gives you per-model control over OpenSearch index settings and shared-index behavior. Previously, index configuration relied on a last-wins pattern that made it difficult to override settings for specific models. The new approach uses the decorator pattern, allowing you to control whether a model uses a shared index across tenants or gets its own isolated index.
+
+```typescript
+import { CmsModelOpenSearchIndex } from "webiny/api-headless-cms-ddb-es";
+
+CmsModelOpenSearchIndex.createDecorator({
+    decorator: class CustomIndex implements CmsModelOpenSearchIndex.Interface {
+        constructor(private original: CmsModelOpenSearchIndex.Interface) {}
+
+        async execute(params: CmsModelOpenSearchIndex.Params): Promise<CmsModelOpenSearchIndex.Result> {
+            const result = await this.original.execute(params);
+            // Force per-tenant index for models tagged with "isolated"
+            if (params.model.tags?.includes("isolated")) {
+                return { ...result, shared: false };
+            }
+            return result;
+        }
+    },
+    dependencies: []
+});
+```
+
+This replaces the old `CmsEntryOpenSearchIndex` abstraction — if you were using it, migrate to the new decorator-based approach.
+
+### Fixed Prototype Pollution Vulnerability in Where Condition Parsing ([#5373](https://github.com/webiny/webiny-js/pull/5373))
+
+A second-order prototype pollution vulnerability was found in the Headless CMS GraphQL `where` condition parser. Sending a crafted dot-notation key like `toString.call` as a filter key could corrupt built-in JavaScript prototypes (e.g., `Object.prototype.toString`), potentially affecting all subsequent requests in the same Lambda invocation.
+
+The fix introduces two defenses:
+
+- Keys like `__proto__`, `constructor`, and `prototype` are now explicitly forbidden and will throw an error.
+- The dot-notation expander now uses `Object.hasOwn()` instead of a truthiness check, preventing inherited prototype methods from being mistaken for existing nested objects.
+
+<Alert type="warning">
+
+This is a security fix. Upgrade as soon as possible. No action is required beyond upgrading - the fix is fully internal.
+
+</Alert>
+
+### Fixed Scheduled Publishing and Unpublishing of CMS Entries ([#5447](https://github.com/webiny/webiny-js/pull/5447))
+
+Scheduling a publish or unpublish action on a CMS entry failed with a `ValidationException`, because the generated AWS EventBridge Scheduler name contained illegal characters and exceeded the 64-character limit. Scheduled publish and unpublish actions now work as expected.

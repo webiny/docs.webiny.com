@@ -1,0 +1,45 @@
+AI Context: Cognito Federation (cognito-federation.mdx)
+
+Source of Information:
+1. packages/cognito/src/Cognito.tsx — defineExtension with federation prop, Pulumi hook, Admin.BuildParam
+2. packages/cognito/src/admin/presentation/Cognito/CognitoSignInConfig.ts — ICognitoSignInConfig interface, FederatedProvider union type
+3. packages/cognito/src/admin/presentation/Cognito/CognitoPresenter.ts — resolves CognitoSignInConfig, configures Amplify OAuth, populates vm.signIn
+4. packages/cognito/src/admin/DefaultCognitoSignInConfig.ts — auto-generated config from BuildParam
+5. packages/cognito/src/api/features/CognitoIdp/CognitoIdentityProvider.ts — detects identities claim, sets external: true, merges custom getIdentity
+6. packages/cognito/src/api/features/CognitoIdp/abstractions.ts — CognitoIdpConfig interface
+7. packages/api-core/src/features/users/ExternalIdpUserSync/ExternalIdpUserSyncHandler.ts — auto-creates/updates external users on AfterLogin
+8. packages/cognito/src/infra/CognitoFederationPulumi.ts — CorePulumi hook calling configureAdminCognitoFederation
+9. packages/project-aws/src/pulumi/apps/core/cognitoIdentityProviders/configure.ts — configureAdminCognitoFederation, creates domain/IdP/OAuth client
+10. packages/cognito/src/admin/presentation/Cognito/components/FederatedLogin.tsx — renders provider buttons, calls signInWithRedirect
+11. packages/cognito/src/admin/presentation/Cognito/components/SignIn.tsx — conditionally renders credentials form, FederatedLogin, Divider
+12. skills/user-skills/cognito-federation/SKILL.md — full reference skill
+13. skills/user-skills/configure-entraid/SKILL.md — Entra ID specific skill
+
+Key Documentation Decisions:
+1. No step-by-step setup guide — AI assistants with Webiny MCP can generate the config from a prompt; the docs focus on concepts and capabilities
+2. "Setting It Up with AI" section shows an example prompt for MCP-equipped AI assistants
+3. Custom identity mapping only shows overriding roles/teams — defaults for id, displayName, profile are auto-populated from standard Cognito claims
+4. adminConfig async example demonstrates IP whitelisting — the most common advanced use case
+5. Deploy order section is essential because core must be deployed first to create the Cognito domain, which must then be configured in the external IdP before admin can work
+
+Understanding:
+The federation prop on <Cognito /> handles three concerns:
+1. Infrastructure (Pulumi) — configureAdminCognitoFederation() creates User Pool Domain, IdentityProvider resources, and configures OAuth on the UserPoolClient
+2. Admin login screen — federation config is passed as Admin.BuildParam; DefaultCognitoSignInConfig reads it and implements CognitoSignInConfig.getConfig(); CognitoPresenter resolves it, configures Amplify.configure() with loginWith.oauth, and populates vm.signIn with title/description/allowCredentialsLogin/federatedProviders
+3. API identity — CognitoIdentityProvider.getIdentity() builds default identity from token claims, then merges custom CognitoIdpConfig result on top; detects federated users via Boolean(token.identities) and sets external: true; ExternalIdpUserSyncHandler fires on AfterLogin and creates/updates users when external is true
+
+FederatedProvider is a union: { name, label } renders a default Button; { name, component } renders a custom React component receiving { signIn } callback.
+
+The adminConfig extension replaces the auto-generated DefaultCognitoSignInConfig with a custom implementation. Because getConfig() is async, runtime checks (IP whitelisting, environment detection) work naturally.
+
+Related Documents:
+- docs/developer-docs/6.x/security/roles.mdx — RoleFactory, roles referenced by slug in identity mapping
+- docs/developer-docs/6.x/security/teams.mdx — TeamFactory, teams referenced by slug in identity mapping
+- docs/developer-docs/6.x/core-concepts/di.mdx — DI pattern used by CognitoIdpConfig and CognitoSignInConfig
+
+Key Code Locations:
+- packages/cognito/src/Cognito.tsx — extension definition with federation schema
+- packages/cognito/src/admin/presentation/Cognito/CognitoSignInConfig.ts — ICognitoSignInConfig, FederatedProvider
+- packages/cognito/src/admin/presentation/Cognito/CognitoPresenter.ts — presenter integration
+- packages/cognito/src/api/features/CognitoIdp/CognitoIdentityProvider.ts — identity resolution
+- packages/cognito/src/api/features/CognitoIdp/abstractions.ts — CognitoIdpConfig

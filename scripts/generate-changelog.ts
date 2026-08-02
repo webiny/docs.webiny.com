@@ -4,6 +4,9 @@
  *  2. Sending them to Claude (claude-opus-4-5) to produce a structured MDX changelog
  *  3. Writing the result to docs/release-notes/{version}/changelog.mdx
  *
+ * PR discovery is milestone-based: assign a PR to the `X.Y.Z` milestone for it to
+ * appear in that release's changelog. PRs labeled `no-changelog` are skipped.
+ *
  * Usage:
  *   yarn tsx scripts/generate-changelog.ts --version 6.1.0
  *
@@ -18,10 +21,15 @@ import "dotenv/config";
 import Anthropic from "@anthropic-ai/sdk";
 import { writeFileSync, mkdirSync, readFileSync } from "fs";
 import { join } from "path";
+import { REVIEW_MARKER } from "./changelog-constants";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+interface GitHubLabel {
+    name: string;
+}
 
 interface GitHubMilestone {
     number: number;
@@ -29,15 +37,12 @@ interface GitHubMilestone {
     state: string;
 }
 
-interface GitHubLabel {
-    name: string;
-}
-
 interface GitHubIssue {
     number: number;
     title: string;
     body: string | null;
     labels: GitHubLabel[];
+    user: { login: string } | null;
     pull_request?: unknown;
     state: string;
 }
@@ -47,21 +52,24 @@ interface PullRequest {
     title: string;
     body: string;
     url: string;
+    author: string;
 }
 
 // ---------------------------------------------------------------------------
 // CLI args
 // ---------------------------------------------------------------------------
 
-function parseArgs(): { version: string } {
+function parseArgs(): { version: string; dryRun: boolean } {
     const args = process.argv.slice(2);
     const versionIdx = args.indexOf("--version");
     if (versionIdx === -1 || !args[versionIdx + 1]) {
-        console.error("Usage: yarn tsx scripts/generate-changelog.ts --version <version>");
+        console.error(
+            "Usage: yarn tsx scripts/generate-changelog.ts --version <version> [--dry-run]"
+        );
         console.error("Example: yarn tsx scripts/generate-changelog.ts --version 6.1.0");
         process.exit(1);
     }
-    return { version: args[versionIdx + 1] };
+    return { version: args[versionIdx + 1], dryRun: args.includes("--dry-run") };
 }
 
 // ---------------------------------------------------------------------------
@@ -72,10 +80,12 @@ const GITHUB_REPO = "webiny/webiny-js";
 const GITHUB_API = "https://api.github.com";
 
 async function fetchJson<T>(url: string): Promise<T> {
+    const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
     const res = await fetch(url, {
         headers: {
             Accept: "application/vnd.github+json",
-            "User-Agent": "webiny-docs-changelog-generator"
+            "User-Agent": "webiny-docs-changelog-generator",
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
         }
     });
     if (!res.ok) {
@@ -84,6 +94,10 @@ async function fetchJson<T>(url: string): Promise<T> {
     return res.json() as Promise<T>;
 }
 
+/**
+ * Finds the milestone whose title matches the target version (`X.Y.Z` or `vX.Y.Z`).
+ * Exits cleanly with a message if no matching milestone exists.
+ */
 async function findMilestone(version: string): Promise<GitHubMilestone> {
     const bare = version.replace(/^v/, "");
     const candidates = [bare, `v${bare}`];
@@ -121,7 +135,9 @@ async function fetchPRsForMilestone(milestoneNumber: number): Promise<FetchResul
         if (issues.length === 0) break;
 
         for (const issue of issues) {
+            // The issues endpoint returns both issues and PRs; keep only PRs.
             if (!issue.pull_request) continue;
+
             const hasNoChangelog = issue.labels.some(l => l.name === "no-changelog");
             if (hasNoChangelog) {
                 console.log(`  Skipping PR #${issue.number} (no-changelog): ${issue.title}`);
@@ -132,7 +148,8 @@ async function fetchPRsForMilestone(milestoneNumber: number): Promise<FetchResul
                 number: issue.number,
                 title: issue.title,
                 body: issue.body ?? "",
-                url: `https://github.com/${GITHUB_REPO}/pull/${issue.number}`
+                url: `https://github.com/${GITHUB_REPO}/pull/${issue.number}`,
+                author: issue.user?.login ?? "unknown"
             });
         }
         page++;
@@ -387,6 +404,40 @@ function mergeDuplicateH2Sections(content: string): { merged: string; duplicates
 }
 
 // ---------------------------------------------------------------------------
+// Review markers
+// ---------------------------------------------------------------------------
+
+/**
+ * Inserts a per-item review marker (an MDX comment) directly beneath every H3
+ * heading, attributing the item to the author(s) of the referenced PR(s). The
+ * marker is invisible in the rendered page but visible in the PR diff; reviewers
+ * delete the line to confirm the entry. CI fails while any marker remains.
+ *
+ * Markers are added deterministically after generation (not by Claude), so they
+ * stay correct regardless of how Claude grouped or reordered the PRs.
+ */
+function addReviewMarkers(body: string, authorByPR: Map<number, string>): string {
+    const lines = body.split("\n");
+    const out: string[] = [];
+
+    for (const line of lines) {
+        out.push(line);
+        if (!line.startsWith("### ")) continue;
+
+        const prNumbers = [...line.matchAll(/\/pull\/(\d+)/g)].map(m => parseInt(m[1], 10));
+        if (prNumbers.length === 0) continue;
+
+        const authors = [...new Set(prNumbers.map(n => authorByPR.get(n)).filter(Boolean))];
+        if (authors.length === 0) continue;
+
+        const handles = authors.map(a => `@${a}`).join(" ");
+        out.push(`{/* ${REVIEW_MARKER} ${handles} — confirm this entry, then delete this line */}`);
+    }
+
+    return out.join("\n");
+}
+
+// ---------------------------------------------------------------------------
 // MDX file builder
 // ---------------------------------------------------------------------------
 
@@ -415,7 +466,7 @@ function buildMdxFile(version: string, body: string): string {
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-    const { version } = parseArgs();
+    const { version, dryRun } = parseArgs();
 
     console.log(`\nGenerating changelog for Webiny ${version}...`);
 
@@ -425,7 +476,20 @@ async function main(): Promise<void> {
 
     console.log("  Fetching merged PRs...");
     const { prs, noChangelogNumbers } = await fetchPRsForMilestone(milestone.number);
-    console.log(`  Found ${prs.length} pull requests.`);
+    console.log(`  ${prs.length} pull request(s) eligible for the changelog.`);
+
+    if (dryRun) {
+        console.log("\n  --dry-run: eligible PRs (no Claude call, no files written):");
+        for (const pr of prs) {
+            console.log(`    #${pr.number}: ${pr.title}`);
+        }
+        if (noChangelogNumbers.size > 0) {
+            console.log(
+                `  Skipped (no-changelog): ${[...noChangelogNumbers].map(n => `#${n}`).join(", ")}`
+            );
+        }
+        process.exit(0);
+    }
 
     const outDir = join(process.cwd(), "docs", "release-notes", version);
     mkdirSync(outDir, { recursive: true });
@@ -472,7 +536,9 @@ async function main(): Promise<void> {
         );
     }
 
-    const body = await generateChangelogBody(newPRs, version);
+    const rawBody = await generateChangelogBody(newPRs, version);
+    const authorByPR = new Map(newPRs.map(pr => [pr.number, pr.author]));
+    const body = addReviewMarkers(rawBody, authorByPR);
 
     if (alreadyPresent.size > 0) {
         const existing = readFileSync(outPath, "utf-8");
