@@ -132,6 +132,55 @@ Existing content models using the `file` field will continue to work. You can mi
 
 The CMS entry revision comparison feature has been relocated from the `/extensions` folder into the `@webiny/ai-powerups` package. This change consolidates AI-powered features in a single package and adds proper architectural layering with UseCase, Repository, and Gateway patterns. The `compareEntryRevisions` GraphQL query is now nested under `CmsQuery`, accessed via `cms { compareEntryRevisions(...) }`.
 
+### New Asset Field with Non-Destructive Crop and Focal Point ([#5452](https://github.com/webiny/webiny-js/pull/5452))
+{/* REVIEW-PENDING @SvenAlHamad — confirm this entry, then delete this line */}
+
+A new first-class **Asset** field replaces the bare-URL `file` field for images. It stores crop coordinates, focal point, alt text, and caption — all non-destructively. The original file is never modified; edits are applied server-side at delivery time, producing a URL that works with any frontend framework.
+
+```typescript
+import { fields } from "webiny/api-headless-cms";
+
+const model = {
+  fields: [
+    fields.asset("heroImage").imagesOnly(),
+    fields.asset("document").accept(["application/pdf"])
+  ]
+};
+```
+
+The Asset field exposes a resolved `url` in the read API with crop and focal point baked in, so frontends get a turnkey URL without knowing the delivery-param contract. The underlying `src` remains the pristine original.
+
+**Image editor** — File Manager, CMS file fields, and the new Asset input all share the same crop/focal-point editor. Choose from aspect-ratio presets or enter a custom ratio; a live preview shows the result.
+
+**Delivery URL parameters** — `?crop=t,l,b,r`, `?aspectRatio=16:9`, and `?focal=x,y` join the existing `?width`, `?format`, and `?quality` params. The server computes the largest rectangle of the requested aspect ratio inside the crop, centered on the focal point.
+
+Existing `file` fields are unaffected. The legacy flat value is upgraded at render time with no migration needed.
+
+### Injectable String Formatting on the API ([#5526](https://github.com/webiny/webiny-js/pull/5526))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+`StringFormatter`, `Slugify`, and `DateFormatter` are now available in `@webiny/api-core`, mirroring the admin-side features. Server code can inject them for consistent, decoratable formatting.
+
+```typescript
+class MyRepository {
+  constructor(private stringFormatter: StringFormatter.Interface) {}
+
+  private makeSlug(name: string) {
+    return this.stringFormatter.slugify(name);
+  }
+}
+```
+
+To override slug logic project-wide, decorate the fine-grained `Slugify` feature:
+
+```typescript
+const MySlugify = Slugify.createDecorator(() => ({
+  execute: value => value.trim().toLowerCase().replace(/\s+/g, "_")
+}));
+
+container.registerDecorator(MySlugify);
+```
+
 ## Website Builder
 
 ### Nuxt Starter Kit Configuration ([#5265](https://github.com/webiny/webiny-js/pull/5265))
@@ -198,6 +247,29 @@ Live preview in the CMS entry editor now correctly updates when you change asset
 - Asset URLs recompute immediately when crop settings change
 - The editing SDK only activates when the preview iframe is showing a CMS entry
 
+### Fixed Redirect Type Changes Not Invalidating the CDN Cache ([#5505](https://github.com/webiny/webiny-js/pull/5505))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Changing a redirect from Permanent to Temporary (or vice versa) wrote to the database but never flushed CloudFront. The response is cached for up to a year, so the old redirect type kept being served. The type field is now included in the cache-invalidation check.
+
+The Admin dialog also now explains the difference between the two options:
+
+- **Temporary** — browsers check with the server on each visit, so you can change or remove this redirect later.
+- **Permanent** — browsers remember it indefinitely and may keep redirecting even after you change or delete it.
+
+New redirects now default to Temporary. The option you get by not choosing shouldn't be the one you can't undo.
+
+### Fixed Frontend API Key Missing Read Permission for Redirects ([#5531](https://github.com/webiny/webiny-js/pull/5531))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+The installer's auto-generated API key for the frontend was missing `wb.*` read permission. This caused `GET /wb/redirects` to return a 403, breaking redirect resolution on the frontend. The permission has been restored.
+
+<Alert type="info">
+
+Existing environments are unaffected by new installs — if your redirects stopped working after a recent deploy, manually edit the Website Builder API key in Admin and grant it Read access.
+
+</Alert>
+
 ## Admin
 
 ### Workflow State Folder Permissions ([#5331](https://github.com/webiny/webiny-js/pull/5331))
@@ -247,6 +319,26 @@ The API key slug for frontend integration has been renamed from `website-builder
 ### Tenant Theme Extension with Font Selector ([#5507](https://github.com/webiny/webiny-js/pull/5507))
 
 A new `TenantThemeExtension` has been added to the Next.js starter kit, enabling per-tenant theme customization including a font selector. Themes are merged at runtime based on the current tenant.
+
+### Dark Theme Support ([#5316](https://github.com/webiny/webiny-js/pull/5316))
+{/* REVIEW-PENDING @SvenAlHamad — confirm this entry, then delete this line */}
+
+The Admin UI now supports multiple themes, including dark mode. You can register custom themes through an extension, and several dark themes are included as sample implementations.
+
+### Injectable String Formatting ([#5517](https://github.com/webiny/webiny-js/pull/5517))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+`StringFormatter` and `Slugify` are now injectable features in `@webiny/app-admin`. They replace direct imports of the `slugify` npm package scattered across presenters, giving you a single, decoratable seam for slug generation.
+
+```typescript
+const MySlugify = Slugify.createDecorator(() => ({
+  execute: value => value.trim().toLowerCase().replace(/\s+/g, "_")
+}));
+
+container.registerDecorator(MySlugify);
+```
+
+Consumers call `stringFormatter.slugify()`; projects that need custom logic decorate `Slugify` alone rather than the whole formatter.
 
 ## Development
 
