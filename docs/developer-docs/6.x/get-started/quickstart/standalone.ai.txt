@@ -1,0 +1,57 @@
+AI Context: Run Webiny Locally (standalone.mdx)
+
+Source of Information:
+1. Published npm package create-webiny-project@6.6.0-alpha.0, specifically _templates/server/sqlite/webiny.config.tsx and _templates/server/sqlite/.env.example
+2. Published npm package @webiny/cli-server@6.6.0-alpha.0, features/WatchCommand.js and features/ServeCommand.js
+3. Published npm package @webiny/system-requirements@6.6.0-alpha.0, constraints.js
+4. webiny-js: packages/create-webiny-project/src/features/CreateWebinyProject/projects/runHostingTypePrompt.ts and projects/server/runInteractivePrompt.ts
+5. webiny-js: packages/self-hosted-auth/src/api/features/UserInstaller/UserInstaller.ts
+6. webiny-js: packages/api-headless-cms-sql/src/operations/entry/queryHelpers.ts, packages/api-headless-cms-storage/src/filtering/fullTextSearch.ts, packages/db-utils/src/valueFilter/filters/ContainsFilter.ts
+
+Key Documentation Decisions:
+1. The alpha constraint sits above the install command, not below it. The failure mode being designed against is a reader taking the fast path, spending a week on content models and extensions, then discovering they cannot deploy and cannot move their content.
+2. The install command pins the exact alpha version rather than using `@alpha`. Standalone is absent from create-webiny-project@latest (6.4.8) entirely, so a plain `npx create-webiny-project` will not offer the hosting-type prompt at all. The pinned version needs updating when a newer alpha ships.
+3. Node 24 is stated, not Node 22. @webiny/system-requirements pins `node: ">=24"` in both 6.4.8 and 6.6.0-alpha.0, the scaffolded package.json sets engines.node "^24.0.0", and ensureSystemRequirements() runs as the first action in create-webiny-project. The "Node.js >=22" in the old quickstart was wrong.
+4. Yarn is stated as 1.22.21 or later, or 3 or later, matching the enforced constraint `yarn: ">=1.22.21 || >=3"`. The old quickstart said "1.22.0 or later" and "Yarn >=2".
+5. The run instructions use `yarn webiny watch api` and `yarn webiny watch admin` in separate terminals. A bare `yarn webiny watch` does NOT work: WatchCommand warns "Watching all apps at once is not supported yet" and exits. The scaffolded template's own comment says "Run it with `yarn webiny watch`", which is incorrect.
+6. The database prompt IS documented, briefly and inline rather than as its own section. The original brief said to omit database selection entirely on the grounds that Standalone is SQLite-only, but the CLI does prompt for SQLite or PostgreSQL and both templates ship in the published alpha. Leaving it out would strand the reader at a live prompt.
+7. The absence of AWS credentials is stated explicitly, because readers arriving from the AWS docs will expect to need them.
+8. No timing estimate is given for the Standalone path. "A few minutes" is used because no measurement has been taken.
+9. The code portability question (whether extensions, content models, and webiny.config.tsx carry over to AWS unchanged) is deliberately absent from the callout, pending confirmation. See Related Documents.
+
+Standalone Runtime Facts:
+- Bin name in a scaffolded project is `webiny` (@webiny/cli-server declares `bin: { "webiny": "./bin.js" }`), which sets WEBINY_HOSTING_TYPE=server. The monorepo's separate `webiny-server` bin is a monorepo-only convenience, and WatchCommand's warning text still names it, which is misleading in a scaffolded project.
+- Only two commands exist on this target: `watch` and `serve`. There is no `deploy`, no Pulumi, and no deploy environments.
+- `serve` exists and is described as "Serves built apps as long-running servers (production)", but no deployment path, image, or infrastructure template is published, so the docs do not present it as a way to deploy.
+- Admin serves on port 3001 (WEBINY_ADMIN_PORT), API on 3002 (WEBINY_API_PORT).
+- SQLite file defaults to ./.webiny/server.sqlite and uploads to ./.webiny/storage, both resolved against the project root rather than the disposable app workspace, so data survives rebuilds.
+- Identity is @webiny/self-hosted-auth: a built-in JWT provider replacing Cognito. UserInstaller is an AppInstaller that creates the first admin with the `full-access` role, so the installation wizard flow matches AWS.
+- WEBINY_UPLOAD_SECRET and WEBINY_SELF_HOSTED_AUTH_SECRET default to "dev-only-insecure-..." placeholders.
+
+Search Behaviour Under SQL (verified, load-bearing):
+- listEntries pushes only tenant, modelId, isLatest/isPublished, and wbyDeleted down to SQL. Every field filter, the search term, sorting, and pagination are applied in Node memory after the rows are loaded. MAX_LIST_LIMIT is 1,000,000.
+- Full-text search goes through the shared `contains` value filter: the term is split on whitespace, and every word must appear as a case-insensitive substring within a single field value. No stemming, no relevance ranking, no fuzzy matching.
+- This is the SAME code path (@webiny/api-headless-cms-storage) that the DynamoDB-only AWS setup uses. It differs from DynamoDB + OpenSearch, which is query/index based. Stating the equivalence is more useful to readers than describing it in isolation.
+
+Related Documents:
+- get-started/quickstart.mdx — the chooser that links here
+- get-started/quickstart/aws.mdx — the AWS path
+- get-started/deployment-targets.mdx — full comparison and the gap list
+- infrastructure/introduction.mdx — Database Setups, for how the AWS search options compare
+- OPEN QUESTION, not yet answered at time of writing: does a project built against Standalone deploy to AWS without code changes? Evidence gathered: webiny.config.tsx is definitively not portable, since the server scaffold renders Infra.Sqlite / Infra.FileStorage / Infra.ApiUrl / SelfHostedAuth with Infra imported from @webiny/project-server, while the AWS scaffold renders Infra.Aws.DefaultRegion / Infra.Encryption / Cognito with Infra from webiny/extensions. Zero overlap, and the monorepo splits them into webiny.config.aws.tsx and webiny.config.server.tsx specifically so neither leaks into the other. Extensions and content models look portable, since the server API handler is documented as using "the same shared, transport-agnostic request stack the AWS handler uses" and both targets run the same @webiny/api-headless-cms behind different storage-operations packages. Add a sentence to the top callout once this is confirmed.
+
+Key Code Locations:
+- /webiny-js/packages/create-webiny-project/src/features/CreateWebinyProject/projects/server/SetupServerWebinyProject.ts — server project scaffolding and its dependency set
+- /webiny-js/packages/cli-server/src/features/WatchCommand.ts — the per-app watch restriction
+- /webiny-js/packages/api-headless-cms-sql/src/operations/entry/queryHelpers.ts — listEntries, showing what is and is not pushed to SQL
+- /webiny-js/packages/self-hosted-auth/src/api/features/UserInstaller/UserInstaller.ts — first admin creation
+
+Tone Guidelines:
+- Conversational and welcoming, matching the rest of get-started, but blunt about the alpha limits
+- The constraint comes before the reward. Do not soften the callout
+- No em-dashes. Use commas, colons, or parentheses
+- Never the "it's not X, it's Y" reversal
+- Vary header shapes. Do not build every header on the same template
+- Avoid stacking three-item lists back to back
+- British spelling
+- Do not invent timings, costs, or version numbers. Verify against the published packages

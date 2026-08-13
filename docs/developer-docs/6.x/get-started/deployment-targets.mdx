@@ -1,0 +1,105 @@
+---
+id: r6c1zw5h
+title: Deployment Targets
+description: Compare Webiny Standalone and the AWS deployment target across requirements, capabilities, cost, and current gaps.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what each deployment target requires before you start
+- how the two differ on scaling, identity, and storage
+- what Standalone cannot do yet
+- what each target costs to run
+
+</Alert>
+
+## Overview
+
+Webiny has two deployment targets. **Webiny Standalone** runs the platform as a long-running Node process on hardware you control, backed by a SQL database. The **AWS** target deploys the platform into your own AWS account on serverless infrastructure.
+
+Both come from the same Webiny version line and expose the same applications and the same extension APIs. They differ in what they require, how they scale, how identity is handled, and how much of the platform is finished. Standalone is in alpha and has no supported deployment path, so the choice today is less about long-term architecture and more about whether you need something running in production.
+
+If you only want to get Webiny started, go to [Quickstart](/{version}/get-started/quickstart) instead.
+
+## What Each Target Requires
+
+Standalone asks for very little:
+
+- Node.js 24 or later, and Yarn
+- Nothing else. No cloud account, no credentials, and no database server at all if you choose SQLite
+
+The AWS target needs more in place first:
+
+- Node.js 24 or later, and Yarn
+- An AWS account with programmatic access configured on your machine
+- A choice of database setup, which is fixed for the life of the project
+
+## Side by Side
+
+| Dimension            | Standalone                                      | AWS                                         |
+| -------------------- | ----------------------------------------------- | ------------------------------------------- |
+| Status               | Alpha, published under the `alpha` npm tag      | Stable                                      |
+| Cloud account        | Not required                                    | AWS account with programmatic access        |
+| Content database     | SQLite file, or a Postgres server you run       | DynamoDB, optionally with OpenSearch        |
+| File storage         | Local directory in the project                  | Amazon S3                                   |
+| Runtime              | One long-running Node HTTP server               | Lambda functions behind managed services    |
+| Scaling              | Bounded by the machine it runs on               | Scales per request, managed by AWS          |
+| Identity             | Built-in provider, credentials in your database | Amazon Cognito                              |
+| Deploy environments  | None                                            | `dev`, `staging`, `prod`, and ad hoc        |
+| Deploy command       | None                                            | `yarn webiny deploy`                        |
+| Search and filtering | In memory, over entries loaded per query        | In memory, or served by an OpenSearch index |
+| Infrastructure cost  | None                                            | Usage-based, with an OpenSearch floor       |
+| Production use       | Not supported                                   | Supported                                   |
+
+## How They Behave
+
+**Scaling.** On AWS, the API runs as Lambda functions, so concurrency is handled for you and there are no servers to size. Standalone is a single Node process. Throughput is whatever that one machine can do, and there is no horizontal scaling story yet.
+
+**Identity.** AWS uses an Amazon Cognito user pool as the identity provider, which is also what makes [Cognito federation](/{version}/security/cognito-federation) available for SSO. Standalone uses Webiny's own built-in provider: accounts and credentials live in your project database, and sign-in is a JWT issued locally. The signing secrets ship with insecure development defaults that would have to be replaced before the instance was exposed to anyone.
+
+**Storage.** AWS stores content in DynamoDB and files in S3. Standalone stores content in SQLite or Postgres and writes uploaded files to a directory inside the project.
+
+**Search.** Both targets can filter and search entirely in the API process, loading a model's entries and applying the query in memory. That is what Standalone always does, and what a DynamoDB-only AWS project does. Adding Amazon OpenSearch on AWS replaces this with index-backed queries, which is the only configuration that gives ranked search and keeps list performance flat as models grow. [Database Setups](/{version}/infrastructure/introduction) covers the AWS side in more detail.
+
+**Multi-tenancy** is not a difference between the targets. It is gated by your Webiny licence rather than by where you run, and tenant scoping is present in the storage layer of both. See [Upgrade to Business](/{version}/get-started/upgrade).
+
+## Standalone's Current Gaps
+
+These are the specific things Standalone does not do today:
+
+- It is published only under the `alpha` npm tag, so it is absent from the current stable release
+- There is no deployment path. No Docker image, no infrastructure templates, and nothing to run it on beyond a developer machine
+- There is no content migration, in either direction, between Standalone and AWS
+- It runs as one process, so throughput is bounded by one machine and there is no redundancy
+- Search and filtering happen in memory, so list response times grow with the number of entries in a model
+- There are no deploy environments, so there is no `dev`, `staging`, and `prod` separation
+- The default upload and auth signing secrets are development placeholders and are not safe outside your machine
+- Watching the API and Admin apps with a single command is not supported yet, so they run in separate terminals
+
+## Cost Shape
+
+On AWS you pay for what the deployment uses. A DynamoDB-only project has a generous free tier and no fixed monthly cost, so an evaluation environment can be close to free. Adding Amazon OpenSearch introduces an always-on cluster that costs roughly **$25/month** even at the smallest configuration, and that cost applies per environment that runs it. Lambda, S3, CloudFront, and Cognito all bill on usage.
+
+Standalone has no infrastructure cost, because it runs on a machine you already have. There is nothing to host it on yet, so there is no hosting figure to give.
+
+## Moving Between Targets
+
+<Alert type="warning" title="Content does not move between targets">
+
+There is no migration tooling between Standalone and AWS in either direction. Content entries, uploaded files, user accounts, and everything else held in the database stays in the target where it was created. Treat a move between targets as starting the content over.
+
+</Alert>
+
+This mirrors the constraint on the AWS side, where the database setup chosen at project creation cannot be changed later without recreating the project. The practical advice is the same in both cases: decide before you put work in, and treat anything created on Standalone today as disposable.
+
+## Still to Come
+
+Work in progress on the Standalone target, with no dates attached to any of it:
+
+- A Docker image, so Standalone can run somewhere other than a developer machine
+- Kubernetes and other cloud platforms after that
+- Migration tooling between the two targets
+
+Postgres is already available as an alternative to SQLite when you create a Standalone project.

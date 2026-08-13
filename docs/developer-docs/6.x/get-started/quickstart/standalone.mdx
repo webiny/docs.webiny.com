@@ -1,0 +1,104 @@
+---
+id: m4x8vt2p
+title: Run Webiny Locally
+description: Run Webiny Standalone on your own machine with no cloud account, using SQLite for storage.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- what Webiny Standalone is, and what it cannot do yet
+- how to create a Standalone project and start it on your machine
+- how to create your first admin account
+- how search behaves when Webiny runs on SQLite
+
+</Alert>
+
+<Alert type="warning" title="Local only for now">
+
+Standalone runs on your machine. There is no supported way to deploy it to a server yet, and content cannot be moved between Standalone and AWS. Treat anything you create here as disposable.
+
+</Alert>
+
+## Overview
+
+Webiny Standalone is a deployment target that runs Webiny as a long-running Node process on your own machine, backed by a SQL database. No AWS account, no cloud credentials, no infrastructure to provision. You get the same Admin panel, Headless CMS, File Manager and Website Builder that the AWS target gives you, running entirely locally.
+
+Standalone is in alpha. It is the fastest way to see Webiny working, and it is not a production deployment path. If you are weighing the two targets against each other rather than trying to get started, read [Deployment Targets](/{version}/get-started/deployment-targets) first.
+
+## Before You Start
+
+You need:
+
+- **Node.js ≥24**: download it from the [official website](https://nodejs.org/en/) or use [nvm](https://github.com/nvm-sh/nvm) to manage versions
+- **Yarn**: either [Yarn 1 (Classic)](https://yarnpkg.com/en/docs/install) 1.22.21 or later, or [Yarn ≥3 (Berry)](https://yarnpkg.com/)
+
+You do **not** need an AWS account, AWS credentials, or any other cloud provider account. If you arrived here from the AWS documentation, none of the credential setup described there applies to this target. Nothing on this page reaches outside your machine.
+
+## Create the Project
+
+Standalone ships under the `alpha` npm tag. It is not part of the current stable release, so the version has to be given explicitly:
+
+```bash
+npx create-webiny-project@6.6.0-alpha.0 my-webiny-project
+```
+
+The first prompt asks how you want to host the project. Choose the second option:
+
+```
+Self-hosted / server (Node HTTP server + SQL storage) — ALPHA
+```
+
+The CLI still uses the wording "self-hosted / server" for this target. It is the same thing this page calls Standalone.
+
+Next you are asked which database to use. Pick **SQLite (single-file local database)**, which needs nothing installed and writes to a single file in your project. PostgreSQL is offered as well, and connecting it means running a Postgres server yourself. Unlike the AWS target, where the database choice is fixed for the life of the project, nothing here is permanent: throw the project away and create another one.
+
+The last prompt asks which AI agent you use, so the project can be set up with matching configuration.
+
+## Starting the Instance
+
+There is no deploy step on this target and no `deploy` command. The `watch` command builds your code and runs it, so what you edit is what is running.
+
+Open two terminals. In the first, start the API:
+
+```bash
+cd my-webiny-project
+yarn webiny watch api
+```
+
+In the second, start the Admin app:
+
+```bash
+yarn webiny watch admin
+```
+
+Watching both apps with a single command is not supported yet, which is why they run separately. The API serves on `http://localhost:3002` and the Admin app on `http://localhost:3001`.
+
+Your data is written to `.webiny/server.sqlite` and uploaded files to `.webiny/storage`, both resolved against the project root, so they survive rebuilds and restarts.
+
+## Your First Admin Account
+
+Open `http://localhost:3001` in your browser. Because the database is empty, you will see the installation wizard. Fill in your name, email, and password, and the first admin account is created with full access.
+
+Standalone uses Webiny's built-in identity provider rather than Amazon Cognito, so the account you just created lives in your local database and you sign in against it directly. From here you land on the dashboard, with all Webiny apps ready to use.
+
+## How Search Behaves
+
+Search and filtering on this target run inside the API process rather than in the database. Webiny loads the entries for the model being queried, then applies filtering, search, sorting and pagination in memory.
+
+For a search term, this means:
+
+- the term is split on whitespace, and every word must appear as a case-insensitive substring of one of the model's searchable fields
+- there is no stemming, so "run" will not match "running"
+- there is no relevance ranking or fuzzy matching, and results come back in the model's sort order
+
+This is the same behaviour as the DynamoDB-only setup on AWS. It differs from DynamoDB + Amazon OpenSearch, where queries are served by an OpenSearch index and you get ranked, index-backed search. See [Database Setups](/{version}/infrastructure/introduction) for how the AWS side compares.
+
+Because every list query loads the model's entries before filtering them, response times grow with the number of entries in a model. That is comfortable for evaluation and local development, and it is one of the reasons Standalone is not a production path today.
+
+## What's Next
+
+You have Webiny running locally. The next step is to connect your AI coding environment so it can help you build against it.
+
+Continue to [Connect Your AI Environment](/{version}/get-started/connect-ai-environment).

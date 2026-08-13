@@ -11,6 +11,9 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                 link={"get-started/quickstart"}
             >
                 <Page link={"get-started/quickstart"} />
+                <Page link={"get-started/quickstart/standalone"} />
+                <Page link={"get-started/quickstart/aws"} />
+                <Page link={"get-started/deployment-targets"} />
                 <Page link={"get-started/connect-ai-environment"} />
                 <Page link={"get-started/first-customization"} />
                 <Page link={"get-started/local-development"} />
