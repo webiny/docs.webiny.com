@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import clsx from "clsx";
 import { highlightCode } from "./codeHighlight";
 import { CopyButton } from "@/components/CopyButton";
@@ -46,31 +46,51 @@ function TabBar({ primary, secondary = [], showTabMarkers = true, children }) {
     );
 }
 
-const once = true;
-
 const languageGuard = ["null", "undefined", undefined, null];
 
+const HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, char => HTML_ESCAPES[char]);
+}
+
+// MDX passes the snippet as a single template-literal string, but be lenient in
+// case a code block ever ends up split across multiple children.
+function toText(children) {
+    if (typeof children === "string") {
+        return children;
+    }
+
+    return React.Children.toArray(children)
+        .filter(child => typeof child === "string" || typeof child === "number")
+        .join("");
+}
+
 export function Editor({ children, ...props }) {
-    const [code, setCode] = useState("");
     const lang = languageGuard.includes(props.lang) ? "shell" : props.lang;
 
     const isDiff = lang.startsWith("diff-");
+    const text = toText(children);
 
-    useEffect(() => {
-        if (isDiff) {
-            setTimeout(() => {
-                setCode(highlightCode(children, lang));
-            }, 40);
-        } else {
-            setCode(highlightCode(children, lang));
+    // Highlighting happens during render (not in an effect) so the snippet is
+    // part of the server-rendered HTML. Without it, clients that don't execute
+    // JavaScript - crawlers, "reader" proxies, RSS/AI fetchers - receive an
+    // empty `<code>` element and never see any of our code examples.
+    const code = useMemo(() => {
+        try {
+            return highlightCode(text, lang);
+        } catch (err) {
+            console.error(`Failed to highlight a "${lang}" code block.`, err);
+            // Unstyled code still beats no code at all.
+            return escapeHtml(text);
         }
-    }, [once, isDiff]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [text, lang]);
 
     return (
         <section className="code-block mt-[1.875rem] lg:mt-[2rem] mb-[1.875rem] lg:mb-[2rem] first:mt-0 last:mb-0 bg-code-tab rounded-[0.625rem] shadow-lg overflow-hidden dark:ring-1 dark:ring-white/10 dark:ring-inset">
             {props.title ? <TabBar primary={{ name: props.title }} showTabMarkers={false} /> : null}
             <div className="children:my-0 children:!shadow-none children:bg-transparent children:rounded-none relative">
-                {!isDiff && <CopyButton text={children} />}
+                {!isDiff && <CopyButton text={text} />}
                 <pre className={`language-${lang}`} tabIndex={0}>
                     <code
                         className={`language-${lang}`}
