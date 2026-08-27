@@ -197,6 +197,34 @@ The UI refreshes automatically when you schedule, cancel, publish, or unpublish 
 
 When you cropped an image using the File Manager's ImageEditor, the crop was saved correctly but never actually applied when the image was delivered. The image transformation pipeline was reading crop data from the wrong metadata path. This has been fixed — crops set via the ImageEditor UI are now properly applied during asset delivery.
 
+### Stable `_id` Property for Object and Dynamic Zone Field Values ([#5606](https://github.com/webiny/webiny-js/pull/5606))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Object fields and dynamic zone fields now include a server-generated `_id` property on each value, giving external systems (comments, annotations, collaboration tools) a stable reference identifier for individual items within nested structures.
+
+```typescript
+// Example GraphQL response with the new _id property
+{
+  "data": {
+    "getArticle": {
+      "authors": [
+        { "_id": "abc123xyz456", "name": "John Doe" },
+        { "_id": "def789uvw012", "name": "Jane Smith" }
+      ],
+      "content": [
+        { "_id": "ghi345rst678", "_templateId": "heroBlock", "title": "Welcome" }
+      ]
+    }
+  }
+}
+```
+
+Key behaviors:
+- IDs are auto-generated on create/update using a 12-character alphanumeric identifier
+- Existing IDs are preserved when updating entries — only new items receive new IDs
+- Client-provided IDs are accepted; duplicates within the same array are silently regenerated
+- Existing entries return `_id: null` until re-saved (no data migration required)
+
 ## Website Builder
 
 ### Nuxt Starter Kit Configuration ([#5265](https://github.com/webiny/webiny-js/pull/5265))
