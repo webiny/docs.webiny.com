@@ -1,0 +1,91 @@
+---
+id: n9opfalt
+title: Webiny 6.4.9 Changelog
+description: See what's new in Webiny version 6.4.9
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+import filePickerPreviewLayout from "./assets/file-picker-preview-layout.mp4";
+
+<GithubRelease version={"6.4.9"} />
+
+## Headless CMS
+
+### Deeply Nested Rules Evaluation ([#5573](https://github.com/webiny/webiny-js/pull/5573))
+
+The `Fields` grid layout now wraps its children in a `BindParentNameContext.Provider`, ensuring nested field components receive the correct parent bind name through context when using `useBindParentName()`. This fixes an issue with deeply nested rules evaluation.
+
+### Fixed Bulk Actions Silently Failing for Publish and Move to Folder ([#5577](https://github.com/webiny/webiny-js/pull/5577))
+
+Bulk Publish and Move to Folder actions were silently completing without actually processing any entries. The issue was caused by entry IDs having their version suffix (`#0001`) stripped before being passed to the underlying operations. Since the database layer requires the full revision ID to fetch entries, it would skip entries without a version — the bulk action would report success, but nothing was actually published or moved.
+
+This has been fixed. All bulk actions now correctly preserve the full revision ID throughout the processing pipeline.
+
+### Fixed "null" String Appearing in Select and Radio Button Fields ([#5588](https://github.com/webiny/webiny-js/pull/5588))
+
+When a CMS field had predefined values but none were marked as selected, the select and radio button renderers incorrectly displayed the literal string `"null"` instead of showing the placeholder. This happened because `null` was being converted to a string. The field renderers now correctly fall back to `undefined` when no default value is set.
+
+### Fixed Publish and Unpublish Actions on Non-Root Tenants ([#5593](https://github.com/webiny/webiny-js/pull/5593))
+
+Scheduled publish and unpublish actions were failing when triggered on tenants other than the root tenant. The scheduler was not correctly resolving the tenant context, causing operations to target the wrong tenant's data. This has been fixed — `RuntimeTenant` now serves as the authority for tenant resolution on all CMS storage operations, ensuring scheduled actions execute in the correct tenant context.
+
+### Scheduler Permissions Now Use Application-Specific Access Control ([#5593](https://github.com/webiny/webiny-js/pull/5593))
+
+The standalone `scheduler.action` permission has been removed. Scheduler access is now gated by each application's own permissions, resolved per-namespace at runtime. For Headless CMS, this means scheduled entry operations check `cms.contentEntry` permissions. For Website Builder, they check page publish permissions. This change provides more granular control and aligns scheduler permissions with the rest of the application's access model.
+
+## Website Builder
+
+### Fixed Deletion of Non-Empty Folders ([#5574](https://github.com/webiny/webiny-js/pull/5574))
+
+Deleting a Website Builder page or redirect folder that still contained items would silently succeed, leaving orphaned pages or redirects in the database that became invisible in the UI. Folder deletion now checks for contained pages or redirects before proceeding — if the folder is not empty, the operation is rejected with an error. Audit log entries are also now created when empty WB page and redirect folders are deleted.
+
+### Improved File Picker Layout in Narrow Panels ([#5590](https://github.com/webiny/webiny-js/pull/5590))
+
+The file picker preview in narrow sidebar panels (like Website Builder's ~200px value column) previously crammed a thumbnail, file name, and action buttons onto a single line, making file names unreadable. The layout now stacks when the panel is narrower than 280px:
+
+- The thumbnail spans the full width at 96px height with rounded corners
+- File names truncate in the middle rather than at the end, preserving the distinguishing suffix (`tide-cc-statuses-2026-08-21-final-v2.png` renders as `tide-cc-statuses-2026-08-21-final…-v2.png`)
+- Actions display as `Replace` / `Remove` text labels instead of small icons
+
+The sidebar row labels now consistently top-align, which keeps them positioned correctly whether the row contains a single control or a taller component like the file picker.
+
+## Webiny SDK
+
+### New `AiModelRegistry` Abstraction ([#5575](https://github.com/webiny/webiny-js/pull/5575))
+
+Model listing has been extracted from the `Ai` class into a standalone `AiModelRegistry` abstraction. This makes model listing a decoratable, independently injectable concern. The `Ai` class now delegates `listModels()`, `listModelsByConnections()`, and `listModelsByConnection()` to the registry. `AiModelRegistry` is exported from both `@webiny/api-core` and the `webiny` package.
+
+```typescript
+import { AiModelRegistry } from "webiny/api";
+
+// The registry can be injected and decorated independently
+const models = await aiModelRegistry.listModels();
+```
+
+## Development
+
+### Fixed Security Vulnerabilities in Pulumi SDK ([#5584](https://github.com/webiny/webiny-js/pull/5584))
+
+The `decompress` package used for extracting Pulumi binaries had known security vulnerabilities (SNYK-JS-DECOMPRESS-17874437 and SNYK-JS-DECOMPRESS-17937347). It has been replaced with `adm-zip` for Windows and the existing `tar` package for macOS/Linux, with added path traversal protection during extraction.
+
+## Infrastructure
+
+### Updated Sharp Lambda Layer to v0.35.3 ([#5585](https://github.com/webiny/webiny-js/pull/5585))
+
+The Sharp image processing library used by Webiny's file manager has been updated to v0.35.3. The new Lambda layer has been published to all 17 supported AWS regions and now includes compatibility with Node.js 24.x in addition to Node.js 22.x.
+
+## Admin
+
+### Fixed File Picker Preview Layout in Narrow Containers ([#5587](https://github.com/webiny/webiny-js/pull/5587))
+
+In narrow containers like the Website Builder style sidebar (~200px wide), the file picker preview was unreadable — file names were truncated to roughly 40px of space, rendering as `tid...` or `65...`.
+
+The preview now uses container queries to adapt its layout based on available width:
+
+- **Narrow containers (< 280px):** The file name and metadata wrap onto their own full-width lines below the thumbnail and action buttons, giving them the entire row width.
+- **Wide containers (≥ 280px):** The single-line layout remains unchanged.
+
+This fix applies to both `FilePicker` and `MultiFilePicker` components.
+
+<Video src={filePickerPreviewLayout} />
