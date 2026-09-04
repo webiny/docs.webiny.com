@@ -132,6 +132,109 @@ Existing content models using the `file` field will continue to work. You can mi
 
 The CMS entry revision comparison feature has been relocated from the `/extensions` folder into the `@webiny/ai-powerups` package. This change consolidates AI-powered features in a single package and adds proper architectural layering with UseCase, Repository, and Gateway patterns. The `compareEntryRevisions` GraphQL query is now nested under `CmsQuery`, accessed via `cms { compareEntryRevisions(...) }`.
 
+### New Asset Field with Non-Destructive Crop and Focal Point ([#5452](https://github.com/webiny/webiny-js/pull/5452))
+{/* REVIEW-PENDING @SvenAlHamad — confirm this entry, then delete this line */}
+
+A new first-class **Asset** field replaces the bare-URL `file` field for images. It stores crop coordinates, focal point, alt text, and caption — all non-destructively. The original file is never modified; edits are applied server-side at delivery time, producing a URL that works with any frontend framework.
+
+```typescript
+import { fields } from "webiny/api-headless-cms";
+
+const model = {
+  fields: [
+    fields.asset("heroImage").imagesOnly(),
+    fields.asset("document").accept(["application/pdf"])
+  ]
+};
+```
+
+The Asset field exposes a resolved `url` in the read API with crop and focal point baked in, so frontends get a turnkey URL without knowing the delivery-param contract. The underlying `src` remains the pristine original.
+
+**Image editor** — File Manager, CMS file fields, and the new Asset input all share the same crop/focal-point editor. Choose from aspect-ratio presets or enter a custom ratio; a live preview shows the result.
+
+**Delivery URL parameters** — `?crop=t,l,b,r`, `?aspectRatio=16:9`, and `?focal=x,y` join the existing `?width`, `?format`, and `?quality` params. The server computes the largest rectangle of the requested aspect ratio inside the crop, centered on the focal point.
+
+Existing `file` fields are unaffected. The legacy flat value is upgraded at render time with no migration needed.
+
+### Injectable String Formatting on the API ([#5526](https://github.com/webiny/webiny-js/pull/5526))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+`StringFormatter`, `Slugify`, and `DateFormatter` are now available in `@webiny/api-core`, mirroring the admin-side features. Server code can inject them for consistent, decoratable formatting.
+
+```typescript
+class MyRepository {
+  constructor(private stringFormatter: StringFormatter.Interface) {}
+
+  private makeSlug(name: string) {
+    return this.stringFormatter.slugify(name);
+  }
+}
+```
+
+To override slug logic project-wide, decorate the fine-grained `Slugify` feature:
+
+```typescript
+const MySlugify = Slugify.createDecorator(() => ({
+  execute: value => value.trim().toLowerCase().replace(/\s+/g, "_")
+}));
+
+container.registerDecorator(MySlugify);
+```
+
+### Scheduled Publish/Unpublish State Now Visible Across the CMS UI ([#5441](https://github.com/webiny/webiny-js/pull/5441))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Previously, scheduled publish/unpublish actions were only visible inside the schedule dialog. Now the scheduled state appears everywhere users expect to see publish status:
+
+- **Entries list "Live" column**: Shows a `Scheduled` pill with the go-live time when an entry has a pending action. Entries can display both "Live" and "Scheduled" simultaneously when an older revision is live and a newer one is queued.
+- **Entry form banner**: An amber info banner appears above the form when the open entry has a scheduled action.
+- **Publish/Unpublish confirm dialogs**: A warning appears when the entry has a scheduled action, explaining that publishing now will cancel the scheduled action.
+
+The UI refreshes automatically when you schedule, cancel, publish, or unpublish — no page reload required.
+
+### Fixed Image Crop Not Being Applied During Asset Delivery ([#5595](https://github.com/webiny/webiny-js/pull/5595))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+When you cropped an image using the File Manager's ImageEditor, the crop was saved correctly but never actually applied when the image was delivered. The image transformation pipeline was reading crop data from the wrong metadata path. This has been fixed — crops set via the ImageEditor UI are now properly applied during asset delivery.
+
+### Stable `_id` Property for Object and Dynamic Zone Field Values ([#5606](https://github.com/webiny/webiny-js/pull/5606))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Object fields and dynamic zone fields now include a server-generated `_id` property on each value, giving external systems (comments, annotations, collaboration tools) a stable reference identifier for individual items within nested structures.
+
+```typescript
+// Example GraphQL response with the new _id property
+{
+  "data": {
+    "getArticle": {
+      "authors": [
+        { "_id": "abc123xyz456", "name": "John Doe" },
+        { "_id": "def789uvw012", "name": "Jane Smith" }
+      ],
+      "content": [
+        { "_id": "ghi345rst678", "_templateId": "heroBlock", "title": "Welcome" }
+      ]
+    }
+  }
+}
+```
+
+Key behaviors:
+- IDs are auto-generated on create/update using a 12-character alphanumeric identifier
+- Existing IDs are preserved when updating entries — only new items receive new IDs
+- Client-provided IDs are accepted; duplicates within the same array are silently regenerated
+- Existing entries return `_id: null` until re-saved (no data migration required)
+
+### Revision List Now Refreshes Automatically After Changes ([#5614](https://github.com/webiny/webiny-js/pull/5614))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+After creating or deleting a revision, the revisions drawer now re-fetches the list from the API. Previously, the list stayed stale until the drawer was closed and reopened.
+
+### Improved Revision List Actions and Visibility ([#5616](https://github.com/webiny/webiny-js/pull/5616), [#5617](https://github.com/webiny/webiny-js/pull/5617))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The revision number in the revisions list is now more visible, and the revision list actions have been reorganised for better usability.
+
 ## Website Builder
 
 ### Nuxt Starter Kit Configuration ([#5265](https://github.com/webiny/webiny-js/pull/5265))
@@ -198,6 +301,53 @@ Live preview in the CMS entry editor now correctly updates when you change asset
 - Asset URLs recompute immediately when crop settings change
 - The editing SDK only activates when the preview iframe is showing a CMS entry
 
+### Fixed Redirect Type Changes Not Invalidating the CDN Cache ([#5505](https://github.com/webiny/webiny-js/pull/5505))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Changing a redirect from Permanent to Temporary (or vice versa) wrote to the database but never flushed CloudFront. The response is cached for up to a year, so the old redirect type kept being served. The type field is now included in the cache-invalidation check.
+
+The Admin dialog also now explains the difference between the two options:
+
+- **Temporary** — browsers check with the server on each visit, so you can change or remove this redirect later.
+- **Permanent** — browsers remember it indefinitely and may keep redirecting even after you change or delete it.
+
+New redirects now default to Temporary. The option you get by not choosing shouldn't be the one you can't undo.
+
+### Fixed Frontend API Key Missing Read Permission for Redirects ([#5531](https://github.com/webiny/webiny-js/pull/5531))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+The installer's auto-generated API key for the frontend was missing `wb.*` read permission. This caused `GET /wb/redirects` to return a 403, breaking redirect resolution on the frontend. The permission has been restored.
+
+<Alert type="info">
+
+Existing environments are unaffected by new installs — if your redirects stopped working after a recent deploy, manually edit the Website Builder API key in Admin and grant it Read access.
+
+</Alert>
+
+### New `contentEntry` Input Type for CMS-Connected Components ([#5594](https://github.com/webiny/webiny-js/pull/5594))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Website Builder components can now consume CMS entries directly via a new `contentEntry` input type. This enables three modes of content binding:
+
+- **Manual single**: Select a specific entry by ID
+- **Manual list**: Select multiple specific entries
+- **Query**: Define a dynamic query with model, sort, limit, and search parameters
+
+```typescript
+import { createContentEntryInput } from "webiny/website-builder-sdk";
+
+const input = createContentEntryInput({
+  mode: "query",
+  models: ["article"],
+  query: {
+    sort: "createdOn_DESC",
+    limit: 10
+  }
+});
+```
+
+Content entries are resolved server-side during SSR, so pages with CMS-connected components render correctly on first load. A `useContentEntryList` React hook is available for client-side pagination in query mode.
+
 ## Admin
 
 ### Workflow State Folder Permissions ([#5331](https://github.com/webiny/webiny-js/pull/5331))
@@ -247,6 +397,36 @@ The API key slug for frontend integration has been renamed from `website-builder
 ### Tenant Theme Extension with Font Selector ([#5507](https://github.com/webiny/webiny-js/pull/5507))
 
 A new `TenantThemeExtension` has been added to the Next.js starter kit, enabling per-tenant theme customization including a font selector. Themes are merged at runtime based on the current tenant.
+
+### Dark Theme Support ([#5316](https://github.com/webiny/webiny-js/pull/5316))
+{/* REVIEW-PENDING @SvenAlHamad — confirm this entry, then delete this line */}
+
+The Admin UI now supports multiple themes, including dark mode. You can register custom themes through an extension, and several dark themes are included as sample implementations.
+
+### Injectable String Formatting ([#5517](https://github.com/webiny/webiny-js/pull/5517))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+`StringFormatter` and `Slugify` are now injectable features in `@webiny/app-admin`. They replace direct imports of the `slugify` npm package scattered across presenters, giving you a single, decoratable seam for slug generation.
+
+```typescript
+const MySlugify = Slugify.createDecorator(() => ({
+  execute: value => value.trim().toLowerCase().replace(/\s+/g, "_")
+}));
+
+container.registerDecorator(MySlugify);
+```
+
+Consumers call `stringFormatter.slugify()`; projects that need custom logic decorate `Slugify` alone rather than the whole formatter.
+
+### Fixed Redirect After Deleting the Current Folder ([#5626](https://github.com/webiny/webiny-js/pull/5626))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+When you deleted a folder while viewing it, you could end up stranded with no visible content. Now the UI automatically navigates to the nearest surviving ancestor folder (parent → grandparent → … → root) without requiring a manual navigation or page refresh. This also works when a folder is removed from the cache externally — for example, by another component calling `useDeleteFolder`. The fix uses optimistic cache updates instead of refetching from the API, avoiding issues with eventually-consistent storage.
+
+### Fixed Schema Validation for Empty Non-Required Fields ([#5642](https://github.com/webiny/webiny-js/pull/5642))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Non-required fields with empty values (`null` or `undefined`) were incorrectly failing Zod schema validation, even though they should be allowed to remain empty. This affected scalar fields, object fields with all-empty children, and list fields with empty arrays. The validation logic now skips schema checks for non-required fields when their values are empty, while still validating populated fields and enforcing required field constraints as expected.
 
 ## Development
 
