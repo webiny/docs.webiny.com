@@ -14,4 +14,4 @@ How To Upgrade: https://www.webiny.com/docs/release-notes/6.4.10/upgrade-guide
 
 —
 
-Short and sweet this time — more good stuff brewing, so stay tuned! :rocket:
+Short and sweet this time. We're deep in work on 6.5.0 and it's shaping up to be a big one, so stay tuned! :rocket:
