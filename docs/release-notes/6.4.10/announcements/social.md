@@ -10,4 +10,4 @@ As always, full details in the release notes 👇
 Changelog: https://www.webiny.com/docs/release-notes/6.4.10/changelog
 Upgrade guide: https://www.webiny.com/docs/release-notes/6.4.10/upgrade-guide
 
-We're deep in work on 6.5.0 and it's shaping up to be a big one, so stay tuned 🚀
+What's next? Well, we're deep in work on 6.5.0 and it's shaping up to be a big one. Stay tuned 🚀
