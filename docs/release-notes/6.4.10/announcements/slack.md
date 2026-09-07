@@ -2,7 +2,7 @@ Hello @channel! :wave:
 
 Webiny 6.4.10 is out! :rocket:
 
-A focused release this time around! We fixed a Website Builder bug where grid columns set to stack at a given breakpoint rendered side by side instead of one below the other. Stacking now comes from a CSS media query in the HTML rather than JavaScript, so the browser gets the layout right without waiting on hydration.
+A focused release this time around! We fixed a Website Builder bug where grid columns set to stack at a given breakpoint rendered side by side and stayed that way, with no way to get them to stack. Stacking now comes from a CSS media query in the HTML instead of JavaScript, so the browser applies it straight from the viewport width.
 
 We also fixed a configuration issue where explicitly disabling VPC creation wasn't being respected in production environments, plus improved internal error handling to give you clearer messages when things go sideways. Check out the changelog to learn more.
 
