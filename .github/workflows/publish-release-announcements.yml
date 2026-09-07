@@ -6,11 +6,19 @@ on:
     branches:
       - master
 
+# Only ever one publish in flight per version, so two runs can't race past the
+# already-published check below and both post.
+concurrency:
+  group: publish-announcements-${{ github.event.pull_request.head.ref }}
+  cancel-in-progress: false
+
 jobs:
   publish:
     name: Publish announcements to Slack
     if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release-announcements/')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Extract version from branch name
@@ -18,13 +26,27 @@ jobs:
           BRANCH="${{ github.event.pull_request.head.ref }}"
           VERSION="${BRANCH#release-announcements/}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "PUBLISHED_TAG=announcements-published/${VERSION}" >> $GITHUB_ENV
 
       - name: Checkout master
         uses: actions/checkout@v4
         with:
           ref: master
 
+      # Posting is not undoable, so refuse to post twice for the same version.
+      # A revert and re-merge of an announcements PR fires this workflow again.
+      - name: Check whether this version was already published
+        id: guard
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ env.PUBLISHED_TAG }}" >/dev/null 2>&1; then
+            echo "already=true" >> $GITHUB_OUTPUT
+            echo "::notice::${{ env.PUBLISHED_TAG }} already exists. Announcements for ${{ env.VERSION }} went out already, skipping."
+          else
+            echo "already=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Verify announcement files exist
+        if: steps.guard.outputs.already == 'false'
         run: |
           BASE="docs/release-notes/${{ env.VERSION }}/announcements"
           for f in social.md slack.md; do
@@ -34,7 +56,8 @@ jobs:
             fi
           done
 
-      - name: Post social announcement to #build-in-public
+      - name: "Post social announcement to #build-in-public"
+        if: steps.guard.outputs.already == 'false'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_BUILD_IN_PUBLIC_WEBHOOK }}
         run: |
@@ -47,6 +70,7 @@ jobs:
                 -d @-
 
       - name: Post Slack announcement to community Announcements
+        if: steps.guard.outputs.already == 'false'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_COMMUNITY_ANNOUNCEMENTS_WEBHOOK }}
         run: |
@@ -57,3 +81,10 @@ jobs:
             | curl -sf -X POST "$SLACK_WEBHOOK" \
                 -H "Content-Type: application/json" \
                 -d @-
+
+      # Written only after both posts succeed, so a partial failure stays retryable.
+      - name: Mark this version as published
+        if: steps.guard.outputs.already == 'false'
+        run: |
+          git tag "${{ env.PUBLISHED_TAG }}"
+          git push origin "${{ env.PUBLISHED_TAG }}"
