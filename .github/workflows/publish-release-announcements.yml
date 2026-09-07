@@ -1,0 +1,59 @@
+name: Publish Release Announcements
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+
+jobs:
+  publish:
+    name: Publish announcements to Slack
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release-announcements/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract version from branch name
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          VERSION="${BRANCH#release-announcements/}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: Verify announcement files exist
+        run: |
+          BASE="docs/release-notes/${{ env.VERSION }}/announcements"
+          for f in social.md slack.md; do
+            if [ ! -f "$BASE/$f" ]; then
+              echo "Missing $BASE/$f — nothing to publish."
+              exit 1
+            fi
+          done
+
+      - name: Post social announcement to #build-in-public
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_BUILD_IN_PUBLIC_WEBHOOK }}
+        run: |
+          BASE="docs/release-notes/${{ env.VERSION }}/announcements"
+          # Append the #public tag — a downstream job watches for it and cross-posts to X / LinkedIn.
+          jq -n --rawfile body "$BASE/social.md" \
+            '{ "text": (($body | rtrimstr("\n")) + "\n\n#public") }' \
+            | curl -sf -X POST "$SLACK_WEBHOOK" \
+                -H "Content-Type: application/json" \
+                -d @-
+
+      - name: Post Slack announcement to community Announcements
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_COMMUNITY_ANNOUNCEMENTS_WEBHOOK }}
+        run: |
+          BASE="docs/release-notes/${{ env.VERSION }}/announcements"
+          # Convert literal @channel to the Slack broadcast token so the ping fires.
+          jq -n --rawfile body "$BASE/slack.md" \
+            '{ "text": ($body | gsub("@channel"; "<!channel>")) }' \
+            | curl -sf -X POST "$SLACK_WEBHOOK" \
+                -H "Content-Type: application/json" \
+                -d @-
