@@ -41,12 +41,7 @@ Only two files are generated: `slack.md` and `social.md`. Follow-up tweets (`twe
 
 **Verifying claims:** the generated copy is only as accurate as `changelog.mdx`, which is itself generated. Bug descriptions are the usual failure. Check them against what actually happened, and when a claim describes user-visible behaviour, confirm it with the PR author rather than trusting the changelog. Fix the same claim in both `slack.md` and `social.md`.
 
-**Copy conventions:**
-
-- Both files use a single `—` on its own line to separate the body, the links block, and the closing sign-off.
-- `slack.md` opens with `@channel`, uses Slack emoji shortcodes (`:rocket:`), and the publish workflow rewrites the literal `@channel` to `<!channel>` so the broadcast fires.
-- `social.md` goes to X and LinkedIn, so it uses literal emoji characters, not shortcodes.
-- Closing sign-off teases the next release by version number when one is in progress.
+**Copy conventions live in the prompts**, not here. `SLACK_PROMPT` and `SOCIAL_PROMPT` in `scripts/generate-announcements.ts` define the structure, separators, emoji style, and tone for each file. If a generated announcement keeps needing the same manual edit, fix the prompt rather than the output.
 
 **Double-post guard:** after both posts succeed, the workflow pushes an `announcements-published/<version>` tag and checks for that tag before posting. A revert and re-merge skips instead of announcing twice. The tag is written only after both posts succeed, so a partial failure stays retryable and a re-run reposts both.
 

@@ -121,6 +121,9 @@ Structure:
 7. Links (plain text):
    "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
    "Upgrade guide: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
+8. A "—" separator line followed by a blank line
+9. Closing line — forward-looking, pointing at what's coming next. 1–2 sentences. Opening it with
+   a question like "What's next?" works well. End with a rocket emoji 🚀.
 
 Ordering rule for highlights:
 - Lead with the AI-related feature if one exists — AI features resonate most on social media right now.
@@ -129,11 +132,14 @@ Ordering rule for highlights:
 
 Rules:
 - Replace VERSION with the actual release version number in the URLs.
-- Use real Unicode emoji only in the opening line and the "As always..." line — nowhere else.
+- Use real Unicode emoji, not Slack shortcodes — this post goes to X and LinkedIn, which do not
+  render ":rocket:" and similar.
+- Emoji only in the opening line, the "As always..." line, and the closing line — nowhere else.
 - "Webiny" is always capitalised.
 - Tone: professional, developer-focused, enthusiastic but not hype-y.
 - Do NOT use hashtags.
-- Do NOT use paragraphs, dashes, asterisks, or any formatting other than "→" arrows for list items.
+- Do NOT use paragraphs, dashes, asterisks, or any formatting other than "→" arrows for list items
+  and the "—" separator line described above.
 - Do NOT mention CLI flags, upgrade command options, logging settings, or low-level infrastructure
   details (e.g. Pulumi internals, env hooks, --force flags).
 `.trim();
