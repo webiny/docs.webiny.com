@@ -26,6 +26,32 @@ PRs for a release are discovered from the release commits (the `(#NNNN)` referen
 
 **Review markers:** every generated entry gets an MDX comment beneath its `###` heading naming the PR author(s), e.g. `{/* REVIEW-PENDING @author — confirm this entry, then delete this line */}`. Each author must inspect their entry and delete that line. CI (`.github/workflows/check-release-notes.yml`, via `yarn check:changelog-review`) fails on any PR to master that still contains a `REVIEW-PENDING` marker, so release notes cannot be published until every entry is confirmed.
 
+### Release Announcements
+
+Two workflows, split by which merge triggers them:
+
+- `.github/workflows/release-announcements.yml` runs when a `release/X` PR merges. It generates the copy, pushes a `release-announcements/X` branch, opens a PR, and pings the internal release channel for review.
+- `.github/workflows/publish-release-announcements.yml` runs when that `release-announcements/X` PR merges. It posts `social.md` to `#build-in-public` and `slack.md` to the community Announcements channel.
+
+**Merging the announcements PR publishes.** It is not just a review artifact. Nothing else needs to happen and there is no undo, so treat the merge button as the send button.
+
+Only two files are generated: `slack.md` and `social.md`. Follow-up tweets (`tweets.md`) were removed in September 2026. Do not reintroduce them.
+
+**Editing the copy:** edit the files directly on the `release-announcements/X` branch. Never rerun `yarn generate:announcements` to fix wording, because it regenerates both files from scratch and discards whatever has already been reviewed.
+
+**Verifying claims:** the generated copy is only as accurate as `changelog.mdx`, which is itself generated. Bug descriptions are the usual failure. Check them against what actually happened, and when a claim describes user-visible behaviour, confirm it with the PR author rather than trusting the changelog. Fix the same claim in both `slack.md` and `social.md`.
+
+**Copy conventions live in the prompts**, not here. `SLACK_PROMPT` and `SOCIAL_PROMPT` in `scripts/generate-announcements.ts` define the structure, separators, emoji style, and tone for each file. If a generated announcement keeps needing the same manual edit, fix the prompt rather than the output.
+
+**Double-post guard:** after both posts succeed, the workflow pushes an `announcements-published/<version>` tag and checks for that tag before posting. A revert and re-merge skips instead of announcing twice. The tag is written only after both posts succeed, so a partial failure stays retryable and a re-run reposts both.
+
+**Two hazards:**
+
+- For `pull_request` events, GitHub reads workflow files from `master` as it exists when the event fires, not from the PR branch. Changes to the publish workflow must be on `master` before the announcements PR merges.
+- A stale announcements PR for an old release is live ammunition. Merging one announces a months-old release to the community channel with an `@channel` ping, and the tag guard does not help because that version was never tagged. Close stale announcements PRs, do not merge them. The job is gated on `merged == true`, so closing fires nothing.
+
+**Secrets:** `SLACK_BUILD_IN_PUBLIC_WEBHOOK` and `SLACK_COMMUNITY_ANNOUNCEMENTS_WEBHOOK`, plus `SLACK_RELEASE_CHANNEL_WEBHOOK` for the review ping. The two publish webhooks come from separate Slack apps, because the internal and community channels are in different workspaces.
+
 ### Validation and Quality
 
 - **MDX/.ai.txt Pairing**: Every `.mdx` file must have a corresponding `.ai.txt` companion file
