@@ -1,0 +1,61 @@
+---
+id: olwgge93
+title: Webiny 6.6.0 Changelog
+description: See what's new in Webiny version 6.6.0
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.6.0"} />
+
+## Development
+
+### Self-Hosted Webiny with Built-In Authentication ([#5368](https://github.com/webiny/webiny-js/pull/5368), [#5367](https://github.com/webiny/webiny-js/pull/5367), [#5374](https://github.com/webiny/webiny-js/pull/5374), [#5393](https://github.com/webiny/webiny-js/pull/5393))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Webiny can now run entirely on your own infrastructure without AWS, Pulumi, or an external authentication service. The new self-hosted flavour uses a plain Node HTTP server backed by SQL/SQLite, with a dedicated `webiny-server` CLI separate from the AWS-focused `webiny` CLI.
+
+Key capabilities:
+
+- **Built-in username/password authentication** — a first-party identity provider with a login screen matching the Cognito UI, JWT-based sessions, and scrypt password hashing. Configure it entirely from `webiny.config.tsx` via `<SelfHostedAuth signingSecret={...} tokenExpiresIn={...} />`.
+- **`webiny-server serve`** — runs built apps as long-running servers: `serve api` boots the API, `serve admin` statically serves the admin SPA with proper client-side routing, and `serve` runs both.
+- **`webiny-server watch api`** — boots the API automatically alongside build watchers, with cleaner output and automatic reload on changes.
+- **WebSocket support** — real-time features now work on self-hosted deployments just as they do on AWS.
+- **Config-driven admin API URL** — `<Admin.ApiUrl url={...} />` tells the admin where the API lives, falling back to same-origin for deployed self-hosted setups.
+
+The AWS flavour's behaviour is unchanged.
+
+### TypeScript 7 Compatibility ([#5380](https://github.com/webiny/webiny-js/pull/5380))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The build tooling has been updated for TypeScript 7, which removed the programmatic compiler API. The new approach shells out to the native `tsc` binary with proper cross-platform support (Windows long paths, ARM64 macOS). Several deprecated compiler options were also removed from the root config.
+
+### Testable API Handler Composition ([#5361](https://github.com/webiny/webiny-js/pull/5361))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+The code that assembles Webiny's API Lambda used to live in a project template that could only be verified by a full deploy. This wiring now lives in real packages (`@webiny/api-infra-aws`, `@webiny/api-infra-aws-ddb`, `@webiny/api-infra-aws-ddb-os`) with an automated integration test that boots the entire handler against an in-process DynamoDB. This catches composition and registration-order bugs before deploy.
+
+## Headless CMS
+
+### Modernised Storage Operations Architecture ([#5490](https://github.com/webiny/webiny-js/pull/5490))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The CMS storage layer was restructured for better maintainability. Each of the 22 entry storage operations (create, update, publish, list, etc.) is now an independent abstraction registered via dependency injection, replacing a monolithic interface that bundled all operations together. This is an internal architecture improvement with no change to API behaviour.
+
+### Platform-Agnostic Search Index Tasks ([#5487](https://github.com/webiny/webiny-js/pull/5487), [#5450](https://github.com/webiny/webiny-js/pull/5450), [#5431](https://github.com/webiny/webiny-js/pull/5431))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Search index task handling has been restructured to support multiple database backends. The code previously tied to DynamoDB + OpenSearch has been split into base abstractions (`api-search-index`) with dedicated implementations for OpenSearch (`api-search-index-os`) and DynamoDB + OpenSearch (`api-search-index-ddb-os`). This enables the upcoming Postgres + OpenSearch support.
+
+## Infrastructure
+
+### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The unmaintained `decompress` package (last published 2018) has been replaced with `adm-zip`, which is actively maintained, has zero dependencies, and includes built-in zip-slip protection against path traversal attacks.
+
+### Unified Event Handler Architecture ([#5359](https://github.com/webiny/webiny-js/pull/5359), [#5360](https://github.com/webiny/webiny-js/pull/5360))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+The AWS Lambda and self-hosted server request handlers previously maintained nearly identical copies of the same request loop. These are now unified into a single shared implementation with transport-specific pieces isolated behind a `Transport` abstraction. This is an internal cleanup with no change to application behaviour.
