@@ -50,13 +50,13 @@ Only two files are generated: `slack.md` and `social.md`. Follow-up tweets (`twe
 - For `pull_request` events, GitHub reads workflow files from `master` as it exists when the event fires, not from the PR branch. Changes to the publish workflow must be on `master` before the announcements PR merges.
 - A stale announcements PR for an old release is live ammunition. Merging one announces a months-old release to the community channel with an `@channel` ping, and the tag guard does not help because that version was never tagged. Close stale announcements PRs, do not merge them. The job is gated on `merged == true`, so closing fires nothing.
 
-**Who the announcements come from:** every Slack post, the review ping included, goes through `.github/scripts/post-to-slack.sh`, which calls `chat.postMessage` with a user token. Messages arrive from that person rather than from an app. Incoming webhooks are gone and are not worth going back to: a webhook cannot be made to look like a person, since `username` and `icon_url` only apply to legacy custom-integration webhooks and app webhooks ignore them silently.
+**Who the announcements come from:** the two published announcements go through `.github/scripts/post-to-slack.sh`, which calls `chat.postMessage` with a user token, so they arrive from that person rather than from an app. A webhook cannot do this: `username` and `icon_url` only apply to legacy custom-integration webhooks, and app webhooks ignore them silently. The script also fails the step when Slack refuses, since `chat.postMessage` answers 200 with `ok: false` in the body.
 
-The script takes the message text as its first argument and an optional Block Kit array as its second. With blocks, the text is the notification fallback. It fails the step when Slack refuses, which a webhook could not do, because `chat.postMessage` answers 200 with `ok: false` in the body.
+The review ping stays on its webhook. It is internal, it posts Block Kit, and it does not matter who it comes from.
 
-**Secrets:** `SLACK_USER_TOKEN` for the Webiny workspace and `SLACK_COMMUNITY_USER_TOKEN` for the community one. Both are `xoxp-` user tokens with the `chat:write` user scope, and the person behind each has to be a member of the channels it posts to. Two tokens because the internal and community channels live in different workspaces.
+**Secrets:** `SLACK_USER_TOKEN` for the Webiny workspace and `SLACK_COMMUNITY_USER_TOKEN` for the community one, both `xoxp-` user tokens with the `chat:write` user scope, and the person behind each has to be a member of the channel. Two tokens because the two channels live in different workspaces. `SLACK_RELEASE_CHANNEL_WEBHOOK` still sends the review ping.
 
-**Channel ids** are hardcoded in the workflows, since they are not secret and never change: `#build-in-public` is `C09LLSR96KU` and `#release` is `C017C8CC4KA` in the Webiny workspace, `#announcements` is `C0149TWSS0Z` in webiny-community.
+**Channel ids** are hardcoded in the publish workflow, since they are not secret and never change: `#build-in-public` is `C09LLSR96KU` in the Webiny workspace, `#announcements` is `C0149TWSS0Z` in webiny-community. The review ping has no channel id anywhere, because its webhook url has the channel baked in.
 
 ### Validation and Quality
 
