@@ -56,7 +56,7 @@ The script takes the message text as its first argument and an optional Block Ki
 
 **Secrets:** `SLACK_USER_TOKEN` for the Webiny workspace and `SLACK_COMMUNITY_USER_TOKEN` for the community one. Both are `xoxp-` user tokens with the `chat:write` user scope, and the person behind each has to be a member of the channels it posts to. Two tokens because the internal and community channels live in different workspaces.
 
-**Channel ids:** `#build-in-public` is `C09LLSR96KU` and `#release` is `C017C8CC4KA`, both hardcoded in the workflows. The community channel id lives in the `SLACK_COMMUNITY_CHANNEL_ID` repository variable, since that workspace is administered separately.
+**Channel ids** are hardcoded in the workflows, since they are not secret and never change: `#build-in-public` is `C09LLSR96KU` and `#release` is `C017C8CC4KA` in the Webiny workspace, `#announcements` is `C0149TWSS0Z` in webiny-community.
 
 ### Validation and Quality
 
