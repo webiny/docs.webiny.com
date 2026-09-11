@@ -61,7 +61,6 @@ jobs:
         env:
           SLACK_USER_TOKEN: ${{ secrets.SLACK_USER_TOKEN }}
           CHANNEL_ID: C09LLSR96KU
-          SLACK_WEBHOOK: ${{ secrets.SLACK_BUILD_IN_PUBLIC_WEBHOOK }}
         run: |
           BASE="docs/release-notes/${{ env.VERSION }}/announcements"
           # Append the #release-post tag — a downstream job watches for it and cross-posts to X / LinkedIn.
@@ -72,12 +71,10 @@ jobs:
       - name: Post Slack announcement to community Announcements
         if: steps.guard.outputs.already == 'false'
         env:
-          # The community workspace is a separate Slack, so it needs its own user
-          # token and channel id. Until both are set, this post keeps going out
-          # through the webhook under the app's name.
+          # The community workspace is a separate Slack, so it has its own token
+          # and its channel id lives in a repository variable.
           SLACK_USER_TOKEN: ${{ secrets.SLACK_COMMUNITY_USER_TOKEN }}
           CHANNEL_ID: ${{ vars.SLACK_COMMUNITY_CHANNEL_ID }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_COMMUNITY_ANNOUNCEMENTS_WEBHOOK }}
         run: |
           BASE="docs/release-notes/${{ env.VERSION }}/announcements"
           # Convert literal @channel to the Slack broadcast token so the ping fires.

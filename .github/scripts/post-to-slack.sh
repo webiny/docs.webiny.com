@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
 #
-# Posts one message to Slack, given the text as $1.
+# Posts one message to Slack as a person, given the text as $1 and optionally a
+# Block Kit blocks array as $2. With blocks, $1 is what shows in notifications
+# and in clients that cannot render them.
 #
-# With SLACK_USER_TOKEN set, the message is sent through chat.postMessage and
-# arrives from that person, with their name and avatar and no app badge. That
-# needs CHANNEL_ID too, because the Web API takes a channel id rather than a
-# webhook url. The token is an xoxp- user token with the chat:write user scope,
-# and the person it belongs to has to be a member of the channel.
-#
-# Without a user token it falls back to SLACK_WEBHOOK, which posts under the
-# Slack app's own name. Each workspace needs its own token, so the fallback is
-# what keeps a channel publishing while its token is still missing.
+# SLACK_USER_TOKEN is an xoxp- user token with the chat:write user scope, and
+# CHANNEL_ID is the channel to post into, because the Web API takes an id rather
+# than a webhook url. The person the token belongs to has to be a member of that
+# channel. Each workspace needs its own token.
 set -euo pipefail
 
-TEXT="$1"
+TEXT="${1:-}"
+BLOCKS="${2:-}"
 
 # Overridable so the flow can be exercised against a local mock server.
 SLACK_API="${SLACK_API:-https://slack.com/api}"
@@ -23,41 +21,39 @@ if [ -z "$TEXT" ]; then
   exit 1
 fi
 
-if [ -n "${SLACK_USER_TOKEN:-}" ]; then
-  if [ -z "${CHANNEL_ID:-}" ]; then
-    echo "SLACK_USER_TOKEN is set but CHANNEL_ID is empty, so there is nowhere to post." >&2
-    exit 1
-  fi
-
-  RESPONSE=$(
-    jq -n --arg channel "$CHANNEL_ID" --arg text "$TEXT" \
-      '{ "channel": $channel, "text": $text }' \
-      | curl -sS -X POST "$SLACK_API/chat.postMessage" \
-          -H "Authorization: Bearer $SLACK_USER_TOKEN" \
-          -H "Content-Type: application/json; charset=utf-8" \
-          -d @-
-  )
-
-  # chat.postMessage answers 200 even when it refuses the message, so curl's
-  # exit code proves nothing and the body has to be read. Failing loudly here
-  # matters: the caller tags the version as published once these steps pass.
-  if [ "$(printf '%s' "$RESPONSE" | jq -r '.ok')" != "true" ]; then
-    echo "Slack refused the message: $(printf '%s' "$RESPONSE" | jq -r '.error // "unknown error"')" >&2
-    exit 1
-  fi
-
-  echo "Posted to $CHANNEL_ID as the user behind SLACK_USER_TOKEN."
-  exit 0
-fi
-
-if [ -z "${SLACK_WEBHOOK:-}" ]; then
-  echo "Neither SLACK_USER_TOKEN nor SLACK_WEBHOOK is set, so the message cannot be sent." >&2
+if [ -z "${SLACK_USER_TOKEN:-}" ]; then
+  echo "SLACK_USER_TOKEN is empty, so there is no way to post." >&2
   exit 1
 fi
 
-jq -n --arg text "$TEXT" '{ "text": $text }' \
-  | curl -sf -X POST "$SLACK_WEBHOOK" \
-      -H "Content-Type: application/json" \
-      -d @-
+if [ -z "${CHANNEL_ID:-}" ]; then
+  echo "CHANNEL_ID is empty, so there is nowhere to post." >&2
+  exit 1
+fi
 
-echo "Posted through the incoming webhook, under the Slack app's name."
+if [ -n "$BLOCKS" ]; then
+  PAYLOAD=$(jq -n --arg channel "$CHANNEL_ID" --arg text "$TEXT" --argjson blocks "$BLOCKS" \
+    '{ "channel": $channel, "text": $text, "blocks": $blocks }')
+else
+  PAYLOAD=$(jq -n --arg channel "$CHANNEL_ID" --arg text "$TEXT" \
+    '{ "channel": $channel, "text": $text }')
+fi
+
+RESPONSE=$(
+  printf '%s' "$PAYLOAD" \
+    | curl -sS -X POST "$SLACK_API/chat.postMessage" \
+        -H "Authorization: Bearer $SLACK_USER_TOKEN" \
+        -H "Content-Type: application/json; charset=utf-8" \
+        -d @-
+)
+
+# chat.postMessage answers 200 even when it refuses the message, so curl's exit
+# code proves nothing and the body has to be read. Failing loudly matters most
+# in the publish workflow, which tags the version as published once its posting
+# steps pass, and that tag makes every later run skip.
+if [ "$(printf '%s' "$RESPONSE" | jq -r '.ok')" != "true" ]; then
+  echo "Slack refused the message: $(printf '%s' "$RESPONSE" | jq -r '.error // "unknown error"')" >&2
+  exit 1
+fi
+
+echo "Posted to $CHANNEL_ID."

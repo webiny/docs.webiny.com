@@ -66,7 +66,8 @@ jobs:
 
       - name: Send Slack announcement
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_CHANNEL_WEBHOOK }}
+          SLACK_USER_TOKEN: ${{ secrets.SLACK_USER_TOKEN }}
+          CHANNEL_ID: C017C8CC4KA # #release
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
           VERSION="${{ env.VERSION }}"
@@ -76,14 +77,12 @@ jobs:
           SOCIAL_URL="${REPO_URL}/blob/${ANNOUNCE_BRANCH}/${BASE}/social.md"
           PR_URL="${{ env.PR_URL }}"
 
-          jq -n \
+          BLOCKS=$(jq -c -n \
             --arg version "$VERSION" \
             --arg pr_url "$PR_URL" \
             --arg slack_url "$SLACK_URL" \
             --arg social_url "$SOCIAL_URL" \
-            '{
-              "text": ("Release " + $version + " announcements ready for review"),
-              "blocks": [
+            '[
                 {
                   "type": "section",
                   "text": {
@@ -107,7 +106,7 @@ jobs:
                     }
                   ]
                 }
-              ]
-            }' | curl -s -X POST "$SLACK_WEBHOOK" \
-              -H "Content-Type: application/json" \
-              -d @-
+              ]')
+
+          .github/scripts/post-to-slack.sh \
+            "Release ${VERSION} announcements ready for review" "$BLOCKS"
