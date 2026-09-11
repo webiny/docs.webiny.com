@@ -59,28 +59,27 @@ jobs:
       - name: "Post social announcement to #build-in-public"
         if: steps.guard.outputs.already == 'false'
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_BUILD_IN_PUBLIC_WEBHOOK }}
+          SLACK_USER_TOKEN: ${{ secrets.SLACK_USER_TOKEN }}
+          CHANNEL_ID: C09LLSR96KU # #build-in-public
         run: |
           BASE="docs/release-notes/${{ env.VERSION }}/announcements"
           # Append the #release-post tag — a downstream job watches for it and cross-posts to X / LinkedIn.
-          jq -n --rawfile body "$BASE/social.md" \
-            '{ "text": (($body | rtrimstr("\n")) + "\n\n#release-post") }' \
-            | curl -sf -X POST "$SLACK_WEBHOOK" \
-                -H "Content-Type: application/json" \
-                -d @-
+          TEXT=$(jq -rn --rawfile body "$BASE/social.md" \
+            '($body | rtrimstr("\n")) + "\n\n#release-post"')
+          .github/scripts/post-to-slack.sh "$TEXT"
 
       - name: Post Slack announcement to community Announcements
         if: steps.guard.outputs.already == 'false'
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_COMMUNITY_ANNOUNCEMENTS_WEBHOOK }}
+          # The community workspace is a separate Slack, so it has its own token.
+          SLACK_USER_TOKEN: ${{ secrets.SLACK_COMMUNITY_USER_TOKEN }}
+          CHANNEL_ID: C0149TWSS0Z # #announcements, in webiny-community
         run: |
           BASE="docs/release-notes/${{ env.VERSION }}/announcements"
           # Convert literal @channel to the Slack broadcast token so the ping fires.
-          jq -n --rawfile body "$BASE/slack.md" \
-            '{ "text": ($body | gsub("@channel"; "<!channel>")) }' \
-            | curl -sf -X POST "$SLACK_WEBHOOK" \
-                -H "Content-Type: application/json" \
-                -d @-
+          TEXT=$(jq -rn --rawfile body "$BASE/slack.md" \
+            '$body | gsub("@channel"; "<!channel>")')
+          .github/scripts/post-to-slack.sh "$TEXT"
 
       # Written only after both posts succeed, so a partial failure stays retryable.
       - name: Mark this version as published
