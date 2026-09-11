@@ -50,7 +50,11 @@ Only two files are generated: `slack.md` and `social.md`. Follow-up tweets (`twe
 - For `pull_request` events, GitHub reads workflow files from `master` as it exists when the event fires, not from the PR branch. Changes to the publish workflow must be on `master` before the announcements PR merges.
 - A stale announcements PR for an old release is live ammunition. Merging one announces a months-old release to the community channel with an `@channel` ping, and the tag guard does not help because that version was never tagged. Close stale announcements PRs, do not merge them. The job is gated on `merged == true`, so closing fires nothing.
 
-**Secrets:** `SLACK_BUILD_IN_PUBLIC_WEBHOOK` and `SLACK_COMMUNITY_ANNOUNCEMENTS_WEBHOOK`, plus `SLACK_RELEASE_CHANNEL_WEBHOOK` for the review ping. The two publish webhooks come from separate Slack apps, because the internal and community channels are in different workspaces.
+**Who the announcements come from:** both publish steps go through `.github/scripts/post-to-slack.sh`. When a user token is available it calls `chat.postMessage`, so the announcement arrives from that person rather than from an app. When it is not, it falls back to the channel's incoming webhook and posts under the app's name. A webhook cannot be made to look like a person: `username` and `icon_url` in the payload only apply to legacy custom-integration webhooks, and app webhooks ignore them silently.
+
+**Secrets:** `SLACK_USER_TOKEN` and `SLACK_COMMUNITY_USER_TOKEN` are `xoxp-` user tokens with the `chat:write` user scope, one per workspace, and the person behind each has to be a member of the channel. `SLACK_BUILD_IN_PUBLIC_WEBHOOK` and `SLACK_COMMUNITY_ANNOUNCEMENTS_WEBHOOK` are the fallbacks, and `SLACK_RELEASE_CHANNEL_WEBHOOK` sends the review ping. The two publish webhooks come from separate Slack apps, because the internal and community channels are in different workspaces.
+
+**Channel ids:** `#build-in-public` is `C09LLSR96KU`, hardcoded in the publish workflow. The community channel id lives in the `SLACK_COMMUNITY_CHANNEL_ID` repository variable, since that workspace is administered separately. A user token set without its channel id fails the step rather than posting to the wrong place.
 
 ### Validation and Quality
 
