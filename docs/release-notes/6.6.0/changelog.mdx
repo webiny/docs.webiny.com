@@ -59,6 +59,16 @@ The first build after upgrading will be slower as cached hashes are recalculated
 
 Apollo Client and all related code have been completely removed from the repository. The Admin UI now uses a different GraphQL client internally.
 
+### Improved Content Drift Detection in Generated Webiny Package ([#5476](https://github.com/webiny/webiny-js/pull/5476))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+The `validate-webiny-package` command now detects when exports are hand-edited directly into the generated `webiny` package instead of following the source `src/exports` folder convention. Previously, edits to already-expected generated files would pass validation but get silently wiped on the next `generate-webiny-package` run. The validation now compares file contents (whitespace-normalized) and fails loudly when drift is detected.
+
+### Fixed Cypress Tests After TypeScript Upgrade ([#5410](https://github.com/webiny/webiny-js/pull/5410))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Resolved Cypress test failures introduced by the TypeScript 7 upgrade.
+
 ## Headless CMS
 
 ### Modernised Storage Operations Architecture ([#5490](https://github.com/webiny/webiny-js/pull/5490))
@@ -92,6 +102,16 @@ Notifications are triggered by:
 
 Each notification deep-links to the relevant CMS entry and comment thread.
 
+### Extract OpenSearch Sync to a Dedicated Package ([#5413](https://github.com/webiny/webiny-js/pull/5413))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The OpenSearch synchronization logic has been extracted from the DynamoDB-specific package into its own standalone module. This architectural change enables reuse of the sync mechanism across different storage backends.
+
+### CMS Bulk Actions Now Support Multiple Deployment Targets ([#5529](https://github.com/webiny/webiny-js/pull/5529))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+CMS bulk actions have been restructured to support both serverless (AWS) and traditional server deployments, following the same pattern used by other Webiny packages.
+
 ## Infrastructure
 
 ### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
@@ -113,6 +133,31 @@ Destroying a Webiny project failed when a GuardDuty Malware Protection Plan exis
 {/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
 
 SQLite self-hosted deploy artifacts crashed at boot with `Cannot find module 'pg-connection-string'`. The build process incorrectly pruned this package, but it's required by Knex regardless of which database driver you use.
+
+### Background Tasks Split for Multi-Environment Support ([#5370](https://github.com/webiny/webiny-js/pull/5370))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The background tasks package has been split into `core`, `aws`, and `server` variants, enabling background task functionality across different deployment environments (AWS Lambda and traditional servers).
+
+### Improved Background Tasks Internal Architecture ([#5382](https://github.com/webiny/webiny-js/pull/5382))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Modernized how background tasks and several related features are wired internally, replacing a legacy plugin mechanism with dependency injection. The GraphQL schema for tasks is now built per-request from the tenant's task models. This is an internal structure improvement with no change to application behavior.
+
+### Consistent License Refresh Across All Deployment Types ([#5378](https://github.com/webiny/webiny-js/pull/5378))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Reworked where the per-request WCP license refresh runs internally so it applies uniformly across both AWS and self-hosted deployments.
+
+### Removed the Internal `@webiny/handler-db` Package ([#5399](https://github.com/webiny/webiny-js/pull/5399))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+An obsolete internal package was removed and its remaining pieces folded into `@webiny/db-dynamodb`. The `DynamoDBCoreFeature` is now the standard way to register DynamoDB core functionality. No functional change for end users.
+
+### Consolidated Internal Test Utilities ([#5379](https://github.com/webiny/webiny-js/pull/5379))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Removed approximately 1400 lines of duplicated test setup code across ~14 internal packages by consolidating shared test mocks, auth decorators, and helpers into a single `@webiny/api-testing` package.
 
 ## Breaking Changes
 
