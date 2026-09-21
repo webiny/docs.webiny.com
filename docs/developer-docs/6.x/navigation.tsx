@@ -232,6 +232,7 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
                     <Page link={"reference/extensions/infra"} title={"Infra"} />
                     <Page link={"reference/extensions/cli"} title={"Cli"} />
                     <Page link={"reference/extensions/project"} title={"Project"} />
+                    <Page link={"reference/extensions/bug-reporter"} title={"Bug Reporter"} />
                 </Group>
                 {/* __REFERENCE_PAGES_START__ */}
                 {/* __SDK_PAGES_START__ */}

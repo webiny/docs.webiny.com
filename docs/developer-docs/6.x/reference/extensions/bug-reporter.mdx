@@ -1,0 +1,98 @@
+---
+id: q7v2mhx4
+title: Bug Reporter Extensions Reference
+description: Reference for all BugReporter.* extensions available in webiny.config.tsx.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="WHAT YOU'LL LEARN">
+
+- every `BugReporter.*` extension and the props it accepts
+- the difference between compose mode and filed mode
+- what the bug reporter records and what it never records
+
+</Alert>
+
+## Overview
+
+The bug reporter turns a description typed in the Admin app into a GitHub issue, with the environment and a timeline of what the user did beforehand attached. It is enabled in every project and needs no configuration.
+
+Press `cmd+shift+b`, or run "Report a bug" from the command palette. The user must be signed in.
+
+With no configuration the reporter runs in **compose mode**. The API writes the report up and returns a prefilled GitHub `issues/new` URL, which opens in a new tab for the user to submit under their own account. Nothing is created on your behalf and no credentials are involved. Screenshots cannot travel in a URL, so the user is asked to paste theirs into the composer.
+
+`BugReporter.GitHub` switches the reporter to **filed mode**, where the API creates the issue itself and uploads screenshots.
+
+### BugReporter.GitHub
+
+Points the bug reporter at a GitHub repository.
+
+| Prop         | Type     | Required | Description                                                                                   |
+| ------------ | -------- | -------- | --------------------------------------------------------------------------------------------- |
+| `token`      | `string` | No       | Personal access token with write access to issues and contents. Omit to stay in compose mode. |
+| `repository` | `string` | No       | Target repository as `owner/name`. Defaults to `webiny/webiny-js`.                            |
+| `labels`     | `string` | No       | Comma separated labels applied to every issue. Defaults to `bug`.                             |
+
+Use once.
+
+```tsx webiny.config.tsx
+import React from "react";
+import { BugReporter } from "webiny/extensions";
+
+export const Extensions = () => {
+  return (
+    <>
+      <BugReporter.GitHub
+        token={process.env.MY_GITHUB_TOKEN}
+        repository={"acme/app"}
+        labels={"bug,admin"}
+      />
+    </>
+  );
+};
+```
+
+**Filing requires both `token` and `repository`.** A token on its own is not enough, and leaves the reporter in compose mode. Filing is the irreversible direction, so the target has to be named explicitly rather than inherited from a default.
+
+<Alert type="warning">
+
+Set `repository` even if you do not want filing. In compose mode it is the repository the prefilled URL points at, and it defaults to `webiny/webiny-js`. A project that configures nothing sends its users to Webiny's issue composer, prefilled with their page titles, URLs and click timeline.
+
+</Alert>
+
+A value that is not exactly `owner/name` fails the report rather than falling back to the default.
+
+### Token
+
+A classic personal access token with the `repo` scope covers what filed mode needs.
+
+Write access to **contents** is required as well as issues, and not optional once anyone pastes a screenshot. GitHub's issue API has no attachment endpoint, so screenshots are committed to a `bug-report-assets` branch in the target repository and linked from the issue body. The branch is created on the first report that carries an image.
+
+Always pass the token through a build-time environment variable, never as a literal. The value is serialized into the build artifact, so a hard-coded token is a token committed to source control.
+
+### Labels
+
+Labels are applied on top of `reported-in-app`, which every issue gets and which cannot be turned off. It exists so reports filed this way can be found as a group.
+
+An unset `labels` prop means `bug`. Setting it replaces that default rather than adding to it, so `labels={"admin"}` produces `admin` and `reported-in-app`, not `bug` as well.
+
+In filed mode, `reported-in-app` is created in the target repository if it does not exist. Any other label you name is your own to create. In compose mode GitHub drops labels entirely for a user without push access to the repository.
+
+## What Gets Recorded
+
+Recording starts when the Admin app loads and keeps the most recent 150 events in memory. Nothing leaves the browser until a report is submitted.
+
+| Recorded            | Detail                                                               |
+| ------------------- | -------------------------------------------------------------------- |
+| Route changes       | Path and query string                                                |
+| Clicks              | Accessible label and a short selector, for interactive elements only |
+| Field edits         | The label of the field, never its value                              |
+| GraphQL operations  | Operation name, status and duration                                  |
+| Failed requests     | Anything that returned 4xx or 5xx                                    |
+| Console output      | `console.error` and `console.warn`                                   |
+| Uncaught exceptions | Message and stack                                                    |
+
+Field values are never recorded, and a label is only read from an interactive element. Clicking a table cell records where the click landed, not what the cell contained. Both rules exist because reports get filed from tenants holding real customer data.
+
+A report carries at most 10 screenshots and 4000 characters of description.
