@@ -15,3 +15,24 @@ import { Alert } from "@/components/Alert";
 {/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
 
 The `GET_PAGE_BY_ID` and `GET_PAGE_BY_PATH` queries in the Website Builder SDK were missing the `version` and `metadata` fields from their selection sets. If you needed these fields, you had to patch the SDK manually. Both fields are now included by default.
+
+## Development
+
+### Debug Logger Tool ([#5734](https://github.com/webiny/webiny-js/pull/5734))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+A new opt-in, permission-gated debugger is now available for troubleshooting issues in environments where you cannot access AWS or the underlying code. When a user with the `dev-tools.debug` permission enables capture, debug payloads from instrumented call sites are returned in the GraphQL response under `extensions.debug`.
+
+**Key details:**
+
+- Capture is requested per-request via the `x-webiny-debug` header (set to `1`, or a glob pattern like `cms.os.*` with `!` to exclude).
+- Debug sessions are buffered in memory (capped at 4 MB), and payloads never reach CloudWatch—only the permitted user sees them.
+- The first instrumented call site is `cms.os.list`, which captures OpenSearch query and response data around entry listing.
+
+A new **Dev Tools → Debugger** panel in Admin lets you toggle capture, filter by namespace, and download a JSON report. Collected sessions are held in memory only and do not persist beyond the browser tab.
+
+<Alert type="info">
+
+After deploying this release, you must redeploy your API infrastructure (`yarn webiny deploy api`) and invalidate your CloudFront distribution to ensure the new `x-webiny-debug` header is forwarded correctly. Without this, the feature silently captures nothing.
+
+</Alert>
