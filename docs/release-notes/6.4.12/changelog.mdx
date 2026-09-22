@@ -16,6 +16,26 @@ import { Alert } from "@/components/Alert";
 
 The `GET_PAGE_BY_ID` and `GET_PAGE_BY_PATH` queries in the Website Builder SDK were missing the `version` and `metadata` fields from their selection sets. If you needed these fields, you had to patch the SDK manually. Both fields are now included by default.
 
+### Fixed Stale Page Revision Data After Mutations ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Creating, publishing, unpublishing, or deleting page revisions did not update the revisions cache, so the editor's revisions drawer and top bar dropdown displayed stale data until a page reload. All revision mutations now properly update the cache, and both UI components are driven from a shared `RevisionListPresenter` instead of local state copies.
+
+### Added Delete Revision API Endpoint ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+The admin app called `websiteBuilder.deletePageRevision`, but the mutation was never declared on the backend — the entire client feature was wired to a non-existent endpoint. The mutation now exists and delegates to the CMS `DeleteEntryRevisionUseCase`, which handles deleting the latest revision and cascading to a full entry delete when necessary.
+
+### Improved Revision List Actions and Confirmations ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Per-revision actions (create from, edit, publish, unpublish, delete) are now determined by the presenter rather than derived in the view. Destructive actions now require confirmation through a dialog and display a toast with the outcome. Previously, delete ran on the first click and failed silently on error.
+
+### Fixed Workflow Decorators Not Applying to Top Bar Actions ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+The page editor config was not registered through `Plugins`, so workflow decorators were never applied to the top bar actions. Additionally, an approved review no longer counts as "under review", so the editor becomes writable again and offers **Publish** instead of **New Revision**.
+
 ## Development
 
 ### Debug Logger Tool ([#5734](https://github.com/webiny/webiny-js/pull/5734))
@@ -36,3 +56,10 @@ A new **Dev Tools → Debugger** panel in Admin lets you toggle capture, filter 
 After deploying this release, you must redeploy your API infrastructure (`yarn webiny deploy api`) and invalidate your CloudFront distribution to ensure the new `x-webiny-debug` header is forwarded correctly. Without this, the feature silently captures nothing.
 
 </Alert>
+
+## Admin
+
+### Fixed Keyboard Shortcut Leak on Component Unmount ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+`useHotkeys` leaked registered shortcuts when a component unmounted while shortcuts were active. The cleanup effect closed over stale state, so a drawer that unmounted while open never released its `esc` binding, causing the next component to claim it to throw an error.
