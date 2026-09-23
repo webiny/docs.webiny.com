@@ -35,11 +35,36 @@ Each section has a prompt you can paste into an AI coding agent (Claude Code, Cu
 
 The reference implementation is the `starter-kit-6.5.x` branch of [webiny/website-builder-nextjs](https://github.com/webiny/website-builder-nextjs/tree/starter-kit-6.5.x).
 
+## Before You Start: File Inputs
+
+Check this first, whichever path you take. The 6.5 editor stores files picked in a `createFileInput()` input in a new shape:
+
+| Field      | 6.4 value         | 6.5 value                                           |
+| ---------- | ----------------- | --------------------------------------------------- |
+| File URL   | `src`             | `src` (unchanged), plus `url` with the crop applied |
+| MIME type  | `mimeType`        | `type`                                              |
+| Image size | `width`, `height` | `image.width`, `image.height`                       |
+
+Existing values keep the 6.4 shape until an editor picks, replaces, or crops the file in 6.5. From then on, a component that reads `mimeType`, `width`, or `height` gets `undefined`. A component that passes those to `next/image` fails the whole page with a 500 error. This happens on 6.4 and 6.5 packages alike, because the SDK passes input values to your components as stored.
+
+Read file inputs through `normalizeToAsset()`. It accepts both shapes and always returns the 6.5 one:
+
+```typescript
+import { normalizeToAsset } from "@webiny/sdk-nextjs"; // also exported by @webiny/website-builder-nextjs 6.5
+
+const asset = normalizeToAsset(inputs.image);
+// asset.url, asset.type, asset.image?.width, asset.image?.height
+```
+
+Use `asset.url` rather than `asset.src`, so crops set in the editor show up.
+
 ## When to Upgrade
 
-You don't have to upgrade your frontend at the same time as Webiny. The API that the 6.4 packages call hasn't changed, and upgrading Webiny doesn't remove the existing "Website Builder" API key. A site running on `@webiny/website-builder-nextjs` 6.4.x keeps working against a 6.5 API, so you can deploy the Webiny upgrade first and move each frontend to `@webiny/sdk-nextjs` later.
+Keep your frontend's Webiny packages on the same version as your Webiny project. The quickest way to get there is to bump `@webiny/website-builder-nextjs` and `@webiny/sdk` to 6.5.0. Apart from the file input change above, that needs no code changes. The API calls, the editor connection, and the exported functions are the same as in 6.4.
 
-This matters when the frontends aren't yours to deploy, for example when each of your clients hosts their own site. Upgrade Webiny, then give each client the prompt from [Upgrade a 6.4 Starter Kit Project](#upgrade-a-6-4-starter-kit-project) to run whenever they're ready.
+Moving to `@webiny/sdk-nextjs` is a larger change that you can make later. It's what gives your frontend Headless CMS content, CMS live preview, and content entry inputs.
+
+A frontend that stays on 6.4 packages also keeps working against a 6.5 API, apart from the file input change. That helps when the frontends aren't yours to deploy, for example when each of your clients hosts their own site. Upgrade Webiny first, then give each client this page.
 
 ## What Changed
 
@@ -91,6 +116,9 @@ Make these changes:
    - Remove @webiny/website-builder-nextjs and @webiny/sdk from package.json.
    - Install @webiny/sdk-nextjs@~6.5.0 with the package manager this project
      already uses (check the lockfile).
+   - Peer dependency warnings for next, react and mobx from @webiny/* packages
+     are expected. If npm stops with ERESOLVE because of them, rerun the install with
+     --legacy-peer-deps and tell me. Do not use --force.
 
 2. Imports
    - Replace every import from "@webiny/website-builder-nextjs" and
@@ -123,16 +151,40 @@ Make these changes:
    - contentSdk.listPages()              -> sdk.wb.listPages()
      old: pages.data. new: result.isOk() ? result.value.data : [].
    - contentSdk.getRedirectByPath(path)  -> sdk.wb.getRedirectByPath(path)
-     new: result.isOk() && result.value.
-   - Call the SDK initializer before every server-side SDK call, with the draft
-     mode flag, including inside generateMetadata:
+     new: the redirect is result.value when result.isOk(). Keep the redirects
+     route's response shape ({ redirect }) unchanged, because middleware.ts reads it.
+
+   Initialization order matters. In 6.4 the separate `new Webiny()` client was
+   created when its module loaded, so calls like webinySdk.languages always worked.
+   In 6.5 every sdk.* call throws "SDK is not initialized" until sdk.init() has run.
+   - Call the SDK initializer once at the top of every server entry point, before
+     any sdk.* call: page components, generateMetadata, generateStaticParams and
+     route handlers. In page components and generateMetadata, pass the draft mode
+     flag:
        const { isEnabled } = await draftMode();
        initializeSdk({ preview: isEnabled, tenantId: await getTenant() });
+     draftMode() isn't available in generateStaticParams, and the redirects route
+     gets the tenant from its query string, so pass only the tenant there.
+   - Do not leave the initializer inside a helper such as getPage() when other SDK
+     calls (for example sdk.languages.listLanguages()) run next to it in
+     Promise.all. The other call can run first and fail on the first request
+     after a cold start.
 
 5. Components
    - createComponent(...) can stay, or be renamed to createWbComponent(...). Both
      are the same function. Do not change component `name` values. They are
      stored in published pages, and renaming breaks those pages.
+   - File inputs (createFileInput). The 6.5 editor stores picked files in a new
+     shape: `type` instead of `mimeType`, `image.width` and `image.height` instead
+     of top-level `width` and `height`, plus a `url` that includes the crop.
+     Old values keep the old shape until an editor picks, replaces or crops the
+     file. Find every component that reads a file input and read the value
+     through normalizeToAsset() from "@webiny/sdk-nextjs", which accepts both
+     shapes:
+       const asset = normalizeToAsset(inputs.image);
+       // asset.url, asset.type, asset.image?.width, asset.image?.height
+     Use asset.url (not src) so crops set in the editor show up. A component that
+     passes an undefined width or height to next/image fails the whole page.
 
 6. Environment variables
    - Rename NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY, NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST,
@@ -151,14 +203,18 @@ Make these changes:
 Do not:
 - Move files out of src/. The 6.5 starter kit keeps files at the project root,
   but that layout is optional. Keep the current structure and path aliases.
-- Change my custom components, styles, or theme values beyond import paths.
+- Change my custom components, styles, or theme values beyond import paths and
+  the file input change in step 5.
 - Add the starter kit's example features (articles, ContentEntryDemo, tenant
   theme loading) unless I ask.
 
 When you're done:
 - Run the TypeScript check and `next build`, and fix any errors.
-- Search the codebase for "website-builder-nextjs", "@webiny/sdk\"", "contentSdk"
-  and "NEXT_PUBLIC_WEBSITE_BUILDER" and confirm nothing is left.
+- Check that every server file calling sdk.* initializes the SDK first in the
+  same function, before any parallel calls.
+- Search the codebase for "website-builder-nextjs", "@webiny/sdk\"", "contentSdk."
+  and "NEXT_PUBLIC_WEBSITE_BUILDER" and confirm nothing is left (yarn.lock and
+  folder names don't count).
 - Summarize what you changed and list anything you were unsure about.
 ```
 
@@ -169,6 +225,8 @@ When you're done:
 - Turn your `registerComponentGroup()` calls into a `componentGroups` array and pass it as `wb.componentGroups`.
 - Delete the separate `new Webiny()` client and use the matching property on `sdk` instead (`sdk.languages`, `sdk.cms`, and so on).
 - Update page, page list, and redirect calls to `sdk.wb.*` and handle the returned `Result`.
+- Call your SDK initializer at the top of every server entry point (page components, `generateMetadata`, `generateStaticParams`, route handlers) before any `sdk.*` call. In 6.4 the separate `new Webiny()` client was ready as soon as its module loaded. In 6.5, `sdk.languages` and the other namespaces throw until `sdk.init()` has run, so a call that runs in parallel with a helper that initializes the SDK fails on the first request after a cold start.
+- Read file inputs through `normalizeToAsset()`. See [Before You Start: File Inputs](#before-you-start-file-inputs).
 - Rename the environment variables in `.env`, `next.config.ts`, the SDK initializer, and your hosting provider.
 
 Here's the SDK initializer before and after:
@@ -312,7 +370,8 @@ Then make these changes, adapting paths to this project's structure:
 
 8. Page route. Add an optional catch-all route under <PAGES_ROUTE> based on
    app/(site)/[[...slug]]/page.tsx:
-   - Initialize the SDK with the draft mode flag before every SDK call,
+   - Initialize the SDK with the draft mode flag at the top of each function,
+     before any SDK call (including calls run in parallel),
      including in generateStaticParams and generateMetadata.
    - Fetch with sdk.wb.getPage(path) and handle the Result (result.isOk()).
    - Render through a DocumentRenderer wrapper (components/DocumentRenderer.tsx
