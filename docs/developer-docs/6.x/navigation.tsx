@@ -117,10 +117,6 @@ export const Navigation = ({ children }: { children: React.ReactNode }) => {
             >
                 <Page link={"website-builder/how-it-works"} title={"How It Works"} />
                 <Page link={"website-builder/setup-nextjs"} title={"Setup Next.js Project"} />
-                <Page
-                    link={"website-builder/nextjs-sdk-scenarios"}
-                    title={"Next.js SDK Setup Scenarios"}
-                />
                 <Page link={"website-builder/multi-tenant-nextjs"} title={"Multi-Tenant Setup"} />
                 <Page link={"website-builder/theme"} title={"Configure Theme"} />
                 <Page link={"website-builder/custom-component"} title={"Create Custom Component"} />
