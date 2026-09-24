@@ -404,6 +404,28 @@ Conditional visibility and access control rules configured in the CMS model edit
 - **Boolean comparisons:** Rule values were being converted to strings, so conditions like `advanced == false` never matched. Boolean values are now compared correctly.
 - **Access control evaluation:** The access control evaluator was incomplete and never matched any rules. A proper evaluator now checks `admin:<userId>` and `team:<teamSlug>` patterns against the current user, correctly hiding or disabling fields based on their access level.
 
+### Fixed List Order When Loading More Items ([#5783](https://github.com/webiny/webiny-js/pull/5783))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Items loaded via "load more" in the CMS entries list appeared in the wrong position — often at the top instead of appended to the existing results. The internal cache was shared across views with different sort orders, causing the ordering to leak between views. List views now apply their own sorting after retrieving items from the cache.
+
+### Publishing No Longer Changes Saved/Modified Timestamps ([#5783](https://github.com/webiny/webiny-js/pull/5783))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Publishing, republishing, or unpublishing an entry previously updated the `savedOn`, `modifiedOn`, `savedBy`, and `modifiedBy` fields. This caused entries to jump in lists sorted by these fields — sometimes disappearing past the loaded page. These meta fields are now preserved during publish operations and only updated when actual content changes.
+
+Additionally, saving an entry without making changes no longer bumps timestamps. The system now compares normalized values and only updates meta fields when content differs.
+
+### Fixed Update Operations Erasing Delete/Restore History ([#5783](https://github.com/webiny/webiny-js/pull/5783))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+When updating an entry that had been deleted and restored from trash, the `deletedOn`, `deletedBy`, `restoredOn`, and `restoredBy` fields were incorrectly reset to `null`. The entry no longer recorded its trash history after a simple save. These fields are now preserved across updates unless explicitly overridden.
+
+### Fixed Republishing Older Revisions on DynamoDB ([#5783](https://github.com/webiny/webiny-js/pull/5783))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Republishing an older revision (one that was already published but not the latest) failed with "Provided list of item keys contains duplicates". The operation attempted to write the same record twice. This has been fixed.
+
 ## Website Builder
 
 ### Nuxt Starter Kit Configuration ([#5265](https://github.com/webiny/webiny-js/pull/5265))
@@ -532,6 +554,11 @@ For existing environments, manually update the `Website Builder` API key in Admi
 {/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
 
 Website Builder's redirect cache invalidation was using a CloudFront invalidation task defined in `@webiny/api-file-manager-s3`, creating a hidden runtime dependency. Website Builder now has its own CloudFront invalidation task, removing the cross-package coupling.
+
+### Fixed Page List Order When Loading More Items ([#5783](https://github.com/webiny/webiny-js/pull/5783))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Pages loaded via "load more" appeared at the top of the page list instead of in the correct sorted position. This affected both the page list and the redirects list. The ordering is now handled correctly by the view layer.
 
 ## Admin
 
@@ -909,3 +936,25 @@ Cancelling a scheduled publish from the Scheduler overlay was leaving a stale "S
 {/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
 
 Several test suites were failing after stable `_id` generation was added to object and dynamic-zone values. Test expectations have been updated to account for the new `_id` field on stored objects.
+
+## Breaking Changes
+
+### Entry Data Factories Now Return `Result` Instead of Throwing ([#5783](https://github.com/webiny/webiny-js/pull/5783))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+The five entry data factories exported from `webiny/api/cms/entry` now return a `Result` type instead of throwing exceptions. If you're calling these factories directly in custom code, you'll need to update your error handling:
+
+```typescript
+import { createEntryDataFactory } from "webiny/api/cms/entry";
+import { isFail } from "webiny/api";
+
+const result = await factory.create(/* ... */);
+
+if (isFail(result)) {
+  // Handle the error
+  console.error(result.error);
+  return;
+}
+
+const { entry } = result.value;
+```
