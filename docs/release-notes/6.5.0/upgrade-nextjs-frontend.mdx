@@ -38,48 +38,49 @@ Each section gives you two ways to do the same work. Pick one:
 
 The reference implementation is the `starter-kit-6.5.x` branch of [webiny/website-builder-nextjs](https://github.com/webiny/website-builder-nextjs/tree/starter-kit-6.5.x).
 
-## Before You Start: File Inputs
+## File Inputs
 
-Check this first, whichever path you take. The 6.5 editor stores files picked in a `createFileInput()` input in a new shape:
+6.5 adds crops, focal points, and alt text to images picked in a `createFileInput()` input. The stored value keeps every field 6.4 had, so existing components keep working, and gains these:
 
-| Field      | 6.4 value         | 6.5 value                                           |
-| ---------- | ----------------- | --------------------------------------------------- |
-| File URL   | `src`             | `src` (unchanged), plus `url` with the crop applied |
-| MIME type  | `mimeType`        | `type`                                              |
-| Image size | `width`, `height` | `image.width`, `image.height`                       |
+| Field                                                          | Holds                                                           |
+| -------------------------------------------------------------- | --------------------------------------------------------------- |
+| `image.width`, `image.height`                                  | The image's intrinsic size, the same values as `width`/`height` |
+| `image.crop`, `image.focalPoint`, `image.alt`, `image.caption` | Edits made in the 6.5 editor                                    |
+| `url`                                                          | `src` with the crop applied                                     |
 
-Existing values keep the 6.4 shape until an editor picks, replaces, or crops the file in 6.5. From then on, a component that reads `mimeType`, `width`, or `height` gets `undefined`. A component that passes those to `next/image` fails the whole page with a 500 error. This happens on 6.4 and 6.5 packages alike, because the SDK passes input values to your components as stored.
+The root `mimeType`, `width`, and `height` stay for backwards compatibility. New code should read `image.width` and `image.height`.
 
-Read file inputs through `normalizeToAsset()`. It accepts both shapes and always returns the 6.5 one:
+This has two consequences:
+
+- A frontend on 6.4 packages reads `src`, so it shows the original, uncropped image and ignores alt text and focal points set in the 6.5 editor. Nothing breaks.
+- Values saved in 6.4 have no `image` or `url` until an editor picks or edits the image in 6.5. To read old and new values the same way on 6.5 packages, use `normalizeToAsset()`. It fills in `image` and `url` for values saved in 6.4:
 
 ```typescript
 import { normalizeToAsset } from "@webiny/sdk-nextjs"; // also exported by @webiny/website-builder-nextjs 6.5
 
 const asset = normalizeToAsset(inputs.image);
-// asset.url, asset.type, asset.image?.width, asset.image?.height
+// asset.url, asset.mimeType, asset.image?.width, asset.image?.height, asset.image?.alt
 ```
 
 Use `asset.url` rather than `asset.src`, so crops set in the editor show up.
 
 ## When to Upgrade
 
-Keep your frontend's Webiny packages on the same version as your Webiny project. The quickest way to get there is to bump `@webiny/website-builder-nextjs` and `@webiny/sdk` to 6.5.0. Apart from the file input change above, that needs no code changes. The API calls, the editor connection, and the exported functions are the same as in 6.4.
+Keep your frontend's Webiny packages on the same version as your Webiny project. The quickest way to get there is to bump `@webiny/website-builder-nextjs` and `@webiny/sdk` to 6.5.0. That needs no code changes. The API calls, the editor connection, and the exported functions are the same as in 6.4.
 
 Moving to `@webiny/sdk-nextjs` is a larger change that you can make later. It's what gives your frontend Headless CMS content, CMS live preview, and content entry inputs.
 
-A frontend that stays on 6.4 packages also keeps working against a 6.5 API, apart from the file input change. That helps when the frontends aren't yours to deploy, for example when each of your clients hosts their own site. Upgrade Webiny first, then give each client this page.
+A frontend that stays on 6.4 packages also keeps working against a 6.5 API. It shows images uncropped, because crops set in the 6.5 editor need 6.5 packages. That helps when the frontends aren't yours to deploy, for example when each of your clients hosts their own site. Upgrade Webiny first, then give each client this page.
 
 ### Upgrade Order
 
 Upgrade Webiny first, then the frontend:
 
 - Upgrade and deploy your Webiny project, following [Upgrade from 6.4.x to 6.5.0](./upgrade-guide). A frontend on 6.4 packages keeps working against the 6.5 API.
-- Right after that, bump the frontend packages to 6.5.0 and switch any component that reads a file input to `normalizeToAsset()`. Until that change is live, ask editors not to pick, replace, or crop images, because the 6.5 editor writes those values in the new shape. `normalizeToAsset()` only exists in the 6.5 packages, so this step can't come before the Webiny upgrade.
+- Bump the frontend packages to 6.5.0 when it suits you. To show crops, focal points, and alt text from the 6.5 editor, read file inputs through `normalizeToAsset()`. See [File Inputs](#file-inputs).
 - Move to `@webiny/sdk-nextjs` whenever it suits you.
 
 Don't upgrade the frontend first. The 6.5 packages rely on API features that a 6.4 project doesn't have.
-
-If none of your components read `mimeType`, `width`, or `height` from a file input, the second step isn't urgent, and your frontend can stay on 6.4 packages until you're ready.
 
 ## What Changed
 
@@ -191,17 +192,16 @@ Make these changes:
    - createComponent(...) can stay, or be renamed to createWbComponent(...). Both
      are the same function. Do not change component `name` values. They are
      stored in published pages, and renaming breaks those pages.
-   - File inputs (createFileInput). The 6.5 editor stores picked files in a new
-     shape: `type` instead of `mimeType`, `image.width` and `image.height` instead
-     of top-level `width` and `height`, plus a `url` that includes the crop.
-     Old values keep the old shape until an editor picks, replaces or crops the
-     file. Find every component that reads a file input and read the value
-     through normalizeToAsset() from "@webiny/sdk-nextjs", which accepts both
-     shapes:
+   - File inputs (createFileInput). 6.5 adds an `image` object (width, height,
+     crop, focalPoint, alt, caption) and a `url` with the crop applied. The root
+     mimeType, width and height stay for backwards compatibility. Values saved in
+     6.4 have no `image` or `url`. Find every component that reads a file input
+     and read the value through normalizeToAsset() from "@webiny/sdk-nextjs",
+     which fills in `image` and `url` for values saved in 6.4:
        const asset = normalizeToAsset(inputs.image);
-       // asset.url, asset.type, asset.image?.width, asset.image?.height
-     Use asset.url (not src) so crops set in the editor show up. A component that
-     passes an undefined width or height to next/image fails the whole page.
+       // asset.url, asset.mimeType, asset.image?.width, asset.image?.height, asset.image?.alt
+     Use asset.url (not src) so crops set in the editor show up, and
+     asset.image?.alt for the alt text.
 
 6. Environment variables
    - Rename NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY, NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST,
@@ -245,7 +245,7 @@ Use these steps if you're not using an AI agent. If you ran the prompt, use them
 - Delete the separate `new Webiny()` client and use the matching property on `sdk` instead (`sdk.languages`, `sdk.cms`, and so on).
 - Update page, page list, and redirect calls to `sdk.wb.*` and handle the returned `Result`.
 - Call your SDK initializer at the top of every server entry point (page components, `generateMetadata`, `generateStaticParams`, route handlers) before any `sdk.*` call. In 6.4 the separate `new Webiny()` client was ready as soon as its module loaded. In 6.5, `sdk.languages` and the other namespaces throw until `sdk.init()` has run, so a call that runs in parallel with a helper that initializes the SDK fails on the first request after a cold start.
-- Read file inputs through `normalizeToAsset()`. See [Before You Start: File Inputs](#before-you-start-file-inputs).
+- Read file inputs through `normalizeToAsset()`, so crops, focal points, and alt text from the 6.5 editor show up. See [File Inputs](#file-inputs).
 - Rename the environment variables in `.env`, `next.config.ts`, the SDK initializer, and your hosting provider.
 - In `next.config.ts`, add `"pino-pretty": "commonjs pino-pretty"` next to the existing `thread-stream` entry in `config.externals`.
 
