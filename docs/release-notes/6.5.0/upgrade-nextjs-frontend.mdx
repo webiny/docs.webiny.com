@@ -1,0 +1,458 @@
+---
+id: wb6sdksc
+title: Upgrade Next.js Frontend to 6.5.0
+description: Upgrade a Next.js frontend to the Webiny 6.5 SDK, whether it's built on the 6.4 starter kit or talks to Webiny without the SDK.
+---
+
+import { Alert } from "@/components/Alert";
+
+<Alert type="success" title="What you'll learn">
+
+- what changed in the Next.js SDK in Webiny 6.5
+- how to upgrade a frontend built on the 6.4 starter kit
+- how to add the Webiny SDK to a Next.js app that has never used it
+- which AI prompt to give your coding agent for each case
+
+</Alert>
+
+<Alert type="info">
+
+This guide covers your Next.js frontend. Upgrade your Webiny project first, following [Upgrade from 6.4.x to 6.5.0](./upgrade-guide).
+
+</Alert>
+
+## Overview
+
+Webiny 6.5 replaces the two packages the Next.js starter kit used before, `@webiny/website-builder-nextjs` and `@webiny/sdk`, with a single package, `@webiny/sdk-nextjs`. One `sdk` object now covers Website Builder pages, Headless CMS entries, languages, file manager, and tenant manager. The same package also powers Headless CMS live preview.
+
+What you need to do depends on your frontend:
+
+- **Built on the 6.4 starter kit.** Follow [Upgrade a 6.4 Starter Kit Project](#upgrade-a-6-4-starter-kit-project).
+- **A Next.js app that has never used the Webiny SDK.** Follow [Add the SDK to an Existing Next.js App](#add-the-sdk-to-an-existing-next-js-app).
+- **No frontend yet.** Start from the 6.5 starter kit. See [Setup Next.js Project](/website-builder/setup-nextjs).
+
+Each section gives you two ways to do the same work. Pick one:
+
+- **Use an AI agent.** Paste the prompt into Claude Code, Cursor, Copilot, or a similar agent from your Next.js project root. The prompts are self-contained: they describe the target setup, point the agent at the reference starter kit, and say what to leave alone.
+- **Make the changes yourself.** Follow the steps under the prompt. They list the same changes the prompt makes, so they also work as a checklist for reviewing what the agent did.
+
+The reference implementation is the `starter-kit-6.5.x` branch of [webiny/website-builder-nextjs](https://github.com/webiny/website-builder-nextjs/tree/starter-kit-6.5.x).
+
+## File Inputs
+
+6.5 adds crops, focal points, and alt text to images picked in a `createFileInput()` input. The stored value keeps every field 6.4 had, so existing components keep working, and gains these:
+
+| Field                                                          | Holds                                                           |
+| -------------------------------------------------------------- | --------------------------------------------------------------- |
+| `image.width`, `image.height`                                  | The image's intrinsic size, the same values as `width`/`height` |
+| `image.crop`, `image.focalPoint`, `image.alt`, `image.caption` | Edits made in the 6.5 editor                                    |
+| `url`                                                          | `src` with the crop applied                                     |
+
+The root `mimeType`, `width`, and `height` stay for backwards compatibility. New code should read `image.width` and `image.height`.
+
+This has two consequences:
+
+- A frontend on 6.4 packages reads `src`, so it shows the original, uncropped image and ignores alt text and focal points set in the 6.5 editor. Nothing breaks.
+- Values saved in 6.4 have no `image` or `url` until an editor picks or edits the image in 6.5. To read old and new values the same way on 6.5 packages, use `normalizeToAsset()`. It fills in `image` and `url` for values saved in 6.4:
+
+```typescript
+import { normalizeToAsset } from "@webiny/sdk-nextjs"; // also exported by @webiny/website-builder-nextjs 6.5
+
+const asset = normalizeToAsset(inputs.image);
+// asset.url, asset.mimeType, asset.image?.width, asset.image?.height, asset.image?.alt
+```
+
+Use `asset.url` rather than `asset.src`, so crops set in the editor show up.
+
+## When to Upgrade
+
+Keep your frontend's Webiny packages on the same version as your Webiny project. The quickest way to get there is to bump `@webiny/website-builder-nextjs` and `@webiny/sdk` to 6.5.0. That needs no code changes. The API calls, the editor connection, and the exported functions are the same as in 6.4.
+
+Moving to `@webiny/sdk-nextjs` is a larger change that you can make later. It's what gives your frontend Headless CMS content, CMS live preview, and content entry inputs.
+
+A frontend that stays on 6.4 packages also keeps working against a 6.5 API. It shows images uncropped, because crops set in the 6.5 editor need 6.5 packages. That helps when the frontends aren't yours to deploy, for example when each of your clients hosts their own site. Upgrade Webiny first, then give each client this page.
+
+### Upgrade Order
+
+Upgrade Webiny first, then the frontend:
+
+- Upgrade and deploy your Webiny project, following [Upgrade from 6.4.x to 6.5.0](./upgrade-guide). A frontend on 6.4 packages keeps working against the 6.5 API.
+- Bump the frontend packages to 6.5.0 when it suits you. To show crops, focal points, and alt text from the 6.5 editor, read file inputs through `normalizeToAsset()`. See [File Inputs](#file-inputs).
+- Move to `@webiny/sdk-nextjs` whenever it suits you.
+
+Don't upgrade the frontend first. The 6.5 packages rely on API features that a 6.4 project doesn't have.
+
+## What Changed
+
+| Area                   | 6.4 starter kit                                                                  | 6.5 starter kit                                                                  |
+| ---------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Packages               | `@webiny/website-builder-nextjs` and `@webiny/sdk`                               | `@webiny/sdk-nextjs`                                                             |
+| SDK object             | `contentSdk` for pages, a separate `new Webiny()` client for everything else     | One `sdk` object: `sdk.wb`, `sdk.cms`, `sdk.languages`, and so on                |
+| Initialization         | `contentSdk.init({ apiKey, apiHost, apiTenant, preview, theme }, callback)`      | `sdk.init({ endpoint, token, tenant, preview, wb: { theme, componentGroups } })` |
+| Return values          | `contentSdk.getPage()` returns the page or `null`                                | `sdk.wb.getPage()` returns a `Result`                                            |
+| Component groups       | `registerComponentGroup()` calls in a callback                                   | `componentGroups` array passed to `sdk.init()`                                   |
+| Component registration | `createComponent()`                                                              | `createWbComponent()` (`createComponent()` still works, it's the same function)  |
+| Environment variables  | `NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY`, `_API_HOST`, `_API_TENANT`, `_ADMIN_HOST` | `NEXT_PUBLIC_WEBINY_API_KEY`, `_API_HOST`, `_API_TENANT`, `_ADMIN_HOST`          |
+| API key                | "Website Builder" (Website Builder read only)                                    | "Frontend Integration" (Website Builder, Headless CMS, and languages read)       |
+| Project layout         | Everything under `src/`                                                          | Files at the project root (`app/`, `sdk/`, `theme/`, ...)                        |
+
+The rest works the same way as before: the middleware that handles draft mode, tenants, and redirects, the `/api/preview` route, the `DocumentRenderer` wrapper, and the theme files.
+
+## API Key and Environment Variables
+
+The 6.5 starter kit reads `NEXT_PUBLIC_WEBINY_*` variables. Where you get the values depends on when your Webiny project was first deployed.
+
+- **Deployed on 6.5 or later.** Webiny created a "Frontend Integration" API key for you. The **Configure Frontend** dialog (**Dev Tools** menu in Admin) shows the key and the `NEXT_PUBLIC_WEBINY_*` variables. Copy them as they are.
+- **Upgraded from 6.4.** The project has the older "Website Builder" key and no "Frontend Integration" key. The dialog falls back to the old key and shows the old `NEXT_PUBLIC_WEBSITE_BUILDER_*` names. Rename the variables to `NEXT_PUBLIC_WEBINY_*` and keep the values.
+
+The old "Website Builder" key can only read Website Builder data. That covers rendering pages and redirects. To use Headless CMS content, content entry inputs, or CMS live preview in your frontend, the key also needs read access to Headless CMS. Edit it under **Settings → Access Management → API Keys**, or create a new read-only key with Website Builder, Headless CMS, and Languages read access.
+
+## Upgrade a 6.4 Starter Kit Project
+
+Use this if your app started from the Next.js starter kit before Webiny 6.5. You can tell by the imports: `@webiny/website-builder-nextjs` and a `src/contentSdk/` folder.
+
+### Option 1: Use an AI Agent
+
+Paste this prompt into your agent. It makes every change listed in Option 2, so you don't need to do those steps as well.
+
+```text
+Upgrade this Next.js app from the Webiny 6.4 SDK to the Webiny 6.5 SDK.
+
+The app started from the Webiny Next.js starter kit (6.4). It uses
+@webiny/website-builder-nextjs and @webiny/sdk. Webiny 6.5 replaces both with a
+single package, @webiny/sdk-nextjs.
+
+Reference implementation (read these files before changing anything):
+https://github.com/webiny/website-builder-nextjs/tree/starter-kit-6.5.x
+Most relevant: sdk/initializeSdk.ts, sdk/SdkInitializer.ts, sdk/groups.ts,
+app/layout.tsx, app/(site)/[[...slug]]/page.tsx, app/api/redirects/route.ts,
+components/DocumentRenderer.tsx, next.config.ts, theme/theme.ts, theme/theme.css.
+
+Make these changes:
+
+1. Dependencies
+   - Remove @webiny/website-builder-nextjs and @webiny/sdk from package.json.
+   - Install @webiny/sdk-nextjs@~6.5.0 with the package manager this project
+     already uses (check the lockfile).
+
+2. Imports
+   - Replace every import from "@webiny/website-builder-nextjs" and
+     "@webiny/sdk" with "@webiny/sdk-nextjs".
+   - "@webiny/website-builder-nextjs/webpack" becomes "@webiny/sdk-nextjs/webpack.js".
+   - "@webiny/website-builder-nextjs/lexical.css" becomes "@webiny/sdk-nextjs/lexical.css".
+   - The Language type is now exported from "@webiny/sdk-nextjs".
+
+3. SDK initialization
+   - Replace contentSdk.init(...) with sdk.init(...) from "@webiny/sdk-nextjs":
+       sdk.init({
+         endpoint: String(process.env.NEXT_PUBLIC_WEBINY_API_HOST),
+         token: String(process.env.NEXT_PUBLIC_WEBINY_API_KEY),
+         tenant: tenantId ?? String(process.env.NEXT_PUBLIC_WEBINY_API_TENANT),
+         preview,
+         wb: { theme, componentGroups }
+       });
+   - The old second argument (a callback calling registerComponentGroup) is gone.
+     Turn the registered groups into an exported array of ComponentGroup objects
+     (same name, label, description, icon, filter) and pass it as wb.componentGroups.
+   - Keep the existing initializer function and client initializer component, but
+     rename them if you like (the reference uses initializeSdk and SdkInitializer).
+   - Delete the separate `new Webiny({...})` client (usually src/webinySdk.ts).
+     Replace its uses: webinySdk.languages -> sdk.languages, webinySdk.cms -> sdk.cms,
+     webinySdk.fileManager -> sdk.fileManager, webinySdk.tenantManager -> sdk.tenantManager.
+
+4. Data fetching. The new methods return a Result instead of a raw value:
+   - contentSdk.getPage(path)            -> sdk.wb.getPage(path)
+     old: page or null. new: check result.isOk(), then use result.value.
+   - contentSdk.listPages()              -> sdk.wb.listPages()
+     old: pages.data. new: result.isOk() ? result.value.data : [].
+   - contentSdk.getRedirectByPath(path)  -> sdk.wb.getRedirectByPath(path)
+     new: the redirect is result.value when result.isOk(). Keep the redirects
+     route's response shape ({ redirect }) unchanged, because middleware.ts reads it.
+
+   Initialization order matters. In 6.4 the separate `new Webiny()` client was
+   created when its module loaded, so calls like webinySdk.languages always worked.
+   In 6.5 every sdk.* call throws "SDK is not initialized" until sdk.init() has run.
+   - Call the SDK initializer once at the top of every server entry point, before
+     any sdk.* call: page components, generateMetadata, generateStaticParams and
+     route handlers. In page components and generateMetadata, pass the draft mode
+     flag:
+       const { isEnabled } = await draftMode();
+       initializeSdk({ preview: isEnabled, tenantId: await getTenant() });
+     draftMode() isn't available in generateStaticParams, and the redirects route
+     gets the tenant from its query string, so pass only the tenant there.
+   - Do not leave the initializer inside a helper such as getPage() when other SDK
+     calls (for example sdk.languages.listLanguages()) run next to it in
+     Promise.all. The other call can run first and fail on the first request
+     after a cold start.
+
+5. Components
+   - createComponent(...) can stay, or be renamed to createWbComponent(...). Both
+     are the same function. Do not change component `name` values. They are
+     stored in published pages, and renaming breaks those pages.
+   - File inputs (createFileInput). 6.5 adds an `image` object (width, height,
+     crop, focalPoint, alt, caption) and a `url` with the crop applied. The root
+     mimeType, width and height stay for backwards compatibility. Values saved in
+     6.4 have no `image` or `url`. Find every component that reads a file input
+     and read the value through normalizeToAsset() from "@webiny/sdk-nextjs",
+     which fills in `image` and `url` for values saved in 6.4:
+       const asset = normalizeToAsset(inputs.image);
+       // asset.url, asset.mimeType, asset.image?.width, asset.image?.height, asset.image?.alt
+     Use asset.url (not src) so crops set in the editor show up, and
+     asset.image?.alt for the alt text.
+
+6. Environment variables
+   - Rename NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY, NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST,
+     NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT and NEXT_PUBLIC_WEBSITE_BUILDER_ADMIN_HOST
+     to NEXT_PUBLIC_WEBINY_API_KEY, NEXT_PUBLIC_WEBINY_API_HOST,
+     NEXT_PUBLIC_WEBINY_API_TENANT and NEXT_PUBLIC_WEBINY_ADMIN_HOST.
+   - Update every reference: .env files, .env.example, next.config.ts (image
+     remotePatterns and the frame-ancestors CSP header), the SDK initializer, and
+     any CI or hosting configuration files in the repo. Keep the values.
+   - List every environment variable I need to rename in my hosting provider.
+
+7. next.config.ts
+   - Add "pino-pretty": "commonjs pino-pretty" next to the existing
+     "thread-stream" entry in config.externals.
+
+Do not:
+- Move files out of src/. The 6.5 starter kit keeps files at the project root,
+  but that layout is optional. Keep the current structure and path aliases.
+- Change my custom components, styles, or theme values beyond import paths and
+  the file input change in step 5.
+- Add the starter kit's example features (articles, ContentEntryDemo, tenant
+  theme loading) unless I ask.
+
+When you're done:
+- Run the TypeScript check and `next build`, and fix any errors.
+- Check that every server file calling sdk.* initializes the SDK first in the
+  same function, before any parallel calls.
+- Search the codebase for "website-builder-nextjs", "@webiny/sdk\"", "contentSdk."
+  and "NEXT_PUBLIC_WEBSITE_BUILDER" and confirm nothing is left (yarn.lock and
+  folder names don't count).
+- Summarize what you changed and list anything you were unsure about.
+```
+
+### Option 2: Make the Changes Yourself
+
+Use these steps if you're not using an AI agent. If you ran the prompt, use them to review the agent's changes.
+
+- Replace `@webiny/website-builder-nextjs` and `@webiny/sdk` with `@webiny/sdk-nextjs@~6.5.0` in `package.json`, and update every import. The webpack helper moves to `@webiny/sdk-nextjs/webpack.js`, the Lexical styles to `@webiny/sdk-nextjs/lexical.css`, and the `Language` type to `@webiny/sdk-nextjs`.
+- Replace `contentSdk.init()` with `sdk.init()`. The config keys change (`apiHost` to `endpoint`, `apiKey` to `token`, `apiTenant` to `tenant`), and `theme` moves under `wb`.
+- Turn your `registerComponentGroup()` calls into a `componentGroups` array and pass it as `wb.componentGroups`.
+- Delete the separate `new Webiny()` client and use the matching property on `sdk` instead (`sdk.languages`, `sdk.cms`, and so on).
+- Update page, page list, and redirect calls to `sdk.wb.*` and handle the returned `Result`.
+- Call your SDK initializer at the top of every server entry point (page components, `generateMetadata`, `generateStaticParams`, route handlers) before any `sdk.*` call. In 6.4 the separate `new Webiny()` client was ready as soon as its module loaded. In 6.5, `sdk.languages` and the other namespaces throw until `sdk.init()` has run, so a call that runs in parallel with a helper that initializes the SDK fails on the first request after a cold start.
+- Read file inputs through `normalizeToAsset()`, so crops, focal points, and alt text from the 6.5 editor show up. See [File Inputs](#file-inputs).
+- Rename the environment variables in `.env`, `next.config.ts`, the SDK initializer, and your hosting provider.
+- In `next.config.ts`, add `"pino-pretty": "commonjs pino-pretty"` next to the existing `thread-stream` entry in `config.externals`.
+
+Here's the SDK initializer before and after:
+
+```typescript src/contentSdk/initializeContentSdk.ts
+// ❌ 6.4
+import {
+  contentSdk,
+  type WebsiteBuilderThemeInput,
+} from "@webiny/website-builder-nextjs";
+import { registerComponentGroups } from "./groups";
+
+export const initializeContentSdk = ({
+  tenantId,
+  preview,
+  theme,
+}: ContentSdkOptions = {}) => {
+  contentSdk.init(
+    {
+      apiKey: String(process.env.NEXT_PUBLIC_WEBSITE_BUILDER_API_KEY),
+      apiHost: String(process.env.NEXT_PUBLIC_WEBSITE_BUILDER_API_HOST),
+      apiTenant:
+        tenantId ?? String(process.env.NEXT_PUBLIC_WEBSITE_BUILDER_API_TENANT),
+      preview,
+      theme,
+    },
+    registerComponentGroups,
+  );
+};
+```
+
+```typescript sdk/initializeSdk.ts
+// ✅ 6.5
+import { sdk, type WebsiteBuilderThemeInput } from "@webiny/sdk-nextjs";
+import { componentGroups } from "./groups";
+
+export const initializeSdk = ({
+  tenantId,
+  preview,
+  theme,
+}: SdkOptions = {}) => {
+  sdk.init({
+    endpoint: String(process.env.NEXT_PUBLIC_WEBINY_API_HOST),
+    token: String(process.env.NEXT_PUBLIC_WEBINY_API_KEY),
+    tenant: tenantId ?? String(process.env.NEXT_PUBLIC_WEBINY_API_TENANT),
+    preview,
+    wb: { theme, componentGroups },
+  });
+};
+```
+
+And fetching a page:
+
+```typescript
+// ❌ 6.4
+const page = await contentSdk.getPage(path);
+
+// ✅ 6.5
+const result = await sdk.wb.getPage(path);
+const page = result.isOk() ? result.value : null;
+```
+
+## Add the SDK to an Existing Next.js App
+
+Use this if you have a Next.js App Router app that has never used the Webiny SDK and you want to render Website Builder pages in it. Your routes, layouts, and components stay. The SDK adds a route for Webiny pages and the plumbing the editor needs to load your app in an iframe.
+
+### Option 1: Use an AI Agent
+
+Paste this prompt into your agent. It makes every change listed in Option 2, so you don't need to do those steps as well.
+
+Before running the prompt, decide where Webiny pages should live and replace `<PAGES_ROUTE>` with it. Use `/` if Webiny should own every URL that your app doesn't already handle, or a prefix such as `/pages` to keep Webiny pages in one section.
+
+```text
+Add the Webiny SDK (Webiny 6.5) to this existing Next.js App Router app so it can
+render Webiny Website Builder pages and support live editing in the Webiny editor.
+
+Reference implementation (read these files before changing anything):
+https://github.com/webiny/website-builder-nextjs/tree/starter-kit-6.5.x
+Most relevant: middleware.ts, next.config.ts, app/layout.tsx,
+app/(site)/[[...slug]]/page.tsx, app/api/preview/route.ts,
+app/api/redirects/route.ts, sdk/*, components/DocumentRenderer.tsx,
+editorComponents/index.tsx, theme/theme.ts, theme/theme.css, utils/normalizeSlug.ts,
+utils/SlugNormalizer.ts, constants.ts.
+
+Webiny pages should be served under: <PAGES_ROUTE>
+
+First, inspect the app and tell me:
+- the Next.js version, whether it uses the App Router, and whether a src/ folder is used
+- whether a middleware.ts already exists and what it does
+- whether a catch-all route would conflict with existing routes under <PAGES_ROUTE>
+- how global styles and fonts are loaded
+Then make these changes, adapting paths to this project's structure:
+
+1. Install @webiny/sdk-nextjs@~6.5.0 with the package manager this project
+   already uses. It needs Next.js 15 and React 19. Next.js 16 isn't supported
+   yet. If the app is on a different major version, stop and tell me.
+
+2. Environment variables. Add to .env.example (never commit real values):
+     NEXT_PUBLIC_WEBINY_API_KEY=
+     NEXT_PUBLIC_WEBINY_API_HOST=
+     NEXT_PUBLIC_WEBINY_API_TENANT=root
+     NEXT_PUBLIC_WEBINY_ADMIN_HOST=
+   I'll get the values from the "Configure Frontend" dialog in Webiny Admin.
+
+3. SDK setup. Create an sdk/ folder (or src/sdk/) modeled on the reference:
+   - initializeSdk.ts: calls sdk.init({ endpoint, token, tenant, preview,
+     wb: { theme, componentGroups } }) from "@webiny/sdk-nextjs", reading the
+     NEXT_PUBLIC_WEBINY_* variables.
+   - SdkInitializer.ts: a "use client" component that calls initializeSdk with
+     the draft mode flag, theme, and tenant id.
+   - getTenant.ts: reads the X-Tenant request header, defaulting to "root".
+   - groups.ts: a componentGroups array with at least one group.
+
+4. Theme. Create theme/theme.css that starts with
+   @import "@webiny/sdk-nextjs/lexical.css"; and defines the CSS variables the
+   editor should know about, and theme/theme.ts that exports `css` and
+   `theme = createTheme({...})` exactly as in the reference. Base the colors,
+   fonts, and typography on the styles this app already uses, not on the
+   reference values.
+
+5. next.config.ts. Merge these into the existing config without removing
+   anything:
+   - injectThemeCss from "@webiny/sdk-nextjs/webpack.js" and its webpack
+     plugins, pointed at theme/theme.css.
+   - A Content-Security-Policy header "frame-ancestors http://localhost:3001
+     <NEXT_PUBLIC_WEBINY_ADMIN_HOST values>" so Webiny Admin can embed the app.
+     If a CSP header already exists, add frame-ancestors to it.
+   - images.remotePatterns for the NEXT_PUBLIC_WEBINY_API_HOST hostname.
+   - config.externals entries for "thread-stream" and "pino-pretty".
+   If next.config is not async yet, convert it to an async function as in the
+   reference.
+
+6. Middleware. Port the reference middleware.ts logic:
+   - wb.preview=true or wb.editing=true query params enable draft mode via
+     /api/preview, and disable it when the params are gone.
+   - wb.tenant query param sets the X-Tenant request header.
+   - Redirect lookup through /api/redirects.
+   If a middleware already exists, merge this logic into it and keep its current
+   behavior. Keep the matcher from excluding the app's existing needs.
+
+7. API routes. Add app/api/preview/route.ts and app/api/redirects/route.ts from
+   the reference, and constants.ts (trailingSlash, redirectsCacheTtl).
+
+8. Page route. Add an optional catch-all route under <PAGES_ROUTE> based on
+   app/(site)/[[...slug]]/page.tsx:
+   - Initialize the SDK with the draft mode flag at the top of each function,
+     before any SDK call (including calls run in parallel),
+     including in generateStaticParams and generateMetadata.
+   - Fetch with sdk.wb.getPage(path) and handle the Result (result.isOk()).
+   - Render through a DocumentRenderer wrapper (components/DocumentRenderer.tsx
+     in the reference) that uses SSR normally and disables SSR when the
+     wb.editing query param is "true".
+   - If <PAGES_ROUTE> is not "/", strip the prefix before calling getPage, and
+     map paths from sdk.wb.listPages() back into the prefix in
+     generateStaticParams.
+   - Skip the language selector and multi-language logic unless I ask for it.
+
+9. Root layout. In the root layout, call initializeSdk with the draft mode flag
+   and tenant id, add <style>{css}</style> to <head>, and render <SdkInitializer
+   draftMode={isEnabled} theme={theme} tenantId={tenantId} /> as the first child
+   of <body>. Keep everything else in the layout.
+
+10. Editor components. Create editorComponents/index.tsx with one simple example
+    component registered with createWbComponent(Component, { name, label,
+    inputs }) and createTextInput. Tell me which of my existing components would
+    make good editor components, but don't register them yet.
+
+Do not:
+- Change existing routes, pages, or components beyond what is listed above.
+- Copy the reference's example features (articles, ContentEntryDemo, tenant theme
+  loading, Header, LanguageSelector).
+- Put real credentials in any committed file.
+
+When you're done:
+- Run the TypeScript check and `next build`, and fix any errors.
+- Summarize every file you added or changed, and explain how to test: start the
+  dev server, set Frontend Domain in Webiny Admin's "Configure Frontend" dialog
+  to the dev server URL, create and publish a page, and open it.
+```
+
+### Option 2: Make the Changes Yourself
+
+Use these steps if you're not using an AI agent. If you ran the prompt, use them to review the agent's changes. Each item below corresponds to a file in the [starter kit](https://github.com/webiny/website-builder-nextjs/tree/starter-kit-6.5.x). Copy it and adapt it to your app.
+
+- **`package.json`.** Install `@webiny/sdk-nextjs@~6.5.0`. It requires Next.js 15 and React 19. Next.js 16 isn't supported yet.
+- **`.env`.** Add the `NEXT_PUBLIC_WEBINY_*` variables from the **Configure Frontend** dialog.
+- **`sdk/`.** Add `initializeSdk.ts`, `SdkInitializer.ts`, `getTenant.ts`, and `groups.ts`.
+- **`theme/`.** Add `theme.css` and `theme.ts`. The editor reads colors, fonts, and typography styles from `createTheme()`, so base them on your existing design.
+- **`next.config.ts`.** Add the theme CSS webpack plugins, the `frame-ancestors` CSP header, and the image remote pattern. Without the CSP header, the browser refuses to load your app inside the Webiny editor.
+- **`middleware.ts`.** Add draft mode handling, the tenant header, and redirect lookup. Merge it with your middleware if you already have one.
+- **`app/api/preview/route.ts` and `app/api/redirects/route.ts`.** Add both routes.
+- **A page route.** Add a catch-all route that fetches the page with `sdk.wb.getPage()` and renders it with `DocumentRenderer`.
+- **Root layout.** Initialize the SDK, inject the theme CSS, and render `SdkInitializer`.
+- **`editorComponents/`.** Register the components editors can use. See [Create Custom Component](/website-builder/custom-component).
+
+Then set **Frontend Domain** in the **Configure Frontend** dialog to your app's URL, create a page in **Website Builder → Pages**, and publish it.
+
+## Headless CMS Content and Live Preview
+
+The same `sdk` object reads Headless CMS content, so you don't need a second client:
+
+```typescript
+const result = await sdk.cms.listEntries({
+  modelId: "article",
+  where: { values: { slug } },
+  limit: 1,
+});
+```
+
+To show an entry in the Headless CMS live preview pane, set `previewPath` in the model settings. In a code-defined model, use `.settings({ previewPath: "/articles/{values.slug}" })`. The pane loads `<Frontend Domain>/articles/preview` with `wb.editing=true`, `wb.type=entry`, and `wb.id=<entry ID>` query parameters. Your app needs a route at that path that renders the entry with `EntryRenderer`. The `app/(site)/articles/` folder in the starter kit shows both the published route and the preview route.
+
+For CMS features, the API key needs Headless CMS read access. See [API Key and Environment Variables](#api-key-and-environment-variables).
