@@ -1,0 +1,210 @@
+---
+id: olwgge93
+title: Webiny 6.6.0 Changelog
+description: See what's new in Webiny version 6.6.0
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.6.0"} />
+
+## Development
+
+### Self-Hosted Webiny with Built-In Authentication ([#5368](https://github.com/webiny/webiny-js/pull/5368), [#5367](https://github.com/webiny/webiny-js/pull/5367), [#5374](https://github.com/webiny/webiny-js/pull/5374), [#5393](https://github.com/webiny/webiny-js/pull/5393))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Webiny can now run entirely on your own infrastructure without AWS, Pulumi, or an external authentication service. The new self-hosted flavour uses a plain Node HTTP server backed by SQL/SQLite, with a dedicated `webiny-server` CLI separate from the AWS-focused `webiny` CLI.
+
+Key capabilities:
+
+- **Built-in username/password authentication** — a first-party identity provider with a login screen matching the Cognito UI, JWT-based sessions, and scrypt password hashing. Configure it entirely from `webiny.config.tsx` via `<SelfHostedAuth signingSecret={...} tokenExpiresIn={...} />`.
+- **`webiny-server serve`** — runs built apps as long-running servers: `serve api` boots the API, `serve admin` statically serves the admin SPA with proper client-side routing, and `serve` runs both.
+- **`webiny-server watch api`** — boots the API automatically alongside build watchers, with cleaner output and automatic reload on changes.
+- **WebSocket support** — real-time features now work on self-hosted deployments just as they do on AWS.
+- **Config-driven admin API URL** — `<Admin.ApiUrl url={...} />` tells the admin where the API lives, falling back to same-origin for deployed self-hosted setups.
+
+The AWS flavour's behaviour is unchanged.
+
+### TypeScript 7 Compatibility ([#5380](https://github.com/webiny/webiny-js/pull/5380))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The build tooling has been updated for TypeScript 7, which removed the programmatic compiler API. The new approach shells out to the native `tsc` binary with proper cross-platform support (Windows long paths, ARM64 macOS). Several deprecated compiler options were also removed from the root config.
+
+### Testable API Handler Composition ([#5361](https://github.com/webiny/webiny-js/pull/5361))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+The code that assembles Webiny's API Lambda used to live in a project template that could only be verified by a full deploy. This wiring now lives in real packages (`@webiny/api-infra-aws`, `@webiny/api-infra-aws-ddb`, `@webiny/api-infra-aws-ddb-os`) with an automated integration test that boots the entire handler against an in-process DynamoDB. This catches composition and registration-order bugs before deploy.
+
+### Remote Components Feature Flag ([#5559](https://github.com/webiny/webiny-js/pull/5559))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Remote Components is a new enterprise feature that allows you to create, edit, and bundle React components directly from the Admin UI, then load and render them in a Next.js frontend at runtime. The feature includes a Monaco editor with live sandbox preview, AI-powered component generation, and a Next.js runtime loader.
+
+The `remoteComponents` feature flag gates the entire extension. When disabled, no GraphQL schema is registered and no admin UI is mounted.
+
+### Dependency-Aware Build Cache Now Default ([#5430](https://github.com/webiny/webiny-js/pull/5430))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+The experimental dependency-aware build cache is now the default behavior. A plain `yarn build` now automatically rebuilds any changed package plus all packages that depend on it, whether workspace packages or resolved third-party dependencies. The `--rebuild-dependents` flag and `WEBINY_EXPERIMENTAL_DEP_AWARE_CACHE` environment variable have been removed.
+
+<Alert type="info">
+
+The first build after upgrading will be slower as cached hashes are recalculated. Subsequent builds return to normal speed.
+
+</Alert>
+
+### Apollo Client Removed ([#5519](https://github.com/webiny/webiny-js/pull/5519))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Apollo Client and all related code have been completely removed from the repository. The Admin UI now uses a different GraphQL client internally.
+
+### Improved Content Drift Detection in Generated Webiny Package ([#5476](https://github.com/webiny/webiny-js/pull/5476))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+The `validate-webiny-package` command now detects when exports are hand-edited directly into the generated `webiny` package instead of following the source `src/exports` folder convention. Previously, edits to already-expected generated files would pass validation but get silently wiped on the next `generate-webiny-package` run. The validation now compares file contents (whitespace-normalized) and fails loudly when drift is detected.
+
+### Fixed Cypress Tests After TypeScript Upgrade ([#5410](https://github.com/webiny/webiny-js/pull/5410))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Resolved Cypress test failures introduced by the TypeScript 7 upgrade.
+
+## Headless CMS
+
+### Modernised Storage Operations Architecture ([#5490](https://github.com/webiny/webiny-js/pull/5490))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The CMS storage layer was restructured for better maintainability. Each of the 22 entry storage operations (create, update, publish, list, etc.) is now an independent abstraction registered via dependency injection, replacing a monolithic interface that bundled all operations together. This is an internal architecture improvement with no change to API behaviour.
+
+### Platform-Agnostic Search Index Tasks ([#5487](https://github.com/webiny/webiny-js/pull/5487), [#5450](https://github.com/webiny/webiny-js/pull/5450), [#5431](https://github.com/webiny/webiny-js/pull/5431))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Search index task handling has been restructured to support multiple database backends. The code previously tied to DynamoDB + OpenSearch has been split into base abstractions (`api-search-index`) with dedicated implementations for OpenSearch (`api-search-index-os`) and DynamoDB + OpenSearch (`api-search-index-ddb-os`). This enables the upcoming Postgres + OpenSearch support.
+
+### CMS Entry Collaboration with Threaded Comments ([#5473](https://github.com/webiny/webiny-js/pull/5473))
+{/* REVIEW-PENDING @SvenAlHamad — confirm this entry, then delete this line */}
+
+You can now add threaded comments to Headless CMS entries, anchored to the entire entry or a specific field. Comments support replies, resolve/reopen states, editing, @mentions, and soft-delete. A new Comments toggle in the entry editor header opens an animated side panel with per-field comment markers.
+
+Key capabilities:
+- Click a field's comment marker to filter the panel to that field's threads
+- Copy shareable deep-links to specific threads via "Copy link to thread"
+- URL query parameters (`commentThread` / `commentField`) open the panel and scroll to the referenced thread
+
+### Notifications Inbox for Comments and Workflows ([#5473](https://github.com/webiny/webiny-js/pull/5473))
+{/* REVIEW-PENDING @SvenAlHamad — confirm this entry, then delete this line */}
+
+A per-user notifications inbox is now available in the Admin UI. A bell icon in the top bar shows an unread badge and opens a slide-in panel with Inbox/Archive tabs, an unread-only filter, and time-grouped notification items.
+
+Notifications are triggered by:
+- **Comments** — when you're @mentioned in a comment or someone replies to your thread
+- **Advanced Publishing Workflow** — when your entry is approved or rejected
+
+Each notification deep-links to the relevant CMS entry and comment thread.
+
+### Extract OpenSearch Sync to a Dedicated Package ([#5413](https://github.com/webiny/webiny-js/pull/5413))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The OpenSearch synchronization logic has been extracted from the DynamoDB-specific package into its own standalone module. This architectural change enables reuse of the sync mechanism across different storage backends.
+
+### CMS Bulk Actions Now Support Multiple Deployment Targets ([#5529](https://github.com/webiny/webiny-js/pull/5529))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+CMS bulk actions have been restructured to support both serverless (AWS) and traditional server deployments, following the same pattern used by other Webiny packages.
+
+### Postgres Storage Operations Research and Design ([#5402](https://github.com/webiny/webiny-js/pull/5402))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+This release includes internal research and design documentation for adding Postgres + OpenSearch storage operations to the Headless CMS. No code changes are included — this is foundational work exploring a hybrid architecture where Postgres serves as the source of truth for writes and point lookups, while OpenSearch handles all search, filter, and sort operations.
+
+Key architectural decisions documented:
+
+- Table-per-model structure with shared tables using a tenant column
+- System fields stored as real columns, user field values in a single `values` JSONB column
+- WAL logical replication for Postgres → OpenSearch synchronisation
+- Upsert pattern for CRUD operations
+
+<Alert type="info">
+
+This is research-only — no production code or migration paths are included in this release.
+
+</Alert>
+
+### Internal Cleanup of Legacy Setup Code ([#5381](https://github.com/webiny/webiny-js/pull/5381))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Removed leftover internal setup code from File Manager, Record Locking, and folder-level permissions that was no longer in use. This is internal cleanup with no effect on how these features work.
+
+## Infrastructure
+
+### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The unmaintained `decompress` package (last published 2018) has been replaced with `adm-zip`, which is actively maintained, has zero dependencies, and includes built-in zip-slip protection against path traversal attacks.
+
+### Unified Event Handler Architecture ([#5359](https://github.com/webiny/webiny-js/pull/5359), [#5360](https://github.com/webiny/webiny-js/pull/5360))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+The AWS Lambda and self-hosted server request handlers previously maintained nearly identical copies of the same request loop. These are now unified into a single shared implementation with transport-specific pieces isolated behind a `Transport` abstraction. This is an internal cleanup with no change to application behaviour.
+
+### Fixed Destroy Failures with GuardDuty Malware Protection ([#5475](https://github.com/webiny/webiny-js/pull/5475))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Destroying a Webiny project failed when a GuardDuty Malware Protection Plan existed (File Manager Threat Detection), because the deploy role lacked EventBridge permissions for GuardDuty-managed rules. The deploy policy now includes the necessary permissions scoped via the `events:ManagedBy` condition key.
+
+### Fixed SQLite Self-Hosted Builds Failing at Boot ([#5525](https://github.com/webiny/webiny-js/pull/5525))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+SQLite self-hosted deploy artifacts crashed at boot with `Cannot find module 'pg-connection-string'`. The build process incorrectly pruned this package, but it's required by Knex regardless of which database driver you use.
+
+### Background Tasks Split for Multi-Environment Support ([#5370](https://github.com/webiny/webiny-js/pull/5370))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The background tasks package has been split into `core`, `aws`, and `server` variants, enabling background task functionality across different deployment environments (AWS Lambda and traditional servers).
+
+### Improved Background Tasks Internal Architecture ([#5382](https://github.com/webiny/webiny-js/pull/5382))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Modernized how background tasks and several related features are wired internally, replacing a legacy plugin mechanism with dependency injection. The GraphQL schema for tasks is now built per-request from the tenant's task models. This is an internal structure improvement with no change to application behavior.
+
+### Consistent License Refresh Across All Deployment Types ([#5378](https://github.com/webiny/webiny-js/pull/5378))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Reworked where the per-request WCP license refresh runs internally so it applies uniformly across both AWS and self-hosted deployments.
+
+### Removed the Internal `@webiny/handler-db` Package ([#5399](https://github.com/webiny/webiny-js/pull/5399))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+An obsolete internal package was removed and its remaining pieces folded into `@webiny/db-dynamodb`. The `DynamoDBCoreFeature` is now the standard way to register DynamoDB core functionality. No functional change for end users.
+
+### Consolidated Internal Test Utilities ([#5379](https://github.com/webiny/webiny-js/pull/5379))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Removed approximately 1400 lines of duplicated test setup code across ~14 internal packages by consolidating shared test mocks, auth decorators, and helpers into a single `@webiny/api-testing` package.
+
+## Breaking Changes
+
+### Feature Flags Replace WCP as Primary Feature Availability System ([#5559](https://github.com/webiny/webiny-js/pull/5559))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Feature flags are now the primary authority for feature availability, replacing the previous WCP-based system. The license acts as the gate, while configuration in `webiny.config.tsx` acts as the switch within that gate. In the Admin UI, `useFeatureFlags()` replaces `useWcp()`, and `FeatureFlag.CanUse*` components replace `Wcp.CanUse*` components.
+
+The decision flow is:
+1. No license → feature disabled
+2. License blocks the flag → feature disabled (config ignored)
+3. License allows + config explicitly false → feature disabled
+4. License allows + config unset → feature enabled (license is authority)
+5. Not license-governed + license exists → config decides
+
+Use the new `isEnabled("name")` API with dot-path support for checking feature availability:
+
+```typescript
+import { useFeatureFlags } from "webiny/admin";
+
+const { isEnabled } = useFeatureFlags();
+
+// Check if a feature is enabled
+if (isEnabled("aiPowerups.cms.entryGeneration")) {
+  // Feature is available
+}
+```
