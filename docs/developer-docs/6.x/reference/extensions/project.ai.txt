@@ -22,3 +22,34 @@ Related Documents:
 
 Tone Guidelines:
 - Reference: minimal prose, tables are the content
+
+--- Project.BugReporter (added when the bug reporter shipped in 6.6.0) ---
+
+Source of Information:
+1. ~/dev/wby-next3/packages/project/src/extensions/BugReporter.tsx — the defineExtension and its params schema
+2. ~/dev/wby-next3/packages/bug-reporter/src/api/config/BugReportConfig.ts — defaults, label parsing, canFileDirectly
+3. ~/dev/wby-next3/packages/bug-reporter/src/admin/recording/ActionRecorder.ts — what is recorded, MAX_EVENTS
+4. webiny/webiny-js#5736 (feature), #5746 (moved here from a BugReporter export on webiny/extensions)
+
+Key Documentation Decisions:
+1. Documented here rather than on its own page. It shipped as `<BugReporter.GitHub>` from a separate
+   `webiny/extensions` export and briefly had a page of its own; moving it into the Project
+   namespace made a sibling section the obvious home, and one prop table is better than two that
+   drift.
+2. The conceptual material was compressed rather than dropped. Compose vs filed is two sentences,
+   and the recorder is one paragraph instead of a seven-row table, which keeps this section in
+   proportion to Project.FeatureFlags above it.
+3. Two bolded gotchas, because both are invisible from the types and both fail quietly or
+   confusingly:
+   - filing needs token AND repository, since the props are independently optional
+   - `process.env.X` must be guarded with `|| ""`; an unset key renders as an object, not undefined,
+     and fails the params schema mid-build. This bit the feature's own PR.
+4. The default repository keeps a warning block. With no configuration a customer's compose URLs
+   point at webiny/webiny-js carrying their page titles and click timeline.
+
+Understanding:
+- The extension does not enable the reporter. DefaultExtensions already does, in compose mode.
+- canFileDirectly requires both token and repository; the repository default applies to compose only.
+- A malformed repository throws rather than falling back, hence "fails the report".
+- Screenshots need contents write because issues have no attachment API.
+- `labels` REPLACES the "bug" default; `reported-in-app` is always appended and not configurable.
