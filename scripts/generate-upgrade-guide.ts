@@ -4,9 +4,12 @@
  *
  * Usage:
  *   yarn tsx scripts/generate-upgrade-guide.ts --version 6.1.0
+ *
+ * Regenerating an existing guide keeps its frontmatter `id` and everything between the
+ * custom steps markers below, so release-specific steps survive the release workflows.
  */
 
-import { writeFileSync, mkdirSync, readdirSync } from "fs";
+import { writeFileSync, mkdirSync, readdirSync, existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { valid, lt } from "semver";
 
@@ -61,11 +64,47 @@ function inferPreviousVersion(version: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Preserving an existing guide
+// ---------------------------------------------------------------------------
+
+const CUSTOM_STEPS_START = "{/* custom-steps:start - kept when the guide is regenerated */}";
+const CUSTOM_STEPS_END = "{/* custom-steps:end */}";
+
+interface ExistingGuide {
+    id?: string;
+    customSteps?: string;
+}
+
+function readExistingGuide(path: string): ExistingGuide {
+    if (!existsSync(path)) {
+        return {};
+    }
+    const content = readFileSync(path, "utf-8");
+    const id = content.match(/^id:\s*(\S+)\s*$/m)?.[1];
+
+    const start = content.indexOf(CUSTOM_STEPS_START);
+    const end = content.indexOf(CUSTOM_STEPS_END);
+    const customSteps =
+        start !== -1 && end > start
+            ? content.slice(start + CUSTOM_STEPS_START.length, end).trim()
+            : undefined;
+
+    return { id, customSteps };
+}
+
+// ---------------------------------------------------------------------------
 // MDX builder
 // ---------------------------------------------------------------------------
 
-function buildUpgradeGuideMdx(version: string, previousVersion: string): string {
-    const id = Math.random().toString(36).slice(2, 10);
+function buildUpgradeGuideMdx(
+    version: string,
+    previousVersion: string,
+    existing: ExistingGuide
+): string {
+    const id = existing.id ?? Math.random().toString(36).slice(2, 10);
+    const customSteps = existing.customSteps
+        ? `${CUSTOM_STEPS_START}\n\n${existing.customSteps}\n\n${CUSTOM_STEPS_END}\n\n`
+        : "";
 
     // previousVersion is like "6.2.x" — derive example patch versions from it
     const prevBase = previousVersion.replace(".x", "");
@@ -130,7 +169,7 @@ Proceed by redeploying your Webiny project:
 yarn webiny deploy --env {environment}
 \`\`\`
 
-<AdditionalNotes />
+${customSteps}<AdditionalNotes />
 `;
 }
 
@@ -151,11 +190,16 @@ async function main(): Promise<void> {
     const previousVersion = inferPreviousVersion(version);
     console.log(`  Previous version inferred as: ${previousVersion}`);
 
-    const mdx = buildUpgradeGuideMdx(version, previousVersion);
-
     const outDir = join(process.cwd(), "docs", "release-notes", version);
     mkdirSync(outDir, { recursive: true });
     const outPath = join(outDir, "upgrade-guide.mdx");
+
+    const existing = readExistingGuide(outPath);
+    if (existing.customSteps) {
+        console.log("  Keeping the custom steps from the existing guide.");
+    }
+
+    const mdx = buildUpgradeGuideMdx(version, previousVersion, existing);
     writeFileSync(outPath, mdx, "utf-8");
 
     console.log(`\n✓ Upgrade guide written to: docs/release-notes/${version}/upgrade-guide.mdx`);
