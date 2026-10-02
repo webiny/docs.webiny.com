@@ -453,6 +453,18 @@ builder.private({
 
 Creating a new revision from a published entry that contained a dynamic zone field would fail with the error `Field "_templateId" is not defined by type "Page_BlocksInput"`. The issue was that the "create from revision" operation wasn't properly transforming dynamic zone data before sending it to the API. This has been fixed — dynamic zone fields are now correctly prepared across all entry operations.
 
+### Duplicate Content Entries ([#5798](https://github.com/webiny/webiny-js/pull/5798))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+You can now duplicate a content entry into a new draft entry. In the Admin, use the new **Duplicate** action in the content entries list. The API exposes a `duplicate<Model>` GraphQL mutation that clones all field values, automatically prefixes the title with "Copy of", and creates the copy as a draft. Validation is skipped during duplication so unique-field constraints don't block the copy.
+
+The feature includes full lifecycle event support (`onEntryBeforeDuplicate`, `onEntryAfterDuplicate`, `onEntryDuplicateError`) through the `EntryEventPublisher`, and respects the `lifecycleEvents: false` setting for private models.
+
+### Display Validation Errors When Saving Entries Fails ([#5794](https://github.com/webiny/webiny-js/pull/5794))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+When the API rejected an entry save — for example, due to a unique constraint violation on Save & Publish — the error was discarded and the form showed nothing. Now, validation errors are mapped to their corresponding fields and displayed both inline and at the top of the entry form. Other failures appear as form-level errors. Errors are cleared automatically on the next submit.
+
 ## Website Builder
 
 ### Nuxt Starter Kit Configuration ([#5265](https://github.com/webiny/webiny-js/pull/5265))
@@ -770,6 +782,11 @@ Field visibility rules using the `$.field` syntax inside object lists and dynami
 {/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
 
 The CMS form would crash with `t.map is not a function` when a list renderer was mistakenly applied to a single-value field (for example, `dateTimeInputs` without `.list()`). The form now falls back to the single-value renderer instead of crashing.
+
+### Preserve Partial GraphQL Response Data ([#5876](https://github.com/webiny/webiny-js/pull/5876))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+The admin GraphQL client previously threw whenever a response contained an `errors` array, discarding `data` entirely — even when `data` was fully populated. GraphQL partial-success responses (such as when a non-nullable reference field nulls out) carry valid `data` alongside `errors`. This caused issues like content entry lists rendering only folders with no entries, despite the API returning the records. The client now only treats errors as fatal when there is no `data` to return.
 
 ## Development
 
