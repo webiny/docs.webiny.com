@@ -570,6 +570,18 @@ The autocomplete presenter now tracks request sequence numbers and only applies 
 
 Creating a new CMS entry from inside a folder incorrectly saved it to the root folder instead of the folder you had open. This affected entries created from the full-page editor, including those started via the new-entry wizard or AI wizard. New entries now correctly inherit the folder context when created.
 
+### Fixed Reference Field Autocomplete Not Finding Entries by Title ([#5998](https://github.com/webiny/webiny-js/pull/5998))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+Reference field autocompletes could fail to find entries when searching by title. For example, typing "Boulder" might show "No results" even though a location with that name existed, while typing "Bo" would return unrelated entries like "Gowanus" or "Portland".
+
+Two issues caused this:
+
+- The API sorted search results by creation date and returned only the first 10 matches. If more than 10 entries matched the query anywhere (such as in a description field), an older entry with an exact title match could fall outside the result set.
+- The autocomplete dropdown applied a second client-side filter that fuzzy-matched the typed text against entry IDs and labels, incorrectly discarding valid API results.
+
+The fix now reads up to 100 matches from the API and sorts them by title relevance: exact matches first, then titles starting with the query, then titles containing it, with ties keeping the original order. Client-side filtering is disabled for reference autocompletes since the API already handles the search.
+
 ## Website Builder
 
 ### Nuxt Starter Kit Configuration ([#5265](https://github.com/webiny/webiny-js/pull/5265))
