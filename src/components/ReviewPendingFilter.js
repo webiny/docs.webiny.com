@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 const MARKER = "REVIEW-PENDING";
 const ALL = "";
+const PENDING = "__pending__";
 
 // Dev-only filter for generated changelogs. The `{/* REVIEW-PENDING @author ... */}` markers
 // render as plain text on the page, so this reads the authors from the DOM and hides every
@@ -75,7 +76,9 @@ export const ReviewPendingFilter = () => {
                 continue;
             }
 
-            const visible = author === ALL || entry.authors.includes(author);
+            const visible =
+                author === ALL ||
+                (author === PENDING ? entry.authors.length > 0 : entry.authors.includes(author));
             sectionVisible = sectionVisible || visible;
             entry.nodes.forEach(node => {
                 node.style.display = visible ? "" : "none";
@@ -90,6 +93,7 @@ export const ReviewPendingFilter = () => {
         });
         return acc;
     }, {});
+    const pendingCount = entries.filter(entry => entry.authors.length > 0).length;
     const authors = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
 
     return (
@@ -107,6 +111,7 @@ export const ReviewPendingFilter = () => {
                 className="rounded border border-light-grey bg-white px-2 py-1 dark:border-dark-grey dark:bg-dark-grey-4"
             >
                 <option value={ALL}>All entries</option>
+                <option value={PENDING}>All pending ({pendingCount})</option>
                 {authors.map(name => (
                     <option key={name} value={name}>
                         {name} ({counts[name]})
