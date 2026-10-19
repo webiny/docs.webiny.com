@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 
 const MARKER = "REVIEW-PENDING";
 const ALL = "";
-const PENDING = "__pending__";
 
 // Dev-only filter for generated changelogs. The `{/* REVIEW-PENDING @author ... */}` markers
 // render as plain text on the page, so this reads the authors from the DOM and hides every
@@ -50,6 +49,7 @@ export const ReviewPendingFilter = () => {
     const ref = useRef(null);
     const [entries, setEntries] = useState([]);
     const [author, setAuthor] = useState(ALL);
+    const [pendingOnly, setPendingOnly] = useState(false);
 
     useEffect(() => {
         const container = ref.current && findContainer(ref.current);
@@ -77,15 +77,15 @@ export const ReviewPendingFilter = () => {
             }
 
             const visible =
-                author === ALL ||
-                (author === PENDING ? entry.authors.length > 0 : entry.authors.includes(author));
+                (author === ALL || entry.authors.includes(author)) &&
+                (!pendingOnly || entry.authors.length > 0);
             sectionVisible = sectionVisible || visible;
             entry.nodes.forEach(node => {
                 node.style.display = visible ? "" : "none";
             });
         }
         closeSection();
-    }, [entries, author]);
+    }, [entries, author, pendingOnly]);
 
     const counts = entries.reduce((acc, entry) => {
         new Set(entry.authors).forEach(name => {
@@ -110,14 +110,21 @@ export const ReviewPendingFilter = () => {
                 onChange={e => setAuthor(e.target.value)}
                 className="rounded border border-light-grey bg-white px-2 py-1 dark:border-dark-grey dark:bg-dark-grey-4"
             >
-                <option value={ALL}>All entries</option>
-                <option value={PENDING}>All pending ({pendingCount})</option>
+                <option value={ALL}>All authors</option>
                 {authors.map(name => (
                     <option key={name} value={name}>
                         {name} ({counts[name]})
                     </option>
                 ))}
             </select>
+            <label className="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    checked={pendingOnly}
+                    onChange={e => setPendingOnly(e.target.checked)}
+                />
+                Pending only ({pendingCount})
+            </label>
         </div>
     );
 };
