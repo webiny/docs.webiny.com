@@ -93,7 +93,6 @@ export const ReviewPendingFilter = () => {
         });
         return acc;
     }, {});
-    const pendingCount = entries.filter(entry => entry.authors.length > 0).length;
     const authors = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
 
     return (
@@ -123,7 +122,7 @@ export const ReviewPendingFilter = () => {
                     checked={pendingOnly}
                     onChange={e => setPendingOnly(e.target.checked)}
                 />
-                Pending only ({pendingCount})
+                Pending only
             </label>
         </div>
     );
