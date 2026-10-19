@@ -134,7 +134,7 @@ export const ChangelogReviewPanel = ({ version }) => {
     return (
         <div
             ref={ref}
-            className="my-6 rounded-lg border border-dashed border-orange px-4 py-3 text-sm"
+            className="my-6 rounded-lg border border-neutral-200 px-4 py-3 text-sm dark:border-dark-grey"
         >
             <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-orange">
                 Changelog review (dev only)
