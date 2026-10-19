@@ -25,6 +25,21 @@ const loadAuthorsByPR = version => {
     return {};
 };
 
+// The marker is a blockquote; the default prose quote (curly quotes, italics) reads badly, so
+// pending markers get their own look. Markers never reach production, so dev is enough.
+const MARKER_CLASSES = [
+    "not-prose",
+    "my-4",
+    "rounded-r",
+    "border-l-4",
+    "border-light-grey-2",
+    "bg-light-grey-7",
+    "px-4",
+    "py-2",
+    "text-sm",
+    "dark:bg-dark-grey-4"
+];
+
 const findContainer = el => {
     let node = el.parentElement;
     while (node && ![...node.children].some(child => child.tagName === "H3")) {
@@ -62,6 +77,9 @@ const collectEntries = (container, authorsByPR) => {
         const text = child.textContent || "";
         if (text.includes(MARKER)) {
             current.pending = true;
+            if (child.tagName === "BLOCKQUOTE") {
+                child.classList.add(...MARKER_CLASSES);
+            }
             // Fall back to the marker's handles when the PR isn't in the authors file.
             if (current.authors.length === 0) {
                 current.authors = [...text.matchAll(/@([\w-]+)/g)].map(match => match[1]);
