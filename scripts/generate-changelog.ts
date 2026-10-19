@@ -447,7 +447,7 @@ function addReviewMarkers(body: string, authorByPR: Map<number, string>): string
         if (authors.length === 0) continue;
 
         const handles = authors.map(a => `@${a}`).join(" ");
-        out.push(`{/* ${REVIEW_MARKER} ${handles} — confirm this entry, then delete this line */}`);
+        out.push(`⏳ ${REVIEW_MARKER} ${handles}: confirm this entry, then delete this line.`);
     }
 
     return out.join("\n");

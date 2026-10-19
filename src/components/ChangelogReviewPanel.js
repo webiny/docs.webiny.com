@@ -6,9 +6,10 @@ const ALL = "";
 // Dev-only review panel for generated changelogs: entry counts per author, plus a filter that
 // hides every entry (an `h3` plus everything up to the next heading) the chosen author doesn't
 // own. Authors come from the PR links in each heading, looked up in the `changelog.authors.json`
-// that scripts/generate-changelog.ts writes next to the changelog. The
-// `{/* REVIEW-PENDING @author ... */}` markers render as plain text on the page, which is how
-// pending entries are told apart.
+// that scripts/generate-changelog.ts writes next to the changelog. Pending entries are the ones
+// whose text contains REVIEW-PENDING, which matches both the current
+// `⏳ REVIEW-PENDING @author: ...` line and the older `{/* REVIEW-PENDING @author ... */}`
+// comment (it renders as text too).
 const loadAuthorsByPR = version => {
     if (process.env.NODE_ENV === "development") {
         const context = require.context(

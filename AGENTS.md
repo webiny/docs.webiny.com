@@ -26,7 +26,7 @@ PRs for a release are discovered from the release commits (the `(#NNNN)` referen
 
 **Upgrade guide custom steps:** `upgrade-guide.mdx` is regenerated from a template by the release workflows. Put release-specific steps between the `{/* custom-steps:start ... */}` and `{/* custom-steps:end */}` markers, before `<AdditionalNotes />`. `scripts/generate-upgrade-guide.ts` keeps that block and the page `id` on every run. Anything outside the markers is overwritten.
 
-**Review markers:** every generated entry gets an MDX comment beneath its `###` heading naming the PR author(s), e.g. `{/* REVIEW-PENDING @author — confirm this entry, then delete this line */}`. Each author must inspect their entry and delete that line. CI (`.github/workflows/check-release-notes.yml`, via `yarn check:changelog-review`) fails on any PR to master that still contains a `REVIEW-PENDING` marker, so release notes cannot be published until every entry is confirmed.
+**Review markers:** every generated entry gets a line beneath its `###` heading naming the PR author(s), e.g. `⏳ REVIEW-PENDING @author: confirm this entry, then delete this line.` Older changelogs used an MDX comment (`{/* REVIEW-PENDING @author — ... */}`); the check and the dev review panel still recognise it. Each author must inspect their entry and delete that line. CI (`.github/workflows/check-release-notes.yml`, via `yarn check:changelog-review`) fails on any PR to master that still contains a `REVIEW-PENDING` marker, so release notes cannot be published until every entry is confirmed.
 
 ### Release Announcements
 
