@@ -112,13 +112,9 @@ export const ReviewPendingFilter = ({ version }) => {
         closeSection();
     }, [entries, author, pendingOnly]);
 
-    const counts = entries.reduce((acc, entry) => {
-        new Set(entry.authors).forEach(name => {
-            acc[name] = (acc[name] || 0) + 1;
-        });
-        return acc;
-    }, {});
-    const authors = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b));
+    const authors = [...new Set(entries.flatMap(entry => entry.authors))].sort((a, b) =>
+        a.localeCompare(b)
+    );
 
     return (
         <div
@@ -126,7 +122,7 @@ export const ReviewPendingFilter = ({ version }) => {
             className="my-6 flex items-center gap-3 rounded-lg border border-dashed border-orange px-4 py-3 text-sm"
         >
             <label htmlFor="review-pending-filter" className="font-semibold">
-                Review pending (dev only)
+                Filter by author
             </label>
             <select
                 id="review-pending-filter"
@@ -137,7 +133,7 @@ export const ReviewPendingFilter = ({ version }) => {
                 <option value={ALL}>All authors</option>
                 {authors.map(name => (
                     <option key={name} value={name}>
-                        {name} ({counts[name]})
+                        {name}
                     </option>
                 ))}
             </select>
