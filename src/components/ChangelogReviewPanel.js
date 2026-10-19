@@ -74,7 +74,8 @@ const collectEntries = (container, authorsByPR) => {
 const isVisible = (entry, author, pendingOnly) =>
     (author === ALL || entry.authors.includes(author)) && (!pendingOnly || entry.pending);
 
-const BOX = "rounded-lg border border-neutral-200 px-4 py-3 text-sm dark:border-dark-grey";
+const BOX = "rounded-lg border px-4 py-3 text-sm";
+const BORDER = "border-neutral-200 dark:border-dark-grey";
 
 const Stat = ({ label, value }) => (
     <div>
@@ -126,6 +127,7 @@ export const ChangelogReviewPanel = ({ version }) => {
     const items = entries.filter(entry => entry.heading);
     const pendingCount = items.filter(entry => entry.pending).length;
     const shownCount = items.filter(entry => isVisible(entry, author, pendingOnly)).length;
+    const filtered = author !== ALL || pendingOnly;
     const authors = [...new Set(items.flatMap(entry => entry.authors))]
         .map(name => {
             const own = items.filter(entry => entry.authors.includes(name));
@@ -135,7 +137,7 @@ export const ChangelogReviewPanel = ({ version }) => {
 
     return (
         <>
-            <div ref={ref} className={`mt-6 ${BOX}`}>
+            <div ref={ref} className={`mt-6 ${BOX} ${BORDER}`}>
                 <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-orange">
                     Changelog review (dev only)
                 </div>
@@ -164,33 +166,53 @@ export const ChangelogReviewPanel = ({ version }) => {
                     </tbody>
                 </table>
             </div>
-            <div className={`mb-6 mt-3 flex items-center gap-3 ${BOX}`}>
-                <label htmlFor="review-pending-filter" className="font-semibold">
-                    Filter by author
-                </label>
-                <select
-                    id="review-pending-filter"
-                    value={author}
-                    onChange={e => setAuthor(e.target.value)}
-                    className="rounded border border-light-grey bg-white px-2 py-1 dark:border-dark-grey dark:bg-dark-grey-4"
-                >
-                    <option value={ALL}>All authors</option>
-                    {[...authors]
-                        .sort((a, b) => a.name.localeCompare(b.name))
-                        .map(row => (
-                            <option key={row.name} value={row.name}>
-                                {row.name}
-                            </option>
-                        ))}
-                </select>
-                <label className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        checked={pendingOnly}
-                        onChange={e => setPendingOnly(e.target.checked)}
-                    />
-                    Pending only
-                </label>
+            <div className={`mb-6 mt-3 ${BOX} ${filtered ? "border-orange" : BORDER}`}>
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-orange">
+                    Filter the entries below
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                    <label htmlFor="review-pending-filter" className="font-semibold">
+                        Author
+                    </label>
+                    <select
+                        id="review-pending-filter"
+                        value={author}
+                        onChange={e => setAuthor(e.target.value)}
+                        className="rounded border border-light-grey bg-white px-2 py-1 dark:border-dark-grey dark:bg-dark-grey-4"
+                    >
+                        <option value={ALL}>All authors</option>
+                        {[...authors]
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map(row => (
+                                <option key={row.name} value={row.name}>
+                                    {row.name}
+                                </option>
+                            ))}
+                    </select>
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={pendingOnly}
+                            onChange={e => setPendingOnly(e.target.checked)}
+                        />
+                        Pending only
+                    </label>
+                    <span className="ml-auto text-light-grey-2">
+                        Showing {shownCount} of {items.length} entries below
+                    </span>
+                    {filtered ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setAuthor(ALL);
+                                setPendingOnly(false);
+                            }}
+                            className="font-semibold text-orange"
+                        >
+                            Clear
+                        </button>
+                    ) : null}
+                </div>
             </div>
         </>
     );
