@@ -1,7 +1,7 @@
 import React from "react";
 import { Alert } from "@/components/Alert";
 import { ExternalLink } from "@/components/ExternalLink";
-import { ReviewPendingFilter } from "@/components/ReviewPendingFilter";
+import { ChangelogReviewPanel } from "@/components/ChangelogReviewPanel";
 
 export const GithubRelease = ({ version }) => {
     return (
@@ -14,7 +14,7 @@ export const GithubRelease = ({ version }) => {
                 release on GitHub.
             </Alert>
             {process.env.NODE_ENV === "development" ? (
-                <ReviewPendingFilter version={version} />
+                <ChangelogReviewPanel version={version} />
             ) : null}
         </>
     );
