@@ -139,7 +139,7 @@ export const ChangelogReviewPanel = ({ version }) => {
             <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-orange">
                 Changelog review (dev only)
             </div>
-            <div className="flex flex-wrap gap-8">
+            <div className="grid grid-cols-4 gap-4">
                 <Stat label="Entries" value={items.length} />
                 <Stat label="Pending" value={pendingCount} />
                 <Stat label="Confirmed" value={items.length - pendingCount} />
