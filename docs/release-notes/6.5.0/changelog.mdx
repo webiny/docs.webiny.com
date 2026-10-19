@@ -166,31 +166,6 @@ The Asset field exposes a resolved `url` in the read API with crop and focal poi
 
 Existing `file` fields are unaffected. The legacy flat value is upgraded at render time with no migration needed.
 
-### Injectable String Formatting on the API ([#5526](https://github.com/webiny/webiny-js/pull/5526))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-`StringFormatter`, `Slugify`, and `DateFormatter` are now available in `@webiny/api-core`, mirroring the admin-side features. Server code can inject them for consistent, decoratable formatting.
-
-```typescript
-class MyRepository {
-  constructor(private stringFormatter: StringFormatter.Interface) {}
-
-  private makeSlug(name: string) {
-    return this.stringFormatter.slugify(name);
-  }
-}
-```
-
-To override slug logic project-wide, decorate the fine-grained `Slugify` feature:
-
-```typescript
-const MySlugify = Slugify.createDecorator(() => ({
-  execute: value => value.trim().toLowerCase().replace(/\s+/g, "_")
-}));
-
-container.registerDecorator(MySlugify);
-```
-
 ### Scheduled Publish/Unpublish State Now Visible Across the CMS UI ([#5441](https://github.com/webiny/webiny-js/pull/5441))
 {/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
 
@@ -823,10 +798,24 @@ A new `TenantThemeExtension` has been added to the Next.js starter kit, enabling
 
 The Admin UI now supports multiple themes, including dark mode. You can register custom themes through an extension, and several dark themes are included as sample implementations.
 
-### Injectable String Formatting ([#5517](https://github.com/webiny/webiny-js/pull/5517))
+### Injectable String Formatting in the Admin and the API ([#5517](https://github.com/webiny/webiny-js/pull/5517), [#5526](https://github.com/webiny/webiny-js/pull/5526))
 {/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
 
-`StringFormatter` and `Slugify` are now injectable features in `@webiny/app-admin`. They replace direct imports of the `slugify` npm package scattered across presenters, giving you a single, decoratable seam for slug generation.
+`StringFormatter` and `Slugify` are now injectable features in both `@webiny/app-admin` and `@webiny/api-core`, and `@webiny/api-core` also gets `DateFormatter`. In the admin they replace direct imports of the `slugify` npm package scattered across presenters. Admin and server code now share one decoratable seam for slug generation and formatting.
+
+Inject the formatter where you need it:
+
+```typescript
+class MyRepository {
+  constructor(private stringFormatter: StringFormatter.Interface) {}
+
+  private makeSlug(name: string) {
+    return this.stringFormatter.slugify(name);
+  }
+}
+```
+
+To override slug logic project-wide, decorate the fine-grained `Slugify` feature rather than the whole formatter. The same decorator works in the admin and on the API:
 
 ```typescript
 const MySlugify = Slugify.createDecorator(() => ({
@@ -835,8 +824,6 @@ const MySlugify = Slugify.createDecorator(() => ({
 
 container.registerDecorator(MySlugify);
 ```
-
-Consumers call `stringFormatter.slugify()`; projects that need custom logic decorate `Slugify` alone rather than the whole formatter.
 
 ### Fixed Redirect After Deleting the Current Folder ([#5626](https://github.com/webiny/webiny-js/pull/5626))
 {/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
