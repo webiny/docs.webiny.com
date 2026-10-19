@@ -8,7 +8,7 @@ const ALL = "";
 // own. Authors come from the PR links in each heading, looked up in the `changelog.authors.json`
 // that scripts/generate-changelog.ts writes next to the changelog. Pending entries are the ones
 // whose text contains REVIEW-PENDING, which matches both the current
-// `⏳ REVIEW-PENDING @author: ...` line and the older `{/* REVIEW-PENDING @author ... */}`
+// `> ⏳ REVIEW-PENDING @author: ...` quote and the older `{/* REVIEW-PENDING @author ... */}`
 // comment (it renders as text too).
 const loadAuthorsByPR = version => {
     if (process.env.NODE_ENV === "development") {
