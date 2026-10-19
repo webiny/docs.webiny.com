@@ -13,7 +13,9 @@ export const GithubRelease = ({ version }) => {
                 </ExternalLink>{" "}
                 release on GitHub.
             </Alert>
-            {process.env.NODE_ENV === "development" ? <ReviewPendingFilter /> : null}
+            {process.env.NODE_ENV === "development" ? (
+                <ReviewPendingFilter version={version} />
+            ) : null}
         </>
     );
 };

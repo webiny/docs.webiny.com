@@ -302,6 +302,22 @@ function extractMentionedPRNumbers(filePath: string): Set<number> {
     }
 }
 
+function writeAuthorsFile(authorsPath: string, prs: PullRequest[]): void {
+    let authors: Record<string, string> = {};
+    try {
+        authors = JSON.parse(readFileSync(authorsPath, "utf-8"));
+    } catch {
+        // No file yet.
+    }
+    for (const pr of prs) {
+        authors[String(pr.number)] = pr.author;
+    }
+    const sorted = Object.fromEntries(
+        Object.entries(authors).sort(([a], [b]) => Number(a) - Number(b))
+    );
+    writeFileSync(authorsPath, JSON.stringify(sorted, null, 4) + "\n", "utf-8");
+}
+
 function extractSkippedPRNumbers(aiTxtPath: string): Set<number> {
     try {
         const content = readFileSync(aiTxtPath, "utf-8");
@@ -494,6 +510,12 @@ async function main(): Promise<void> {
     const outDir = join(process.cwd(), "docs", "release-notes", version);
     mkdirSync(outDir, { recursive: true });
     const outPath = join(outDir, "changelog.mdx");
+
+    // Keep a PR → author map next to the changelog. REVIEW-PENDING markers are deleted once an
+    // entry is confirmed, so this is what still attributes entries to authors afterwards.
+    if (prs.length > 0) {
+        writeAuthorsFile(join(outDir, "changelog.authors.json"), prs);
+    }
 
     // Remove any sections already in the changelog whose PRs now carry no-changelog.
     if (noChangelogNumbers.size > 0) {

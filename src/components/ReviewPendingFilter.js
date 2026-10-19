@@ -3,9 +3,26 @@ import React, { useEffect, useRef, useState } from "react";
 const MARKER = "REVIEW-PENDING";
 const ALL = "";
 
-// Dev-only filter for generated changelogs. The `{/* REVIEW-PENDING @author ... */}` markers
-// render as plain text on the page, so this reads the authors from the DOM and hides every
-// entry (an `h3` plus everything up to the next heading) that the chosen author doesn't own.
+// Dev-only filter for generated changelogs. It hides every entry (an `h3` plus everything up
+// to the next heading) that the chosen author doesn't own. Authors come from the PR links in
+// each heading, looked up in the `changelog.authors.json` that scripts/generate-changelog.ts
+// writes next to the changelog. The `{/* REVIEW-PENDING @author ... */}` markers render as
+// plain text on the page, which is how pending entries are told apart.
+const loadAuthorsByPR = version => {
+    if (process.env.NODE_ENV === "development") {
+        const context = require.context(
+            "../../docs/release-notes",
+            true,
+            /changelog\.authors\.json$/
+        );
+        const key = `./${version}/changelog.authors.json`;
+        if (context.keys().includes(key)) {
+            return context(key);
+        }
+    }
+    return {};
+};
+
 const findContainer = el => {
     let node = el.parentElement;
     while (node && ![...node.children].some(child => child.tagName === "H3")) {
@@ -14,19 +31,23 @@ const findContainer = el => {
     return node;
 };
 
-const collectEntries = container => {
+const collectEntries = (container, authorsByPR) => {
     const entries = [];
     let current = null;
 
     for (const child of container.children) {
         if (child.tagName === "H2") {
             current = null;
-            entries.push({ section: child, nodes: [], authors: [] });
+            entries.push({ section: child, nodes: [], authors: [], pending: false });
             continue;
         }
 
         if (child.tagName === "H3") {
-            current = { heading: child, nodes: [child], authors: [] };
+            const prNumbers = [...child.querySelectorAll('a[href*="/pull/"]')].map(
+                link => link.getAttribute("href").split("/pull/")[1]
+            );
+            const authors = prNumbers.map(number => authorsByPR[number]).filter(Boolean);
+            current = { heading: child, nodes: [child], authors, pending: false };
             entries.push(current);
             continue;
         }
@@ -38,14 +59,18 @@ const collectEntries = container => {
         current.nodes.push(child);
         const text = child.textContent || "";
         if (text.includes(MARKER)) {
-            current.authors.push(...[...text.matchAll(/@([\w-]+)/g)].map(match => match[1]));
+            current.pending = true;
+            // Fall back to the marker's handles when the PR isn't in the authors file.
+            if (current.authors.length === 0) {
+                current.authors = [...text.matchAll(/@([\w-]+)/g)].map(match => match[1]);
+            }
         }
     }
 
     return entries;
 };
 
-export const ReviewPendingFilter = () => {
+export const ReviewPendingFilter = ({ version }) => {
     const ref = useRef(null);
     const [entries, setEntries] = useState([]);
     const [author, setAuthor] = useState(ALL);
@@ -54,9 +79,9 @@ export const ReviewPendingFilter = () => {
     useEffect(() => {
         const container = ref.current && findContainer(ref.current);
         if (container) {
-            setEntries(collectEntries(container));
+            setEntries(collectEntries(container, loadAuthorsByPR(version)));
         }
-    }, []);
+    }, [version]);
 
     useEffect(() => {
         let section = null;
@@ -78,7 +103,7 @@ export const ReviewPendingFilter = () => {
 
             const visible =
                 (author === ALL || entry.authors.includes(author)) &&
-                (!pendingOnly || entry.authors.length > 0);
+                (!pendingOnly || entry.pending);
             sectionVisible = sectionVisible || visible;
             entry.nodes.forEach(node => {
                 node.style.display = visible ? "" : "none";
