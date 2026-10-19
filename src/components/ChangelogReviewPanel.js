@@ -8,7 +8,7 @@ const ALL = "";
 // own. Authors come from the PR links in each heading, looked up in the `changelog.authors.json`
 // that scripts/generate-changelog.ts writes next to the changelog. Pending entries are the ones
 // whose text contains REVIEW-PENDING, which matches both the current
-// `> ⏳ REVIEW-PENDING @author: ...` quote and the older `{/* REVIEW-PENDING @author ... */}`
+// ``> ⏳ REVIEW-PENDING `@author`: ...`` quote and the older `{/* REVIEW-PENDING @author ... */}`
 // comment (it renders as text too).
 const loadAuthorsByPR = version => {
     if (process.env.NODE_ENV === "development") {
@@ -37,7 +37,13 @@ const MARKER_CLASSES = [
     "px-4",
     "py-2",
     "text-sm",
-    "dark:bg-dark-grey-4"
+    "dark:bg-dark-grey-4",
+    // not-prose drops the inline code look too, so restore it for the author handle.
+    "[&_code]:rounded",
+    "[&_code]:bg-light-grey",
+    "[&_code]:px-1.5",
+    "[&_code]:py-0.5",
+    "dark:[&_code]:bg-dark-grey"
 ];
 
 const findContainer = el => {
