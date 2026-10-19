@@ -74,6 +74,8 @@ const collectEntries = (container, authorsByPR) => {
 const isVisible = (entry, author, pendingOnly) =>
     (author === ALL || entry.authors.includes(author)) && (!pendingOnly || entry.pending);
 
+const BOX = "rounded-lg border border-neutral-200 px-4 py-3 text-sm dark:border-dark-grey";
+
 const Stat = ({ label, value }) => (
     <div>
         <div className="text-xl font-semibold">{value}</div>
@@ -132,38 +134,37 @@ export const ChangelogReviewPanel = ({ version }) => {
         .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
 
     return (
-        <div
-            ref={ref}
-            className="my-6 rounded-lg border border-neutral-200 px-4 py-3 text-sm dark:border-dark-grey"
-        >
-            <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-orange">
-                Changelog review (dev only)
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-                <Stat label="Entries" value={items.length} />
-                <Stat label="Pending" value={pendingCount} />
-                <Stat label="Confirmed" value={items.length - pendingCount} />
-                <Stat label="Shown" value={shownCount} />
-            </div>
-            <table className="mb-3 mt-6 w-full text-left" style={{ display: "table" }}>
-                <thead>
-                    <tr className="text-xs uppercase tracking-wide text-light-grey-2">
-                        <th className="pr-6 font-normal">Author</th>
-                        <th className="pr-6 font-normal">Entries</th>
-                        <th className="font-normal">Pending</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {authors.map(row => (
-                        <tr key={row.name}>
-                            <td className="pr-6">{row.name}</td>
-                            <td className="pr-6">{row.total}</td>
-                            <td>{row.pending}</td>
+        <>
+            <div ref={ref} className={`mt-6 ${BOX}`}>
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-orange">
+                    Changelog review (dev only)
+                </div>
+                <div className="grid grid-cols-4 gap-4">
+                    <Stat label="Entries" value={items.length} />
+                    <Stat label="Pending" value={pendingCount} />
+                    <Stat label="Confirmed" value={items.length - pendingCount} />
+                    <Stat label="Shown" value={shownCount} />
+                </div>
+                <table className="mb-0 mt-6 w-full text-left" style={{ display: "table" }}>
+                    <thead>
+                        <tr className="text-xs uppercase tracking-wide text-light-grey-2">
+                            <th className="pr-6 font-normal">Author</th>
+                            <th className="pr-6 font-normal">Entries</th>
+                            <th className="font-normal">Pending</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-            <div className="flex items-center gap-3">
+                    </thead>
+                    <tbody>
+                        {authors.map(row => (
+                            <tr key={row.name}>
+                                <td className="pr-6">{row.name}</td>
+                                <td className="pr-6">{row.total}</td>
+                                <td>{row.pending}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <div className={`mb-6 mt-3 flex items-center gap-3 ${BOX}`}>
                 <label htmlFor="review-pending-filter" className="font-semibold">
                     Filter by author
                 </label>
@@ -191,6 +192,6 @@ export const ChangelogReviewPanel = ({ version }) => {
                     Pending only
                 </label>
             </div>
-        </div>
+        </>
     );
 };
