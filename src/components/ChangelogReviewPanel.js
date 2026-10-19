@@ -145,7 +145,7 @@ export const ChangelogReviewPanel = ({ version }) => {
                 <Stat label="Confirmed" value={items.length - pendingCount} />
                 <Stat label="Shown" value={shownCount} />
             </div>
-            <table className="my-3 w-full text-left">
+            <table className="my-3 w-full text-left" style={{ display: "table" }}>
                 <thead>
                     <tr className="text-xs uppercase tracking-wide text-light-grey-2">
                         <th className="pr-6 font-normal">Author</th>
