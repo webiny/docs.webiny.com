@@ -121,6 +121,9 @@ Structure:
 7. Links (plain text):
    "Changelog: https://www.webiny.com/docs/release-notes/VERSION/changelog"
    "Upgrade guide: https://www.webiny.com/docs/release-notes/VERSION/upgrade-guide"
+8. A "—" separator line followed by a blank line
+9. Closing line — forward-looking, pointing at what's coming next. 1–2 sentences. Opening it with
+   a question like "What's next?" works well. End with a rocket emoji 🚀.
 
 Ordering rule for highlights:
 - Lead with the AI-related feature if one exists — AI features resonate most on social media right now.
@@ -129,42 +132,16 @@ Ordering rule for highlights:
 
 Rules:
 - Replace VERSION with the actual release version number in the URLs.
-- Use real Unicode emoji only in the opening line and the "As always..." line — nowhere else.
+- Use real Unicode emoji, not Slack shortcodes — this post goes to X and LinkedIn, which do not
+  render ":rocket:" and similar.
+- Emoji only in the opening line, the "As always..." line, and the closing line — nowhere else.
 - "Webiny" is always capitalised.
 - Tone: professional, developer-focused, enthusiastic but not hype-y.
 - Do NOT use hashtags.
-- Do NOT use paragraphs, dashes, asterisks, or any formatting other than "→" arrows for list items.
+- Do NOT use paragraphs, dashes, asterisks, or any formatting other than "→" arrows for list items
+  and the "—" separator line described above.
 - Do NOT mention CLI flags, upgrade command options, logging settings, or low-level infrastructure
   details (e.g. Pulumi internals, env hooks, --force flags).
-`.trim();
-
-const FOLLOWUP_TWEETS_PROMPT = `
-You write follow-up tweets for Webiny releases. Webiny is an open-source serverless CMS platform.
-These tweets will be posted one per day in the days after the release to keep content flowing.
-
-Pick 3–4 of the most interesting features or improvements from the changelog. Write one standalone
-tweet per feature. Each tweet must work completely on its own — no references to "yesterday's release"
-or numbering like "1/4".
-
-Format: separate each tweet with a blank line and a "---" divider.
-
-Each tweet:
-- 1–3 sentences. Focused on one specific thing.
-- Concrete and specific — name the actual feature, explain what it does or why it matters.
-- Vary the structure — don't make every tweet feel the same. Some can open with a question,
-  some can frame a problem the feature solves, some can just lead with the capability.
-- End with the changelog link: https://www.webiny.com/docs/release-notes/VERSION/changelog
-- At most 1 emoji per tweet, only where genuinely fitting.
-
-Rules:
-- Replace VERSION with the actual release version number in the URL.
-- "Webiny" is always capitalised.
-- Tone: excited but technical. Speak to developers.
-- Do NOT use hashtags.
-- Do NOT start every tweet with "Webiny" — vary the openings.
-- Do NOT use backticks or any code formatting — plain text only.
-- Do NOT mention CLI flags, upgrade command options, logging settings, or low-level infrastructure
-  details. Focus on product and developer experience.
 `.trim();
 
 // ---------------------------------------------------------------------------
@@ -225,12 +202,11 @@ async function main(): Promise<void> {
     }
     const client = new Anthropic({ apiKey });
 
-    console.log("  Generating Slack, social, and follow-up tweets in parallel...");
+    console.log("  Generating Slack and social in parallel...");
 
-    const [slack, social, tweets] = await Promise.all([
+    const [slack, social] = await Promise.all([
         generate(client, SLACK_PROMPT, changelog, version, "Slack"),
-        generate(client, SOCIAL_PROMPT, changelog, version, "social"),
-        generate(client, FOLLOWUP_TWEETS_PROMPT, changelog, version, "follow-up tweets")
+        generate(client, SOCIAL_PROMPT, changelog, version, "social")
     ]);
 
     const outDir = join(process.cwd(), "docs", "release-notes", version, "announcements");
@@ -238,8 +214,7 @@ async function main(): Promise<void> {
 
     const files: Array<[string, string]> = [
         ["slack.md", slack],
-        ["social.md", social],
-        ["tweets.md", tweets]
+        ["social.md", social]
     ];
 
     for (const [filename, content] of files) {
@@ -249,7 +224,6 @@ async function main(): Promise<void> {
 
     printSection("SLACK", slack);
     printSection("SOCIAL (X / LinkedIn)", social);
-    printSection("FOLLOW-UP TWEETS", tweets);
 
     console.log();
 }

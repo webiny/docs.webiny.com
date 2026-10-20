@@ -1,0 +1,55 @@
+AI Context: Deployment Targets (deployment-targets.mdx)
+
+Source of Information:
+1. Published npm packages at 6.6.0-alpha.0: create-webiny-project, @webiny/cli-server, @webiny/project-server, @webiny/project-server-template, @webiny/self-hosted-auth, @webiny/system-requirements
+2. webiny-js: packages/project/src/components/FeatureFlag.tsx, for how multi-tenancy is gated
+3. webiny-js: packages/api-headless-cms-sql, packages/api-headless-cms-ddb, packages/api-headless-cms-ddb-es, packages/api-headless-cms-storage
+4. Existing figures in get-started/quickstart.mdx and cli/deploy.mdx
+
+Key Documentation Decisions:
+1. This is the decision-support page, for readers choosing a platform rather than trying to get started. Getting-started material stays on quickstart.mdx and the two nested paths.
+2. Standalone's gaps are listed individually rather than summarised, because a summary lets a reader assume a gap they care about is covered.
+3. The comparison table is kept extractable: one row per dimension, short cells, no prose sentences inside cells.
+4. Cost figures for AWS are reused from the existing docs. No figure is given for Standalone hosting, because there is nothing to host it on yet. Do not invent one.
+5. The "Moving Between Targets" callout deliberately mirrors the tone of the existing DynamoDB permanence warning on the AWS page, and the section explicitly draws the parallel. The section leads with code portability before the callout, because the constraint applies to content only and burying that would overstate the cost of starting on Standalone.
+6. Multi-tenancy is stated as NOT a target difference. It is gated by the `multiTenancy` licence feature flag (FeatureFlag.CanUseMultiTenancy), and packages/api-core-sql carries a full tenancy module, so tenant scoping exists in the storage layer of both targets. The original brief listed multi-tenancy as a target difference; the code does not support that, and treating it as one would entangle the Community/Business axis with the deployment-target axis.
+7. Postgres is described as already available rather than coming. Both _templates/server/sqlite and _templates/server/postgres ship in the published alpha and the CLI prompts between them. The brief said Postgres was still to come.
+8. "Still to Come" carries no dates, and lists only Docker, other platforms, and migration tooling.
+9. Code portability is stated as settled: extensions and customisations are fully portable, and switching targets means changing a few lines in the Infra declarations of webiny.config.tsx. Confirmed by Sven, August 2026. The gap list and the callout are scoped to content only as a result. See get-started/quickstart/standalone.ai.txt for the underlying evidence.
+10. "Still to Come" names a migration script for moving content between instances rather than generic "migration tooling", matching how it was described. No dates.
+
+Verified Differences Between The Targets:
+- Runtime: one long-running Node HTTP server (Standalone) vs Lambda functions behind managed services (AWS). "No Pulumi, no stack output, no deploy, and no deploy environments in the self-hosted hosting type" is stated in project-server-template's webiny.config.base.tsx.
+- Identity: @webiny/self-hosted-auth, a built-in JWT provider with credentials in the project database, vs @webiny/cognito. This is also why Cognito federation for SSO is AWS-only.
+- Storage: SQLite or Postgres via Knex, with uploads in a local directory, vs DynamoDB with S3 and optional OpenSearch.
+- Search: Standalone and DynamoDB-only AWS share the same in-memory path in @webiny/api-headless-cms-storage. Only DynamoDB + OpenSearch is index-backed. Detail is on standalone.mdx.
+- Secrets: Standalone ships insecure development defaults for WEBINY_UPLOAD_SECRET and WEBINY_SELF_HOSTED_AUTH_SECRET.
+- Commands: @webiny/cli-server exposes only `watch` and `serve`. `serve` is described in its own help text as being for production, but no deployment path is published, so this page does not present it as one.
+
+Deployment Target Naming:
+- "Webiny Standalone" for the non-AWS target. npx today, Docker later, Kubernetes and other clouds after that, all as install options under Standalone rather than separate names. Do not introduce "Webiny Container" or "Standalone Edition".
+- The AWS target stays unlabelled. Say "AWS" or "deploy to AWS". Do not use "Webiny Serverless", since Standalone may later run on other clouds and the label would become self-contradictory.
+- Community and Business editions are a separate axis. Keep them separate.
+
+Related Documents:
+- get-started/quickstart.mdx — links here from its closing line
+- get-started/quickstart/standalone.mdx — Standalone install path and search detail
+- get-started/quickstart/aws.mdx — AWS install path
+- get-started/upgrade.mdx — the Community/Business axis, referenced for multi-tenancy
+- infrastructure/introduction.mdx — Database Setups on the AWS side
+- security/cognito-federation.mdx — SSO, which depends on the Cognito identity provider
+
+Key Code Locations:
+- /webiny-js/packages/project/src/components/FeatureFlag.tsx — multi-tenancy licence gating
+- /webiny-js/packages/api-core-sql/src/tenancy — tenant scoping on the SQL storage layer
+- /webiny-js/packages/project-server-template/template/webiny.config.base.tsx — the statement that there is no Pulumi, deploy, or environments on this target
+- /webiny-js/packages/api-headless-cms-storage/src/filtering — the in-memory filter shared by SQL and DynamoDB-only
+
+Tone Guidelines:
+- Plain and comparative. The reader is making a decision and wants the trade-offs stated, not sold
+- No em-dashes. Use commas, colons, or parentheses
+- Never the "it's not X, it's Y" reversal
+- Vary header shapes. Do not build every header on the same template
+- Avoid stacking three-item lists back to back; vary list length
+- British spelling
+- Every specific number must be real. Reuse figures already in the docs rather than estimating

@@ -1,0 +1,47 @@
+---
+id: cmk9w5cl
+title: Webiny 6.4.11 Changelog
+description: See what's new in Webiny version 6.4.11
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.4.11"} />
+
+## Headless CMS
+
+### Fixed Page Search and Search on Models With JSON Fields ([#5683](https://github.com/webiny/webiny-js/pull/5683))
+
+Searching for pages in the Website Builder returned nothing on DynamoDB + OpenSearch deployments, no matter what you typed. The same applied to any Headless CMS model with a `searchableJson` field, since page metadata is stored in one.
+
+Search now returns the results you would expect. DynamoDB-only deployments were never affected, so nothing changes there.
+
+## Infrastructure
+
+### Expose `minimumProtocolVersion` for Custom Domain CloudFront Distributions ([#5680](https://github.com/webiny/webiny-js/pull/5680))
+
+When configuring custom domains for Admin or API distributions, you can now set the CloudFront TLS security policy directly through the extension configuration. Previously, changing this required patching `@webiny/project-aws`.
+
+```typescript
+import { extensions } from "webiny/infra";
+
+extensions.addExtension({
+  type: "Infra/Admin/CustomDomains",
+  params: {
+    domains: ["admin.example.com"],
+    certificateArn: "arn:aws:acm:...",
+    minimumProtocolVersion: "TLSv1.2_2021"
+  }
+});
+```
+
+Supported values match the full CloudFront policy set: `SSLv3`, `TLSv1`, `TLSv1_2016`, `TLSv1.1_2016`, `TLSv1.2_2018`, `TLSv1.2_2019`, and `TLSv1.2_2021`. The parameter is optional and omitted from the CloudFront configuration when not set, so existing distributions see no change.
+
+## Website Builder
+
+### Fixed React Server Component Crash When Initializing the Content SDK ([#5677](https://github.com/webiny/webiny-js/pull/5677))
+
+Version 6.4.10 introduced a bug where initializing the Website Builder SDK from a React Server Component would throw `TypeError: viewportManager.setBreakpoints is not a function`. This happened because the viewport manager is a client-only module, and RSC receives a client reference instead of the actual function. The issue blocked page loading and redirect resolution entirely when using RSC.
+
+This release reverts the change that caused the crash. Grid column stacking returns to the 6.4.9 behaviour: it resolves on the client after hydration rather than during SSR. Resolving it during SSR needs more investigation, so we're taking the time to work out a proper fix and will ship it in a future release.
