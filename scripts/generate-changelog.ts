@@ -251,6 +251,46 @@ a developer-facing changelog in MDX format from a list of merged pull requests.
 ${STYLE_REFERENCE}
 `.trim();
 
+// A release can carry hundreds of PRs, which overflows both the context window and the
+// output budget of a single request. PRs are sent in batches bounded by count (output size)
+// and characters (input size); duplicate H2 sections across batches are merged afterwards.
+const MAX_PRS_PER_BATCH = 25;
+const MAX_CHARS_PER_BATCH = 200_000;
+const MAX_PR_BODY_CHARS = 8_000;
+
+function formatPR(pr: PullRequest): string {
+    let body = pr.body.trim();
+    if (body.length > MAX_PR_BODY_CHARS) {
+        body = body.slice(0, MAX_PR_BODY_CHARS) + "\n\n[PR description truncated]";
+    }
+    return `### PR #${pr.number} (${pr.url}): ${pr.title}${body ? `\n\n${body}` : ""}`;
+}
+
+function batchPRs(prs: PullRequest[]): string[][] {
+    const batches: string[][] = [];
+    let current: string[] = [];
+    let currentChars = 0;
+
+    for (const pr of prs) {
+        const formatted = formatPR(pr);
+        const full =
+            current.length >= MAX_PRS_PER_BATCH ||
+            currentChars + formatted.length > MAX_CHARS_PER_BATCH;
+        if (current.length > 0 && full) {
+            batches.push(current);
+            current = [];
+            currentChars = 0;
+        }
+        current.push(formatted);
+        currentChars += formatted.length;
+    }
+    if (current.length > 0) {
+        batches.push(current);
+    }
+
+    return batches;
+}
+
 async function generateChangelogBody(prs: PullRequest[], version: string): Promise<string> {
     const apiKey = process.env.CLAUDE_KEY;
     if (!apiKey) {
@@ -258,31 +298,40 @@ async function generateChangelogBody(prs: PullRequest[], version: string): Promi
     }
 
     const client = new Anthropic({ apiKey });
+    const batches = batchPRs(prs);
 
-    const prList = prs
-        .map(pr => {
-            const body = pr.body.trim() ? `\n\n${pr.body.trim()}` : "";
-            return `### PR #${pr.number} (${pr.url}): ${pr.title}${body}`;
-        })
-        .join("\n\n---\n\n");
+    console.log(
+        `  Sending ${prs.length} PRs to Claude (claude-opus-4-5) in ${batches.length} batch(es)...`
+    );
 
-    const userMessage = `Generate a changelog for Webiny version ${version} based on the following merged pull requests. Apply all the rules in your system prompt.\n\n${prList}`;
+    const bodies: string[] = [];
+    for (const [index, batch] of batches.entries()) {
+        console.log(`    Batch ${index + 1}/${batches.length}: ${batch.length} PR(s)`);
 
-    console.log(`  Sending ${prs.length} PRs to Claude (claude-opus-4-5)...`);
+        const userMessage = `Generate a changelog for Webiny version ${version} based on the following merged pull requests. Apply all the rules in your system prompt.\n\n${batch.join("\n\n---\n\n")}`;
 
-    const message = await client.messages.create({
-        model: "claude-opus-4-5",
-        max_tokens: 8192,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userMessage }]
-    });
+        const message = await client.messages.create({
+            model: "claude-opus-4-5",
+            max_tokens: 16000,
+            system: SYSTEM_PROMPT,
+            messages: [{ role: "user", content: userMessage }]
+        });
 
-    const textBlock = message.content.find(b => b.type === "text");
-    if (!textBlock || textBlock.type !== "text") {
-        throw new Error("Claude returned no text content.");
+        if (message.stop_reason === "max_tokens") {
+            throw new Error(
+                `Claude's output was cut off in batch ${index + 1}. Lower MAX_PRS_PER_BATCH and rerun.`
+            );
+        }
+
+        const textBlock = message.content.find(b => b.type === "text");
+        if (!textBlock || textBlock.type !== "text") {
+            throw new Error(`Claude returned no text content for batch ${index + 1}.`);
+        }
+
+        bodies.push(textBlock.text.trim());
     }
 
-    return textBlock.text.trim();
+    return bodies.join("\n\n");
 }
 
 // ---------------------------------------------------------------------------
