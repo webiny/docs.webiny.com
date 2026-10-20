@@ -155,6 +155,17 @@ This is research-only — no production code or migration paths are included in 
 
 Removed leftover internal setup code from File Manager, Record Locking, and folder-level permissions that was no longer in use. This is internal cleanup with no effect on how these features work.
 
+### SQL Storage Now Supports Multi-Tenancy ([#5812](https://github.com/webiny/webiny-js/pull/5812))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+The SQL CMS storage (`@webiny/api-headless-cms-sql`) previously used single-column primary keys, which meant the same model, group or entry ID could not exist in multiple tenants. All keys now include the tenant, and every query is scoped accordingly. This also fixes several cross-tenant data leaks where operations could inadvertently read or modify another tenant's records.
+
+<Alert type="info">
+
+No migration is provided. If you are using the unreleased SQL storage in development, drop and recreate your database.
+
+</Alert>
+
 ## Infrastructure
 
 ### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
@@ -202,6 +213,21 @@ An obsolete internal package was removed and its remaining pieces folded into `@
 
 Removed approximately 1400 lines of duplicated test setup code across ~14 internal packages by consolidating shared test mocks, auth decorators, and helpers into a single `@webiny/api-testing` package.
 
+### Sub-Tenant Assets Now Served Correctly ([#5889](https://github.com/webiny/webiny-js/pull/5889))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+Assets uploaded to a sub-tenant returned a 404 from the Asset Delivery URL, even though they appeared in the File Manager. The asset delivery route now runs in the context of the tenant that owns the asset, so files from any tenant are served correctly. Note that assets from disabled tenants are no longer served.
+
+### WebSocket Connections Now Reconnect Automatically ([#5869](https://github.com/webiny/webiny-js/pull/5869))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+WebSocket connections that dropped unexpectedly, such as from network issues, often stayed down until the browser tab regained focus. This caused results from background tasks like remote component generation to be lost. Connections now reconnect automatically after any unexpected close, with exponential backoff up to 30 seconds. A heartbeat every 5 minutes also keeps connections alive, preventing API Gateway's 10-minute idle timeout.
+
+### Feature Flags Now Correctly Disable Licensed Features in the API ([#5866](https://github.com/webiny/webiny-js/pull/5866))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+Setting `<Project.FeatureFlags features={{ auditLogs: false }} />` had no effect on the API — licensed features like audit logs and record locking still ran. Build parameters are now registered before features, so the flags are available when each feature decides whether to enable itself.
+
 ## Breaking Changes
 
 ### Feature Flags Replace WCP as Primary Feature Availability System ([#5559](https://github.com/webiny/webiny-js/pull/5559))
@@ -228,3 +254,47 @@ if (isEnabled("aiPowerups.cms.entryGeneration")) {
   // Feature is available
 }
 ```
+
+## Website Builder
+
+### Tags, DateTime and RadioGroup Inputs Now Work in the Component Editor ([#5891](https://github.com/webiny/webiny-js/pull/5891))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+Components using `createTagsInput`, `createDateInput` or `createRadioInput` from the Website Builder SDK previously showed "Missing renderer" errors in the editor sidebar. All three input types now render correctly: tags accept multiple values, date-time opens a picker and saves an ISO string, and radio groups display the configured options.
+
+### List Inputs Now Preserve All Default Values ([#5892](https://github.com/webiny/webiny-js/pull/5892))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+A list input without child fields, such as a tags list in component defaults, previously kept only its last item. For example, `features: ["Autocomplete", "Limited AI integration"]` became just `"Limited AI integration"`. All items are now preserved when an element is created from defaults or bindings.
+
+### Component Helpers Now Work in the Browser Preview ([#5890](https://github.com/webiny/webiny-js/pull/5890))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+A remote component that defines helper functions next to its default export, such as `function CheckIcon() {}`, now renders correctly in the component editor preview. Previously the preview crashed with `ReferenceError: CheckIcon is not defined` because the browser bundler dropped all declarations except the default export.
+
+### Editor Preview Stays in Sync When Undoing Input Changes ([#5872](https://github.com/webiny/webiny-js/pull/5872))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+Typing in an element's input and then pressing Undo left the preview showing the typed value while the input reverted. This happened because preview patches were computed against committed values rather than what the preview was actually showing. The editor now tracks what each preview displays, so reverting or deleting characters updates the preview correctly.
+
+### Nested Object Inputs Now Render Correctly ([#5871](https://github.com/webiny/webiny-js/pull/5871))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+A component manifest with nested object inputs, such as a `testimonials` list containing an `author` object with its own fields, showed "Missing renderer" for every nested field. The browser bundler now transforms inputs at any depth, not just the first two levels. Components saved before this fix will be corrected automatically when re-bundled.
+
+### Grid Background Added to Editor Preview ([#5873](https://github.com/webiny/webiny-js/pull/5873))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+The component editor preview now displays a subtle grid background behind the canvas, making element boundaries easier to see while editing.
+
+## Admin
+
+### AI Power-Ups Settings Can Be Saved After Model Retirement ([#5867](https://github.com/webiny/webiny-js/pull/5867))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+Saving AI Power-Ups settings failed with "Model is not available" when the stored settings referenced a model that had been removed from the WCP catalog. The legacy providers section no longer validates model IDs against the catalog, so settings can be saved regardless of which models were previously configured.
+
+### AI Temperature Only Sent to Models That Support It ([#5868](https://github.com/webiny/webiny-js/pull/5868))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+Several AI models reject the `temperature` parameter outright, causing features like CMS revision comparison and page translation to fail. The `Ai.generateText()` and `Ai.streamText()` methods now check whether the model's catalog entry declares temperature support and omit the parameter if not. Callers can continue passing `temperature` and let the SDK decide.
