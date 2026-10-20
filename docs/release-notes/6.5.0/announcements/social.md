@@ -6,7 +6,7 @@ Highlights:
 → Asset field with crop and focal point — non-destructive image editing with server-side transforms
 → Timezone-aware scheduling — schedule publish/unpublish in any timezone
 → Command palette — ⌘K / Ctrl+K for fuzzy search and keyboard-driven navigation
-→ Google and OpenRouter AI providers — access more models with a single API key
+→ Google and OpenRouter AI providers — Gemini models, plus many more vendors through one OpenRouter key
 
 As always, full details in the release notes 👇
 
