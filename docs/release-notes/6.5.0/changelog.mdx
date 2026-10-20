@@ -59,47 +59,6 @@ You can now enable AI-assisted content generation when creating new CMS entries.
 
 The wizard system now supports priority-based registration, so custom wizards can override the default AI wizard when needed.
 
-### Augmentable Model Settings Interface ([#5391](https://github.com/webiny/webiny-js/pull/5391))
-
-Models can now carry custom settings via a new `IModelSettings` augmentable interface. This allows you to attach feature flags or other metadata directly to a model definition using the `.settings()` fluent builder method.
-
-```typescript
-import { createModel } from "webiny/headless-cms";
-
-const Article = createModel()
-  .name("Article")
-  .settings({ aiEntryWizard: true })
-  .fields([
-    // ...
-  ]);
-```
-
-The interface can be augmented from external packages to add type-safe custom properties. Models without `.settings()` default to an empty object.
-
-### Live Preview SDK for Next.js Applications ([#5435](https://github.com/webiny/webiny-js/pull/5435))
-
-A new set of packages enables real-time live preview for headless CMS content in Next.js applications. When editors make changes in the CMS admin, those changes appear instantly in your frontend without requiring a page refresh or republish.
-
-The SDK includes:
-
-- **`cms-sdk`** — Core live preview functionality with postMessage-based editor bridge, entry store management, reference resolution, and dynamic zone support
-- **`cms-nextjs`** — Next.js-specific integration for seamless React component rendering
-- **`content-sdk`** and **`content-sdk-nextjs`** — Content delivery utilities for fetching published content
-
-```typescript
-import { createCmsClient } from "webiny/cms-nextjs";
-
-const client = createCmsClient({
-  endpoint: "https://your-webiny-api.com/cms/preview/en-US",
-  token: "your-preview-token"
-});
-
-// Entries update in real-time as editors make changes
-const entry = await client.getEntry({ model: "article", id: "abc123" });
-```
-
-The CMS admin now includes a preview pane that renders your frontend components in an iframe, automatically syncing entry changes as you type. Dynamic zones and object fields support drag-and-drop reordering directly in the preview.
-
 ### New `getModel` SDK Method with Wildcard Field Expansion ([#5435](https://github.com/webiny/webiny-js/pull/5435))
 
 The SDK now exposes a `getModel` method that returns full model definitions including field metadata. It supports wildcard field expansion for nested structures and automatically resolves referenced models, making it easier to build dynamic rendering logic based on your content model schema.
@@ -108,32 +67,6 @@ The SDK now exposes a `getModel` method that returns full model definitions incl
 
 The API now enforces format validation on datetime fields. Previously, malformed date strings could be saved without error. Invalid formats are now rejected at the API level with a descriptive validation message.
 
-### New `asset` Field Type for Images and Files ([#5481](https://github.com/webiny/webiny-js/pull/5481))
-
-A new first-class `asset` field type is now available in the Headless CMS field palette. This replaces the existing `file` field (now deprecated but still functional for existing models). The new field type provides:
-
-- Built-in image editing with crop and focal point controls
-- Per-entry image transforms that are baked into the delivery URL
-- A unified `FmAsset` GraphQL type with proper metadata handling
-
-When you add an `asset` field to a content model, editors can select files from the File Manager and apply custom crops directly in the entry form. These edits are stored on the entry itself, so the same source image can be cropped differently across entries.
-
-```typescript
-// Asset field values now include the processed URL with crop params
-const entry = await sdk.cms.getEntry({
-  model: "article",
-  id: "abc123"
-});
-
-// entry.coverImage.url includes ?crop=... when edited
-console.log(entry.coverImage.url);
-```
-
-<Alert type="info">
-
-Existing content models using the `file` field will continue to work. You can migrate to the new `asset` field type when convenient.
-
-</Alert>
 
 ### Entry Revision Comparison Moved to AI Powerups ([#5485](https://github.com/webiny/webiny-js/pull/5485))
 
@@ -160,7 +93,11 @@ The Asset field exposes a resolved `url` in the read API with crop and focal poi
 
 **Delivery URL parameters** — `?crop=t,l,b,r`, `?aspectRatio=16:9`, and `?focal=x,y` join the existing `?width`, `?format`, and `?quality` params. The server computes the largest rectangle of the requested aspect ratio inside the crop, centered on the focal point.
 
-Existing `file` fields are unaffected. The legacy flat value is upgraded at render time with no migration needed.
+<Alert type="info">
+
+  Existing content models using the `file` field will continue to work. You can migrate to the new `asset` field type when convenient.
+
+</Alert>
 
 ### Scheduled Publish/Unpublish State Now Visible Across the CMS UI ([#5441](https://github.com/webiny/webiny-js/pull/5441))
 
@@ -174,13 +111,7 @@ The UI refreshes automatically when you schedule, cancel, publish, or unpublish 
 
 <Image src={scheduledStateLiveColumn} alt="Entries list Live column showing a Scheduled pill with the go-live time" />
 
-### Fixed Image Crop Not Being Applied During Asset Delivery ([#5595](https://github.com/webiny/webiny-js/pull/5595))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
-
-When you cropped an image using the File Manager's ImageEditor, the crop was saved correctly but never actually applied when the image was delivered. The image transformation pipeline was reading crop data from the wrong metadata path. This has been fixed — crops set via the ImageEditor UI are now properly applied during asset delivery.
-
 ### Stable `_id` Property for Object and Dynamic Zone Field Values ([#5606](https://github.com/webiny/webiny-js/pull/5606))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Object fields and dynamic zone fields now include a server-generated `_id` property on each value, giving external systems (comments, annotations, collaboration tools) a stable reference identifier for individual items within nested structures.
 
@@ -269,22 +200,6 @@ To use Google AI, set the `WEBINY_API_GOOGLE_API_KEY` environment variable or co
 
 </Alert>
 
-### Unified Preview Domain Configuration for CMS Live Preview ([#5689](https://github.com/webiny/webiny-js/pull/5689))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
-
-CMS live preview now reads the preview domain from Frontend Settings instead of requiring per-model configuration. The `previewPrefix` and `previewSlug` model settings have been replaced with a single `previewPath` setting that defines only the URL path pattern. The preview domain is managed centrally in Frontend Settings.
-
-```typescript
-// Model configuration now uses previewPath only
-{
-  previewPath: "/articles/{values.slug}"
-}
-```
-
-When a path token cannot be resolved (e.g., `{values.slug}` on a new entry), the entire path falls back to `/new` rather than displaying an incomplete URL.
-
-The Frontend Settings permission has been moved to the Dev Tools permission group, and the "Configure Frontend" menu item is now gated by this permission.
-
 ### Fixed Field Filtering and Sorting for Field IDs Containing Underscores ([#5701](https://github.com/webiny/webiny-js/pull/5701))
 
 Fields with underscores in their IDs (e.g., `on_sale`) were incorrectly parsed by the CMS query mappers. Filtering on `on_sale_contains` would fail with an error because the system only recognized the part before the first underscore as the field name. Sorting was even more problematic — sort directives like `on_sale_DESC` were silently dropped, causing queries to return unsorted results with no error.
@@ -299,11 +214,6 @@ Additionally, when combining an explicit `values` object with flat field keys in
 ### Edit Referenced Entries Inline via Drawer ([#5440](https://github.com/webiny/webiny-js/pull/5440))
 
 Reference field cards now include a pencil icon that opens the referenced entry in a drawer for inline editing. You can edit and save without leaving your current entry. The drawer stays open after save so you can continue editing, and the card updates immediately without a loading flash.
-
-### CMS Preview URL Now Respects Model's `previewPath` Setting ([#5705](https://github.com/webiny/webiny-js/pull/5705))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
-
-The CMS preview iframe was always loading at `/preview` regardless of the model's `previewPath` configuration. A model with `previewPath = "/articles/{values.slug}"` will now correctly load its preview iframe at `/articles/preview`.
 
 ### Bulk Action API Exposed via webiny Package ([#5411](https://github.com/webiny/webiny-js/pull/5411))
 
@@ -355,7 +265,6 @@ After upgrading, you will need to redeploy your API to enable the comments and n
 </Alert>
 
 ### Fixed CMS Field Visibility and Access Control Rules Not Working in Content Entry Forms ([#5766](https://github.com/webiny/webiny-js/pull/5766))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Conditional visibility and access control rules configured in the CMS model editor were not being applied when editing content entries. Several issues have been fixed:
 
@@ -364,38 +273,36 @@ Conditional visibility and access control rules configured in the CMS model edit
 - **Access control evaluation:** The access control evaluator was incomplete and never matched any rules. A proper evaluator now checks `admin:<userId>` and `team:<teamSlug>` patterns against the current user, correctly hiding or disabling fields based on their access level.
 
 ### Fixed List Order When Loading More Items ([#5783](https://github.com/webiny/webiny-js/pull/5783))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Items loaded via "load more" in the CMS entries list appeared in the wrong position — often at the top instead of appended to the existing results. The internal cache was shared across views with different sort orders, causing the ordering to leak between views. List views now apply their own sorting after retrieving items from the cache.
 
 ### Publishing No Longer Changes Saved/Modified Timestamps ([#5783](https://github.com/webiny/webiny-js/pull/5783))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Publishing, republishing, or unpublishing an entry previously updated the `savedOn`, `modifiedOn`, `savedBy`, and `modifiedBy` fields. This caused entries to jump in lists sorted by these fields — sometimes disappearing past the loaded page. These meta fields are now preserved during publish operations and only updated when actual content changes.
 
 Additionally, saving an entry without making changes no longer bumps timestamps. The system now compares normalized values and only updates meta fields when content differs.
 
 ### Fixed Update Operations Erasing Delete/Restore History ([#5783](https://github.com/webiny/webiny-js/pull/5783))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 When updating an entry that had been deleted and restored from trash, the `deletedOn`, `deletedBy`, `restoredOn`, and `restoredBy` fields were incorrectly reset to `null`. The entry no longer recorded its trash history after a simple save. These fields are now preserved across updates unless explicitly overridden.
 
 ### Fixed Republishing Older Revisions on DynamoDB ([#5783](https://github.com/webiny/webiny-js/pull/5783))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Republishing an older revision (one that was already published but not the latest) failed with "Provided list of item keys contains duplicates". The operation attempted to write the same record twice. This has been fixed.
 
 ### Fixed Datetime Field Subtypes Preserving List Renderer ([#5793](https://github.com/webiny/webiny-js/pull/5793))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Datetime subtype methods (`.date()`, `.time()`, `.dateTimeWithTimezone()`, `.dateTimeWithoutTimezone()`) now preserve the list renderer when applied to list fields. Additionally, `.datetime()` now defaults to `.withTimezone()`, and the `DateTimeZ` scalar is registered in the main GraphQL schema.
 
 ### Lifecycle Events Disabled for Internal Private Models ([#5792](https://github.com/webiny/webiny-js/pull/5792))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Private CMS models used internally by Webiny (files, folders, pages, workflows, etc.) now have entry lifecycle events disabled by default. These models already publish their own domain-specific events (`File*`, `Folder*`, `Page*`, etc.), so the generic `Cms/Entry/*` events were redundant noise.
 
-If you have custom `Cms/Entry/*` event handlers targeting one of these internal private models, they will no longer fire. Use the model's own domain events instead.
+<Alert type="warning">
+
+  If you have custom `Cms/Entry/*` event handlers targeting one of these internal private models, they will no longer fire. Use the model's own domain events instead.
+
+</Alert>
 
 For custom private models, you can control this behaviour via the `lifecycleEvents` option:
 
@@ -412,14 +319,12 @@ builder.private({
 Creating a new revision from a published entry that contained a dynamic zone field would fail with the error `Field "_templateId" is not defined by type "Page_BlocksInput"`. The issue was that the "create from revision" operation wasn't properly transforming dynamic zone data before sending it to the API. This has been fixed — dynamic zone fields are now correctly prepared across all entry operations.
 
 ### Duplicate Content Entries ([#5798](https://github.com/webiny/webiny-js/pull/5798))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 You can now duplicate a content entry into a new draft entry. In the Admin, use the new **Duplicate** action in the content entries list. The API exposes a `duplicate<Model>` GraphQL mutation that clones all field values, automatically prefixes the title with "Copy of", and creates the copy as a draft. Validation is skipped during duplication so unique-field constraints don't block the copy.
 
 The feature includes full lifecycle event support (`onEntryBeforeDuplicate`, `onEntryAfterDuplicate`, `onEntryDuplicateError`) through the `EntryEventPublisher`, and respects the `lifecycleEvents: false` setting for private models.
 
 ### Display Validation Errors When Saving Entries Fails ([#5794](https://github.com/webiny/webiny-js/pull/5794))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 When the API rejected an entry save — for example, due to a unique constraint violation on Save & Publish — the error was discarded and the form showed nothing. Now, validation errors are mapped to their corresponding fields and displayed both inline and at the top of the entry form. Other failures appear as form-level errors. Errors are cleared automatically on the next submit.
 
@@ -475,7 +380,6 @@ Searching in a reference field now reliably finds the entry you're typing. Befor
 <Image src={refAutocompleteLatestSearch} alt="Reference field search showing the matching entry for the typed title" />
 
 ### New Birthday Picker Renderer for Date Fields ([#6021](https://github.com/webiny/webiny-js/pull/6021))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Date-only fields now support a **Birthday Picker** renderer designed for selecting dates far in the past—like birthdates—without clicking through hundreds of months. The picker displays as a `DD / MM / YYYY` bar that expands into a step-by-step card: pick a day, then a month, then a year (with the most recent years shown first).
 
@@ -489,7 +393,6 @@ fields.datetime().dateOnly()
 The stored value remains `YYYY-MM-DD`, so you can switch existing fields to this renderer without affecting saved data. It works for both code-defined models and models built in the model editor.
 
 ### Date Validators Now Support Relative Expressions ([#6021](https://github.com/webiny/webiny-js/pull/6021))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 The `dateGte` and `dateLte` validators can now accept dates relative to today, not just fixed dates. Use expressions like `today-18y` (18 years ago), `today+1d` (tomorrow), or `today-6m` (6 months ago).
 
@@ -508,12 +411,10 @@ Validator messages support a `{date}` placeholder that shows the resolved limit:
 ```
 
 ### Improved Default Messages for Date Validators ([#6021](https://github.com/webiny/webiny-js/pull/6021))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Date validator messages now default to clearer text: **"Must be on or after {date}."** and **"Must be on or before {date}."** instead of the previous "Date/time is later than the provided one." Existing custom messages on saved models are unchanged.
 
 ### Fixed Fields With Multiple Validators Being Ignored ([#6021](https://github.com/webiny/webiny-js/pull/6021))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Fields with two or more validator schemas weren't being validated in entry forms—the validators were dropped instead of combined. This is now fixed; all validators on a field are applied correctly.
 
@@ -580,7 +481,6 @@ Live preview in the CMS entry editor now correctly updates when you change asset
 - The editing SDK only activates when the preview iframe is showing a CMS entry
 
 ### New `contentEntry` Input Type for CMS-Connected Components ([#5594](https://github.com/webiny/webiny-js/pull/5594))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Website Builder components can now consume CMS entries directly via a new `contentEntry` input type. This enables three modes of content binding:
 
@@ -604,33 +504,41 @@ const input = createContentEntryInput({
 Content entries are resolved server-side during SSR, so pages with CMS-connected components render correctly on first load. A `useContentEntryList` React hook is available for client-side pagination in query mode.
 
 ### Fixed Page List Order When Loading More Items ([#5783](https://github.com/webiny/webiny-js/pull/5783))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Pages loaded via "load more" appeared at the top of the page list instead of in the correct sorted position. This affected both the page list and the redirects list. The ordering is now handled correctly by the view layer.
 
 ### Fixed Preview Not Staying in Sync on Undo ([#5884](https://github.com/webiny/webiny-js/pull/5884))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Typing in an element input and then pressing OS Undo changed the input value back, but the preview kept showing the typed value. The preview patch was applied against the preview's own copy of the element, so a return to the committed value produced no patch. Preview patches are now diffed against what the preview currently shows, keeping the preview in sync with your edits.
 
 ### Added Grid Background Behind Editor Preview ([#5884](https://github.com/webiny/webiny-js/pull/5884))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 The editor's preview container now displays a grid background, making it easier to visualise element positioning and alignment while editing.
 
 ### Fixed Primitive List Inputs Losing Items ([#5894](https://github.com/webiny/webiny-js/pull/5894))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 List inputs without child fields (such as tags) now correctly preserve all items when an element is created from component defaults or bindings. Previously, only the last item in the list was kept — for example, `["Autocomplete", "Limited AI integration"]` would become just `"Limited AI integration"`. This affected both the remote component editor after saving defaults and when adding such components to a page.
 
 ### Added Missing Input Renderers for Tags, DateTime, and RadioGroup ([#5893](https://github.com/webiny/webiny-js/pull/5893))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Components using `createTagsInput`, `createDateInput`, or `createRadioInput` from the Website Builder SDK previously showed "Missing renderer" errors in the editor sidebar because the corresponding renderers weren't registered. All three renderers are now available:
 
 - `Webiny/Tags` — renders the admin-ui `Tags` component
 - `Webiny/DateTime` — renders a date-time picker, saving values as ISO strings
 - `Webiny/RadioGroup` — renders radio buttons using the input's configured options
+
+### Page Event Handlers Can Now Change the Page Before It Is Saved ([#6001](https://github.com/webiny/webiny-js/pull/6001))
+
+Changes made by page event handlers before publishing or creating a new revision were previously not persisted. All page "before" events now follow the same convention as Headless CMS and File Manager events: handlers receive a mutable `page` object that gets saved after all handlers run.
+
+| Event | Payload |
+|---|---|
+| `page.beforeCreate` | `{ input, page }` |
+| `page.beforeUpdate` | `{ original, input: { id, data }, page }` |
+| `page.beforePublish` | `{ original, page }` |
+| `page.beforeCreateRevisionFrom` | `{ params, original, page }` |
+
+If you have existing handlers that read `event.payload.page` on publish or modified `input` on create/update, update them to use the new payload structure.
 
 ## Admin
 
@@ -709,17 +617,14 @@ container.registerDecorator(MySlugify);
 ```
 
 ### Fixed Redirect After Deleting the Current Folder ([#5626](https://github.com/webiny/webiny-js/pull/5626))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 When you deleted a folder while viewing it, you could end up stranded with no visible content. Now the UI automatically navigates to the nearest surviving ancestor folder (parent → grandparent → … → root) without requiring a manual navigation or page refresh. This also works when a folder is removed from the cache externally — for example, by another component calling `useDeleteFolder`. The fix uses optimistic cache updates instead of refetching from the API, avoiding issues with eventually-consistent storage.
 
 ### Fixed Schema Validation for Empty Non-Required Fields ([#5642](https://github.com/webiny/webiny-js/pull/5642))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Non-required fields with empty values (`null` or `undefined`) were incorrectly failing Zod schema validation, even though they should be allowed to remain empty. This affected scalar fields, object fields with all-empty children, and list fields with empty arrays. The validation logic now skips schema checks for non-required fields when their values are empty, while still validating populated fields and enforcing required field constraints as expected.
 
 ### Unified Frontend Settings Configuration ([#5667](https://github.com/webiny/webiny-js/pull/5667))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Frontend settings — including the preview domain and starter kit configuration — were previously tied to the Website Builder package. This made it awkward to configure frontend settings in projects not using Website Builder, or to share settings across multiple frontend frameworks.
 
@@ -781,17 +686,14 @@ container.registerDecorator(MyDateFormat);
 ```
 
 ### Fixed Field Visibility Rules Inside Lists and Dynamic Zones ([#5793](https://github.com/webiny/webiny-js/pull/5793))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Field visibility rules using the `$.field` syntax inside object lists and dynamic zones were not resolving correctly. Rules with `==` operators never matched, while `!=` rules always matched regardless of the actual field values. List item children now receive an index-aware scope path, ensuring rules evaluate correctly for each item independently.
 
 ### Fixed List Renderer Crash on Single-Value Fields ([#5793](https://github.com/webiny/webiny-js/pull/5793))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 The CMS form would crash with `t.map is not a function` when a list renderer was mistakenly applied to a single-value field (for example, `dateTimeInputs` without `.list()`). The form now falls back to the single-value renderer instead of crashing.
 
 ### Preserve Partial GraphQL Response Data ([#5876](https://github.com/webiny/webiny-js/pull/5876))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 The admin GraphQL client previously threw whenever a response contained an `errors` array, discarding `data` entirely — even when `data` was fully populated. GraphQL partial-success responses (such as when a non-nullable reference field nulls out) carry valid `data` alongside `errors`. This caused issues like content entry lists rendering only folders with no entries, despite the API returning the records. The client now only treats errors as fatal when there is no `data` to return.
 
@@ -871,7 +773,6 @@ The Lexical rich-text editor has been restyled to match the Webiny design system
 <Video src={lexicalEditor} />
 
 ### AI Models Without Temperature Support No Longer Fail ([#5883](https://github.com/webiny/webiny-js/pull/5883))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 Several AI models (Claude Opus 4.7+, Opus 5.5, Sonnet 5.5, GPT-6.1 Sol, and others) reject the `temperature` parameter outright with a 400 error. Features like CMS entry revision comparison and page translation were passing `temperature: 0.3`, causing those features to fail on affected models. Webiny now checks each model's capabilities from the WCP catalog and only sends `temperature` when the model supports it.
 
@@ -908,7 +809,6 @@ The File Manager metadata structure has been updated:
 A unified `ImageEditor` component now powers image editing across the File Manager, CMS asset picker, and Website Builder file inputs. This provides a consistent editing experience with crop handles and focal point selection regardless of where you're working with images.
 
 ### Uploaded Files Now Inherit the Scope Tag ([#5929](https://github.com/webiny/webiny-js/pull/5929))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 When File Manager was opened with a `scope` parameter, it correctly filtered the file list to show only files tagged with that scope. However, files uploaded from within that scoped view were saved without any tags, meaning they wouldn't appear in the same scoped File Manager that uploaded them. Uploads made from a scoped File Manager are now automatically tagged with the scope, so they correctly appear in the filtered view.
 
@@ -971,7 +871,6 @@ The translation works as a decorator on the built-in `TranslatePageUseCase`, so 
 ## Breaking Changes
 
 ### Entry Data Factories Now Return `Result` Instead of Throwing ([#5783](https://github.com/webiny/webiny-js/pull/5783))
-> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 The five entry data factories exported from `webiny/api/cms/entry` now return a `Result` type instead of throwing exceptions. If you're calling these factories directly in custom code, you'll need to update your error handling:
 
