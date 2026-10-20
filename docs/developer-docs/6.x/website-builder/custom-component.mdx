@@ -13,7 +13,7 @@ import bannerComponentRendered from "./assets/banner-component-rendered.png";
 
 - What editor components are and how they work
 - How to create a React component that receives editor inputs
-- How to register components with `createComponent()` and input types
+- How to register components with `createWbComponent()` and input types
 - How to organize components into groups in the editor palette
 
 </Alert>
@@ -37,19 +37,19 @@ An editor component has two parts:
 
 **The manifest** — Metadata that tells the editor about the component: its name, label, group, and what inputs (configurable props) it exposes to the editor sidebar.
 
-You combine both using `createComponent()` from `@webiny/website-builder-nextjs`, then add the result to the `editorComponents` array that you pass to `DocumentRenderer`.
+You combine both using `createWbComponent()` from `@webiny/sdk-nextjs`, then add the result to the `editorComponents` array that you pass to `DocumentRenderer`.
 
 ## The editorComponents Array
 
-The starter kit includes an `editorComponents` array in `src/editorComponents/index.tsx`:
+The starter kit includes an `editorComponents` array in `editorComponents/index.tsx`:
 
-```tsx src/editorComponents/index.tsx
+```tsx editorComponents/index.tsx
 "use client";
-import { createComponent } from "@webiny/website-builder-nextjs";
+import { createWbComponent } from "@webiny/sdk-nextjs";
 import { Hero1 } from "./Hero1";
 
 export const editorComponents = [
-  createComponent(Hero1, {
+  createWbComponent(Hero1, {
     name: "Webiny/Hero",
     label: "Hero #1",
     inputs: []
@@ -60,32 +60,34 @@ export const editorComponents = [
 Key points:
 
 - The file is marked `"use client"` — component registrations must run on the client because the SDK communicates with the editor via the browser.
-- `createComponent()` takes the React component as its first argument and the manifest as the second.
+- `createWbComponent()` takes the React component as its first argument and the manifest as the second. Projects upgraded from 6.4 may still call it `createComponent()`, which is the same function.
 - `name` is a namespaced string — use a consistent convention like `"YourNamespace/ComponentName"`. Component names are stored in page documents, so treat them as stable identifiers. Renaming a component breaks existing pages.
 - `inputs` defines the configurable props that appear in the editor sidebar. An empty array means no inputs.
 - `group` (optional) links the component to a named component group in the editor palette.
 
 ## Component Groups
 
-Component groups organize the editor's component palette into sections. They're registered in `src/contentSdk/groups.ts`:
+Component groups organize the editor's component palette into sections. The starter kit defines them in `sdk/groups.ts`:
 
-```typescript src/contentSdk/groups.ts
-import { registerComponentGroup, type ComponentManifest } from "@webiny/website-builder-nextjs";
+```typescript sdk/groups.ts
+import type { ComponentManifest, ComponentGroup } from "@webiny/sdk-nextjs";
 
-export const registerComponentGroups = () => {
-  registerComponentGroup({
+export const componentGroups: ComponentGroup[] = [
+  {
     name: "basic",
     label: "Basic",
     description: "Components for simple content creation"
-  });
-  registerComponentGroup({
+  },
+  {
     name: "custom",
     label: "Custom",
     description: "Assorted custom components",
     filter: (component: ComponentManifest) => !component.group
-  });
-};
+  }
+];
 ```
+
+`sdk/initializeSdk.ts` passes the array to the SDK as `wb.componentGroups` in the `sdk.init()` call.
 
 The `filter` option on the "custom" group is a catch-all: it collects any component that doesn't have an explicit `group` set in its manifest.
 
@@ -95,11 +97,11 @@ Let's build a **Banner** component—a full-width colored strip with a headline 
 
 ### Create the React Component
 
-Create `src/editorComponents/Banner.tsx`:
+Create `editorComponents/Banner.tsx`:
 
-```tsx src/editorComponents/Banner.tsx
+```tsx editorComponents/Banner.tsx
 import React from "react";
-import { ComponentProps } from "@webiny/website-builder-nextjs";
+import { ComponentProps } from "@webiny/sdk-nextjs";
 
 interface BannerInputs {
   headline: string;
@@ -124,25 +126,25 @@ export function Banner({ inputs: { headline, ctaLabel, ctaUrl } }: ComponentProp
 }
 ```
 
-Always type your component with `ComponentProps<YourInputs>` from `@webiny/website-builder-nextjs`. Without it, TypeScript won't know the shape of the `inputs` prop.
+Always type your component with `ComponentProps<YourInputs>` from `@webiny/sdk-nextjs`. Without it, TypeScript won't know the shape of the `inputs` prop.
 
 ### Register the Component
 
-Add the Banner to `src/editorComponents/index.tsx`:
+Add the Banner to `editorComponents/index.tsx`:
 
-```tsx src/editorComponents/index.tsx
+```tsx editorComponents/index.tsx
 "use client";
-import { createComponent, createTextInput } from "@webiny/website-builder-nextjs";
+import { createWbComponent, createTextInput } from "@webiny/sdk-nextjs";
 import { Hero1 } from "./Hero1";
 import { Banner } from "./Banner";
 
 export const editorComponents = [
-  createComponent(Hero1, {
+  createWbComponent(Hero1, {
     name: "Webiny/Hero",
     label: "Hero #1",
     inputs: []
   }),
-  createComponent(Banner, {
+  createWbComponent(Banner, {
     name: "Custom/Banner",
     label: "Banner",
     inputs: [
@@ -209,19 +211,20 @@ The SDK exports a factory function for each input type:
 | `createLexicalInput`  | Rich text (Lexical editor)          |
 | `createFileInput`     | File / media picker                 |
 | `createSlotInput`     | Slot for nesting other components   |
+| `createContentEntryInput` | One or more Headless CMS entries, picked by hand or queried |
 
 ## Example: Select Input
 
 To add a color theme selector to the Banner component:
 
-```tsx src/editorComponents/index.tsx
+```tsx editorComponents/index.tsx
 import {
-  createComponent,
+  createWbComponent,
   createTextInput,
   createSelectInput
-} from "@webiny/website-builder-nextjs";
+} from "@webiny/sdk-nextjs";
 
-createComponent(Banner, {
+createWbComponent(Banner, {
   name: "Custom/Banner",
   label: "Banner",
   inputs: [
@@ -260,7 +263,7 @@ createComponent(Banner, {
 
 Update the Banner component to use the `colorTheme` input:
 
-```tsx src/editorComponents/Banner.tsx
+```tsx editorComponents/Banner.tsx
 interface BannerInputs {
   headline: string;
   colorTheme: "primary" | "secondary" | "success";

@@ -41,8 +41,8 @@ A webpack plugin (`injectThemeCss` in `next.config.ts`) reads `theme.css` at bui
 
 The `theme.css` file defines all semantic color variables and typography classes:
 
-```css src/theme/theme.css
-@import "@webiny/website-builder-nextjs/lexical.css";
+```css theme/theme.css
+@import "@webiny/sdk-nextjs/lexical.css";
 
 :root {
   --wb-theme-color-primary: #4632f5;
@@ -77,7 +77,7 @@ CSS variables use semantic names (`--wb-theme-color-primary`, `--wb-theme-color-
 
 The `tailwind.css` file maps Website Builder CSS variables to Tailwind's color tokens:
 
-```css src/theme/tailwind.css
+```css theme/tailwind.css
 @import "tailwindcss";
 
 @theme inline {
@@ -96,8 +96,8 @@ This bridge enables `bg-primary`, `text-primary`, and other Tailwind utilities i
 
 The `theme.ts` file exports a theme object that the SDK uses to populate the editor's color picker and typography toolbar:
 
-```typescript src/theme/theme.ts
-import { createTheme } from "@webiny/website-builder-nextjs";
+```typescript theme/theme.ts
+import { createTheme } from "@webiny/sdk-nextjs";
 
 declare const __THEME_CSS__: string;
 
@@ -141,7 +141,7 @@ The `colors` array populates the editor's color picker. Each entry has an `id`, 
   alt="The Website Builder editor showing the color picker open with all theme colors available for selection"
 />
 
-The exported `theme` and `css` are imported in `initializeContentSdk` and passed to `contentSdk.init()`.
+`app/layout.tsx` imports `theme` and `css`. It injects `css` into the page and passes `theme` to `SdkInitializer`, which hands it to `sdk.init()` as `wb.theme`.
 
 ## Customizing Colors
 
@@ -149,7 +149,7 @@ For colors that editors can pick in the Admin, follow a two-step pattern: define
 
 To change the primary color:
 
-```css src/theme/theme.css
+```css theme/theme.css
 :root {
   --wb-theme-color-primary: #16a34a; /* changed to green */
   --wb-theme-color-secondary: #15803d;
@@ -170,7 +170,7 @@ For colors that are not meant to be selectable by editors (border radius, shadow
 
 To add or modify a typography style, update both `theme.css` and `theme.ts`:
 
-```css src/theme/theme.css
+```css theme/theme.css
 .wb-heading-display {
   font-family: var(--wb-theme-font-family);
   font-weight: 900;
@@ -181,7 +181,7 @@ To add or modify a typography style, update both `theme.css` and `theme.ts`:
 }
 ```
 
-```typescript src/theme/theme.ts
+```typescript theme/theme.ts
 headings: [
   { id: "heading1", label: "Heading 1", tag: "h1", className: "wb-heading-1" },
   { id: "headingDisplay", label: "Display", tag: "h1", className: "wb-heading-display" }
@@ -200,9 +200,9 @@ The editor will now show "Display" as an option in the typography toolbar.
 
 To switch fonts (e.g., from Inter to Geist), update four files:
 
-**`src/app/layout.tsx`** — swap the font import and config:
+**`app/layout.tsx`** — swap the font import and config:
 
-```typescript src/app/layout.tsx
+```typescript app/layout.tsx
 import { Geist } from "next/font/google";
 
 const geist = Geist({
@@ -213,21 +213,21 @@ const geist = Geist({
 });
 ```
 
-**`src/theme/tailwind.css`** — update the `--font-sans` token:
+**`theme/tailwind.css`** — update the `--font-sans` token:
 
-```css src/theme/tailwind.css
+```css theme/tailwind.css
 --font-sans: Geist, sans-serif;
 ```
 
-**`src/theme/theme.css`** — update the CSS variable:
+**`theme/theme.css`** — update the CSS variable:
 
-```css src/theme/theme.css
+```css theme/theme.css
 --wb-theme-font-family: "Geist", sans-serif;
 ```
 
-**`src/theme/theme.ts`** — update the `fonts` array so the editor iframe loads the font:
+**`theme/theme.ts`** — update the `fonts` array so the editor iframe loads the font:
 
-```typescript src/theme/theme.ts
+```typescript theme/theme.ts
 fonts: ["https://fonts.googleapis.com/css2?family=Geist&display=swap"],
 ```
 
@@ -237,7 +237,7 @@ The `fonts` array injects the font into the editor iframe, ensuring the Admin pr
 
 If you load multiple font weights in `layout.tsx`, include the full weight range in the `fonts` URL. For example:
 
-```typescript src/app/layout.tsx
+```typescript app/layout.tsx
 const inter = Inter({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
   // ...
@@ -246,7 +246,7 @@ const inter = Inter({
 
 The `fonts` array must include the same range:
 
-```typescript src/theme/theme.ts
+```typescript theme/theme.ts
 fonts: ["https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"],
 ```
 
