@@ -90,11 +90,6 @@ const links = [
         label: "Found a bug on the page?",
         linkText: "Submit an issue or a PR.",
         href: "https://github.com/webiny/docs.webiny.com"
-    },
-    {
-        label: "Check out our",
-        linkText: "roadmap.",
-        href: "https://www.webiny.com/roadmap"
     }
 ];
 
