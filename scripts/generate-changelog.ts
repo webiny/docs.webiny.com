@@ -1,11 +1,17 @@
 /**
  * Generates a changelog MDX file for a given Webiny release version by:
  *  1. Fetching all closed PRs from the webiny/webiny-js milestone matching the version
- *  2. Sending them to Claude (claude-opus-4-5) to produce a structured MDX changelog
- *  3. Writing the result to docs/release-notes/{version}/changelog.mdx
+ *  2. Triaging them: dropping internal changes (CI, build, tests, release tooling) and
+ *     folding follow-up fixes into the PR that introduced the feature they fix
+ *  3. Sending what is left to Claude (claude-opus-4-5) to produce a structured MDX changelog
+ *  4. Writing the result to docs/release-notes/{version}/changelog.mdx
  *
  * PR discovery is milestone-based: assign a PR to the `X.Y.Z` milestone for it to
  * appear in that release's changelog. PRs labeled `no-changelog` are skipped.
+ *
+ * PRs dropped in step 2 are recorded under "## Skipped PRs" in changelog.ai.txt with the
+ * reason, so a rerun makes the same call. To bring one back, write its entry by hand;
+ * deleting the line only gets the PR triaged again on the next run.
  *
  * Usage:
  *   yarn tsx scripts/generate-changelog.ts --version 6.1.0
@@ -19,7 +25,7 @@
 
 import "dotenv/config";
 import Anthropic from "@anthropic-ai/sdk";
-import { writeFileSync, mkdirSync, readFileSync } from "fs";
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { REVIEW_MARKER } from "./changelog-constants";
 
@@ -53,6 +59,21 @@ interface PullRequest {
     body: string;
     url: string;
     author: string;
+}
+
+/**
+ * One changelog entry to generate: the PR that introduced a change, plus any later PRs in
+ * the same release that only fixed or finished it. Follow-ups are context for Claude; they
+ * never get an entry of their own.
+ */
+interface ChangelogItem {
+    pr: PullRequest;
+    followUps: PullRequest[];
+}
+
+interface SkippedPR {
+    number: number;
+    reason: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -223,8 +244,15 @@ a developer-facing changelog in MDX format from a list of merged pull requests.
   heading like this: \`### Some Change Title ([#1234](https://github.com/webiny/webiny-js/pull/1234))\`.
   If multiple PRs are merged into one item, include all of them: \`([#1234](…), [#1235](…))\`.
 - Merge related PRs into a single changelog item when they address the same feature or fix.
+- Some PRs come with a "Follow-up PRs" list: fixes merged later in the same, still unreleased,
+  release to finish that PR's work. Users never saw the broken state, so describe only the end
+  result as one entry for the main PR. Do not mention the follow-ups, what they fixed, or link them.
+- Never write a "Fixed ..." entry for a problem in something that is new in this release. Fold it
+  into the entry for that feature instead.
 - **Skip** trivial/internal PRs with no user-facing impact: dependency bumps, CI fixes, chore commits,
-  test-only changes, typo fixes, and internal refactors. If a PR title starts with \`chore\`, \`ci\`,
+  test-only changes, typo fixes, and internal refactors. Also skip changes to Webiny's own tooling
+  that a Webiny user never runs: CI workflows, the monorepo build, package publishing, release
+  scripts, E2E and test infrastructure. If a PR title starts with \`chore\`, \`ci\`,
   \`test\`, \`deps\`, or \`refactor\` and the body contains no user-facing changes, skip it entirely.
 
 ## Tone and style
@@ -258,21 +286,35 @@ const MAX_PRS_PER_BATCH = 25;
 const MAX_CHARS_PER_BATCH = 200_000;
 const MAX_PR_BODY_CHARS = 8_000;
 
-function formatPR(pr: PullRequest): string {
-    let body = pr.body.trim();
-    if (body.length > MAX_PR_BODY_CHARS) {
-        body = body.slice(0, MAX_PR_BODY_CHARS) + "\n\n[PR description truncated]";
-    }
-    return `### PR #${pr.number} (${pr.url}): ${pr.title}${body ? `\n\n${body}` : ""}`;
+const MAX_FOLLOW_UP_BODY_CHARS = 2_000;
+
+function truncate(text: string, max: number): string {
+    const trimmed = text.trim();
+    return trimmed.length > max
+        ? trimmed.slice(0, max) + "\n\n[PR description truncated]"
+        : trimmed;
 }
 
-function batchPRs(prs: PullRequest[]): string[][] {
+function formatItem({ pr, followUps }: ChangelogItem): string {
+    const body = truncate(pr.body, MAX_PR_BODY_CHARS);
+    let formatted = `### PR #${pr.number} (${pr.url}): ${pr.title}${body ? `\n\n${body}` : ""}`;
+    if (followUps.length > 0) {
+        const list = followUps.map(f => {
+            const fBody = truncate(f.body, MAX_FOLLOW_UP_BODY_CHARS);
+            return `- PR #${f.number}: ${f.title}${fBody ? `\n\n${fBody}` : ""}`;
+        });
+        formatted += `\n\nFollow-up PRs (same release, fold into this entry):\n\n${list.join("\n\n")}`;
+    }
+    return formatted;
+}
+
+function batchItems(items: ChangelogItem[]): string[][] {
     const batches: string[][] = [];
     let current: string[] = [];
     let currentChars = 0;
 
-    for (const pr of prs) {
-        const formatted = formatPR(pr);
+    for (const item of items) {
+        const formatted = formatItem(item);
         const full =
             current.length >= MAX_PRS_PER_BATCH ||
             currentChars + formatted.length > MAX_CHARS_PER_BATCH;
@@ -291,22 +333,25 @@ function batchPRs(prs: PullRequest[]): string[][] {
     return batches;
 }
 
-async function generateChangelogBody(prs: PullRequest[], version: string): Promise<string> {
+function createClient(): Anthropic {
     const apiKey = process.env.CLAUDE_KEY;
     if (!apiKey) {
         throw new Error("CLAUDE_KEY environment variable is not set.");
     }
+    return new Anthropic({ apiKey });
+}
 
-    const client = new Anthropic({ apiKey });
-    const batches = batchPRs(prs);
+async function generateChangelogBody(items: ChangelogItem[], version: string): Promise<string> {
+    const client = createClient();
+    const batches = batchItems(items);
 
     console.log(
-        `  Sending ${prs.length} PRs to Claude (claude-opus-4-5) in ${batches.length} batch(es)...`
+        `  Sending ${items.length} item(s) to Claude (claude-opus-4-5) in ${batches.length} batch(es)...`
     );
 
     const bodies: string[] = [];
     for (const [index, batch] of batches.entries()) {
-        console.log(`    Batch ${index + 1}/${batches.length}: ${batch.length} PR(s)`);
+        console.log(`    Batch ${index + 1}/${batches.length}: ${batch.length} item(s)`);
 
         const userMessage = `Generate a changelog for Webiny version ${version} based on the following merged pull requests. Apply all the rules in your system prompt.\n\n${batch.join("\n\n---\n\n")}`;
 
@@ -332,6 +377,203 @@ async function generateChangelogBody(prs: PullRequest[], version: string): Promi
     }
 
     return bodies.join("\n\n");
+}
+
+// ---------------------------------------------------------------------------
+// Triage
+// ---------------------------------------------------------------------------
+
+// Conventional-commit types and scopes that only ever touch Webiny's own tooling. These are
+// dropped without asking Claude. Everything else goes through triagePRs().
+const INTERNAL_TYPES = new Set(["ci", "build", "test"]);
+const INTERNAL_SCOPES = new Set(["ci", "build", "release", "e2e", "test", "tests"]);
+
+function internalReasonFromTitle(title: string): string | null {
+    if (/^chore(\([^)]*\))?: merge\b/i.test(title)) {
+        return "merge between release branches";
+    }
+    const match = title.match(/^(\w+)(?:\(([^)]*)\))?!?:/);
+    if (!match) {
+        return null;
+    }
+    const type = match[1].toLowerCase();
+    if (INTERNAL_TYPES.has(type)) {
+        return `\`${type}\` change`;
+    }
+    const scope = (match[2] ?? "")
+        .split(/[,\s]+/)
+        .map(s => s.toLowerCase())
+        .find(s => INTERNAL_SCOPES.has(s));
+    return scope ? `\`${scope}\` scope` : null;
+}
+
+const TRIAGE_PROMPT = `
+You triage merged pull requests for the changelog of one Webiny release. Webiny is an open-source
+serverless CMS; the changelog is read by developers who build projects on top of it. Every PR you
+see belongs to the same release, and none of them has shipped yet.
+
+Report two things through the \`report_triage\` tool.
+
+1. Internal PRs: changes a Webiny user never sees or runs. This covers CI workflows, the monorepo's
+   own build and package publishing, release scripts, E2E and test infrastructure, test-only
+   changes, dependency bumps with no behaviour change, merges between branches, and refactors with
+   no visible effect. A change to the Webiny CLI, to a project's build or deploy, to the API, the
+   Admin app or the SDKs is user-facing even when it sounds like tooling. When in doubt, it is
+   user-facing.
+
+2. Follow-up PRs: a PR that fixes, polishes or completes something another PR in this same release
+   introduced. Because the release is not out yet, nobody ever ran into the problem the follow-up
+   fixes, so it should not get its own changelog entry. Report the PR whose work it finishes as its
+   \`parent\`. The parent may be one of the new PRs or one of the PRs already handled for this
+   release. Only report a follow-up when the PRs clearly concern the same new feature or change:
+   matching subject, the follow-up's description refers to it, or it fixes behaviour that did not
+   exist before this release. A fix for something that already existed in an earlier release is not
+   a follow-up, even if it touches the same area. When in doubt, it is not a follow-up.
+
+Leave every other PR out of both lists. Never list a PR in both.
+`.trim();
+
+const TRIAGE_TOOL: Anthropic.Tool = {
+    name: "report_triage",
+    description: "Report the internal PRs and the follow-up PRs of this release.",
+    input_schema: {
+        type: "object",
+        properties: {
+            internal: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        pr: { type: "integer" },
+                        reason: { type: "string", description: "A few words, lowercase." }
+                    },
+                    required: ["pr", "reason"]
+                }
+            },
+            followUps: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        pr: { type: "integer" },
+                        parent: { type: "integer" }
+                    },
+                    required: ["pr", "parent"]
+                }
+            }
+        },
+        required: ["internal", "followUps"]
+    }
+};
+
+interface TriageInput {
+    internal: Array<{ pr: number; reason: string }>;
+    followUps: Array<{ pr: number; parent: number }>;
+}
+
+interface TriageResult {
+    internal: SkippedPR[];
+    // Follow-up PR number → the PR at the root of its chain.
+    followUpOf: Map<number, number>;
+}
+
+const MAX_TRIAGE_CHARS = 400_000;
+
+/**
+ * Asks Claude which of `candidates` are internal and which are follow-ups to another PR of
+ * the release. `earlier` are this release's PRs from previous runs (in the changelog or
+ * skipped); they can be parents but are not classified again.
+ */
+async function triagePRs(
+    candidates: PullRequest[],
+    earlier: PullRequest[],
+    version: string
+): Promise<TriageResult> {
+    const excerptChars = Math.max(
+        200,
+        Math.min(1_000, Math.floor(MAX_TRIAGE_CHARS / Math.max(candidates.length, 1)))
+    );
+    const newList = candidates.map(pr => {
+        const body = truncate(pr.body, excerptChars);
+        return `### PR #${pr.number}: ${pr.title}${body ? `\n\n${body}` : ""}`;
+    });
+    const earlierList = earlier.map(pr => `- PR #${pr.number}: ${pr.title}`);
+
+    const userMessage = [
+        `Webiny ${version}.`,
+        earlier.length > 0
+            ? `PRs already handled for this release (possible parents only, do not classify):\n\n${earlierList.join("\n")}`
+            : "",
+        `New PRs to triage:\n\n${newList.join("\n\n---\n\n")}`
+    ]
+        .filter(Boolean)
+        .join("\n\n");
+
+    console.log(`  Triaging ${candidates.length} PR(s) with Claude (claude-opus-4-5)...`);
+    const message = await createClient().messages.create({
+        model: "claude-opus-4-5",
+        max_tokens: 16000,
+        system: TRIAGE_PROMPT,
+        tools: [TRIAGE_TOOL],
+        tool_choice: { type: "tool", name: TRIAGE_TOOL.name },
+        messages: [{ role: "user", content: userMessage }]
+    });
+
+    if (message.stop_reason === "max_tokens") {
+        throw new Error("Claude's triage output was cut off.");
+    }
+    const toolUse = message.content.find(b => b.type === "tool_use");
+    if (!toolUse || toolUse.type !== "tool_use") {
+        throw new Error("Claude returned no triage result.");
+    }
+
+    return resolveTriage(toolUse.input as TriageInput, candidates, earlier);
+}
+
+/**
+ * Drops anything in Claude's answer that doesn't refer to a real PR of this release, and
+ * points each follow-up at the root of its chain (a fix of a fix of a feature → the feature).
+ */
+function resolveTriage(
+    input: TriageInput,
+    candidates: PullRequest[],
+    earlier: PullRequest[]
+): TriageResult {
+    const candidateNums = new Set(candidates.map(pr => pr.number));
+    const knownNums = new Set([...candidateNums, ...earlier.map(pr => pr.number)]);
+
+    const internal = new Map<number, string>();
+    for (const { pr, reason } of input.internal ?? []) {
+        if (candidateNums.has(pr)) {
+            internal.set(pr, reason);
+        }
+    }
+
+    const parentOf = new Map<number, number>();
+    for (const { pr, parent } of input.followUps ?? []) {
+        if (candidateNums.has(pr) && knownNums.has(parent) && pr !== parent && !internal.has(pr)) {
+            parentOf.set(pr, parent);
+        }
+    }
+
+    const followUpOf = new Map<number, number>();
+    for (const pr of parentOf.keys()) {
+        const seen = new Set([pr]);
+        let root = parentOf.get(pr)!;
+        while (parentOf.has(root) && !seen.has(root)) {
+            seen.add(root);
+            root = parentOf.get(root)!;
+        }
+        // A cycle has no root to fold into; leave the PR as a regular entry.
+        if (!seen.has(root)) {
+            followUpOf.set(pr, root);
+        }
+    }
+
+    return {
+        internal: [...internal].map(([number, reason]) => ({ number, reason })),
+        followUpOf
+    };
 }
 
 // ---------------------------------------------------------------------------
@@ -382,6 +624,52 @@ function extractSkippedPRNumbers(aiTxtPath: string): Set<number> {
     }
 }
 
+function aiTxtScaffold(version: string): string {
+    return [
+        `AI Context: ${version} Changelog (changelog.mdx)`,
+        "",
+        "This file tracks manual edits made after the generation script ran.",
+        'The script reads the "Skipped PRs" section to avoid re-adding removed entries.',
+        "",
+        "## Skipped PRs",
+        "",
+        "## Manual Rewrites",
+        ""
+    ].join("\n");
+}
+
+/**
+ * Adds `NNNN - reason` lines to the end of the "## Skipped PRs" section, creating the file
+ * or the section when missing.
+ */
+function appendSkippedPRs(aiTxtPath: string, version: string, entries: SkippedPR[]): void {
+    if (entries.length === 0) {
+        return;
+    }
+    let content = existsSync(aiTxtPath) ? readFileSync(aiTxtPath, "utf-8") : aiTxtScaffold(version);
+    let header = content.match(/^## Skipped PRs\n/m);
+    if (!header) {
+        content = content.trimEnd() + "\n\n## Skipped PRs\n";
+        header = content.match(/^## Skipped PRs\n/m)!;
+    }
+
+    const start = header.index! + header[0].length;
+    const nextOffset = content.slice(start).search(/^## /m);
+    const end = nextOffset === -1 ? content.length : start + nextOffset;
+    const lines = [
+        content.slice(start, end).trim(),
+        ...entries.map(e => `${e.number} - ${e.reason}`)
+    ].filter(Boolean);
+
+    const updated =
+        content.slice(0, start) +
+        "\n" +
+        lines.join("\n") +
+        "\n" +
+        (nextOffset === -1 ? "" : "\n" + content.slice(end));
+    writeFileSync(aiTxtPath, updated, "utf-8");
+}
+
 function removePRSections(
     content: string,
     prNumbers: Set<number>
@@ -420,10 +708,16 @@ function removePRSections(
 // Duplicate section merger
 // ---------------------------------------------------------------------------
 
-function mergeDuplicateH2Sections(content: string): { merged: string; duplicates: string[] } {
+function mergeDuplicateH2Sections(content: string): {
+    merged: string;
+    duplicates: string[];
+} {
     const lines = content.split("\n");
     const segments: Array<{ heading: string | null; lines: string[] }> = [];
-    let current: { heading: string | null; lines: string[] } = { heading: null, lines: [] };
+    let current: { heading: string | null; lines: string[] } = {
+        heading: null,
+        lines: []
+    };
 
     for (const line of lines) {
         if (/^## /.test(line)) {
@@ -543,8 +837,12 @@ async function main(): Promise<void> {
     const { prs, noChangelogNumbers } = await fetchPRsForMilestone(milestone.number);
     console.log(`  ${prs.length} pull request(s) eligible for the changelog.`);
 
+    const outDir = join(process.cwd(), "docs", "release-notes", version);
+    const outPath = join(outDir, "changelog.mdx");
+    const aiTxtPath = join(outDir, "changelog.ai.txt");
+
     if (dryRun) {
-        console.log("\n  --dry-run: eligible PRs (no Claude call, no files written):");
+        console.log("\n  --dry-run: eligible PRs (no files written):");
         for (const pr of prs) {
             console.log(`    #${pr.number}: ${pr.title}`);
         }
@@ -553,30 +851,27 @@ async function main(): Promise<void> {
                 `  Skipped (no-changelog): ${[...noChangelogNumbers].map(n => `#${n}`).join(", ")}`
             );
         }
-        process.exit(0);
-    }
+    } else {
+        mkdirSync(outDir, { recursive: true });
 
-    const outDir = join(process.cwd(), "docs", "release-notes", version);
-    mkdirSync(outDir, { recursive: true });
-    const outPath = join(outDir, "changelog.mdx");
+        // Keep a PR → author map next to the changelog. REVIEW-PENDING markers are deleted once an
+        // entry is confirmed, so this is what still attributes entries to authors afterwards.
+        if (prs.length > 0) {
+            writeAuthorsFile(join(outDir, "changelog.authors.json"), prs);
+        }
 
-    // Keep a PR → author map next to the changelog. REVIEW-PENDING markers are deleted once an
-    // entry is confirmed, so this is what still attributes entries to authors afterwards.
-    if (prs.length > 0) {
-        writeAuthorsFile(join(outDir, "changelog.authors.json"), prs);
-    }
-
-    // Remove any sections already in the changelog whose PRs now carry no-changelog.
-    if (noChangelogNumbers.size > 0) {
-        const alreadyInFile = extractMentionedPRNumbers(outPath);
-        const stale = new Set([...noChangelogNumbers].filter(n => alreadyInFile.has(n)));
-        if (stale.size > 0) {
-            const existing = readFileSync(outPath, "utf-8");
-            const { updated, removed } = removePRSections(existing, stale);
-            writeFileSync(outPath, updated, "utf-8");
-            console.log(
-                `  Removed ${removed.length} no-changelog PR(s) from existing changelog: ${removed.map(n => `#${n}`).join(", ")}`
-            );
+        // Remove any sections already in the changelog whose PRs now carry no-changelog.
+        if (noChangelogNumbers.size > 0) {
+            const alreadyInFile = extractMentionedPRNumbers(outPath);
+            const stale = new Set([...noChangelogNumbers].filter(n => alreadyInFile.has(n)));
+            if (stale.size > 0) {
+                const existing = readFileSync(outPath, "utf-8");
+                const { updated, removed } = removePRSections(existing, stale);
+                writeFileSync(outPath, updated, "utf-8");
+                console.log(
+                    `  Removed ${removed.length} no-changelog PR(s) from existing changelog: ${removed.map(n => `#${n}`).join(", ")}`
+                );
+            }
         }
     }
 
@@ -586,57 +881,116 @@ async function main(): Promise<void> {
     }
 
     const alreadyPresent = extractMentionedPRNumbers(outPath);
-    const aiTxtPath = join(outDir, "changelog.ai.txt");
     const skipped = extractSkippedPRNumbers(aiTxtPath);
     if (skipped.size > 0) {
         console.log(
-            `  Skipping ${skipped.size} manually removed PR(s) from changelog.ai.txt: ${[...skipped].map(n => `#${n}`).join(", ")}`
+            `  Skipping ${skipped.size} PR(s) listed in changelog.ai.txt: ${[...skipped].map(n => `#${n}`).join(", ")}`
         );
         for (const n of skipped) alreadyPresent.add(n);
     }
-    const newPRs = alreadyPresent.size > 0 ? prs.filter(pr => !alreadyPresent.has(pr.number)) : prs;
+    const newPRs = prs.filter(pr => !alreadyPresent.has(pr.number));
 
     if (newPRs.length === 0) {
         console.log("  All PRs are already in the changelog. Nothing to add.");
         process.exit(0);
     }
 
-    if (alreadyPresent.size > 0) {
+    const earlier = prs.filter(pr => alreadyPresent.has(pr.number));
+    if (earlier.length > 0) {
         console.log(
-            `  ${alreadyPresent.size} PR(s) already in changelog — generating content for ${newPRs.length} new PR(s)...`
+            `  ${earlier.length} PR(s) already handled, ${newPRs.length} new PR(s) to process.`
         );
     }
 
-    const rawBody = await generateChangelogBody(newPRs, version);
-    const authorByPR = new Map(newPRs.map(pr => [pr.number, pr.author]));
+    // Triage: drop internal PRs and fold follow-up fixes into the PR they finish.
+    const newSkipped: SkippedPR[] = [];
+    const candidates: PullRequest[] = [];
+    for (const pr of newPRs) {
+        const reason = internalReasonFromTitle(pr.title);
+        if (reason) {
+            newSkipped.push({
+                number: pr.number,
+                reason: `${pr.title}; internal (${reason}), skipped automatically.`
+            });
+        } else {
+            candidates.push(pr);
+        }
+    }
+
+    const canTriage = candidates.length > 0 && (!dryRun || Boolean(process.env.CLAUDE_KEY));
+    const triage: TriageResult = canTriage
+        ? await triagePRs(candidates, earlier, version)
+        : { internal: [], followUpOf: new Map() };
+
+    const internalNums = new Set(triage.internal.map(i => i.number));
+    const items = new Map<number, ChangelogItem>();
+    for (const pr of candidates) {
+        if (!internalNums.has(pr.number) && !triage.followUpOf.has(pr.number)) {
+            items.set(pr.number, { pr, followUps: [] });
+        }
+    }
+    for (const { number, reason } of triage.internal) {
+        const pr = candidates.find(c => c.number === number)!;
+        newSkipped.push({
+            number,
+            reason: `${pr.title}; internal (${reason}), skipped automatically.`
+        });
+    }
+    for (const [number, root] of triage.followUpOf) {
+        const pr = candidates.find(c => c.number === number)!;
+        items.get(root)?.followUps.push(pr);
+        newSkipped.push({
+            number,
+            reason: `${pr.title}; follow-up to #${root} in the same release, folded into its entry.`
+        });
+    }
+    newSkipped.sort((a, b) => a.number - b.number);
+
+    if (newSkipped.length > 0) {
+        console.log(`  Leaving out ${newSkipped.length} PR(s):`);
+        for (const s of newSkipped) {
+            console.log(`    #${s.number}: ${s.reason}`);
+        }
+    }
+
+    if (dryRun) {
+        if (!canTriage && candidates.length > 0) {
+            console.log(
+                "  CLAUDE_KEY not set: skipped the triage call, so follow-ups aren't shown."
+            );
+        }
+        console.log(`  ${items.size} changelog item(s) would be generated.`);
+        process.exit(0);
+    }
+
+    if (items.size === 0) {
+        appendSkippedPRs(aiTxtPath, version, newSkipped);
+        console.log("  Nothing left to generate after triage.");
+        process.exit(0);
+    }
+
+    const rawBody = await generateChangelogBody([...items.values()], version);
+    const authorByPR = new Map([...items.values()].map(({ pr }) => [pr.number, pr.author]));
     const body = addReviewMarkers(rawBody, authorByPR);
 
-    if (alreadyPresent.size > 0) {
+    if (existsSync(outPath)) {
         const existing = readFileSync(outPath, "utf-8");
         writeFileSync(outPath, existing.trimEnd() + "\n\n" + body + "\n", "utf-8");
         console.log(
-            `\n✓ Appended ${newPRs.length} new PR(s) to: docs/release-notes/${version}/changelog.mdx`
+            `\n✓ Appended ${items.size} new item(s) to: docs/release-notes/${version}/changelog.mdx`
         );
     } else {
         const mdx = buildMdxFile(version, body);
         writeFileSync(outPath, mdx, "utf-8");
         console.log(`\n✓ Changelog written to: docs/release-notes/${version}/changelog.mdx`);
+    }
 
-        // Create a blank changelog.ai.txt scaffold so manual editors know to use it.
-        const aiTxtScaffold = [
-            `AI Context: ${version} Changelog (changelog.mdx)`,
-            "",
-            "This file tracks manual edits made after the generation script ran.",
-            'The script reads the "Skipped PRs" section to avoid re-adding removed entries.',
-            "",
-            "## Skipped PRs",
-            "",
-            "## Manual Rewrites",
-            ""
-        ].join("\n");
-        writeFileSync(aiTxtPath, aiTxtScaffold, "utf-8");
+    // Create the changelog.ai.txt scaffold so manual editors know to use it.
+    if (!existsSync(aiTxtPath)) {
+        writeFileSync(aiTxtPath, aiTxtScaffold(version), "utf-8");
         console.log(`✓ Scaffold written to: docs/release-notes/${version}/changelog.ai.txt`);
     }
+    appendSkippedPRs(aiTxtPath, version, newSkipped);
 
     const written = readFileSync(outPath, "utf-8");
     const { merged, duplicates } = mergeDuplicateH2Sections(written);

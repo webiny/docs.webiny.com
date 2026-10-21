@@ -22,7 +22,9 @@ When editing a generated `changelog.mdx` file, always keep the sibling `changelo
 
 The `generate-changelog.ts` script reads `## Skipped PRs` to avoid re-adding manually removed entries on the next run. If `changelog.ai.txt` is not updated, removed PRs will reappear.
 
-PRs for a release are discovered from the release commits (the `(#NNNN)` references between the previous release tag and this version's tag/branch), **not** from a GitHub milestone — so a forgotten milestone no longer drops entries. Run `yarn generate:changelog --version <v> --dry-run` to preview the PRs that would be included.
+PRs for a release are discovered from the `X.Y.Z` GitHub milestone. PRs labeled `no-changelog` are left out. Run `yarn generate:changelog --version <v> --dry-run` to preview the PRs that would be included.
+
+Before generating, the script triages the new PRs. Titles with a `ci`, `build` or `test` type, a `ci`, `build`, `release`, `e2e` or `test` scope, or a `chore: merge ...` title are dropped outright. A Claude call then flags the remaining internal PRs and finds follow-ups: fixes merged later in the same release for something a PR of that release introduced. A follow-up gets no entry. Its description goes to Claude as context for the entry of the PR it finishes. Every PR left out this way is appended to `## Skipped PRs` with the reason, so reruns stay stable. To bring one back, write its entry by hand. Deleting the line only gets the PR triaged again on the next run. With `CLAUDE_KEY` set, `--dry-run` runs the triage call too and prints what it would leave out.
 
 **Upgrade guide custom steps:** `upgrade-guide.mdx` is regenerated from a template by the release workflows. Put release-specific steps between the `{/* custom-steps:start ... */}` and `{/* custom-steps:end */}` markers, before `<AdditionalNotes />`. `scripts/generate-upgrade-guide.ts` keeps that block and the page `id` on every run. Anything outside the markers is overwritten.
 
