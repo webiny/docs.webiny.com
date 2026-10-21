@@ -62,12 +62,13 @@ interface PullRequest {
 }
 
 /**
- * One changelog entry to generate: the PR that introduced a change, plus any later PRs in
- * the same release that only fixed or finished it. Follow-ups are context for Claude; they
- * never get an entry of their own.
+ * One changelog entry to generate. `prs` are the PRs that together deliver the change (e.g. the
+ * API and the Admin half of one feature); all of them are linked in the entry's heading.
+ * `followUps` are later PRs in the same release that only fixed or finished it. They are
+ * context for Claude and never get an entry or a link of their own.
  */
 interface ChangelogItem {
-    pr: PullRequest;
+    prs: PullRequest[];
     followUps: PullRequest[];
 }
 
@@ -244,6 +245,9 @@ a developer-facing changelog in MDX format from a list of merged pull requests.
   heading like this: \`### Some Change Title ([#1234](https://github.com/webiny/webiny-js/pull/1234))\`.
   If multiple PRs are merged into one item, include all of them: \`([#1234](…), [#1235](…))\`.
 - Merge related PRs into a single changelog item when they address the same feature or fix.
+- Some items list several PRs that together deliver one change, for example the API and the Admin
+  part of the same feature. Write exactly one entry for such an item and link all of its PRs in
+  the heading. Never split it into one entry per PR.
 - Some PRs come with a "Follow-up PRs" list: fixes merged later in the same, still unreleased,
   release to finish that PR's work. Users never saw the broken state, so describe only the end
   result as one entry for the main PR. Do not mention the follow-ups, what they fixed, or link them.
@@ -295,9 +299,16 @@ function truncate(text: string, max: number): string {
         : trimmed;
 }
 
-function formatItem({ pr, followUps }: ChangelogItem): string {
+function formatPR(pr: PullRequest): string {
     const body = truncate(pr.body, MAX_PR_BODY_CHARS);
-    let formatted = `### PR #${pr.number} (${pr.url}): ${pr.title}${body ? `\n\n${body}` : ""}`;
+    return `PR #${pr.number} (${pr.url}): ${pr.title}${body ? `\n\n${body}` : ""}`;
+}
+
+function formatItem({ prs, followUps }: ChangelogItem): string {
+    let formatted =
+        prs.length === 1
+            ? `### ${formatPR(prs[0])}`
+            : `### One change delivered by ${prs.length} PRs (write a single entry, link all of them)\n\n${prs.map(formatPR).join("\n\n")}`;
     if (followUps.length > 0) {
         const list = followUps.map(f => {
             const fBody = truncate(f.body, MAX_FOLLOW_UP_BODY_CHARS);
@@ -430,12 +441,18 @@ Report two things through the \`report_triage\` tool.
    exist before this release. A fix for something that already existed in an earlier release is not
    a follow-up, even if it touches the same area. When in doubt, it is not a follow-up.
 
-Leave every other PR out of both lists. Never list a PR in both.
+3. Related PRs: groups of new PRs that together deliver one feature or change and belong in a
+   single changelog entry. Typical case: one PR adds a capability to the API and another adds the
+   same capability to the Admin app or an SDK, or a feature split across several PRs by package.
+   Only group PRs that a reader would see as one change. Two separate fixes in the same area are
+   not related. Each group has at least two PRs. Do not put internal or follow-up PRs in a group.
+
+Leave every other PR out of all lists. Never list a PR as both internal and anything else.
 `.trim();
 
 const TRIAGE_TOOL: Anthropic.Tool = {
     name: "report_triage",
-    description: "Report the internal PRs and the follow-up PRs of this release.",
+    description: "Report the internal, follow-up and related PRs of this release.",
     input_schema: {
         type: "object",
         properties: {
@@ -460,21 +477,34 @@ const TRIAGE_TOOL: Anthropic.Tool = {
                     },
                     required: ["pr", "parent"]
                 }
+            },
+            related: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        prs: { type: "array", items: { type: "integer" } }
+                    },
+                    required: ["prs"]
+                }
             }
         },
-        required: ["internal", "followUps"]
+        required: ["internal", "followUps", "related"]
     }
 };
 
 interface TriageInput {
     internal: Array<{ pr: number; reason: string }>;
     followUps: Array<{ pr: number; parent: number }>;
+    related: Array<{ prs: number[] }>;
 }
 
 interface TriageResult {
     internal: SkippedPR[];
     // Follow-up PR number → the PR at the root of its chain.
     followUpOf: Map<number, number>;
+    // Groups of PRs that become one entry, each sorted by PR number.
+    groups: number[][];
 }
 
 const MAX_TRIAGE_CHARS = 400_000;
@@ -570,9 +600,37 @@ function resolveTriage(
         }
     }
 
+    // Groups that share a PR are merged, so each PR ends up in at most one entry.
+    const groupOf = new Map<number, number>();
+    const find = (n: number): number => {
+        while (groupOf.get(n) !== n) {
+            n = groupOf.get(n)!;
+        }
+        return n;
+    };
+    for (const { prs } of input.related ?? []) {
+        const members = [...new Set(prs ?? [])].filter(
+            n => candidateNums.has(n) && !internal.has(n) && !followUpOf.has(n)
+        );
+        for (const n of members) {
+            if (!groupOf.has(n)) {
+                groupOf.set(n, n);
+            }
+        }
+        for (const n of members.slice(1)) {
+            groupOf.set(find(n), find(members[0]));
+        }
+    }
+    const byRoot = new Map<number, number[]>();
+    for (const n of groupOf.keys()) {
+        byRoot.set(find(n), [...(byRoot.get(find(n)) ?? []), n]);
+    }
+    const groups = [...byRoot.values()].filter(g => g.length > 1).map(g => g.sort((a, b) => a - b));
+
     return {
         internal: [...internal].map(([number, reason]) => ({ number, reason })),
-        followUpOf
+        followUpOf,
+        groups
     };
 }
 
@@ -920,14 +978,25 @@ async function main(): Promise<void> {
     const canTriage = candidates.length > 0 && (!dryRun || Boolean(process.env.CLAUDE_KEY));
     const triage: TriageResult = canTriage
         ? await triagePRs(candidates, earlier, version)
-        : { internal: [], followUpOf: new Map() };
+        : { internal: [], followUpOf: new Map(), groups: [] };
 
     const internalNums = new Set(triage.internal.map(i => i.number));
+    // Items are keyed by their lowest PR number; leadOf maps every grouped PR to that key.
+    const leadOf = new Map<number, number>();
+    for (const group of triage.groups) {
+        for (const n of group) {
+            leadOf.set(n, group[0]);
+        }
+    }
     const items = new Map<number, ChangelogItem>();
     for (const pr of candidates) {
-        if (!internalNums.has(pr.number) && !triage.followUpOf.has(pr.number)) {
-            items.set(pr.number, { pr, followUps: [] });
+        if (internalNums.has(pr.number) || triage.followUpOf.has(pr.number)) {
+            continue;
         }
+        const lead = leadOf.get(pr.number) ?? pr.number;
+        const item = items.get(lead) ?? { prs: [], followUps: [] };
+        item.prs.push(pr);
+        items.set(lead, item);
     }
     for (const { number, reason } of triage.internal) {
         const pr = candidates.find(c => c.number === number)!;
@@ -938,13 +1007,17 @@ async function main(): Promise<void> {
     }
     for (const [number, root] of triage.followUpOf) {
         const pr = candidates.find(c => c.number === number)!;
-        items.get(root)?.followUps.push(pr);
+        items.get(leadOf.get(root) ?? root)?.followUps.push(pr);
         newSkipped.push({
             number,
             reason: `${pr.title}; follow-up to #${root} in the same release, folded into its entry.`
         });
     }
     newSkipped.sort((a, b) => a.number - b.number);
+
+    for (const group of triage.groups) {
+        console.log(`  Grouping into one entry: ${group.map(n => `#${n}`).join(", ")}`);
+    }
 
     if (newSkipped.length > 0) {
         console.log(`  Leaving out ${newSkipped.length} PR(s):`);
@@ -970,7 +1043,9 @@ async function main(): Promise<void> {
     }
 
     const rawBody = await generateChangelogBody([...items.values()], version);
-    const authorByPR = new Map([...items.values()].map(({ pr }) => [pr.number, pr.author]));
+    const authorByPR = new Map(
+        [...items.values()].flatMap(({ prs }) => prs.map(pr => [pr.number, pr.author] as const))
+    );
     const body = addReviewMarkers(rawBody, authorByPR);
 
     if (existsSync(outPath)) {
