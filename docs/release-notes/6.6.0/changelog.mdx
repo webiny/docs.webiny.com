@@ -11,30 +11,36 @@ import { Alert } from "@/components/Alert";
 
 ## Development
 
-### Self-Hosted Webiny with Built-In Authentication ([#5368](https://github.com/webiny/webiny-js/pull/5368), [#5367](https://github.com/webiny/webiny-js/pull/5367), [#5374](https://github.com/webiny/webiny-js/pull/5374), [#5393](https://github.com/webiny/webiny-js/pull/5393))
+### Standalone Hosting: Run Webiny Without AWS ([#5454](https://github.com/webiny/webiny-js/pull/5454))
 {/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
 
-Webiny can now run entirely on your own infrastructure without AWS, Pulumi, or an external authentication service. The new self-hosted flavour uses a plain Node HTTP server backed by SQL/SQLite, with a dedicated `webiny-server` CLI separate from the AWS-focused `webiny` CLI.
+Webiny has a new hosting type, standalone, that runs the API and Admin on a single long-running Node server backed by a SQL database. It needs no AWS account and no Pulumi. Choose it when creating a project, or pass it in non-interactive mode:
 
-Key capabilities:
+```
+npx create-webiny-project my-project --hosting-type standalone
+```
 
-- **Built-in username/password authentication** — a first-party identity provider with a login screen matching the Cognito UI, JWT-based sessions, and scrypt password hashing. Configure it entirely from `webiny.config.tsx` via `<SelfHostedAuth signingSecret={...} tokenExpiresIn={...} />`.
-- **`webiny-server serve`** — runs built apps as long-running servers: `serve api` boots the API, `serve admin` statically serves the admin SPA with proper client-side routing, and `serve` runs both.
-- **`webiny-server watch api`** — boots the API automatically alongside build watchers, with cleaner output and automatic reload on changes.
-- **WebSocket support** — real-time features now work on self-hosted deployments just as they do on AWS.
-- **Config-driven admin API URL** — `<Admin.ApiUrl url={...} />` tells the admin where the API lives, falling back to same-origin for deployed self-hosted setups.
+<Alert type="info">
 
-The AWS flavour's behaviour is unchanged.
+Standalone hosting is in alpha and is marked as such in the project setup prompt.
+
+</Alert>
+
+- **SQLite or PostgreSQL.** Pick the database when creating the project. The driver is set in `webiny.config.tsx` with `<Infra.Sqlite>` or `<Infra.Postgres>`, and the build leaves out the driver you don't use.
+- **One command for local development.** `yarn dev` starts the API and Admin and serves both on one URL. The port comes from the `PORT` environment variable, or the first free port from 3001.
+- **Deployable builds.** `webiny build` produces a self-contained `build/` folder with the server entry point, worker files and a pruned `node_modules`, ready to copy to any server. Example GitHub Actions workflows, a Dockerfile and an nginx config are in [`docs/gh-actions-workflows/standalone`](https://github.com/webiny/webiny-js/tree/next/docs/gh-actions-workflows/standalone).
+- **The same features as on AWS.** Background tasks, scheduled actions, real-time notifications over WebSockets and streamed HTTP responses all run on the standalone server.
+- **Built-in sign-in.** Users sign in with an email and password configured through `<SelfHostedAuth />`. A forgotten password can be reset with a code sent by email, or by an administrator with `yarn webiny reset-password <email>`.
+- **Licensing without the CLI.** A deployed server reads the license from the `WEBINY_PROJECT_ID` and `WEBINY_PROJECT_API_KEY` environment variables.
+
+New projects run without a `.env` file and ship a `.env.example` that lists the variables you can override.
+
+Related PRs: [#5453](https://github.com/webiny/webiny-js/pull/5453), [#5510](https://github.com/webiny/webiny-js/pull/5510), [#5511](https://github.com/webiny/webiny-js/pull/5511), [#5516](https://github.com/webiny/webiny-js/pull/5516), [#5527](https://github.com/webiny/webiny-js/pull/5527), [#5500](https://github.com/webiny/webiny-js/pull/5500), [#5697](https://github.com/webiny/webiny-js/pull/5697), [#5635](https://github.com/webiny/webiny-js/pull/5635), [#5715](https://github.com/webiny/webiny-js/pull/5715), [#5713](https://github.com/webiny/webiny-js/pull/5713), [#5717](https://github.com/webiny/webiny-js/pull/5717), [#5729](https://github.com/webiny/webiny-js/pull/5729), [#5718](https://github.com/webiny/webiny-js/pull/5718), [#5664](https://github.com/webiny/webiny-js/pull/5664), [#5408](https://github.com/webiny/webiny-js/pull/5408), [#5414](https://github.com/webiny/webiny-js/pull/5414), [#5915](https://github.com/webiny/webiny-js/pull/5915), [#5963](https://github.com/webiny/webiny-js/pull/5963), [#6022](https://github.com/webiny/webiny-js/pull/6022), [#5525](https://github.com/webiny/webiny-js/pull/5525), [#5547](https://github.com/webiny/webiny-js/pull/5547), [#5541](https://github.com/webiny/webiny-js/pull/5541), [#5825](https://github.com/webiny/webiny-js/pull/5825), [#5687](https://github.com/webiny/webiny-js/pull/5687), [#5926](https://github.com/webiny/webiny-js/pull/5926), [#5988](https://github.com/webiny/webiny-js/pull/5988), [#5968](https://github.com/webiny/webiny-js/pull/5968), [#5398](https://github.com/webiny/webiny-js/pull/5398).
 
 ### TypeScript 7 Compatibility ([#5380](https://github.com/webiny/webiny-js/pull/5380))
 {/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
 
 The build tooling has been updated for TypeScript 7, which removed the programmatic compiler API. The new approach shells out to the native `tsc` binary with proper cross-platform support (Windows long paths, ARM64 macOS). Several deprecated compiler options were also removed from the root config.
-
-### Testable API Handler Composition ([#5361](https://github.com/webiny/webiny-js/pull/5361))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-The code that assembles Webiny's API Lambda used to live in a project template that could only be verified by a full deploy. This wiring now lives in real packages (`@webiny/api-infra-aws`, `@webiny/api-infra-aws-ddb`, `@webiny/api-infra-aws-ddb-os`) with an automated integration test that boots the entire handler against an in-process DynamoDB. This catches composition and registration-order bugs before deploy.
 
 ### Remote Components Feature Flag ([#5559](https://github.com/webiny/webiny-js/pull/5559))
 {/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
@@ -43,26 +49,10 @@ Remote Components is a new enterprise feature that allows you to create, edit, a
 
 The `remoteComponents` feature flag gates the entire extension. When disabled, no GraphQL schema is registered and no admin UI is mounted.
 
-### Dependency-Aware Build Cache Now Default ([#5430](https://github.com/webiny/webiny-js/pull/5430))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-The experimental dependency-aware build cache is now the default behavior. A plain `yarn build` now automatically rebuilds any changed package plus all packages that depend on it, whether workspace packages or resolved third-party dependencies. The `--rebuild-dependents` flag and `WEBINY_EXPERIMENTAL_DEP_AWARE_CACHE` environment variable have been removed.
-
-<Alert type="info">
-
-The first build after upgrading will be slower as cached hashes are recalculated. Subsequent builds return to normal speed.
-
-</Alert>
-
 ### Apollo Client Removed ([#5519](https://github.com/webiny/webiny-js/pull/5519))
 {/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
 
 Apollo Client and all related code have been completely removed from the repository. The Admin UI now uses a different GraphQL client internally.
-
-### Improved Content Drift Detection in Generated Webiny Package ([#5476](https://github.com/webiny/webiny-js/pull/5476))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-The `validate-webiny-package` command now detects when exports are hand-edited directly into the generated `webiny` package instead of following the source `src/exports` folder convention. Previously, edits to already-expected generated files would pass validation but get silently wiped on the next `generate-webiny-package` run. The validation now compares file contents (whitespace-normalized) and fails loudly when drift is detected.
 
 ### Fixed Cypress Tests After TypeScript Upgrade ([#5410](https://github.com/webiny/webiny-js/pull/5410))
 {/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
@@ -73,21 +63,6 @@ Resolved Cypress test failures introduced by the TypeScript 7 upgrade.
 {/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
 
 Every Webiny project template now ships with a built-in application server located in `/apps/projectServer`. This local server hosts your Admin and Website applications during development. Previously, the server was only available in certain templates — it's now standard across all project types, providing a consistent development experience.
-
-### Updated Internal Dependencies ([#5377](https://github.com/webiny/webiny-js/pull/5377), [#5372](https://github.com/webiny/webiny-js/pull/5372), [#5363](https://github.com/webiny/webiny-js/pull/5363), [#5362](https://github.com/webiny/webiny-js/pull/5362), [#5355](https://github.com/webiny/webiny-js/pull/5355))
-{/* REVIEW-PENDING @brunozoric @adrians5j — confirm this entry, then delete this line */}
-
-Various internal dependencies have been updated across the monorepo, including an upgrade of `execa` from v5 to v9 and the `@webiny/di` package to its latest version. These changes are internal and require no action from users.
-
-### Fixed Beta Release npm Dist-Tag Strategy ([#5834](https://github.com/webiny/webiny-js/pull/5834))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-Beta releases for specific versions (e.g., 6.6.0) are now published under version-specific dist-tags like `beta-6.6.0` instead of a shared `beta` tag. This prevents version conflicts when multiple release branches have active betas.
-
-### Improved Release Process for Patch Versions ([#5841](https://github.com/webiny/webiny-js/pull/5841))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-When publishing patch releases for older version lines (e.g., 6.5.x while 6.6.x is current), the release process now correctly preserves the `latest` npm tag on the newest version. Older-line patches are published under `latest-<major>.<minor>` tags instead, and GitHub releases are created without the "latest" marker to avoid confusion.
 
 ### Debugger Tool ([#6005](https://github.com/webiny/webiny-js/pull/6005))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
@@ -102,30 +77,10 @@ The `dev-tools.debug` permission must be granted explicitly—`*` and `dev-tools
 
 </Alert>
 
-### Scheduled Actions Recovery for All Tenants ([#6022](https://github.com/webiny/webiny-js/pull/6022))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-When the standalone server restarts, it re-arms pending scheduled actions from the database. Previously, only the root tenant's schedules were recovered. Now all installed and enabled tenants have their scheduled actions recovered.
-
 ### EventBridge Scheduler Update Fix ([#6002](https://github.com/webiny/webiny-js/pull/6002))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 The EventBridge scheduler's `update()` didn't create the schedule when it was missing, so rescheduling failed once the schedule was deleted. It now creates the schedule if needed.
-
-### Faster CI Builds with New Runners ([#5920](https://github.com/webiny/webiny-js/pull/5920), [#5925](https://github.com/webiny/webiny-js/pull/5925))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-CI jobs now run on new infrastructure that provides faster build and test times. This is an internal change with no impact on Webiny users.
-
-### Cancel Superseded CI Runs on `dev` and `next` ([#5927](https://github.com/webiny/webiny-js/pull/5927))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-When multiple PRs merge into `dev` or `next` in quick succession, a new push now cancels any in-progress CI run for that branch. This reduces redundant test runs and frees up CI resources. Release branches are unaffected.
-
-### Milestone Assignment Now Works for All Branches ([#5923](https://github.com/webiny/webiny-js/pull/5923))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-PRs targeting release branches (e.g. `release/6.5.0`) now automatically receive the correct milestone. Previously, only branches created after a certain point had the workflow file needed for assignment.
 
 ### GraphQL Schema Cached Across Requests ([#5830](https://github.com/webiny/webiny-js/pull/5830))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
@@ -133,38 +88,6 @@ PRs targeting release branches (e.g. `release/6.5.0`) now automatically receive 
 The executable GraphQL schema is now cached and reused across requests when the schema factories produce identical output. The cache keys on type definitions plus resolver/decorator paths, and tenants with the same models share one cached entry.
 
 Warm request times dropped from ~88ms to ~75ms locally, with `GraphQLEngine.execute` going from ~19ms to ~2ms per request. Heap allocation per request dropped from ~15MB to ~5MB.
-
-### Removed Legacy GraphQL Context Machinery ([#5861](https://github.com/webiny/webiny-js/pull/5861))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-`GraphQLContextualSchema`, `GraphQLContextEnhancer`, and related machinery have been removed. No code in the app was still registering these, and the schema cache in [#5830](https://github.com/webiny/webiny-js/pull/5830) depends on schemas being the same across requests.
-
-`GraphQLEngine` no longer runs enhancers or builds contextual schemas per request. Schema factories' `execute()` method no longer receives a context argument.
-
-### Audit Log Tests Run on SQL Storage ([#5855](https://github.com/webiny/webiny-js/pull/5855))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The audit log test suite now runs on SQL storage in addition to DynamoDB. DynamoDB-specific tests (GSI checks, partition key verification) remain limited to DynamoDB configurations.
-
-### SQL Storage ID Renamed ([#5857](https://github.com/webiny/webiny-js/pull/5857))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The CI storage identifier has been renamed from `sql,ddb` to `sql`. Every storage slot the SQL job uses now has a dedicated SQL package, so the DynamoDB fallback is no longer needed.
-
-### OpenSearch Index Prefix Set for Release Branch PRs ([#5826](https://github.com/webiny/webiny-js/pull/5826))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The `/vitest` command now sets `OPENSEARCH_INDEX_PREFIX` for DDB+OS tests on release branch PRs. This prevents test failures caused by pre-existing OpenSearch system indices being picked up by `IndexManager.list()`.
-
-### Beta Releases Use Version-Specific Tags ([#5829](https://github.com/webiny/webiny-js/pull/5829), [#5835](https://github.com/webiny/webiny-js/pull/5835))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Beta and alpha releases now publish under version-specific npm dist-tags like `beta-6.5.0` and `alpha-6.6.0`, instead of a shared `beta` or `alpha` tag. This prevents counter collisions when multiple version lines are in prerelease simultaneously.
-
-### Older-Line Patches Keep `latest` on Current Version ([#5838](https://github.com/webiny/webiny-js/pull/5838))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Releasing a patch for an older line (e.g., 6.4.13 after 6.5.0 ships) no longer moves npm's `latest` tag backward. The release publishes under a line-specific tag like `latest-6.4`, and the changelog diffs against the previous stable release in that line.
 
 ### Tenant Manager Permission Checks Fixed ([#5848](https://github.com/webiny/webiny-js/pull/5848))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
@@ -235,108 +158,12 @@ yarn webiny <command> --trace
 
 The report shows nested phases with durations and percentages, helping identify bottlenecks in project configuration or extension validation.
 
-### Standalone Hosting: Renamed UI and Documentation ([#5715](https://github.com/webiny/webiny-js/pull/5715))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-When creating a project, the option to run Webiny without AWS was labelled "self-hosted / server", which did not match what we call it elsewhere. It is now called "standalone" in the setup prompts, the messages shown after setup, and the documentation.
-
-### Standalone Hosting: Serve All Apps on a Single URL ([#5697](https://github.com/webiny/webiny-js/pull/5697))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Starting a standalone project used to mean running the API and Admin apps in separate terminals on separate ports, and two projects running at once could end up talking to each other's API. Now `webiny watch` and `webiny serve` run both apps and serve them on a single address. The port comes from the `PORT` environment variable when set, which lets tools like portless put the project on a domain such as `https://myadmin.localhost`; otherwise it takes the first free port from 3001.
-
-One caveat for projects that already exist: the File Manager's file delivery URL is stored in settings and does not follow the new address, so images can 404 until it is updated on the File Manager settings screen.
-
-### Standalone Hosting: Corrected Setup Instructions ([#5713](https://github.com/webiny/webiny-js/pull/5713))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-New standalone projects were told to start the API and Admin apps in two separate terminals, which is no longer how it works after the change above. The post-setup message now shows the single `yarn dev` command that starts everything.
-
-### Fixed Repeated Build Output in `yarn build` ([#5688](https://github.com/webiny/webiny-js/pull/5688))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Two defects in the `yarn build` progress output have been fixed. The package list was repeating on every redraw, filling the terminal with the same batch of package names over and over. Additionally, task titles were being hard-wrapped one character per line in certain terminal configurations.
-
-### Added CodeGraph Index Warning ([#5690](https://github.com/webiny/webiny-js/pull/5690))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-`yarn build` now checks for a `.codegraph` folder in the project root and prints a warning if it's missing. Coding agents use CodeGraph to find their way around this repo, and an unindexed checkout makes them slower and less accurate. Run `npx codegraph init` to create the index.
-
-### Fixed Prerelease Version Calculation ([#5708](https://github.com/webiny/webiny-js/pull/5708))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The release script was reading version information from a package that no longer exists in the monorepo, causing alpha releases to always compute the same version and fail with "cannot publish over previously published versions". The script now reads from an active package and stops retrying when a version collision is detected.
-
-### Telemetry Improvements ([#5676](https://github.com/webiny/webiny-js/pull/5676))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Several telemetry issues have been fixed:
-
-- CLI and admin events can now be joined using a consistent `installation_id` field
-- Standalone users are no longer reported as new users forever — the flag now flips after a successful admin build
-- The `hostingType` ("aws" or "server") is now included on CLI and admin events
-- The install handoff to webiny.com now works for any host, not just CloudFront
-
-### Merged Branch Cleanup Now Manual ([#5672](https://github.com/webiny/webiny-js/pull/5672))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The workflow that deleted merged branches on a nightly schedule has been changed to run only when manually triggered from the Actions tab.
-
-### Improved CLI Message Formatting ([#5647](https://github.com/webiny/webiny-js/pull/5647))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Long CLI messages now wrap correctly, keeping continuation lines aligned under the gutter instead of starting at column 0.
-
-### Preview Pending Builds Without Running Them ([#5640](https://github.com/webiny/webiny-js/pull/5640))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-`yarn build --preview` reports how many packages are up to date and how many need to be rebuilt without actually building anything:
-
-```
-$ yarn build --preview
-Total packages: 148
-Already built: 146
-Need to be built: 2
-```
-
-Add `--json` for machine-readable output suitable for editor integrations or dashboards.
-
 ### Lazy Route Matching Reduces Cold Start Cost ([#5668](https://github.com/webiny/webiny-js/pull/5668))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Matching an incoming request used to construct every registered HTTP route — including the GraphQL engine, all CMS schemas, and the AI provider — just to read their paths and find a match. A simple OPTIONS preflight paid for the entire dependency graph and then threw it away.
 
 Routes are now split into lightweight definitions (method, path) and their handlers. The router matches on definitions and only constructs the handler for the matched route. This noticeably reduces cold start time for requests that hit simpler endpoints.
-
-### Unified Watch Command with Readable Startup ([#5635](https://github.com/webiny/webiny-js/pull/5635))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Running `webiny watch` on self-hosted projects previously required two terminals — one for the API and one for Admin. Both apps now start from a single command with no arguments, and generated projects set `"dev": "webiny watch"` so `yarn dev` is all you need.
-
-The output is quieter during startup. Build chatter is held back until both apps report ready, then a summary prints the URLs:
-
-```
-┃ Ready in 19.5s
-┃ API     http://localhost:3002
-┃ Admin   http://localhost:3001
-```
-
-Warnings and errors detected while buffering are replayed above the summary so nothing important is lost. Pass `--verbose` to see everything as it happens.
-
-### Machine-Readable Build Progress ([#5629](https://github.com/webiny/webiny-js/pull/5629))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-`yarn build --json` now emits newline-delimited JSON events to stdout, one per line, covering package start/end, batch progress, and the final summary. This lets an IDE or external tool drive a progress bar without parsing ANSI redraws.
-
-```
-build:info     hardware, runner, parallel, tscVersion, projectFolder
-build:plan     totalPackages, packagesToBuild, packagesFromCache, batches
-package:start  name, batch
-package:end    name, batch, duration, success, completed, total, progress
-build:end      success, duration, built, failed, skipped, errors[]
-```
-
-Every event carries a timestamp, and `build:end` always fires — including when there is nothing to build — so a consumer never waits on a missing terminator.
 
 ### TanStack Table Updated to v9 ([#5591](https://github.com/webiny/webiny-js/pull/5591))
 > ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
@@ -353,111 +180,10 @@ Internal OpenSearch index operations now consistently use the `CmsModelOpenSearc
 
 Several internal packages have been refactored to remove legacy utilities and better separate AWS-specific code from server implementations. These are internal changes with no impact on project code.
 
-### Postgres Support for Self-Hosted Projects ([#5510](https://github.com/webiny/webiny-js/pull/5510), [#5511](https://github.com/webiny/webiny-js/pull/5511))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Self-hosted projects were previously locked to SQLite. You can now choose PostgreSQL as your database when creating a new project. The database driver is configured in `webiny.config.tsx` via `<Infra.Sqlite>` or `<Infra.Postgres>`, and the build system automatically prunes the unused driver's dependencies — a Postgres build ships no `better-sqlite3`, and vice versa.
-
-```typescript
-// webiny.config.tsx — Postgres configuration
-<Infra.Postgres
-  connection={{
-    host: process.env.WEBINY_PG_HOST,
-    port: Number(process.env.WEBINY_PG_PORT),
-    database: process.env.WEBINY_PG_DATABASE,
-    user: process.env.WEBINY_PG_USER,
-    password: process.env.WEBINY_PG_PASSWORD
-  }}
-/>
-```
-
-### Self-Hosted Projects Now Ship `.env.example` Instead of `.env` ([#5516](https://github.com/webiny/webiny-js/pull/5516))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-New self-hosted projects previously generated a real `.env` file with dummy values that could accidentally be committed. The scaffold now writes `.env.example` with all variables commented out — the project runs out of the box with no `.env`, and the example file documents which environment variables you can override.
-
-### GitHub Actions Workflow Examples for Self-Hosted Deployments ([#5527](https://github.com/webiny/webiny-js/pull/5527))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Added a complete set of GitHub Actions workflow examples for self-hosted deployments under `docs/gh-actions-workflows/self-hosted/`. These include a multi-stage Dockerfile (API + Admin images), push workflows for dev/staging/prod environments, a pull-request workflow for build validation, and an nginx SPA configuration for Admin deep-links.
-
-### WCP License Resolution for CLI-Less Deploys ([#5500](https://github.com/webiny/webiny-js/pull/5500))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Self-hosted server deployments boot the API directly (`node start.mjs`) without the Webiny CLI, so the `WCP_PROJECT_ENVIRONMENT` blob wasn't available. The license loader now falls back to resolving org/project/apiKey from `WEBINY_PROJECT_ID` and `WEBINY_PROJECT_API_KEY` environment variables, ensuring license-gated features work correctly in standalone deployments.
-
-### Self-Hosted Server Hosting Type Now Available in Project Setup ([#5454](https://github.com/webiny/webiny-js/pull/5454))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-When creating a new Webiny project, you can now choose between AWS deployment and self-hosted server deployment. The interactive prompt asks "How would you like to host your new Webiny project?" with two options:
-
-- **AWS** — Lambda, API Gateway, and DynamoDB deployed with Pulumi (the existing default)
-- **Self-hosted / server (ALPHA)** — a single long-running Node HTTP server with SQLite storage, no AWS or Pulumi required
-
-Use the `--hosting-type` flag for non-interactive setup:
-
-```typescript
-npx create-webiny-project my-project --hosting-type server
-```
-
-<Alert type="info">
-
-The self-hosted hosting type is currently in **ALPHA** and designed for local development via `webiny watch`. Production deployment packaging is still in progress.
-
-</Alert>
-
-### Self-Hosted Server Builds Are Now Deployable ([#5453](https://github.com/webiny/webiny-js/pull/5453))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Running `webiny build` for the self-hosted server hosting type now produces a self-contained `build/` folder that can be copied to any server and run directly. The build includes:
-
-- Bundled `handler.mjs` entry point
-- Background-task and scheduler worker files
-- A pruned `node_modules` with native binaries for the target platform
-
-Previously, worker files weren't emitted and native dependencies had no `node_modules` to load from, making the build incomplete.
-
-### Build Cache Now Uses Content Hashing for Correctness ([#5422](https://github.com/webiny/webiny-js/pull/5422))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The build system now compares content hashes when deciding whether to restore a package from cache. Previously, a marker file could become stale if `webiny watch` or manual edits modified `dist/` without updating the marker, causing `yarn build` to incorrectly skip restoring the canonical build.
-
-The new approach hashes the actual `dist/` contents and compares against the cached hash — any out-of-band modification triggers a restore automatically. A no-op `yarn build` with 139 cache hits now takes ~3.6s (down from ~14s), while remaining correct by construction.
-
-### Dependency-Aware Build Cache Key (Experimental) ([#5425](https://github.com/webiny/webiny-js/pull/5425))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-When a package's dependencies change but its own source doesn't, the build previously treated it as a cache hit, leaving stale compiled output with dangling imports. An experimental flag now enables a dependency-aware cache key that includes workspace dependency hashes and third-party dependency versions from `yarn.lock`.
-
-Enable it with:
-
-```typescript
-WEBINY_EXPERIMENTAL_DEP_AWARE_CACHE=1 yarn build
-```
-
-With this flag, changing `@webiny/error` triggers rebuilds of 109 packages (the package plus all dependents) instead of just 1.
-
 ### Api/Route Extension Scaffold Fixed ([#5457](https://github.com/webiny/webiny-js/pull/5457))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 The `Api/Route` extension scaffold was generating code that no longer compiled after the Fastify-to-DI migration. The scaffold now emits the current DI route pattern using `HttpRoute.createImplementation` and `createRegisterExtensionPlugin`, matching how the framework's own routes are implemented.
-
-### Linting Rules for Implementation Classes ([#5437](https://github.com/webiny/webiny-js/pull/5437))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Two new oxlint rules enforce conventions around `X.createImplementation({ implementation: ... })`:
-
-- **`no-inline-class-in-create-implementation`** — implementation classes must be declared separately, not inline
-- **`require-implements-on-create-implementation`** — implementation classes must have an `implements` clause
-
-These rules catch a common pattern in AI-assisted code generation where inline anonymous classes are used.
-
-### Skip Redundant Cache Copy When Build Output Is Fresh ([#5409](https://github.com/webiny/webiny-js/pull/5409))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Running `yarn build` was copying each cached package's output into `dist` even when `dist` already contained identical bytes from the previous build. This added ~13 seconds of file copying on every build when most packages were cache hits — the common case when you change a single file.
-
-The build system now stamps each package's `dist` with the source hash it was built from. On a cache hit, if the stamp matches the current hash, the copy is skipped entirely. A full no-op build that previously took 14–17 seconds now completes in ~2 seconds.
 
 ## Headless CMS
 
@@ -519,11 +245,6 @@ Key architectural decisions documented:
 This is research-only — no production code or migration paths are included in this release.
 
 </Alert>
-
-### Internal Cleanup of Legacy Setup Code ([#5381](https://github.com/webiny/webiny-js/pull/5381))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-Removed leftover internal setup code from File Manager, Record Locking, and folder-level permissions that was no longer in use. This is internal cleanup with no effect on how these features work.
 
 ### SQL Storage Now Supports Multi-Tenancy ([#5812](https://github.com/webiny/webiny-js/pull/5812))
 > ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
@@ -830,13 +551,6 @@ Code-defined permissions appear in the Admin UI as locked entries that cannot be
 
 When opening the Field Settings drawer in the content model editor, the Label input is now automatically focused, saving you a click.
 
-### DI-Native Handler Architecture ([#5313](https://github.com/webiny/webiny-js/pull/5313))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-All backend packages now bootstrap Lambda handlers, GraphQL engines, and background-task runners through a single, consistent dependency-injection pipeline instead of per-package ad-hoc wiring. This iteration also brings the self-hosted File Manager server and the DynamoDB-to-OpenSearch storage option onto the same pipeline.
-
-A fresh, not-yet-installed environment no longer returns a 500 error. The pre-install schema build used to dereference a null tenant when no root tenant existed; a bootstrap root tenant is now seeded during this phase.
-
 ## Infrastructure
 
 ### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
@@ -844,45 +558,15 @@ A fresh, not-yet-installed environment no longer returns a 500 error. The pre-in
 
 The unmaintained `decompress` package (last published 2018) has been replaced with `adm-zip`, which is actively maintained, has zero dependencies, and includes built-in zip-slip protection against path traversal attacks.
 
-### Unified Event Handler Architecture ([#5359](https://github.com/webiny/webiny-js/pull/5359), [#5360](https://github.com/webiny/webiny-js/pull/5360))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-The AWS Lambda and self-hosted server request handlers previously maintained nearly identical copies of the same request loop. These are now unified into a single shared implementation with transport-specific pieces isolated behind a `Transport` abstraction. This is an internal cleanup with no change to application behaviour.
-
 ### Fixed Destroy Failures with GuardDuty Malware Protection ([#5475](https://github.com/webiny/webiny-js/pull/5475))
 {/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
 
 Destroying a Webiny project failed when a GuardDuty Malware Protection Plan existed (File Manager Threat Detection), because the deploy role lacked EventBridge permissions for GuardDuty-managed rules. The deploy policy now includes the necessary permissions scoped via the `events:ManagedBy` condition key.
 
-### Fixed SQLite Self-Hosted Builds Failing at Boot ([#5525](https://github.com/webiny/webiny-js/pull/5525))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-SQLite self-hosted deploy artifacts crashed at boot with `Cannot find module 'pg-connection-string'`. The build process incorrectly pruned this package, but it's required by Knex regardless of which database driver you use.
-
 ### Background Tasks Split for Multi-Environment Support ([#5370](https://github.com/webiny/webiny-js/pull/5370))
 {/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
 
 The background tasks package has been split into `core`, `aws`, and `server` variants, enabling background task functionality across different deployment environments (AWS Lambda and traditional servers).
-
-### Improved Background Tasks Internal Architecture ([#5382](https://github.com/webiny/webiny-js/pull/5382))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-Modernized how background tasks and several related features are wired internally, replacing a legacy plugin mechanism with dependency injection. The GraphQL schema for tasks is now built per-request from the tenant's task models. This is an internal structure improvement with no change to application behavior.
-
-### Consistent License Refresh Across All Deployment Types ([#5378](https://github.com/webiny/webiny-js/pull/5378))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-Reworked where the per-request WCP license refresh runs internally so it applies uniformly across both AWS and self-hosted deployments.
-
-### Removed the Internal `@webiny/handler-db` Package ([#5399](https://github.com/webiny/webiny-js/pull/5399))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-An obsolete internal package was removed and its remaining pieces folded into `@webiny/db-dynamodb`. The `DynamoDBCoreFeature` is now the standard way to register DynamoDB core functionality. No functional change for end users.
-
-### Consolidated Internal Test Utilities ([#5379](https://github.com/webiny/webiny-js/pull/5379))
-{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
-
-Removed approximately 1400 lines of duplicated test setup code across ~14 internal packages by consolidating shared test mocks, auth decorators, and helpers into a single `@webiny/api-testing` package.
 
 ### Sub-Tenant Assets Now Served Correctly ([#5889](https://github.com/webiny/webiny-js/pull/5889))
 > ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
@@ -908,21 +592,6 @@ Setting `<Infra.Vpc enabled={false} />` in production was ignored, still creatin
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Custom domains can now specify a `minimumProtocolVersion` for CloudFront.
-
-### Fixed WebSocket Messages Crashing Self-Hosted API ([#5988](https://github.com/webiny/webiny-js/pull/5988))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-On a self-hosted API, any incoming WebSocket message of 32 bytes or more crashed the API process. The process exited and stayed down until manually restarted. This affected self-hosted deployments only — AWS deployments use API Gateway for WebSockets and were not affected.
-
-### Fixed Standalone Projects Sharing Local Storage ([#5968](https://github.com/webiny/webiny-js/pull/5968))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Standalone projects on the same origin (e.g., `localhost:3001`) shared local storage state, so a new project could pick up an old project's "installed" flag and show the login screen instead of the install wizard. Each project now uses a unique deployment ID based on its path.
-
-### Improved Background Task Execution on Standalone ([#5963](https://github.com/webiny/webiny-js/pull/5963))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Background tasks, scheduled actions, and trash-bin cleanup on standalone deployments now run in-process instead of making HTTP requests to the server itself. This removes the need for worker threads and internal authentication tokens, and fixes a bug where tenant context restoration failed after scoped operations.
 
 ### Fixed Background Task Cleanup Missing Records ([#5964](https://github.com/webiny/webiny-js/pull/5964))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
@@ -950,11 +619,6 @@ The GraphQL schema is now cached based on factory keys, so it's only recomposed 
 Signing keys from identity providers (Cognito) are now cached across Lambda invocations instead of being fetched on every authenticated request. This eliminates two HTTPS calls per request, roughly halving warm request latency for authenticated admin users.
 
 Key rotation is handled automatically: if a token is signed with an unknown key, the cache refreshes once and retries. Keys older than 10 minutes are refetched to handle revocation.
-
-### SQL Storage Operations Built Once ([#5926](https://github.com/webiny/webiny-js/pull/5926))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-On self-hosted SQL setups, storage operations are now built once per process instead of per request. This fixes a memory leak where a `TableManager` instance was created on every request, and eliminates redundant table existence checks.
 
 ### CMS Storage Operations Registered Per Request ([#5933](https://github.com/webiny/webiny-js/pull/5933))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
@@ -992,56 +656,15 @@ Each background task iteration request now uses the task's remaining time budget
 
 The AI image enrichment streaming route now properly handles provider errors. Previously, `streamText` passed errors to `onError` instead of throwing, so the route would complete with empty results marked as successful.
 
-### Sharp Layer Updated to v0.35.3 ([#5824](https://github.com/webiny/webiny-js/pull/5824))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The AWS Lambda layer for the Sharp image processing library has been updated to v0.35.3 and published to all regions.
-
-### Peer Dependency Ranges Preserved During Publish ([#5824](https://github.com/webiny/webiny-js/pull/5824))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Peer dependency version ranges are now kept intact when publishing packages, instead of being resolved to exact versions.
-
 ### Faster GraphQL Lambda Cold Starts ([#5802](https://github.com/webiny/webiny-js/pull/5802), [#5808](https://github.com/webiny/webiny-js/pull/5808), [#5822](https://github.com/webiny/webiny-js/pull/5822))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Warm GraphQL requests on Lambda were several times slower than in 6.4.x — a simple `{ __typename }` query took 350-900ms versus 35-110ms previously. The slowdown came from rebuilding the GraphQL schema on every request using `mergeSchemas`. Background tasks, record locking, and audit logs have been refactored to register at startup instead of building contextual schemas per request. With no contextual schemas left, `mergeSchemas` is skipped entirely, bringing warm request times back down.
 
-### Standalone Packages Renamed ([#5717](https://github.com/webiny/webiny-js/pull/5717), [#5729](https://github.com/webiny/webiny-js/pull/5729))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The packages for running Webiny without AWS have been renamed from `-server` to `-standalone` to match the product terminology:
-
-- `@webiny/cli-server` → `@webiny/cli-standalone`
-- `@webiny/project-server` → `@webiny/project-standalone`
-- All other `-server` packages follow the same pattern
-
-The hosting type identifier changed as well: use `--hosting-type standalone` and `WEBINY_HOSTING_TYPE=standalone` instead of `server`.
-
-### Self-Service Password Reset for Standalone Projects ([#5718](https://github.com/webiny/webiny-js/pull/5718))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Standalone (non-AWS) projects now support email-based password reset. Users who forget their password can request a 6-digit code sent to their email address, then use it to set a new password—no administrator intervention required.
-
-The flow includes security measures: codes expire quickly, are single-use, and the system limits attempts per email address. Responses are identical whether or not an email address exists in the system to prevent enumeration.
-
-Projects without email configured still show the "Forgot password?" link, but it explains that `yarn webiny reset-password <email>` is available for administrators.
-
-To disable this feature:
-
-```tsx
-<SelfHostedAuth emailPasswordReset={false} />
-```
-
 ### SSE Responses Now Prevent Caching ([#5737](https://github.com/webiny/webiny-js/pull/5737))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Server-sent event (SSE) responses from the AI streaming endpoints now include `no-store` in their cache-control headers, preventing any intermediary from storing these per-user responses. Previously the headers only prevented revalidation, which technically permitted storage.
-
-### Fixed WebSocket Pushes on SQL-Backed Deployments ([#5687](https://github.com/webiny/webiny-js/pull/5687))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Server-to-client WebSocket pushes matched zero connections on SQL-backed (standalone) deployments, so notifications from background tasks never reached the browser. The issue was caused by database drivers returning timestamps as `Date` objects instead of strings, which caused all connections to appear stale. Timestamps are now normalized when reading from the database.
 
 ### Fixed Streaming Route Task Scheduling ([#5694](https://github.com/webiny/webiny-js/pull/5694))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
@@ -1062,71 +685,6 @@ Projects using the `useVpcEndpoints` VPC option would fail to deploy because the
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 The streaming GraphQL endpoint requires Lambda Function URLs and CloudFront origin access controls, neither of which existed in earlier Webiny versions. The CloudFormation template now includes the necessary permissions for `cloudfront:*OriginAccessControl*`, `cloudfront:*OriginRequestPolicy*`, and `lambda:*FunctionUrlConfig*`.
-
-### Simpler Full Release Workflow ([#5605](https://github.com/webiny/webiny-js/pull/5605))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The Full Release workflow now asks only for the version number. What the release branches from is derived automatically, and the workflow refuses to start a patch release whose predecessor has not been released yet:
-
-```
-Cannot release 6.5.9: tag v6.5.8 does not exist, so 6.5.8 has not been released yet.
-Release it first.
-```
-
-A new `resolveSource` job validates the input and writes the plan to the job summary before anything is pushed.
-
-### Fixed Release Tagging ([#5610](https://github.com/webiny/webiny-js/pull/5610))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The release workflow published packages to npm but could not create the matching git tag due to a permission error. Releases are now tagged correctly.
-
-### Self-Hosted End-to-End Coverage ([#5596](https://github.com/webiny/webiny-js/pull/5596), [#5597](https://github.com/webiny/webiny-js/pull/5597), [#5598](https://github.com/webiny/webiny-js/pull/5598), [#5600](https://github.com/webiny/webiny-js/pull/5600), [#5601](https://github.com/webiny/webiny-js/pull/5601))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-End-to-end tests now cover the self-hosted hosting type on both SQLite and Postgres. The `/e2e` command runs both variants, and pushes to the main branches include them as well. The PR status comment shows their progress alongside the AWS variants.
-
-### Fixed Self-Hosted Worker Chunks and Template Placeholder ([#5547](https://github.com/webiny/webiny-js/pull/5547))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Two regressions in the self-hosted (server) hosting type have been fixed. Background task worker chunks were failing to resolve because the asset prefix configuration was missing — `webiny watch` would error with "Cannot find module" for worker entry files. The admin template's `{GLOBAL_CSS}` placeholder was also being corrupted during formatting, causing TypeScript errors when building the workspace.
-
-### Clearer Self-Hosted Watch Instructions ([#5541](https://github.com/webiny/webiny-js/pull/5541))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The post-create message for self-hosted projects now correctly instructs you to run the API and Admin apps in separate terminals:
-
-```
-yarn webiny watch api
-yarn webiny watch admin
-```
-
-The previous message suggested running `yarn webiny watch` alone, which is not yet supported for the self-hosted hosting type.
-
-### More Reliable Test and Release Commands ([#5548](https://github.com/webiny/webiny-js/pull/5548), [#5554](https://github.com/webiny/webiny-js/pull/5554), [#5578](https://github.com/webiny/webiny-js/pull/5578), [#5579](https://github.com/webiny/webiny-js/pull/5579), [#5580](https://github.com/webiny/webiny-js/pull/5580), [#5581](https://github.com/webiny/webiny-js/pull/5581))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Multiple fixes have been applied to the `/vitest`, `/e2e`, `/alpha` and `/beta` CI commands:
-
-- Each run is now pinned to a single commit — previously jobs could build one version of the code while testing another if the branch was updated mid-run.
-- Build output is now correctly shared between jobs, eliminating redundant rebuilds that were adding hours to each run.
-- Test discovery now runs against the pull request's code rather than the base branch, so tests added by a PR are actually executed.
-- Re-running failed jobs works correctly again.
-- The dependency cache is properly configured and saves time on each run.
-
-### Supply-Chain Hardening for CI ([#5583](https://github.com/webiny/webiny-js/pull/5583))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-All third-party GitHub Actions used by the build pipeline are now pinned to exact commit SHAs. This prevents an upstream tag update from altering what our workflows run without an explicit, reviewed change.
-
-### Automatic Milestone Assignment for Release PRs ([#5545](https://github.com/webiny/webiny-js/pull/5545))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Pull requests targeting a release branch (e.g. `release/6.5.0`) now automatically receive the matching milestone. Previously this had to be set manually, making it easy to lose track of what belonged in each release.
-
-### Self-Hosted E2E Test Coverage ([#5586](https://github.com/webiny/webiny-js/pull/5586))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The `/e2e` command now includes a job that tests the self-hosted (server) hosting type with a SQLite database. This runs the project directly in CI and verifies the Admin installation wizard completes successfully.
 
 ### API-Key Authentication Fixed ([#5504](https://github.com/webiny/webiny-js/pull/5504))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
@@ -1160,11 +718,6 @@ import { ... } from "@webiny/api-graphql";
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 The `@webiny/handler-aws` package has been deleted as it had no active consumers after the event-handler migration. If you were importing `LambdaContext` from this package, use `Context` from `@webiny/aws-sdk/types` instead.
-
-### Renamed Cache Invalidation Task ID ([#5458](https://github.com/webiny/webiny-js/pull/5458))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The internal task ID `cloudfrontInvalidateCache` has been renamed to `invalidateAssetCache`. This is an internal change — the CloudFront implementation remains the AWS backend, but the task ID is now transport-agnostic.
 
 ## Breaking Changes
 
@@ -1416,11 +969,6 @@ The AI assistant can now delete folders. The approval prompt includes the folder
 
 Folder-level permission (FLP) updates on large folder trees now resume correctly after hitting a time limit. Previously, three bugs prevented continuation: the task returned "done" instead of "continue", resumed runs always restarted from the top, and partially-processed branches were skipped entirely. Folders past the timeout point kept their old inherited permissions.
 
-### WebSocket Connections Work in Standalone Dev Mode ([#5825](https://github.com/webiny/webiny-js/pull/5825))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The dev proxy now correctly routes `/api?token=...` WebSocket upgrade requests to the API server. Previously, these requests went to the admin dev server, so the socket never connected and features like AI generation results and record-locking kick-outs never reached the admin.
-
 ### Scrollbar Improvements Across Dropdowns and Dialogs ([#5824](https://github.com/webiny/webiny-js/pull/5824), [#5831](https://github.com/webiny/webiny-js/pull/5831))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
@@ -1491,24 +1039,6 @@ Opening the create page form no longer leaves the cursor nowhere. The title fiel
 
 Creating or editing a team, role, or API key without a description and then saving the form again would fail silently — the API rejected the null value that came back from the initial save, and the admin app swallowed the error. Both issues are fixed: the API now accepts null descriptions consistently across all three entities, and save errors are surfaced in the UI.
 
-### Self-Hosted Password Reset from the Command Line ([#5664](https://github.com/webiny/webiny-js/pull/5664))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Self-hosted installations had no way to reset a password outside the admin UI. A forgotten password or an unconfigured mailer could lock out the last administrator for good. A new CLI command sets any user's password from the terminal:
-
-```
-$ yarn webiny reset-password admin@acme.com
-? New password: ********
-? Confirm password: ********
-✔ Password updated for admin@acme.com
-```
-
-The command is available automatically for projects using `<SelfHostedAuth />`. To disable it:
-
-```tsx
-<SelfHostedAuth cliPasswordReset={false} />
-```
-
 ### File Manager "Re-Enrich with AI" Action ([#5621](https://github.com/webiny/webiny-js/pull/5621), [#5622](https://github.com/webiny/webiny-js/pull/5622))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
@@ -1558,11 +1088,6 @@ File Manager, Headless CMS, and Website Builder pages now display dynamic trails
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Saving a workflow step now shows a "Workflow saved successfully" snackbar. Previously, the Save action gave no visual feedback.
-
-### Emotion CSS-in-JS Removed from Core Packages ([#5444](https://github.com/webiny/webiny-js/pull/5444))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Emotion (CSS-in-JS) has been removed from `@webiny/app`, `@webiny/app-graphql-playground`, and `@webiny/lexical-editor-actions`. These packages now use Tailwind utility classes. This is part of an ongoing effort to standardize on Tailwind across the admin interface.
 
 ## File Manager
 
@@ -1727,18 +1252,6 @@ Access now follows the permissions of the app that owns the scheduled action. A 
 
 When audit logs merged repeated updates within the `newEntryDelay` window, the merge reset the original log's tags to an empty array. The merge now only updates `message` and `content`, preserving tags.
 
-## Standalone Server
-
-### Background Tasks, WebSockets, and Streams Fixed ([#5915](https://github.com/webiny/webiny-js/pull/5915))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Several issues in the standalone server's runtime:
-
-- **Delayed tasks never ran.** The worker resent the trigger's delay on every POST, so the runner looped without executing.
-- **Background tabs went deaf.** WebSocket connections were evicted after 5 minutes, the same interval the admin pings. Hidden browser tabs delay timers, so eviction was likely. The stale threshold is now 15 minutes, and eviction closes the socket so clients reconnect.
-- **Streams could hang.** If a client disconnected mid-stream, the response waited forever for a `drain` event that never came.
-- **Request bodies had no size limit.** The default is now 128 MiB (configurable via `WEBINY_API_MAX_REQUEST_BODY_BYTES`), and oversized requests get a 413.
-
 ## WebSockets
 
 ### Undelivered Messages Are Now Logged ([#5870](https://github.com/webiny/webiny-js/pull/5870))
@@ -1818,20 +1331,3 @@ AI features previously used whatever model happened to be first in the providers
 - **Capabilities** — one per AI feature, allowing you to move a feature to a different role, pin an exact connection and model, or append instructions to its prompt.
 
 Existing projects keep working without changes — `standard` is seeded from your existing provider configuration.
-
-## Self-Hosted Server
-
-### Background Tasks, Scheduler, and Real-Time Notifications Now Work on Self-Hosted ([#5408](https://github.com/webiny/webiny-js/pull/5408), [#5414](https://github.com/webiny/webiny-js/pull/5414))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The self-hosted (non-AWS) server now runs the capabilities that previously worked only on AWS:
-
-- **Background tasks** run to completion. Uploading an image kicks off its background task (e.g. AI image enrichment) instead of the task sitting stuck forever.
-- **Scheduled actions** fire on time. The scheduler starts once at boot and re-arms persisted schedules on restart.
-- **Real-time notifications** reach the admin. WebSocket connections are now authenticated, so targeted server-to-client messages (like "your image was enriched") are delivered to the correct signed-in user.
-- **AI image enrichment** works without a public URL. Images are sent to the AI provider as raw bytes instead of a URL, so enrichment no longer fails when the file lives on a private or local origin.
-
-### Fix CMS Content Operations Crashing on Non-DynamoDB Storage ([#5398](https://github.com/webiny/webiny-js/pull/5398))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-Saving or deleting content models could crash on self-hosted SQL setups with `No registration found for DbInstance`. The delete-model tracker was hard-wired to DynamoDB. It now uses a storage-agnostic key-value store that works across all database backends.
