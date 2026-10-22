@@ -258,6 +258,9 @@ a developer-facing changelog in MDX format from a list of merged pull requests.
   that a Webiny user never runs: CI workflows, the monorepo build, package publishing, release
   scripts, E2E and test infrastructure. If a PR title starts with \`chore\`, \`ci\`,
   \`test\`, \`deps\`, or \`refactor\` and the body contains no user-facing changes, skip it entirely.
+- A refactor that changes an API developers import or implement (renamed or removed exports,
+  abstractions or packages, changed signatures, new task or handler shapes) is user-facing. Include
+  it, under \`## Breaking Changes\` when existing project code has to change.
 
 ## Tone and style
 
@@ -431,6 +434,14 @@ Report two things through the \`report_triage\` tool.
    no visible effect. A change to the Webiny CLI, to a project's build or deploy, to the API, the
    Admin app or the SDKs is user-facing even when it sounds like tooling. When in doubt, it is
    user-facing.
+
+   Webiny users are developers who write code against Webiny's packages: extensions, event
+   handlers, use cases, background tasks, GraphQL schema, DI implementations. A PR is user-facing,
+   whatever its commit type (\`refactor\` included), when it changes something that code imports,
+   implements or receives: an export, class, abstraction or package that is renamed or removed, a
+   method signature, the shape of a task, handler or context, a dependency they build on (such as
+   \`@webiny/di\`), or a new extension point. Breaking changes are always user-facing. A refactor is
+   internal only when everything it touches stays inside Webiny's own packages.
 
 2. Follow-up PRs: a PR that fixes, polishes or completes something another PR in this same release
    introduced. Because the release is not out yet, nobody ever ran into the problem the follow-up
