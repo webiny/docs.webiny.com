@@ -205,14 +205,12 @@ Every user created since the `newUser` telemetry flag was introduced has been re
 
 Project creation could fail in both DynamoDB and DynamoDB + OpenSearch setups due to a workspace-listing dependency that no longer worked. The dependency has been replaced with Webiny's own `listWorkspaces` utility.
 
-### DI-Native Handler Lifecycle and License Refresh ([#5532](https://github.com/webiny/webiny-js/pull/5532), [#5537](https://github.com/webiny/webiny-js/pull/5537))
+### License Changes Apply Without a Redeploy ([#5532](https://github.com/webiny/webiny-js/pull/5532), [#5537](https://github.com/webiny/webiny-js/pull/5537))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
-The internal event handler has been restructured into a DI-native architecture with three decoratable lifecycle abstractions: `HandlerRuntime`, `RootContainerFactory`, and `ChildContainerFactory`. This enables extensions to hook into handler lifecycle phases without modifying core code.
+The API now loads your Webiny license before it registers features for each request, so features the license enables or disables follow a license change on the next request, within the 5-minute license cache. Before, the change could require a redeploy.
 
-The immediate benefit: WCP license checks now refresh **before** the per-request registration phase, so feature-flag gates at register time see the live license state. A license change takes effect on the next request (within the 5-minute TTL) without requiring a redeploy.
-
-### Background Task Definitions Split Into Metadata and Handler ([#5684](https://github.com/webiny/webiny-js/pull/5684), [#5692](https://github.com/webiny/webiny-js/pull/5692), [#5699](https://github.com/webiny/webiny-js/pull/5699), [#5706](https://github.com/webiny/webiny-js/pull/5706), [#5709](https://github.com/webiny/webiny-js/pull/5709), [#5710](https://github.com/webiny/webiny-js/pull/5710), [#5711](https://github.com/webiny/webiny-js/pull/5711))
+### Background Task Definitions Split Into Metadata and Handler ([#5684](https://github.com/webiny/webiny-js/pull/5684), [#5692](https://github.com/webiny/webiny-js/pull/5692), [#5699](https://github.com/webiny/webiny-js/pull/5699), [#5709](https://github.com/webiny/webiny-js/pull/5709), [#5710](https://github.com/webiny/webiny-js/pull/5710), [#5711](https://github.com/webiny/webiny-js/pull/5711))
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Looking up a background task by ID previously built all 24 registered task definitions—including their dependencies like CMS contexts and OpenSearch clients—even though only one task was needed. Task definitions are now split into two parts:
@@ -287,13 +285,6 @@ Tools are now split into `AiSdkToolDefinition` (metadata only, no dependencies) 
 The `AiSdkTool` export has been replaced by `AiSdkToolDefinition`. Tools must now specify a `handler` class—inline `execute` methods are no longer supported.
 
 </Alert>
-
-### GraphQL Schema Contributors Migrated to DI-Native Pattern ([#5483](https://github.com/webiny/webiny-js/pull/5483), [#5484](https://github.com/webiny/webiny-js/pull/5484), [#5486](https://github.com/webiny/webiny-js/pull/5486), [#5492](https://github.com/webiny/webiny-js/pull/5492), [#5493](https://github.com/webiny/webiny-js/pull/5493), [#5495](https://github.com/webiny/webiny-js/pull/5495))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-GraphQL schema definitions across File Manager (S3 and server), Audit Logs, Workflows, Website Builder, and ACO have been migrated from legacy `GraphQLSchemaPlugin` to DI-native schema factories. Resolvers now declare their dependencies explicitly via `builder.addResolver({ dependencies, path, resolver })` instead of service-locating them from context at runtime.
-
-This is an internal refactor with no changes to the GraphQL API surface.
 
 ## Headless CMS
 
@@ -1253,11 +1244,6 @@ File Manager, Headless CMS, and Website Builder pages now display dynamic trails
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Saving a workflow step now shows a "Workflow saved successfully" snackbar. Previously, the Save action gave no visual feedback.
-
-### Fixed WCP Project Query Missing Field ([#5754](https://github.com/webiny/webiny-js/pull/5754))
-> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
-
-The admin app's WCP project query was requesting a `websiteBuilder` field that had been removed from the schema, causing the query to fail validation and preventing WCP project data from loading. The query has been updated to match the current schema.
 
 ## File Manager
 
