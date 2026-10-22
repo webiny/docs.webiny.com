@@ -205,6 +205,96 @@ Every user created since the `newUser` telemetry flag was introduced has been re
 
 Project creation could fail in both DynamoDB and DynamoDB + OpenSearch setups due to a workspace-listing dependency that no longer worked. The dependency has been replaced with Webiny's own `listWorkspaces` utility.
 
+### DI-Native Handler Lifecycle and License Refresh ([#5532](https://github.com/webiny/webiny-js/pull/5532), [#5537](https://github.com/webiny/webiny-js/pull/5537))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The internal event handler has been restructured into a DI-native architecture with three decoratable lifecycle abstractions: `HandlerRuntime`, `RootContainerFactory`, and `ChildContainerFactory`. This enables extensions to hook into handler lifecycle phases without modifying core code.
+
+The immediate benefit: WCP license checks now refresh **before** the per-request registration phase, so feature-flag gates at register time see the live license state. A license change takes effect on the next request (within the 5-minute TTL) without requiring a redeploy.
+
+### Background Task Definitions Split Into Metadata and Handler ([#5684](https://github.com/webiny/webiny-js/pull/5684), [#5692](https://github.com/webiny/webiny-js/pull/5692), [#5699](https://github.com/webiny/webiny-js/pull/5699), [#5706](https://github.com/webiny/webiny-js/pull/5706), [#5709](https://github.com/webiny/webiny-js/pull/5709), [#5710](https://github.com/webiny/webiny-js/pull/5710), [#5711](https://github.com/webiny/webiny-js/pull/5711))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Looking up a background task by ID previously built all 24 registered task definitions—including their dependencies like CMS contexts and OpenSearch clients—even though only one task was needed. Task definitions are now split into two parts:
+
+- **`TaskDefinition`** carries only metadata (id, title, maxIterations, etc.) and has no dependencies
+- **`TaskHandler`** contains `run()` and lifecycle hooks, built only when that specific task executes
+
+This eliminates unnecessary dependency construction during task lookups. The `run()` method and all lifecycle hooks (`onBeforeTrigger`, `onDone`, `onError`, `onAbort`, `onMaxIterations`) now receive the task definition as a parameter, allowing decorators to branch on task properties without hardcoding task IDs.
+
+```typescript
+import { TaskDefinition, TaskHandler } from "webiny/api";
+
+class MyTaskHandler implements TaskHandler.Interface<MyInput, MyOutput> {
+    constructor(private readonly cmsContext: CmsContext.Interface) {}
+
+    async run({ input, definition }: TaskHandler.RunParams<MyInput>) {
+        if (definition.maxIterations > 100) {
+            // Handle long-running task differently
+        }
+        // ...
+    }
+}
+
+export const MyTaskHandlerImpl = TaskHandler.createImplementation({
+    implementation: MyTaskHandler,
+    dependencies: [CmsContext]
+});
+
+class MyTask implements TaskDefinition.Interface<MyInput, MyOutput> {
+    id = "myTask";
+    title = "My Task";
+    handler = MyTaskHandlerImpl;
+}
+```
+
+### HTTP Routes Now Have Names and Support Handler Decoration ([#5673](https://github.com/webiny/webiny-js/pull/5673))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+HTTP routes now carry a `name` property, and `request.route` provides the matched route's metadata (`name`, `method`, `path`) inside handlers. This enables route-specific decoration using standard DI decorators:
+
+```typescript
+import { HttpRouteHandler } from "webiny/api";
+
+export default HttpRouteHandler.createDecorator({
+    decorator: class implements HttpRouteHandler.Interface {
+        constructor(private decoratee: HttpRouteHandler.Interface) {}
+
+        async handle(request: HttpRouteHandler.Request, response: HttpRouteHandler.Response) {
+            if (request.route.name === "my-route-get") {
+                if (request.headers["x-api-key"] !== "expected") {
+                    return response.status(401).json({ message: "Not authorized." });
+                }
+            }
+            return this.decoratee.handle(request, response);
+        }
+    },
+    dependencies: []
+});
+```
+
+Omit the name check to wrap all routes—useful for logging or timing middleware.
+
+### AI SDK Tools Split Into Definition and Handler ([#5706](https://github.com/webiny/webiny-js/pull/5706))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+AI SDK tools followed the same pattern as background tasks: looking up available tools built all 11 tool instances and their dependencies, even though `getToolSet()` only reads metadata like `name`, `description`, and `inputSchema`.
+
+Tools are now split into `AiSdkToolDefinition` (metadata only, no dependencies) and `AiSdkToolHandler` (the `execute` method and its dependencies). Handlers are built only when the AI model actually calls that specific tool during a conversation.
+
+<Alert type="info">
+
+The `AiSdkTool` export has been replaced by `AiSdkToolDefinition`. Tools must now specify a `handler` class—inline `execute` methods are no longer supported.
+
+</Alert>
+
+### GraphQL Schema Contributors Migrated to DI-Native Pattern ([#5483](https://github.com/webiny/webiny-js/pull/5483), [#5484](https://github.com/webiny/webiny-js/pull/5484), [#5486](https://github.com/webiny/webiny-js/pull/5486), [#5492](https://github.com/webiny/webiny-js/pull/5492), [#5493](https://github.com/webiny/webiny-js/pull/5493), [#5495](https://github.com/webiny/webiny-js/pull/5495))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+GraphQL schema definitions across File Manager (S3 and server), Audit Logs, Workflows, Website Builder, and ACO have been migrated from legacy `GraphQLSchemaPlugin` to DI-native schema factories. Resolvers now declare their dependencies explicitly via `builder.addResolver({ dependencies, path, resolver })` instead of service-locating them from context at runtime.
+
+This is an internal refactor with no changes to the GraphQL API surface.
+
 ## Headless CMS
 
 ### Modernised Storage Operations Architecture ([#5490](https://github.com/webiny/webiny-js/pull/5490))
@@ -586,6 +676,21 @@ Reading an entry whose dynamic zone value referenced a template that had since b
 
 Several internal operations read `.value` on a `Result` without checking whether it succeeded, masking the actual error (a permission issue, a storage failure) with a generic message. All affected call sites now check `isFail()` first and surface the original error or handle it appropriately.
 
+### Removed the `HeadlessCms` Facade ([#5940](https://github.com/webiny/webiny-js/pull/5940), [#5951](https://github.com/webiny/webiny-js/pull/5951), [#5962](https://github.com/webiny/webiny-js/pull/5962), [#5965](https://github.com/webiny/webiny-js/pull/5965))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The `HeadlessCms` facade and `TasksCrud` adapter have been removed. Code that previously accessed CMS operations through the facade should now use the individual use cases directly:
+
+```typescript
+import { GetModelUseCase, ListLatestEntriesUseCase } from "webiny/api";
+
+// Before: context.cms.getModel(id)
+// After:
+const result = await container.resolve(GetModelUseCase).execute({ modelId });
+```
+
+Background task operations have been similarly refactored—`GetTaskUseCase` and `ListTasksUseCase` now return `Result` types instead of throwing or returning `null`.
+
 ## Infrastructure
 
 ### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
@@ -763,6 +868,11 @@ The Cognito identity provider was registered twice—once in the root container 
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Custom OpenSearch query operators or indexes registered by extensions were silently ignored, because the registries were root singletons that never saw per-request registrations. Both registries are now scoped per request, so extension-registered operators and indexes appear alongside the built-ins.
+
+### Upgraded to `@webiny/di` 2.0 ([#5969](https://github.com/webiny/webiny-js/pull/5969))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The dependency injection library has been upgraded from 1.x to 2.0. Two identity providers (`CognitoIdentityProvider` and `SelfHostedJwtIdentityProvider`) have been updated to use container-scoped registration instead of singleton-scoped, ensuring they correctly receive per-request configuration like custom identity providers from extensions (e.g., Entra ID) and self-hosted signing secrets.
 
 ## Breaking Changes
 
@@ -1143,6 +1253,11 @@ File Manager, Headless CMS, and Website Builder pages now display dynamic trails
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Saving a workflow step now shows a "Workflow saved successfully" snackbar. Previously, the Save action gave no visual feedback.
+
+### Fixed WCP Project Query Missing Field ([#5754](https://github.com/webiny/webiny-js/pull/5754))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The admin app's WCP project query was requesting a `websiteBuilder` field that had been removed from the schema, causing the query to fail validation and preventing WCP project data from loading. The query has been updated to match the current schema.
 
 ## File Manager
 
