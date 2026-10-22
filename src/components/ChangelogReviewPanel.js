@@ -117,9 +117,18 @@ export const ChangelogReviewPanel = ({ version }) => {
 
     useEffect(() => {
         const container = ref.current && findContainer(ref.current);
-        if (container) {
-            setEntries(collectEntries(container, loadAuthorsByPR(version)));
+        if (!container) {
+            return;
         }
+        const authorsByPR = loadAuthorsByPR(version);
+        const collect = () => setEntries(collectEntries(container, authorsByPR));
+        collect();
+
+        // Editing the changelog hot-reloads the entries without remounting the panel, which
+        // would leave the filter holding detached nodes, so collect again on every change.
+        const observer = new MutationObserver(collect);
+        observer.observe(container, { childList: true });
+        return () => observer.disconnect();
     }, [version]);
 
     useEffect(() => {

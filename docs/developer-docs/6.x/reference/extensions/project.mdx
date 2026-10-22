@@ -84,3 +84,39 @@ Enables or disables Webiny Cloud Platform (WCP) licensed features.
   lexicalGeneration?: boolean;
 }
 ```
+
+### Project.BugReporter
+
+Points the bug reporter at a GitHub repository, so the API files issues itself.
+
+The bug reporter is enabled in every project already, so this extension is not what turns it on. Without it the reporter runs in **compose mode**: `cmd+shift+b` in the Admin app, describe what broke, and the API returns a prefilled `issues/new` URL that the reporter submits under their own account. No credentials are involved. This switches it to **filed mode**, where the API creates the issue and commits screenshots to a `bug-report-assets` branch.
+
+| Prop         | Type     | Required | Description                                                                                   |
+| ------------ | -------- | -------- | --------------------------------------------------------------------------------------------- |
+| `token`      | `string` | No       | Personal access token with write access to issues and contents. Omit to stay in compose mode. |
+| `repository` | `string` | No       | Target repository as `owner/name`. Defaults to `webiny/webiny-js`.                            |
+| `labels`     | `string` | No       | Comma separated labels applied to every issue. Defaults to `bug`.                             |
+
+```tsx webiny.config.tsx
+<Project.BugReporter
+  token={process.env.MY_GITHUB_TOKEN || ""}
+  repository={"acme/app"}
+  labels={"bug,admin"}
+/>
+```
+
+**Filing requires both `token` and `repository`.** A token on its own is not enough, and leaves the reporter in compose mode. Filing is the irreversible direction, so the target has to be named explicitly rather than inherited from a default. A value that is not exactly `owner/name` fails the report rather than falling back.
+
+**Guard every environment variable with `|| ""`.** Reading an unset key off `process.env` while the config renders returns an object rather than `undefined`, which fails the string check and stops the build.
+
+<Alert type="warning">
+
+Set `repository` even if you do not want filing. In compose mode it is the repository the prefilled URL points at, and it defaults to `webiny/webiny-js`. A project that configures nothing sends its users to Webiny's issue composer, prefilled with their page titles, URLs and click timeline.
+
+</Alert>
+
+A classic personal access token with the `repo` scope covers filed mode. Write access to **contents** is needed as well as issues, because GitHub's issue API has no attachment endpoint, so screenshots are committed to a branch and linked. Pass the token through a build-time environment variable, never as a literal: the value is serialized into the build artifact.
+
+Labels are applied on top of `reported-in-app`, which every issue gets and which cannot be turned off. Setting `labels` replaces the `bug` default rather than adding to it, so `labels={"admin"}` produces `admin` and `reported-in-app`.
+
+Alongside the description, each report carries the environment and a timeline of the last 150 recorded actions: route changes, clicks, field edits, GraphQL operations, anything that returned 4xx or 5xx, `console.error` and `console.warn`, and uncaught exceptions. Field values are never recorded, only the label of the field, and a label is only read from an interactive element, so clicking a table cell records where the click landed rather than what the cell contained. Both rules exist because reports get filed from tenants holding real customer data.
