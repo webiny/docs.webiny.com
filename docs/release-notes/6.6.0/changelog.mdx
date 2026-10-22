@@ -185,6 +185,26 @@ Several internal packages have been refactored to remove legacy utilities and be
 
 The `Api/Route` extension scaffold was generating code that no longer compiled after the Fastify-to-DI migration. The scaffold now emits the current DI route pattern using `HttpRoute.createImplementation` and `createRegisterExtensionPlugin`, matching how the framework's own routes are implemented.
 
+### Fixed `useHotkeys` Throwing in Published Packages ([#5771](https://github.com/webiny/webiny-js/pull/5771))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+When using `@webiny/app-admin` installed from npm, every keypress in the admin threw `Uncaught TypeError: is_hotkey__rspack_import_1 is not a function`. This was caused by a default import of a CommonJS module that resolved differently in the monorepo versus an installed project. The import has been fixed.
+
+### Faster Admin Tailwind Build ([#5799](https://github.com/webiny/webiny-js/pull/5799))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The admin build's Tailwind CSS step scanned around 38,000 files under `node_modules/@webiny`, including declaration files, source maps, SVGs, and Markdown that can never contribute CSS classes. The scan now excludes these patterns, reducing the file count to roughly 14,000 and cutting the Tailwind PostCSS step from 2–4 seconds to about 1 second.
+
+### New-User Telemetry Was Always Reported as Returning ([#5722](https://github.com/webiny/webiny-js/pull/5722))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Every user created since the `newUser` telemetry flag was introduced has been reported as returning (`newUser: "no"`), because the global config file was written without that key before the defaults could fill it in. The config initialisation now goes through a single code path, so the flag is set correctly for genuinely new users.
+
+### Fixed Project Creation Failing ([#5472](https://github.com/webiny/webiny-js/pull/5472))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+Project creation could fail in both DynamoDB and DynamoDB + OpenSearch setups due to a workspace-listing dependency that no longer worked. The dependency has been replaced with Webiny's own `listWorkspaces` utility.
+
 ## Headless CMS
 
 ### Modernised Storage Operations Architecture ([#5490](https://github.com/webiny/webiny-js/pull/5490))
@@ -551,6 +571,21 @@ Code-defined permissions appear in the Admin UI as locked entries that cannot be
 
 When opening the Field Settings drawer in the content model editor, the Label input is now automatically focused, saving you a click.
 
+### Full-Text Search Fixes for Nested and Mixed-Type Fields ([#6009](https://github.com/webiny/webiny-js/pull/6009), [#6003](https://github.com/webiny/webiny-js/pull/6003))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Full-text search on "Searchable JSON" fields with nested objects or mixed types (dates, numbers, booleans alongside strings) could fail the entire query or miss nested values. The underlying Elasticsearch query now uses `lenient: true` and builds field paths from parent objects, so searches work across arbitrarily nested structures. The `contains` filter also searches recursively through arrays and objects at any depth.
+
+### Unknown Dynamic Zone Templates No Longer Break Entry Reads ([#6009](https://github.com/webiny/webiny-js/pull/6009))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Reading an entry whose dynamic zone value referenced a template that had since been removed from the model threw `UNKNOWN_TEMPLATE` and broke the whole response. The value is now skipped with a warning, and the rest of the entry loads normally.
+
+### Improved Error Handling for Failed Result Checks ([#6003](https://github.com/webiny/webiny-js/pull/6003))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Several internal operations read `.value` on a `Result` without checking whether it succeeded, masking the actual error (a permission issue, a storage failure) with a generic message. All affected call sites now check `isFail()` first and surface the original error or handle it appropriately.
+
 ## Infrastructure
 
 ### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
@@ -719,6 +754,16 @@ import { ... } from "@webiny/api-graphql";
 
 The `@webiny/handler-aws` package has been deleted as it had no active consumers after the event-handler migration. If you were importing `LambdaContext` from this package, use `Context` from `@webiny/aws-sdk/types` instead.
 
+### Cognito Provider Registered Only Through `<Cognito/>` ([#5981](https://github.com/webiny/webiny-js/pull/5981), [#5980](https://github.com/webiny/webiny-js/pull/5980))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The Cognito identity provider was registered twice—once in the root container and again per request—causing every request to build two providers. The root registration has been removed; Cognito is now wired only when `<Cognito/>` is present in your `webiny.config.tsx`. Projects created from the official templates already include it.
+
+### OpenSearch Registries Now Include Extension Operators and Indexes ([#5980](https://github.com/webiny/webiny-js/pull/5980))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Custom OpenSearch query operators or indexes registered by extensions were silently ignored, because the registries were root singletons that never saw per-request registrations. Both registries are now scoped per request, so extension-registered operators and indexes appear alongside the built-ins.
+
 ## Breaking Changes
 
 ### Feature Flags Replace WCP as Primary Feature Availability System ([#5559](https://github.com/webiny/webiny-js/pull/5559))
@@ -831,6 +876,16 @@ Custom HTTP routes defined via `<Api.Route />` in your project were silently bro
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 The globe icon in the page preview address bar now shows a "Change preview domain" tooltip, matching the pattern used by other toolbar icons.
+
+### Audit Logs for Page and Redirect Folder Deletions ([#6009](https://github.com/webiny/webiny-js/pull/6009))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Deleting a Website Builder page folder or redirect folder now records an audit-log entry. Previously these actions were silently untracked.
+
+### Schedule Action Hidden Without Publish Permissions ([#6009](https://github.com/webiny/webiny-js/pull/6009))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The schedule-publish menu item in the page editor was visible to users who lacked both publish and unpublish permissions. It is now hidden for those users, matching the behaviour of the pages list.
 
 ## Admin
 
