@@ -1,0 +1,91 @@
+---
+id: zr8oeua8
+title: Webiny 6.5.1 Changelog
+description: See what's new in Webiny version 6.5.1
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.5.1"} />
+
+## Headless CMS
+
+### New Step-by-Step Birthday Picker for Date Fields ([#6035](https://github.com/webiny/webiny-js/pull/6035))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+A new step-by-step birthday picker component is now available for date fields in the Headless CMS. This picker guides users through selecting month, day, and year in sequence, providing a more intuitive experience for birthday and date-of-birth inputs compared to the standard calendar picker.
+
+### Fixed Rich Text Field Not Saving When Cleared ([#6094](https://github.com/webiny/webiny-js/pull/6094))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Clearing a Lexical rich text field that started empty would fail to save the cleared state. If you typed into an empty field and then deleted all the text, the form would save the last text you had typed instead of the empty value. This affected both Headless CMS and Website Builder rich text fields. The editor's change handler now correctly detects when a previously-empty field has been cleared.
+
+### Bulk Actions No Longer Abort When a Single Item Fails ([#5935](https://github.com/webiny/webiny-js/pull/5935))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Previously, if one item failed during a bulk action (publish, unpublish, move, delete, or duplicate), the entire operation would abort—skipping all remaining items and never showing the results dialog. Now, each item's error is caught and recorded as a failure in the results report, while processing continues for all other selected items. The selection is cleared and the results dialog opens as expected.
+
+This applies to all built-in bulk actions for both pages and content entries. Custom bulk actions built on `Worker` or `BulkActionRunner` also inherit this behavior automatically.
+
+### Tenant Renames Now Sync to the Platform ([#6102](https://github.com/webiny/webiny-js/pull/6102))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Renaming a tenant or changing its description in Tenant Manager now properly updates the tenant across the platform. Previously, edits were saved to the CMS entry but not propagated to the core tenant record, so the platform kept displaying the old name. A new handler now syncs `name` and `description` changes automatically after each entry update.
+
+## Admin
+
+### Admin Users Now Land in Their Tenant After Login ([#6100](https://github.com/webiny/webiny-js/pull/6100))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Admin users who open the admin app without a `?tenantId=` parameter now land in a tenant where they have access. Previously, a Cognito user whose record existed only in a sub-tenant would sign in on `root`, receive a `NotAuthorized` error, and fail silently. Now:
+
+- If the user has access to exactly one tenant, they're redirected there automatically
+- If the user has access to multiple tenants, a tenant picker is displayed
+- If the user has no tenant access, a "no access" screen appears with a Sign out option
+
+Additionally, one Cognito account can now be shared across multiple tenants for the same person:
+
+- A "Switch tenant" item appears in the user menu for users with access to multiple tenants
+- Deleting a user preserves the Cognito account if the user still exists in another tenant
+- Admins can link an existing person to their tenant using the new "Link existing user" action in the user form
+
+<Alert type="info">
+
+Federated/SSO users continue to log in as before—this change primarily affects native Cognito authentication.
+
+</Alert>
+
+**GraphQL schema change:** The `SecurityIdentityLoginResponse.data` field is now a union type. Clients that select fields on `login.data` directly must switch to using `... on SecurityIdentity` fragments:
+
+```graphql
+mutation Login {
+  security {
+    login {
+      data {
+        ... on SecurityIdentity {
+          id
+          displayName
+          tenants {
+            id
+            name
+          }
+        }
+        ... on SecurityLoginTenantSelection {
+          tenants {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**Breaking for custom storage implementations:** `AdminUsersStorageOperations` now requires two new methods:
+
+- `getUserAcrossTenants({ id, tenants })` — retrieves user records across specified tenants
+- `listUserRecords({ id })` — lists all tenant records for a user
+
+**Breaking for custom Cognito implementations:** `CognitoService.userExists()` has been replaced by `getUser()`, which returns the account's attributes (or `null` if not found).
