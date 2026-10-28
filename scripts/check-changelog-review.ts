@@ -1,8 +1,9 @@
 /**
  * Changelog Review-Marker Check
  *
- * The changelog generator inserts a per-item review marker (an MDX comment
- * containing the PR author's handle) beneath every generated entry. Each author
+ * The changelog generator inserts a per-item review marker (a line containing
+ * REVIEW-PENDING and the PR author's handle) beneath every generated entry.
+ * Older changelogs used an MDX comment for the marker; both forms are matched. Each author
  * is expected to inspect their entry and delete the marker line to confirm it.
  *
  * This script fails if any changelog still contains an unresolved marker, so a

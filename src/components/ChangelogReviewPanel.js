@@ -1,0 +1,244 @@
+import React, { useEffect, useRef, useState } from "react";
+
+const MARKER = "REVIEW-PENDING";
+const ALL = "";
+
+// Dev-only review panel for generated changelogs: entry counts per author, plus a filter that
+// hides every entry (an `h3` plus everything up to the next heading) the chosen author doesn't
+// own. Authors come from the PR links in each heading, looked up in the `changelog.authors.json`
+// that scripts/generate-changelog.ts writes next to the changelog. Pending entries are the ones
+// whose text contains REVIEW-PENDING, which matches both the current
+// ``> ⏳ REVIEW-PENDING `@author`: ...`` quote and the older `{/* REVIEW-PENDING @author ... */}`
+// comment (it renders as text too).
+const loadAuthorsByPR = version => {
+    if (process.env.NODE_ENV === "development") {
+        const context = require.context(
+            "../../docs/release-notes",
+            true,
+            /changelog\.authors\.json$/
+        );
+        const key = `./${version}/changelog.authors.json`;
+        if (context.keys().includes(key)) {
+            return context(key);
+        }
+    }
+    return {};
+};
+
+// The marker is a blockquote; the default prose quote (curly quotes, italics) reads badly, so
+// pending markers get their own look. Markers never reach production, so dev is enough.
+const MARKER_CLASSES = [
+    "not-prose",
+    "my-4",
+    "rounded-r",
+    "border-l-4",
+    "border-light-grey-2",
+    "bg-light-grey-7",
+    "px-4",
+    "py-2",
+    "text-sm",
+    "dark:bg-dark-grey-4",
+    // not-prose drops the inline code look too, so restore it for the author handle.
+    "[&_code]:rounded",
+    "[&_code]:bg-light-grey",
+    "[&_code]:px-1.5",
+    "[&_code]:py-0.5",
+    "dark:[&_code]:bg-dark-grey"
+];
+
+const findContainer = el => {
+    let node = el.parentElement;
+    while (node && ![...node.children].some(child => child.tagName === "H3")) {
+        node = node.parentElement;
+    }
+    return node;
+};
+
+const collectEntries = (container, authorsByPR) => {
+    const entries = [];
+    let current = null;
+
+    for (const child of container.children) {
+        if (child.tagName === "H2") {
+            current = null;
+            entries.push({ section: child, nodes: [], authors: [], pending: false });
+            continue;
+        }
+
+        if (child.tagName === "H3") {
+            const prNumbers = [...child.querySelectorAll('a[href*="/pull/"]')].map(
+                link => link.getAttribute("href").split("/pull/")[1]
+            );
+            const authors = prNumbers.map(number => authorsByPR[number]).filter(Boolean);
+            current = { heading: child, nodes: [child], authors, pending: false };
+            entries.push(current);
+            continue;
+        }
+
+        if (!current) {
+            continue;
+        }
+
+        current.nodes.push(child);
+        const text = child.textContent || "";
+        if (text.includes(MARKER)) {
+            current.pending = true;
+            if (child.tagName === "BLOCKQUOTE") {
+                child.classList.add(...MARKER_CLASSES);
+            }
+            // Fall back to the marker's handles when the PR isn't in the authors file.
+            if (current.authors.length === 0) {
+                current.authors = [...text.matchAll(/@([\w-]+)/g)].map(match => match[1]);
+            }
+        }
+    }
+
+    return entries;
+};
+
+const isVisible = (entry, author, pendingOnly) =>
+    (author === ALL || entry.authors.includes(author)) && (!pendingOnly || entry.pending);
+
+const BOX = "rounded-lg border px-4 py-3 text-sm";
+const BORDER = "border-neutral-200 dark:border-dark-grey";
+
+const Stat = ({ label, value }) => (
+    <div>
+        <div className="text-xl font-semibold">{value}</div>
+        <div className="text-xs uppercase tracking-wide text-light-grey-2">{label}</div>
+    </div>
+);
+
+export const ChangelogReviewPanel = ({ version }) => {
+    const ref = useRef(null);
+    const [entries, setEntries] = useState([]);
+    const [author, setAuthor] = useState(ALL);
+    const [pendingOnly, setPendingOnly] = useState(false);
+
+    useEffect(() => {
+        const container = ref.current && findContainer(ref.current);
+        if (container) {
+            setEntries(collectEntries(container, loadAuthorsByPR(version)));
+        }
+    }, [version]);
+
+    useEffect(() => {
+        let section = null;
+        let sectionVisible = false;
+
+        const closeSection = () => {
+            if (section) {
+                section.style.display = sectionVisible ? "" : "none";
+            }
+        };
+
+        for (const entry of entries) {
+            if (entry.section) {
+                closeSection();
+                section = entry.section;
+                sectionVisible = false;
+                continue;
+            }
+
+            const visible = isVisible(entry, author, pendingOnly);
+            sectionVisible = sectionVisible || visible;
+            entry.nodes.forEach(node => {
+                node.style.display = visible ? "" : "none";
+            });
+        }
+        closeSection();
+    }, [entries, author, pendingOnly]);
+
+    const items = entries.filter(entry => entry.heading);
+    const pendingCount = items.filter(entry => entry.pending).length;
+    const shownCount = items.filter(entry => isVisible(entry, author, pendingOnly)).length;
+    const filtered = author !== ALL || pendingOnly;
+    const authors = [...new Set(items.flatMap(entry => entry.authors))]
+        .map(name => {
+            const own = items.filter(entry => entry.authors.includes(name));
+            return { name, total: own.length, pending: own.filter(entry => entry.pending).length };
+        })
+        .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+
+    return (
+        <>
+            <div ref={ref} className={`mt-6 ${BOX} ${BORDER}`}>
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-orange">
+                    Changelog review (dev only)
+                </div>
+                <div className="grid grid-cols-4 gap-4">
+                    <Stat label="Entries" value={items.length} />
+                    <Stat label="Pending" value={pendingCount} />
+                    <Stat label="Confirmed" value={items.length - pendingCount} />
+                    <Stat label="Shown" value={shownCount} />
+                </div>
+                <table className="mb-0 mt-6 w-full text-left" style={{ display: "table" }}>
+                    <thead>
+                        <tr className="text-xs uppercase tracking-wide text-light-grey-2">
+                            <th className="pr-6 font-normal">Author</th>
+                            <th className="pr-6 font-normal">Entries</th>
+                            <th className="font-normal">Pending</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {authors.map(row => (
+                            <tr key={row.name}>
+                                <td className="pr-6">{row.name}</td>
+                                <td className="pr-6">{row.total}</td>
+                                <td>{row.pending}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <div className={`mb-6 mt-3 ${BOX} ${filtered ? "border-orange" : BORDER}`}>
+                <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-orange">
+                    Filter the entries below
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                    <label htmlFor="review-pending-filter" className="font-semibold">
+                        Author
+                    </label>
+                    <select
+                        id="review-pending-filter"
+                        value={author}
+                        onChange={e => setAuthor(e.target.value)}
+                        className="rounded border border-light-grey bg-white px-2 py-1 dark:border-dark-grey dark:bg-dark-grey-4"
+                    >
+                        <option value={ALL}>All authors</option>
+                        {[...authors]
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map(row => (
+                                <option key={row.name} value={row.name}>
+                                    {row.name}
+                                </option>
+                            ))}
+                    </select>
+                    <label className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={pendingOnly}
+                            onChange={e => setPendingOnly(e.target.checked)}
+                        />
+                        Pending only
+                    </label>
+                    <span className="ml-auto text-light-grey-2">
+                        Showing {shownCount} of {items.length} entries below
+                    </span>
+                    {filtered ? (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setAuthor(ALL);
+                                setPendingOnly(false);
+                            }}
+                            className="font-semibold text-orange"
+                        >
+                            Clear
+                        </button>
+                    ) : null}
+                </div>
+            </div>
+        </>
+    );
+};
