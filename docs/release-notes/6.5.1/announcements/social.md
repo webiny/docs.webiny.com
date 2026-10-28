@@ -12,7 +12,3 @@ As always, full details in the release notes 👇
 
 Changelog: https://www.webiny.com/docs/release-notes/6.5.1/changelog
 Upgrade guide: https://www.webiny.com/docs/release-notes/6.5.1/upgrade-guide
-
-—
-
-What's next? We're continuing to improve multi-tenant workflows and admin experience in the upcoming releases 🚀
