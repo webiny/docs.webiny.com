@@ -6,8 +6,6 @@ This release brings some nice quality-of-life improvements across the board. We'
 
 On the admin side, we've improved how users land in their tenants after login. No more silent failures for users who only exist in sub-tenants — they now get redirected automatically or shown a tenant picker. Plus, one Cognito account can now be shared across multiple tenants for the same person, making multi-tenant setups cleaner to manage.
 
-Heads up: the `login` mutation's `data` field is now a union type, so GraphQL clients that select fields on it directly need to switch to `... on SecurityIdentity` fragments. Custom admin user storage and Cognito implementations also need small updates. The changelog has the details.
-
 We've also squashed a handful of bugs, including rich text fields that started empty saving the last typed text instead of the cleared value, workflow-approved entries not publishing properly, and the Translate action being hidden for users without AI Powerups. Check out the changelog to learn more.
 
 —
