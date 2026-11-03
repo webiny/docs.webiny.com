@@ -27,3 +27,32 @@ Lexical packages have been updated from 0.52 to 0.53. This update includes break
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 The `getPageByPath` resolver was missing `version`, `metadata`, and `extensions` fields, causing GraphQL errors when fetching published pages through the Website Builder SDK. This affected all frontend applications built on the SDK (Next.js, Nuxt, etc.), where every published page failed to load with `Cannot return null for non-nullable field WbPage.version`. The resolver now returns the complete set of fields required by the SDK.
+
+## Webiny SDK
+
+### Vue and Nuxt SDKs Now at Parity with Next.js ([#6150](https://github.com/webiny/webiny-js/pull/6150))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The 6.5 frontend SDK initially shipped for React and Next.js only. This release brings Vue and Nuxt to full parity with two new packages:
+
+- **`@webiny/cms-vue`** — the Vue port of `@webiny/cms-nextjs`, exporting `EntryRenderer`, `EntryStoreProvider`, `ConnectToEntryEditor`, `DynamicZoneField`, `RefField`, `useEntry`, `useComponents`, and `useModel`. CMS live preview works out of the box — edits made in the editor update the preview on every keystroke.
+- **`@webiny/sdk-nuxt`** — the Nuxt counterpart of `@webiny/sdk-nextjs`, re-exporting `sdk-frontend`, `cms-vue`, and `website-builder-nuxt` under the same names. The `/vite` subpath re-exports `injectThemeCss`.
+
+**`website-builder-vue` additions:**
+
+- `useContentEntryList(() => props.inputs.posts)` seeds from the server-resolved first page, loads further pages with `loadMore()`, and re-seeds when the query changes.
+- The built-in `Webiny/Image` now matches the Next.js version: it accepts asset and legacy values, builds `srcset` with crop and `format=auto`, sets `width`/`height` from the cropped size, and supports `highPriority` for eager loading.
+
+**`website-builder-nuxt/server` handlers:**
+
+`createWebsiteBuilderMiddleware()` and `createPreviewHandler()` are Nitro handlers covering preview cookie round-trips, `event.context.tenantId`, no-cache headers during preview, and A/B bucketing via `wb_ab_vid`. They replace the boilerplate previously hand-written in Nuxt starters:
+
+```typescript
+// server/middleware/webiny.ts
+import { createWebsiteBuilderMiddleware } from "webiny/website-builder-nuxt/server";
+export default defineEventHandler(createWebsiteBuilderMiddleware());
+
+// server/api/preview.get.ts
+import { createPreviewHandler } from "webiny/website-builder-nuxt/server";
+export default defineEventHandler(createPreviewHandler());
+```
