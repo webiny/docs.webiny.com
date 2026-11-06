@@ -97,3 +97,21 @@ Full-text search queries in OpenSearch would fail when searchable JSON fields co
 If you have a custom `CmsEntryOpenSearchFullTextSearch` implementation, ensure you add `lenient: true` to your search configuration.
 
 </Alert>
+
+## Infrastructure
+
+### Fixed GuardDuty Malware Protection Deployment and Destroy Failures ([#6186](https://github.com/webiny/webiny-js/pull/6186))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The GuardDuty malware protection plan (used for File Manager threat detection) had missing dependency declarations. This caused two issues:
+
+- **During deployment:** the plan could be created before its IAM policy was attached, leaving it in `ERROR` status.
+- **During destroy:** the policy attachment could be removed before the plan, preventing GuardDuty from deleting its EventBridge rule and causing `webiny destroy` to fail with a `BadRequestException`.
+
+The plan now correctly depends on its policy attachment, and the event-forwarding target depends on its role policy.
+
+<Alert type="info">
+
+If your stack is already in a stuck state, you may need to manually clean up the GuardDuty EventBridge rule before `webiny destroy` will succeed.
+
+</Alert>
