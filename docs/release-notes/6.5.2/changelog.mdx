@@ -1,0 +1,71 @@
+---
+id: 2dus3wcj
+title: Webiny 6.5.2 Changelog
+description: See what's new in Webiny version 6.5.2
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.5.2"} />
+
+## Development
+
+### Documented Constructor Dependency Safety in GraphQL Resolvers ([#6148](https://github.com/webiny/webiny-js/pull/6148))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+GraphQL schema factories receive their constructor dependencies from the request that builds the schema, which is cached for the life of the Lambda container. Reading constructor-injected dependencies (like `IdentityContext`) inside a resolver can expose stale data from the request that originally built the schema, potentially causing authorization issues in deployed environments. Documentation has been added to warn against this pattern — constructor dependencies should only be used in the `execute()` method, not inside resolvers.
+
+### Updated Lexical Editor Dependencies ([#6169](https://github.com/webiny/webiny-js/pull/6169))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+Lexical packages have been updated from 0.52 to 0.53. This update includes breaking changes to Lexical's type system — methods like `getParent`, `getChildren`, `getNextSibling`, and `getPreviousSibling` no longer accept generic type arguments. If you have custom Lexical extensions, you may need to update your code to use type guards like `$isListNode` or `$isListItemNode` instead.
+
+## Website Builder
+
+### Fixed `getPageByPath` Not Returning Required Fields ([#6166](https://github.com/webiny/webiny-js/pull/6166))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The `getPageByPath` resolver was missing `version`, `metadata`, and `extensions` fields, causing GraphQL errors when fetching published pages through the Website Builder SDK. This affected all frontend applications built on the SDK (Next.js, Nuxt, etc.), where every published page failed to load with `Cannot return null for non-nullable field WbPage.version`. The resolver now returns the complete set of fields required by the SDK.
+
+## Webiny SDK
+
+### Vue and Nuxt SDKs Now at Parity with Next.js ([#6150](https://github.com/webiny/webiny-js/pull/6150))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The 6.5 frontend SDK initially shipped for React and Next.js only. This release brings Vue and Nuxt to full parity with two new packages:
+
+- **`@webiny/cms-vue`** — the Vue port of `@webiny/cms-nextjs`, exporting `EntryRenderer`, `EntryStoreProvider`, `ConnectToEntryEditor`, `DynamicZoneField`, `RefField`, `useEntry`, `useComponents`, and `useModel`. CMS live preview works out of the box — edits made in the editor update the preview on every keystroke.
+- **`@webiny/sdk-nuxt`** — the Nuxt counterpart of `@webiny/sdk-nextjs`, re-exporting `sdk-frontend`, `cms-vue`, and `website-builder-nuxt` under the same names. The `/vite` subpath re-exports `injectThemeCss`.
+
+**`website-builder-vue` additions:**
+
+- `useContentEntryList(() => props.inputs.posts)` seeds from the server-resolved first page, loads further pages with `loadMore()`, and re-seeds when the query changes.
+- The built-in `Webiny/Image` now matches the Next.js version: it accepts asset and legacy values, builds `srcset` with crop and `format=auto`, sets `width`/`height` from the cropped size, and supports `highPriority` for eager loading.
+
+**`website-builder-nuxt/server` handlers:**
+
+`createWebsiteBuilderMiddleware()` and `createPreviewHandler()` are Nitro handlers covering preview cookie round-trips, `event.context.tenantId`, no-cache headers during preview, and A/B bucketing via `wb_ab_vid`. They replace the boilerplate previously hand-written in Nuxt starters:
+
+```typescript
+// server/middleware/webiny.ts
+import { createWebsiteBuilderMiddleware } from "webiny/website-builder-nuxt/server";
+export default defineEventHandler(createWebsiteBuilderMiddleware());
+
+// server/api/preview.get.ts
+import { createPreviewHandler } from "webiny/website-builder-nuxt/server";
+export default defineEventHandler(createPreviewHandler());
+```
+
+## Security
+
+### Security Hardening ([#6178](https://github.com/webiny/webiny-js/pull/6178))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+This release includes comprehensive security improvements across multiple Webiny packages:
+
+- **Stricter identity and permission checks** in API Core, ACO, File Manager, Headless CMS, AI Power-Ups, Background Tasks, and Collaboration modules.
+- **Permission validation for scheduled publishing** in both Headless CMS and Website Builder.
+- **Permission checks for Headless CMS bulk actions** to ensure users can only perform bulk operations on content they have access to.
+- **Tighter handling of private models** to prevent unauthorized access.
+- **Improved request handling** including scoped cookie authentication, stricter JSON parsing, validated content types, and enhanced input validation.
