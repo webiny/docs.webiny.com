@@ -21,6 +21,13 @@ GraphQL schema factories receive their constructor dependencies from the request
 
 Lexical packages have been updated from 0.52 to 0.53. This update includes breaking changes to Lexical's type system — methods like `getParent`, `getChildren`, `getNextSibling`, and `getPreviousSibling` no longer accept generic type arguments. If you have custom Lexical extensions, you may need to update your code to use type guards like `$isListNode` or `$isListItemNode` instead.
 
+### Fixed Tenant Context Leaking Across Concurrent Operations ([#6206](https://github.com/webiny/webiny-js/pull/6206))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+`TenantContext.withTenant()`, `withRootTenant()`, and `withEachTenant()` were leaking tenant switches to other code running concurrently within the same request. This affected sibling GraphQL fields resolved in parallel and branches of `Promise.all`, potentially causing code to read or write data from the wrong tenant. Additionally, if a callback threw an exception, the request would remain on the switched tenant for the rest of its execution.
+
+Tenant switches are now scoped using `AsyncLocalStorage`, ensuring they only apply within the callback's async call chain. The tenant is also properly restored when a callback throws.
+
 ## Website Builder
 
 ### Fixed `getPageByPath` Not Returning Required Fields ([#6166](https://github.com/webiny/webiny-js/pull/6166))
@@ -89,3 +96,25 @@ For shared accounts (users who belong to multiple tenants), the reset can be per
 > ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
 
 The TOTP setup screen previously loaded the QR code as an image from an external service, sending the TOTP secret to a third party. The QR code is now generated directly in the browser, keeping the secret local to your application.
+
+## Breaking Changes
+
+### `setTenant()` Inside `withTenant()` Callbacks Now Throws ([#6206](https://github.com/webiny/webiny-js/pull/6206))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Calling `setTenant()` (or `context.tenancy.setCurrentTenant()`) inside a `withTenant()`, `withRootTenant()`, or `withEachTenant()` callback now throws an error. Previously, the change would be undone when the callback returned, but this led to unpredictable behavior. Replace such calls with a nested `withTenant()` instead.
+
+```typescript
+// Before (now throws)
+await context.tenancy.withTenant(someTenant, async () => {
+  context.tenancy.setCurrentTenant(anotherTenant);
+  // ...
+});
+
+// After
+await context.tenancy.withTenant(someTenant, async () => {
+  await context.tenancy.withTenant(anotherTenant, async () => {
+    // ...
+  });
+});
+```
