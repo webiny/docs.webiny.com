@@ -338,6 +338,18 @@ Each handler execution now tracks its own identity and tenant. Reading `Identity
 
 The handler's platform-specific binding step (registering the raw invocation arguments and providing an execution ID) is now a `HandlerPlatform` DI abstraction. `Transport` and `HandlerConfig.transport` are removed; use `HandlerConfig.platform` instead.
 
+### Dependency Version References Moved to New Package ([#6229](https://github.com/webiny/webiny-js/pull/6229))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The `references.json` file that lists expected dependency versions has moved from `@webiny/cli-core` to a new package, `@webiny/dependency-versions`. This file wasn't being included in published `@webiny/cli-core` builds, which would have caused the upgrade tool to fail with `ReferencesFileMissingError` when upgrading to 6.6.0.
+
+### Background Task Failures Now Return Results Instead of Throwing ([#6219](https://github.com/webiny/webiny-js/pull/6219))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+`TaskService.trigger`, `abort` and `fetchServiceInfo` are typed to return a `Result`, but several failure cases threw exceptions instead: unknown definitions, delays over 355 days, failed hooks, and transport errors. Callers checking `isFail()` missed these failures entirely.
+
+All failures now return a failed `Result`. Callers that previously ignored task results—file uploads, model sync, webhook dispatch—now check them and log failures appropriately. Webhook deliveries are marked as failed when their task cannot be queued.
+
 ## Headless CMS
 
 ### Modernised Storage Operations Architecture ([#5490](https://github.com/webiny/webiny-js/pull/5490))
@@ -770,6 +782,38 @@ await kv.delete(key, { condition: { equals: expectedValue } });
 
 The check and write happen atomically, so when two processes race for the same key, exactly one succeeds. Expired records count as absent. This is used internally for background task claims and will be useful for extensions that need distributed coordination.
 
+### Postgres Lambda Handler for the AWS API ([#6221](https://github.com/webiny/webiny-js/pull/6221))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+The Webiny API can now run on AWS Lambda against Aurora PostgreSQL, directly or through RDS Proxy, without requiring DynamoDB or OpenSearch. A new package, `@webiny/api-event-handler-aws-pg`, provides the Lambda handler, while SQL support has been reorganised into three composable layers:
+
+- **Connections** return a knex instance: `createSqliteConnection`, `createPgConnection` (for long-running servers) and `createLambdaPgConnection` (for Lambda).
+- **Storages** are built from a connection: `createSqliteStorage` and `createPgStorage`, both implementing `SqlStorage`.
+- **Transports** take a storage: the standalone server and the new Lambda handler.
+
+The CMS and ACO on Postgres are now separate modules that projects add explicitly with `<HeadlessCmsPg />` and `<AcoPg />`. These extensions accept configuration props for index mode, field budgets, and other Postgres-specific settings.
+
+Schema setup now runs as a single DI step. On Lambda, the deployment invokes the API function with a setup event; after that, the API is schema-managed and runs no DDL at runtime.
+
+```typescript
+import { HeadlessCmsPg } from "webiny/api-headless-cms-pg/project";
+import { AcoPg } from "webiny/api-aco-pg/project";
+
+// In your project configuration
+<HeadlessCmsPg
+  indexMode="hybrid"
+  fieldBudget={100}
+  countCap={10000}
+/>
+<AcoPg />
+```
+
+<Alert type="info">
+
+This release includes the API packages only. The Pulumi infrastructure components and `<Infra.*>` extensions for Aurora deployment will follow in subsequent releases.
+
+</Alert>
+
 ## Infrastructure
 
 ### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
@@ -1039,6 +1083,26 @@ When the standalone server shuts down, open WebSocket connections now receive a 
 
 The `cognitoUserPoolPasswordPolicy` stack output is now typed as an object instead of a string, matching how it's actually used. `IStackOutput` now allows object values, so custom stack outputs can include structured data.
 
+### Custom API Routes Now Work on Standalone Projects ([#6231](https://github.com/webiny/webiny-js/pull/6231))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Custom API routes declared with `<Api.Route>` in your project configuration now work correctly on standalone projects. Previously, the route definition only existed in the AWS-specific project package, causing standalone builds to either skip the route silently or fail with a hosting type error.
+
+The route definition now lives in the shared `@webiny/project` package with `hosting: "all"`. AWS projects add API Gateway configuration on top. The `ANY` HTTP method is no longer supported—it never worked correctly and now fails validation with a clear error. Routes that resolve to the same name now produce a build error instead of a Pulumi resource conflict or a silent DI collision.
+
+### Standalone Scheduler No Longer Creates Worker Threads ([#6222](https://github.com/webiny/webiny-js/pull/6222))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The standalone scheduler previously created a new `worker_thread` for every scheduled action, which could cause memory exhaustion when many actions fell due at the same moment. In load testing, 300 simultaneous publishes caused both API processes to be OOM-killed within 2 seconds.
+
+The scheduler now uses in-process `setTimeout` timers instead of worker threads. Actions execute at most 10 at a time per process, with additional actions queued. A failed action is logged and the remaining actions continue running. Actions scheduled more than ~24.8 days in advance are re-armed when their timer fires.
+
+<Alert type="info">
+
+The exports `BreeSchedulerService` and `IBreeSchedulerServiceParams` have been renamed to `TimerSchedulerService` and `ITimerSchedulerServiceParams`. Update any code that imports these directly from `@webiny/api-scheduler-standalone`.
+
+</Alert>
+
 ## Breaking Changes
 
 ### Feature Flags Replace WCP as Primary Feature Availability System ([#5559](https://github.com/webiny/webiny-js/pull/5559))
@@ -1201,6 +1265,20 @@ Global component records can now carry an optional scope. `listGlobalComponents`
 The Translate action in the page list was hidden unless AI page translation was licensed. This blocked manual translation—copying a page to another language and editing it by hand—for projects without AI. The action now appears when the multi-tenancy (languages) license option is enabled. AI-powered translation still requires the separate AI page translation license and a configured AI connection.
 
 A dedicated `languages` feature flag now controls language features. This replaces the earlier pattern of checking `multiTenancy` in several places.
+
+### Fixed Redirect Writes Failing on Standalone Projects ([#6194](https://github.com/webiny/webiny-js/pull/6194))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Creating, updating or deleting an enabled Website Builder redirect on a standalone project would store the change but then fail the request with `Task definition was not found!`. The redirect write triggered a CloudFront invalidation task that only existed in the AWS-specific file manager package.
+
+CDN cache invalidation is now abstracted behind a `CdnCache` interface in `@webiny/api-core`. Standalone projects use a no-op implementation, while AWS projects register the CloudFront invalidation automatically. Failed invalidations are now logged rather than failing the request, since the redirect has already been written.
+
+### Fixed Redirect Cache Headers Allowing Browser Caching ([#6220](https://github.com/webiny/webiny-js/pull/6220))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The `/wb/redirects` endpoint returned `Cache-Control: public, max-age=31536000`, which allowed browsers and intermediate proxies to cache the redirect list for up to a year. Since redirect invalidation only clears CloudFront, browsers could serve stale redirects indefinitely.
+
+The endpoint now returns `Cache-Control: public, max-age=0, s-maxage=31536000`. CloudFront still caches for a year and receives invalidations on changes, while browsers and other caches must revalidate on each request.
 
 ## Admin
 
@@ -1519,6 +1597,31 @@ The `Switch` component previously rendered its label inline, next to the toggle.
 
 When a user signs out and signs back in as someone with different permissions—without reloading the page—permission-gated routes now update immediately. Previously, a route you no longer had access to would still render (with an empty list and an authorization error) until you refreshed the browser.
 
+### AI Assistant Can Now Rename and Move Folders ([#6230](https://github.com/webiny/webiny-js/pull/6230))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The AI assistant's `updateFolder` tool lets you rename folders, change their slugs, and move them to another parent folder or back to the root. Moving a folder into its own subtree is now properly rejected in the update logic itself, preventing the FLP update task from running indefinitely.
+
+Additionally, folder updates that omit the `permissions` field now correctly preserve existing access rules rather than clearing them.
+
+### AI Assistant Can Now Create, Update and Delete Roles ([#6224](https://github.com/webiny/webiny-js/pull/6224), [#6218](https://github.com/webiny/webiny-js/pull/6218))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The AI assistant can now manage security roles and teams through new tools:
+
+- `createRole` creates a role with optional permission copying from an existing role
+- `updateRole` changes a role's name and description
+- `deleteRole` removes a role after confirming its name and checking that no teams or users still hold it
+
+Similar tools for teams (`updateTeam` and `deleteTeam`) are also added. Role and team changes made by the assistant now appear immediately in the admin's list views without requiring a page reload, using the same websocket notification pattern as folder changes.
+
+### AI Conversations Now Save Automatically on the Server ([#6212](https://github.com/webiny/webiny-js/pull/6212))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The AI assistant now saves conversation history on the server after each exchange. You send only your question with a chat ID; the server retrieves the history, runs the model, and saves the result. This eliminates the growing request sizes that occurred when sending the full conversation with each turn.
+
+Runs paused for approval are saved, so you can close your browser and resume later. Asking a new question while a change awaits approval automatically rejects that pending change. If a run cannot be saved, the assistant indicates whether you can retry the question or need to start a new chat.
+
 ## File Manager
 
 ### Scoped Uploads Now Tagged Correctly ([#6031](https://github.com/webiny/webiny-js/pull/6031))
@@ -1646,6 +1749,39 @@ container.registerDecorator(MySlugify);
 ```
 
 A backend `DateFormatter` feature is also included for deterministic UTC date/time formatting.
+
+### Remote Components Permission Checks ([#6156](https://github.com/webiny/webiny-js/pull/6156))
+> ⏳ REVIEW-PENDING `@SvenAlHamad`: confirm this entry, then delete this line.
+
+Remote components now require explicit permissions. Operations map to permission actions:
+
+| Operation | Required Permission |
+|-----------|-------------------|
+| get, list | `r` (read) |
+| create, update, bundle | `w` (write) |
+| delete | `d` (delete) |
+| generate, refine | `ai` |
+
+The Website Builder "Frontend Integration" API key now includes read-only access to remote components. Existing projects with remote components enabled need to add `remoteComponents.*` with `rwd: "r"` to their frontend API key, or component loading will fail.
+
+### Remote Component Bundler Library and Validated Bundle Input ([#6161](https://github.com/webiny/webiny-js/pull/6161))
+> ⏳ REVIEW-PENDING `@SvenAlHamad`: confirm this entry, then delete this line.
+
+A new server-side bundling library is available at `@webiny/remote-components/exports/api/bundler.js`, exporting `bundleComponent`, `renderComponentMarkup`, `validateComponentBundle` and `buildComponentManifest`. The bundler uses esbuild-wasm and works in deployed Lambda functions.
+
+`createRemoteComponent` and `updateRemoteComponent` now accept an optional `bundle` input containing pre-bundled JavaScript, CSS and manifest. The API validates that the bundle evaluates to the supplied manifest and that CSS is properly scoped. This enables external services to generate and bundle components before storing them.
+
+### Fixed Remote Component Loading in Browsers ([#6147](https://github.com/webiny/webiny-js/pull/6147))
+> ⏳ REVIEW-PENDING `@SvenAlHamad`: confirm this entry, then delete this line.
+
+`ComponentsSdk` called its stored `fetch` function with the SDK instance as `this`, which caused browsers to throw `TypeError: Illegal invocation`. Components would render on the server but disappear after hydration. The SDK now calls `fetch` as a plain function, fixing both the default global `fetch` and explicitly passed `window.fetch`.
+
+### Fixed Remote Component Caching and Header Handling ([#6154](https://github.com/webiny/webiny-js/pull/6154))
+> ⏳ REVIEW-PENDING `@SvenAlHamad`: confirm this entry, then delete this line.
+
+Failed component loads were cached as empty arrays, hiding all remote components until page reload. Failed loads are now logged and retried on the next request, while concurrent loads share a single in-flight request.
+
+Custom headers passed via `fetchOptions` no longer override the SDK's required headers (`x-tenant`, `Authorization`, `Content-Type`). The SDK's headers take precedence, while other request options like `cache` and `signal` pass through unchanged.
 
 ## Development Tools
 
