@@ -1,0 +1,180 @@
+---
+id: d6yac3ip
+title: Webiny 6.4.12 Changelog
+description: See what's new in Webiny version 6.4.12
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.4.12"} />
+
+## Website Builder
+
+### Fixed Missing `version` and `metadata` Fields in Single-Page Queries ([#5727](https://github.com/webiny/webiny-js/pull/5727))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+The `GET_PAGE_BY_ID` and `GET_PAGE_BY_PATH` queries in the Website Builder SDK were missing the `version` and `metadata` fields from their selection sets. If you needed these fields, you had to patch the SDK manually. Both fields are now included by default.
+
+### Fixed Stale Page Revision Data After Mutations ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Creating, publishing, unpublishing, or deleting page revisions did not update the revisions cache, so the editor's revisions drawer and top bar dropdown displayed stale data until a page reload. All revision mutations now properly update the cache, and both UI components are driven from a shared `RevisionListPresenter` instead of local state copies.
+
+### Added Delete Revision API Endpoint ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+The admin app called `websiteBuilder.deletePageRevision`, but the mutation was never declared on the backend — the entire client feature was wired to a non-existent endpoint. The mutation now exists and delegates to the CMS `DeleteEntryRevisionUseCase`, which handles deleting the latest revision and cascading to a full entry delete when necessary.
+
+### Improved Revision List Actions and Confirmations ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+Per-revision actions (create from, edit, publish, unpublish, delete) are now determined by the presenter rather than derived in the view. Destructive actions now require confirmation through a dialog and display a toast with the outcome. Previously, delete ran on the first click and failed silently on error.
+
+### Fixed Workflow Decorators Not Applying to Top Bar Actions ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+The page editor config was not registered through `Plugins`, so workflow decorators were never applied to the top bar actions. Additionally, an approved review no longer counts as "under review", so the editor becomes writable again and offers **Publish** instead of **New Revision**.
+
+## Development
+
+### Debug Logger Tool ([#5734](https://github.com/webiny/webiny-js/pull/5734))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+A new opt-in, permission-gated debugger is now available for troubleshooting issues in environments where you cannot access AWS or the underlying code. When a user with the `dev-tools.debug` permission enables capture, debug payloads from instrumented call sites are returned in the GraphQL response under `extensions.debug`.
+
+**Key details:**
+
+- Capture is requested per-request via the `x-webiny-debug` header (set to `1`, or a glob pattern like `cms.os.*` with `!` to exclude).
+- Debug sessions are buffered in memory (capped at 4 MB), and payloads never reach CloudWatch—only the permitted user sees them.
+- The first instrumented call site is `cms.os.list`, which captures OpenSearch query and response data around entry listing.
+
+A new **Dev Tools → Debugger** panel in Admin lets you toggle capture, filter by namespace, and download a JSON report. Collected sessions are held in memory only and do not persist beyond the browser tab.
+
+<Alert type="info">
+
+After deploying this release, you must redeploy your API infrastructure (`yarn webiny deploy api`) and invalidate your CloudFront distribution to ensure the new `x-webiny-debug` header is forwarded correctly. Without this, the feature silently captures nothing.
+
+</Alert>
+
+### Fixed Peer Dependency Ranges Being Locked During Package Publishing ([#5777](https://github.com/webiny/webiny-js/pull/5777))
+{/* REVIEW-PENDING @adrians5j — confirm this entry, then delete this line */}
+
+When publishing packages, peer dependencies were incorrectly locked to the exact version installed in the monorepo rather than preserving the original range. This caused installation failures with `@webiny/website-builder-nextjs` — npm would error with `ERESOLVE` if your project used a different Next.js version than the one pinned during publishing.
+
+Peer dependencies are now published with their original version ranges. For example, `@webiny/website-builder-nextjs` now correctly declares `next: >=15.0.0 <16.0.0`, allowing installation alongside any compatible Next.js 15 version.
+
+### Updated Core Dependencies ([#6168](https://github.com/webiny/webiny-js/pull/6168))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+This release upgrades several core dependencies to their latest versions. The upgrade includes internal type fixes required by the new dependency versions — no changes to your project code are required.
+
+### Security Hardening ([#6173](https://github.com/webiny/webiny-js/pull/6173))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+This release includes a comprehensive security update across multiple Webiny packages:
+
+- **Stricter identity and permission checks** in API Core, File Manager, and Headless CMS to prevent unauthorized access.
+- **Permission checks for scheduled publishing** in Headless CMS and Website Builder, as well as for Headless CMS bulk actions.
+- **Tighter request handling**: cookie authentication scope restrictions, stricter CORS headers, improved JSON parsing, and validation of accepted content types.
+
+## Admin
+
+### Fixed Keyboard Shortcut Leak on Component Unmount ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+
+`useHotkeys` leaked registered shortcuts when a component unmounted while shortcuts were active. The cleanup effect closed over stale state, so a drawer that unmounted while open never released its `esc` binding, causing the next component to claim it to throw an error.
+
+### Fixed `getUser` Query When Missing `where` Argument ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The `getUser` query no longer fails when the `where` argument is omitted. Previously, this would cause an error instead of returning a validation message.
+
+### Scheduler Validates Schedule Date Before Creating Actions ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Scheduling an action without a valid schedule date now returns a clear invalid date error instead of creating a malformed scheduled action.
+
+## Headless CMS
+
+### Fixed Full-Text Search Failing on Non-Text Fields in OpenSearch ([#5819](https://github.com/webiny/webiny-js/pull/5819))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Full-text search queries in OpenSearch would fail when searchable JSON fields contained non-text values like dates, numbers, or booleans. The search now uses lenient mode, allowing these mixed-type fields to be searched without errors. Additionally, full-text search paths now correctly include parent object fields, and the `contains` filter in DynamoDB properly searches objects inside arrays.
+
+<Alert type="info">
+
+If you have a custom `CmsEntryOpenSearchFullTextSearch` implementation, ensure you add `lenient: true` to your search configuration.
+
+</Alert>
+
+### Per-Webhook Signing Secrets ([#6193](https://github.com/webiny/webiny-js/pull/6193))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Webhook signing secrets can now be configured individually for each webhook, rather than relying on a single global secret. You can set, change, or clear the signing secret via GraphQL, the SDK, or the Admin webhook form. The Admin interface also includes new actions to generate a random secret and copy it to your clipboard. Signing secret validation has been improved, along with fixes to permissions and overall Admin UX for webhook management.
+
+### Added Model Access Guard for Content Models ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+A new `ModelAccessGuard` provides an additional access rule layer for content models on top of the existing Headless CMS permissions. This allows for more granular control over which identities can access specific models.
+
+### Bulk Delete Now Validates Delete Permission Per Entry ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Bulk delete operations now check the delete permission for each individual entry rather than only validating at the operation level. This ensures folder level permissions and other entry-specific rules are respected.
+
+## Infrastructure
+
+### Fixed GuardDuty Malware Protection Deployment and Destroy Failures ([#6186](https://github.com/webiny/webiny-js/pull/6186))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The GuardDuty malware protection plan (used for File Manager threat detection) had missing dependency declarations. This caused two issues:
+
+- **During deployment:** the plan could be created before its IAM policy was attached, leaving it in `ERROR` status.
+- **During destroy:** the policy attachment could be removed before the plan, preventing GuardDuty from deleting its EventBridge rule and causing `webiny destroy` to fail with a `BadRequestException`.
+
+The plan now correctly depends on its policy attachment, and the event-forwarding target depends on its role policy.
+
+<Alert type="info">
+
+If your stack is already in a stuck state, you may need to manually clean up the GuardDuty EventBridge rule before `webiny destroy` will succeed.
+
+</Alert>
+
+## Security
+
+### Security Hardening Across API Packages ([#6203](https://github.com/webiny/webiny-js/pull/6203))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+This release includes security improvements across multiple Webiny packages:
+
+- **Tenant Manager:** Added tenant management permission checks.
+- **Permission checks:** Strengthened authorization in Headless CMS, File Manager, ACO, Website Builder, Workflows, Mailer, Websockets, Record Locking, Webhooks, and AI Power-Ups.
+- **File uploads:** Storage keys are now tenant-scoped, with additional upload validation.
+- **Webhooks:** Endpoint URLs are now validated before saving.
+- **File Manager S3:** S3 client is now cached for better performance.
+
+## Breaking Changes
+
+### Security Permission Changes for Headless CMS API ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Several resources previously accessible through the Headless CMS API now require additional permissions:
+
+- **Tenant entries**: A role with Headless CMS permissions but without the Tenant Manager permission can no longer read or change tenant entries through the CMS API.
+- **Languages**: A role with Headless CMS permissions but without the Languages permission (with write access) can still read languages, but can no longer create, update or delete them through the CMS API.
+
+### Custom Scheduler Namespaces Require Permission Implementation ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+If you have a custom scheduler namespace, you must now register a `SchedulerPermissions` implementation. Without one, getting, listing and cancelling scheduled actions returns a not authorized error. Additionally, the `namespace_startsWith` filter has been removed from `ListScheduledActionsUseCase` — use `namespace` instead.
+
+### Folder Level Permissions Apply to Publishing Operations ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+When using folder level permissions, publishing, republishing and unpublishing an entry or page now requires write access to its folder. Previously, these operations only checked top-level permissions.
+
+### Webhook Redirects Are No Longer Followed ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+When delivering a webhook, redirect responses (3xx) are no longer followed. The redirect response is recorded as the delivery result instead. This change hardens webhook security by preventing potential SSRF attacks through redirect chains.
