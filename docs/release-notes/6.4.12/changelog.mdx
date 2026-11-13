@@ -85,6 +85,16 @@ This release includes a comprehensive security update across multiple Webiny pac
 
 `useHotkeys` leaked registered shortcuts when a component unmounted while shortcuts were active. The cleanup effect closed over stale state, so a drawer that unmounted while open never released its `esc` binding, causing the next component to claim it to throw an error.
 
+### Fixed `getUser` Query When Missing `where` Argument ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The `getUser` query no longer fails when the `where` argument is omitted. Previously, this would cause an error instead of returning a validation message.
+
+### Scheduler Validates Schedule Date Before Creating Actions ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Scheduling an action without a valid schedule date now returns a clear invalid date error instead of creating a malformed scheduled action.
+
 ## Headless CMS
 
 ### Fixed Full-Text Search Failing on Non-Text Fields in OpenSearch ([#5819](https://github.com/webiny/webiny-js/pull/5819))
@@ -102,6 +112,16 @@ If you have a custom `CmsEntryOpenSearchFullTextSearch` implementation, ensure y
 {/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
 
 Webhook signing secrets can now be configured individually for each webhook, rather than relying on a single global secret. You can set, change, or clear the signing secret via GraphQL, the SDK, or the Admin webhook form. The Admin interface also includes new actions to generate a random secret and copy it to your clipboard. Signing secret validation has been improved, along with fixes to permissions and overall Admin UX for webhook management.
+
+### Added Model Access Guard for Content Models ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+A new `ModelAccessGuard` provides an additional access rule layer for content models on top of the existing Headless CMS permissions. This allows for more granular control over which identities can access specific models.
+
+### Bulk Delete Now Validates Delete Permission Per Entry ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Bulk delete operations now check the delete permission for each individual entry rather than only validating at the operation level. This ensures folder level permissions and other entry-specific rules are respected.
 
 ## Infrastructure
 
@@ -133,3 +153,28 @@ This release includes security improvements across multiple Webiny packages:
 - **File uploads:** Storage keys are now tenant-scoped, with additional upload validation.
 - **Webhooks:** Endpoint URLs are now validated before saving.
 - **File Manager S3:** S3 client is now cached for better performance.
+
+## Breaking Changes
+
+### Security Permission Changes for Headless CMS API ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Several resources previously accessible through the Headless CMS API now require additional permissions:
+
+- **Tenant entries**: A role with Headless CMS permissions but without the Tenant Manager permission can no longer read or change tenant entries through the CMS API.
+- **Languages**: A role with Headless CMS permissions but without the Languages permission (with write access) can still read languages, but can no longer create, update or delete them through the CMS API.
+
+### Custom Scheduler Namespaces Require Permission Implementation ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+If you have a custom scheduler namespace, you must now register a `SchedulerPermissions` implementation. Without one, getting, listing and cancelling scheduled actions returns a not authorized error. Additionally, the `namespace_startsWith` filter has been removed from `ListScheduledActionsUseCase` — use `namespace` instead.
+
+### Folder Level Permissions Apply to Publishing Operations ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+When using folder level permissions, publishing, republishing and unpublishing an entry or page now requires write access to its folder. Previously, these operations only checked top-level permissions.
+
+### Webhook Redirects Are No Longer Followed ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+When delivering a webhook, redirect responses (3xx) are no longer followed. The redirect response is recorded as the delivery result instead. This change hardens webhook security by preventing potential SSRF attacks through redirect chains.
