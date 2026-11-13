@@ -1,0 +1,166 @@
+---
+id: 2dus3wcj
+title: Webiny 6.5.2 Changelog
+description: See what's new in Webiny version 6.5.2
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.5.2"} />
+
+## Development
+
+### Documented Constructor Dependency Safety in GraphQL Resolvers ([#6148](https://github.com/webiny/webiny-js/pull/6148))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+GraphQL schema factories receive their constructor dependencies from the request that builds the schema, which is cached for the life of the Lambda container. Reading constructor-injected dependencies (like `IdentityContext`) inside a resolver can expose stale data from the request that originally built the schema, potentially causing authorization issues in deployed environments. Documentation has been added to warn against this pattern — constructor dependencies should only be used in the `execute()` method, not inside resolvers.
+
+### Updated Lexical Editor Dependencies ([#6169](https://github.com/webiny/webiny-js/pull/6169))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+Lexical packages have been updated from 0.52 to 0.53. This update includes breaking changes to Lexical's type system — methods like `getParent`, `getChildren`, `getNextSibling`, and `getPreviousSibling` no longer accept generic type arguments. If you have custom Lexical extensions, you may need to update your code to use type guards like `$isListNode` or `$isListItemNode` instead.
+
+### Fixed Tenant Context Leaking Across Concurrent Operations ([#6206](https://github.com/webiny/webiny-js/pull/6206))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+`TenantContext.withTenant()`, `withRootTenant()`, and `withEachTenant()` were leaking tenant switches to other code running concurrently within the same request. This affected sibling GraphQL fields resolved in parallel and branches of `Promise.all`, potentially causing code to read or write data from the wrong tenant. Additionally, if a callback threw an exception, the request would remain on the switched tenant for the rest of its execution.
+
+Tenant switches are now scoped using `AsyncLocalStorage`, ensuring they only apply within the callback's async call chain. The tenant is also properly restored when a callback throws.
+
+## Website Builder
+
+### Fixed `getPageByPath` Not Returning Required Fields ([#6166](https://github.com/webiny/webiny-js/pull/6166))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The `getPageByPath` resolver was missing `version`, `metadata`, and `extensions` fields, causing GraphQL errors when fetching published pages through the Website Builder SDK. This affected all frontend applications built on the SDK (Next.js, Nuxt, etc.), where every published page failed to load with `Cannot return null for non-nullable field WbPage.version`. The resolver now returns the complete set of fields required by the SDK.
+
+## Webiny SDK
+
+### Vue and Nuxt SDKs Now at Parity with Next.js ([#6150](https://github.com/webiny/webiny-js/pull/6150))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The 6.5 frontend SDK initially shipped for React and Next.js only. This release brings Vue and Nuxt to full parity with two new packages:
+
+- **`@webiny/cms-vue`** — the Vue port of `@webiny/cms-nextjs`, exporting `EntryRenderer`, `EntryStoreProvider`, `ConnectToEntryEditor`, `DynamicZoneField`, `RefField`, `useEntry`, `useComponents`, and `useModel`. CMS live preview works out of the box — edits made in the editor update the preview on every keystroke.
+- **`@webiny/sdk-nuxt`** — the Nuxt counterpart of `@webiny/sdk-nextjs`, re-exporting `sdk-frontend`, `cms-vue`, and `website-builder-nuxt` under the same names. The `/vite` subpath re-exports `injectThemeCss`.
+
+**`website-builder-vue` additions:**
+
+- `useContentEntryList(() => props.inputs.posts)` seeds from the server-resolved first page, loads further pages with `loadMore()`, and re-seeds when the query changes.
+- The built-in `Webiny/Image` now matches the Next.js version: it accepts asset and legacy values, builds `srcset` with crop and `format=auto`, sets `width`/`height` from the cropped size, and supports `highPriority` for eager loading.
+
+**`website-builder-nuxt/server` handlers:**
+
+`createWebsiteBuilderMiddleware()` and `createPreviewHandler()` are Nitro handlers covering preview cookie round-trips, `event.context.tenantId`, no-cache headers during preview, and A/B bucketing via `wb_ab_vid`. They replace the boilerplate previously hand-written in Nuxt starters:
+
+```typescript
+// server/middleware/webiny.ts
+import { createWebsiteBuilderMiddleware } from "webiny/website-builder-nuxt/server";
+export default defineEventHandler(createWebsiteBuilderMiddleware());
+
+// server/api/preview.get.ts
+import { createPreviewHandler } from "webiny/website-builder-nuxt/server";
+export default defineEventHandler(createPreviewHandler());
+```
+
+## Security
+
+### Security Hardening ([#6178](https://github.com/webiny/webiny-js/pull/6178))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+This release includes comprehensive security improvements across multiple Webiny packages:
+
+- **Stricter identity and permission checks** in API Core, ACO, File Manager, Headless CMS, AI Power-Ups, Background Tasks, and Collaboration modules.
+- **Permission validation for scheduled publishing** in both Headless CMS and Website Builder.
+- **Permission checks for Headless CMS bulk actions** to ensure users can only perform bulk operations on content they have access to.
+- **Tighter handling of private models** to prevent unauthorized access.
+- **Improved request handling** including scoped cookie authentication, stricter JSON parsing, validated content types, and enhanced input validation.
+
+## Admin
+
+### Admins Can Now Reset a User's MFA ([#6197](https://github.com/webiny/webiny-js/pull/6197))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+When using Cognito authentication, admins can now reset a user's multi-factor authentication directly from the Admin Users module. This addresses situations where a user loses access to their authenticator app and cannot sign in.
+
+A new **Reset MFA** button appears on an existing user's form. Clicking it deletes the user's TOTP software token in Cognito, prompting them to set up MFA again at their next sign-in. The button is hidden for federated users and for the admin's own account.
+
+<Alert type="info">
+
+For shared accounts (users who belong to multiple tenants), the reset can be performed by an admin of any tenant — the confirmation dialog warns that the reset affects sign-in across all tenants.
+
+</Alert>
+
+### TOTP Setup QR Code Now Generated Locally ([#6197](https://github.com/webiny/webiny-js/pull/6197))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+The TOTP setup screen previously loaded the QR code as an image from an external service, sending the TOTP secret to a third party. The QR code is now generated directly in the browser, keeping the secret local to your application.
+
+## Breaking Changes
+
+### `setTenant()` Inside `withTenant()` Callbacks Now Throws ([#6206](https://github.com/webiny/webiny-js/pull/6206))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Calling `setTenant()` (or `context.tenancy.setCurrentTenant()`) inside a `withTenant()`, `withRootTenant()`, or `withEachTenant()` callback now throws an error. Previously, the change would be undone when the callback returned, but this led to unpredictable behavior. Replace such calls with a nested `withTenant()` instead.
+
+```typescript
+// Before (now throws)
+await context.tenancy.withTenant(someTenant, async () => {
+  context.tenancy.setCurrentTenant(anotherTenant);
+  // ...
+});
+
+// After
+await context.tenancy.withTenant(someTenant, async () => {
+  await context.tenancy.withTenant(anotherTenant, async () => {
+    // ...
+  });
+});
+```
+
+### Stricter Permission Checks Across API Packages ([#6246](https://github.com/webiny/webiny-js/pull/6246))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+This release includes security hardening across multiple API packages. If you have custom integrations or extensions that rely on implicit access patterns, you may need to review and update them:
+
+- **Audit Logs, Admin Users, Cognito**: Stricter identity and permission checks when reading and managing data.
+- **Headless CMS**: Content models can now carry an additional access rule on top of the standard Headless CMS permissions.
+- **Tenant Manager, Languages**: Tighter permission checks for their content models.
+- **Scheduler**: Stricter input validation, and folder-level permissions now apply when scheduling Headless CMS entries.
+- **Collaboration**: Stricter identity check when listing threads.
+- **ACO**: Tighter input validation.
+
+## Headless CMS
+
+### Custom Field Renderers Now Publicly Exposed ([#6225](https://github.com/webiny/webiny-js/pull/6225))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+The `CmsFieldRenderer` abstraction is now publicly available, allowing you to register custom CMS field renderers in your projects. Import it from `webiny/admin/cms/field-renderers/index`. A new `CmsFieldRenderer.CanUseParams` type is also available for typing the `canUse()` callback argument.
+
+```typescript
+import { CmsFieldRenderer } from "webiny/admin/cms/field-renderers/index";
+
+const myRenderer = CmsFieldRenderer.create({
+  name: "my-custom-renderer",
+  canUse({ field }) {
+    return field.type === "text";
+  },
+  render({ field }) {
+    // Your custom render logic
+  }
+});
+```
+
+<Alert type="info">
+
+When defining a renderer's settings, use a `type` alias rather than an `interface`. Interfaces lack an index signature and won't be assignable to `Record<string, unknown>`, which can break type inference for other field builders.
+
+</Alert>
+
+### Fixed Scheduled Publish and Unpublish Not Firing on AWS ([#6232](https://github.com/webiny/webiny-js/pull/6232))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Scheduled publish and unpublish actions for Headless CMS entries and Website Builder pages were not executing on AWS deployments in versions 6.5.0 and 6.5.1. At the scheduled time, the action would fail silently — entries remained in "Scheduled" status even after their publish time had passed.
+
+This was caused by the scheduled action event handler being registered too late in the plugin lifecycle, preventing the Lambda from recognizing it when EventBridge invoked the function. The handler is now registered at the top level, ensuring scheduled actions execute as expected.
