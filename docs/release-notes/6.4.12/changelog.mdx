@@ -12,29 +12,28 @@ import { Alert } from "@/components/Alert";
 ## Website Builder
 
 ### Fixed Missing `version` and `metadata` Fields in Single-Page Queries ([#5727](https://github.com/webiny/webiny-js/pull/5727))
-{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
 
 The `GET_PAGE_BY_ID` and `GET_PAGE_BY_PATH` queries in the Website Builder SDK were missing the `version` and `metadata` fields from their selection sets. If you needed these fields, you had to patch the SDK manually. Both fields are now included by default.
 
 ### Fixed Stale Page Revision Data After Mutations ([#5757](https://github.com/webiny/webiny-js/pull/5757))
-{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
 
-Creating, publishing, unpublishing, or deleting page revisions did not update the revisions cache, so the editor's revisions drawer and top bar dropdown displayed stale data until a page reload. All revision mutations now properly update the cache, and both UI components are driven from a shared `RevisionListPresenter` instead of local state copies.
+Creating, publishing, unpublishing, or deleting page revisions did not update the revisions cache, so the editor's revisions drawer and top bar dropdown displayed stale data until a page reload. Both now reflect these changes immediately, and publishing a revision marks the previously published one as unpublished.
 
-### Added Delete Revision API Endpoint ([#5757](https://github.com/webiny/webiny-js/pull/5757))
-{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+### Added Missing `deletePageRevision` GraphQL Mutation ([#5757](https://github.com/webiny/webiny-js/pull/5757))
 
-The admin app called `websiteBuilder.deletePageRevision`, but the mutation was never declared on the backend — the entire client feature was wired to a non-existent endpoint. The mutation now exists and delegates to the CMS `DeleteEntryRevisionUseCase`, which handles deleting the latest revision and cascading to a full entry delete when necessary.
+Deleting a page revision from the editor did not work, because the Admin app called a `websiteBuilder.deletePageRevision` mutation that the GraphQL API did not have. The mutation now exists. Deleting the latest revision promotes the previous one, and deleting the last remaining revision deletes the page.
 
 ### Improved Revision List Actions and Confirmations ([#5757](https://github.com/webiny/webiny-js/pull/5757))
-{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
 
-Per-revision actions (create from, edit, publish, unpublish, delete) are now determined by the presenter rather than derived in the view. Destructive actions now require confirmation through a dialog and display a toast with the outcome. Previously, delete ran on the first click and failed silently on error.
+Deleting, publishing and unpublishing a revision from the revisions drawer now ask for confirmation and show a toast with the outcome. Previously these actions ran on the first click and a failure was not reported. **Delete revision** is now also offered on locked and published revisions, matching the API.
 
-### Fixed Workflow Decorators Not Applying to Top Bar Actions ([#5757](https://github.com/webiny/webiny-js/pull/5757))
-{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
+### Fixed Workflow Controls in the Page Editor ([#5757](https://github.com/webiny/webiny-js/pull/5757))
 
-The page editor config was not registered through `Plugins`, so workflow decorators were never applied to the top bar actions. Additionally, an approved review no longer counts as "under review", so the editor becomes writable again and offers **Publish** instead of **New Revision**.
+With workflows enabled, the workflow controls were not applied to the page editor top bar. They now are, and once a review is approved the editor becomes writable again and offers **Publish** instead of **New Revision**. The revisions drawer no longer offers **Publish revision** when workflows are enabled, because it let a page under review be published past its workflow - publish from the top bar instead.
+
+### Fixed Duplicate Requests When Loading the Pages List
+
+Opening the pages list sent the same `listPages` request several times. It is now sent once.
 
 ### Permission Checks for Scheduled and Folder Publishing ([#6173](https://github.com/webiny/webiny-js/pull/6173), [#6240](https://github.com/webiny/webiny-js/pull/6240))
 
@@ -78,9 +77,8 @@ Routine minor and patch dependency updates, including `@aws-sdk/*`, `@pulumi/pul
 ## Admin
 
 ### Fixed Keyboard Shortcut Leak on Component Unmount ([#5757](https://github.com/webiny/webiny-js/pull/5757))
-{/* REVIEW-PENDING @Pavel910 — confirm this entry, then delete this line */}
 
-`useHotkeys` leaked registered shortcuts when a component unmounted while shortcuts were active. The cleanup effect closed over stale state, so a drawer that unmounted while open never released its `esc` binding, causing the next component to claim it to throw an error.
+`useHotkeys` did not release its shortcuts when a component unmounted while they were registered. For example, a drawer that unmounted while open kept its `esc` binding, and the next component to register that shortcut threw an error.
 
 ### Fixed `getUser` Query When Missing `where` Argument ([#6240](https://github.com/webiny/webiny-js/pull/6240))
 
