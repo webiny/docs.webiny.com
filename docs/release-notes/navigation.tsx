@@ -9,8 +9,7 @@ const rootDir = `${__dirname}/`;
 // merged into `master` prematurely (the release/6.5.0 PR was merged by accident),
 // so hide it here until the 6.5.0 release is actually finalized. Remove the version
 // from this list (or empty the list) once 6.5.0 is done.
-// 6.4.12 is hidden until the 6.4.12 release is published.
-const HIDDEN_VERSIONS = ["6.5.0", "6.4.12"];
+const HIDDEN_VERSIONS = ["6.5.0"];
 
 const cache = new Map<string, string[]>();
 
