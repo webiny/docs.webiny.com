@@ -1,0 +1,228 @@
+---
+id: d6yac3ip
+title: Webiny 6.4.12 Changelog
+description: See what's new in Webiny version 6.4.12
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.4.12"} />
+
+## Website Builder
+
+### Fixed Missing `version` and `metadata` Fields in Single-Page Queries ([#5727](https://github.com/webiny/webiny-js/pull/5727))
+
+The `GET_PAGE_BY_ID` and `GET_PAGE_BY_PATH` queries in the Website Builder SDK were missing the `version` and `metadata` fields from their selection sets. If you needed these fields, you had to patch the SDK manually. Both fields are now included by default.
+
+### Fixed Stale Page Revision Data After Mutations ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+
+Creating, publishing, unpublishing, or deleting page revisions did not update the revisions cache, so the editor's revisions drawer and top bar dropdown displayed stale data until a page reload. Both now reflect these changes immediately, and publishing a revision marks the previously published one as unpublished.
+
+### Added Missing `deletePageRevision` GraphQL Mutation ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+
+Deleting a page revision from the editor did not work, because the Admin app called a `websiteBuilder.deletePageRevision` mutation that the GraphQL API did not have. The mutation now exists. Deleting the latest revision promotes the previous one, and deleting the last remaining revision deletes the page.
+
+### Improved Revision List Actions and Confirmations ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+
+Deleting, publishing and unpublishing a revision from the revisions drawer now ask for confirmation and show a toast with the outcome. Previously these actions ran on the first click and a failure was not reported. **Delete revision** is now also offered on locked and published revisions, matching the API.
+
+### Fixed Workflow Controls in the Page Editor ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+
+With workflows enabled, the workflow controls were not applied to the page editor top bar. They now are, and once a review is approved the editor becomes writable again and offers **Publish** instead of **New Revision**. The revisions drawer no longer offers **Publish revision** when workflows are enabled, because it let a page under review be published past its workflow - publish from the top bar instead.
+
+### Fixed Duplicate Requests When Loading the Pages List
+
+Opening the pages list sent the same `listPages` request several times. It is now sent once.
+
+### Permission Checks for Scheduled and Folder Publishing ([#6173](https://github.com/webiny/webiny-js/pull/6173), [#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+Scheduling a page to be published or unpublished now checks the permissions of the caller. When using folder level permissions, publishing and unpublishing a page requires write access to its folder.
+
+## Development
+
+### Debug Logger Tool ([#5734](https://github.com/webiny/webiny-js/pull/5734))
+
+A new opt-in, permission-gated debugger is now available for troubleshooting issues in environments where you cannot access AWS or the underlying code. When a user with the `dev-tools.debug` permission has capture on, debug payloads from instrumented call sites are returned in the GraphQL response under `extensions.debug`. The permission must be granted explicitly - full access does not include it.
+
+**Key details:**
+
+- Capture is requested per-request via the `x-webiny-debug` header (set to `1`, or a glob pattern like `cms.os.*` with `!` to exclude).
+- Debug sessions are buffered in memory (capped at 4 MB), and payloads never reach CloudWatch—only the permitted user sees them.
+- The first instrumented call site is `cms.os.list`, which captures OpenSearch query and response data around entry listing.
+
+In Admin, a **Debug mode** indicator in the header shows that capture is on and lets you download a JSON report or clear the collected data. The Debugger page, reachable at `/debugger`, has the capture toggle and the namespace filter. Collected sessions are held in memory only and do not persist beyond the browser tab.
+
+<Alert type="info">
+
+After deploying this release, you must redeploy your API infrastructure (`yarn webiny deploy api`) and invalidate your CloudFront distribution to ensure the new `x-webiny-debug` header is forwarded correctly. Without this, the feature silently captures nothing.
+
+</Alert>
+
+### Fixed Peer Dependency Ranges Being Locked During Package Publishing ([#5777](https://github.com/webiny/webiny-js/pull/5777))
+
+When publishing packages, peer dependencies were incorrectly locked to the exact version installed in the monorepo rather than preserving the original range. This caused installation failures with `@webiny/website-builder-nextjs` - npm would error with `ERESOLVE` if your project used a different Next.js version than the one pinned during publishing.
+
+Peer dependencies are now published with their original version ranges. For example, `@webiny/website-builder-nextjs` now correctly declares `next: >=15.0.0 <16.0.0`, allowing installation alongside any compatible Next.js 15 version.
+
+### Updated Core Dependencies ([#6168](https://github.com/webiny/webiny-js/pull/6168))
+
+This release upgrades several core dependencies to their latest versions. The upgrade includes internal type fixes required by the new dependency versions — no changes to your project code are required.
+
+### Updated Dependencies ([#6253](https://github.com/webiny/webiny-js/pull/6253))
+
+Routine minor and patch dependency updates, including `@aws-sdk/*`, `@pulumi/pulumi`, `@opensearch-project/opensearch`, and various build/test tooling.
+
+## Admin
+
+### Fixed Keyboard Shortcut Leak on Component Unmount ([#5757](https://github.com/webiny/webiny-js/pull/5757))
+
+`useHotkeys` did not release its shortcuts when a component unmounted while they were registered. For example, a drawer that unmounted while open kept its `esc` binding, and the next component to register that shortcut threw an error.
+
+### Fixed `getUser` Query When Missing `where` Argument ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+The `getUser` query no longer fails with an unexpected error when the `where` argument is omitted.
+
+### Scheduler Validates Schedule Date Before Creating Actions ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+Scheduling an action without a schedule date now returns the invalid date error instead of failing with an unexpected error.
+
+### Custom Scheduler Namespaces Require Permission Implementation ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+If you have a custom scheduler namespace, you must now register a `SchedulerPermissions` implementation. Without one, getting, listing and cancelling scheduled actions returns a not authorized error. Additionally, the `namespace_startsWith` filter has been removed from `ListScheduledActionsUseCase` — use `namespace` instead.
+
+### API Keys and Roles Now Require Matching Permissions ([#6268](https://github.com/webiny/webiny-js/pull/6268))
+
+When creating or updating API keys and roles, the requested permissions are now validated against the permissions of the current identity. You can only grant permissions that you yourself hold (wildcards are taken into account). Attempting to assign permissions beyond your own scope returns a not authorized error. Existing permissions already stored on the API key or role can be kept unchanged.
+
+### Stricter Identity and Request Checks ([#6173](https://github.com/webiny/webiny-js/pull/6173), [#6203](https://github.com/webiny/webiny-js/pull/6203), [#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+- **Cookie authentication:** the authentication cookie is accepted only for the requests that need it, such as downloading private files.
+- **CORS:** stricter CORS headers on API responses.
+- **Requests:** GraphQL requests must be sent with the `application/json` content type, and JSON parsing is stricter.
+- **Current user:** `getCurrentUser` checks the identity of the caller.
+- **Websockets:** stricter permission checks.
+- **Folders:** creating a folder validates the folder `type` first.
+
+## Headless CMS
+
+### Fixed Full-Text Search Failing on Non-Text Fields in OpenSearch ([#5819](https://github.com/webiny/webiny-js/pull/5819))
+
+Full-text search queries in OpenSearch would fail when searchable JSON fields contained non-text values like dates, numbers, or booleans. The search now uses lenient mode, allowing these mixed-type fields to be searched without errors. Additionally, full-text search paths now correctly include parent object fields, and the `contains` filter in DynamoDB properly searches objects inside arrays.
+
+<Alert type="info">
+
+If you have a custom `CmsEntryOpenSearchFullTextSearch` implementation, ensure you add `lenient: true` to your search configuration.
+
+</Alert>
+
+### Added Model Access Guard for Content Models ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+A new `ModelAccessGuard` provides an additional access rule layer for content models on top of the existing Headless CMS permissions. This allows for more granular control over which identities can access specific models.
+
+### Stricter Access Checks for Entries and Models ([#6173](https://github.com/webiny/webiny-js/pull/6173))
+
+- **Own entries:** getting entries by ID and listing revisions respect the "own entries only" permission.
+- **Private models:** private content models are no longer reachable through `getContentModel` or the generic entry queries.
+- **Scheduled publishing and bulk actions:** both check the permissions of the caller.
+
+### Bulk Delete Now Validates Delete Permission Per Entry ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+Bulk delete now checks the delete permission for each entry. Entries the caller is not allowed to delete are skipped.
+
+### Entry Access Checks Use Stored Entry Data ([#6268](https://github.com/webiny/webiny-js/pull/6268))
+
+Updating an entry and creating a revision from an entry now check access against the stored entry rather than the submitted data. This closes a potential privilege escalation vector where manipulated request payloads could bypass access controls.
+
+### Entry Owner Cannot Be Changed via Updates ([#6268](https://github.com/webiny/webiny-js/pull/6268))
+
+The `createdBy` value sent when updating an entry or creating a revision from an entry is now ignored. This prevents unauthorized ownership transfers. Setting `createdBy` when initially creating an entry still works as expected.
+
+### Folder Level Permissions Apply to Publishing Operations ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+When using folder level permissions, publishing, republishing and unpublishing an entry now requires write access to its folder. Previously, these operations only checked top-level permissions.
+
+### Tenant and Language Entries Require Matching Permissions ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+Some resources available through the Headless CMS API now require their own permissions:
+
+- **Tenant entries**: A role with Headless CMS permissions but without the Tenant Manager permission can no longer read or change tenant entries through the CMS API.
+- **Languages**: A role with Headless CMS permissions but without the Languages permission (with write access) can still read languages, but can no longer create, update or delete them through the CMS API.
+
+### Record Locking Permission Checks and Expired Locks ([#6203](https://github.com/webiny/webiny-js/pull/6203), [#6268](https://github.com/webiny/webiny-js/pull/6268))
+
+Record locking operations now require an admin user - anonymous callers and API keys are rejected - and listing all lock records requires full access or the record locking permission. An expired lock is now taken over by deleting the lock record and creating it again, instead of updating it.
+
+## File Manager
+
+### Tenant-Scoped Storage and Stricter Permission Checks ([#6173](https://github.com/webiny/webiny-js/pull/6173), [#6203](https://github.com/webiny/webiny-js/pull/6203))
+
+- **Uploads:** files, including multi-part uploads, are stored under tenant-scoped storage keys, and the upload input is validated.
+- **Private files:** downloading a private file requires an authenticated identity with the permission to read files.
+- **Settings:** updating the File Manager settings requires the settings permission, and the settings input is validated more strictly.
+- **Performance:** the S3 client is cached and reused.
+
+## Webhooks
+
+### Per-Webhook Signing Secrets ([#6193](https://github.com/webiny/webiny-js/pull/6193))
+
+Webhook signing secrets can now be configured individually for each webhook, rather than relying on a single global secret. You can set, change, or clear the signing secret via GraphQL, the SDK, or the Admin webhook form, and a webhook without its own secret keeps using the global one. The Admin interface also includes new actions to generate a random secret and copy it to your clipboard.
+
+### Webhook Settings Require the Webhook Permission ([#6193](https://github.com/webiny/webiny-js/pull/6193))
+
+The `getSettings` query returned the webhook settings, including the signing secret, without a permission check. It now requires the permission to manage webhooks, the same as the other webhook operations.
+
+### Stricter Webhook Endpoint Validation ([#6203](https://github.com/webiny/webiny-js/pull/6203), [#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+Webhook endpoint URLs must use HTTPS and can no longer point to a local or link-local address. Localhost is accepted only during local development. Deliveries to an existing webhook with such an endpoint now fail.
+
+### Webhook Redirects Are No Longer Followed ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+When delivering a webhook, redirect responses (3xx) are no longer followed. The redirect response is recorded as the delivery result instead. This change hardens webhook security by preventing potential SSRF attacks through redirect chains.
+
+## Tenant Manager
+
+### Tenant Management Permission Checks ([#6203](https://github.com/webiny/webiny-js/pull/6203))
+
+Creating, installing, enabling, disabling and deleting tenants now checks the Tenant Manager permission of the caller. Enabling, disabling and deleting is limited to direct child tenants of the current tenant.
+
+## Audit Logs
+
+### Audit Logs Require the Audit Logs Permission ([#6240](https://github.com/webiny/webiny-js/pull/6240))
+
+The `listAuditLogs` query returned audit logs without a permission check. It now requires the Audit Logs permission. The `getAuditLog` query checks the permission before it loads the record, so it no longer reveals whether an audit log exists.
+
+## AI Power-Ups
+
+### Settings No Longer Expose Provider API Keys
+
+The `getSettings` query rejects anonymous callers and never returns provider API keys. Only identities with full access see the masked keys. Updating the settings requires full access.
+
+## Workflows
+
+### Workflow Queries Require an Authenticated Identity ([#6203](https://github.com/webiny/webiny-js/pull/6203))
+
+The `listWorkflows`, `listWorkflowStates`, `getWorkflowState` and `getTargetWorkflowState` queries, and the `createWorkflowState` mutation, now reject anonymous callers.
+
+## Mailer
+
+### Mailer Settings Require the Mailer Permission ([#6203](https://github.com/webiny/webiny-js/pull/6203))
+
+The `getSettings` query now requires the `mailer.settings` permission, the same as saving the settings.
+
+## Infrastructure
+
+### Fixed GuardDuty Malware Protection Deployment and Destroy Failures ([#6186](https://github.com/webiny/webiny-js/pull/6186))
+
+The GuardDuty malware protection plan (used for File Manager threat detection) had missing dependency declarations. This caused two issues:
+
+- **During deployment:** the plan could be created before its IAM policy was attached, leaving it in `ERROR` status.
+- **During destroy:** the policy attachment could be removed before the plan, preventing GuardDuty from deleting its EventBridge rule and causing `webiny destroy` to fail with a `BadRequestException`.
+
+The plan now correctly depends on its policy attachment, and the event-forwarding target depends on its role policy.
+
+<Alert type="info">
+
+If your stack is already in a stuck state, a manual cleanup is still needed before `webiny destroy` will succeed.
+
+</Alert>

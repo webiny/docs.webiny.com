@@ -1,0 +1,35 @@
+AI Context: 6.4.12 Changelog (changelog.mdx)
+
+This file tracks manual edits made after the generation script ran.
+The script reads the "Skipped PRs" section to avoid re-adding removed entries.
+
+## Skipped PRs
+
+## Manual Rewrites
+- Removed the "Security" and "Breaking Changes" sections. The security fixes are not breaking changes, so every entry from them, and the generic "Security Hardening" entries for #6173 and #6203, was moved or split into its domain section (Website Builder, Admin, Headless CMS, File Manager, Webhooks, Tenant Manager, Audit Logs, AI Power-Ups, Workflows, Mailer).
+- Moved "Per-Webhook Signing Secrets" (#6193) from Headless CMS to the new Webhooks section.
+- Added entries for the anonymous-read fixes in Audit Logs, AI Power-Ups, Webhooks, Workflows and Mailer. The AI Power-Ups fix comes from direct commit eb938966 (no PR), and the File Manager settings validation from direct commit 5d69ee2d (no PR), so the generator does not pick them up.
+- Added #6240 items the generated entries left out: getCurrentUser identity check, folder type validation and the stricter webhook endpoint check.
+- Review pass against the release code (webiny-js b8621794e3), entries by @brunozoric:
+  - "Debug Logger Tool" (#5734): there is no Dev Tools menu entry. Admin has a "Debug mode" header indicator and a Debugger page at `/debugger`. The `dev-tools.debug` permission is matched exactly, so full access does not include it.
+  - "Webhook Settings Require the Webhook Permission": credited to #6193 (the check was added there), not #6203.
+  - "Settings No Longer Expose Provider API Keys" (AI Power-Ups): PR link removed, the fix is direct commit eb938966 and #6203 does not touch the settings.
+  - "Expired Record Locks Now Properly Released" renamed to "Record Locking Permission Checks and Expired Locks" (#6203, #6268). The permission checks are #6203. The expired lock handover is direct commit 379bbecb, documented in the #6268 body, and it only keeps the takeover working after `createdBy` became read-only on update, so the "stale locks could block edits" claim was dropped.
+  - "Workflow Queries Require an Authenticated Identity": #6203 only changed `listWorkflows`, `listWorkflowStates`, `getWorkflowState`, `getTargetWorkflowState` and `createWorkflowState`. `getWorkflow` already rejected anonymous callers, and `listOwnWorkflowStates` / `listRequestedWorkflowStates` were not changed.
+  - "Stricter Webhook Endpoint Validation": states the actual rule (HTTPS only, no local or link-local addresses, localhost only in local development, checked again on delivery).
+  - "Scheduler Validates Schedule Date Before Creating Actions" and "Fixed `getUser` Query When Missing `where` Argument": both previously failed with an unexpected error. The "malformed scheduled action" and "validation message" claims were dropped.
+  - "Bulk Delete Now Validates Delete Permission Per Entry": dropped the folder level permissions claim, the check is the Headless CMS delete permission.
+  - "Permission Checks for Scheduled and Folder Publishing" (Website Builder): dropped "republishing", pages have no republish operation.
+  - "Tenant Management Permission Checks": added deleting and the direct child tenant rule.
+  - "Stricter Identity and Request Checks": the Requests item names the `application/json` requirement for GraphQL requests.
+  - "Per-Webhook Signing Secrets": dropped the vague permissions/UX sentence, added the fallback to the global secret.
+  - GuardDuty alert: the PR does not say what the manual cleanup is, so the EventBridge rule detail was dropped.
+- Review pass against the release code (webiny-js b8621794e3), entries by @Pavel910:
+  - "Fixed Missing `version` and `metadata` Fields in Single-Page Queries" (#5727): confirmed, no change.
+  - "Fixed Stale Page Revision Data After Mutations" (#5757): dropped the `RevisionListPresenter` internals, added that publishing marks the previously published revision as unpublished.
+  - "Added Delete Revision API Endpoint" renamed to "Added Missing `deletePageRevision` GraphQL Mutation" (#5757). Rewritten around the user impact (deleting a revision from the editor did not work), dropped the `DeleteEntryRevisionUseCase` detail.
+  - "Improved Revision List Actions and Confirmations" (#5757): dropped the presenter/view sentence. Delete, publish and unpublish are the confirmed actions, and delete is now also offered on locked and published revisions.
+  - "Fixed Workflow Decorators Not Applying to Top Bar Actions" renamed to "Fixed Workflow Controls in the Page Editor" (#5757). Dropped the `Plugins` registration detail and added direct commit ed6b74cc (no PR): the revisions drawer hides "Publish revision" on every revision when workflows are enabled.
+  - "Fixed Keyboard Shortcut Leak on Component Unmount" (#5757): dropped the stale-closure explanation.
+  - Direct commits 03d3beb0 (pages list issued duplicate `listPages` requests on load) and c2b07eea (same for redirects, hidden by Apollo deduplication) have no PR and no entry.
+- Added "Fixed Duplicate Requests When Loading the Pages List" (Website Builder) for direct commit 03d3beb0 (no PR), so the generator does not pick it up.
