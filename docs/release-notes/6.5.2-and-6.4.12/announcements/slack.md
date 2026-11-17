@@ -6,7 +6,7 @@ Webiny 6.5.2 and 6.4.12 are out! :rocket:
 
 6.4.12 is for projects still on the 6.4 line. It adds per-webhook signing secrets, an opt-in debug tool for troubleshooting deployed environments from the Admin without digging through AWS logs, and a round of Website Builder fixes: page revisions stay in sync after mutations, deleting a revision works, and workflow controls behave properly in the page editor. Full-text search in OpenSearch no longer fails on date, number or boolean fields.
 
-Both releases tighten access controls across the board. API keys, roles, teams and users can now only be granted permissions you hold yourself, entry operations respect folder-level permissions, and folders, webhooks, record locking, audit logs and mailer settings all get stricter checks.
+Both releases tighten access controls across the board. API keys and roles (plus teams and users in 6.5.2) can now only be granted permissions you hold yourself, entry operations respect folder-level permissions, and folders, webhooks, record locking, audit logs and mailer settings all get stricter checks.
 
 Check out the changelogs to learn more.
 

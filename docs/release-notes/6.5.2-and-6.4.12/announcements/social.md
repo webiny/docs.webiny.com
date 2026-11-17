@@ -4,7 +4,7 @@ Webiny 6.5.2 and 6.4.12 are here 🚀
 
 → Vue and Nuxt SDKs: now at parity with the Next.js SDK, including live preview
 → MFA reset for admins: reset a user's multi-factor authentication directly from the Admin
-→ TOTP QR codes generated locally: your authenticator secret never leaves the browser
+→ TOTP QR codes generated locally: your authenticator secret is no longer sent to an external QR service
 → Scheduled publish/unpublish on AWS: entries and pages publish on time again
 → Custom CMS field renderers: a public API for building your own field renderers
 
