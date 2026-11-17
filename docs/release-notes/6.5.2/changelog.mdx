@@ -1,0 +1,318 @@
+---
+id: 2dus3wcj
+title: Webiny 6.5.2 Changelog
+description: See what's new in Webiny version 6.5.2
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.5.2"} />
+
+## Development
+
+### Documented Constructor Dependency Safety in GraphQL Resolvers ([#6148](https://github.com/webiny/webiny-js/pull/6148))
+
+GraphQL schema factories receive their constructor dependencies from the request that builds the schema, which is cached for the life of the Lambda container. Reading constructor-injected dependencies (like `IdentityContext`) inside a resolver can expose stale data from the request that originally built the schema, potentially causing authorization issues in deployed environments. The `GraphQLSchemaFactory` documentation now warns against this pattern - a resolver should declare what it needs through `addResolver({ dependencies })`, and constructor dependencies should only be used in `execute()` itself.
+
+### Updated Lexical Editor Dependencies ([#6169](https://github.com/webiny/webiny-js/pull/6169))
+
+Lexical packages have been updated from 0.52 to 0.53. This update includes breaking changes to Lexical's type system - methods like `getParent`, `getChildren`, `getNextSibling`, and `getPreviousSibling` no longer accept generic type arguments. If you have custom Lexical extensions, you may need to update your code to use type guards like `$isListNode` or `$isListItemNode` instead.
+
+### Fixed Tenant Context Leaking Across Concurrent Operations ([#6206](https://github.com/webiny/webiny-js/pull/6206))
+
+`TenantContext.withTenant()`, `withRootTenant()`, and `withEachTenant()` were leaking tenant switches to other code running concurrently within the same request. This affected sibling GraphQL fields resolved in parallel and branches of `Promise.all`, potentially causing code to read or write data from the wrong tenant. Additionally, if a `withTenant()` callback threw an exception, the request would remain on the switched tenant for the rest of its execution.
+
+Tenant switches are now scoped using `AsyncLocalStorage`, ensuring they only apply within the callback's async call chain. The tenant is also properly restored when a callback throws.
+
+### `setTenant()` Inside `withTenant()` Callbacks Now Throws ([#6206](https://github.com/webiny/webiny-js/pull/6206))
+
+Calling `setTenant()` (or `context.tenancy.setCurrentTenant()`) inside a `withTenant()`, `withRootTenant()`, or `withEachTenant()` callback now throws an error. Previously, the change would be undone when the callback returned, but this led to unpredictable behavior. Replace such calls with a nested `withTenant()` instead.
+
+```typescript
+// Before (now throws)
+await context.tenancy.withTenant(someTenant, async () => {
+  context.tenancy.setCurrentTenant(anotherTenant);
+  // ...
+});
+
+// After
+await context.tenancy.withTenant(someTenant, async () => {
+  await context.tenancy.withTenant(anotherTenant, async () => {
+    // ...
+  });
+});
+```
+
+## Website Builder
+
+### Fixed `getPageByPath` Not Returning Required Fields ([#6166](https://github.com/webiny/webiny-js/pull/6166))
+
+The `getPageByPath` resolver was missing `version`, `metadata`, and `extensions` fields, causing GraphQL errors when fetching published pages through the Website Builder SDK. This affected all frontend applications built on the SDK (Next.js, Nuxt, etc.), where every published page failed to load with `Cannot return null for non-nullable field WbPage.version`. The resolver now returns the complete set of fields required by the SDK.
+
+### Permission Checks for Scheduled Publishing ([#6178](https://github.com/webiny/webiny-js/pull/6178))
+
+Scheduling a page to be published or unpublished now checks that the caller is allowed to publish or unpublish pages and can access that page. Scheduling a redirect checks the redirect permissions of the caller.
+
+### Stricter Access Checks for Integrations and Moving Content ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+- **Integrations:** reading the integration settings rejects anonymous callers and requires the integrations permission or the permission to edit pages. Updating them requires full access, unrestricted Website Builder access, or the `wb.integrations` permission.
+- **Moving pages and redirects:** the target must be an existing folder of the matching type that the caller can access.
+- **Redirects endpoint:** the response is no longer publicly cacheable. It is sent with `Cache-Control: private, max-age=300`.
+
+## Webiny SDK
+
+### Vue and Nuxt SDKs Now at Parity with Next.js ([#6150](https://github.com/webiny/webiny-js/pull/6150))
+
+The 6.5 frontend SDK initially shipped for React and Next.js only. This release brings Vue and Nuxt to parity with two new packages:
+
+- **`@webiny/cms-vue`** - the Vue port of `@webiny/cms-nextjs`, exporting `EntryRenderer`, `EntryStoreProvider`, `ConnectToEntryEditor`, `DynamicZoneField`, `RefField`, `useEntry`, `useComponents`, and `useModel`. CMS live preview works out of the box - edits made in the editor update the preview on every keystroke.
+- **`@webiny/sdk-nuxt`** - the Nuxt counterpart of `@webiny/sdk-nextjs`, re-exporting `sdk-frontend`, `cms-vue`, and `website-builder-nuxt` under the same names. The `/vite` subpath re-exports `injectThemeCss`.
+
+**`website-builder-vue` additions:**
+
+- `useContentEntryList(() => props.inputs.posts)` seeds from the server-resolved first page, loads further pages with `loadMore()`, and re-seeds when the query changes.
+- The built-in `Webiny/Image` now matches the Next.js version: it accepts asset and legacy values, builds `srcset` with crop and `format=auto`, sets `width`/`height` from the cropped size, and supports `highPriority` for eager loading.
+
+**`website-builder-nuxt/server` handlers:**
+
+`createWebsiteBuilderMiddleware()` and `createPreviewHandler()` are Nitro handlers covering preview cookie round-trips, `event.context.tenantId`, no-cache headers during preview, and A/B bucketing via `wb_ab_vid`. They replace the boilerplate previously hand-written in Nuxt starters:
+
+```typescript
+// server/middleware/webiny.ts
+import { createWebsiteBuilderMiddleware } from "@webiny/website-builder-nuxt/server";
+export default defineEventHandler(createWebsiteBuilderMiddleware());
+
+// server/api/preview.get.ts
+import { createPreviewHandler } from "@webiny/website-builder-nuxt/server";
+export default defineEventHandler(createPreviewHandler());
+```
+
+## Admin
+
+### Admins Can Now Reset a User's MFA ([#6197](https://github.com/webiny/webiny-js/pull/6197))
+
+When using Cognito authentication, admins can now reset a user's multi-factor authentication directly from the Admin Users module. This addresses situations where a user loses access to their authenticator app and cannot sign in.
+
+A new **Reset MFA** button appears on an existing user's form. Clicking it deletes the user's TOTP software token in Cognito, prompting them to set up MFA again at their next sign-in. The button is hidden for federated users and for the admin's own account.
+
+<Alert type="info">
+
+For shared accounts (users who belong to multiple tenants), the reset can be performed by an admin of any tenant - the confirmation dialog warns that the reset affects sign-in across all tenants.
+
+</Alert>
+
+### TOTP Setup QR Code Now Generated Locally ([#6197](https://github.com/webiny/webiny-js/pull/6197))
+
+The TOTP setup screen previously loaded the QR code as an image from an external service, sending the TOTP secret to a third party. The QR code is now generated directly in the browser, keeping the secret local to your application.
+
+### API Keys Require Full Access ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+Creating and updating API keys now requires full access, in addition to the API keys permission. The token of an API key is returned only to identities with full access - other identities that can read API keys receive `null` instead.
+
+### Roles, Teams and Users Can Only Be Granted Permissions You Hold ([#6214](https://github.com/webiny/webiny-js/pull/6214), [#6246](https://github.com/webiny/webiny-js/pull/6246))
+
+- **Roles:** when creating or updating a role, you can only include permissions that you hold yourself (wildcards are taken into account). Anything beyond that returns a not authorized error.
+- **Teams and users:** you can only assign roles and teams whose permissions you hold.
+- **Managing users:** updating or deleting a user, or resetting their MFA, requires that you could assign the roles and teams the user already has.
+- **System roles:** system roles, such as Full Access, can no longer be deleted.
+
+Identities with full access are not affected.
+
+### Sign-In Hardening for Cognito and Other Identity Providers ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+- **Token verification:** tokens from OIDC identity providers (Cognito, Auth0, Okta) must be signed with RS256, and the audience and issuer are checked when they are configured for the provider.
+- **Cognito tokens:** only Cognito ID tokens are accepted. Access tokens are rejected.
+- **Cognito identity attribute:** users can no longer change their own `custom:id` attribute, unless a federated identity provider maps it. Other attributes stay editable as before, except the `*_verified` flags.
+- **Federated users:** the `custom:id` of a federated user must match the user ID of their federated identity. If you map `custom:id` to a different provider attribute, set `verifyFederatedCustomId: false` in your Cognito configuration and verify it yourself.
+
+<Alert type="info">
+
+The `custom:id` restriction is part of the Cognito user pool client configuration. It takes effect after you deploy the `core` application (`yarn webiny deploy core`).
+
+</Alert>
+
+### Folder Type Rules and Permission Checks ([#6214](https://github.com/webiny/webiny-js/pull/6214), [#6246](https://github.com/webiny/webiny-js/pull/6246))
+
+- **Folder type:** a folder must have the same type as its parent, and the type of an existing folder can't be changed. Creating a folder validates the folder `type` first.
+- **Application permissions:** reading and changing folders requires access to the content they hold - entries of the model for Headless CMS folders, files for File Manager folders, and pages or redirects for Website Builder folders.
+- **Folder permissions:** setting permissions on a new sub-folder requires the owner access level on its parent folder.
+
+### Stricter Identity and Request Checks ([#6178](https://github.com/webiny/webiny-js/pull/6178), [#6214](https://github.com/webiny/webiny-js/pull/6214), [#6246](https://github.com/webiny/webiny-js/pull/6246))
+
+- **Cookie authentication:** the authentication cookie is accepted only for `GET` and `HEAD` requests to private files.
+- **Requests:** GraphQL requests must be sent with the `application/json` content type, otherwise the API responds with a `415` error. JSON parsing is stricter, and an invalid request body returns a `400` error.
+- **Websockets:** connecting requires a valid identity. Listing and disconnecting connections is limited to the current tenant, unless the caller has full access in the root tenant.
+- **Background tasks:** private task definitions can no longer be triggered through the API, and the OpenSearch system tasks can be triggered only with full access in the root tenant.
+- **Collaboration:** listing threads rejects anonymous callers.
+- **Scheduler:** scheduling an action without a valid schedule date returns the invalid date error instead of failing with an unexpected error.
+- **Users:** the `getUser` query no longer fails with an unexpected error when the `where` argument is omitted.
+
+## Headless CMS
+
+### Custom Field Renderers Now Publicly Exposed ([#6225](https://github.com/webiny/webiny-js/pull/6225))
+
+The `CmsFieldRenderer` abstraction is now publicly available, allowing you to register custom CMS field renderers in your projects. Import it from `webiny/admin/cms/field-renderers/index`. A new `CmsFieldRenderer.CanUseParams` type is also available for typing the `canUse()` callback argument.
+
+```typescript
+import { CmsFieldRenderer } from "webiny/admin/cms/field-renderers/index";
+
+class MyTextRenderer implements CmsFieldRenderer.Interface {
+  rendererName = "my-text-renderer";
+  formRenderer = "myTextInput";
+  name = "My Text Input";
+  description = "Renders a text field with a custom input.";
+
+  canUse({ field }: CmsFieldRenderer.CanUseParams) {
+    return field.type === "text" && !field.list;
+  }
+}
+
+export default CmsFieldRenderer.createImplementation({
+  implementation: MyTextRenderer,
+  dependencies: []
+});
+```
+
+<Alert type="info">
+
+When defining a renderer's settings, use a `type` alias rather than an `interface`. Interfaces lack an index signature and won't be assignable to `Record<string, unknown>`, which can break type inference for other field builders.
+
+</Alert>
+
+### Fixed Scheduled Publish and Unpublish Not Firing on AWS ([#6232](https://github.com/webiny/webiny-js/pull/6232))
+
+Scheduled publish and unpublish actions for Headless CMS entries and Website Builder pages were not executing on AWS deployments in versions 6.5.0 and 6.5.1. At the scheduled time, the action did not run - entries remained in "Scheduled" status even after their publish time had passed.
+
+This was caused by the scheduled action event handler being registered too late in the plugin lifecycle, preventing the Lambda from recognizing it when EventBridge invoked the function. The handler is now registered at the top level, ensuring scheduled actions execute as expected.
+
+### Entry Owner Cannot Be Changed After Creation ([#6269](https://github.com/webiny/webiny-js/pull/6269))
+
+The `createdBy` field on CMS entries can no longer be modified through update operations or when creating a revision from an existing entry. This prevents unintended ownership changes after an entry is created. Setting `createdBy` when initially creating an entry still works as expected.
+
+<Alert type="info">
+
+If you have custom code that sets `createdBy` during entry updates, that value will now be ignored. Review any automation or import scripts that rely on this behaviour.
+
+</Alert>
+
+### Stricter Access Checks for Entries and Models ([#6178](https://github.com/webiny/webiny-js/pull/6178))
+
+- **Own entries:** getting entries by ID, and getting the latest, published and all revisions of an entry, respect the "own entries only" permission.
+- **Private models:** private content models are no longer reachable through `getContentModel` or the generic entry queries.
+- **Scheduled publishing:** scheduling an entry to be published or unpublished checks the permissions of the caller, the same way publishing it directly does.
+
+### Entry Access Checks Use Stored Entry Data ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+Updating an entry and creating a revision from an entry now check write access against the stored entry rather than the submitted data. Previously, a manipulated request payload could get past the "own entries only" permission.
+
+### Bulk Actions Respect Entry and Folder Permissions ([#6178](https://github.com/webiny/webiny-js/pull/6178), [#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+Bulk actions now check the permission that the matching single-entry operation requires, and they run only on entries the caller is allowed to change - own entries when that is all the caller may change, and no entries from folders the caller can't write to. Bulk delete checks the delete permission for each entry and skips the entries the caller is not allowed to delete.
+
+### Folder Level Permissions Apply to More Entry Operations ([#6214](https://github.com/webiny/webiny-js/pull/6214), [#6246](https://github.com/webiny/webiny-js/pull/6246))
+
+When using folder level permissions:
+
+- **Publishing:** publishing, republishing and unpublishing an entry, and scheduling it to be published or unpublished, requires write access to its folder.
+- **Other changes:** restoring an entry from the bin and changing a revision description require write access to the folder. Changing the folder of an entry through an entry update requires write access to the destination folder as well.
+- **Reading:** revisions of entries in folders the caller can't read are no longer returned.
+
+### Additional Checks for Entries and Models ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+- **Entry IDs:** creating an entry with a custom ID that is already used by another entry now fails, instead of overwriting that entry.
+- **Force delete:** permanently deleting an entry checks the delete permission, including "own entries only".
+- **Deleting a model with its entries:** requires the permission to delete entries of the model, without the "own entries only" restriction.
+- **Structure import:** importing content model groups and models requires write access to both.
+- **Scheduled actions:** reading scheduled actions requires read access to the entries of the model.
+
+### Tenant and Language Entries Require Matching Permissions ([#6246](https://github.com/webiny/webiny-js/pull/6246))
+
+Some resources available through the Headless CMS API now require their own permissions:
+
+- **Tenant entries:** a role with Headless CMS permissions but without the Tenant Manager permission can no longer read or change tenant entries through the CMS API.
+- **Languages:** a role with Headless CMS permissions but without the Languages permission (with write access) can still read languages, but can no longer create, update or delete them through the CMS API.
+
+### Record Locking Permission Checks and Expired Locks ([#6214](https://github.com/webiny/webiny-js/pull/6214), [#6269](https://github.com/webiny/webiny-js/pull/6269))
+
+Record locking operations now require an admin user - API keys are rejected, the same as anonymous callers - and read access to the entries of the locked model. Listing all lock records requires full access or the record locking permission. An expired lock is now taken over by deleting the lock record and creating it again, instead of updating it.
+
+## File Manager
+
+### Tenant-Scoped Storage and Stricter Permission Checks ([#6178](https://github.com/webiny/webiny-js/pull/6178), [#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+- **Uploads:** multi-part uploads are now stored under the same tenant-scoped storage keys as regular uploads. The file ID and key prefix sent by the client are validated, and an upload with a client-provided file ID can't overwrite an existing file.
+- **File records:** the key of a new file must point to the upload of that file, and file content is served only to the tenant the file belongs to.
+- **Private files:** downloading a private file requires an authenticated identity with the permission to read files.
+- **Settings:** reading the File Manager settings and the file model rejects anonymous callers. Updating the settings requires the settings permission, and the settings input is validated more strictly.
+- **Tags:** listing tags requires the permission to read files.
+- **Local storage:** when files are stored on disk, reads and writes are contained to the files folder of the tenant, and the token of a chunk upload is verified before the request body is read.
+
+## Webhooks
+
+### Webhook Settings Require the Webhook Permission ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+The `getSettings` query returned the webhook settings, including the signing secret, without a permission check. It now requires the permission to manage webhooks. The signing secret of a single webhook is also returned only to identities that can manage webhooks.
+
+### Stricter Webhook Endpoint Validation ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+Webhook endpoint URLs can no longer point to a loopback or link-local address, even over HTTPS. Localhost is accepted only during local development. Deliveries to an existing webhook with such an endpoint now fail.
+
+### Webhook Redirects Are No Longer Followed ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+When delivering a webhook, redirect responses (3xx) are no longer followed. The redirect response is recorded as the delivery result instead.
+
+## Tenant Manager
+
+### Tenant Management Permission Checks ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+Deleting a tenant now checks the Tenant Manager permission of the caller, the same as creating, enabling and disabling one. Enabling, disabling and deleting is limited to direct child tenants of the current tenant, a tenant with sub-tenants of its own can't be deleted, and a tenant can't be created with the ID of an existing tenant.
+
+## Audit Logs
+
+### Audit Logs Require the Audit Logs Permission ([#6214](https://github.com/webiny/webiny-js/pull/6214), [#6246](https://github.com/webiny/webiny-js/pull/6246))
+
+The `listAuditLogs` query returned audit logs without a permission check. It now requires the Audit Logs permission. The `getAuditLog` query checks the permission before it loads the record, so it no longer reveals whether an audit log exists.
+
+## AI Power-Ups
+
+### Settings No Longer Expose Provider API Keys ([#6178](https://github.com/webiny/webiny-js/pull/6178))
+
+The `getSettings` query rejects anonymous callers and never returns provider API keys. Only identities with the AI Power-Ups settings permission see the masked keys, and updating the settings requires the same permission.
+
+### Permission Checks for AI Features ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+Comparing entry revisions requires an admin user with write access to the content model, and generating page content requires the permission to edit Website Builder pages. Additional files passed to a content generation request are loaded with the permissions of the caller.
+
+## Workflows
+
+### Stricter Access Checks for Workflows and Reviews ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+- **Anonymous callers:** the `listWorkflows`, `listWorkflowStates`, `getWorkflowState` and `getTargetWorkflowState` queries, and the `createWorkflowState` mutation, now reject anonymous callers.
+- **Reading workflows:** workflows can be read by identities that manage workflows, or that can read the content the workflow applies to.
+- **Reading reviews:** a review is visible to its reviewers and to identities that can read the entry or page under review.
+- **Starting a review:** requires write access to the entry or page.
+- **Cancelling a review:** only the identity that requested the review, or one that manages workflows, can cancel it.
+
+## Mailer
+
+### Mailer Settings Require the Mailer Permission ([#6214](https://github.com/webiny/webiny-js/pull/6214))
+
+The `getSettings` query now requires the `mailer.settings` permission, the same as saving the settings. Changing the host, port, secure or user setting now also requires the password to be entered again.
+
+## Infrastructure
+
+### Fixed GuardDuty Malware Protection Deployment and Destroy Failures ([#6187](https://github.com/webiny/webiny-js/pull/6187))
+
+The GuardDuty malware protection plan (used for File Manager threat detection) had missing dependency declarations. This caused two issues:
+
+- **During deployment:** the plan could be created before its IAM policy was attached, leaving it in `ERROR` status.
+- **During destroy:** the policy attachment could be removed before the plan, preventing GuardDuty from deleting its EventBridge rule and causing `webiny destroy` to fail with a `BadRequestException`.
+
+The plan now correctly depends on its policy attachment, and the event-forwarding target depends on its role policy.
+
+<Alert type="info">
+
+If your stack is already in a stuck state, a manual cleanup is still needed before `webiny destroy` will succeed.
+
+</Alert>

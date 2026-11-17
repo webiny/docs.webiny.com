@@ -1,0 +1,30 @@
+AI Context: 6.5.2 Changelog (changelog.mdx)
+
+This file tracks manual edits made after the generation script ran.
+The script reads the "Skipped PRs" section to avoid re-adding removed entries.
+
+## Skipped PRs
+
+6252 - chore: update dependencies 2026-11-16; internal (dependency bump with no behaviour change), skipped automatically.
+
+## Manual Rewrites
+
+Restructured security content by domain, matching the 6.4.12 changelog: removed the `## Security` and `## Breaking Changes` sections. Security fixes now live in Admin, Headless CMS, Website Builder, File Manager, Webhooks, Tenant Manager, Audit Logs, AI Power-Ups, Workflows, Mailer and Infrastructure. Do not re-add a Security or Breaking Changes section.
+6178 - removed the generic "Security Hardening" entry; its content is split into domain entries (Website Builder scheduled publishing, Admin identity and request checks, Headless CMS entry/model access and bulk actions, File Manager, AI Power-Ups settings).
+6246 - removed the generic "Stricter Permission Checks Across API Packages" entry; its content is split into domain entries (Admin users/roles and folders, Headless CMS folder level permissions and tenant/language entries, Audit Logs).
+6206 - moved the `setTenant()` inside `withTenant()` entry from Breaking Changes to Development, text and code sample unchanged.
+6214 - not a plain dependency bump: it is the main security PR (port of the 6.4.12 fixes plus an internal review). Added entries for API keys, roles/teams/users permission granting, Cognito and identity provider sign-in hardening, folder type rules, Website Builder integrations and moving content, Headless CMS entry checks, File Manager storage, Webhooks, Tenant Manager, Audit Logs, AI Power-Ups, Workflows and Mailer. All verified against code at 8166d7b5c8.
+6187 - added as its own Infrastructure entry (GuardDuty malware protection dependency fix, same as 6.4.12 #6186); it is not part of #6178.
+6269 - the record lock takeover change is described in the Headless CMS record locking entry; the `createdBy` entry is unchanged.
+Review pass against webiny-js 8166d7b5c8 (all REVIEW-PENDING markers removed, em dashes replaced with regular dashes):
+6225 - replaced the code sample: `CmsFieldRenderer.create({ name, canUse, render })` does not exist. The abstraction is implemented as a class (`rendererName`, `formRenderer`, `name`, `description`, `canUse()`) and registered with `CmsFieldRenderer.createImplementation()`.
+6150 - fixed the server handler import path to `@webiny/website-builder-nuxt/server` (was `webiny/website-builder-nuxt/server`); "full parity" changed to "parity" (remote components are not ported).
+6148 - the recommended pattern is `addResolver({ dependencies })`; constructor dependencies only inside `execute()` itself.
+6206 - only `withTenant()` left the request on the switched tenant when its callback threw; `withRootTenant()` and `withEachTenant()` already restored it.
+6232 - "fail silently" changed to "did not run" (the Lambda threw an error).
+6214 - Webhooks: HTTPS was already required before 6.5.2; the new rule is that loopback and link-local addresses are refused even over HTTPS, and localhost only works during local development.
+6214 - Tenant Manager: create, install, enable and disable already checked the `tm.tenant` permission in 6.5.1; new are the check on delete, the direct-child limit, the sub-tenant guard and the duplicate ID check.
+6214 - File Manager: regular uploads were already stored under tenant-scoped keys; new is that multi-part uploads use them too. The overwrite guard applies to client-provided file IDs, and the "before the request body is read" claim applies to chunk uploads.
+6214 - Headless CMS folder level permissions: moving through `MoveEntry` already checked the destination folder; new is the same check when the folder is changed through an entry update.
+6214 - Record locking: anonymous callers were already rejected; new is that non-admin identities (API keys) are rejected too.
+6214 - Cognito: `custom:id` stays writable when a federated identity provider maps it (covered by the federated check), and the `*_verified` flags are no longer user-writable.
