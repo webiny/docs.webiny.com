@@ -128,6 +128,16 @@ A new `ModelAccessGuard` provides an additional access rule layer for content mo
 
 Bulk delete operations now check the delete permission for each individual entry rather than only validating at the operation level. This ensures folder level permissions and other entry-specific rules are respected.
 
+### Entry Access Checks Use Stored Entry Data ([#6268](https://github.com/webiny/webiny-js/pull/6268))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+Updating an entry and creating a revision from an entry now check access against the stored entry rather than the submitted data. This closes a potential privilege escalation vector where manipulated request payloads could bypass access controls.
+
+### Expired Record Locks Now Properly Released ([#6268](https://github.com/webiny/webiny-js/pull/6268))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+When a record lock expires, it is now taken over by deleting the existing lock record and creating a new one, rather than attempting to update it. This resolves edge cases where stale locks could block legitimate edit attempts.
+
 ## Infrastructure
 
 ### Fixed GuardDuty Malware Protection Deployment and Destroy Failures ([#6186](https://github.com/webiny/webiny-js/pull/6186))
@@ -183,3 +193,13 @@ When using folder level permissions, publishing, republishing and unpublishing a
 {/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
 
 When delivering a webhook, redirect responses (3xx) are no longer followed. The redirect response is recorded as the delivery result instead. This change hardens webhook security by preventing potential SSRF attacks through redirect chains.
+
+### API Keys and Roles Now Require Matching Permissions ([#6268](https://github.com/webiny/webiny-js/pull/6268))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+When creating or updating API keys and roles, the requested permissions are now validated against the permissions of the current identity. You can only grant permissions that you yourself hold (wildcards are taken into account). Attempting to assign permissions beyond your own scope returns a not authorized error. Existing permissions already stored on the API key or role can be kept unchanged.
+
+### Entry Owner Cannot Be Changed via Updates ([#6268](https://github.com/webiny/webiny-js/pull/6268))
+{/* REVIEW-PENDING @brunozoric — confirm this entry, then delete this line */}
+
+The `createdBy` value sent when updating an entry or creating a revision from an entry is now ignored. This prevents unauthorized ownership transfers. Setting `createdBy` when initially creating an entry still works as expected.
