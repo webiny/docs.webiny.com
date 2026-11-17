@@ -5,6 +5,13 @@ import { rcompare, valid } from "semver";
 
 const rootDir = `${__dirname}/`;
 
+// Versions to hide from the Release Notes navigation. 6.5.0's release notes were
+// merged into `master` prematurely (the release/6.5.0 PR was merged by accident),
+// so hide it here until the 6.5.0 release is actually finalized. Remove the version
+// from this list (or empty the list) once 6.5.0 is done.
+// 6.4.12 is hidden until the 6.4.12 release is published.
+const HIDDEN_VERSIONS = ["6.5.0", "6.4.12"];
+
 const cache = new Map<string, string[]>();
 
 const loadAllMdxFiles = (root: string) => {
@@ -42,7 +49,9 @@ export const Navigation = () => {
     }, []);
 
     const versions = useMemo(() => {
-        return Object.keys(releases).sort((a, b) => {
+        return Object.keys(releases)
+          .filter(version => !HIDDEN_VERSIONS.includes(version))
+          .sort((a, b) => {
             return rcompare(a, b);
         });
     }, [releases]);
