@@ -5,11 +5,9 @@ import { rcompare, valid } from "semver";
 
 const rootDir = `${__dirname}/`;
 
-// Versions to hide from the Release Notes navigation. 6.5.0's release notes were
-// merged into `master` prematurely (the release/6.5.0 PR was merged by accident),
-// so hide it here until the 6.5.0 release is actually finalized. Remove the version
-// from this list (or empty the list) once 6.5.0 is done.
-const HIDDEN_VERSIONS = ["6.5.0"];
+// Versions to hide from the Release Notes navigation, e.g. release notes merged
+// before the release is published. Hidden versions are not built at all.
+const HIDDEN_VERSIONS: string[] = [];
 
 const cache = new Map<string, string[]>();
 
