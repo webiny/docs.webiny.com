@@ -2,7 +2,7 @@ Hello @channel! :wave:
 
 Webiny 6.5.2 and 6.4.12 are out! :rocket:
 
-6.5.2 brings the Vue and Nuxt SDKs to parity with Next.js, so if you're building frontends outside the React ecosystem, you now get live preview, content entry lists and the rest of what the Next.js SDK offers. Admins can also reset a user's MFA directly from the Admin UI, which helps when someone loses access to their authenticator app. On top of that, scheduled publish and unpublish now fire on AWS again, and a tenant context leak that could read data from the wrong tenant during concurrent operations is fixed.
+6.5.2 brings the Vue and Nuxt SDKs to parity with Next.js, so if you're building frontends outside the React ecosystem, you now get live preview, content entry lists and the rest of what the Next.js SDK offers. Admins can also reset a user's MFA directly from the Admin UI, which helps when someone loses access to their authenticator app. On top of that, scheduled publish and unpublish now fire on AWS again.
 
 6.4.12 is for projects still on the 6.4 line. It adds per-webhook signing secrets, an opt-in debug tool for troubleshooting deployed environments from the Admin without digging through AWS logs, and a round of Website Builder fixes: page revisions stay in sync after mutations, deleting a revision works, and workflow controls behave properly in the page editor. Full-text search in OpenSearch no longer fails on date, number or boolean fields.
 
