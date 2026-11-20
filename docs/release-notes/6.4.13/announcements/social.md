@@ -12,4 +12,4 @@ Upgrade guide: https://www.webiny.com/docs/release-notes/6.4.13/upgrade-guide
 
 —
 
-What's next? We're continuing to strengthen security and developer experience across the platform. Stay tuned for more updates soon 🚀
+Security improvements are never the flashiest, but they're the ones that let you sleep well at night 🌙 Stay tuned for more!
