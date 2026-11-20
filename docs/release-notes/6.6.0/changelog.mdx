@@ -350,6 +350,56 @@ The `references.json` file that lists expected dependency versions has moved fro
 
 All failures now return a failed `Result`. Callers that previously ignored task results—file uploads, model sync, webhook dispatch—now check them and log failures appropriately. Webhook deliveries are marked as failed when their task cannot be queued.
 
+### Send Test Emails from Mailer Settings ([#6250](https://github.com/webiny/webiny-js/pull/6250))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The Mailer settings screen now has a "Send a test email" section. Enter a recipient address (it defaults to your own email), and the test sends through the same path as any other mail. If delivery fails, you see the mail server's actual error—like `getaddrinfo ENOTFOUND smtp.webiny.com` or `535 Authentication failed`—instead of a silent success.
+
+The test uses your saved settings, so the button is disabled while you have unsaved changes. When no transport is configured, the test refuses with a clear message.
+
+### Mail Transports Configure Themselves ([#6262](https://github.com/webiny/webiny-js/pull/6262))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Mail transports now read their own configuration instead of receiving SMTP settings from a central resolver. If you register a custom transport (SES, an HTTP API), the mailer picks it up automatically. The password reset and other mailer checks no longer assume SMTP is the only option.
+
+The sender address now lives with the transport. `SmtpMailTransport` applies the configured `from` and `replyTo` as defaults, so callers send `{ to, subject, text }` without worrying about the sender.
+
+<Alert type="info">
+
+Custom transports are registered through `MailTransportFactory`. See the `aws-ses-mailer` extension in the [webiny/extensions](https://github.com/webiny/extensions) repository for an example.
+
+</Alert>
+
+### Password Reset Emails Sent in the Background ([#6238](https://github.com/webiny/webiny-js/pull/6238))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Password reset requests now trigger a background task that generates the code and sends the email. The request itself returns immediately, eliminating the timing difference that revealed which addresses have accounts. Previously, only addresses with accounts waited on the SMTP server.
+
+### Store Files from Server-Side Code ([#6274](https://github.com/webiny/webiny-js/pull/6274))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+A new `StoreFileUseCase` lets you write a file the server produced (a generated image, a report) through File Manager in one call. It runs the same permission checks, upload size settings, and key layout as an admin upload, and returns both the file record and its URL.
+
+```typescript
+import { StoreFileUseCase, StoreFileInput } from "webiny/api/file-manager/file";
+
+const input = StoreFileInput.fromBuffer(pdfBytes, { name: "report.pdf" })
+  .setFolder("reports")
+  .addTag("monthly");
+
+const result = await storeFile.execute(input);
+if (result.ok) {
+  console.log(result.value.url);
+}
+```
+
+### In-Flight Requests Finish Before Standalone Server Exits ([#6235](https://github.com/webiny/webiny-js/pull/6235), [#6290](https://github.com/webiny/webiny-js/pull/6290))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+On SIGTERM or SIGINT, the standalone server now waits for HTTP requests still in flight to finish before exiting, using the 8-second shutdown budget. Previously, requests were cut off as soon as the shutdown hook finished.
+
+SSE responses now receive `connection: close` during shutdown like other responses, so clients stop reusing the connection and retry on a fresh one.
+
 ## Headless CMS
 
 ### Modernised Storage Operations Architecture ([#5490](https://github.com/webiny/webiny-js/pull/5490))
@@ -814,6 +864,13 @@ This release includes the API packages only. The Pulumi infrastructure component
 
 </Alert>
 
+### AI Assistant Can Create, Change, Publish, and Delete Entries ([#6239](https://github.com/webiny/webiny-js/pull/6239))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The admin assistant can now create, update, publish, unpublish, and delete CMS entries. All write operations require approval before they execute. When you approve a change, the entries list updates in real time without a page reload.
+
+The assistant refuses to operate on system models (private or hidden) and single-entry models. Unknown field IDs are rejected with a clear error naming the unrecognized fields, rather than silently dropping them.
+
 ## Infrastructure
 
 ### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
@@ -1103,6 +1160,44 @@ The exports `BreeSchedulerService` and `IBreeSchedulerServiceParams` have been r
 
 </Alert>
 
+### API Runs on Lambda Web Functions ([#6200](https://github.com/webiny/webiny-js/pull/6200), [#6260](https://github.com/webiny/webiny-js/pull/6260))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The API's HTTP routes now run on an [AWS Lambda web function](https://docs.aws.amazon.com/lambda/latest/dg/web-functions.html) by default. A web function runs the API as a plain Node HTTP server on Arm64 (2 vCPUs per environment), and one environment serves up to 16 requests at once. The HTTP API Gateway is removed.
+
+Existing projects will receive `<Infra.Api.WebFunction enabled={false} />` from the upgrade script, so you can switch in your own time. To keep the previous setup (API Gateway), add that line to your `webiny.config.aws.tsx`.
+
+<Alert type="info">
+
+If you use the CloudFormation deployment template, update to v6 for the Lambda web function permissions.
+
+</Alert>
+
+### Aurora PostgreSQL Support on AWS ([#6241](https://github.com/webiny/webiny-js/pull/6241), [#6248](https://github.com/webiny/webiny-js/pull/6248), [#6263](https://github.com/webiny/webiny-js/pull/6263), [#6276](https://github.com/webiny/webiny-js/pull/6276))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+AWS projects can now use Aurora PostgreSQL Serverless v2 as the primary database. Add `<Infra.Postgres />` to your project config, and deploy creates an Aurora cluster with optional RDS Proxy. The API functions connect to Postgres, service manifests go through the schema setup, and no DynamoDB tables are created.
+
+```tsx
+// webiny.config.aws.tsx
+<Infra.Vpc enabled />
+<Infra.Postgres minCapacity={0.5} maxCapacity={16} />
+```
+
+The web function gets a connection pool of 8 (configurable via `poolSize`) and ships the RDS CA bundle so it can verify the database certificate. Idle connections are checked before reuse to handle Lambda environments that sit frozen while the server closes them.
+
+New projects can select "Amazon Aurora PostgreSQL" during `create-webiny-project`.
+
+### `webiny watch api` Refused with Postgres on AWS ([#6283](https://github.com/webiny/webiny-js/pull/6283))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+`webiny watch api` now stops immediately when an AWS project uses `<Infra.Postgres />`. Watch forwards requests to your local machine, but your machine can't reach Aurora in the VPC's private subnets. The error message tells you to deploy with `yarn webiny deploy api --env <env>` instead.
+
+### Private Files Served from `/private/*` ([#6254](https://github.com/webiny/webiny-js/pull/6254))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Private files now have a working `/private/*` route. Previously, this path returned 404, so private files couldn't be delivered. Anonymous requests are now refused with 403 instead of being served.
+
 ## Breaking Changes
 
 ### Feature Flags Replace WCP as Primary Feature Availability System ([#5559](https://github.com/webiny/webiny-js/pull/5559))
@@ -1279,6 +1374,11 @@ CDN cache invalidation is now abstracted behind a `CdnCache` interface in `@webi
 The `/wb/redirects` endpoint returned `Cache-Control: public, max-age=31536000`, which allowed browsers and intermediate proxies to cache the redirect list for up to a year. Since redirect invalidation only clears CloudFront, browsers could serve stale redirects indefinitely.
 
 The endpoint now returns `Cache-Control: public, max-age=0, s-maxage=31536000`. CloudFront still caches for a year and receives invalidations on changes, while browsers and other caches must revalidate on each request.
+
+### New Query: Get the Latest Page Revision at a Path ([#6285](https://github.com/webiny/webiny-js/pull/6285))
+> ⏳ REVIEW-PENDING `@SvenAlHamad`: confirm this entry, then delete this line.
+
+The Website Builder API now includes a `getLatestPageByPath(path: String!)` query that returns the latest non-deleted revision at a given path, regardless of its status (draft, unpublished, or published). This lets you check whether a path is already taken by a draft without having to list every page. The existing `getPageByPath` query continues to return only published pages.
 
 ## Admin
 
@@ -1622,6 +1722,36 @@ The AI assistant now saves conversation history on the server after each exchang
 
 Runs paused for approval are saved, so you can close your browser and resume later. Asking a new question while a change awaits approval automatically rejects that pending change. If a run cannot be saved, the assistant indicates whether you can retry the question or need to start a new chat.
 
+### AI Assistant Knows What's on Your Screen ([#6245](https://github.com/webiny/webiny-js/pull/6245), [#6255](https://github.com/webiny/webiny-js/pull/6255), [#6271](https://github.com/webiny/webiny-js/pull/6271))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The assistant now sees which screen you're asking from. When you open the Product entries list and ask "who has access to the archive folder?", it answers about the Product model's Archive folder instead of guessing File Manager's. Questions like "list me the entries" or "which role is this?" work without extra tool calls or follow-up questions.
+
+This context covers CMS entries, Website Builder pages, File Manager, redirects, content models, model groups, API keys, roles, teams, scheduled actions, background task executions, webhooks, webhook deliveries, and trash bin views. The assistant sees the visible rows, the open record, the active search, and the folder structure where applicable.
+
+<Alert type="info">
+
+Searching or sorting a list in the admin now updates what the assistant sees. If you search roles for "editor", the assistant reports only the filtered results.
+
+</Alert>
+
+### AI Assistant Can Manage Users, Roles, and Teams ([#6237](https://github.com/webiny/webiny-js/pull/6237), [#6234](https://github.com/webiny/webiny-js/pull/6234), [#6242](https://github.com/webiny/webiny-js/pull/6242))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The assistant can now list admin users, change their roles and teams, and create, update, or delete roles and teams. Write operations require approval. When you approve a change, the relevant admin list updates without a page reload.
+
+Access changes are refused for the signed-in user (to prevent accidental lockout) and for users managed by an external identity provider (whose roles and teams are rewritten at every sign-in).
+
+### Content Generation Uses Only Read-Only Tools ([#6243](https://github.com/webiny/webiny-js/pull/6243))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+CMS entry generation and Website Builder page generation now receive only the tools marked as read-only. Previously, these unattended flows had access to write tools that could create or delete records without anyone being asked first.
+
+### Model Label Removed from Assistant Palette Footer ([#6261](https://github.com/webiny/webiny-js/pull/6261))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The AI assistant mode of the command palette no longer shows the model name (like `claude-sonnet-5-5`) in the footer. The mode's tag next to the input already identifies the assistant, and the model name wasn't actionable. The footer now shows only keyboard hints.
+
 ## File Manager
 
 ### Scoped Uploads Now Tagged Correctly ([#6031](https://github.com/webiny/webiny-js/pull/6031))
@@ -1782,6 +1912,27 @@ A new server-side bundling library is available at `@webiny/remote-components/ex
 Failed component loads were cached as empty arrays, hiding all remote components until page reload. Failed loads are now logged and retried on the next request, while concurrent loads share a single in-flight request.
 
 Custom headers passed via `fetchOptions` no longer override the SDK's required headers (`x-tenant`, `Authorization`, `Content-Type`). The SDK's headers take precedence, while other request options like `cache` and `signal` pass through unchanged.
+
+### WebSocket Security Fixes ([#6280](https://github.com/webiny/webiny-js/pull/6280), [#6236](https://github.com/webiny/webiny-js/pull/6236), [#6277](https://github.com/webiny/webiny-js/pull/6277))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Three websocket issues were fixed:
+
+1. **Anonymous connections were accepted.** A tokenless connection could register and receive messages. Now, AWS returns 401 on `$connect` without a valid token, and standalone refuses the upgrade.
+
+2. **Threat-scan results went to every connection.** File Manager's threat-scan notifications listed every connection in every tenant. They now go only to connections in the file's tenant.
+
+3. **Connections could name any tenant.** A signed-in user could connect with `tenant=B` and receive B's messages. Connections are now refused with 403 when the identity has no access to the requested tenant.
+
+### Anonymous Identity No Longer Treated as Signed In ([#6277](https://github.com/webiny/webiny-js/pull/6277))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Several places checked `!identity` or `getIdentity()?.id` to mean "someone is signed in", but `getIdentity()` always returns an identity—the anonymous one when there's no token. This meant:
+
+- Websocket messages (like threat-scan results) were sent to identity `"anonymous"` instead of being skipped.
+- The first admin user created during installation got `createdBy: { id: "anonymous" }` instead of `null`.
+
+These checks now use `identity.isAnonymous()`.
 
 ## Development Tools
 
