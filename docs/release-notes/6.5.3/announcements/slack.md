@@ -2,9 +2,9 @@ Hello @channel! :wave:
 
 Webiny 6.5.3 is out! :rocket:
 
-This patch release focuses on reliability improvements for scheduled publishing. We fixed a race condition that could leave an entry with no published revision (and API consumers getting 404s) if a scheduled publish failed partway through — the swap is now a single atomic write, so the old revision stays live until the new one is published. Plus, error messages from failed scheduled actions are now surfaced in the API, making troubleshooting much easier.
+This patch release makes scheduled publishing more reliable. Previously, if a scheduled publish failed partway through, an entry could end up with no published version and drop off your site until someone republished it by hand. That can't happen anymore. And when a scheduled action does fail, you can now see why.
 
-We also squashed a search bug in the Headless CMS (OpenSearch setups) where terms containing slashes (like dates or paths) would return no results. Slashes are now handled correctly, and we've also fixed an edge case where uppercase AND, OR, or NOT in your search terms could cause query errors. Check out the changelog to learn more.
+We also fixed content search in the Headless CMS for projects running OpenSearch. Searching for something with a slash in it, like a date such as 11/14, now finds the entries you'd expect, and searches that include words like AND, OR or NOT no longer fail. Check out the changelog to learn more.
 
 —
 

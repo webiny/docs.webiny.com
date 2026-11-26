@@ -1,10 +1,10 @@
 Webiny 6.5.3 is here 🚀
 
 Highlights:
-→ Atomic scheduled publishing — eliminates race conditions that could cause 404s when publishing new revisions
-→ Scheduler error visibility — failed actions now surface error messages via GraphQL for easier debugging
-→ Fixed content search with slashes — terms like "11/14" now return results correctly in OpenSearch
-→ Query operator handling — uppercase AND/OR/NOT in searches no longer cause errors
+→ More reliable scheduled publishing: a failed publish can no longer take your content offline
+→ Clearer errors: you can now see why a scheduled action failed
+→ Better search: terms with a slash, like a date such as 11/14, now find what you're looking for
+→ Searches that include AND, OR or NOT no longer fail
 
 As always, full details in the release notes 👇
 
