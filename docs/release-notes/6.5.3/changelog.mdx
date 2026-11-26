@@ -1,0 +1,32 @@
+---
+id: x9ce96se
+title: Webiny 6.5.3 Changelog
+description: See what's new in Webiny version 6.5.3
+---
+
+import { GithubRelease } from "@/components/GithubRelease";
+import { Alert } from "@/components/Alert";
+
+<GithubRelease version={"6.5.3"} />
+
+## Headless CMS
+
+### Fixed Scheduled Publishing Reliability ([#6312](https://github.com/webiny/webiny-js/pull/6312))
+
+When scheduling a new revision to be published while another revision was already live, the scheduler would first unpublish the old revision, then publish the new one in two separate steps. If the publish step failed or the Lambda timed out between these operations, the entry could be left with no published revision, resulting in a 404 for API consumers. The scheduler now publishes atomically — the old revision is marked unpublished in the same write as the new one is published, eliminating this race condition.
+
+Additionally, when a scheduled action fails, the error message is now exposed via the `ScheduleRecord.error` field in the GraphQL API, making it easier to diagnose scheduling issues.
+
+### Fixed Content Entry Search Failing When Terms Contain a Slash ([#6315](https://github.com/webiny/webiny-js/pull/6315))
+
+With OpenSearch, searching the content entry list for terms containing a forward slash (e.g., "Introduction to Rope Climbing 11/14") would return no results once the `/` was typed. This happened because OpenSearch's standard analyzer splits `11/14` into two separate tokens (`11` and `14`), but the wildcard search query was looking for a single unanalyzed word.
+
+Slashes are now converted to spaces before searching, matching the existing behavior for hyphens and backslashes. The `contains` and `not_contains` filters are also fixed.
+
+Additionally, uppercase `AND`, `OR`, and `NOT` in search terms are now lowercased to prevent them from being interpreted as query string operators. For example, searching for "Terms AND/OR conditions" previously caused a query error.
+
+<Alert type="info">
+
+If you have a custom `CmsEntryOpenSearchFullTextSearch` implementation that uses the `prepareTerm` function, be aware that slashes now become spaces and standalone `AND`/`OR`/`NOT` are lowercased. Implementations using phrase queries or keyword field queries may need adjustment.
+
+</Alert>
