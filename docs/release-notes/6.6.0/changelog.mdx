@@ -400,6 +400,32 @@ On SIGTERM or SIGINT, the standalone server now waits for HTTP requests still in
 
 SSE responses now receive `connection: close` during shutdown like other responses, so clients stop reusing the connection and retry on a fresh one.
 
+### AWS Request ID in Log Lines ([#6299](https://github.com/webiny/webiny-js/pull/6299))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+API log lines on AWS now include `requestId`, making it possible to correlate CloudWatch entries with specific Lambda invocations. The web function correctly tracks request IDs across concurrent requests.
+
+### SMTP and Mailer Provider Extensions ([#6304](https://github.com/webiny/webiny-js/pull/6304))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+SMTP is now configured as a component in `webiny.config.tsx` rather than being built-in:
+
+```typescript
+<Api.Mailer.Smtp host="smtp.example.com" port={587} user="..." password="..." />
+```
+
+Alternative providers (Resend, SendGrid, Amazon SES) are available as extensions via `yarn webiny extension mailer/resend`. Each provider is configured through environment variables, and projects only bundle the transport they use.
+
+### HTTP Error Responses Include CORS Headers ([#6305](https://github.com/webiny/webiny-js/pull/6305))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Authentication failures, route errors, and server errors now include proper CORS headers and content types. Previously, browsers on other origins couldn't read error responses and reported CORS failures instead of the actual error.
+
+### WebSocket Route Handlers Receive Identity Object ([#6301](https://github.com/webiny/webiny-js/pull/6301))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+WebSocket route handlers now receive `identity: Identity` instead of `getIdentity()`. The identity is always set—unauthenticated requests receive the anonymous identity with `identity.isAnonymous()` returning `true`.
+
 ## Headless CMS
 
 ### Modernised Storage Operations Architecture ([#5490](https://github.com/webiny/webiny-js/pull/5490))
@@ -871,6 +897,55 @@ The admin assistant can now create, update, publish, unpublish, and delete CMS e
 
 The assistant refuses to operate on system models (private or hidden) and single-entry models. Unknown field IDs are rejected with a clear error naming the unrecognized fields, rather than silently dropping them.
 
+### S3-Compatible Storage for Standalone File Manager ([#6295](https://github.com/webiny/webiny-js/pull/6295), [#6323](https://github.com/webiny/webiny-js/pull/6323))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+Standalone deployments can now store uploaded files in an S3-compatible bucket (AWS S3, Cloudflare R2, Backblaze B2, SeaweedFS) instead of only on disk. Configure storage in `webiny.config.tsx`:
+
+```typescript
+// Local disk storage
+<Infra.FileStorage.Disk path="/data/files" uploadSecret="..." />
+
+// S3-compatible bucket
+<Infra.FileStorage.S3 bucket="my-bucket" uploadSecret="..." />
+```
+
+The S3 option accepts `region`, `endpoint`, `forcePathStyle`, `prefix`, and optional credentials. Without credentials, the AWS SDK's default credential chain applies. File delivery now streams bytes instead of loading entire files into memory, reducing API memory usage from the file's full size to about 50 MB regardless of file size. Files over 2 GB can now be served.
+
+<Alert type="info">
+
+**Breaking change:** `<Infra.FileStorage path uploadSecret />` must be renamed to `<Infra.FileStorage.Disk path uploadSecret />`.
+
+</Alert>
+
+### Tenant-Scoped Dependency Injection Containers ([#6320](https://github.com/webiny/webiny-js/pull/6320))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+Cross-tenant operations now run in isolated DI containers. Code that previously used `TenantContext.withTenant` must now resolve services from the tenant's scope:
+
+```typescript
+import { TenantScopes } from "webiny/api/tenancy";
+
+// Before (deprecated, still works)
+await tenantContext.withTenant(tenant, async () => {
+  const service = container.resolve(MyService);
+  // Service was built for the wrong tenant
+});
+
+// After
+await tenantScopes.withTenant(tenant, async (scope) => {
+  const service = scope.resolve(MyService);
+  // Service is built for the correct tenant
+});
+```
+
+Using a service from one tenant's scope inside another now throws `StaleKernelExecutionError`. Storage operations automatically use their scope's tenant, ignoring any tenant passed in parameters.
+
+### File Manager Table Crash from Extension Columns Fixed ([#6311](https://github.com/webiny/webiny-js/pull/6311))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+Adding, removing, or overriding File Manager table columns via `Browser.Table.Column` in an extension no longer crashes the table view.
+
 ## Infrastructure
 
 ### Replaced Vulnerable `decompress` Library ([#5521](https://github.com/webiny/webiny-js/pull/5521))
@@ -1197,6 +1272,32 @@ New projects can select "Amazon Aurora PostgreSQL" during `create-webiny-project
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 Private files now have a working `/private/*` route. Previously, this path returned 404, so private files couldn't be delivered. Anonymous requests are now refused with 403 instead of being served.
+
+### Aurora Postgres Configuration Component ([#6300](https://github.com/webiny/webiny-js/pull/6300), [#6309](https://github.com/webiny/webiny-js/pull/6309))
+> ⏳ REVIEW-PENDING `@Pavel910`: confirm this entry, then delete this line.
+
+AWS Postgres projects now use `<Infra.AuroraPostgres />` instead of `<Infra.Postgres />`:
+
+```typescript
+<Infra.Vpc enabled={true} />
+<Infra.AuroraPostgres />
+
+// With RDS Proxy
+<Infra.AuroraPostgres rdsProxy />
+```
+
+The component handles Aurora cluster creation, CMS storage, and ACO folder catalog setup. Production deployments now keep 35 days of point-in-time restore (up from 7) and retain automated backups when the cluster is deleted.
+
+<Alert type="info">
+
+`<Infra.Postgres />` is now standalone-only and throws an error in AWS projects.
+
+</Alert>
+
+### Shared Pulumi CLI and Plugins Across Projects ([#6298](https://github.com/webiny/webiny-js/pull/6298))
+> ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
+
+The Pulumi CLI (~270 MB) and plugins (~970 MB) are now stored once per machine in `~/.webiny/pulumi` instead of per project. Multiple Webiny projects share the same binaries, reducing disk usage from about 1.2 GB per project to about 1.2 GB total. Existing `.webiny/pulumi-cli` folders can be deleted manually.
 
 ## Breaking Changes
 
@@ -1751,6 +1852,32 @@ CMS entry generation and Website Builder page generation now receive only the to
 > ⏳ REVIEW-PENDING `@adrians5j`: confirm this entry, then delete this line.
 
 The AI assistant mode of the command palette no longer shows the model name (like `claude-sonnet-5-5`) in the footer. The mode's tag next to the input already identifies the assistant, and the model name wasn't actionable. The footer now shows only keyboard hints.
+
+### Advanced Publishing Workflows ([#5973](https://github.com/webiny/webiny-js/pull/5973), [#6223](https://github.com/webiny/webiny-js/pull/6223), [#6296](https://github.com/webiny/webiny-js/pull/6296), [#6302](https://github.com/webiny/webiny-js/pull/6302), [#6321](https://github.com/webiny/webiny-js/pull/6321))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+A new workflows engine for content review and approval is available in Headless CMS and Website Builder. Features include:
+
+- People, Automation, and AI review steps with configurable routing rules
+- Review bar, dialogs, and details drawer for managing reviews
+- Content Reviews dashboard with live websocket updates
+- Notifications via email and in-app toasts
+- Trash and delete guards for content under review
+- Scheduled publishing blocked until review is approved
+
+### Security Hardening ([#6190](https://github.com/webiny/webiny-js/pull/6190), [#6183](https://github.com/webiny/webiny-js/pull/6183))
+> ⏳ REVIEW-PENDING `@brunozoric`: confirm this entry, then delete this line.
+
+This release includes security improvements across multiple areas:
+
+- Cookie authentication limited to private file delivery paths
+- GraphQL routes accept only `application/json` content type
+- Invalid authentication tokens return 401 instead of 500
+- Headless CMS "own entries" permission enforced on reads by ID
+- Private models hidden from generic queries and references
+- Permission checks added to scheduled publishing and bulk actions
+- File Manager settings require proper permissions
+- AI provider keys are never returned in API responses
 
 ## File Manager
 
